@@ -53,30 +53,39 @@ Installing Jags and PyJags is not as easy as other PPLs. Here is the procedure:
 ****Step 1: Install JAGS from source****
 
 1. Download JAGS from source forge:
+
     `wget [https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Source/JAGS-4.3.0.tar.gz](https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Source/JAGS-4.3.0.tar.gz)`
 2. Extract:
+
     `tar xvzf JAGS-4.3.0.tar.gz`
 3. Make:
-    ```
-    cd JAGS-4.3.0 \
-    ./configure \
-    make -j4 \
-    make install
-    ```
+
+    `cd JAGS-4.3.0`
+    
+    `./configure make -j4` 
+    
+    `make install`
+    
     note: you may need sudo privilege for this step
 
 ****Step 2: Installing PyJAGS****
 
 1. Use pip:
+
     `pip install pyjags`
 2. Build from source:
-    `git clone [https://github.com/SourabhKul/pyjags](https://github.com/SourabhKul/pyjags)
-    cd pyjags
-    pip install .`
 
-****Step 3: Installing JAGS from rpm file (**********only****** ******if********** JAGS built from source does not work; it probably won’t)****
+    `git clone [https://github.com/SourabhKul/pyjags](https://github.com/SourabhKul/pyjags)`
+    
+    `cd pyjags`
+    
+    `pip install .`
+
+****Step 3: Installing JAGS from rpm file (**only** **if** JAGS built from source does not work; it probably won’t)****
 
 1. Download the latest RPM file:
+
     `wget [http://download.opensuse.org/repositories/home:/cornell_vrdc/CentOS_7/x86_64/jags4-4.3.0-67.4.x86_64.rpm](http://download.opensuse.org/repositories/home:/cornell_vrdc/CentOS_7/x86_64/jags4-4.3.0-67.4.x86_64.rpm)`
 2. Install:
+
     `sudo rpm -i jags4-4.3.0-67.4.x86_64.rpm`
