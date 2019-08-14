@@ -1,0 +1,6 @@
+numpy==1.16.2
+matplotlib==3.0.3
+scipy==1.2.1
+pandas==0.24.2
+pyjags==1.2.2
+pystan==2.18.0.0
