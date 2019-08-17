@@ -149,9 +149,6 @@ def time_to_sample(ppl, module, runtime, data_train, args_dict, model=None):
 
     if args_dict["include_compile_time"] == "yes":
         runtime = runtime - timing_info["compile_time"]
-        if runtime <= 50:
-            print("ModelError:Target runtime too small; consider increasing it")
-            exit()
     time_for_300_samples = timing_info["inference_time"]
     args_dict[f"num_samples_{ppl}"] = 600
     _, timing_info = module.obtain_posterior(
@@ -163,6 +160,9 @@ def time_to_sample(ppl, module, runtime, data_train, args_dict, model=None):
         (600 - beta * time_for_600_samples) + (300 - beta * time_for_300_samples)
     )
     target_num_samples = int(alpha + beta * runtime)
+    if target_num_samples <= 0:
+        print("ModelError:Target runtime too small; consider increasing it")
+        exit(1)
     print(
         f"Inference requires {target_num_samples} samples"
         f" to run for {runtime} seconds"
