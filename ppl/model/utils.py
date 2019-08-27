@@ -4,9 +4,8 @@ from enum import Enum
 
 class Mode(Enum):
     """
-    stages/modes that an inference algorithm will go through
+    Stages/modes that a model will go through
     """
 
     INITIALIZE = 1
-    OBSERVE = 2
-    INFERENCE = 3
+    INFERENCE = 2

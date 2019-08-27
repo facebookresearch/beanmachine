@@ -8,7 +8,7 @@ import torch
 @dataclass
 class Variable(object):
     """
-    represents each random variable instantiation in the World:
+    Represents each random variable instantiation in the World:
 
     parameters are:
         distribution: the distribution from the variable is drawn from
@@ -34,7 +34,7 @@ class Variable(object):
      distribution=Bernoulli(probs: 0.8999999761581421,
                             logits: 2.1972243785858154),
      value=tensor(0.),
-     parent={(<function Model.foo at 0x7ff0bb6c0a60>, ())},
+     parent={RandomVariable(function=<function foo at 0x7fa9c87eabf8>, arguments=())},
      children=set(),
      log_prob=tensor(-2.3026)
     )
@@ -54,3 +54,15 @@ class Variable(object):
                     f"Expected {field.name} to be of {field.type}"
                     f", but got {repr(value)}"
                 )
+
+    def copy(self):
+        """
+        Makes a copy of self and returns it.
+        """
+        return Variable(
+            self.distribution,
+            self.value,
+            self.parent.copy(),
+            self.children.copy(),
+            self.log_prob,
+        )
