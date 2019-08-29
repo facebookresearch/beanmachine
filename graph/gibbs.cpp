@@ -90,6 +90,13 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
   }
   std::vector<AtomicValue> old_values = std::vector<AtomicValue>(nodes.size());
   assert(old_values.size() > 0);  // keep linter happy
+  // convert the smart pointers in nodes to dumb pointers in node_ptrs
+  // for faster access
+  std::vector<Node *> node_ptrs;
+  for (uint node_id = 0; node_id < nodes.size(); node_id++) {
+    node_ptrs.push_back(nodes[node_id].get());
+  }
+  assert(node_ptrs.size() > 0);  // keep linter happy
   // sampling outer loop
   for (uint snum = 0; snum < num_samples; snum++) {
     for (auto it = pool.begin(); it != pool.end(); ++it) {
@@ -116,16 +123,16 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
       // going to be affected when we change the value of the target node
       double old_logweight = 0;
       for (uint node_id : sto_nodes) {
-        const Node* node = nodes[node_id].get();
+        const Node* node = node_ptrs[node_id];
         old_logweight += node->log_prob();
       }
       // save the values of the deterministic descendants of the target node
       // as well the target node itself
       for (uint node_id : det_nodes) {
-        const Node* node = nodes[node_id].get();
+        const Node* node = node_ptrs[node_id];
         old_values[node_id] = node->value;
       }
-      Node* tgt_node = nodes[it->first].get();
+      Node* tgt_node = node_ptrs[it->first];
       old_values[it->first] = tgt_node->value;
       // propose a new value for the target node and update all the
       // deterministic children note: assuming only boolean values
@@ -135,14 +142,14 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
       }
       tgt_node->value._bool = not tgt_node->value._bool; // flip
       for (uint node_id : det_nodes) {
-        Node* node = nodes[node_id].get();
+        Node* node = node_ptrs[node_id];
         node->eval(gen);
       }
       // compute the probability of the stochastic nodes with the new value
       // of the target node
       double new_logweight = 0;
       for (uint node_id : sto_nodes) {
-        const Node* node = nodes[node_id].get();
+        const Node* node = node_ptrs[node_id];
         new_logweight += node->log_prob();
       }
       // compute logodds of keeping the current value
@@ -153,7 +160,7 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
         // all the deterministic decendants and the target node to original
         // values
         for (uint node_id : det_nodes) {
-          Node* node = nodes[node_id].get();
+          Node* node = node_ptrs[node_id];
           node->value = old_values[node_id];
         }
         tgt_node->value = old_values[it->first];
