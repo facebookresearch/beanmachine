@@ -21,7 +21,7 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
   // compute their descendants -- i.e. all stochastic non-observed nodes
   // that are in the support of the graph
   // pool : nodes that we will infer over -> det_desc, sto_desc
-  std::map<uint, std::tuple<std::list<uint>, std::list<uint>>> pool;
+  std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
   // cache_logodds : nodes that we will infer over -> log odds of not changing
   std::vector<double> cache_logodds = std::vector<double>(nodes.size());
   assert(cache_logodds.size() > 0);  // keep linter happy
@@ -52,7 +52,10 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
         det_nodes.erase(
             std::remove_if(det_nodes.begin(), det_nodes.end(), not_supp),
             det_nodes.end());
-        pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
+        // convert the std::list to std::vector for faster iteration
+        std::vector<uint> v1(det_nodes.begin(), det_nodes.end());
+        std::vector<uint> v2(sto_nodes.begin(), sto_nodes.end());
+        pool[node_id] = std::make_tuple(v1, v2);
         cache_logodds[node_id] = NAN; // nan => needs to be re-computed
         for (auto sto : sto_nodes) {
           if (inv_sto.find(sto) == inv_sto.end()) {
@@ -104,10 +107,10 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
       // children
       // the following dance of getting into a tuple is needed because this
       // version of C++ doesn't have structured bindings
-      std::tuple<const std::list<uint>&, const std::list<uint>&> tmp_tuple =
+      std::tuple<const std::vector<uint>&, const std::vector<uint>&> tmp_tuple =
           it->second;
-      const std::list<uint>& det_nodes = std::get<0>(tmp_tuple);
-      const std::list<uint>& sto_nodes = std::get<1>(tmp_tuple);
+      const std::vector<uint>& det_nodes = std::get<0>(tmp_tuple);
+      const std::vector<uint>& sto_nodes = std::get<1>(tmp_tuple);
       assert(it->first == sto_nodes.front());
       // now, compute the probability of all the stochastic nodes that are
       // going to be affected when we change the value of the target node
