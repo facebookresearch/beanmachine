@@ -26,8 +26,10 @@ class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
         )
         foo_key = model.foo()
         bar_key = model.bar()
-        mh.infer(10)
+        mh._infer(10)
 
+        # using _infer instead of infer, as world_ would be reset at the end
+        # infer
         self.assertEqual(foo_key in mh.world_.variables_, True)
         self.assertEqual(bar_key in mh.world_.variables_, True)
         self.assertEqual(foo_key in mh.world_.variables_[bar_key].parent, True)

@@ -56,7 +56,7 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change(self):
         model = self.SampleModel()
-        stack, world = StatisticalModel.initialize()
+        stack, world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         StatisticalModel.set_mode(Mode.INFERENCE)
@@ -94,7 +94,7 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change_with_parent_update_and_new_node(self):
         model = self.SampleModelWithParentUpdate()
-        stack, world = StatisticalModel.initialize()
+        stack, world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
@@ -142,7 +142,7 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change_with_multiple_parent_update(self):
         model = self.SampleLargeModelUpdate()
-        stack, world = StatisticalModel.initialize()
+        stack, world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
@@ -197,7 +197,7 @@ class WorldTest(unittest.TestCase):
         )
         self.assertEqual((baz_key) in world.diff_[bar_key].parent, True)
 
-        world.update_world()
+        world.accept_diff()
 
         expected_node_update = (
             dist.Normal(tensor(0.0), tensor(1.0))

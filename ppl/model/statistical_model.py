@@ -41,7 +41,7 @@ class StatisticalModel(object):
     __observe_vals_ = defaultdict()
 
     @staticmethod
-    def initialize():
+    def reset():
         """
         Initialize world and stack at the beginning of inference
         """

@@ -37,7 +37,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             node_func, node_args = node
             node_func._wrapper(*node_args)
 
-        self.world_.update_world()
+        self.world_.accept_diff()
 
     @abstractmethod
     def propose(self, node):
@@ -60,14 +60,17 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             threshold and rejects otherwise.
         """
         log_update = children_log_updates + node_log_update + proposal_log_update
+
         if log_update >= tensor(0.0):
-            self.world_.update_world()
+            self.world_.accept_diff()
         else:
             alpha = dist.Uniform(tensor(0.0), tensor(1.0)).sample().log()
             if log_update > alpha:
-                self.world_.update_world()
+                self.world_.accept_diff()
+            else:
+                self.world_.reject_diff()
 
-    def infer(self, num_samples):
+    def _infer(self, num_samples):
         """
         Run inference algorithms.
 
@@ -94,6 +97,5 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             for query in self.queries_:
                 query_func, query_args = query
                 queries_sample[query].append(query_func._wrapper(*query_args))
-            self.world_.update_world()
-
+            self.world_.accept_diff()
         return queries_sample

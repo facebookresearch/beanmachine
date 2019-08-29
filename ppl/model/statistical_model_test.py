@@ -57,7 +57,7 @@ class StatisticalModelTest(unittest.TestCase):
 
     def test_rv_sample_assignment(self):
         model = self.SampleModel()
-        stack, world = StatisticalModel.initialize()
+        stack, world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
@@ -102,7 +102,7 @@ class StatisticalModelTest(unittest.TestCase):
 
     def test_rv_sample_assignment_with_large_model_with_index(self):
         model = self.SampleLargeModel()
-        stack, world = StatisticalModel.initialize()
+        stack, world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()

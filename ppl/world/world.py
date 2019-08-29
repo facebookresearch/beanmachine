@@ -126,7 +126,7 @@ class World(object):
         """
         return self.variables_
 
-    def update_world(self):
+    def accept_diff(self):
         """
         If changes in a diff is accepted, world's variables_ are updated with
         their corrseponding diff_ value.
@@ -155,11 +155,17 @@ class World(object):
         var = self.variables_[node].copy()
         old_log_prob = var.log_prob
         var.value = proposed_value
-        var.log_prob = var.distribution.log_prob(proposed_value)
+        var.log_prob = var.distribution.log_prob(proposed_value).sum()
         self.diff_[node] = var
         node_log_update = var.log_prob - old_log_prob
         self.diff_log_update_ += node_log_update
         return node_log_update
+
+    def reject_diff(self):
+        """
+        Resets the diff_ to an empty dictionary, once a diff_ is rejected.
+        """
+        self.diff_ = defaultdict(Variable)
 
     def create_child_with_new_distributions(self, node, stack):
         """
@@ -179,8 +185,8 @@ class World(object):
         new_log_probs = tensor(0.0)
         for child in self.diff_[node].children.copy():
             child_func, child_args = child
+            old_log_probs += self.variables_[child].log_prob
             child_var = self.variables_[child].copy()
-            old_log_probs += child_var.log_prob
             child_var.parent = set()
             self.diff_[child] = child_var
             stack.append(child)
