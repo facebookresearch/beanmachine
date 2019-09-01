@@ -26,11 +26,8 @@ class AbstractInference(object, metaclass=ABCMeta):
         """
         Run inference algorithms and reset the world/mode at the end.
 
-        parameter is:
-            num_samples: number of samples to collect for the query.
-
-        returns:
-            samples for the query
+        :params num_samples: number of samples to collect for the query.
+        :returns: samples for the query
         """
         try:
             queries_sample = self._infer(num_samples)

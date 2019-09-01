@@ -53,21 +53,21 @@ class StatisticalModel(object):
     @staticmethod
     def get_stack():
         """
-        Returns __stack_
+        :returns: __stack_
         """
         return StatisticalModel.__stack_
 
     @staticmethod
     def get_world():
         """
-        Returns __world_
+        :returns: __world_
         """
         return StatisticalModel.__world_
 
     @staticmethod
     def get_mode():
         """
-        Returns __mode_
+        :returns: __mode_
         """
         return StatisticalModel.__mode_
 
@@ -75,13 +75,15 @@ class StatisticalModel(object):
     def set_mode(mode):
         """
         Update __mode_ to mode
+
+        :param mode: the mode to update the __mode_ to
         """
         StatisticalModel.__mode_ = mode
 
     @staticmethod
     def get_observations():
         """
-        Returns __observe_vals_
+        :returns: __observe_vals_
         """
         return StatisticalModel.__observe_vals_
 
@@ -89,20 +91,21 @@ class StatisticalModel(object):
     def set_observations(val):
         """
         Update __observe_vals_ to val
+
+        :param val: the value to set the __observe_vals_ to
         """
         StatisticalModel.__observe_vals_ = val
 
     @staticmethod
     def get_func_key(name, args):
         """
-        Creates a function signature.
+        Creates a key to uniquely identify the Random Variable.
 
-        parameters are:
-            name: function name
-            args: function arguments
+        :param name: function name
+        :param args: function arguments
 
-        returns:
-            tuple of name and argument which is to be used as function signature
+        :returns: tuple of name and argument which is to be used as function
+        identifier
         """
         return RandomVariable(function=name, arguments=args)
 

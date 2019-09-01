@@ -10,7 +10,7 @@ class Variable(object):
     """
     Represents each random variable instantiation in the World:
 
-    parameters are:
+    Its fields are:
         distribution: the distribution from the variable is drawn from
         value: a sample value drawn from the random variable distribution
                or the observation value
@@ -58,6 +58,8 @@ class Variable(object):
     def copy(self):
         """
         Makes a copy of self and returns it.
+
+        :returns: copy of self.
         """
         return Variable(
             self.distribution,

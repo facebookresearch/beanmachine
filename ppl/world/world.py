@@ -15,7 +15,7 @@ class World(object):
         init_world: the initial world from which the inference algorithm can
         start from. (helps us to support resumable inference)
 
-    parameters are:
+    holds:
         variables_: a dict of variables keyed with their function signature.
         log_prob_: joint log probability of the world
         diff_: it is a subset of the variables_ thats includes changes to the
@@ -24,7 +24,6 @@ class World(object):
                           log probability.
 
     for instance for model below:
-
 
     @sample
     def foo():
@@ -72,14 +71,20 @@ class World(object):
 
     def add_node_to_world(self, node, var):
         """
-        Add the node to the world. Since all updates are done through diff_, here
-        we will just update diff_.
+        Add the node to the world. Since all updates are done through diff_,
+        here we will just update diff_.
+
+        :param node: the node signature to be added to world
+        :param var: the variable to be added to the world for node
         """
         self.diff_[node] = var
 
     def update_diff_log_prob(self, node):
         """
         Adds the log update to diff_log_update_
+
+        :param node: updates the diff_log_update_ with the log_prob update of
+        the node
         """
         self.diff_log_update_ += self.diff_[node].log_prob - (
             self.variables_[node].log_prob if node in self.variables_ else tensor(0.0)
@@ -87,16 +92,12 @@ class World(object):
 
     def get_node_in_world(self, node):
         """
-        Get the node in the world, by first looking up diff_, if not available there
-        and it can find it in variables, it creates a copy of variables_ node into
-        diff_ and returns the new diff_ node and if not available in any, return
-        None
+        Get the node in the world, by first looking up diff_, if not available,
+        then it can be looked up in variables, while copying into diff_ and
+        returns the new diff_ node and if not available in any, returns None
 
-        parameters are:
-            node: node to be looked up in world
-
-        returns:
-            the corresponding node from the world
+        :param node: node to be looked up in world
+        :returns: the corresponding node from the world
         """
         if node in self.diff_:
             return self.diff_[node]
@@ -110,11 +111,8 @@ class World(object):
         Looks up both variables_ and diff_ and returns true if node is available
         in any of them, otherwise, returns false
 
-        parameters are:
-            node: node to be looked up in the world
-
-        returns:
-            true if found else false
+        :param node: node to be looked up in the world
+        :returns: true if found else false
         """
         if node in self.diff_ or node in self.variables_:
             return True
@@ -122,7 +120,7 @@ class World(object):
 
     def get_all_world_vars(self):
         """
-        Returns all variables in the world
+        :returns: all variables in the world
         """
         return self.variables_
 
@@ -143,13 +141,10 @@ class World(object):
         """
         Starts a diff with new value for node.
 
-        parameters are:
-            node: the node who has a new proposed value
-            proposed_value: the proposed value for node
-
-        returns:
-            difference of old and new log probability of the node after updating
-            the node value to the proposed value
+        :param node: the node who has a new proposed value
+        :param proposed_value: the proposed value for node
+        :returns: difference of old and new log probability of the node after
+        updating the node value to the proposed value
         """
         self.diff_ = defaultdict(Variable)
         var = self.variables_[node].copy()
@@ -163,7 +158,7 @@ class World(object):
 
     def reject_diff(self):
         """
-        Resets the diff_ to an empty dictionary, once a diff_ is rejected.
+        Resets the diff_ to an empty dictionary once the diff_ is rejected.
         """
         self.diff_ = defaultdict(Variable)
 
@@ -172,14 +167,11 @@ class World(object):
         Adds all node's children to diff_ and re-computes their distrbutions
         and log_prob
 
-        parameters are:
-            node: the node whose value was just updated to a proposed value and
-            thus its children's distributions are needed to be recomputed.
-            model: the statistical model
-
-        returns:
-            difference of old and new log probability of the immediate children
-            after updating the node value to the proposed value
+        :param node: the node whose value was just updated to a proposed value
+        and thus its children's distributions are needed to be recomputed.
+        :param stack: the inference stack
+        :returns: difference of old and new log probability of the immediate
+        children of the resampled node.
         """
         old_log_probs = tensor(0.0)
         new_log_probs = tensor(0.0)
@@ -203,15 +195,12 @@ class World(object):
         """
         Creates the diff for the proposed change
 
-        parameters are:
-            node: the node who has a new proposed value
-            proposed_value: the proposed value for node
-            propose_change: difference in old and newly proposed value log
-            model: statistical  model
-
-        returns:
-            difference of old and new log probability of node's children
-            difference of old and new log probability of world
+        :param node: the node who has a new proposed value
+        :param proposed_value: the proposed value for node
+        :param stack: the inference stack
+        :returns: difference of old and new log probability of node's children,
+        difference of old and new log probability of world, difference of old
+        and new log probability of node
         """
         node_log_update = self.start_diff_with_proposed_val(node, proposed_value)
         children_node_log_update = self.create_child_with_new_distributions(node, stack)

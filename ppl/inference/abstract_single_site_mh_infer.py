@@ -11,8 +11,8 @@ from beanmachine.ppl.model.utils import Mode
 
 class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
     """
-    Abstract inference object that all single-site inference algorithms inherit
-    from.
+    Abstract inference object that all single-site MH inference algorithms
+    inherit from.
     """
 
     def __init__(self, queries, observations):
@@ -43,10 +43,12 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
     def propose(self, node):
         """
         Abstract method to be implemented by classes that inherit from
-        AbstractSingleSiteMHInference.
+        AbstractSingleSiteMHInference. This implementation will include how the
+        inference algorithm proposes a new value for a given node.
 
-        this implementation will include how the inference algorithm proposes a
-        new value for a given node.
+        :param node: the node for which we'll need to propose a new value for.
+        :returns: a new proposed value for the node and the difference in log_prob
+        of the old and newly proposed value.
         """
         raise NotImplementedError("Inference algorithm must implement propose.")
 
@@ -55,9 +57,15 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
     ):
         """
         Accepts or rejects the change in the diff by setting a stochastic
-        threshold by drawing a sample from a Uniform distribution.
-            accepts the change if children's log_prob update is larger than this
-            threshold and rejects otherwise.
+        threshold by drawing a sample from a Uniform distribution. It accepts
+        the change if sum of all log_prob updates are larger than this threshold
+        and rejects otherwise.
+
+        :param node_log_update: log_prob update to the node that was resampled
+        from.
+        :param children_log_updates: log_prob updates of the immediate children
+        of the node that was resampled from.
+        :param proposal_log_update: log_prob update of the proposal
         """
         log_update = children_log_updates + node_log_update + proposal_log_update
 
@@ -74,11 +82,8 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         """
         Run inference algorithms.
 
-        parameter is:
-            num_samples: number of samples to collect for the query.
-
-        returns:
-            samples for the query
+        :param num_samples: number of samples to collect for the query.
+        :returns: samples for the query
         """
         self.initialize_world()
         queries_sample = defaultdict(list)
