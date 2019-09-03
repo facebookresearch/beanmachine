@@ -1,9 +1,9 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <folly/String.h>
 
-#include <beanmachine/graph/bernoulli.h>
-#include <beanmachine/graph/distribution.h>
-#include <beanmachine/graph/tabular.h>
+#include "bernoulli.h"
+#include "distribution.h"
+#include "tabular.h"
 
 namespace beanmachine {
 namespace distribution {

@@ -1,8 +1,8 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <folly/String.h>
 
-#include <beanmachine/graph/graph.h>
-#include <beanmachine/graph/operator.h>
+#include "graph.h"
+#include "operator.h"
 
 namespace beanmachine {
 namespace graph {

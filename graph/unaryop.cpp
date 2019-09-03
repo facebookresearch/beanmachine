@@ -3,7 +3,7 @@
 
 #include <folly/String.h>
 
-#include <beanmachine/graph/unaryop.h>
+#include "unaryop.h"
 
 namespace beanmachine {
 namespace oper {

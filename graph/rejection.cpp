@@ -1,5 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <beanmachine/graph/graph.h>
+#include "graph.h"
 
 namespace beanmachine {
 namespace graph {

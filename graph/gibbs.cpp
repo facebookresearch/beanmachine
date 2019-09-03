@@ -6,9 +6,9 @@
 
 #include <folly/String.h>
 
-#include <beanmachine/graph/distribution.h>
-#include <beanmachine/graph/graph.h>
-#include <beanmachine/graph/util.h>
+#include "distribution.h"
+#include "graph.h"
+#include "util.h"
 
 namespace beanmachine {
 namespace graph {

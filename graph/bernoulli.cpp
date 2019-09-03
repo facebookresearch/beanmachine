@@ -3,7 +3,7 @@
 
 #include <folly/String.h>
 
-#include <beanmachine/graph/bernoulli.h>
+#include "bernoulli.h"
 
 namespace beanmachine {
 namespace distribution {

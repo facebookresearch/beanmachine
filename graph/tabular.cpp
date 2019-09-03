@@ -4,8 +4,8 @@
 
 #include <folly/String.h>
 
-#include <beanmachine/graph/tabular.h>
-#include <beanmachine/graph/util.h>
+#include "tabular.h"
+#include "util.h"
 
 namespace beanmachine {
 namespace distribution {

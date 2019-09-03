@@ -4,9 +4,9 @@
 #include <gtest/gtest.h>
 #include <torch/torch.h>
 
-#include <beanmachine/graph/bernoulli.h>
-#include <beanmachine/graph/graph.h>
-#include <beanmachine/graph/tabular.h>
+#include "bernoulli.h"
+#include "graph.h"
+#include "tabular.h"
 
 using namespace ::testing;
 

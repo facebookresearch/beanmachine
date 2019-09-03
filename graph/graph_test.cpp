@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <torch/torch.h>
 
-#include <beanmachine/graph/graph.h>
+#include "graph.h"
 
 using namespace ::testing;
 

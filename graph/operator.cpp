@@ -3,10 +3,10 @@
 
 #include <folly/String.h>
 
-#include <beanmachine/graph/binaryop.h>
-#include <beanmachine/graph/distribution.h>
-#include <beanmachine/graph/operator.h>
-#include <beanmachine/graph/unaryop.h>
+#include "binaryop.h"
+#include "distribution.h"
+#include "operator.h"
+#include "unaryop.h"
 
 namespace beanmachine {
 namespace oper {
