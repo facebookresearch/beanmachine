@@ -2,6 +2,7 @@
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 
+import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference
@@ -86,7 +87,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         :returns: samples for the query
         """
         self.initialize_world()
-        queries_sample = defaultdict(list)
+        queries_sample = defaultdict()
         for _ in range(num_samples):
             for node in self.world_.get_all_world_vars():
                 if node in self.observations_:
@@ -101,6 +102,20 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                 )
             for query in self.queries_:
                 query_func, query_args = query
-                queries_sample[query].append(query_func._wrapper(*query_args))
+                # unsqueeze the sampled value tensor, which adds an extra dimension
+                # along which we'll be adding samples generated at each iteration
+                if query not in queries_sample:
+                    queries_sample[query] = query_func._wrapper(*query_args).unsqueeze(
+                        0
+                    )
+                else:
+                    queries_sample[query] = torch.cat(
+                        [
+                            queries_sample[query],
+                            query_func._wrapper(*query_args).unsqueeze(0),
+                        ],
+                        dim=0,
+                    )
             self.world_.accept_diff()
+
         return queries_sample
