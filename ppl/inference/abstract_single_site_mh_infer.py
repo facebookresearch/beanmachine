@@ -16,12 +16,15 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
     inherit from.
     """
 
-    def __init__(self, queries, observations):
-        super().__init__(queries, observations)
+    def __init__(self):
+        super().__init__()
 
     def initialize_world(self):
         """
         Initializes the world variables with queries and observation calls.
+
+        :param queries: random variables to query
+        :param observations: observed random variables with their values
         """
         StatisticalModel.set_observations(self.observations_)
         StatisticalModel.set_mode(Mode.INFERENCE)

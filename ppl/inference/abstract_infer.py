@@ -9,9 +9,7 @@ class AbstractInference(object, metaclass=ABCMeta):
     Abstract inference object that all inference algorithms inherit from.
     """
 
-    def __init__(self, queries, observations):
-        self.queries_ = queries
-        self.observations_ = observations
+    def __init__(self):
         self.reset()
 
     @abstractmethod
@@ -22,14 +20,18 @@ class AbstractInference(object, metaclass=ABCMeta):
         """
         raise NotImplementedError("Inference algorithm must implement _infer.")
 
-    def infer(self, num_samples):
+    def infer(self, queries, observations, num_samples):
         """
         Run inference algorithms and reset the world/mode at the end.
 
+        :param queries: random variables to query
+        :param observations: observed random variables with their values
         :params num_samples: number of samples to collect for the query.
         :returns: samples for the query
         """
         try:
+            self.queries_ = queries
+            self.observations_ = observations
             queries_sample = self._infer(num_samples)
         except BaseException as x:
             raise x
@@ -42,3 +44,5 @@ class AbstractInference(object, metaclass=ABCMeta):
         Resets world, mode and observation
         """
         self.stack_, self.world_ = StatisticalModel.reset()
+        self.queries_ = []
+        self.observations_ = {}

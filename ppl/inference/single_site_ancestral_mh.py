@@ -9,8 +9,8 @@ class SingleSiteAncestralMetropolisHastings(AbstractSingleSiteMHInference):
     Single-Site Ancestral Metropolis Hastings Implementations
     """
 
-    def __init__(self, queries, observations):
-        super().__init__(queries, observations)
+    def __init__(self):
+        super().__init__()
 
     def propose(self, node):
         """

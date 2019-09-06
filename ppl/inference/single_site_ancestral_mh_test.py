@@ -21,13 +21,12 @@ class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
 
     def test_single_site_ancestral_mh(self):
         model = self.SampleModel()
-        mh = SingleSiteAncestralMetropolisHastings(
-            [model.foo()], {model.bar(): torch.tensor(0.0)}
-        )
+        mh = SingleSiteAncestralMetropolisHastings()
         foo_key = model.foo()
         bar_key = model.bar()
+        mh.queries_ = [model.foo()]
+        mh.observations_ = {model.bar(): torch.tensor(0.0)}
         mh._infer(10)
-
         # using _infer instead of infer, as world_ would be reset at the end
         # infer
         self.assertEqual(foo_key in mh.world_.variables_, True)

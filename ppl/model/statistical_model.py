@@ -48,6 +48,7 @@ class StatisticalModel(object):
         StatisticalModel.__stack_ = []
         StatisticalModel.__world_ = World()
         StatisticalModel.__mode_ = Mode.INITIALIZE
+        StatisticalModel.__observe_vals_ = defaultdict()
         return StatisticalModel.__stack_, StatisticalModel.__world_
 
     @staticmethod
