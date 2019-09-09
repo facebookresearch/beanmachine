@@ -109,7 +109,7 @@ TEST(testgraph, infer_arithmetic) {
   g.query(o1);
   std::vector<std::vector<graph::AtomicValue>> samples =
       g.infer(100, graph::InferenceType::GIBBS);
-  uint sum = 0;
+  int sum = 0;
   for (const auto& sample : samples) {
     const auto& s = sample.front();
     ASSERT_EQ(s.type, graph::AtomicType::BOOLEAN);
@@ -118,6 +118,10 @@ TEST(testgraph, infer_arithmetic) {
   // less than 1 in million odds of failing these tests with correct infer
   EXPECT_LT(sum, 75);
   EXPECT_GT(sum, 25);
+  // infer_mean should give almost exactly the same answer
+  std::vector<double> means = g.infer_mean(100, graph::InferenceType::GIBBS);
+  EXPECT_TRUE(std::abs(sum - int(means[0]*100)) <= 1);
+  // repeat the test with rejection sampling
   std::vector<std::vector<graph::AtomicValue>> samples2 =
       g.infer(100, graph::InferenceType::REJECTION);
   sum = 0;
@@ -128,6 +132,10 @@ TEST(testgraph, infer_arithmetic) {
   }
   EXPECT_LT(sum, 75);
   EXPECT_GT(sum, 25);
+  // infer_mean should give the same answer
+  std::vector<double> means2 = g.infer_mean(
+    100, graph::InferenceType::REJECTION);
+  EXPECT_TRUE(std::abs(sum - int(means2[0]*100)) <= 1);
 }
 
 TEST(testgraph, infer_bn) {

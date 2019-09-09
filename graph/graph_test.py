@@ -139,6 +139,8 @@ class TestBayesNet(unittest.TestCase):
         samples = g.infer(1)
         self.assertTrue(samples[0][0].type == graph.AtomicType.BOOLEAN)
         self.assertTrue(samples[0][0].bool)
+        means = g.infer_mean(1)
+        self.assertEqual(len(means), 1, "exactly one node queried")
 
     def _create_graph(self):
         g = graph.Graph()
@@ -215,3 +217,24 @@ class TestBayesNet(unittest.TestCase):
         # since we have observed grass wet is true the query should be true
         self.assertTrue(samples[0][1].type == graph.AtomicType.BOOLEAN)
         self.assertTrue(samples[0][1].bool)
+
+    def test_infer_mean(self):
+        g = graph.Graph()
+        c1 = g.add_constant(0.5)
+        op1 = g.add_operator(graph.OperatorType.ADD, [c1, c1])
+        d1 = g.add_distribution(
+            graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [op1]
+        )
+        op2 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
+        g.query(op1)
+        g.query(op2)
+        means = g.infer_mean(100)
+        self.assertAlmostEqual(means[0], 1.0)
+        self.assertAlmostEqual(means[1], 1.0)
+        # negative test, don't support aggregating tensors
+        c2 = g.add_constant(torch.tensor(0.5))
+        op2 = g.add_operator(graph.OperatorType.ADD, [c2, c2])
+        g.query(op2)
+        with self.assertRaises(RuntimeError):
+            g.infer_mean(100)
+        g.infer(100)  # infer should be fine though

@@ -174,26 +174,68 @@ uint Graph::query(uint node_id) {
 
 void Graph::collect_sample() {
   // construct a sample of the queried nodes
-  std::vector<AtomicValue> sample;
-  for (uint node_id : queries) {
-    sample.push_back(nodes[node_id]->value);
+  if (agg_type == AggregationType::NONE) {
+    std::vector<AtomicValue> sample;
+    for (uint node_id : queries) {
+      sample.push_back(nodes[node_id]->value);
+    }
+    samples.push_back(sample);
   }
-  samples.push_back(sample);
+  else if (agg_type == AggregationType::MEAN) {
+    uint pos = 0;
+    for (uint node_id : queries) {
+      AtomicValue value = nodes[node_id]->value;
+      if (value.type == AtomicType::BOOLEAN) {
+        means[pos] += double(value._bool);
+      }
+      else if (value.type == AtomicType::REAL) {
+        means[pos] += value._double;
+      }
+      else {
+        throw std::runtime_error("Mean aggregation only supported for "
+          "boolean- and real-valued nodes");
+      }
+      pos++;
+    }
+  }
+  else {
+    assert(false);
+  }
 }
 
-std::vector<std::vector<AtomicValue>>&
-Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
+void Graph::_infer(uint num_samples, InferenceType algorithm, uint seed) {
   if (queries.size() == 0) {
     throw std::runtime_error("no nodes queried for inference");
   }
+  if (num_samples < 1) {
+    throw std::runtime_error("num_samples can't be zero");
+  }
   std::mt19937 generator(seed);
-  samples.clear();
   if (algorithm == InferenceType::REJECTION) {
     rejection(num_samples, generator);
   } else if (algorithm == InferenceType::GIBBS) {
     gibbs(num_samples, generator);
   }
+}
+
+std::vector<std::vector<AtomicValue>>&
+Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
+  agg_type = AggregationType::NONE;
+  samples.clear();
+  _infer(num_samples, algorithm, seed);
   return samples;
+}
+
+std::vector<double>&
+Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
+  agg_type = AggregationType::MEAN;
+  means.clear();
+  means.resize(queries.size(), 0.0);
+  _infer(num_samples, algorithm, seed);
+  for (uint i=0; i<means.size(); i++) {
+    means[i] /= num_samples;
+  }
+  return means;
 }
 
 } // namespace graph

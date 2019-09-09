@@ -111,6 +111,13 @@ PYBIND11_MODULE(graph, module) {
           py::arg("val"))
       .def("query", &Graph::query, "query a node", py::arg("node_id"))
       .def(
+          "infer_mean",
+          &Graph::infer_mean,
+          "infer the posterior mean of the queried nodes",
+          py::arg("num_samples"),
+          py::arg("algorithm") = InferenceType::GIBBS,
+          py::arg("seed") = 5123401)
+      .def(
           "infer",
           &Graph::infer,
           "infer the empirical distribution of the queried nodes",

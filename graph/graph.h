@@ -62,6 +62,8 @@ enum class NodeType {
 
 enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS };
 
+enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN};
+
 class Node {
  public:
   NodeType node_type;
@@ -113,6 +115,8 @@ struct Graph {
   uint query(uint var); // returns the index of the query in the samples
   std::vector<std::vector<AtomicValue>>&
   infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  std::vector<double>&
+  infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   std::set<uint> compute_support();
   std::tuple<std::list<uint>, std::list<uint>> compute_descendants(
       uint node_id);
@@ -121,6 +125,7 @@ struct Graph {
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
   Node* check_node(uint node_id, NodeType node_type);
+  void _infer(uint num_samples, InferenceType algorithm, uint seed);
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
   std::set<uint> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a
@@ -129,6 +134,8 @@ struct Graph {
   std::vector<uint> queries; // list of queried nodenums
   std::set<uint> queried; // set of queried nodes
   std::vector<std::vector<AtomicValue>> samples;
+  std::vector<double> means;
+  AggregationType agg_type;
   void collect_sample();
   void rejection(uint num_samples, std::mt19937& gen);
   void gibbs(uint num_samples, std::mt19937& gen);
