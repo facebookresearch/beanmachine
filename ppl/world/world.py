@@ -65,9 +65,12 @@ class World(object):
 
     def __init__(self, init_world_log_prob=None, init_world_dict=None):
         self.variables_ = defaultdict(Variable)
-        self.diff_ = defaultdict(Variable)
         self.log_prob_ = tensor(0.0)
-        self.diff_log_update_ = tensor(0.0)
+        self.observations_ = defaultdict()
+        self.reset_diff()
+
+    def set_observations(self, val):
+        self.observations_ = val
 
     def add_node_to_world(self, node, var):
         """
@@ -90,20 +93,26 @@ class World(object):
             self.variables_[node].log_prob if node in self.variables_ else tensor(0.0)
         )
 
-    def get_node_in_world(self, node):
+    def get_node_in_world(self, node, to_be_copied=True):
         """
         Get the node in the world, by first looking up diff_, if not available,
-        then it can be looked up in variables, while copying into diff_ and
-        returns the new diff_ node and if not available in any, returns None
+        then it can be looked up in variables_, while copying into diff_ and
+        returns the new diff_ node (if to_be_copied is true, if not returns
+        node's variable in variables_) and if not available in any, returns None
 
         :param node: node to be looked up in world
+        :param to_be_copied: a flag to determine whether add the new node to
+        diff_ and start tracking its changes or not.
         :returns: the corresponding node from the world
         """
         if node in self.diff_:
             return self.diff_[node]
         elif node in self.variables_:
-            self.diff_[node] = self.variables_[node].copy()
-            return self.diff_[node]
+            if to_be_copied:
+                self.diff_[node] = self.variables_[node].copy()
+                return self.diff_[node]
+            else:
+                return self.variables_[node]
         return None
 
     def contains_in_world(self, node):
@@ -130,12 +139,21 @@ class World(object):
         their corrseponding diff_ value.
         """
         for node in self.diff_:
-            var = self.diff_[node]
-            self.variables_[node] = var
+            self.variables_[node] = self.diff_[node]
 
+        for node in self.is_delete_:
+            if self.is_delete_[node]:
+                del self.variables_[node]
         self.log_prob_ += self.diff_log_update_
+        self.reset_diff()
+
+    def reset_diff(self):
+        """
+        Resets the diff
+        """
         self.diff_ = defaultdict(Variable)
         self.diff_log_update_ = tensor(0.0)
+        self.is_delete_ = defaultdict(bool)
 
     def start_diff_with_proposed_val(self, node, proposed_value):
         """
@@ -160,7 +178,46 @@ class World(object):
         """
         Resets the diff_ to an empty dictionary once the diff_ is rejected.
         """
-        self.diff_ = defaultdict(Variable)
+        self.reset_diff()
+
+    def update_children_parents(self, node):
+        """
+        Update the parents that the child no longer depends on.
+
+        :param node: the node whose parents are being evaluated.
+        """
+        for child in self.diff_[node].children.copy():
+            if child not in self.variables_:
+                continue
+
+            old_parents = (
+                self.variables_[child].parent if child in self.variables_ else set()
+            )
+            new_parents = self.diff_[child].parent
+
+            dropped_parents = old_parents - new_parents
+
+            for parent in dropped_parents:
+                parent_var = self.get_node_in_world(parent)
+                parent_var.children.remove(child)
+                if len(parent_var.children) != 0 or parent in self.observations_:
+                    continue
+
+                self.is_delete_[parent] = True
+                self.diff_log_update_ -= self.variables_[parent].log_prob
+
+                ancestors = [(parent, x) for x in parent_var.parent]
+                while len(ancestors) > 0:
+                    ancestor_child, ancestor = ancestors.pop(0)
+                    ancestor_var = self.get_node_in_world(ancestor)
+                    ancestor_var.children.remove(ancestor_child)
+                    if (
+                        len(ancestor_var.children) == 0
+                        and ancestor not in self.observations_
+                    ):
+                        self.is_delete_[ancestor] = True
+                        self.diff_log_update_ -= self.variables_[ancestor].log_prob
+                        ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
 
     def create_child_with_new_distributions(self, node, stack):
         """
@@ -173,21 +230,25 @@ class World(object):
         :returns: difference of old and new log probability of the immediate
         children of the resampled node.
         """
-        old_log_probs = tensor(0.0)
-        new_log_probs = tensor(0.0)
-        for child in self.diff_[node].children.copy():
+        old_log_probs = defaultdict()
+        new_log_probs = defaultdict()
+        for child in self.variables_[node].children:
             child_func, child_args = child
-            old_log_probs += self.variables_[child].log_prob
-            child_var = self.variables_[child].copy()
+            child_var = self.get_node_in_world(child)
+            old_log_probs[child] = child_var.log_prob
             child_var.parent = set()
-            self.diff_[child] = child_var
             stack.append(child)
             child_var.distribution = child_func(*child_args)
             stack.pop()
             child_var.log_prob = child_var.distribution.log_prob(child_var.value).sum()
-            new_log_probs += child_var.log_prob
+            new_log_probs[child] = child_var.log_prob
 
-        children_log_update = new_log_probs - old_log_probs
+        self.update_children_parents(node)
+
+        children_log_update = tensor(0.0)
+        for node in old_log_probs:
+            if node in new_log_probs and not self.is_delete_[node]:
+                children_log_update += new_log_probs[node] - old_log_probs[node]
         self.diff_log_update_ += children_log_update
         return children_log_update
 

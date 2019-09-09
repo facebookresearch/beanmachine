@@ -95,6 +95,7 @@ class StatisticalModel(object):
 
         :param val: the value to set the __observe_vals_ to
         """
+        StatisticalModel.__world_.set_observations(val)
         StatisticalModel.__observe_vals_ = val
 
     @staticmethod

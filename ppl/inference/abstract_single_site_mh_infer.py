@@ -92,8 +92,10 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         self.initialize_world()
         queries_sample = defaultdict()
         for _ in range(num_samples):
-            for node in self.world_.get_all_world_vars():
+            for node in self.world_.get_all_world_vars().copy():
                 if node in self.observations_:
+                    continue
+                if not self.world_.contains_in_world(node):
                     continue
                 proposed_value, proposal_log_update = self.propose(node)
 
