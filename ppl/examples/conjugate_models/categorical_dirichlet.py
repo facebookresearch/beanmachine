@@ -9,7 +9,6 @@ class CategoricalDirichletModel(object):
 
     @sample
     def dirichlet(self):
-        print(self.alpha_)
         return dist.Dirichlet(self.alpha_)
 
     @sample

@@ -21,7 +21,7 @@ class SingleSiteAncestralMetropolisHastings(AbstractSingleSiteMHInference):
         :returns: a new proposed value for the node and the difference in log_prob
         of the old and newly proposed value.
         """
-        node = self.world_.get_node_in_world(node)
+        node = self.world_.get_node_in_world(node, False)
         new_value = node.distribution.sample()
         proposal_log_update = (
             node.log_prob - node.distribution.log_prob(new_value).sum()
