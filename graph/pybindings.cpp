@@ -122,7 +122,7 @@ PYBIND11_MODULE(graph, module) {
           &Graph::infer,
           "infer the empirical distribution of the queried nodes",
           py::arg("num_samples"),
-          py::arg("algorithm") = InferenceType::REJECTION,
+          py::arg("algorithm") = InferenceType::GIBBS,
           py::arg("seed") = 5123401);
 }
 
