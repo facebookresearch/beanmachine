@@ -39,7 +39,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
         mh = SingleSiteAncestralMetropolisHastings()
         predictions = mh.infer(queries, observations, 8000)
         mean, _ = self.compute_statistics(predictions[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)
+        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.2)
 
     def test_normal_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for
