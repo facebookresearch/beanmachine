@@ -4,8 +4,6 @@
 #include <random>
 #include <vector>
 
-#include <folly/String.h>
-
 #include <beanmachine/graph/distribution.h>
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/util.h>

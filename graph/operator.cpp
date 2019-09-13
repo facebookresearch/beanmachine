@@ -1,8 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include <folly/String.h>
-
 #include <beanmachine/graph/binaryop.h>
 #include <beanmachine/graph/distribution.h>
 #include <beanmachine/graph/operator.h>
@@ -40,24 +38,24 @@ Operator::Operator(
     case graph::OperatorType::NEGATE:
     case graph::OperatorType::EXP: {
       if (in_nodes.size() != 1) {
-        throw std::invalid_argument(folly::stringPrintf(
-            "expecting exactly a single parent for unary operator %d",
-            static_cast<int>(op_type)));
+        throw std::invalid_argument(
+          "expecting exactly a single parent for unary operator "
+          + std::to_string(static_cast<int>(op_type)));
       }
       break;
     }
     case graph::OperatorType::MULTIPLY:
     case graph::OperatorType::ADD: {
       if (in_nodes.size() < 2) {
-        throw std::invalid_argument(folly::stringPrintf(
-            "expecting at least two parents for operator %d",
-            static_cast<int>(op_type)));
+        throw std::invalid_argument(
+          "expecting at least two parents for operator "
+          + std::to_string(static_cast<int>(op_type)));
       }
       break;
     }
     default: {
-      throw std::invalid_argument(folly::stringPrintf(
-          "Unknown operator %d", static_cast<int>(op_type)));
+      throw std::invalid_argument(
+        "Unknown operator " + std::to_string(static_cast<int>(op_type)));
     }
   }
 }
@@ -92,10 +90,10 @@ void Operator::eval(std::mt19937& gen) {
       break;
     }
     default: {
-      throw std::runtime_error(folly::stringPrintf(
-          "internal error: unexpected operator type %d at node_id %u",
-          static_cast<int>(op_type),
-          index));
+      throw std::runtime_error(
+        "internal error: unexpected operator type "
+        + std::to_string(static_cast<int>(op_type))
+        + " at node_id " + std::to_string(index));
     }
   }
 }

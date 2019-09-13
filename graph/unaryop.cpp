@@ -1,8 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include <folly/String.h>
-
 #include <beanmachine/graph/unaryop.h>
 
 namespace beanmachine {
@@ -21,10 +19,9 @@ void to_real(graph::Node* node) {
     node->value.type = graph::AtomicType::TENSOR;
     node->value._tensor = parent._tensor.toType(torch::kDouble);
   } else {
-    throw std::runtime_error(folly::stringPrintf(
-        "invalid parent type %d for TO_REAL operator at node_id %u",
-        static_cast<int>(parent.type),
-        node->index));
+    throw std::runtime_error(
+      "invalid parent type " + std::to_string(static_cast<int>(parent.type))
+      + " for TO_REAL operator at node_id " + std::to_string(node->index));
   }
 }
 
@@ -41,10 +38,9 @@ void negate(graph::Node* node) {
     node->value.type = graph::AtomicType::TENSOR;
     node->value._tensor = parent._tensor.neg();
   } else {
-    throw std::runtime_error(folly::stringPrintf(
-        "invalid parent type %d for NEGATE operator at node_id %u",
-        static_cast<int>(parent.type),
-        node->index));
+    throw std::runtime_error(
+      "invalid parent type " + std::to_string(static_cast<int>(parent.type))
+      + " for NEGATE operator at node_id " + std::to_string(node->index));
   }
 }
 
@@ -58,10 +54,9 @@ void exp(graph::Node* node) {
     node->value.type = graph::AtomicType::TENSOR;
     node->value._tensor = parent._tensor.exp();
   } else {
-    throw std::runtime_error(folly::stringPrintf(
-        "invalid parent type %d for EXP operator at node_id %u",
-        static_cast<int>(parent.type),
-        node->index));
+    throw std::runtime_error(
+      "invalid parent type " + std::to_string(static_cast<int>(parent.type))
+      + " for EXP operator at node_id " + std::to_string(node->index));
   }
 }
 

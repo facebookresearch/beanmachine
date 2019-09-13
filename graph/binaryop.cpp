@@ -1,8 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include <folly/String.h>
-
 #include <beanmachine/graph/binaryop.h>
 
 namespace beanmachine {
@@ -18,10 +16,10 @@ void multiply(graph::Node* node) {
     for (int i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::REAL) {
-        throw std::runtime_error(folly::stringPrintf(
-            "invalid type %d for MULTIPLY operator at node_id %u parent",
-            static_cast<int>(parenti.type),
-            node->index));
+        throw std::runtime_error("invalid type "
+          + std::to_string(static_cast<int>(parenti.type))
+          + "for MULTIPLY operator at node_id "
+          + std::to_string(node->index) + " parent");
       } else {
         node->value._double *= parenti._double;
       }
@@ -32,19 +30,19 @@ void multiply(graph::Node* node) {
     for (int i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::TENSOR) {
-        throw std::runtime_error(folly::stringPrintf(
-            "invalid type %d for MULTIPLY operator at node_id %u parent",
-            static_cast<int>(parenti.type),
-            node->index));
+        throw std::runtime_error(
+            "invalid type " + std::to_string(static_cast<int>(parenti.type))
+            + " for MULTIPLY operator at node_id "
+            + std::to_string(node->index) + " parent");
       } else {
         node->value._tensor.mul_(parenti._tensor);
       }
     }
   } else {
-    throw std::runtime_error(folly::stringPrintf(
-        "invalid type %d for MULTIPLY operator at node_id %u",
-        static_cast<int>(parent0.type),
-        node->index));
+    throw std::runtime_error(
+      "invalid type " + std::to_string(static_cast<int>(parent0.type))
+      + " for MULTIPLY operator at node_id "
+      + std::to_string(node->index));
   }
 }
 
@@ -58,10 +56,10 @@ void add(graph::Node* node) {
     for (int i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::REAL) {
-        throw std::runtime_error(folly::stringPrintf(
-            "invalid type %d for ADD operator at node_id %u parent",
-            static_cast<int>(parenti.type),
-            node->index));
+        throw std::runtime_error(
+          "invalid type " + std::to_string(static_cast<int>(parenti.type))
+          + " for ADD operator at node_id "
+          + std::to_string(node->index) + " parent");
       } else {
         node->value._double += parenti._double;
       }
@@ -72,19 +70,19 @@ void add(graph::Node* node) {
     for (int i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::TENSOR) {
-        throw std::runtime_error(folly::stringPrintf(
-            "invalid type %d for ADD operator at node_id %u parent",
-            static_cast<int>(parenti.type),
-            node->index));
+        throw std::runtime_error(
+          "invalid type " + std::to_string(static_cast<int>(parenti.type))
+          + " for ADD operator at node_id "
+          + std::to_string(node->index) + " parent");
       } else {
         node->value._tensor.add_(parenti._tensor);
       }
     }
   } else {
-    throw std::runtime_error(folly::stringPrintf(
-        "invalid type %d for ADD operator at node_id %u",
-        static_cast<int>(parent0.type),
-        node->index));
+    throw std::runtime_error(
+      "invalid type " + std::to_string(static_cast<int>(parent0.type))
+      + " for ADD operator at node_id "
+      + std::to_string(node->index));
   }
 }
 

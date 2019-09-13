@@ -1,6 +1,4 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <folly/String.h>
-
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/operator.h>
 
@@ -46,8 +44,9 @@ std::tuple<std::list<uint>, std::list<uint>> Graph::compute_descendants(
     uint root_id) {
   // check for the validity of root_id since this method is not private
   if (root_id >= nodes.size()) {
-    throw std::out_of_range(folly::stringPrintf(
-        "node_id (%u) must be less than %lu", root_id, nodes.size()));
+    throw std::out_of_range(
+      "node_id (" + std::to_string(root_id)
+      + ") must be less than " + std::to_string(nodes.size()));
   }
   std::list<uint> det_desc;
   std::list<uint> sto_desc;

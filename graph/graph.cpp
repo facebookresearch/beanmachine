@@ -2,8 +2,6 @@
 #include <random>
 #include <sstream>
 
-#include <folly/String.h>
-
 #include <beanmachine/graph/distribution.h>
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/operator.h>
@@ -60,8 +58,9 @@ std::vector<Node*> Graph::convert_parent_ids(
   std::vector<Node*> parent_nodes;
   for (uint paridx : parent_ids) {
     if (paridx >= nodes.size()) {
-      throw std::out_of_range(folly::stringPrintf(
-          "parent node_id (%u) must be less than %lu", paridx, nodes.size()));
+      throw std::out_of_range(
+          "parent node_id " + std::to_string(paridx)
+          + "must be less than " + std::to_string(nodes.size()));
     }
     parent_nodes.push_back(nodes[paridx].get());
   }
@@ -81,16 +80,17 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
 
 Node* Graph::check_node(uint node_id, NodeType node_type) {
   if (node_id >= nodes.size()) {
-    throw std::out_of_range(folly::stringPrintf(
-        "node_id (%u) must be less than %lu", node_id, nodes.size()));
+    throw std::out_of_range(
+        "node_id (" + std::to_string(node_id) + ") must be less than "
+        + std::to_string(nodes.size()));
   }
   Node* node = nodes[node_id].get();
   if (node->node_type != node_type) {
-    throw std::invalid_argument(folly::stringPrintf(
-        "node_id %u expected type %d but actual type %d",
-        node_id,
-        static_cast<int>(node_type),
-        static_cast<int>(node->node_type)));
+    throw std::invalid_argument(
+      "node_id " + std::to_string(node_id) + "expected type "
+      + std::to_string(static_cast<int>(node_type))
+      + " but actual type "
+      + std::to_string(static_cast<int>(node->node_type)));
   }
   return node;
 }
@@ -155,7 +155,7 @@ void Graph::observe(uint node_id, AtomicValue value) {
   }
   if (observed.find(node_id) != observed.end()) {
     throw std::invalid_argument(
-        folly::stringPrintf("duplicate observe for node_id %u", node_id));
+      "duplicate observe for node_id " + std::to_string(node_id));
   }
   node->value = value;
   observed.insert(node_id);
@@ -165,7 +165,7 @@ uint Graph::query(uint node_id) {
   check_node(node_id, NodeType::OPERATOR);
   if (queried.find(node_id) != queried.end()) {
     throw std::invalid_argument(
-        folly::stringPrintf("duplicate query for node_id %u", node_id));
+      "duplicate query for node_id " + std::to_string(node_id));
   }
   queries.push_back(node_id);
   queried.insert(node_id);

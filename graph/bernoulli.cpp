@@ -1,8 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include <folly/String.h>
-
 #include <beanmachine/graph/bernoulli.h>
 
 namespace beanmachine {

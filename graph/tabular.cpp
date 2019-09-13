@@ -2,8 +2,6 @@
 #include <cmath>
 #include <random>
 
-#include <folly/String.h>
-
 #include <beanmachine/graph/tabular.h>
 #include <beanmachine/graph/util.h>
 
@@ -35,10 +33,10 @@ Tabular::Tabular(
   // we need one dimension for each parent excluding the first tensor parent
   // and one for the output
   if (sizes.size() != in_nodes.size()) {
-    throw std::invalid_argument(folly::stringPrintf(
-        "Tabular distribution's tensor argument expected %lu dims got %lu",
-        in_nodes.size(),
-        sizes.size()));
+    throw std::invalid_argument(
+      "Tabular distribution's tensor argument expected "
+      + std::to_string(in_nodes.size())
+      + " dims got " + std::to_string(sizes.size()));
   }
   // since only boolean sample types are currently supported the last dimension
   // of the matrix must be 2
@@ -70,8 +68,9 @@ double Tabular::get_probability() const {
   for (int i = 1; i < in_nodes.size(); i++) {
     const auto& parenti = in_nodes[i]->value;
     if (parenti.type != graph::AtomicType::BOOLEAN) {
-      throw std::runtime_error(folly::stringPrintf(
-          "Tabular distribution at node_id %u expects boolean parents", index));
+      throw std::runtime_error(
+        "Tabular distribution at node_id " + std::to_string(index) +
+        " expects boolean parents");
     }
     parents.push_back(torch::scalar_tensor((long)parenti._bool, torch::kLong));
   }
@@ -79,8 +78,9 @@ double Tabular::get_probability() const {
   assert(in_nodes[0]->value.type == graph::AtomicType::TENSOR);
   double prob = in_nodes[0]->value._tensor.index(parents).item<double>();
   if (prob < 0 or prob > 1) {
-    throw std::runtime_error(folly::stringPrintf(
-        "unexpected probability %f in Tabular node_id %d", prob, index));
+    throw std::runtime_error(
+      "unexpected probability " + std::to_string(prob)
+      + " in Tabular node_id " + std::to_string(index));
   }
   return prob;
 }
@@ -94,10 +94,10 @@ graph::AtomicValue Tabular::sample(std::mt19937& gen) const {
 double Tabular::log_prob(const graph::AtomicValue& value) const {
   double prob_true = get_probability();
   if (value.type != graph::AtomicType::BOOLEAN) {
-    throw std::runtime_error(folly::stringPrintf(
-        "expecting boolean value in child of Tabular node_id %d got type %d",
-        index,
-        static_cast<int>(value.type)));
+    throw std::runtime_error(
+      "expecting boolean value in child of Tabular node_id "
+      + std::to_string(index)
+      + " got type " + std::to_string(static_cast<int>(value.type)));
   }
   return value._bool ? std::log(prob_true) : std::log(1 - prob_true);
 }

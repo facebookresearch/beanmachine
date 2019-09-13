@@ -1,6 +1,4 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <folly/String.h>
-
 #include <beanmachine/graph/bernoulli.h>
 #include <beanmachine/graph/distribution.h>
 #include <beanmachine/graph/tabular.h>
@@ -24,8 +22,8 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
   } else if (dist_type == graph::DistributionType::BERNOULLI) {
     return std::make_unique<Bernoulli>(sample_type, in_nodes);
   }
-  throw std::invalid_argument(folly::stringPrintf(
-      "Unknown distribution %d", static_cast<int>(dist_type)));
+  throw std::invalid_argument(
+      "Unknown distribution " + std::to_string(static_cast<int>(dist_type)));
 }
 
 } // namespace distribution
