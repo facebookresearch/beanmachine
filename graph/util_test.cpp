@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include <beanmachine/graph/util.h>
+#include "beanmachine/graph/util.h"
 
 using namespace ::testing;
 
