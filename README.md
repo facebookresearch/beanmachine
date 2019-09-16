@@ -7,13 +7,10 @@ Bean Machine Graph is a C++-based library for statistical inference over stochas
 
 Bean Machine PPL is a probabilistic programming language for inference over statistical models written in the Python language using a declarative syntax.
 
-## Build
+## Developing Bean Machine
 
-Clone https://github.com/facebookincubator/BeanMachine.git
-
-cd beanmachine
-
-./build/fbcode_builder/getdeps.py build beanmachine
-
-If running from inside Facebook as a VM, use the following command.
-sudo http_proxy=http://fwdproxy:8080 https_proxy=http://fwdproxy:8080 ./build/fbcode_builder/getdeps.py build beanmachine
+    git clone https://github.com/facebookincubator/BeanMachine.git
+    cd BeanMachine
+    pip install torch
+    ln -s ${PWD}/graph beanmachine/
+    pip install -e .[dev]

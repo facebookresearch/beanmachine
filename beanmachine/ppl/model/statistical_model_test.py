@@ -13,6 +13,10 @@ from beanmachine.ppl.model.utils import Mode
 
 
 class StatisticalModelTest(unittest.TestCase):
+    def tearDown(self):
+        # reset the StatisticalModel to prevent subsequent tests from failing
+        StatisticalModel.reset()
+
     class SampleModel(object):
         @sample
         def foo(self):

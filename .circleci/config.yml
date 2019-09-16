@@ -1,0 +1,70 @@
+version: 2.1
+
+commands:
+
+  pip_dev_install:
+    description: "Install beanmachine[dev] & dependencies via pip"
+    steps:
+      - run:
+          name: "Upgrade pip"
+          command: sudo pip install --upgrade pip
+      - run:
+          name: "Install pytorch"
+          command: sudo pip install --progress-bar off torch==1.2.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+      - run:
+          name: "Create symlink to graph in beanmachine/"
+          command: ln -s ${PWD}/graph beanmachine/
+      - run:
+          name: "Install beanmachine[dev]"
+          command: sudo pip install -e .[dev]
+
+  lint_flake8:
+    description: "Lint with flake8"
+    steps:
+      - run:
+          name: "Lint with flake8"
+          command: flake8
+
+  lint_black:
+    description: "Lint with black"
+    steps:
+      - run:
+          name: "Lint with black"
+          command: black --check --diff .
+
+  unit_tests:
+    description: "Run unit tests"
+    steps:
+      - run:
+          name: "Run unit tests"
+          command: pytest -ra --cov=. --cov-report term-missing
+
+
+jobs:
+
+  lint_test_py36_pip:
+    docker:
+      - image: circleci/python:3.6.9
+    steps:
+      - checkout
+      - pip_dev_install
+      - lint_flake8
+      - lint_black
+      - unit_tests
+
+
+aliases:
+
+  - &exclude_ghpages_fbconfig
+    branches:
+      ignore:
+        - gh-pages
+        - fb-config
+
+
+workflows:
+
+  lint_and_test:
+    jobs:
+      - lint_test_py36_pip:
+          filters: *exclude_ghpages_fbconfig

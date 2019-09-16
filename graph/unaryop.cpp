@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include <beanmachine/graph/unaryop.h>
+#include "beanmachine/graph/unaryop.h"
 
 namespace beanmachine {
 namespace oper {

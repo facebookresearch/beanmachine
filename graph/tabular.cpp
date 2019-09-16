@@ -2,8 +2,8 @@
 #include <cmath>
 #include <random>
 
-#include <beanmachine/graph/tabular.h>
-#include <beanmachine/graph/util.h>
+#include "beanmachine/graph/tabular.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace distribution {

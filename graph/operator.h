@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
 #include <string>
-#include <beanmachine/graph/graph.h>
+#include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
 namespace oper {

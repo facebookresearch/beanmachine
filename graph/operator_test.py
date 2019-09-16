@@ -1,8 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import torch  # isort:skip  torch has to be imported before graph
 import unittest
 
 import beanmachine.graph as bmg
-import torch
 
 
 class TestOperators(unittest.TestCase):

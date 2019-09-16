@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include <beanmachine/graph/binaryop.h>
+#include "beanmachine/graph/binaryop.h"
 
 namespace beanmachine {
 namespace oper {
