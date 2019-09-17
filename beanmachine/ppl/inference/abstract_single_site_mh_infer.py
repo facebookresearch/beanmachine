@@ -82,6 +82,17 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             else:
                 self.world_.reject_diff()
 
+    def post_process(self, node):
+        """
+        To be implemented by inference algorithms that need post-processing
+        after diff is created to compute the final proposal log update.
+
+        :param node: the node for which we have already proposed a new value for.
+        :param proposal_log_update: proposal log update computed up until now.
+        :returns: final proposal log update
+        """
+        return tensor(0.0)
+
     def _infer(self, num_samples):
         """
         Run inference algorithms.
@@ -97,10 +108,14 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                     continue
                 if not self.world_.contains_in_world(node):
                     continue
-                proposed_value, proposal_log_update = self.propose(node)
+                proposed_value, negative_proposal_log_update = self.propose(node)
 
                 children_log_updates, world_log_updates, node_log_update = self.world_.propose_change(
                     node, proposed_value, self.stack_
+                )
+                positive_proposal_log_update = self.post_process(node)
+                proposal_log_update = (
+                    positive_proposal_log_update + negative_proposal_log_update
                 )
                 self.accept_or_reject_update(
                     node_log_update, children_log_updates, proposal_log_update

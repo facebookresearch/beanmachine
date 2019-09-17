@@ -37,7 +37,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
             self.compute_gamma_normal_moments()
         )
         mh = SingleSiteAncestralMetropolisHastings()
-        predictions = mh.infer(queries, observations, 8000)
+        predictions = mh.infer(queries, observations, 10000)
         mean, _ = self.compute_statistics(predictions[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.2)
 
@@ -51,6 +51,10 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
         predictions = mh.infer(queries, observations, 5000)
         mean, _ = self.compute_statistics(predictions[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)
+
+    def test_distant_normal_normal_conjugate_run(self):
+        # We don't except ancestral to be able to converge fast for this model.
+        pass
 
     def test_dirichlet_categorical_conjugate_run(self):
         expected_mean, expected_std, queries, observations = (

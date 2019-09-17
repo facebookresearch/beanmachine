@@ -143,6 +143,8 @@ class StatisticalModel(object):
                 log_prob=None,
                 parent=set(),
                 children=set() if len(stack) == 0 else set({stack[-1]}),
+                mean=None,
+                covariance=None,
             )
 
             world.add_node_to_world(func_key, var)
@@ -152,6 +154,7 @@ class StatisticalModel(object):
 
             var.distribution = distribution
             var.value = obs[func_key] if func_key in obs else distribution.sample()
+            var.value.requires_grad_(True)
             var.log_prob = distribution.log_prob(var.value).sum()
             world.update_diff_log_prob(func_key)
             return var.value

@@ -45,6 +45,8 @@ class Variable(object):
     parent: Set
     children: Set
     log_prob: torch.Tensor
+    mean: torch.Tensor
+    covariance: torch.Tensor
 
     def __post_init__(self):
         for field in fields(self):
@@ -67,4 +69,6 @@ class Variable(object):
             self.parent.copy(),
             self.children.copy(),
             self.log_prob,
+            self.mean,
+            self.covariance,
         )
