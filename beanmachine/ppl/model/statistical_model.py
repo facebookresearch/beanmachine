@@ -2,7 +2,7 @@
 from collections import defaultdict, namedtuple
 from functools import wraps
 
-from beanmachine.ppl.model.utils import Mode
+from beanmachine.ppl.model.utils import Mode, float_types
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
 
@@ -154,7 +154,8 @@ class StatisticalModel(object):
 
             var.distribution = distribution
             var.value = obs[func_key] if func_key in obs else distribution.sample()
-            var.value.requires_grad_(True)
+            if isinstance(var.value, float_types):
+                var.value.requires_grad_(True)
             var.log_prob = distribution.log_prob(var.value).sum()
             world.update_diff_log_prob(func_key)
             return var.value

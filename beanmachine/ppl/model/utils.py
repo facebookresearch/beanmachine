@@ -1,6 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from enum import Enum
 
+import torch
+
 
 class Mode(Enum):
     """
@@ -9,3 +11,6 @@ class Mode(Enum):
 
     INITIALIZE = 1
     INFERENCE = 2
+
+
+float_types = (torch.FloatTensor, torch.DoubleTensor, torch.HalfTensor)
