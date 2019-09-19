@@ -1,2 +1,4 @@
 # Don't track content of these folders
 outputs/
+# Don't track pickled files
+*.pkl
