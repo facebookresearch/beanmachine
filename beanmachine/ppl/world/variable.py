@@ -1,8 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from dataclasses import dataclass, fields
-from typing import Set
+from typing import Optional, Set
 
 import torch
+from beanmachine.ppl.model.utils import RandomVariable
 
 
 @dataclass
@@ -42,8 +43,8 @@ class Variable(object):
 
     distribution: torch.distributions.Distribution
     value: torch.Tensor
-    parent: Set
-    children: Set
+    parent: Set[Optional[RandomVariable]]
+    children: Set[Optional[RandomVariable]]
     log_prob: torch.Tensor
     mean: torch.Tensor
     covariance: torch.Tensor
@@ -51,7 +52,16 @@ class Variable(object):
     def __post_init__(self):
         for field in fields(self):
             value = getattr(self, field.name)
-            if value is not None and not isinstance(value, field.type):
+            if (
+                value is not None
+                and field.name not in ("parent", "children")
+                and not isinstance(value, field.type)
+            ):
+                raise ValueError(
+                    f"Expected {field.name} to be of {field.type}"
+                    f", but got {repr(value)}"
+                )
+            if field.name in ("parent", "children") and not isinstance(value, Set):
                 raise ValueError(
                     f"Expected {field.name} to be of {field.type}"
                     f", but got {repr(value)}"

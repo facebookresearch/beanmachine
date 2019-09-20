@@ -1,10 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+from typing import Tuple
+
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
     AbstractSingleSiteMHInference,
 )
+from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.world.variable import Variable
+from torch import Tensor
 from torch.autograd import grad
 
 
@@ -34,7 +39,7 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
     def __init__(self):
         super().__init__()
 
-    def compute_normal_mean_covar(self, node_var):
+    def compute_normal_mean_covar(self, node_var: Variable) -> Tuple[Tensor, Tensor]:
         """
         Computes mean and covariance of the MultivariateNormal given the node.
 
@@ -62,6 +67,10 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
                 if hessian is not None
                 else (second_gradient).unsqueeze(0)
             )
+
+        if hessian is None:
+            raise ValueError("Something went wrong with gradient computation")
+
         # to avoid problems iwth inverse, here we add a small value - 1e-7 to
         # the diagonals
         diag = (1e-7) * torch.eye(hessian.shape[0])
@@ -75,10 +84,10 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         mean = (
             node_reshaped - first_gradient.unsqueeze(0).mm(hessian_inverse)
         ).squeeze(0)
-        covariance = -1 * hessian_inverse
+        covariance = tensor(-1) * hessian_inverse
         return mean, covariance
 
-    def post_process(self, node):
+    def post_process(self, node: RandomVariable) -> Tensor:
         """
         Computes new gradient and hessian and hence, new mean and covariance and
         finally computes the log probability of the old value coming from
@@ -97,7 +106,7 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         node_var.covariance = covariance
         return new_value_dist.log_prob(old_value)
 
-    def propose(self, node):
+    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
         """
         Proposes a new value for the node by drawing a sample from the proposal
         distribution and compute the log probability of the new draw coming from

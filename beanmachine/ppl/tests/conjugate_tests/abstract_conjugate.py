@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
+from typing import Dict, List, Tuple
 
 import torch.tensor as tensor
 from beanmachine.ppl.examples.conjugate_models.beta_binomial import BetaBinomialModel
@@ -9,6 +10,8 @@ from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
 from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaModel
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
+from beanmachine.ppl.model.utils import RandomVariable
+from torch import Tensor
 
 
 class AbstractConjugateTests(metaclass=ABCMeta):
@@ -18,16 +21,22 @@ class AbstractConjugateTests(metaclass=ABCMeta):
      https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions
     """
 
-    def compute_statistics(self, predictions):
+    def compute_statistics(self, predictions: Tensor) -> Tuple[Tensor, Tensor]:
         """
         Computes mean and standard deviation of a given tensor of samples.
 
         :param predictions: tensor of samples
         :returns: mean and standard deviation of the tensor of samples.
         """
-        return predictions.mean(0), predictions.var(0).pow(0.5)
+        return (
+            predictions.mean(0),
+            (predictions - predictions.mean(0))
+            * (predictions - predictions.mean(0)).pow(0.5),
+        )
 
-    def compute_beta_binomial_moments(self):
+    def compute_beta_binomial_moments(
+        self
+    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
         """
         Computes mean and standard deviation of a small beta binomial model.
 
@@ -50,7 +59,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
         return (expected_mean, expected_std, queries, observations)
 
-    def compute_gamma_gamma_moments(self):
+    def compute_gamma_gamma_moments(
+        self
+    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
         """
         Computes mean and standard deviation of a small gamma gamma model.
 
@@ -70,7 +81,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         expected_std = (expected_mean / rate).pow(0.5)
         return (expected_mean, expected_std, queries, observations)
 
-    def compute_gamma_normal_moments(self):
+    def compute_gamma_normal_moments(
+        self
+    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
         """
         Computes mean and standard deviation of a small gamma normal model.
 
@@ -92,7 +105,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         expected_std = (expected_mean / rate).pow(0.5)
         return (expected_mean, expected_std, queries, observations)
 
-    def compute_normal_normal_moments(self):
+    def compute_normal_normal_moments(
+        self
+    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
         """
         Computes mean and standard deviation of a small normal normal model.
 

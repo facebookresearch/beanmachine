@@ -1,10 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import torch.distributions as dist
 from beanmachine.ppl.model.statistical_model import sample
+from torch import Tensor
 
 
 class NormalNormalModel(object):
-    def __init__(self, mu, std, sigma):
+    def __init__(self, mu: Tensor, std: Tensor, sigma: Tensor):
         self.mu_ = mu
         self.std_ = std
         self.sigma_ = sigma

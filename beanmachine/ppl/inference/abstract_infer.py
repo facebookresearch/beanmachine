@@ -1,7 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
+from typing import Dict, List
 
 from beanmachine.ppl.model.statistical_model import StatisticalModel
+from beanmachine.ppl.model.utils import RandomVariable
+from torch import Tensor
 
 
 class AbstractInference(object, metaclass=ABCMeta):
@@ -13,14 +16,19 @@ class AbstractInference(object, metaclass=ABCMeta):
         self.reset()
 
     @abstractmethod
-    def _infer(self, num_samples):
+    def _infer(self, num_samples: int) -> Dict[RandomVariable, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
         AbstractInference.
         """
         raise NotImplementedError("Inference algorithm must implement _infer.")
 
-    def infer(self, queries, observations, num_samples):
+    def infer(
+        self,
+        queries: List[RandomVariable],
+        observations: Dict[RandomVariable, Tensor],
+        num_samples: int,
+    ) -> Dict[RandomVariable, Tensor]:
         """
         Run inference algorithms and reset the world/mode at the end.
 
