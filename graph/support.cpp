@@ -1,17 +1,20 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#include <algorithm>
+
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator.h"
 
 namespace beanmachine {
 namespace graph {
 
-// the support of a graph is the set of nodes that are the ancestors of the
-// queried and observed variables
+// the support of a graph is the set of operator nodes that are the ancestors of
+// the queried and observed variables
 std::set<uint> Graph::compute_support() {
   // we will do a standard BFS except that we are doing a BFS
   // in the reverse direction of the graph edges
   std::set<uint> visited;
   std::list<uint> queue;
+  std::set<uint> support;
   // initialize BFS queue with all the observed and queried nodes since the
   // parents of these nodes define the support of the graph
   for (uint node_id : observed) {
@@ -29,27 +32,31 @@ std::set<uint> Graph::compute_support() {
     }
     visited.insert(node_id);
     const Node* node = nodes[node_id].get();
+    if (node->node_type == NodeType::OPERATOR) {
+      support.insert(node_id);
+    }
     for (const auto& parent : node->in_nodes) {
       queue.push_back(parent->index);
     }
   }
-  return visited;
+  return support;
 }
 
-// descendants are the inverse of support. Returns the deterministic and
-// stochastic descendants each in their topological order. Note we compute
-// the minimal set of descendants whose value or probablity needs to be changed.
-// NOTE: the current node will also be returned.
-std::tuple<std::list<uint>, std::list<uint>> Graph::compute_descendants(
-    uint root_id) {
+// compute the descendants of the current node
+// returns vector of deterministic nodes and vector of stochastic nodes
+// that are operators and and descendants of the current node and in the support
+// NOTE: we don't return descendants of stochastic descendants
+// NOTE: current node is returned if applicable
+std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
+    uint root_id, const std::set<uint> &support) {
   // check for the validity of root_id since this method is not private
   if (root_id >= nodes.size()) {
     throw std::out_of_range(
       "node_id (" + std::to_string(root_id)
       + ") must be less than " + std::to_string(nodes.size()));
   }
-  std::list<uint> det_desc;
-  std::list<uint> sto_desc;
+  std::vector<uint> det_desc;
+  std::vector<uint> sto_desc;
   // we will do a BFS starting from the current node and ending at stochastic
   // nodes
   std::set<uint> visited;
@@ -66,20 +73,76 @@ std::tuple<std::list<uint>, std::list<uint>> Graph::compute_descendants(
     // we stop looking at descendants when we hit a stochastic node
     // other than the root of this subgraph
     if (node->is_stochastic()) {
-      sto_desc.push_back(node_id);
+      if  (support.find(node_id) != support.end()) {
+        sto_desc.push_back(node_id); // stochastic nodes are operators
+      }
       if (node_id != root_id) {
         continue;
       }
-    } else {
+    }
+    else if (node->node_type == NodeType::OPERATOR and
+      support.find(node_id) != support.end()) {
       det_desc.push_back(node_id);
     }
     for (const auto& child : node->out_nodes) {
       queue.push_back(child->index);
     }
   }
-  det_desc.sort();
-  sto_desc.sort();
+  std::sort(det_desc.begin(), det_desc.end());
+  std::sort(sto_desc.begin(), sto_desc.end());
   return std::make_tuple(det_desc, sto_desc);
+}
+
+// compute the ancestors of the current node
+// returns vector of deterministic nodes and vector of stochastic nodes
+// that are operators and ancestors of the current node and in the support
+// NOTE: we don't return ancestors of stochastic ancestors
+// NOTE: current node is not returned
+std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_ancestors(
+    uint root_id, const std::set<uint> &support) {
+  // check for the validity of root_id since this method is not private
+  if (root_id >= nodes.size()) {
+    throw std::out_of_range(
+        "node_id (" + std::to_string(root_id) + ") must be less than "
+        + std::to_string(nodes.size()));
+  }
+  std::list<uint> queue;
+  const Node* root = nodes[root_id].get();
+  for (const auto& par : root->in_nodes) {
+    queue.push_back(par->index);
+  }
+  std::vector<uint> det_anc;
+  std::vector<uint> sto_anc;
+  // we will do a BFS starting from the current node and ending at stochastic
+  // nodes going up in the parent direction
+  std::set<uint> visited;
+  // BFS loop
+  while (queue.size() > 0) {
+    uint node_id = queue.front();
+    queue.pop_front();
+    if (visited.find(node_id) != visited.end()) {
+      continue;
+    }
+    visited.insert(node_id);
+    const Node* node = nodes[node_id].get();
+    // we stop looking at ancestors when we hit a stochastic node
+    if (node->is_stochastic()) {
+      if  (support.find(node_id) != support.end()) {
+        sto_anc.push_back(node_id);
+      }
+      continue;
+    }
+    else if (node->node_type == NodeType::OPERATOR and
+      support.find(node_id) != support.end()) {
+      det_anc.push_back(node_id);
+    }
+    for (const auto& par : node->in_nodes) {
+      queue.push_back(par->index);
+    }
+  }
+  std::sort(det_anc.begin(), det_anc.end());
+  std::sort(sto_anc.begin(), sto_anc.end());
+  return std::make_tuple(det_anc, sto_anc);
 }
 
 } // namespace graph

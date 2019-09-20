@@ -48,5 +48,9 @@ bool sample_logodds(std::mt19937& gen, double logodds) {
   }
 }
 
+double logistic(double logodds) {
+  return 1.0 / (1.0 + exp(-logodds));
+}
+
 } // namespace util
 } // namespace beanmachine
