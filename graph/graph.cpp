@@ -238,5 +238,22 @@ Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   return means;
 }
 
+std::vector<std::vector<double>>&
+Graph::variational(uint num_iters, int steps_per_iter, uint seed) {
+  if (queries.size() == 0) {
+    throw std::runtime_error("no nodes queried for inference");
+  }
+  for (uint node_id : queries) {
+    Node * node = nodes[node_id].get();
+    if (not node->is_stochastic()) {
+      throw std::invalid_argument("only sample nodes may be queried in "
+        "variational inference");
+    }
+  }
+  std::mt19937 generator(seed);
+  cavi(num_iters, steps_per_iter, generator);
+  return variational_params;
+}
+
 } // namespace graph
 } // namespace beanmachine

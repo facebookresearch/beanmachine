@@ -22,5 +22,8 @@ bool is_real_tensor(const torch::Tensor& value);
 // sample with probability 1 / (1 + exp(-logodds))
 bool sample_logodds(std::mt19937& gen, double logodds);
 
+// compute  1 / (1 + exp(-logodds))
+double logistic(double logodds);
+
 } // namespace util
 } // namespace beanmachine
