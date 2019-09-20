@@ -29,38 +29,21 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
   std::map<uint, std::set<uint>> inv_sto;
   for (uint node_id : supp) {
     Node* node = nodes[node_id].get();
-    if (node->node_type == NodeType::OPERATOR) {
-      bool node_is_observed = observed.find(node_id) == observed.end();
-      if (node_is_observed) {
-        node->eval(gen); // evaluate the value of non-observed operator nodes
-      }
-      if (node->is_stochastic() and node_is_observed) {
-        std::list<uint> det_nodes;
-        std::list<uint> sto_nodes;
-        std::tie(det_nodes, sto_nodes) = compute_descendants(node_id);
-        // remove unsupported descendants and non-operator nodes from the
-        // list of descendants
-        auto not_supp = [&](uint n) {
-          return (supp.find(n) == supp.end()) or
-              nodes[n].get()->node_type != graph::NodeType::OPERATOR;
-        };
-        sto_nodes.erase(
-            std::remove_if(sto_nodes.begin(), sto_nodes.end(), not_supp),
-            sto_nodes.end());
-        det_nodes.erase(
-            std::remove_if(det_nodes.begin(), det_nodes.end(), not_supp),
-            det_nodes.end());
-        // convert the std::list to std::vector for faster iteration
-        std::vector<uint> v1(det_nodes.begin(), det_nodes.end());
-        std::vector<uint> v2(sto_nodes.begin(), sto_nodes.end());
-        pool[node_id] = std::make_tuple(v1, v2);
-        cache_logodds[node_id] = NAN; // nan => needs to be re-computed
-        for (auto sto : sto_nodes) {
-          if (inv_sto.find(sto) == inv_sto.end()) {
-            inv_sto[sto] = std::set<uint>();
-          }
-          inv_sto[sto].insert(node_id);
+    bool node_is_not_observed = observed.find(node_id) == observed.end();
+    if (node_is_not_observed) {
+      node->eval(gen); // evaluate the value of non-observed operator nodes
+    }
+    if (node->is_stochastic() and node_is_not_observed) {
+      std::vector<uint> det_nodes;
+      std::vector<uint> sto_nodes;
+      std::tie(det_nodes, sto_nodes) = compute_descendants(node_id, supp);
+      pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
+      cache_logodds[node_id] = NAN; // nan => needs to be re-computed
+      for (auto sto : sto_nodes) {
+        if (inv_sto.find(sto) == inv_sto.end()) {
+          inv_sto[sto] = std::set<uint>();
         }
+        inv_sto[sto].insert(node_id);
       }
     }
   }

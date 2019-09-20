@@ -123,6 +123,13 @@ PYBIND11_MODULE(graph, module) {
           "infer the empirical distribution of the queried nodes",
           py::arg("num_samples"),
           py::arg("algorithm") = InferenceType::GIBBS,
+          py::arg("seed") = 5123401)
+      .def(
+          "variational",
+          &Graph::variational,
+          "infer the empirical distribution of the queried nodes",
+          py::arg("num_iters"),
+          py::arg("steps_per_iter"),
           py::arg("seed") = 5123401);
 }
 

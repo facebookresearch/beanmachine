@@ -121,9 +121,26 @@ struct Graph {
   infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   std::vector<double>&
   infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  /*
+  Use mean-field variational inference to infer the posterior mean, variance
+  of the queried nodes in the graph.
+
+  :param num_iters: The number of iterations to improve upon the estimates.
+  :param steps_per_iter: The number of samples generated to make the estimate
+                         in each iteration for each node.
+  :param seed: The random number generator seed (default: 5123401)
+  :returns: vector of parameters for each queried node;
+            each parameter is itself a vector whose length depends
+            on the type of the queried node
+  :raises: std::runtime_error, std::invalid_argument
+  */
+  std::vector<std::vector<double>>&
+  variational(uint num_iters, int steps_per_iter, uint seed = 5123401);
   std::set<uint> compute_support();
-  std::tuple<std::list<uint>, std::list<uint>> compute_descendants(
-      uint node_id);
+  std::tuple<std::vector<uint>, std::vector<uint>> compute_descendants(
+      uint node_id, const std::set<uint> &support);
+  std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
+      uint node_id, const std::set<uint> &support);
 
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
@@ -140,9 +157,11 @@ struct Graph {
   std::vector<std::vector<AtomicValue>> samples;
   std::vector<double> means;
   AggregationType agg_type;
+  std::vector<std::vector<double>> variational_params;
   void collect_sample();
   void rejection(uint num_samples, std::mt19937& gen);
   void gibbs(uint num_samples, std::mt19937& gen);
+  void cavi(uint num_iters, int steps_per_iter, std::mt19937& gen);
 };
 
 } // namespace graph
