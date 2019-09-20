@@ -1,8 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
+from typing import Dict, List, Tuple, Union
 
 import torch.tensor as tensor
+from beanmachine.ppl.model.utils import RandomVariable
 from beanmachine.ppl.world.variable import Variable
+from torch import Tensor
 
 
 class World(object):
@@ -63,16 +66,20 @@ class World(object):
     )
     """
 
-    def __init__(self, init_world_log_prob=None, init_world_dict=None):
+    def __init__(
+        self,
+        init_world_log_prob: Tensor = None,
+        init_world_dict: Dict[RandomVariable, Variable] = None,
+    ):
         self.variables_ = defaultdict(Variable)
         self.log_prob_ = tensor(0.0)
         self.observations_ = defaultdict()
         self.reset_diff()
 
-    def set_observations(self, val):
+    def set_observations(self, val: Dict[RandomVariable, Variable]):
         self.observations_ = val
 
-    def add_node_to_world(self, node, var):
+    def add_node_to_world(self, node: RandomVariable, var: Variable):
         """
         Add the node to the world. Since all updates are done through diff_,
         here we will just update diff_.
@@ -82,7 +89,7 @@ class World(object):
         """
         self.diff_[node] = var
 
-    def update_diff_log_prob(self, node):
+    def update_diff_log_prob(self, node: RandomVariable):
         """
         Adds the log update to diff_log_update_
 
@@ -93,7 +100,9 @@ class World(object):
             self.variables_[node].log_prob if node in self.variables_ else tensor(0.0)
         )
 
-    def get_node_in_world(self, node, to_be_copied=True):
+    def get_node_in_world(
+        self, node: RandomVariable, to_be_copied: bool = True
+    ) -> Union[Variable, None]:
         """
         Get the node in the world, by first looking up diff_, if not available,
         then it can be looked up in variables_, while copying into diff_ and
@@ -115,7 +124,7 @@ class World(object):
                 return self.variables_[node]
         return None
 
-    def contains_in_world(self, node):
+    def contains_in_world(self, node: RandomVariable) -> bool:
         """
         Looks up both variables_ and diff_ and returns true if node is available
         in any of them, otherwise, returns false
@@ -155,7 +164,9 @@ class World(object):
         self.diff_log_update_ = tensor(0.0)
         self.is_delete_ = defaultdict(bool)
 
-    def start_diff_with_proposed_val(self, node, proposed_value):
+    def start_diff_with_proposed_val(
+        self, node: RandomVariable, proposed_value: Tensor
+    ) -> Tensor:
         """
         Starts a diff with new value for node.
 
@@ -180,7 +191,7 @@ class World(object):
         """
         self.reset_diff()
 
-    def update_children_parents(self, node):
+    def update_children_parents(self, node: RandomVariable):
         """
         Update the parents that the child no longer depends on.
 
@@ -219,7 +230,9 @@ class World(object):
                         self.diff_log_update_ -= self.variables_[ancestor].log_prob
                         ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
 
-    def create_child_with_new_distributions(self, node, stack):
+    def create_child_with_new_distributions(
+        self, node: RandomVariable, stack: List[RandomVariable]
+    ) -> Tensor:
         """
         Adds all node's children to diff_ and re-computes their distrbutions
         and log_prob
@@ -235,6 +248,8 @@ class World(object):
         for child in self.variables_[node].children:
             child_func, child_args = child
             child_var = self.get_node_in_world(child)
+            if child_var is None:
+                continue
             old_log_probs[child] = child_var.log_prob
             child_var.parent = set()
             stack.append(child)
@@ -252,7 +267,9 @@ class World(object):
         self.diff_log_update_ += children_log_update
         return children_log_update
 
-    def propose_change(self, node, proposed_value, stack):
+    def propose_change(
+        self, node: RandomVariable, proposed_value: Tensor, stack: List[RandomVariable]
+    ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Creates the diff for the proposed change
 

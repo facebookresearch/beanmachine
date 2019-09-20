@@ -1,7 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+from collections import namedtuple
 from enum import Enum
 
 import torch
+
+
+RandomVariable = namedtuple("RandomVariable", "function arguments")
 
 
 class Mode(Enum):

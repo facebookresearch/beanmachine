@@ -2,10 +2,11 @@
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.model.statistical_model import sample
+from torch import Tensor
 
 
 class GammaNormalModel(object):
-    def __init__(self, shape, rate, mu):
+    def __init__(self, shape: Tensor, rate: Tensor, mu: Tensor):
         self.shape_ = shape
         self.rate_ = rate
         self.mu_ = mu

@@ -1,10 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+from typing import Tuple
+
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
+from beanmachine.ppl.model.utils import RandomVariable
+from torch import Tensor
 
 
 class SingleSiteUniformMetropolisHastings(SingleSiteAncestralMetropolisHastings):
@@ -20,7 +24,7 @@ class SingleSiteUniformMetropolisHastings(SingleSiteAncestralMetropolisHastings)
     def __init__(self):
         super().__init__()
 
-    def propose(self, node):
+    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
         """
         Proposes a new value for the node.
 

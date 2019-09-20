@@ -1,13 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from functools import wraps
+from typing import Dict, List
 
-from beanmachine.ppl.model.utils import Mode, float_types
+from beanmachine.ppl.model.utils import Mode, RandomVariable, float_types
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
-
-
-RandomVariable = namedtuple("RandomVariable", "function arguments")
+from torch import Tensor
 
 
 class StatisticalModel(object):
@@ -52,21 +51,21 @@ class StatisticalModel(object):
         return StatisticalModel.__stack_, StatisticalModel.__world_
 
     @staticmethod
-    def get_stack():
+    def get_stack() -> List[RandomVariable]:
         """
         :returns: __stack_
         """
         return StatisticalModel.__stack_
 
     @staticmethod
-    def get_world():
+    def get_world() -> World:
         """
         :returns: __world_
         """
         return StatisticalModel.__world_
 
     @staticmethod
-    def get_mode():
+    def get_mode() -> Mode:
         """
         :returns: __mode_
         """
@@ -82,7 +81,7 @@ class StatisticalModel(object):
         StatisticalModel.__mode_ = mode
 
     @staticmethod
-    def get_observations():
+    def get_observations() -> Dict[RandomVariable, Tensor]:
         """
         :returns: __observe_vals_
         """
@@ -99,7 +98,7 @@ class StatisticalModel(object):
         StatisticalModel.__observe_vals_ = val
 
     @staticmethod
-    def get_func_key(name, args):
+    def get_func_key(name, args) -> RandomVariable:
         """
         Creates a key to uniquely identify the Random Variable.
 

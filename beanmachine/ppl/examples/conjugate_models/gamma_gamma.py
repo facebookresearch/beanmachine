@@ -1,10 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import torch.distributions as dist
 from beanmachine.ppl.model.statistical_model import sample
+from torch import Tensor
 
 
 class GammaGammaModel(object):
-    def __init__(self, shape, rate, alpha):
+    def __init__(self, shape: Tensor, rate: Tensor, alpha: Tensor):
         self.shape_ = shape
         self.rate_ = rate
         self.alpha_ = alpha

@@ -1,7 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+from typing import Tuple
+
 from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
     AbstractSingleSiteMHInference,
 )
+from beanmachine.ppl.model.utils import RandomVariable
+from torch import Tensor
 
 
 class SingleSiteAncestralMetropolisHastings(AbstractSingleSiteMHInference):
@@ -12,7 +16,7 @@ class SingleSiteAncestralMetropolisHastings(AbstractSingleSiteMHInference):
     def __init__(self):
         super().__init__()
 
-    def propose(self, node):
+    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
         """
         Proposes a new value for the node. In Single-Site Ancestral Metropolis
         Hastings, we just need to draw a new sample from the node's distribution.

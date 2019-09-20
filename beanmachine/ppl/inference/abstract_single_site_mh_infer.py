@@ -1,13 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
+from typing import Dict, Tuple
 
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode
+from beanmachine.ppl.model.utils import Mode, RandomVariable
+from torch import Tensor
 
 
 class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
@@ -44,7 +46,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         self.world_.accept_diff()
 
     @abstractmethod
-    def propose(self, node):
+    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
         AbstractSingleSiteMHInference. This implementation will include how the
@@ -57,7 +59,10 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         raise NotImplementedError("Inference algorithm must implement propose.")
 
     def accept_or_reject_update(
-        self, node_log_update, children_log_updates, proposal_log_update
+        self,
+        node_log_update: Tensor,
+        children_log_updates: Tensor,
+        proposal_log_update: Tensor,
     ):
         """
         Accepts or rejects the change in the diff by setting a stochastic
@@ -82,7 +87,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             else:
                 self.world_.reject_diff()
 
-    def post_process(self, node):
+    def post_process(self, node: RandomVariable) -> Tensor:
         """
         To be implemented by inference algorithms that need post-processing
         after diff is created to compute the final proposal log update.
@@ -93,7 +98,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         """
         return tensor(0.0)
 
-    def _infer(self, num_samples):
+    def _infer(self, num_samples: int) -> Dict[RandomVariable, Tensor]:
         """
         Run inference algorithms.
 
