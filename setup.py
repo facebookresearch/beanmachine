@@ -87,7 +87,7 @@ setup(
                 - set(glob("beanmachine/graph/*_test.cpp"))
             ),
             include_dirs=["."],
-            extra_compile_args=["-std=c++14"],
+            extra_compile_args=["-std=c++14", "-Werror"],
         )
     ],
     cmdclass={"build_ext": BuildExtension},

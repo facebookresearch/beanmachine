@@ -13,7 +13,7 @@ void multiply(graph::Node* node) {
     node->value.type = graph::AtomicType::REAL;
     node->value._double = parent0._double;
 
-    for (int i = 1; i < node->in_nodes.size(); i++) {
+    for (uint i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::REAL) {
         throw std::runtime_error("invalid type "
@@ -27,7 +27,7 @@ void multiply(graph::Node* node) {
   } else if (parent0.type == graph::AtomicType::TENSOR) {
     node->value.type = graph::AtomicType::TENSOR;
     node->value._tensor = parent0._tensor.clone();
-    for (int i = 1; i < node->in_nodes.size(); i++) {
+    for (uint i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::TENSOR) {
         throw std::runtime_error(
@@ -53,7 +53,7 @@ void add(graph::Node* node) {
     node->value.type = graph::AtomicType::REAL;
     node->value._double = parent0._double;
 
-    for (int i = 1; i < node->in_nodes.size(); i++) {
+    for (uint i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::REAL) {
         throw std::runtime_error(
@@ -67,7 +67,7 @@ void add(graph::Node* node) {
   } else if (parent0.type == graph::AtomicType::TENSOR) {
     node->value.type = graph::AtomicType::TENSOR;
     node->value._tensor = parent0._tensor.clone();
-    for (int i = 1; i < node->in_nodes.size(); i++) {
+    for (uint i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       if (parenti.type != graph::AtomicType::TENSOR) {
         throw std::runtime_error(

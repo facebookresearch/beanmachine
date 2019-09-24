@@ -7,7 +7,7 @@
 namespace beanmachine {
 namespace graph {
 
-void Graph::cavi(uint num_iters, int steps_per_iter, std::mt19937& gen) {
+void Graph::cavi(uint num_iters, uint steps_per_iter, std::mt19937& gen) {
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
   std::vector<Node *> node_ptrs;
