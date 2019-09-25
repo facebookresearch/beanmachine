@@ -161,7 +161,7 @@ struct Graph {
   void collect_sample();
   void rejection(uint num_samples, std::mt19937& gen);
   void gibbs(uint num_samples, std::mt19937& gen);
-  void cavi(uint num_iters, int steps_per_iter, std::mt19937& gen);
+  void cavi(uint num_iters, uint steps_per_iter, std::mt19937& gen);
 };
 
 } // namespace graph

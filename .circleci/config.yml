@@ -16,7 +16,7 @@ commands:
           command: ln -s ${PWD}/graph beanmachine/
       - run:
           name: "Install beanmachine[dev]"
-          command: sudo pip install -e .[dev]
+          command: sudo pip install -v -e .[dev]
 
   lint_flake8:
     description: "Lint with flake8"
