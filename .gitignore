@@ -7,6 +7,7 @@ beanmachine/graph
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
 
 # Distribution / packaging
 .Python

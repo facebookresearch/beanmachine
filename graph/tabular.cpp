@@ -29,7 +29,7 @@ Tabular::Tabular(
         "Tabular distribution's tensor argument should have type float");
   }
   // check the dimensions of the matrix
-  const torch::IntList& sizes = matrix.sizes();
+  const torch::IntArrayRef sizes = matrix.sizes();
   // we need one dimension for each parent excluding the first tensor parent
   // and one for the output
   if (sizes.size() != in_nodes.size()) {
@@ -45,7 +45,7 @@ Tabular::Tabular(
         "Tabular distribution's tensor should have last dimension size 2");
   }
   // go through each of the parents other than the tensor and verify its type
-  for (int paridx = 1; paridx < in_nodes.size(); paridx++) {
+  for (uint paridx = 1; paridx < in_nodes.size(); paridx++) {
     const graph::Node* parent = in_nodes[paridx];
     if (parent->node_type == graph::NodeType::CONSTANT and
         parent->value.type != graph::AtomicType::BOOLEAN) {
@@ -65,16 +65,17 @@ Tabular::Tabular(
 
 double Tabular::get_probability() const {
   std::vector<torch::Tensor> parents;
-  for (int i = 1; i < in_nodes.size(); i++) {
+  for (uint i = 1; i < in_nodes.size(); i++) {
     const auto& parenti = in_nodes[i]->value;
     if (parenti.type != graph::AtomicType::BOOLEAN) {
       throw std::runtime_error(
         "Tabular distribution at node_id " + std::to_string(index) +
         " expects boolean parents");
     }
-    parents.push_back(torch::scalar_tensor((long)parenti._bool, torch::kLong));
+    parents.push_back(torch::scalar_tensor(
+      (int64_t)parenti._bool, torch::kLong));
   }
-  parents.push_back(torch::scalar_tensor((long)1, torch::kLong));
+  parents.push_back(torch::scalar_tensor((int64_t)1, torch::kLong));
   assert(in_nodes[0]->value.type == graph::AtomicType::TENSOR);
   double prob = in_nodes[0]->value._tensor.index(parents).item<double>();
   if (prob < 0 or prob > 1) {
