@@ -34,14 +34,12 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             # makes the call for the observation node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world
-            node_func, node_args = node
-            node_func._wrapper(*node_args)
+            node.function._wrapper(*node.arguments)
         for node in self.queries_:
             # makes the call for the query node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world.
-            node_func, node_args = node
-            node_func._wrapper(*node_args)
+            node.function._wrapper(*node.arguments)
 
         self.world_.accept_diff()
 
@@ -126,18 +124,17 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                     node_log_update, children_log_updates, proposal_log_update
                 )
             for query in self.queries_:
-                query_func, query_args = query
                 # unsqueeze the sampled value tensor, which adds an extra dimension
                 # along which we'll be adding samples generated at each iteration
                 if query not in queries_sample:
-                    queries_sample[query] = query_func._wrapper(*query_args).unsqueeze(
-                        0
-                    )
+                    queries_sample[query] = query.function._wrapper(
+                        *query.arguments
+                    ).unsqueeze(0)
                 else:
                     queries_sample[query] = torch.cat(
                         [
                             queries_sample[query],
-                            query_func._wrapper(*query_args).unsqueeze(0),
+                            query.function._wrapper(*query.arguments).unsqueeze(0),
                         ],
                         dim=0,
                     )

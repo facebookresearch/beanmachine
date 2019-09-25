@@ -76,6 +76,22 @@ class World(object):
         self.observations_ = defaultdict()
         self.reset_diff()
 
+    def __str__(self) -> str:
+        return (
+            "Variables:\n"
+            + "\n".join(
+                [str(key) + "=" + str(value) for key, value in self.variables_.items()]
+            )
+            + "\n\nObservations:\n"
+            + "\n".join(
+                [
+                    str(key) + "=" + str(value.item())
+                    for key, value in self.observations_.items()
+                ]
+            )
+            + "\n"
+        )
+
     def set_observations(self, val: Dict[RandomVariable, Variable]):
         self.observations_ = val
 
@@ -246,14 +262,13 @@ class World(object):
         old_log_probs = defaultdict()
         new_log_probs = defaultdict()
         for child in self.variables_[node].children:
-            child_func, child_args = child
             child_var = self.get_node_in_world(child)
             if child_var is None:
                 continue
             old_log_probs[child] = child_var.log_prob
             child_var.parent = set()
             stack.append(child)
-            child_var.distribution = child_func(*child_args)
+            child_var.distribution = child.function(*child.arguments)
             stack.pop()
             child_var.log_prob = child_var.distribution.log_prob(child_var.value).sum()
             new_log_probs[child] = child_var.log_prob
