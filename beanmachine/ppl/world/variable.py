@@ -67,6 +67,9 @@ class Variable(object):
                     f", but got {repr(value)}"
                 )
 
+    def __str__(self) -> str:
+        return str(self.value.item()) + " from " + str(self.distribution)
+
     def copy(self):
         """
         Makes a copy of self and returns it.

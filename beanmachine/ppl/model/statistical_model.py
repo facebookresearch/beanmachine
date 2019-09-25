@@ -98,17 +98,17 @@ class StatisticalModel(object):
         StatisticalModel.__observe_vals_ = val
 
     @staticmethod
-    def get_func_key(name, args) -> RandomVariable:
+    def get_func_key(function, arguments) -> RandomVariable:
         """
         Creates a key to uniquely identify the Random Variable.
 
-        :param name: function name
-        :param args: function arguments
+        :param function: reference to function
+        :param arguments: function arguments
 
-        :returns: tuple of name and argument which is to be used as function
-        identifier
+        :returns: tuple of function and arguments which is to be used to identify
+        a particular function call.
         """
-        return RandomVariable(function=name, arguments=args)
+        return RandomVariable(function=function, arguments=arguments)
 
     @staticmethod
     def sample(f):
