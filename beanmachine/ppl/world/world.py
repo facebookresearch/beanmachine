@@ -1,11 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
-import torch.tensor as tensor
 from beanmachine.ppl.model.utils import RandomVariable
 from beanmachine.ppl.world.variable import Variable
-from torch import Tensor
+from torch import Tensor, tensor
+
+
+Variables = Dict[RandomVariable, Variable]
 
 
 class World(object):
@@ -92,10 +94,10 @@ class World(object):
             + "\n"
         )
 
-    def set_observations(self, val: Dict[RandomVariable, Variable]):
+    def set_observations(self, val: Variables) -> None:
         self.observations_ = val
 
-    def add_node_to_world(self, node: RandomVariable, var: Variable):
+    def add_node_to_world(self, node: RandomVariable, var: Variable) -> None:
         """
         Add the node to the world. Since all updates are done through diff_,
         here we will just update diff_.
@@ -105,7 +107,7 @@ class World(object):
         """
         self.diff_[node] = var
 
-    def update_diff_log_prob(self, node: RandomVariable):
+    def update_diff_log_prob(self, node: RandomVariable) -> None:
         """
         Adds the log update to diff_log_update_
 
@@ -118,7 +120,7 @@ class World(object):
 
     def get_node_in_world(
         self, node: RandomVariable, to_be_copied: bool = True
-    ) -> Union[Variable, None]:
+    ) -> Optional[Variable]:
         """
         Get the node in the world, by first looking up diff_, if not available,
         then it can be looked up in variables_, while copying into diff_ and
@@ -152,13 +154,13 @@ class World(object):
             return True
         return False
 
-    def get_all_world_vars(self):
+    def get_all_world_vars(self) -> Variables:
         """
         :returns: all variables in the world
         """
         return self.variables_
 
-    def accept_diff(self):
+    def accept_diff(self) -> None:
         """
         If changes in a diff is accepted, world's variables_ are updated with
         their corrseponding diff_ value.
@@ -172,7 +174,7 @@ class World(object):
         self.log_prob_ += self.diff_log_update_
         self.reset_diff()
 
-    def reset_diff(self):
+    def reset_diff(self) -> None:
         """
         Resets the diff
         """
@@ -201,7 +203,7 @@ class World(object):
         self.diff_log_update_ += node_log_update
         return node_log_update
 
-    def reject_diff(self):
+    def reject_diff(self) -> None:
         """
         Resets the diff_ to an empty dictionary once the diff_ is rejected.
         """
