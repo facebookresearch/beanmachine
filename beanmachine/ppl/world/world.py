@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor, tensor
 
@@ -93,6 +94,12 @@ class World(object):
             )
             + "\n"
         )
+
+    def to_dot(self) -> str:
+        def get_children(rv: RandomVariable) -> List[Tuple[str, RandomVariable]]:
+            return [("", rv) for rv in self.variables_[rv].children]
+
+        return print_graph(self.variables_.keys(), get_children, str, str)
 
     def set_observations(self, val: Variables) -> None:
         self.observations_ = val
