@@ -10,7 +10,6 @@ from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
 from beanmachine.ppl.model.utils import RandomVariable
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor
-from torch.autograd import grad
 
 
 class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
@@ -51,30 +50,40 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         score = node_var.log_prob
         for child in node_var.children:
             score += self.world_.get_node_in_world(child, False).log_prob
-        gradient = grad(score, node_val, create_graph=True)[0]
-        first_gradient = gradient.reshape(-1).clone()
+
+        score.backward(create_graph=True)
+
+        if not hasattr(node_val, "grad"):
+            raise ValueError("requires_grad_ needs to be set for node values")
+
+        # pyre expects attributes to be defined in constructors or at class
+        # top levels and doesn't support attributes that get dynamically added.
+        # pyre-fixme
+        first_gradient = node_val.grad.reshape(-1).clone()
+        prev_gradient = node_val.grad.reshape(-1).clone().detach()
+
         size = first_gradient.shape[0]
         for i in range(size):
-            second_gradient = (
-                grad(
-                    first_gradient.index_select(0, tensor([i])),
-                    node_val,
-                    create_graph=True,
-                )[0]
-            ).reshape(-1)
+            first_gradient.index_select(0, tensor([i])).backward(create_graph=True)
+            cur_grad = node_val.grad.clone().reshape(-1)
+            second_gradient = cur_grad - prev_gradient
             hessian = (
                 torch.cat((hessian, (second_gradient).unsqueeze(0)), 0)
                 if hessian is not None
                 else (second_gradient).unsqueeze(0)
             )
+            prev_gradient = cur_grad
+
+        node_val.grad.zero_()
 
         if hessian is None:
             raise ValueError("Something went wrong with gradient computation")
 
-        # to avoid problems iwth inverse, here we add a small value - 1e-7 to
+        # to avoid problems with inverse, here we add a small value - 1e-7 to
         # the diagonals
         diag = (1e-7) * torch.eye(hessian.shape[0])
         hessian_inverse = (hessian + diag).inverse()
+
         # node value may of any arbitrary shape, so here, we transform it into a
         # 1D vector using reshape(-1) and with unsqueeze(0), we change 1D vector
         # of size (N) to (1 x N) matrix.
@@ -101,6 +110,7 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         node_var = self.world_.get_node_in_world(node, False)
         old_value = self.world_.variables_[node].value
         mean, covariance = self.compute_normal_mean_covar(node_var)
+
         new_value_dist = dist.MultivariateNormal(mean, covariance)
         node_var.mean = mean
         node_var.covariance = covariance
@@ -118,6 +128,7 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         """
         node_var = self.world_.get_node_in_world(node, False)
         node_val = node_var.value
+
         if node_var.mean is None and node_var.covariance is None:
             mean, covariance = self.compute_normal_mean_covar(node_var)
         else:
