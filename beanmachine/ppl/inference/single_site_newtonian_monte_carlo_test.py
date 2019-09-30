@@ -16,11 +16,30 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
     class SampleNormalModel(object):
         @sample
         def foo(self):
-            return dist.Normal(torch.tensor(2.0), torch.tensor(2.0))
+            return dist.Normal(tensor(2.0), tensor(2.0))
 
         @sample
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
+
+    class SampleLogisticRegressionModel(object):
+        @sample
+        def theta_0(self):
+            return dist.Normal(tensor(0.0), tensor(1.0))
+
+        @sample
+        def theta_1(self):
+            return dist.Normal(tensor(0.0), tensor(1.0))
+
+        @sample
+        def x(self, i):
+            return dist.Normal(tensor(0.0), tensor(1.0))
+
+        @sample
+        def y(self, i):
+            y = self.theta_1() * self.x(i) + self.theta_0()
+            probs = 1 / (1 + (y * -1).exp())
+            return dist.Bernoulli(probs)
 
     def test_single_site_newtonian_monte_carlo(self):
         model = self.SampleNormalModel()
@@ -138,4 +157,180 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         )
         self.assertAlmostEqual(
             abs((covariance - expected_covariance).sum().item()), 0.0, delta=0.01
+        )
+
+    def test_multi_mean_covariance_computation_in_inference(self):
+        model = self.SampleLogisticRegressionModel()
+        nw = SingleSiteNewtonianMonteCarlo()
+        nw.world_ = World()
+        theta_0_key = model.theta_0()
+        theta_1_key = model.theta_1()
+        x_0_key = model.x(0)
+        x_1_key = model.x(1)
+        y_0_key = model.y(0)
+        y_1_key = model.y(1)
+
+        theta_0_value = tensor(1.5708)
+        theta_0_value.requires_grad_(True)
+        x_0_value = tensor(0.7654)
+        x_1_value = tensor(-6.6737)
+        theta_1_value = tensor(-0.4459)
+
+        theta_0_distribution = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
+        nw.world_.variables_[theta_0_key] = Variable(
+            distribution=theta_0_distribution,
+            value=theta_0_value,
+            log_prob=theta_0_distribution.log_prob(theta_0_value),
+            parent=set(),
+            children=set({y_0_key, y_1_key}),
+            mean=None,
+            covariance=None,
+        )
+
+        nw.world_.variables_[theta_1_key] = Variable(
+            distribution=theta_0_distribution,
+            value=theta_1_value,
+            log_prob=theta_0_distribution.log_prob(theta_1_value),
+            parent=set(),
+            children=set({y_0_key, y_1_key}),
+            mean=None,
+            covariance=None,
+        )
+
+        x_distribution = dist.Normal(torch.tensor(0.0), torch.tensor(5.0))
+        nw.world_.variables_[x_0_key] = Variable(
+            distribution=x_distribution,
+            value=x_0_value,
+            log_prob=x_distribution.log_prob(x_0_value),
+            parent=set(),
+            children=set({y_0_key, y_1_key}),
+            mean=None,
+            covariance=None,
+        )
+
+        nw.world_.variables_[x_1_key] = Variable(
+            distribution=x_distribution,
+            value=x_1_value,
+            log_prob=x_distribution.log_prob(x_1_value),
+            parent=set(),
+            children=set({y_0_key, y_1_key}),
+            mean=None,
+            covariance=None,
+        )
+
+        y = theta_0_value + theta_1_value * x_0_value
+        probs_0 = 1 / (1 + (y * -1).exp())
+        y_0_distribution = dist.Bernoulli(probs_0)
+
+        nw.world_.variables_[y_0_key] = Variable(
+            distribution=y_0_distribution,
+            value=tensor(1.0),
+            log_prob=y_0_distribution.log_prob(tensor(1.0)),
+            parent=set({theta_0_key, theta_1_key, x_0_key}),
+            children=set(),
+            mean=None,
+            covariance=None,
+        )
+
+        y = theta_0_value + theta_1_value * x_1_value
+        probs_1 = 1 / (1 + (y * -1).exp())
+        y_1_distribution = dist.Bernoulli(probs_1)
+
+        nw.world_.variables_[y_1_key] = Variable(
+            distribution=y_1_distribution,
+            value=tensor(1.0),
+            log_prob=y_1_distribution.log_prob(tensor(1.0)),
+            parent=set({theta_0_key, theta_1_key, x_1_key}),
+            children=set(),
+            mean=None,
+            covariance=None,
+        )
+
+        mean, covariance = nw.compute_normal_mean_covar(
+            nw.world_.variables_[theta_0_key]
+        )
+
+        score = theta_0_distribution.log_prob(theta_0_value)
+        score += (
+            1 / (1 + (-1 * (theta_0_value + theta_1_value * x_0_value)).exp())
+        ).log()
+        score += (
+            1 / (1 + (-1 * (theta_0_value + theta_1_value * x_1_value)).exp())
+        ).log()
+
+        score.backward(create_graph=True)
+        expected_first_gradient = theta_0_value.grad.clone()
+
+        expected_first_gradient.index_select(0, tensor([0])).backward(create_graph=True)
+        expected_second_gradient = (
+            theta_0_value.grad - expected_first_gradient
+        ).unsqueeze(0)
+        expected_covariance = (expected_second_gradient.unsqueeze(0)).inverse() * -1
+        self.assertAlmostEqual(
+            expected_covariance.item(), covariance.item(), delta=0.001
+        )
+        expected_first_gradient = expected_first_gradient.unsqueeze(0)
+        expected_mean = (
+            theta_0_value.unsqueeze(0)
+            + expected_first_gradient.unsqueeze(0).mm(expected_covariance)
+        ).squeeze(0)
+        self.assertAlmostEqual(mean.item(), expected_mean.item(), delta=0.001)
+
+        proposal_value = (
+            dist.MultivariateNormal(mean, covariance)
+            .sample()
+            .reshape(theta_0_value.shape)
+        )
+        proposal_value.requires_grad_(True)
+        nw.world_.variables_[theta_0_key].value = proposal_value
+        nw.world_.variables_[theta_0_key].log_prob = theta_0_distribution.log_prob(
+            proposal_value
+        )
+
+        y = proposal_value + theta_1_value * x_0_value
+        probs_0 = 1 / (1 + (y * -1).exp())
+        y_0_distribution = dist.Bernoulli(probs_0)
+        nw.world_.variables_[y_0_key].distribution = y_0_distribution
+        nw.world_.variables_[y_0_key].log_prob = y_0_distribution.log_prob(tensor(1.0))
+
+        y = proposal_value + theta_1_value * x_1_value
+        probs_1 = 1 / (1 + (y * -1).exp())
+        y_1_distribution = dist.Bernoulli(probs_1)
+        nw.world_.variables_[y_1_key].distribution = y_1_distribution
+        nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
+
+        mean, covariance = nw.compute_normal_mean_covar(
+            nw.world_.variables_[theta_0_key]
+        )
+
+        score = tensor(0.0)
+
+        score = theta_0_distribution.log_prob(proposal_value)
+        score += (
+            1 / (1 + (-1 * (proposal_value + theta_1_value * x_0_value)).exp())
+        ).log()
+        score += (
+            1 / (1 + (-1 * (proposal_value + theta_1_value * x_1_value)).exp())
+        ).log()
+
+        score.backward(create_graph=True)
+        expected_first_gradient = proposal_value.grad.clone()
+
+        expected_first_gradient.index_select(0, tensor([0])).backward(create_graph=True)
+        expected_second_gradient = (
+            proposal_value.grad - expected_first_gradient
+        ).unsqueeze(0)
+        expected_covariance = (expected_second_gradient.unsqueeze(0)).inverse() * -1
+        self.assertAlmostEqual(
+            expected_covariance.item(), covariance.item(), delta=0.001
+        )
+        expected_first_gradient = expected_first_gradient.unsqueeze(0)
+        expected_mean = (
+            proposal_value.unsqueeze(0)
+            + expected_first_gradient.unsqueeze(0).mm(expected_covariance)
+        ).squeeze(0)
+        self.assertAlmostEqual(mean.item(), expected_mean.item(), delta=0.001)
+
+        self.assertAlmostEqual(
+            covariance.item(), expected_covariance.item(), delta=0.001
         )
