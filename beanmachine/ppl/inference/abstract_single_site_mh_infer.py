@@ -139,5 +139,4 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                         dim=0,
                     )
             self.world_.accept_diff()
-
         return queries_sample
