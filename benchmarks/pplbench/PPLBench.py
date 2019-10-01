@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-plt.switch_backend('agg')  # Added for compatibility reasons
 
 # helper function(s)
 def get_lists():
