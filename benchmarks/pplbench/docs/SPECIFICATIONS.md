@@ -43,11 +43,25 @@ PPLBench will be implemented in python3. Each Model in PPLBench will have a modu
 
 ### Dataflow specifications:
 
-TBD. Here we specify variable names, datatypes, shapes, etc.
+PPLBench uses the `args_dict` dictionary to pass various model and ppl-specific arguments. Here is the list of all the keys in this dictionary and thier brief descriptions:
+ * `model`: the model for the current PPLBench run.
+ * `k`: the covariate equivalent parameter of the model (e.g. k is number of covariates in the robust regression model, in noisy-or topic model it is the number of topics).
+ * `n`: the number of datapoints to simulate
+ * `ppls`: list of ppls that will be compared in the PPLBench run.
+ * `inference_type`: type of inference (mcmc, vi).
+ * `runtime`: Approximate time each ppl inference should run for.
+ * `model_args`: a list of model-specific arguments; changes for each model. Refer to model descriptions for more details.
+ * `rng_seed`: random seed for reproducability; default is 42.
+ * `train_test_ratio`: ratio of train and test data; default is 0.5.
+ * `iterations`: number of times to repeat inference; used to measure consistency across inference runs.
+ * `save_samples`: option to save generated samples.
+ * `save_generated_data` : option to save generated data.
+ * `include_compile_time`: option to consider the compiliation time in the final plot.
+ * `plot_data_size`: number of entries to save from the final plot data.
+ * `num_samples_<ppl>`: number of samples to run inference for the specific ppl; this is determined automatically. 
+ * `thinning_<ppl>`: amount of thinning to be applied while storing samples; detemined automatically.
 
-** Primary Data Structures (follow nested dictionaries template):**
-
-* `args_dict = a dictionary of arguments`
+Additionally, PPLBench uses the following dictionaries for storing and passing samples and timing info:
 * `posterior_samples = {‘PPLs’}`
     * `PPL = {‘iterations’}`
         * `iteration = {‘samples’}`
@@ -75,7 +89,7 @@ TBD. Here we specify variable names, datatypes, shapes, etc.
 
 Recommended setup:
 
-* Linux (RHEL/CentOS)
+* Linux(Tested on Ubuntu 16.04)
 * Anaconda
 
 PPLBench:
@@ -84,7 +98,6 @@ PPLBench:
 * scipy
 * torch
 * pandas
-* seaborn
 * matplotlib
 * argparse
 
