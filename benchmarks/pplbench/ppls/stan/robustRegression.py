@@ -83,9 +83,10 @@ def obtain_posterior(data_train, args_dict, model=None):
     }
 
     code_loaded = None
-    if os.path.isfile("./ppls/stan/robustRegression.pkl"):
+    pkl_filename = os.path.join(args_dict["output_dir"], "stan_robustRegression.pkl")
+    if os.path.isfile(pkl_filename):
         model, code_loaded, elapsed_time_compile_stan = pickle.load(
-            open("./ppls/stan/robustRegression.pkl", "rb")
+            open(pkl_filename, "rb")
         )
     if code_loaded != CODE:
         # compile the model, time it
@@ -93,7 +94,7 @@ def obtain_posterior(data_train, args_dict, model=None):
         model = pystan.StanModel(model_code=CODE, model_name="robust_regression")
         elapsed_time_compile_stan = time.time() - start_time
         # save it to the file 'model.pkl' for later use
-        with open("./ppls/stan/robustRegression.pkl", "wb") as f:
+        with open(pkl_filename, "wb") as f:
             pickle.dump((model, CODE, elapsed_time_compile_stan), f)
 
     if args_dict["inference_type"] == "mcmc":
