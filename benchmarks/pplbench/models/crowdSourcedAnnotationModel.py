@@ -192,7 +192,7 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
     """
 
     y, J_i = data_test
-    n_items = len(data_test)
+    n_items = len(y)
     K = samples[0]["theta"].shape[1]
     pred_log_lik_array = []
     for sample in samples:
