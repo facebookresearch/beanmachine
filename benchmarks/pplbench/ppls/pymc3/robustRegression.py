@@ -25,12 +25,14 @@ def obtain_posterior(data_train, args_dict, model=None):
     # Define model and sample
     if args_dict["inference_type"] == "mcmc":
         start_time = time.time()
+        # pymc3 uses this model internally; please ignore this lint error
         with pm.Model() as robust_regression:
             alpha = pm.Normal("alpha", mu=0, sigma=alpha_scale)
             beta = pm.Normal("beta", mu=beta_loc, sigma=beta_scale, shape=K)
             sigma = pm.Exponential("sigma", lam=sigma_loc)
             nu = pm.Gamma("nu", alpha=2, beta=10)
             mean = (alpha + x_train.T * beta).T
+            # pymc3 uses this variable internally; please ignore this lint error
             y_observed = pm.StudentT(
                 "y_observed", nu=nu, mu=mean, sigma=sigma, observed=y_train
             )
