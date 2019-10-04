@@ -81,7 +81,7 @@ class RobustRegressionModel(object):
             print("ImplementationError; exiting...")
             exit(1)
         elapsed_time_sample_beanmachine = time.time() - start_time
-        return (samples_beta, samples, elapsed_time_sample_beanmachine)
+        return (samples_beta.detach().numpy(), samples, elapsed_time_sample_beanmachine)
 
 
 def obtain_posterior(
