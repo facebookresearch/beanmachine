@@ -51,6 +51,13 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         for child in node_var.children:
             score += self.world_.get_node_in_world(child, False).log_prob
 
+        if not hasattr(node_val, "grad"):
+            raise ValueError("requires_grad_ needs to be set for node values")
+
+        # pyre-fixme
+        if hasattr(node_val, "grad") and node_val.grad is not None:
+            node_val.grad.zero_()
+
         score.backward(create_graph=True)
 
         if not hasattr(node_val, "grad"):
@@ -58,7 +65,6 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
 
         # pyre expects attributes to be defined in constructors or at class
         # top levels and doesn't support attributes that get dynamically added.
-        # pyre-fixme
         first_gradient = node_val.grad.reshape(-1).clone()
         prev_gradient = node_val.grad.reshape(-1).clone().detach()
 
