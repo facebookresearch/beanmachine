@@ -31,9 +31,7 @@ def obtain_posterior(data_train, args_dict, model=None):
             sigma = pm.Exponential("sigma", lam=sigma_loc)
             nu = pm.Gamma("nu", alpha=2, beta=10)
             mean = (alpha + x_train.T * beta).T
-            pm.StudentT(
-                "y_observed", nu=nu, mu=mean, sigma=sigma, observed=y_train
-            )
+            pm.StudentT("y_observed", nu=nu, mu=mean, sigma=sigma, observed=y_train)
             elapsed_time_compile_pymc3 = time.time() - start_time
             start_time = time.time()
             samples_pymc3 = pm.sample(
