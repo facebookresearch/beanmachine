@@ -10,6 +10,7 @@ from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
 from beanmachine.ppl.model.utils import RandomVariable
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor
+from torch.autograd import grad
 
 
 class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
@@ -47,40 +48,43 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         """
         hessian = None
         node_val = node_var.value
-        score = node_var.log_prob
-        for child in node_var.children:
-            score += self.world_.get_node_in_world(child, False).log_prob
 
-        if not hasattr(node_val, "grad"):
-            raise ValueError("requires_grad_ needs to be set for node values")
+        score = node_var.log_prob.clone()
+        for child in node_var.children:
+            score += self.world_.get_node_in_world(child, False).log_prob.clone()
 
         # pyre-fixme
         if hasattr(node_val, "grad") and node_val.grad is not None:
             node_val.grad.zero_()
-
-        score.backward(create_graph=True)
 
         if not hasattr(node_val, "grad"):
             raise ValueError("requires_grad_ needs to be set for node values")
 
         # pyre expects attributes to be defined in constructors or at class
         # top levels and doesn't support attributes that get dynamically added.
-        first_gradient = node_val.grad.reshape(-1).clone()
-        prev_gradient = node_val.grad.reshape(-1).clone().detach()
+
+        gradient = grad(score, node_val, create_graph=True)[0]
+        first_gradient = gradient.reshape(-1).clone()
 
         size = first_gradient.shape[0]
         for i in range(size):
-            first_gradient.index_select(0, tensor([i])).backward(create_graph=True)
-            cur_grad = node_val.grad.clone().reshape(-1)
-            second_gradient = cur_grad - prev_gradient
+
+            second_gradient = (
+                grad(
+                    first_gradient.index_select(0, tensor([i])),
+                    node_val,
+                    create_graph=True,
+                )[0]
+            ).reshape(-1)
+
             hessian = (
                 torch.cat((hessian, (second_gradient).unsqueeze(0)), 0)
                 if hessian is not None
                 else (second_gradient).unsqueeze(0)
             )
-            prev_gradient = cur_grad
 
-        node_val.grad.zero_()
+        if hasattr(node_val, "grad") and node_val.grad is not None:
+            node_val.grad.zero_()
 
         if hessian is None:
             raise ValueError("Something went wrong with gradient computation")
