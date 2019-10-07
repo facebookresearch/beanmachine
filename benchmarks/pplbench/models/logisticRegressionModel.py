@@ -30,7 +30,7 @@ Pass these arguments in following order -
 
 import numpy as np
 import torch
-from scipy import special, stats
+from scipy import stats
 
 
 def get_defaults():
