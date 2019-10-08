@@ -28,7 +28,8 @@ def robust_model(x_train, y_train, args_dict):
     N = int(x_train.shape[0])
     x_train = torch.tensor(x_train, dtype=torch.float32)
     y_train = torch.tensor(y_train, dtype=torch.float32)
-    scale_beta, scale_alpha, loc_beta, sigma_prior = args_dict["model_args"]
+
+    scale_alpha, scale_beta, loc_beta, sigma_prior = args_dict["model_args"]
     # Create priors over the parameters
     w_prior = dist.Normal(
         loc_beta * torch.ones(1, K), torch.ones(1, K) * scale_beta

@@ -118,5 +118,5 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
             y_test, df=sample["nu"], loc=loc, scale=sample["sigma"]
         )
         pred_log_lik_array.append(log_lik_test)
-    # return as a numpy array of mean over test data
-    return np.mean(pred_log_lik_array, axis=1)
+    # return as a numpy array of sum over test data
+    return np.sum(pred_log_lik_array, axis=1)
