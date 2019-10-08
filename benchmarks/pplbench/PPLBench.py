@@ -32,15 +32,15 @@ def logspace_datadump(averaged_pp_list, x_axis_list, x_axis_name, plot_data_size
     Create a datadump which uniformly subsamples in logspace
     Inputs:
     - averaged_pp_list: 2D array of average posterior predictive log-likelihoods
-                        with shape [iterations, samples]
+                        with shape [trials, samples]
     - x_axis_list: if x_axis_name is "time" -> list of timestamps corresponding to
-                each sample in averaged_pp_list, shape [iterations, samples]
+                each sample in averaged_pp_list, shape [trials, samples]
                 if x_axis_name is "samples" -> list of sample number (1..num_samples)
     - x_axis_name: "time" if x-axis is time, "samples" if x_axis is samples
     - plot_data_size(int): size of the subsampled arrays averaged_pp_list and time_axis
 
     Outputs:
-    - data_dict: 'iterations': logspace subsampled iterations of averaged_pp_list
+    - data_dict: 'trials': logspace subsampled trials of averaged_pp_list
                  'time_axes':  logspace subsampled time axes
                  'log_indices': list of indices which are uniform in logspace.
     """
@@ -55,7 +55,7 @@ def logspace_datadump(averaged_pp_list, x_axis_list, x_axis_name, plot_data_size
         if not int(j) in log_indices:
             log_indices.append(int(j))
     data_dict["log_indices"] = log_indices
-    data_dict["iterations"] = averaged_pp_list[:, log_indices]
+    data_dict["trials"] = averaged_pp_list[:, log_indices]
 
     if x_axis_name == "time":
         data_dict["time_axes"] = x_axis_list[:, log_indices]
@@ -73,7 +73,7 @@ def generate_plot(
     averaged_pp_list,
     args_dict,
     PPL,
-    iteration,
+    trial,
 ):
     """
     Helper function to generate plots of posterior log likelihood
@@ -94,7 +94,7 @@ def generate_plot(
         plt.xscale("log")
     plt.title(
         f'{args_dict["model"]} model \n'
-        f"{N} data-points | {K} covariates | {iteration + 1} iterations"
+        f"{N} data-points | {K} covariates | {trial + 1} trials"
     )
     averaged_pp_list = np.array(averaged_pp_list)
     x_axis_list = np.array(x_axis_list)
@@ -106,7 +106,7 @@ def generate_plot(
         mean_x_axis_list = np.mean(x_axis_list, axis=0)
     else:
         mean_x_axis_list = x_axis_list
-    label = f"{PPL}, {averaged_pp_list.shape[1] * thinning} samples/iteration"
+    label = f"{PPL}, {averaged_pp_list.shape[1] * thinning} samples/trial"
     plt.plot(mean_x_axis_list, mean_line, label=label)
     plt.fill_between(
         mean_x_axis_list, y1=max_line, y2=min_line, interpolate=True, alpha=0.3
@@ -125,7 +125,7 @@ def generate_plot_against_time(timing_info, posterior_predictive, args_dict):
 
     inputs-
     timing_info(dict): 'PPL'->'compile_time' and 'inference_time'
-    posterior_predictive(dict): 'PPL'->'iteration'->array of posterior_predictives
+    posterior_predictive(dict): 'PPL'->'trial'->array of posterior_predictives
 
     returns-
     plt - a matplotlib object with the plots
@@ -135,20 +135,20 @@ def generate_plot_against_time(timing_info, posterior_predictive, args_dict):
     for PPL in posterior_predictive.keys():
         averaged_pp_list = []
         time_axis_list = []
-        for iteration in range(len(posterior_predictive[PPL])):
-            # timing_info[PPL][iteration] contains 'inference_time'
-            # and 'compile_time' for each iteration of each PPL
-            sample_time = timing_info[PPL][iteration]["inference_time"]
-            # posterior_predictive[PPL][iteration] is a 1D array of
-            # posterior_predictives for a certain PPL for certain iteration
-            averaged_pp = np.zeros_like(posterior_predictive[PPL][iteration])
+        for trial in range(len(posterior_predictive[PPL])):
+            # timing_info[PPL][trial] contains 'inference_time'
+            # and 'compile_time' for each trial of each PPL
+            sample_time = timing_info[PPL][trial]["inference_time"]
+            # posterior_predictive[PPL][trial] is a 1D array of
+            # posterior_predictives for a certain PPL for certain trial
+            averaged_pp = np.zeros_like(posterior_predictive[PPL][trial])
             time_axis = np.linspace(
-                start=0, stop=sample_time, num=len(posterior_predictive[PPL][iteration])
+                start=0, stop=sample_time, num=len(posterior_predictive[PPL][trial])
             )
             if args_dict["include_compile_time"] == "yes":
-                time_axis += timing_info[PPL][iteration]["compile_time"]
-            for i in range(len(posterior_predictive[PPL][iteration])):
-                averaged_pp[i] = np.mean(posterior_predictive[PPL][iteration][: i + 1])
+                time_axis += timing_info[PPL][trial]["compile_time"]
+            for i in range(len(posterior_predictive[PPL][trial])):
+                averaged_pp[i] = np.mean(posterior_predictive[PPL][trial][: i + 1])
             averaged_pp_list.append(averaged_pp)
             time_axis_list.append(time_axis)
 
@@ -160,7 +160,7 @@ def generate_plot_against_time(timing_info, posterior_predictive, args_dict):
             averaged_pp_list,
             args_dict,
             PPL,
-            iteration,
+            trial,
         )
         plt_data[PPL] = plt_datadump
     plt.legend()
@@ -180,7 +180,7 @@ def generate_plot_against_sample(posterior_predictive, args_dict):
     Generates plots of posterior predictive log-likelihood against number of samples
 
     inputs-
-    posterior_predictive(dict): 'PPL'->'iteration'->array of posterior_predictives
+    posterior_predictive(dict): 'PPL'->'trial'->array of posterior_predictives
 
     returns-
     plt - a matplotlib object with the plots
@@ -196,12 +196,12 @@ def generate_plot_against_sample(posterior_predictive, args_dict):
         ]
         averaged_pp_list = []
 
-        for iteration in range(len(posterior_predictive[PPL])):
-            # posterior_predictive[PPL][iteration] is a 1D array of
-            # posterior_predictives for a certain PPL for certain iteration
-            averaged_pp = np.zeros_like(posterior_predictive[PPL][iteration])
-            for i in range(len(posterior_predictive[PPL][iteration])):
-                averaged_pp[i] = np.mean(posterior_predictive[PPL][iteration][: i + 1])
+        for trial in range(len(posterior_predictive[PPL])):
+            # posterior_predictive[PPL][trial] is a 1D array of
+            # posterior_predictives for a certain PPL for certain trial
+            averaged_pp = np.zeros_like(posterior_predictive[PPL][trial])
+            for i in range(len(posterior_predictive[PPL][trial])):
+                averaged_pp[i] = np.mean(posterior_predictive[PPL][trial][: i + 1])
             averaged_pp_list.append(averaged_pp)
 
         plt, plt_datadump = generate_plot(
@@ -212,7 +212,7 @@ def generate_plot_against_sample(posterior_predictive, args_dict):
             averaged_pp_list,
             args_dict,
             PPL,
-            iteration,
+            trial,
         )
         plt_data[PPL] = plt_datadump
     plt.legend()
@@ -317,7 +317,7 @@ def get_args(models_list, ppls_list):
         "--num-samples",
         default=100,
         help="number of samples to sample from the posterior in \
-        each iteration of the inference algorithm",
+        each trial of the inference algorithm",
     )
     parser.add_argument(
         "--model-args",
@@ -331,7 +331,7 @@ def get_args(models_list, ppls_list):
         help="ratio to split simulated data into train and test sets",
     )
     parser.add_argument(
-        "--iterations", default="default", help="Number of times to re-run the test"
+        "--trials", default="default", help="Number of times to re-run the test"
     )
     parser.add_argument(
         "--save-samples",
@@ -351,7 +351,7 @@ def get_args(models_list, ppls_list):
     parser.add_argument(
         "--plot-data-size",
         default=100,
-        help="number of samples per PPL per iteration to save",
+        help="number of samples per PPL per trial to save",
     )
     return parser.parse_args()
 
@@ -384,21 +384,19 @@ def save_data(
         ) as csv_file:
             csvwriter = csv.writer(csv_file, delimiter=",")
             csvwriter.writerow(
-                ["ppl", "iteration", "sample", "average_log_predictive", "time"]
+                ["ppl", "trial", "sample", "average_log_predictive", "time"]
             )
             for ppl in plot_data[i]:
-                for iteration in range(plot_data[i][ppl]["iterations"].shape[0]):
-                    for sample in range(
-                        len(plot_data[i][ppl]["iterations"][iteration, :])
-                    ):
+                for trial in range(plot_data[i][ppl]["trials"].shape[0]):
+                    for sample in range(len(plot_data[i][ppl]["trials"][trial, :])):
                         csvwriter.writerow(
                             [
                                 ppl,
-                                iteration + 1,
+                                trial + 1,
                                 plot_data[i][ppl]["log_indices"][sample]
                                 * args_dict[f"thinning_{ppl}"],
-                                plot_data[i][ppl]["iterations"][iteration, sample],
-                                plot_data[i][ppl]["time_axes"][iteration, sample],
+                                plot_data[i][ppl]["trials"][trial, sample],
+                                plot_data[i][ppl]["time_axes"][trial, sample],
                             ]
                         )
 
@@ -463,7 +461,7 @@ def main():
     estimated_total_time = (
         1.1
         * int(args_dict["runtime"])
-        * int(args_dict["iterations"])
+        * int(args_dict["trials"])
         * len(args_dict["ppls"].split(","))
     )
 
@@ -517,12 +515,12 @@ def main():
         except ModuleNotFoundError:
             continue
         print(f"{ppl}:")
-        timing_info[ppl] = [None] * int(args_dict["iterations"])
-        posterior_samples[ppl] = [None] * int(args_dict["iterations"])
-        posterior_predictive[ppl] = [None] * int(args_dict["iterations"])
-        # start iteration loop
-        for i in range(int(args_dict["iterations"])):
-            print("Starting iteration", i + 1, "of", args_dict["iterations"])
+        timing_info[ppl] = [None] * int(args_dict["trials"])
+        posterior_samples[ppl] = [None] * int(args_dict["trials"])
+        posterior_predictive[ppl] = [None] * int(args_dict["trials"])
+        # start trial loop
+        for i in range(int(args_dict["trials"])):
+            print("Starting trial", i + 1, "of", args_dict["trials"])
             # obtain posterior samples and timing info
             posterior_samples[ppl][i], timing_info[ppl][i] = module.obtain_posterior(
                 data_train=generated_data["data_train"],
@@ -536,7 +534,7 @@ def main():
                 model=model_instance,
             )
             print(
-                f"Iteration {i + 1} "
+                f"Trial {i + 1} "
                 f'complete in {timing_info[ppl][i]["inference_time"]} '
                 "seconds.\n Statistics of  posterior predictive\n mean:"
                 f"{np.array(posterior_predictive[ppl][i]).mean()}"

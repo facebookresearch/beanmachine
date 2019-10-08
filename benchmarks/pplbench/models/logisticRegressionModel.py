@@ -39,7 +39,7 @@ def get_defaults():
         "k": 10,
         "runtime": 200,
         "train_test_ratio": 0.5,
-        "iterations": 10,
+        "trials": 10,
         "model_args": [10, 2.5, 0],
     }
     return defaults

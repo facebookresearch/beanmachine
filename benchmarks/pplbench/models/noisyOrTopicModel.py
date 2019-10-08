@@ -50,7 +50,7 @@ def get_defaults():
         "k": 150,  # number of nodes in the network
         "runtime": 200,
         "train_test_ratio": 0.5,
-        "iterations": 100,
+        "trials": 100,
         # [rate_fanout, avg_leak_weight, avg_weight, word_fraction]
         "model_args": [3, 0.1, 1, 0.66],
     }
