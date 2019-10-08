@@ -107,7 +107,7 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
             wrt parameter samples
     """
     x_test, y_test = data_test
-    y_test = torch.tensor(np.array(y_test, dtype=np.float32))
+    y_test = torch.tensor(np.array(y_test, dtype=np.double))
     pred_log_lik_array = []
     for sample in samples:
         mu = torch.tensor(
