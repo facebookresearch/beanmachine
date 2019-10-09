@@ -59,7 +59,9 @@ TEST(testcavi, noisy_or) {
   g.query(y);
   // run CAVI on the above graph and verify the results
   const std::vector<std::vector<double>>& parameters =
-      g.variational(1000, 100);
+      g.variational(100, 1000, 81391, 1000);
   EXPECT_NEAR(parameters[0][0], parameters[1][0], 0.1);
   EXPECT_NEAR(parameters[0][0], 0.245, 0.1);
+  const auto& elbo = g.get_elbo();
+  EXPECT_NEAR(elbo.back(), -3.7867, 0.1);
 }

@@ -174,6 +174,7 @@ void Graph::observe(uint node_id, AtomicValue value) {
       "duplicate observe for node_id " + std::to_string(node_id));
   }
   node->value = value;
+  node->is_observed = true;
   observed.insert(node_id);
 }
 
@@ -255,7 +256,8 @@ Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
 }
 
 std::vector<std::vector<double>>&
-Graph::variational(uint num_iters, int steps_per_iter, uint seed) {
+Graph::variational(
+    uint num_iters, uint steps_per_iter, uint seed, uint elbo_samples) {
   if (queries.size() == 0) {
     throw std::runtime_error("no nodes queried for inference");
   }
@@ -266,8 +268,9 @@ Graph::variational(uint num_iters, int steps_per_iter, uint seed) {
         "variational inference");
     }
   }
+  elbo_vals.clear();
   std::mt19937 generator(seed);
-  cavi(num_iters, steps_per_iter, generator);
+  cavi(num_iters, steps_per_iter, generator, elbo_samples);
   return variational_params;
 }
 

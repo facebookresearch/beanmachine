@@ -130,7 +130,12 @@ PYBIND11_MODULE(graph, module) {
           "infer the empirical distribution of the queried nodes",
           py::arg("num_iters"),
           py::arg("steps_per_iter"),
-          py::arg("seed") = 5123401);
+          py::arg("seed") = 5123401,
+          py::arg("elbo_samples") = 0)
+      .def(
+          "get_elbo",
+          &Graph::get_elbo,
+          "get the evidence lower bound (ELBO) of the last variational call");
 }
 
 } // namespace graph
