@@ -36,6 +36,7 @@ Operator::Operator(
     }
     case graph::OperatorType::TO_REAL:
     case graph::OperatorType::NEGATE:
+    case graph::OperatorType::EXPM1:
     case graph::OperatorType::EXP: {
       if (in_nodes.size() != 1) {
         throw std::invalid_argument(
@@ -79,6 +80,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::EXP: {
       exp(this);
+      break;
+    }
+    case graph::OperatorType::EXPM1: {
+      expm1(this);
       break;
     }
     case graph::OperatorType::MULTIPLY: {
