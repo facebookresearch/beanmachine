@@ -70,6 +70,7 @@ enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN};
 
 class Node {
  public:
+  bool is_observed = false;
   NodeType node_type;
   uint index; // index in Graph::nodes
   std::vector<Node*> in_nodes;
@@ -131,13 +132,17 @@ struct Graph {
   :param steps_per_iter: The number of samples generated to make the estimate
                          in each iteration for each node.
   :param seed: The random number generator seed (default: 5123401)
+  :param elbo_samples: The number of Monte Carlo samples to estimate the
+                       ELBO (Evidence Lower Bound). Default 0 => no estimate.
   :returns: vector of parameters for each queried node;
             each parameter is itself a vector whose length depends
             on the type of the queried node
   :raises: std::runtime_error, std::invalid_argument
   */
   std::vector<std::vector<double>>&
-  variational(uint num_iters, int steps_per_iter, uint seed = 5123401);
+  variational(uint num_iters, uint steps_per_iter, uint seed = 5123401,
+    uint elbo_samples=0);
+  std::vector<double>& get_elbo() {return elbo_vals;}
   std::set<uint> compute_support();
   std::tuple<std::vector<uint>, std::vector<uint>> compute_descendants(
       uint node_id, const std::set<uint> &support);
@@ -160,10 +165,12 @@ struct Graph {
   std::vector<double> means;
   AggregationType agg_type;
   std::vector<std::vector<double>> variational_params;
+  std::vector<double> elbo_vals;
   void collect_sample();
   void rejection(uint num_samples, std::mt19937& gen);
   void gibbs(uint num_samples, std::mt19937& gen);
-  void cavi(uint num_iters, uint steps_per_iter, std::mt19937& gen);
+  void cavi(
+    uint num_iters, uint steps_per_iter, std::mt19937& gen, uint elbo_samples);
 };
 
 } // namespace graph

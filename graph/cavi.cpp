@@ -1,5 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-
+#include <cmath>
 #include <beanmachine/graph/distribution.h>
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/util.h>
@@ -7,7 +7,8 @@
 namespace beanmachine {
 namespace graph {
 
-void Graph::cavi(uint num_iters, uint steps_per_iter, std::mt19937& gen) {
+void Graph::cavi(
+    uint num_iters, uint steps_per_iter, std::mt19937& gen, uint elbo_samples) {
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
   std::vector<Node *> node_ptrs;
@@ -25,15 +26,17 @@ void Graph::cavi(uint num_iters, uint steps_per_iter, std::mt19937& gen) {
   assert(param_probability.size() > 0);  // keep linter happy
   // compute pool : nodes that we will infer over
   //    -> nodes to sample, nodes to eval, nodes to log_prob
-  std::unordered_map<uint, std::tuple<std::vector<uint>, std::vector<uint>,
+  // NOTE: we want the list of nodes in the pool to be sorted to ensure
+  // that we update the nodes in topological order. This helps in some models
+  // where some of the ancestor nodes have deterministic probabilities.
+  std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>,
     std::vector<uint>>> pool;
   for (uint node_id : supp) {
     Node* node = node_ptrs[node_id];
-    bool node_is_not_observed = observed.find(node_id) == observed.end();
-    if (node_is_not_observed) {
+    if (not node->is_observed) {
       node->eval(gen); // evaluate the value of non-observed operator nodes
     }
-    if (node->is_stochastic() and node_is_not_observed) {
+    if (node->is_stochastic() and not node->is_observed) {
       // sample some values for this node
       auto& samples = var_samples[node_id];
       std::bernoulli_distribution distrib(param_probability[node_id]);
@@ -107,12 +110,48 @@ void Graph::cavi(uint num_iters, uint steps_per_iter, std::mt19937& gen) {
           expec[val] += log_prob / steps_per_iter;
         }
       }
-      param_probability[tgt_node_id] = util::logistic(expec[1] - expec[0]);
+      if (std::isfinite(expec[0]) or std::isfinite(expec[1])) {
+        param_probability[tgt_node_id] = util::logistic(expec[1] - expec[0]);
+      } else {
+        param_probability[tgt_node_id] = 0.5;
+      }
       auto& samples = var_samples[tgt_node_id];
       std::bernoulli_distribution distrib(param_probability[tgt_node_id]);
       for (uint step = 0; step < steps_per_iter; step++) {
         samples[step] = AtomicValue(bool(distrib(gen)));
       }
+    }
+    if (elbo_samples > 0) {
+      // For a model p(X, Z) assume we are trying to estimate p(Z | X=x)
+      //  using a variational approximation Q(Z).
+      // Now KL-Divergence of  Q(Z) || p(Z|x) >= 0
+      // => E[log Q(Z) - log p(Z|x) | Z ~ Q] >= 0
+      // => p(x) >= E[log p(Z, x) - log Q(Z) | Z ~ Q]
+      // the RHS is the ELBO or evidence lower bound
+      // We compute this expectation using the samples of the nodes in our pool.
+      // log p(Z, x) is the log_prob of all the stochastic nodes
+      // and log Q(Z) is the log of the variational distribution for the pool.
+      double elbo = 0;
+      for (uint step = 0; step < elbo_samples; step++) {
+        for (uint node_id : supp) {
+          Node* node = node_ptrs[node_id];
+          if (node->is_stochastic()) {
+            if (not node->is_observed) {
+              double prob = param_probability[node_id];
+              std::bernoulli_distribution distrib(prob);
+              node->value = AtomicValue(bool(distrib(gen)));
+              // subtract the log_prob of the variational distribution
+              elbo -= node->value._bool ? log(prob) : log(1-prob);
+            }
+            // add the log_prob of the joint distribution
+            elbo += node->log_prob();
+          }
+          else if (node->node_type == NodeType::OPERATOR) {
+            node->eval(gen);
+          }
+        }
+      }
+      elbo_vals.push_back(elbo / elbo_samples);
     }
   }
   variational_params.clear();
