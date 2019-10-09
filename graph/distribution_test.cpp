@@ -5,6 +5,7 @@
 #include <torch/torch.h>
 
 #include "beanmachine/graph/bernoulli.h"
+#include "beanmachine/graph/bernoulli_noisy_or.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/tabular.h"
 
@@ -26,6 +27,35 @@ TEST(testdistrib, bernoulli) {
 
   EXPECT_NEAR(LOG_ZERO_PT_9, dnode1.log_prob(zero), 1e-3);
   EXPECT_NEAR(LOG_ZERO_PT_1, dnode1.log_prob(one), 1e-3);
+}
+
+TEST(testdistrib, bernoulli_noisy_or) {
+  // Define log1mexp(x) = log(1 - exp(-x))
+  // then log1mexp(1e-20) = -46.051701859880914
+  // and log1mexp(40) = -4.248354255291589e-18
+  // We will use the above facts in this test
+
+  // first distribution
+  auto p1 = graph::AtomicValue(1e-20);
+  graph::ConstNode cnode1(p1);
+  distribution::BernoulliNoisyOr dnode1(
+      graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
+  dnode1.in_nodes.push_back(&cnode1);
+  auto zero = graph::AtomicValue(false);
+  auto one = graph::AtomicValue(true);
+
+  EXPECT_EQ(-1e-20, dnode1.log_prob(zero));
+  EXPECT_NEAR(-46.05, dnode1.log_prob(one), 0.01);
+
+  // second disgribution
+  auto p2 = graph::AtomicValue(40.0);
+  graph::ConstNode cnode2(p2);
+  distribution::BernoulliNoisyOr dnode2(
+      graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
+  dnode2.in_nodes.push_back(&cnode2);
+
+  EXPECT_EQ(-40, dnode2.log_prob(zero));
+  EXPECT_NEAR(-4.248e-18, dnode2.log_prob(one), 0.001e-18);
 }
 
 TEST(testdistrib, tabular) {

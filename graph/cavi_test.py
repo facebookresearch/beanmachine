@@ -73,6 +73,8 @@ class TestCAVI(unittest.TestCase):
         X ~ Bernoulli(0.01)
         Y ~ Bernoulli(0.01)
         Z ~ Bernoulli(1 - exp( log(0.99) + log(0.01)*X + log(0.01)*Y ))
+        Note: the last line is equivalent to:
+        Z ~ BernoulliNoisyOr( - ( log(0.99) + log(0.01)*X + log(0.01)*Y ) )
         query (X, Y) observe Z = True
 
         X  Y  P(X, Y, Z=T)  P(X, Y | Z=T)
@@ -93,7 +95,6 @@ class TestCAVI(unittest.TestCase):
         And max ELBO = log P(Z=T) - kl(.245) = -3.7867
         """
         g = graph.Graph()
-        c_one = g.add_constant(1.0)
         c_prior = g.add_constant(0.01)
         d_prior = g.add_distribution(
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c_prior]
@@ -104,7 +105,7 @@ class TestCAVI(unittest.TestCase):
         real_y = g.add_operator(graph.OperatorType.TO_REAL, [y])
         c_log_pt01 = g.add_constant(math.log(0.01))
         c_log_pt99 = g.add_constant(math.log(0.99))
-        logprob = g.add_operator(
+        param = g.add_operator(
             graph.OperatorType.ADD,
             [
                 c_log_pt99,
@@ -112,11 +113,10 @@ class TestCAVI(unittest.TestCase):
                 g.add_operator(graph.OperatorType.MULTIPLY, [c_log_pt01, real_y]),
             ],
         )
-        prob = g.add_operator(graph.OperatorType.EXP, [logprob])
-        prob = g.add_operator(graph.OperatorType.NEGATE, [prob])
-        prob = g.add_operator(graph.OperatorType.ADD, [c_one, prob])
         d_like = g.add_distribution(
-            graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [prob]
+            graph.DistributionType.BERNOULLI_NOISY_OR,
+            graph.AtomicType.BOOLEAN,
+            [g.add_operator(graph.OperatorType.NEGATE, [param])],
         )
         z = g.add_operator(graph.OperatorType.SAMPLE, [d_like])
         g.observe(z, True)
