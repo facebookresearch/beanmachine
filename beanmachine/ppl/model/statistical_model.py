@@ -3,6 +3,8 @@ from collections import defaultdict
 from functools import wraps
 from typing import Dict, List
 
+import torch
+import torch.distributions as dist
 from beanmachine.ppl.model.utils import Mode, RandomVariable, float_types
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
@@ -152,7 +154,16 @@ class StatisticalModel(object):
             stack.pop()
 
             var.distribution = distribution
-            var.value = obs[func_key] if func_key in obs else distribution.sample()
+            dist_sample = distribution.sample()
+            var.value = (
+                obs[func_key]
+                if func_key in obs
+                else (
+                    torch.zeros(dist_sample.shape)
+                    if isinstance(distribution.support, dist.constraints._Real)
+                    else dist_sample
+                )
+            )
             if isinstance(var.value, float_types):
                 var.value.requires_grad_(True)
             var.log_prob = distribution.log_prob(var.value).sum()

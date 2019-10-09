@@ -82,11 +82,11 @@ class DiagnosticsTest(unittest.TestCase):
                             val,
                             res[i].item(),
                             msg=f"query {query_res.index[i]} for {col}",
-                            delta=0.1,
+                            delta=0.2,
                         )
 
         mh = SingleSiteAncestralMetropolisHastings()
-        samples = mh.infer([beta(0), diri(1, 5), normal()], {}, 2000)
+        samples = mh.infer([beta(0), diri(1, 5), normal()], {}, 10000)
 
         out_df = Diagnostics(samples).summary()
         _inference_evaulation(out_df)

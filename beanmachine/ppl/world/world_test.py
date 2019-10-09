@@ -83,7 +83,7 @@ class WorldTest(unittest.TestCase):
 
         @sample
         def D(self, i):
-            return dist.Normal(self.B(i), abs(self.C(i).item()))
+            return dist.Normal(self.B(i), abs(self.C(i).item()) + 0.1)
 
         @sample
         def Y(self):
@@ -448,7 +448,7 @@ class WorldTest(unittest.TestCase):
             dist.Normal(tensor(0.0), tensor(1.0)).log_prob(a_value)
             + dist.Normal(a_value, tensor(1.0)).log_prob(b_value)
             + dist.Normal(b_value, tensor(1.0)).log_prob(c_value)
-            + dist.Normal(b_value.item(), abs(c_value.item())).log_prob(d_value)
+            + dist.Normal(b_value.item(), abs(c_value.item()) + 0.1).log_prob(d_value)
         )
         expected_world_log_update += new_nodes_additions - old_nodes_deletions
         self.assertAlmostEqual(
