@@ -62,6 +62,7 @@ def generate_data(args_dict, model=None):
     print("Generating data")
 
     np.random.seed(args_dict["rng_seed"])
+    torch.manual_seed(args_dict["rng_seed"])
 
     N = int(args_dict["n"])
     K = int(args_dict["k"])
@@ -72,13 +73,8 @@ def generate_data(args_dict, model=None):
     beta_scale = (args_dict["model_args"])[1]
     beta_locs = (args_dict["model_args"])[2] * np.ones(K).reshape([-1, 1])
 
-    # sampling parameters from tails (10-11 sigma)
-    alpha = stats.truncnorm.rvs(
-        10, 11, loc=0, scale=alpha_scale, size=N
-    ) * np.random.choice([1, -1], size=N)
-    beta = stats.truncnorm.rvs(
-        10, 11, loc=beta_locs, scale=beta_scale, size=(K, N)
-    ) * np.random.choice([1, -1], size=(K, N))
+    alpha = stats.norm.rvs(loc=0, scale=alpha_scale, size=N)
+    beta = stats.norm.rvs(loc=beta_locs, scale=beta_scale, size=(K, N))
 
     # model
     x = np.random.normal(0, 10, size=(K, N))

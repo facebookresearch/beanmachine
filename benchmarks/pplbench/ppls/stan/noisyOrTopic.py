@@ -124,6 +124,7 @@ model {
             iter=int(args_dict["num_samples_stan"]),
             chains=1,
             thin=thinning,
+            check_hmc_diagnostics=False,
         )
         samples_stan = fit.extract(pars=["topic"], permuted=False, inc_warmup=True)
         elapsed_time_sample_stan = time.time() - start_time

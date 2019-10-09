@@ -105,6 +105,7 @@ def obtain_posterior(data_train, args_dict, model=None):
             iter=int(args_dict["num_samples_stan"]),
             chains=1,
             thin=thinning,
+            check_hmc_diagnostics=False,
         )
         samples_stan = fit.extract(
             pars=["alpha", "beta", "sigma", "nu"], permuted=False, inc_warmup=True
