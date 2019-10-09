@@ -65,17 +65,19 @@ TEST(testgraph, support) {
   EXPECT_EQ(sto_nodes.front(), o4);
   std::vector<uint> det_anc;
   std::vector<uint> sto_anc;
-  std::tie(det_anc, sto_anc) = g.compute_ancestors(o4, supp);
+  std::tie(det_anc, sto_anc) = g.compute_ancestors(o4);
   // o4 -ancestors-> det: c3, c4, o3, d2 sto:
-  // restricting to support: det: o3 sto:
+  // restricting to operators: det: o3 sto:
   EXPECT_EQ(det_anc.size(), 1);
   EXPECT_EQ(det_anc.front(), o3);
   EXPECT_EQ(sto_anc.size(), 0);
-  std::tie(det_anc, sto_anc) = g.compute_ancestors(o8, supp);
-  // restricting to support, ancestors(o8) = det: o3 sto: <none>
-  EXPECT_EQ(det_anc.size(), 1);
+  std::tie(det_anc, sto_anc) = g.compute_ancestors(o8);
+  // restricting to operators, ancestors(o8) = det: o3, o7 sto: o6
+  EXPECT_EQ(det_anc.size(), 2);
   EXPECT_EQ(det_anc.front(), o3);
-  EXPECT_EQ(sto_anc.size(), 0);
+  EXPECT_EQ(det_anc.back(), o7);
+  EXPECT_EQ(sto_anc.size(), 1);
+  EXPECT_EQ(sto_anc.front(), o6);
   // query o5 so support is now 11 nodes:
   //   c1, c2, o1, d1, o2, c3, c4, o3, d2, o4, o5
   // but we only include operators o1, o2, o3, o4, and o5
@@ -92,7 +94,7 @@ TEST(testgraph, support) {
   EXPECT_EQ(det_nodes.front(), o5);
   EXPECT_EQ(sto_nodes.size(), 1);
   EXPECT_EQ(sto_nodes.front(), o4);
-  std::tie(det_anc, sto_anc) = g.compute_ancestors(o5, supp);
+  std::tie(det_anc, sto_anc) = g.compute_ancestors(o5);
   // ancestors(o5) = det: sto: o2 o4
   EXPECT_EQ(det_anc.size(), 0);
   EXPECT_EQ(sto_anc.size(), 2);
