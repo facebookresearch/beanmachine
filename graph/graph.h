@@ -74,6 +74,8 @@ class Node {
   uint index; // index in Graph::nodes
   std::vector<Node*> in_nodes;
   std::vector<Node*> out_nodes;
+  std::vector<uint> det_anc; // deterministic (operator) ancestors
+  std::vector<uint> sto_anc; // stochastic ancestors
   AtomicValue value;
   bool is_stochastic() const;
   double log_prob() const; // only valid for stochastic nodes
@@ -140,7 +142,7 @@ struct Graph {
   std::tuple<std::vector<uint>, std::vector<uint>> compute_descendants(
       uint node_id, const std::set<uint> &support);
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
-      uint node_id, const std::set<uint> &support);
+      uint node_id);
 
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);

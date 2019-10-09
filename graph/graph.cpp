@@ -68,11 +68,27 @@ std::vector<Node*> Graph::convert_parent_ids(
 }
 
 uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
+  // for each parent collect their deterministic/stochastic ancestors
+  // also maintain the in/out nodes of this node and its parents
+  std::set<uint> det_set;
+  std::set<uint> sto_set;
   for (uint paridx : parents) {
     Node* parent = nodes[paridx].get();
     parent->out_nodes.push_back(node.get());
     node->in_nodes.push_back(parent);
+    if (parent->is_stochastic()) {
+      sto_set.insert(parent->index);
+    }
+    else {
+      det_set.insert(parent->det_anc.begin(), parent->det_anc.end());
+      if (parent->node_type == NodeType::OPERATOR) {
+        det_set.insert(parent->index);
+      }
+      sto_set.insert(parent->sto_anc.begin(), parent->sto_anc.end());
+    }
   }
+  node->det_anc.insert(node->det_anc.end(), det_set.begin(), det_set.end());
+  node->sto_anc.insert(node->sto_anc.end(), sto_set.begin(), sto_set.end());
   uint index = node->index = nodes.size();
   nodes.push_back(std::move(node));
   return index;
