@@ -85,6 +85,7 @@ def generate_plot(
     """
     K = args_dict["k"]
     N = args_dict["n"]
+    train_test_ratio = float(args_dict["train_test_ratio"])
     thinning = args_dict[f"thinning_{PPL}"]
 
     # plot!
@@ -94,7 +95,8 @@ def generate_plot(
         plt.xscale("log")
     plt.title(
         f'{args_dict["model"]} model \n'
-        f"{N} data-points | {K} covariates | {trial + 1} trials"
+        f"{int(int(N)*train_test_ratio)} data-points \
+    | {K} covariates | {trial + 1} trials"
     )
     averaged_pp_list = np.array(averaged_pp_list)
     x_axis_list = np.array(x_axis_list)
