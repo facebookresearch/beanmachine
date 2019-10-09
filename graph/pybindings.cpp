@@ -31,6 +31,7 @@ PYBIND11_MODULE(graph, module) {
       .value("TO_REAL", OperatorType::TO_REAL)
       .value("NEGATE", OperatorType::NEGATE)
       .value("EXP", OperatorType::EXP)
+      .value("EXPM1", OperatorType::EXPM1)
       .value("MULTIPLY", OperatorType::MULTIPLY)
       .value("ADD", OperatorType::ADD);
 
