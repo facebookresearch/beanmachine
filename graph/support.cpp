@@ -95,54 +95,19 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
 
 // compute the ancestors of the current node
 // returns vector of deterministic nodes and vector of stochastic nodes
-// that are operators and ancestors of the current node and in the support
+// that are operators and ancestors of the current node
 // NOTE: we don't return ancestors of stochastic ancestors
 // NOTE: current node is not returned
 std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_ancestors(
-    uint root_id, const std::set<uint> &support) {
+    uint root_id) {
   // check for the validity of root_id since this method is not private
   if (root_id >= nodes.size()) {
     throw std::out_of_range(
         "node_id (" + std::to_string(root_id) + ") must be less than "
         + std::to_string(nodes.size()));
   }
-  std::list<uint> queue;
   const Node* root = nodes[root_id].get();
-  for (const auto& par : root->in_nodes) {
-    queue.push_back(par->index);
-  }
-  std::vector<uint> det_anc;
-  std::vector<uint> sto_anc;
-  // we will do a BFS starting from the current node and ending at stochastic
-  // nodes going up in the parent direction
-  std::set<uint> visited;
-  // BFS loop
-  while (queue.size() > 0) {
-    uint node_id = queue.front();
-    queue.pop_front();
-    if (visited.find(node_id) != visited.end()) {
-      continue;
-    }
-    visited.insert(node_id);
-    const Node* node = nodes[node_id].get();
-    // we stop looking at ancestors when we hit a stochastic node
-    if (node->is_stochastic()) {
-      if  (support.find(node_id) != support.end()) {
-        sto_anc.push_back(node_id);
-      }
-      continue;
-    }
-    else if (node->node_type == NodeType::OPERATOR and
-      support.find(node_id) != support.end()) {
-      det_anc.push_back(node_id);
-    }
-    for (const auto& par : node->in_nodes) {
-      queue.push_back(par->index);
-    }
-  }
-  std::sort(det_anc.begin(), det_anc.end());
-  std::sort(sto_anc.begin(), sto_anc.end());
-  return std::make_tuple(det_anc, sto_anc);
+  return std::make_tuple(root->det_anc, root->sto_anc);
 }
 
 } // namespace graph
