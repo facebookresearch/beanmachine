@@ -4,8 +4,8 @@ from typing import Tuple
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
-    AbstractSingleSiteMHInference,
+from beanmachine.ppl.inference.single_site_ancestral_mh import (
+    SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.utils import RandomVariable
 from beanmachine.ppl.world.variable import Variable
@@ -13,7 +13,7 @@ from torch import Tensor
 from torch.autograd import grad
 
 
-class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
+class SingleSiteNewtonianMonteCarlo(SingleSiteAncestralMetropolisHastings):
     """
     Single-Site Newtonian Monte Carlo Implementations
 
@@ -121,6 +121,14 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         old_value = self.world_.variables_[node].value
         mean, covariance = self.compute_normal_mean_covar(node_var)
 
+        if torch.isnan(mean.sum()).item() or torch.isnan(covariance.sum()).item():
+            print("Hit nan while computing gradient")
+            return super().post_process(node)
+
+        if mean.sum().item() == float("Inf") or covariance.sum().item() == float("Inf"):
+            print("Hit inf while computing gradient")
+            return super().post_process(node)
+
         new_value_dist = dist.MultivariateNormal(mean, covariance)
         node_var.mean = mean
         node_var.covariance = covariance
@@ -146,6 +154,14 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         else:
             mean = node_var.mean
             covariance = node_var.covariance
+
+        if torch.isnan(mean.sum()).item() or torch.isnan(covariance.sum()).item():
+            print("Hit nan while computing gradient")
+            return super().propose(node)
+
+        if mean.sum().item() == float("Inf") or covariance.sum().item() == float("Inf"):
+            print("Hit inf while computing gradient")
+            return super().propose(node)
 
         new_value_dist = dist.MultivariateNormal(mean, covariance)
         new_value = new_value_dist.sample().reshape(node_val.shape)
