@@ -55,7 +55,12 @@ enum class OperatorType {
   ADD,
 };
 
-enum class DistributionType { UNKNOWN = 0, TABULAR = 1, BERNOULLI };
+enum class DistributionType {
+  UNKNOWN = 0,
+  TABULAR = 1,
+  BERNOULLI = 2,
+  BERNOULLI_NOISY_OR = 3
+};
 
 enum class NodeType {
   UNKNOWN = 0,
