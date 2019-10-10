@@ -57,13 +57,10 @@ void Graph::cavi(uint num_iters, uint steps_per_iter, std::mt19937& gen) {
       // the deterministic nodes have to be evaluated in topological order
       std::set<uint> det_set;
       for (auto id : logprob_nodes) {
-        std::vector<uint> det_anc;
-        std::vector<uint> sto_anc;
-        std::tie(det_anc, sto_anc) = compute_ancestors(id, supp);
-        for (auto id2 : det_anc) {
+        for (auto id2 : node_ptrs[id]->det_anc) {
           det_set.insert(id2);
         }
-        for (auto id2 : sto_anc) {
+        for (auto id2 : node_ptrs[id]->sto_anc) {
           if (id2 != node_id and observed.find(id2) == observed.end()) {
             sample_set.insert(id2);
           }
