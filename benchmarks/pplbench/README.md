@@ -8,7 +8,7 @@ PPLBench is a benchmarking tool for analyzing the performance of various PPLs in
 
 ### Installation:
 
-Following is the procedure to install PPLBench on Linux (Tested on RHEL/CentOS):
+Following is the procedure to install PPLBench on Linux (Tested on Ubuntu 16.04):
 
 1. Download/Clone PPLBench [https://github.com/facebookincubator/BeanMachine/]
 2. Installing dependencies:
@@ -16,12 +16,18 @@ Following is the procedure to install PPLBench on Linux (Tested on RHEL/CentOS):
         `pip install -r requirements.txt`
     2. PPLs (Only need to install the ones which you want to benchmark):
         1. Stan:
+            
             `pip install pystan`
         2. Jags:
-            see Appendix I below
+            
+            `apt-get install jags`
+            
+            `pip install pyjags`
         3. pymc3:
+            
             `pip install pymc3`
         4. pyro:
+            
             `pip install pyro-ppl`
 
 ### Example:
@@ -29,7 +35,7 @@ Following is the procedure to install PPLBench on Linux (Tested on RHEL/CentOS):
 Let us go through an example to check if the installation is working. From the PPLBench directory, run the following command:
 
 ```
-python PPLBench.py -m robustRegression -l jags,stan  -k 5 -n 2000 -t 30 --iterations 2
+python PPLBench.py -m robustRegression -l jags,stan  -k 5 -n 2000 -t 30 --trials 2
 ```
 
 this should take around 2-4 mins to complete and should produce a result similar to this:
@@ -46,47 +52,3 @@ If the plot looks similar, you’re all set!
 ```
 python PPLBench.py -h
 ```
-
-### Appendix I: Installing Jags and pyJags:
-
-Installing Jags and PyJags is not as easy as other PPLs. Here is the procedure:
-
-****Step 1: Install JAGS from source****
-
-1. Download JAGS from source forge:
-
-    `wget [https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Source/JAGS-4.3.0.tar.gz](https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Source/JAGS-4.3.0.tar.gz)`
-2. Extract:
-
-    `tar xvzf JAGS-4.3.0.tar.gz`
-3. Make:
-
-    `cd JAGS-4.3.0`
-
-    `./configure make -j4`
-
-    `make install`
-
-    note: you may need sudo privilege for this step
-
-****Step 2: Installing PyJAGS****
-
-1. Use pip:
-
-    `pip install pyjags`
-2. Build from source:
-
-    `git clone [https://github.com/SourabhKul/pyjags](https://github.com/SourabhKul/pyjags)`
-
-    `cd pyjags`
-
-    `pip install .`
-
-****Step 3: Installing JAGS from rpm file (**only** **if** JAGS built from source does not work; it probably won’t)****
-
-1. Download the latest RPM file:
-
-    `wget [http://download.opensuse.org/repositories/home:/cornell_vrdc/CentOS_7/x86_64/jags4-4.3.0-67.4.x86_64.rpm](http://download.opensuse.org/repositories/home:/cornell_vrdc/CentOS_7/x86_64/jags4-4.3.0-67.4.x86_64.rpm)`
-2. Install:
-
-    `sudo rpm -i jags4-4.3.0-67.4.x86_64.rpm`
