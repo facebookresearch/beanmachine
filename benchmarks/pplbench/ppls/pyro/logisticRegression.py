@@ -14,8 +14,10 @@ def logistic_model(x_train, y_train):
     scale_alpha, scale_beta, loc_beta = model_args
 
     alpha = pyro.sample("alpha", dist.Normal(0.0, scale_alpha))
-    beta = pyro.sample("beta", dist.Normal(torch.ones(K) * loc_beta, scale_beta))
-    mu = alpha + x_train @ beta
+    beta = pyro.sample("beta", dist.Normal(torch.ones(K) * loc_beta, scale_beta)).view(
+        K, 1
+    )
+    mu = alpha + x_train.mm(beta)
     return pyro.sample("y", dist.Bernoulli(logits=mu), obs=y_train)
 
 
@@ -37,8 +39,8 @@ def obtain_posterior(data_train, args_dict, model=None):
     assert pyro.__version__.startswith("0.4.1")
     global model_args
     model_args = args_dict["model_args"]
-    LEARNING_RATE = 1e-2
-    NUM_STEPS = 100
+    LEARNING_RATE = 1e-3
+    NUM_STEPS = 8000
 
     # x_train is (num_features, num_observations)
     x_train, y_train = data_train
@@ -52,7 +54,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     # the guide serves as an approximation to the posterior
     guide = autoguide.AutoDiagonalNormal(logistic_model)
     optimiser = pyro.optim.Adam({"lr": LEARNING_RATE})
-    loss = pyro.infer.Trace_ELBO()
+    loss = pyro.infer.Trace_ELBO(vectorize_particles=True)
 
     # set up the inference algorithm
     svi = pyro.infer.SVI(
