@@ -60,5 +60,21 @@ void exp(graph::Node* node) {
   }
 }
 
+void expm1(graph::Node* node) {
+  assert(node->in_nodes.size() == 1);
+  const graph::AtomicValue& parent = node->in_nodes[0]->value;
+  if (parent.type == graph::AtomicType::REAL) {
+    node->value.type = graph::AtomicType::REAL;
+    node->value._double = std::expm1(parent._double);
+  } else if (parent.type == graph::AtomicType::TENSOR) {
+    node->value.type = graph::AtomicType::TENSOR;
+    node->value._tensor = parent._tensor.expm1();
+  } else {
+    throw std::runtime_error(
+      "invalid parent type " + std::to_string(static_cast<int>(parent.type))
+      + " for EXPM1 operator at node_id " + std::to_string(node->index));
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

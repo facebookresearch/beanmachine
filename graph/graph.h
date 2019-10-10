@@ -50,6 +50,7 @@ enum class OperatorType {
   TO_REAL,
   NEGATE,
   EXP,
+  EXPM1,
   MULTIPLY,
   ADD,
 };

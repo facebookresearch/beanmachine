@@ -54,15 +54,16 @@ class TestOperators(unittest.TestCase):
         o1 = g.add_operator(bmg.OperatorType.NEGATE, [c1])
         o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
         o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2, c1])
-        o4 = g.add_operator(bmg.OperatorType.ADD, [c1, c1, o3])
-        g.query(o4)
+        o4 = g.add_operator(bmg.OperatorType.EXPM1, [c1])
+        o5 = g.add_operator(bmg.OperatorType.ADD, [c1, o3, o4])
+        g.query(o5)
         samples = g.infer(2)
         # both samples should have exactly the same value since we are doing
         # deterministic operators only
         self.assertEqual(samples[0][0].type, bmg.AtomicType.TENSOR)
         self.assertTrue((samples[0][0].tensor == samples[1][0].tensor).all().item())
         # the result should be identical to doing this math directly on tensors
-        result = const1 + const1 + torch.exp(-const1) * const1
+        result = const1 + torch.exp(-const1) * const1 + torch.expm1(const1)
         self.assertTrue((samples[0][0].tensor == result).all().item())
 
     def test_sample(self):
