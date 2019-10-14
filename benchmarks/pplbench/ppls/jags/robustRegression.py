@@ -12,9 +12,9 @@ model {
   # priors
   alpha ~ dnorm(0.0, 1/(scale_alpha**2));
   for (k in 1:K) {
-  beta[k] ~ dnorm(0.0, 1/(scale_beta[k]**2));
+  beta[k] ~ dnorm(loc_beta, 1/(scale_beta**2));
   }
-  sigma ~ dexp(loc_sigma);
+  sigma ~ dexp(rate_sigma);
   nu ~ dgamma(2, 0.1);
   # likelihood
   for (n in 1:N) {
@@ -40,9 +40,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     N = int(x_train.shape[1])
     K = int(x_train.shape[0])
     thinning = args_dict["thinning_jags"]
-    alpha_scale = (args_dict["model_args"])[0]
-    beta_scale = (args_dict["model_args"])[1]
-    sigma_loc = (args_dict["model_args"])[3]
+    alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
 
     data_jags = {
         "N": N,
@@ -50,8 +48,9 @@ def obtain_posterior(data_train, args_dict, model=None):
         "X": x_train,
         "y": y_train,
         "scale_alpha": alpha_scale,
-        "scale_beta": beta_scale * np.ones(K),
-        "loc_sigma": sigma_loc,
+        "scale_beta": beta_scale,
+        "loc_beta": beta_loc,
+        "rate_sigma": 1.0 / sigma_mean,
     }
 
     # compile the model, time it
