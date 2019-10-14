@@ -128,14 +128,21 @@ def obtain_posterior(
         def compute_beta_proposer_(self):
             self.compute_beta_gradients_()
             # proposer for beta
-            neg_hess_inv = torch.inverse(-self.beta_hess)
+            neg_hess_inv = (
+                torch.inverse(-self.beta_hess)
+                + torch.eye(self.beta_hess.shape[0]) * 1e-5
+            )
             # fixup any negative eigenvalues
             eval, evec = torch.eig(neg_hess_inv, eigenvectors=True)
             eval = eval[:, 0]  # note: a symmetric matrix has only real eigen vals
             num_neg_evals = (eval < 0).sum()
-            if num_neg_evals.item():
-                eval[eval < 0] = 1e-7  # convert negative eigen vals to positive
-                neg_hess_inv = evec @ (torch.eye(len(eval)) * eval) @ evec.T
+            if num_neg_evals.item() > 0:
+                eval[eval < 0] = 1e-5  # convert negative eigen vals to positive
+                eval = torch.eye(len(eval)) * eval
+                eval = eval.to(dtype=torch.float64)
+                evec = evec.to(dtype=torch.float64)
+                neg_hess_inv = evec @ eval @ evec.T
+                neg_hess_inv = neg_hess_inv.to(dtype=torch.float32)
             mu = self.beta + (neg_hess_inv @ self.beta_grad.unsqueeze(1)).squeeze(1)
             self.beta_proposer = MultivariateNormal(mu, neg_hess_inv)
 
