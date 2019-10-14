@@ -19,7 +19,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     x_train, y_train = data_train
     K = int(x_train.shape[0])
     thinning = args_dict["thinning_pymc3"]
-    alpha_scale, beta_scale, beta_loc, sigma_loc = args_dict["model_args"]
+    alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
     num_samples = int(args_dict["num_samples_pymc3"])
 
     # Define model and sample
@@ -28,7 +28,7 @@ def obtain_posterior(data_train, args_dict, model=None):
         with pm.Model():
             alpha = pm.Normal("alpha", mu=0, sigma=alpha_scale)
             beta = pm.Normal("beta", mu=beta_loc, sigma=beta_scale, shape=K)
-            sigma = pm.Exponential("sigma", lam=sigma_loc)
+            sigma = pm.Exponential("sigma", lam=1.0 / sigma_mean)
             nu = pm.Gamma("nu", alpha=2, beta=10)
             mean = (alpha + x_train.T * beta).T
             pm.StudentT("y_observed", nu=nu, mu=mean, sigma=sigma, observed=y_train)

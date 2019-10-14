@@ -19,16 +19,16 @@ nu = degrees of freedom (as nu->inf, distribution resembles normal)
 nu ~ Gamma(shape=2, scale=10)
 
 mean = alpha + beta * x; mean of student_t distribution
-alpha ~ normal(0, some_var)
-beta ~ normal(0, some_var)
+alpha ~ normal(0, alpha_scale)
+beta ~ normal(beta_loc, beta_scale)
 x ~ normal(0, 10)
 
 sigma = variance of student_t distribution
-sigma ~ exponential(some_mean)
+sigma ~ exponential(sigma_mean)
 
 Model specific arguments:
 Pass these arguments in following order -
-[alpha_scale, beta_scale, beta_loc, sigma_loc]
+[alpha_scale, beta_scale, beta_loc, sigma_mean]
 """
 
 import numpy as np
@@ -42,7 +42,7 @@ def get_defaults():
         "runtime": 200,
         "train_test_ratio": 0.5,
         "trials": 10,
-        "model_args": [10, 2.5, 0, 1.0],
+        "model_args": [10.0, 2.5, 0.0, 10.0],
     }
     return defaults
 
@@ -70,20 +70,13 @@ def generate_data(args_dict, model=None):
     train_test_ratio = float(args_dict["train_test_ratio"])
 
     # parameters for distributions to sample parameters from
-    alpha_scale = (args_dict["model_args"])[0]
-    beta_scale = (args_dict["model_args"])[1]
-    beta_locs = (args_dict["model_args"])[2] * np.ones(K).reshape([-1, 1])
-    sigma_loc = (args_dict["model_args"])[3]
+    alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
 
-    # sampling parameters from tails (10-11 sigma)
-    alpha = stats.truncnorm.rvs(
-        10, 11, loc=0, scale=alpha_scale, size=N
-    ) * np.random.choice([1, -1], size=N)
-    beta = stats.truncnorm.rvs(
-        10, 11, loc=beta_locs, scale=beta_scale, size=(K, N)
-    ) * np.random.choice([1, -1], size=(K, N))
-    nu = np.random.gamma(shape=2, scale=10, size=N)
-    sigma = stats.truncexpon.rvs(10, loc=sigma_loc, size=N)
+    # sample parameters
+    alpha = stats.norm.rvs(loc=0, scale=alpha_scale, size=N)
+    beta = stats.norm.rvs(loc=beta_loc, scale=beta_scale, size=(K, N))
+    nu = np.random.gamma(shape=2, scale=10)
+    sigma = stats.expon.rvs(loc=0, scale=sigma_mean)
 
     # model
     x = np.random.normal(0, 10, size=(K, N))
@@ -115,7 +108,7 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
     for sample in samples:
         loc = (sample["alpha"] + np.dot(sample["beta"], x_test)).reshape(-1)
         log_lik_test = stats.t.logpdf(
-            y_test, df=sample["nu"], loc=loc, scale=sample["sigma"]
+            y_test, df=float(sample["nu"]), loc=loc, scale=float(sample["sigma"])
         )
         pred_log_lik_array.append(log_lik_test)
     # return as a numpy array of sum over test data

@@ -29,7 +29,7 @@ def robust_model(x_train, y_train, args_dict):
     x_train = torch.tensor(x_train, dtype=torch.float32)
     y_train = torch.tensor(y_train, dtype=torch.float32)
 
-    scale_alpha, scale_beta, loc_beta, sigma_prior = args_dict["model_args"]
+    scale_alpha, scale_beta, loc_beta, sigma_mean = args_dict["model_args"]
     # Create priors over the parameters
     w_prior = dist.Normal(
         loc_beta * torch.ones(1, K), torch.ones(1, K) * scale_beta
@@ -42,7 +42,7 @@ def robust_model(x_train, y_train, args_dict):
     # sample a regressor (which also samples w and b)
     lifted_reg_model = lifted_module()
     df = pyro.sample("nu", dist.Gamma(2 * torch.ones(1), 0.1 * torch.ones(1)))
-    sigma = pyro.sample("sigma", dist.Exponential(sigma_prior * torch.ones(1)))
+    sigma = pyro.sample("sigma", dist.Exponential(torch.ones(1) / sigma_mean))
     with pyro.plate("map", N):
         # run the regressor forward conditioned on inputs
         prediction_mean = lifted_reg_model(x_train).squeeze(-1)
