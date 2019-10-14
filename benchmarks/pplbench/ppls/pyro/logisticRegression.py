@@ -1,15 +1,16 @@
+import os
 import time
 
+import matplotlib.pyplot as plt
 import pyro
 import pyro.contrib.autoguide as autoguide
 import pyro.distributions as dist
 import pyro.infer
 import pyro.optim
 import torch
-from pyro.infer import TracePredictive
 
 
-def logistic_model(x_train, y_train):
+def logistic_model(x_train, y_train=None):
     K = int(x_train.shape[1])
     scale_alpha, scale_beta, loc_beta = model_args
 
@@ -19,10 +20,6 @@ def logistic_model(x_train, y_train):
     )
     mu = alpha + x_train.mm(beta)
     return pyro.sample("y", dist.Bernoulli(logits=mu), obs=y_train)
-
-
-def wrapped_model(x_train, y_train):
-    pyro.sample("prediction", dist.Delta(logistic_model(x_train, y_train)))
 
 
 def obtain_posterior(data_train, args_dict, model=None):
@@ -39,8 +36,9 @@ def obtain_posterior(data_train, args_dict, model=None):
     assert pyro.__version__.startswith("0.4.1")
     global model_args
     model_args = args_dict["model_args"]
-    LEARNING_RATE = 1e-3
+    LEARNING_RATE = 0.009
     NUM_STEPS = 8000
+    losses = []
 
     # x_train is (num_features, num_observations)
     x_train, y_train = data_train
@@ -68,19 +66,27 @@ def obtain_posterior(data_train, args_dict, model=None):
 
     # do the gradient steps
     for _step in range(NUM_STEPS):
-        svi.step(x_train, y_train)
+        loss = svi.step(x_train, y_train)
+        losses.append(loss)
 
     elapsed_time_sample_pyro = time.time() - start_time
+
+    # plot the ELBO loss to test for convergence
+
+    plt.plot([i for i in range(NUM_STEPS)], losses)
+    plt.title(
+        "ELBO Loss \n Steps: {} | Learning Rate: {}".format(NUM_STEPS, LEARNING_RATE)
+    )
+    plt.xlabel("Step")
+    plt.ylabel("ELBO Loss")
+    plt.savefig(os.path.join(args_dict["output_dir"], "pyro_elbo_loss.png"))
 
     # repackage samples into shape required by PPLBench
     samples = []
     posterior = svi.run(x_train, y_train)
 
-    # posterior predictive distribution we can get samples from
-    trace_pred = TracePredictive(
-        wrapped_model, posterior, num_samples=args_dict["num_samples_pyro"]
-    ).run(x_train, None)
-    trace = trace_pred.exec_traces
+    # approximate posterior distribution we can get samples from
+    trace = posterior.exec_traces
     for i in range(args_dict["num_samples_pyro"]):
         sample_dict = {}
         sample_dict["alpha"] = trace[i].nodes["alpha"]["value"].detach().numpy()
