@@ -16,18 +16,20 @@ Following is the procedure to install PPLBench on Linux (Tested on Ubuntu 16.04)
         `pip install -r requirements.txt`
     2. PPLs (Only need to install the ones which you want to benchmark):
         1. Stan:
-            
+
             `pip install pystan`
         2. Jags:
-            
-            `apt-get install jags`
-            
+
+            `sudo apt-get install jags`
+
+            `sudo apt install pkg-config`
+
             `pip install pyjags`
         3. pymc3:
-            
+
             `pip install pymc3`
         4. pyro:
-            
+
             `pip install pyro-ppl`
 
 ### Example:
