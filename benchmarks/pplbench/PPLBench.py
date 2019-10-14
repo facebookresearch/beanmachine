@@ -86,7 +86,6 @@ def generate_plot(
     K = args_dict["k"]
     N = args_dict["n"]
     train_test_ratio = float(args_dict["train_test_ratio"])
-    thinning = args_dict[f"thinning_{PPL}"]
 
     # plot!
     plt.xlim(left=x_axis_min, right=x_axis_max)
@@ -96,7 +95,7 @@ def generate_plot(
     plt.title(
         f'{args_dict["model"]} model \n'
         f"{int(int(N)*train_test_ratio)} data-points \
-    | {K} covariates | {trial + 1} trials"
+| {K} covariates | {trial + 1} trials"
     )
     averaged_pp_list = np.array(averaged_pp_list)
     x_axis_list = np.array(x_axis_list)
@@ -108,7 +107,7 @@ def generate_plot(
         mean_x_axis_list = np.mean(x_axis_list, axis=0)
     else:
         mean_x_axis_list = x_axis_list
-    label = f"{PPL}, {averaged_pp_list.shape[1] * thinning} samples/trial"
+    label = args_dict[f"legend_name_{PPL}"]
     plt.plot(mean_x_axis_list, mean_line, label=label)
     plt.fill_between(
         mean_x_axis_list, y1=max_line, y2=min_line, interpolate=True, alpha=0.3
@@ -273,10 +272,20 @@ def time_to_sample(ppl, module, runtime, data_train, args_dict, model=None):
 
 def estimate_thinning(args_dict):
     min_num_samples = np.inf
-    for ppl in (args_dict["ppls"]).split(","):
+    for p in (args_dict["ppls"]).split(","):
+        ppls_args = p.split(":")
+        if len(ppls_args) == 1:
+            ppl = p
+        else:
+            ppl, _ = ppls_args
         if args_dict[f"num_samples_{ppl}"] <= min_num_samples:
             min_num_samples = args_dict[f"num_samples_{ppl}"]
-    for ppl in (args_dict["ppls"]).split(","):
+    for p in (args_dict["ppls"]).split(","):
+        ppls_args = p.split(":")
+        if len(ppls_args) == 1:
+            ppl = p
+        else:
+            ppl, _ = ppls_args
         args_dict[f"thinning_{ppl}"] = int(
             args_dict[f"num_samples_{ppl}"] / float(min_num_samples)
         )
@@ -484,13 +493,22 @@ def main():
     print(f"Outputs will be saved in : {args_dict['output_dir']}")
 
     # estimate samples for given runtime and decide thinning
-    for ppl in (args.ppls).split(","):
+    for p in (args.ppls).split(","):
+        ppls_args = p.split(":")
+        if len(ppls_args) == 1:
+            ppl = p
+            legend_name = p
+        else:
+            ppl, legend_name = ppls_args
+
         # check if the ppl has a corresponding model implementation module
         try:
             module = importlib.import_module(f"ppls.{ppl}.{args.model}")
         except ModuleNotFoundError:
             print(f"{ppl} implementation not found for {args.model}; exiting...")
             exit()
+
+        args_dict[f"legend_name_{ppl}"] = legend_name
 
         if args_dict["num_samples"] == 100:
             # estimate number of samples required for given time
@@ -510,7 +528,12 @@ def main():
     timing_info = {}
     posterior_samples = {}
     posterior_predictive = {}
-    for ppl in (args.ppls).split(","):
+    for p in (args.ppls).split(","):
+        ppls_args = p.split(":")
+        if len(ppls_args) == 1:
+            ppl = p
+        else:
+            ppl, _ = ppls_args
         # check if the ppl has a corresponding model implementation module
         try:
             module = importlib.import_module(f"ppls.{ppl}.{args.model}")
