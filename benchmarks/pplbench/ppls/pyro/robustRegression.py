@@ -65,7 +65,9 @@ def obtain_posterior(data_train, args_dict, model=None):
     if args_dict["inference_type"] == "mcmc":
         start_time = time.time()
         nuts_kernel = NUTS(model=robust_model, adapt_step_size=True)
-        mcmc = MCMC(nuts_kernel, num_samples=args_dict["num_samples_pyro"])
+        mcmc = MCMC(
+            nuts_kernel, num_samples=args_dict["num_samples_pyro"], warmup_steps=0
+        )
         mcmc.run(x_train.T, y_train, args_dict)
         samples_pyro = mcmc.get_samples()
     elif args_dict["inference_type"] == "vi":
