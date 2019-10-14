@@ -21,9 +21,10 @@ class RobustRegressionModel(object):
         self,
         N: int,
         K: int,
-        scale_alpha: int,
-        scale_beta: List[int],
-        loc_sigma: int,
+        scale_alpha: float,
+        scale_beta: float,
+        loc_beta: float,
+        rate_sigma: float,
         num_samples: int,
         inference_type: str,
         X: Tensor,
@@ -32,8 +33,9 @@ class RobustRegressionModel(object):
         self.N = N
         self.K = K
         self.scale_alpha = scale_alpha
+        self.loc_beta = loc_beta
         self.scale_beta = scale_beta
-        self.loc_sigma = loc_sigma
+        self.rate_sigma = rate_sigma
         self.num_samples = num_samples
         self.inference_type = inference_type
         self.X = X
@@ -45,7 +47,7 @@ class RobustRegressionModel(object):
 
     @sample
     def sigma(self):
-        return dist.Exponential(self.loc_sigma)
+        return dist.Exponential(self.rate_sigma)
 
     @sample
     def alpha(self):
@@ -53,7 +55,7 @@ class RobustRegressionModel(object):
 
     @sample
     def beta(self, k: int):
-        return dist.Normal(0, self.scale_beta[k])
+        return dist.Normal(self.loc_beta, self.scale_beta)
 
     @sample
     def y(self, i: int):
@@ -101,9 +103,7 @@ def obtain_posterior(
     N = int(x_train.shape[1])
     K = int(x_train.shape[0])
 
-    alpha_scale = (args_dict["model_args"])[0]
-    beta_scale = [(args_dict["model_args"])[1]] * K
-    sigma_loc = (args_dict["model_args"])[3]
+    alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
     num_samples = args_dict["num_samples_beanmachine"]
     inference_type = args_dict["inference_type"]
 
@@ -113,7 +113,8 @@ def obtain_posterior(
         K,
         alpha_scale,
         beta_scale,
-        sigma_loc,
+        beta_loc,
+        1.0 / sigma_mean,
         num_samples,
         inference_type,
         Tensor(x_train),
