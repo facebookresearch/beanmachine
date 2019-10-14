@@ -4,7 +4,6 @@ import os
 import pickle
 import time
 
-import numpy as np
 import pystan
 
 
@@ -22,8 +21,9 @@ data {
   matrix [N, K] X;
   // priors on alpha
   real scale_alpha;
-  vector[K] scale_beta;
-  real loc_sigma;
+  real loc_beta;
+  real scale_beta;
+  real rate_sigma;
 }
 parameters {
   // regression coefficient vector
@@ -42,8 +42,8 @@ transformed parameters {
 model {
   // priors
   alpha ~ normal(0.0, scale_alpha);
-  beta ~ normal(0.0, scale_beta);
-  sigma ~ exponential(loc_sigma);
+  beta ~ normal(loc_beta, scale_beta);
+  sigma ~ exponential(rate_sigma);
   // see Stan prior distribution suggestions
   nu ~ gamma(2, 0.1);
   // likelihood
@@ -68,9 +68,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     N = int(x_train.shape[1])
     K = int(x_train.shape[0])
     thinning = args_dict["thinning_stan"]
-    alpha_scale = (args_dict["model_args"])[0]
-    beta_scale = (args_dict["model_args"])[1]
-    sigma_loc = (args_dict["model_args"])[3]
+    alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
 
     data_stan = {
         "N": N,
@@ -78,8 +76,9 @@ def obtain_posterior(data_train, args_dict, model=None):
         "X": x_train.T,
         "y": y_train,
         "scale_alpha": alpha_scale,
-        "scale_beta": beta_scale * np.ones(K),
-        "loc_sigma": sigma_loc,
+        "scale_beta": beta_scale,
+        "loc_beta": beta_loc,
+        "rate_sigma": 1.0 / sigma_mean,
     }
 
     code_loaded = None

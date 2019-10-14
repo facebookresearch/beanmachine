@@ -21,9 +21,10 @@ class RobustRegressionModel(object):
         self,
         N: int,
         K: int,
-        scale_alpha: int,
-        scale_beta: List[int],
-        loc_sigma: int,
+        scale_alpha: float,
+        scale_beta: float,
+        loc_beta: float,
+        rate_sigma: float,
         num_samples: int,
         inference_type: str,
         X: Tensor,
@@ -33,7 +34,8 @@ class RobustRegressionModel(object):
         self.K = K
         self.scale_alpha = scale_alpha
         self.scale_beta = scale_beta
-        self.loc_sigma = loc_sigma
+        self.loc_beta = loc_beta
+        self.rate_sigma = rate_sigma
         self.num_samples = num_samples
         self.inference_type = inference_type
         self.X = X
@@ -45,7 +47,7 @@ class RobustRegressionModel(object):
 
     @sample
     def sigma(self):
-        return dist.Exponential(self.loc_sigma)
+        return dist.Exponential(self.rate_sigma)
 
     @sample
     def alpha(self):
@@ -54,26 +56,23 @@ class RobustRegressionModel(object):
     @sample
     def beta(self):
         return dist.Normal(
-            tensor([0.0] * self.K).view(self.K, 1),
-            tensor(self.scale_beta).view(self.K, 1),
+            torch.zeros((1, self.K)) + self.loc_beta,
+            torch.ones((1, self.K)) * self.scale_beta,
         )
 
     @sample
-    def y(self, i):
+    def y(self):
         # Compute X * Beta
-        mu = self.alpha() + torch.FloatTensor(self.X[:, i]).view(1, self.K).mm(
-            self.beta()
-        )
+        mu = (self.alpha() + self.beta() @ self.X).squeeze(0)
         return dist.StudentT(self.nu(), mu, self.sigma())
 
     def infer(self):
-        dict_y = {self.y(i): self.Y[i] for i in range(self.N)}
         if self.inference_type == "mcmc":
             mh = SingleSiteAncestralMetropolisHastings()
             start_time = time.time()
             samples = mh.infer(
                 [self.beta(), self.nu(), self.sigma(), self.alpha()],
-                dict_y,
+                {self.y(): self.Y},
                 self.num_samples,
             )
         elif self.inference_type == "vi":
@@ -96,13 +95,12 @@ def obtain_posterior(
     """
     # shape of x_train: (num_features, num_samples)
     x_train, y_train = data_train
-    y_train = [tensor(y) for y in y_train]
+    x_train = tensor(x_train, dtype=torch.float32)
+    y_train = tensor(y_train, dtype=torch.float32)
     N = int(x_train.shape[1])
     K = int(x_train.shape[0])
 
-    alpha_scale = (args_dict["model_args"])[0]
-    beta_scale = [(args_dict["model_args"])[1]] * K
-    sigma_loc = (args_dict["model_args"])[3]
+    alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
     num_samples = args_dict["num_samples_beanmachine-vectorized"]
     inference_type = args_dict["inference_type"]
 
@@ -112,7 +110,8 @@ def obtain_posterior(
         K,
         alpha_scale,
         beta_scale,
-        sigma_loc,
+        beta_loc,
+        1.0 / sigma_mean,
         num_samples,
         inference_type,
         x_train,
