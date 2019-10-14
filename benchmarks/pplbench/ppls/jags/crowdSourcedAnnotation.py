@@ -15,7 +15,11 @@ data {
 
   for (k1 in 1:n_categories) {
     for (k2 in 1:n_categories) {
-      alpha[k1,k2] <- ifelse(k1==k2, 0.5, 0.5/(n_categories-1))
+      alpha[k1,k2] <- ifelse(
+        k1==k2,
+        concentration * expected_correctness,
+        concentration * expected_correctness / (n_categories - 1)
+      )
     }
   }
 }
@@ -54,7 +58,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     J = int(args_dict["k"])
     n_items = len(num_labels)
     thinning = args_dict["thinning_jags"]
-    K = (args_dict["model_args"])[0]
+    K, _, expected_correctness, concentration = args_dict["model_args"]
     # item array for jags; change from list-of-lengths format of num_labels
     # to list-of-items associated with each label and labeler in vector_y, vector_J_i
     item = []
@@ -65,6 +69,8 @@ def obtain_posterior(data_train, args_dict, model=None):
         "n_items": n_items,
         "n_labelers": J,
         "n_categories": K,
+        "expected_correctness": expected_correctness,
+        "concentration": concentration,
         "labels": [i + 1 for i in vector_y],  # 0-indexed to 1-indexed
         "labeler": [i + 1 for i in vector_J_i],  # 0-indexed to 1-indexed
         "item": item,

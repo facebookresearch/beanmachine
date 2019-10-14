@@ -13,6 +13,8 @@ data {
     int<lower=1> n_items;  // I
     int<lower=1> n_labelers;  // J
     int<lower=1> n_categories;  // K
+    real<lower=0> expected_correctness;
+    real<lower=0> concentration;
     int<lower=1> n_labels[n_items];  // num_labels
     int<lower=1, upper=n_categories> labels[n_obs];  // vector_y
     int<lower=1, upper=n_labelers> labeler[n_obs]; // vector_J_i
@@ -22,9 +24,10 @@ transformed data {
   vector[n_categories] beta;
   vector[n_categories] alpha[n_categories];
   beta = rep_vector(1./n_categories, n_categories);
-  alpha = rep_array(rep_vector(0.5/(n_categories-1), n_categories), n_categories);
+  alpha = rep_array(rep_vector(concentration * (1-expected_correctness)
+                               / (n_categories-1), n_categories), n_categories);
   for (k in 1:n_categories) {
-    alpha[k,k] = 0.5;
+    alpha[k,k] = concentration * expected_correctness;
   }
 }
 
@@ -82,22 +85,27 @@ def obtain_posterior(data_train, args_dict, model=None):
     n_labelers = int(args_dict["k"])
     n_items = len(num_labels)
     thinning = args_dict["thinning_stan"]
-    n_categories = (args_dict["model_args"])[0]
+    n_categories, _, expected_correctness, concentration = args_dict["model_args"]
 
     data_stan = {
         "n_obs": len(vector_y),
         "n_items": n_items,
         "n_labelers": n_labelers,
         "n_categories": n_categories,
+        "expected_correctness": expected_correctness,
+        "concentration": concentration,
         "n_labels": num_labels,
         "labels": [i + 1 for i in vector_y],
         "labeler": [i + 1 for i in vector_J_i],
     }  # Stan uses 1 indexing
 
     code_loaded = None
-    if os.path.isfile("./ppls/stan/crowdSourcedAnnotation.pkl"):
+    pkl_filename = os.path.join(
+        args_dict["output_dir"], "stan_crowdSourcedAnnotation.pkl"
+    )
+    if os.path.isfile(pkl_filename):
         model, code_loaded, elapsed_time_compile_stan = pickle.load(
-            open("./ppls/stan/crowdSourcedAnnotation.pkl", "rb")
+            open(pkl_filename, "rb")
         )
     if code_loaded != CODE:
         # compile the model, time it
@@ -105,7 +113,7 @@ def obtain_posterior(data_train, args_dict, model=None):
         model = pystan.StanModel(model_code=CODE, model_name="crowd_sourced_annotation")
         elapsed_time_compile_stan = time.time() - start_time
         # save it to the file 'model.pkl' for later use
-        with open("./ppls/stan/crowdSourcedAnnotation.pkl", "wb") as f:
+        with open(pkl_filename, "wb") as f:
             pickle.dump((model, CODE, elapsed_time_compile_stan), f)
 
     # sample the parameter posteriors, time it

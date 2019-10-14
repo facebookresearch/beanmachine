@@ -24,7 +24,10 @@ theta_jkk' = the probability that labeler j will label an item of true class k
              with label k'
 
 for all labelers J, theta_jkk' has a dirichilet prior alpha_k
-alpha_k = {expected_correctness for k == k', (1-expected_correctness)/(K-1) for k != k'}
+alpha_k = concentration * {
+    expected_correctness for k == k',
+    (1-expected_correctness)/(K-1) for k != k'
+}
 
 pi has a Dirichlet(beta) prior with beta_k = 1/K for all k
 pi ~ Dirichlet(beta)
@@ -61,7 +64,7 @@ Model specific arguments:
 global arg -n -> number of items (model arg I)
 global arg -k -> number of lablers (model arg J)
 Pass these arguments in following order -
-[num_label_classes(K), labeler_rate, expected_correctness]
+[num_label_classes(K), labeler_rate, expected_correctness, concentration]
 """
 
 import numpy as np
@@ -97,7 +100,7 @@ def get_defaults():
         "runtime": 200,
         "train_test_ratio": 0.5,
         "trials": 10,
-        "model_args": [3, 2.5, 0.5],
+        "model_args": [3, 2.5, 0.5, 100.0],
     }
     return defaults
 
@@ -128,7 +131,7 @@ def generate_data(args_dict, model=None):
     np.random.seed(args_dict["rng_seed"])
     J = int(args_dict["k"])
     n_items = int(args_dict["n"])
-    K, labeler_rate, expected_correctness = args_dict["model_args"]
+    K, labeler_rate, expected_correctness, concentration = args_dict["model_args"]
     train_test_ratio = float(args_dict["train_test_ratio"])
 
     # choose a true class z for each item
@@ -139,6 +142,7 @@ def generate_data(args_dict, model=None):
     alpha = ((1 - expected_correctness) / (K - 1)) * np.ones([K, K]) + (
         expected_correctness - (1 - expected_correctness) / (K - 1)
     ) * np.eye(K)
+    alpha *= concentration
     # sample confusion matrices theta for labelers from this dirichlet prior
     theta = np.zeros([J, K, K])
     for j in range(J):

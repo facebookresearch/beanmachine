@@ -575,6 +575,7 @@ def main():
         timing_info,
         plot_data,
     )
+    print(f"Output in : {args_dict['output_dir']}")
 
 
 if __name__ == "__main__":
