@@ -1,56 +1,29 @@
-# Copyright (c) Facebook, Inc. and its affiliates
-from typing import Tuple
-
-import torch
-import torch.distributions as dist
-import torch.tensor as tensor
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
+# Copyright (c) Facebook, Inc. and its affiliates.
+from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
+    AbstractSingleSiteMHInference,
+)
+from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
+    SingleSiteUniformProposer,
 )
 from beanmachine.ppl.model.utils import RandomVariable
-from torch import Tensor
 
 
-class SingleSiteUniformMetropolisHastings(SingleSiteAncestralMetropolisHastings):
+class SingleSiteUniformMetropolisHastings(AbstractSingleSiteMHInference):
     """
-    Single-Site Uniform Metropolis Hastings Implementations
-
-    For random variables with Bernoulli and Categorical distributions, returns a
-    sample from their distribution with equal probability across all values. For
-    the rest of the random variables, it returns ancestral metropolis hastings
-    proposal.
+    Implementation for SingleSiteNewtonianMonteCarlo
     """
 
     def __init__(self):
         super().__init__()
+        self.proposer_ = SingleSiteUniformProposer(self.world_)
 
-    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
+    def find_best_single_site_proposer(self, node: RandomVariable):
         """
-        Proposes a new value for the node.
+        Finds the best proposer for a node which is
+        SingleSiteUniformMetropolisHastingsProposer for
+        SingleSiteUniformMetropolisHastings
 
-        :param node: the node for which we'll need to propose a new value for.
-        :returns: a new proposed value for the node and the log of the proposal
-        ratio
+        :param node: the node for which to return a proposer
+        :returns: a proposer for the node
         """
-        node_var = self.world_.get_node_in_world(node, False)
-        node_distribution = node_var.distribution
-        if isinstance(
-            node_distribution.support, dist.constraints._Boolean
-        ) and isinstance(node_distribution, dist.Bernoulli):
-            distribution = dist.Bernoulli(
-                torch.ones(node_distribution.param_shape) / 2.0
-            )
-            new_value = distribution.sample()
-            return (new_value, tensor(0.0))
-        elif isinstance(
-            node_distribution.support, dist.constraints._IntegerInterval
-        ) and isinstance(node_distribution, dist.Categorical):
-            probs = torch.ones(node_distribution.param_shape)
-            # In Categorical distrbution, the samples are integers from 0-k
-            # where K is probs.size(-1).
-            probs /= float(node_distribution.param_shape[-1])
-            distribution = dist.Categorical(probs)
-            new_value = distribution.sample()
-            return (new_value, tensor(0.0))
-        else:
-            return super().propose(node)
+        return self.proposer_

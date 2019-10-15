@@ -3,6 +3,9 @@ import unittest
 
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
+    SingleSiteUniformProposer,
+)
 from beanmachine.ppl.inference.single_site_uniform_mh import (
     SingleSiteUniformMetropolisHastings,
 )
@@ -36,7 +39,7 @@ class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
         mh.queries_ = [model.foo()]
         mh.observations_ = {model.bar(): torch.tensor(0.0)}
         mh._infer(10)
-
+        self.assertEqual(isinstance(mh.proposer_, SingleSiteUniformProposer), True)
         # using _infer instead of infer, as world_ would be reset at the end
         # infer
         self.assertEqual(foo_key in mh.world_.variables_, True)
@@ -53,6 +56,7 @@ class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
         mh.observations_ = {model.bar(): torch.tensor(1.0)}
         mh._infer(10)
 
+        self.assertEqual(isinstance(mh.proposer_, SingleSiteUniformProposer), True)
         # using _infer instead of infer, as world_ would be reset at the end
         # infer
         self.assertEqual(foo_key in mh.world_.variables_, True)

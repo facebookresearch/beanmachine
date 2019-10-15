@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
-from typing import Dict, Tuple
+from typing import Dict
 
 import torch
 import torch.distributions as dist
@@ -43,19 +43,6 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
         self.world_.accept_diff()
 
-    @abstractmethod
-    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
-        """
-        Abstract method to be implemented by classes that inherit from
-        AbstractSingleSiteMHInference. This implementation will include how the
-        inference algorithm proposes a new value for a given node.
-
-        :param node: the node for which we'll need to propose a new value for.
-        :returns: a new proposed value for the node and the difference in log_prob
-        of the old and newly proposed value.
-        """
-        raise NotImplementedError("Inference algorithm must implement propose.")
-
     def accept_or_reject_update(
         self,
         node_log_update: Tensor,
@@ -85,16 +72,43 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             else:
                 self.world_.reject_diff()
 
-    def post_process(self, node: RandomVariable) -> Tensor:
+    def single_inference_run(self, node: RandomVariable, proposer):
         """
-        To be implemented by inference algorithms that need post-processing
-        after diff is created to compute the final proposal log update.
+        Run one iteration of the inference algorithms for a given node which is
+        to follow the steps below:
+        1) Propose a new value for the node
+        2) Update the world given the new value
+        3) Compute the log proposal ratio of proposing this value
+        4) Accept or reject the proposed value
 
-        :param node: the node for which we have already proposed a new value for.
-        :param proposal_log_update: proposal log update computed up until now.
-        :returns: final proposal log update
+        :param num_samples: number of samples to collect for the query.
+        :param proposer: the proposer with which propose a new value for node
+        :returns: samples for the query
         """
-        return tensor(0.0)
+        proposed_value, negative_proposal_log_update = proposer.propose(node)
+
+        children_log_updates, world_log_updates, node_log_update = self.world_.propose_change(
+            node, proposed_value, self.stack_
+        )
+        positive_proposal_log_update = proposer.post_process(node)
+        proposal_log_update = (
+            positive_proposal_log_update + negative_proposal_log_update
+        )
+        self.accept_or_reject_update(
+            node_log_update, children_log_updates, proposal_log_update
+        )
+
+    @abstractmethod
+    def find_best_single_site_proposer(self, node: RandomVariable):
+        """
+        Finds the best proposer for a node.
+
+        :param node: the node for which to return a proposer
+        :returns: a proposer for the node
+        """
+        raise NotImplementedError(
+            "Inference algorithm must implement find_best_proposer."
+        )
 
     def _infer(self, num_samples: int) -> Dict[RandomVariable, Tensor]:
         """
@@ -105,38 +119,34 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         """
         self.initialize_world()
         queries_sample = defaultdict()
+
         for _ in range(num_samples):
             for node in self.world_.get_all_world_vars().copy():
                 if node in self.observations_:
                     continue
                 if not self.world_.contains_in_world(node):
                     continue
-                proposed_value, negative_proposal_log_update = self.propose(node)
 
-                children_log_updates, world_log_updates, node_log_update = self.world_.propose_change(
-                    node, proposed_value, self.stack_
-                )
-                positive_proposal_log_update = self.post_process(node)
-                proposal_log_update = (
-                    positive_proposal_log_update + negative_proposal_log_update
-                )
-                self.accept_or_reject_update(
-                    node_log_update, children_log_updates, proposal_log_update
-                )
-            for query in self.queries_:
-                # unsqueeze the sampled value tensor, which adds an extra dimension
-                # along which we'll be adding samples generated at each iteration
-                if query not in queries_sample:
-                    queries_sample[query] = query.function._wrapper(
-                        *query.arguments
-                    ).unsqueeze(0)
-                else:
-                    queries_sample[query] = torch.cat(
-                        [
-                            queries_sample[query],
-                            query.function._wrapper(*query.arguments).unsqueeze(0),
-                        ],
-                        dim=0,
-                    )
-            self.world_.accept_diff()
+                proposer = self.find_best_single_site_proposer(node)
+                self.single_inference_run(node, proposer)
+                for query in self.queries_:
+                    # unsqueeze the sampled value tensor, which adds an extra dimension
+                    # along which we'll be adding samples generated at each iteration
+                    if query not in queries_sample:
+                        queries_sample[query] = (
+                            query.function._wrapper(*query.arguments)
+                            .unsqueeze(0)
+                            .clone()
+                        )
+                    else:
+                        queries_sample[query] = torch.cat(
+                            [
+                                queries_sample[query],
+                                query.function._wrapper(*query.arguments)
+                                .unsqueeze(0)
+                                .clone(),
+                            ],
+                            dim=0,
+                        )
+                self.world_.accept_diff()
         return queries_sample

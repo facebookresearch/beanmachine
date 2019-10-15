@@ -20,4 +20,6 @@ def std(query_samples: Tensor) -> Tensor:
 
 def confidence_interval(query_samples: Tensor) -> Tensor:
     percentile_list = [2.5, 50, 97.5]
-    return torch.tensor(np.percentile(query_samples.numpy(), percentile_list, axis=0))
+    return torch.tensor(
+        np.percentile(query_samples.detach().numpy(), percentile_list, axis=0)
+    )
