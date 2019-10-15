@@ -14,8 +14,6 @@ class State:
     static State consists of:
     - num_labelers: the number of labelers assigning labels
     - num_categories: the number of possible categories for each item and its label
-    - item_labels: for each item the labels given to it
-    - item_labelers: for each item the labelers that gave its labels
     - items: item indices
     - labels: assigned labels
     - labelers: labelers corresponding to assigned labels
@@ -29,10 +27,7 @@ class State:
 
     num_labelers = 0
     num_categories = 0
-    item_labels = None
-    item_labelers = None
-    labeler_items = None
-    labeler_labels = None
+    num_items = 0
     items = None
     labels = None
     labelers = None
@@ -50,38 +45,19 @@ class State:
     ):
         cls.num_labelers = num_labelers
         cls.num_categories = num_categories
+        cls.num_items = len(num_labels)
+        items = []
+        for idx, num in enumerate(num_labels):
+            items.extend([idx] * num)
+        cls.items = tensor(items)
         cls.labels = labels
         cls.labelers = tensor(labelers)
-        cls.item_labels, cls.item_labelers = [], []
-        cls.items = []
-        item_idx = 0
-        for item_num, num_l in enumerate(num_labels):
-            i_labels = [labels[item_idx + i] for i in range(num_l)]
-            i_labelers = [labelers[item_idx + i] for i in range(num_l)]
-            item_idx += num_l
-            cls.item_labels.append(i_labels)
-            cls.item_labelers.append(i_labelers)
-            cls.items.extend([item_num] * num_l)
-        cls.items = tensor(cls.items)
         cls.true_label_proposer = Categorical(
             torch.ones(cls.num_categories) / cls.num_categories
         )
         cls.prevalence_prior = Dirichlet(
             torch.ones(cls.num_categories) / cls.num_categories
         )
-        cls.confusion_prior = []
-        for c in range(cls.num_categories):
-            conc = torch.zeros((cls.num_categories,))
-            for c2 in range(cls.num_categories):
-                if c2 == c:
-                    conc[c2] = concentration * expected_correctness
-                else:
-                    conc[c2] = (
-                        concentration
-                        * (1 - expected_correctness)
-                        / (cls.num_categories - 1)
-                    )
-            cls.confusion_prior.append(Dirichlet(conc))
         conc = torch.zeros((cls.num_categories, cls.num_categories))
         conc[:, :] = (
             concentration * (1 - expected_correctness) / (cls.num_categories - 1)
@@ -94,7 +70,7 @@ class State:
 
     def __init__(self):
         self.prevalence = torch.ones(State.num_categories) / State.num_categories
-        self.true_labels = torch.zeros(len(State.item_labels), dtype=torch.long)
+        self.true_labels = State.true_label_proposer.sample([State.num_items])
         self.confusion = (
             torch.ones((State.num_labelers, State.num_categories, State.num_categories))
             / State.num_categories
@@ -106,11 +82,11 @@ class State:
         self.update_confusion_()
 
     def update_prevalence(self):
-        curr_score, proposer = self.propose_confusion(
+        curr_score, proposer = self.propose_prevalence(
             self.prevalence_prior, self.prevalence, self.true_labels
         )
         new_prevalence = proposer.sample()
-        new_score, new_proposer = self.propose_confusion(
+        new_score, new_proposer = self.propose_prevalence(
             self.prevalence_prior, new_prevalence, self.true_labels
         )
         log_acc = (
@@ -177,13 +153,13 @@ class State:
         proposer = Dirichlet(grad * confusion + 1)
         return score, proposer
 
-    def propose_confusion(self, prior, confusion, labels):
-        confusion = confusion.clone().requires_grad_(True)
-        score = prior.log_prob(confusion) + confusion[labels].log().sum()
-        grad, = torch.autograd.grad(score, confusion)
+    def propose_prevalence(self, prior, prevalence, labels):
+        prevalence = prevalence.clone().requires_grad_(True)
+        score = prior.log_prob(prevalence) + prevalence[labels].log().sum()
+        grad, = torch.autograd.grad(score, prevalence)
         grad.detach_()
-        confusion.requires_grad_(False)
-        return score, simplex_proposer(confusion, grad)
+        prevalence.requires_grad_(False)
+        return score, simplex_proposer(prevalence, grad)
 
 
 def obtain_posterior(data_train, args_dict, model=None):
@@ -214,9 +190,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     infer_time_t1 = time.time()
     samples = []
     for _i in tqdm(range(num_samples), desc="inference"):
-        # if _i > 10:
-        #    import pdb
-        #    pdb.set_trace()
         curr.update_()
         samples_dict = {"theta": curr.confusion.numpy(), "pi": curr.prevalence.numpy()}
         samples.append(samples_dict)
