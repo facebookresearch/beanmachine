@@ -2,6 +2,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Tuple
 
+import torch
 import torch.tensor as tensor
 from beanmachine.ppl.examples.conjugate_models.beta_binomial import BetaBinomialModel
 from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
@@ -28,11 +29,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param predictions: tensor of samples
         :returns: mean and standard deviation of the tensor of samples.
         """
-        return (
-            predictions.mean(0),
-            (predictions - predictions.mean(0))
-            * (predictions - predictions.mean(0)).pow(0.5),
-        )
+        return (torch.mean(predictions, 0), torch.std(predictions, 0))
 
     def compute_beta_binomial_moments(
         self
