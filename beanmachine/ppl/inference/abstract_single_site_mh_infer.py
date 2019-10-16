@@ -129,7 +129,6 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
                 proposer = self.find_best_single_site_proposer(node)
                 self.single_inference_run(node, proposer)
-                print(self.queries_)
             for query in self.queries_:
                 # unsqueeze the sampled value tensor, which adds an extra dimension
                 # along which we'll be adding samples generated at each iteration

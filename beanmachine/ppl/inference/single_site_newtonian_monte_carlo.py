@@ -1,6 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from typing import Dict
-
 from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
     AbstractSingleSiteMHInference,
 )
