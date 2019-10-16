@@ -46,7 +46,9 @@ tuples is used.
     def _to_node_name(node: Any) -> str:
         n = str(id(node))
         if n not in map:
+            # pyre-fixme[16]: Callable `map` has no attribute `__setitem__`.
             map[n] = "N" + str(len(map))
+        # pyre-fixme[16]: Callable `map` has no attribute `__getitem__`.
         return map[n]
 
     if to_node_name is None:

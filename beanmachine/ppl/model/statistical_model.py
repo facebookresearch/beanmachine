@@ -57,6 +57,7 @@ class StatisticalModel(object):
         """
         :returns: __stack_
         """
+        # pyre-fixme[16]: `Type` has no attribute `__stack_`.
         return StatisticalModel.__stack_
 
     @staticmethod
@@ -64,6 +65,7 @@ class StatisticalModel(object):
         """
         :returns: __world_
         """
+        # pyre-fixme[16]: `Type` has no attribute `__world_`.
         return StatisticalModel.__world_
 
     @staticmethod
@@ -71,6 +73,7 @@ class StatisticalModel(object):
         """
         :returns: __mode_
         """
+        # pyre-fixme[16]: `Type` has no attribute `__mode_`.
         return StatisticalModel.__mode_
 
     @staticmethod
@@ -87,6 +90,7 @@ class StatisticalModel(object):
         """
         :returns: __observe_vals_
         """
+        # pyre-fixme[16]: `Type` has no attribute `__observe_vals_`.
         return StatisticalModel.__observe_vals_
 
     @staticmethod
