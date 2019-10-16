@@ -74,7 +74,8 @@ class RobustRegressionModel(object):
                 [self.beta(), self.nu(), self.sigma(), self.alpha()],
                 {self.y(): self.Y},
                 self.num_samples,
-            )
+                1,
+            ).get_chain()
         elif self.inference_type == "vi":
             print("ImplementationError; exiting...")
             exit(1)

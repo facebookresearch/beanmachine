@@ -76,7 +76,8 @@ class RobustRegressionModel(object):
                 + [self.beta(j) for j in range(self.K)],
                 dict_y,
                 self.num_samples,
-            )
+                1,
+            ).get_chain()
             for j in range(self.K):
                 samples_beta[:, j] = [samples[self.beta(k)] for k in range(self.K)][j]
         elif self.inference_type == "vi":

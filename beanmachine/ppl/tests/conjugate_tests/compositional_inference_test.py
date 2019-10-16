@@ -17,8 +17,8 @@ class SingleSiteCompositionalInferenceConjugateTest(
             self.compute_beta_binomial_moments()
         )
         mh = SingleSiteCompositionalInference()
-        predictions = mh.infer(queries, observations, 1000)
-        mean, _ = self.compute_statistics(predictions[queries[0]])
+        predictions = mh.infer(queries, observations, 1000, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.05)
 
     def test_gamma_gamma_conjugate_run(self):
@@ -26,8 +26,8 @@ class SingleSiteCompositionalInferenceConjugateTest(
             self.compute_gamma_gamma_moments()
         )
         mh = SingleSiteCompositionalInference()
-        predictions = mh.infer(queries, observations, 1000)
-        mean, _ = self.compute_statistics(predictions[queries[0]])
+        predictions = mh.infer(queries, observations, 1000, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.05)
 
     def test_gamma_normal_conjugate_run(self):
@@ -37,8 +37,8 @@ class SingleSiteCompositionalInferenceConjugateTest(
             self.compute_gamma_normal_moments()
         )
         mh = SingleSiteCompositionalInference()
-        predictions = mh.infer(queries, observations, 1000)
-        mean, _ = self.compute_statistics(predictions[queries[0]])
+        predictions = mh.infer(queries, observations, 1000, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.2)
 
     def test_normal_normal_conjugate_run(self):
@@ -48,8 +48,8 @@ class SingleSiteCompositionalInferenceConjugateTest(
             self.compute_normal_normal_moments()
         )
         mh = SingleSiteCompositionalInference()
-        predictions = mh.infer(queries, observations, 1000)
-        mean, _ = self.compute_statistics(predictions[queries[0]])
+        predictions = mh.infer(queries, observations, 1000, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)
 
     def test_distant_normal_normal_conjugate_run(self):
@@ -61,6 +61,6 @@ class SingleSiteCompositionalInferenceConjugateTest(
             self.compute_dirichlet_categorical_moments()
         )
         mh = SingleSiteCompositionalInference()
-        predictions = mh.infer(queries, observations, 1000)
-        mean, _ = self.compute_statistics(predictions[queries[0]])
+        predictions = mh.infer(queries, observations, 1000, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)

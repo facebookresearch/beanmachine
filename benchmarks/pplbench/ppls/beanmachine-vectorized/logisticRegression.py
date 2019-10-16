@@ -59,7 +59,9 @@ class LogisticRegressionModel(object):
         if self.inference_type == "mcmc":
             nmc = SingleSiteNewtonianMonteCarlo()
             start_time = time.time()
-            samples = nmc.infer([self.beta(), self.alpha()], dict_y, self.num_samples)
+            samples = nmc.infer(
+                [self.beta(), self.alpha()], dict_y, self.num_samples, 1
+            ).get_chain()
         elif self.inference_type == "vi":
             print("ImplementationError; exiting...")
             exit(1)

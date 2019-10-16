@@ -28,8 +28,8 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
             self.compute_normal_normal_moments()
         )
         nw = SingleSiteNewtonianMonteCarlo()
-        predictions = nw.infer(queries, observations, 500)
-        mean, _ = self.compute_statistics(predictions[queries[0]])
+        predictions = nw.infer(queries, observations, 500, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.15)
 
     def test_distant_normal_normal_conjugate_run(self):
@@ -39,8 +39,8 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
             self.compute_distant_normal_normal_moments()
         )
         nw = SingleSiteNewtonianMonteCarlo()
-        predictions = nw.infer(queries, observations, 800)
-        mean, _ = self.compute_statistics(predictions[queries[0]])
+        predictions = nw.infer(queries, observations, 800, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.15)
 
     def test_dirichlet_categorical_conjugate_run(self):

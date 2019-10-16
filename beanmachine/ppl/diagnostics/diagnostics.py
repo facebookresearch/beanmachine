@@ -5,12 +5,13 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 from beanmachine.ppl.diagnostics.common_statistics import confidence_interval, mean, std
+from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.utils import RandomVariable
 from torch import Tensor
 
 
 class BaseDiagnostics:
-    def __init__(self, samples: Dict[RandomVariable, Tensor]):
+    def __init__(self, samples: MonteCarloSamples):
         self.samples = samples
         self.statistics_dict = {}
 
@@ -61,9 +62,9 @@ class BaseDiagnostics:
         """
         frames = pd.DataFrame()
         if query_list is None:
-            query_list = list(self.samples.keys())
+            query_list = list(self.samples.get_rv_names())
         for query in query_list:
-            if not (query in self.samples.keys()):
+            if not (query in self.samples.get_rv_names()):
                 raise ValueError(f"query {self._stringify_query(query)} does not exist")
             query_results = []
             func_list = []
@@ -85,7 +86,7 @@ class BaseDiagnostics:
 
 
 class Diagnostics(BaseDiagnostics):
-    def __init__(self, samples: Dict[RandomVariable, Tensor]):
+    def __init__(self, samples: MonteCarloSamples):
         super().__init__(samples)
         """
         every function related to summary stat should be registered in the constructor

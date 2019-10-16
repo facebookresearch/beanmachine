@@ -129,24 +129,23 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
                 proposer = self.find_best_single_site_proposer(node)
                 self.single_inference_run(node, proposer)
-                for query in self.queries_:
-                    # unsqueeze the sampled value tensor, which adds an extra dimension
-                    # along which we'll be adding samples generated at each iteration
-                    if query not in queries_sample:
-                        queries_sample[query] = (
+                print(self.queries_)
+            for query in self.queries_:
+                # unsqueeze the sampled value tensor, which adds an extra dimension
+                # along which we'll be adding samples generated at each iteration
+                if query not in queries_sample:
+                    queries_sample[query] = (
+                        query.function._wrapper(*query.arguments).unsqueeze(0).clone()
+                    )
+                else:
+                    queries_sample[query] = torch.cat(
+                        [
+                            queries_sample[query],
                             query.function._wrapper(*query.arguments)
                             .unsqueeze(0)
-                            .clone()
-                        )
-                    else:
-                        queries_sample[query] = torch.cat(
-                            [
-                                queries_sample[query],
-                                query.function._wrapper(*query.arguments)
-                                .unsqueeze(0)
-                                .clone(),
-                            ],
-                            dim=0,
-                        )
-                self.world_.accept_diff()
+                            .clone(),
+                        ],
+                        dim=0,
+                    )
+            self.world_.accept_diff()
         return queries_sample
