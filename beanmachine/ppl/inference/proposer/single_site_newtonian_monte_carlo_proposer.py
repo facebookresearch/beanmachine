@@ -94,6 +94,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         diag = (1e-7) * torch.eye(hessian.shape[0])
         hessian_inverse = (hessian + diag).inverse()
 
+        hessian_inverse = (hessian_inverse + hessian_inverse.T) / 2
         # node value may of any arbitrary shape, so here, we transform it into a
         # 1D vector using reshape(-1) and with unsqueeze(0), we change 1D vector
         # of size (N) to (1 x N) matrix.
