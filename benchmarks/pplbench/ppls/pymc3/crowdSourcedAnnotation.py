@@ -21,14 +21,19 @@ def obtain_posterior(data_train, args_dict, model=None):
     n_labelers = int(args_dict["k"])
     n_items = len(num_labels)
     thinning = args_dict["thinning_pymc3"]
-    K, labeler_rate, expected_correctness, _ = args_dict["model_args"]
+    K, labeler_rate, expected_correctness, concentration = args_dict["model_args"]
     num_samples = args_dict["num_samples_pymc3"]
     # item array for pymc3; change from list-of-lengths format of num_labels
     # to list-of-items associated with each label and labeler in vector_y, vector_J_i
     item = []
     for i in range(len(num_labels)):
         item.extend(np.repeat(i, num_labels[i]))
-
+    # set prior that each labeler on average has 50% chance of getting true label
+    alpha = ((1 - expected_correctness) / (K - 1)) * np.ones([K, K]) + (
+        expected_correctness - (1 - expected_correctness) / (K - 1)
+    ) * np.eye(K)
+    alpha *= concentration
+    # set prior that each item is equally likely to be in any given label
     beta = 1 / K * np.ones(K)
     # sample the parameter posteriors, time it
     start_time = time.time()
@@ -39,10 +44,6 @@ def obtain_posterior(data_train, args_dict, model=None):
             # sample a true class z for each item
             pi = pm.Dirichlet("pi", beta)
             z = pm.Categorical("z", p=pi, shape=n_items)
-            # set prior that each labeler on average has 50% chance of getting true label
-            alpha = ((1 - expected_correctness) / (K - 1)) * np.ones([K, K]) + (
-                expected_correctness - (1 - expected_correctness) / (K - 1)
-            ) * np.eye(K)
             # sample confusion matrices theta for labelers from this dirichlet prior
             theta = pm.Dirichlet("theta", a=alpha, shape=(n_labelers, K, K))
             # likelihood
