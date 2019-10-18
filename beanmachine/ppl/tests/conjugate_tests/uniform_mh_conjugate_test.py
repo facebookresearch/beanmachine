@@ -17,18 +17,24 @@ class SingleSiteUniformMetropolisHastingsConjugateTest(
             self.compute_beta_binomial_moments()
         )
         mh = SingleSiteUniformMetropolisHastings()
-        predictions = mh.infer(queries, observations, 1000, 1)
-        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.05)
+        predictions = mh.infer(queries, observations, 1000, 2)
+        for i in range(predictions.get_num_chains()):
+            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            self.assertAlmostEqual(
+                abs((mean - expected_mean).sum().item()), 0, delta=0.05
+            )
 
     def test_gamma_gamma_conjugate_run(self):
         expected_mean, expected_std, queries, observations = (
             self.compute_gamma_gamma_moments()
         )
         mh = SingleSiteUniformMetropolisHastings()
-        predictions = mh.infer(queries, observations, 1000, 1)
-        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.05)
+        predictions = mh.infer(queries, observations, 1000, 2)
+        for i in range(predictions.get_num_chains()):
+            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            self.assertAlmostEqual(
+                abs((mean - expected_mean).sum().item()), 0, delta=0.05
+            )
 
     def test_gamma_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for
@@ -37,9 +43,12 @@ class SingleSiteUniformMetropolisHastingsConjugateTest(
             self.compute_gamma_normal_moments()
         )
         mh = SingleSiteUniformMetropolisHastings()
-        predictions = mh.infer(queries, observations, 7500, 1)
-        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.2)
+        predictions = mh.infer(queries, observations, 7500, 2)
+        for i in range(predictions.get_num_chains()):
+            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            self.assertAlmostEqual(
+                abs((mean - expected_mean).sum().item()), 0, delta=0.2
+            )
 
     def test_normal_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for
@@ -48,9 +57,12 @@ class SingleSiteUniformMetropolisHastingsConjugateTest(
             self.compute_normal_normal_moments()
         )
         mh = SingleSiteUniformMetropolisHastings()
-        predictions = mh.infer(queries, observations, 5000, 1)
-        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)
+        predictions = mh.infer(queries, observations, 5000, 2)
+        for i in range(predictions.get_num_chains()):
+            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            self.assertAlmostEqual(
+                abs((mean - expected_mean).sum().item()), 0, delta=0.1
+            )
 
     def test_distant_normal_normal_conjugate_run(self):
         # We don't except uniform to be able to converge fast for this model.
@@ -61,6 +73,9 @@ class SingleSiteUniformMetropolisHastingsConjugateTest(
             self.compute_dirichlet_categorical_moments()
         )
         mh = SingleSiteUniformMetropolisHastings()
-        predictions = mh.infer(queries, observations, 5000, 1)
-        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)
+        predictions = mh.infer(queries, observations, 5000, 2)
+        for i in range(predictions.get_num_chains()):
+            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            self.assertAlmostEqual(
+                abs((mean - expected_mean).sum().item()), 0, delta=0.1
+            )

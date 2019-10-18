@@ -2,10 +2,13 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List
 
+import torch
+import torch.multiprocessing as mp
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import RandomVariable
 from torch import Tensor
+from torch.multiprocessing import Queue
 
 
 class AbstractInference(object, metaclass=ABCMeta):
@@ -23,6 +26,15 @@ class AbstractInference(object, metaclass=ABCMeta):
         AbstractInference.
         """
         raise NotImplementedError("Inference algorithm must implement _infer.")
+
+    def _parallel_infer(self, queue: Queue, chain: int, num_samples: int):
+        try:
+            torch.seed()
+            rv_dict = self._infer(num_samples)
+            string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
+            queue.put((None, chain, string_dict))
+        except BaseException as x:
+            queue.put((x, chain, {}))
 
     def infer(
         self,
@@ -44,9 +56,22 @@ class AbstractInference(object, metaclass=ABCMeta):
             self.queries_ = queries
             self.observations_ = observations
 
-            chain_queries = []
+            manager = mp.Manager()
+            q = manager.Queue()
+            for chain in range(num_chains):
+                p = mp.Process(
+                    target=self._parallel_infer, args=(q, chain, num_samples)
+                )
+                p.start()
+
+            chain_queries = [{}] * num_chains
             for _ in range(num_chains):
-                chain_queries.append(self._infer(num_samples))
+                (error, chain, string_dict) = q.get()
+                if error is not None:
+                    raise error
+                rv_dict = {rv: string_dict[str(rv)] for rv in queries}
+                chain_queries[chain] = rv_dict
+
             monte_carlo_samples = MonteCarloSamples(chain_queries)
         except BaseException as x:
             raise x

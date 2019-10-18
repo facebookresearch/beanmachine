@@ -38,6 +38,9 @@ class MonteCarloSamples(object):
         else:
             return self.data.rv_dict[rv][self.chain]
 
+    def __str__(self):
+        return str(self.data.rv_dict)
+
     def _specific_chain_copy(self, chain: int):
         new_mcs = copy.copy(self)
         new_mcs.chain = chain
