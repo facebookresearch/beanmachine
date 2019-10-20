@@ -86,12 +86,15 @@ class DiagnosticsTest(unittest.TestCase):
                         )
 
         mh = SingleSiteAncestralMetropolisHastings()
-        samples = mh.infer([beta(0), diri(1, 5), normal()], {}, 10000, 1)
+        samples = mh.infer([beta(0), diri(1, 5), normal()], {}, 10000, 2)
 
         out_df = Diagnostics(samples).summary()
         _inference_evaulation(out_df)
 
         out_df = Diagnostics(samples).summary([diri(1, 5), beta(0)])
+        _inference_evaulation(out_df)
+
+        out_df = Diagnostics(samples).summary(query_list=[diri(1, 5)], chain=1)
         _inference_evaulation(out_df)
 
         self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 3)])

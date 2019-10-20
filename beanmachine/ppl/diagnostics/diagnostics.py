@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -24,8 +24,13 @@ class BaseDiagnostics:
             statistics_name = func.__name__
         self.statistics_dict[statistics_name] = (func, display_names)
 
-    def _prepare_input(self, query: RandomVariable):
-        return self.samples[query]
+    def _prepare_input(self, query: RandomVariable, chain: Optional[int] = None):
+        query_samples = self.samples[query]
+        if chain is not None:
+            query_samples = query_samples[chain].unsqueeze(0)
+        new_dim = (-1,)
+        new_dim += tuple(query_samples.shape[2:])
+        return query_samples.view(new_dim)
 
     def _create_table(
         self, query: RandomVariable, results: List[Tensor], func_list: List[str]
@@ -54,11 +59,14 @@ class BaseDiagnostics:
         return f"{query.function.__name__}{query.arguments}"
 
     def summary(
-        self, query_list: Optional[List[RandomVariable]] = None
+        self,
+        query_list: Optional[List[RandomVariable]] = None,
+        chain: Optional[int] = None,
     ) -> pd.DataFrame:
         """
         this function outputs a table summarizing results of registered functions
-        in self.statistics_dict for requested queries in query_list
+        in self.statistics_dict for requested queries in query_list,
+        if chain is None, results correspond to the aggreagated chains
         """
         frames = pd.DataFrame()
         if query_list is None:
@@ -68,7 +76,7 @@ class BaseDiagnostics:
                 raise ValueError(f"query {self._stringify_query(query)} does not exist")
             query_results = []
             func_list = []
-            queried_samples = self._prepare_input(query)
+            queried_samples = self._prepare_input(query, chain)
             for _k, (func, display_names) in self.statistics_dict.items():
                 result = func(queried_samples)
                 # the first dimension is equivalant to the size of the display_names
