@@ -2,9 +2,10 @@
 """A builder for the graphviz DOT language"""
 import json
 import re
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any, Callable, List, Optional, Set, Tuple
 
 from beanmachine.ppl.utils.treeprinter import _is_named_tuple, _to_string
+from beanmachine.ppl.utils.unique_name import make_namer
 
 
 def _get_children(n: Any) -> List[Tuple[str, Any]]:
@@ -20,7 +21,7 @@ def _get_children(n: Any) -> List[Tuple[str, Any]]:
 def print_graph(
     roots: List[Any],
     get_children: Callable[[Any], List[Tuple[str, Any]]] = _get_children,
-    to_node_name: Callable[[Any], str] = None,
+    to_node_name: Optional[Callable[[Any], str]] = None,
     to_label: Callable[[Any], str] = _to_string,
 ) -> str:
     """
@@ -35,37 +36,27 @@ is supplied then a default function that can handle lists, tuples and
 dictionaries is used.
 
 to_node_name returns a *unique* string used to identify the node in the
-graph; if no argument is supplied then we use Python's id() for object
-identity.
+graph.
 
 to_label gives a *not necessarily unique* label for a node in a graph.
 Again if not supplied, a default that can handle dictionaries, lists and
 tuples is used.
     """
 
-    def _to_node_name(node: Any) -> str:
-        n = str(id(node))
-        if n not in map:
-            # pyre-fixme[16]: Callable `map` has no attribute `__setitem__`.
-            map[n] = "N" + str(len(map))
-        # pyre-fixme[16]: Callable `map` has no attribute `__getitem__`.
-        return map[n]
+    tnn = make_namer(to_node_name, "N")
 
-    if to_node_name is None:
-        to_node_name = _to_node_name
     builder: DotBuilder = DotBuilder()
     stack: List[Any] = []
     stack.extend(roots)
     done: Set[str] = set()
-    map: Dict[str, str] = {}
     for root in roots:
-        builder.with_node(to_node_name(root), to_label(root))
+        builder.with_node(tnn(root), to_label(root))
     while len(stack) > 0:
         current = stack.pop()
-        current_node = to_node_name(current)
+        current_node = tnn(current)
         if current_node not in done:
             for (edge_label, child) in get_children(current):
-                child_node = to_node_name(child)
+                child_node = tnn(child)
                 builder.with_node(child_node, to_label(child))
                 builder.with_edge(current_node, child_node, edge_label)
                 stack.append(child)
