@@ -56,21 +56,24 @@ class AbstractInference(object, metaclass=ABCMeta):
             self.queries_ = queries
             self.observations_ = observations
 
-            manager = mp.Manager()
-            q = manager.Queue()
-            for chain in range(num_chains):
-                p = mp.Process(
-                    target=self._parallel_infer, args=(q, chain, num_samples)
-                )
-                p.start()
+            if num_chains > 1:
+                manager = mp.Manager()
+                q = manager.Queue()
+                for chain in range(num_chains):
+                    p = mp.Process(
+                        target=self._parallel_infer, args=(q, chain, num_samples)
+                    )
+                    p.start()
 
-            chain_queries = [{}] * num_chains
-            for _ in range(num_chains):
-                (error, chain, string_dict) = q.get()
-                if error is not None:
-                    raise error
-                rv_dict = {rv: string_dict[str(rv)] for rv in queries}
-                chain_queries[chain] = rv_dict
+                chain_queries = [{}] * num_chains
+                for _ in range(num_chains):
+                    (error, chain, string_dict) = q.get()
+                    if error is not None:
+                        raise error
+                    rv_dict = {rv: string_dict[str(rv)] for rv in queries}
+                    chain_queries[chain] = rv_dict
+            else:
+                chain_queries = [self._infer(num_samples)]
 
             monte_carlo_samples = MonteCarloSamples(chain_queries)
         except BaseException as x:
