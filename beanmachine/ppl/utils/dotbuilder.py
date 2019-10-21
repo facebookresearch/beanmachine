@@ -2,7 +2,7 @@
 """A builder for the graphviz DOT language"""
 import json
 import re
-from typing import Any, Callable, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from beanmachine.ppl.utils.treeprinter import _is_named_tuple, _to_string
 from beanmachine.ppl.utils.unique_name import make_namer
@@ -65,6 +65,18 @@ tuples is used.
 
 
 class DotBuilder:
+
+    name: str
+    is_subgraph: bool
+    is_cluster: bool
+    _label: str
+    _node_map: "Dict[str, DotNode]"
+    _edges: "Set[DotEdge]"
+    _comments: List[str]
+    _subgraphs: "List[DotBuilder]"
+    _nodes: "List[DotNode]"
+    _current_subgraph: "Optional[DotBuilder]"
+
     def __init__(
         self, name: str = "graph", is_subgraph: bool = False, is_cluster: bool = False
     ):
@@ -79,31 +91,34 @@ class DotBuilder:
         self._nodes = []
         self._current_subgraph = None
 
-    def with_label(self, label: str):
-        if self._current_subgraph is None:
+    def with_label(self, label: str) -> "DotBuilder":
+        sg = self._current_subgraph
+        if sg is None:
             self._label = label
         else:
-            self._current_subgraph.with_label(label)
+            sg.with_label(label)
         return self
 
-    def start_subgraph(self, name: str, is_cluster: bool):
-        if self._current_subgraph is None:
+    def start_subgraph(self, name: str, is_cluster: bool) -> "DotBuilder":
+        sg = self._current_subgraph
+        if sg is None:
             self._current_subgraph = DotBuilder(name, True, is_cluster)
             self._subgraphs.append(self._current_subgraph)
         else:
-            self._current_subgraph.start_subgraph(name, is_cluster)
+            sg.start_subgraph(name, is_cluster)
         return self
 
-    def end_subgraph(self):
-        if self._current_subgraph is None:
+    def end_subgraph(self) -> "DotBuilder":
+        sg = self._current_subgraph
+        if sg is None:
             raise ValueError("Cannot end a non-existing subgraph.")
-        if self._current_subgraph._current_subgraph is None:
+        elif sg._current_subgraph is None:
             self._current_subgraph = None
         else:
-            self._current_subgraph.end_subgraph()
+            sg.end_subgraph()
         return self
 
-    def _get_node(self, name: str):
+    def _get_node(self, name: str) -> "DotNode":
         if name in self._node_map:
             return self._node_map[name]
         new_node = DotNode(name, "", "")
@@ -111,20 +126,22 @@ class DotBuilder:
         self._nodes.append(new_node)
         return new_node
 
-    def with_comment(self, comment: str):
-        if self._current_subgraph is None:
+    def with_comment(self, comment: str) -> "DotBuilder":
+        sg = self._current_subgraph
+        if sg is None:
             self._comments.append(comment)
         else:
-            self._current_subgraph.with_comment(comment)
+            sg.with_comment(comment)
         return self
 
-    def with_node(self, name: str, label: str, color: str = ""):
-        if self._current_subgraph is None:
+    def with_node(self, name: str, label: str, color: str = "") -> "DotBuilder":
+        sg = self._current_subgraph
+        if sg is None:
             n = self._get_node(name)
             n.label = label
             n.color = color
         else:
-            self._current_subgraph.with_node(name, label, color)
+            sg.with_node(name, label, color)
         return self
 
     def with_edge(
@@ -134,16 +151,17 @@ class DotBuilder:
         label: str = "",
         color: str = "",
         constrained: bool = True,
-    ):
-        if self._current_subgraph is None:
+    ) -> "DotBuilder":
+        sg = self._current_subgraph
+        if sg is None:
             f = self._get_node(frm)
             t = self._get_node(to)
             self._edges.add(DotEdge(f, t, label, color, constrained))
         else:
-            self._current_subgraph.with_edge(frm, to, label, color, constrained)
+            sg.with_edge(frm, to, label, color, constrained)
         return self
 
-    def _to_string(self, indent: str, sb: List[str]):
+    def _to_string(self, indent: str, sb: List[str]) -> List[str]:
         new_indent = indent + "  "
         sb.append(indent)
         sb.append("subgraph" if self.is_subgraph else "digraph")
@@ -162,10 +180,9 @@ class DotBuilder:
             sb.append(new_indent + "// " + c + "\n")
         if len(self._label) > 0:
             sb.append(new_indent + "label=" + smart_quote(self._label) + "\n")
-        for n in self._nodes:
-            sb.append(new_indent + str(n) + "\n")
-        edges = [new_indent + str(e) + "\n" for e in self._edges]
-        edges.sort()
+        nodes = sorted(new_indent + str(n) + "\n" for n in self._nodes)
+        sb.extend(nodes)
+        edges = sorted(new_indent + str(e) + "\n" for e in self._edges)
         sb.extend(edges)
         for db in self._subgraphs:
             sb = db._to_string(new_indent, sb)
@@ -177,13 +194,17 @@ class DotBuilder:
 
 
 class DotNode:
+    name: str
+    label: str
+    color: str
+
     def __init__(self, name: str, label: str, color: str):
         self.name = name
         self.label = label
         self.color = color
 
-    def __str__(self):
-        props = []
+    def __str__(self) -> str:
+        props: List[str] = []
         if len(self.label) != 0:
             props.append("label=" + smart_quote(self.label))
         if len(self.color) != 0:
@@ -193,6 +214,12 @@ class DotNode:
 
 
 class DotEdge:
+    frm: DotNode
+    to: DotNode
+    label: str
+    color: str
+    constrained: bool
+
     def __init__(
         self, frm: DotNode, to: DotNode, label: str, color: str, constrained: bool
     ):
@@ -202,8 +229,8 @@ class DotEdge:
         self.color = color
         self.constrained = constrained
 
-    def __str__(self):
-        props = []
+    def __str__(self) -> str:
+        props: List[str] = []
         if len(self.label) != 0:
             props.append("label=" + smart_quote(self.label))
         if len(self.color) != 0:

@@ -2,7 +2,7 @@
 """Tests for print_graph from dotbuilder.py"""
 import unittest
 
-from beanmachine.ppl.utils.dotbuilder import print_graph
+from beanmachine.ppl.utils.dotbuilder import DotBuilder, print_graph
 
 
 class GraphPrinterTest(unittest.TestCase):
@@ -15,6 +15,7 @@ class GraphPrinterTest(unittest.TestCase):
         expected = """
 digraph "graph" {
   N0[label=dict];
+  N10[label=5];
   N1[label=2];
   N2[label=dict];
   N3[label=list];
@@ -24,7 +25,6 @@ digraph "graph" {
   N7[label=6];
   N8[label=7];
   N9[label=tuple];
-  N10[label=5];
   N0 -> N0[label=self];
   N0 -> N1[label=foo];
   N0 -> N2[label=bar1];
@@ -42,4 +42,29 @@ digraph "graph" {
   N9 -> N7[label=2];
 }
 """
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_builder(self) -> None:
+        self.maxDiff = None
+        db = DotBuilder("my_graph")
+        db.with_comment("comment")
+
+        db.start_subgraph("my_subgraph", True)
+        db.with_label("graph_label")
+        db.with_node("A1", "A")
+        db.with_node("A2", "A")
+        db.with_edge("A1", "A2", "edge_label")
+        db.end_subgraph()
+        observed = str(db)
+        expected = """
+digraph my_graph {
+  // comment
+  subgraph cluster_my_subgraph {
+    label=graph_label
+    A1[label=A];
+    A2[label=A];
+    A1 -> A2[label=edge_label];
+  }
+}
+        """
         self.assertEqual(observed.strip(), expected.strip())
