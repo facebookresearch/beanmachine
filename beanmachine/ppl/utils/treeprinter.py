@@ -96,7 +96,3 @@ use straight ASCII characters, pass False for the unicode parameter.
     builder = []
     pt(root, "")
     return "".join(builder)
-
-
-if __name__ == "__main__":
-    print("treeprinter.py")

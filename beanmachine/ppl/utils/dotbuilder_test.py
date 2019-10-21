@@ -10,7 +10,7 @@ class GraphPrinterTest(unittest.TestCase):
         """Tests for print_graph from dotbuilder.py"""
         bar = {"blah": [2, 3, {"abc": (6, 7, (5, 5, 6))}]}
         d = {"foo": 2, "bar1": bar, "bar2": bar}
-        d["self"] = d
+        d["self"] = d  # type: ignore
         observed = print_graph([d])
         expected = """
 digraph "graph" {

@@ -238,7 +238,3 @@ def smart_quote(s: str) -> str:
     if _numeric.match(s):
         return s
     return json.dumps(s)
-
-
-if __name__ == "__main__":
-    print("dotbuilder.py")
