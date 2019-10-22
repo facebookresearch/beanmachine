@@ -17,7 +17,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
             self.compute_beta_binomial_moments()
         )
         mh = SingleSiteAncestralMetropolisHastings()
-        predictions = mh.infer(queries, observations, 1000, 2)
+        predictions = mh.infer(queries, observations, 1000, 1)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
             self.assertAlmostEqual(
@@ -29,7 +29,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
             self.compute_gamma_gamma_moments()
         )
         mh = SingleSiteAncestralMetropolisHastings()
-        predictions = mh.infer(queries, observations, 1000, 2)
+        predictions = mh.infer(queries, observations, 1000, 1)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
             self.assertAlmostEqual(
@@ -43,7 +43,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
             self.compute_gamma_normal_moments()
         )
         mh = SingleSiteAncestralMetropolisHastings()
-        predictions = mh.infer(queries, observations, 10000, 2)
+        predictions = mh.infer(queries, observations, 10000, 1)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
             self.assertAlmostEqual(
@@ -57,7 +57,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
             self.compute_normal_normal_moments()
         )
         mh = SingleSiteAncestralMetropolisHastings()
-        predictions = mh.infer(queries, observations, 5000, 2)
+        predictions = mh.infer(queries, observations, 5000, 1)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
             self.assertAlmostEqual(
@@ -73,7 +73,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
             self.compute_dirichlet_categorical_moments()
         )
         mh = SingleSiteAncestralMetropolisHastings()
-        predictions = mh.infer(queries, observations, 5000, 2)
+        predictions = mh.infer(queries, observations, 5000, 1)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
             self.assertAlmostEqual(

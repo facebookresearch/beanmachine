@@ -28,7 +28,7 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
             self.compute_normal_normal_moments()
         )
         nw = SingleSiteNewtonianMonteCarlo()
-        predictions = nw.infer(queries, observations, 500, 2)
+        predictions = nw.infer(queries, observations, 500, 1)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
             self.assertAlmostEqual(
@@ -42,7 +42,7 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
             self.compute_distant_normal_normal_moments()
         )
         nw = SingleSiteNewtonianMonteCarlo()
-        predictions = nw.infer(queries, observations, 800, 2)
+        predictions = nw.infer(queries, observations, 800, 1)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
             self.assertAlmostEqual(
