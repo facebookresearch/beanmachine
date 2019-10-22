@@ -79,7 +79,9 @@ class RobustRegressionModel(object):
                 1,
             ).get_chain()
             for j in range(self.K):
-                samples_beta[:, j] = [samples[self.beta(k)] for k in range(self.K)][j]
+                samples_beta[:, j] = [
+                    samples.get_variable(self.beta(k)) for k in range(self.K)
+                ][j]
         elif self.inference_type == "vi":
             print("ImplementationError; exiting...")
             exit(1)
@@ -133,10 +135,10 @@ def obtain_posterior(
     for i in range(num_samples):
         sample_dict = {}
         sample_dict["beta"] = samples_beta[i]
-        for j, parameter in enumerate(samples.keys()):
+        for j, parameter in enumerate(samples.get_rv_names()):
             if j >= len(param_keys):
                 break
-            sample_dict[param_keys[j]] = samples[parameter][i].item()
+            sample_dict[param_keys[j]] = samples.get_variable(parameter)[i].item()
         samples_formatted.append(sample_dict)
 
     timing_info = {
