@@ -163,7 +163,7 @@ class StatisticalModel(object):
                 obs[func_key]
                 if func_key in obs
                 else (
-                    torch.zeros(dist_sample.shape)
+                    torch.zeros(dist_sample.shape, dtype=dist_sample.dtype)
                     if isinstance(distribution.support, dist.constraints._Real)
                     else dist_sample
                 )
