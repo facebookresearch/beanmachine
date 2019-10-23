@@ -11,6 +11,7 @@ from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
 from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaModel
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
+from beanmachine.ppl.inference.abstract_infer import AbstractInference
 from beanmachine.ppl.model.utils import RandomVariable
 from torch import Tensor
 
@@ -162,6 +163,133 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         expected_mean = alpha / alpha.sum()
         expected_std = expected_mean * (1 - expected_mean) / (alpha.sum() + 1)
         return (expected_mean, expected_std, queries, observations)
+
+    def _compare_run(
+        self,
+        moments: Tuple[
+            Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]
+        ],
+        mh: AbstractInference,
+        num_chains: int,
+        num_samples: int,
+        delta: float,
+    ):
+        expected_mean, expected_std, queries, observations = moments
+        predictions = mh.infer(queries, observations, num_samples, num_chains)
+        for i in range(predictions.get_num_chains()):
+            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            self.assertAlmostEqual(
+                abs((mean - expected_mean).sum().item()), 0, delta=delta
+            )
+
+    def beta_binomial_conjugate_run(
+        self,
+        mh: AbstractInference,
+        num_chains: int = 1,
+        num_samples: int = 1000,
+        delta: float = 0.05,
+    ):
+        """
+        Tests the inference run for a small beta binomial model.
+
+        :param mh: inference algorithm
+        :param num_samples: number of samples
+        :param num_chains: number of chains
+        :param delta: delta to check against expected results
+        """
+        moments = self.compute_beta_binomial_moments()
+        self._compare_run(moments, mh, num_chains, num_samples, delta)
+
+    def gamma_gamma_conjugate_run(
+        self,
+        mh: AbstractInference,
+        num_chains: int = 1,
+        num_samples: int = 1000,
+        delta: float = 0.05,
+    ):
+        """
+        Tests the inference run for a small gamma gamma model.
+
+        :param mh: inference algorithm
+        :param num_samples: number of samples
+        :param num_chains: number of chains
+        :param delta: delta to check against expected results
+        """
+        moments = self.compute_gamma_gamma_moments()
+        self._compare_run(moments, mh, num_chains, num_samples, delta)
+
+    def gamma_normal_conjugate_run(
+        self,
+        mh: AbstractInference,
+        num_chains: int = 1,
+        num_samples: int = 1000,
+        delta: float = 0.05,
+    ):
+        """
+        Tests the inference run for a small gamma normal model.
+
+        :param mh: inference algorithm
+        :param num_samples: number of samples
+        :param num_chains: number of chains
+        :param delta: delta to check against expected results
+        """
+        moments = self.compute_gamma_normal_moments()
+        self._compare_run(moments, mh, num_chains, num_samples, delta)
+
+    def normal_normal_conjugate_run(
+        self,
+        mh: AbstractInference,
+        num_chains: int = 1,
+        num_samples: int = 1000,
+        delta: float = 0.05,
+    ):
+        """
+        Tests the inference run for a small normal normal model.
+
+        :param mh: inference algorithm
+        :param num_samples: number of samples
+        :param num_chains: number of chains
+        :param delta: delta to check against expected results
+        """
+        moments = self.compute_normal_normal_moments()
+        self._compare_run(moments, mh, num_chains, num_samples, delta)
+
+    def distant_normal_normal_conjugate_run(
+        self,
+        mh: AbstractInference,
+        num_chains: int = 1,
+        num_samples: int = 1000,
+        delta: float = 0.05,
+    ):
+        """
+        Tests the inference run for a small normal normal model
+        where the prior and posterior are far from each other.
+
+        :param mh: inference algorithm
+        :param num_samples: number of samples
+        :param num_chains: number of chains
+        :param delta: delta to check against expected results
+        """
+        moments = self.compute_distant_normal_normal_moments()
+        self._compare_run(moments, mh, num_chains, num_samples, delta)
+
+    def dirichlet_categorical_conjugate_run(
+        self,
+        mh: AbstractInference,
+        num_chains: int = 1,
+        num_samples: int = 1000,
+        delta: float = 0.05,
+    ):
+        """
+        Tests the inference run for a small dirichlet categorical model.
+
+        :param mh: inference algorithm
+        :param num_samples: number of samples
+        :param num_chains: number of chains
+        :param delta: delta to check against expected results
+        """
+        moments = self.compute_dirichlet_categorical_moments()
+        self._compare_run(moments, mh, num_chains, num_samples, delta)
 
     @abstractmethod
     def test_beta_binomial_conjugate_run(self):

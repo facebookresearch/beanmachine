@@ -12,6 +12,9 @@ from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
 class SingleSiteNewtonianMonteCarloConjugateTest(
     unittest.TestCase, AbstractConjugateTests
 ):
+    def setUp(self):
+        self.mh = SingleSiteNewtonianMonteCarlo()
+
     def test_beta_binomial_conjugate_run(self):
         pass
 
@@ -24,30 +27,12 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
     def test_normal_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for
         # now to have a faster test.
-        expected_mean, expected_std, queries, observations = (
-            self.compute_normal_normal_moments()
-        )
-        nw = SingleSiteNewtonianMonteCarlo()
-        predictions = nw.infer(queries, observations, 500, 1)
-        for i in range(predictions.get_num_chains()):
-            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
-            self.assertAlmostEqual(
-                abs((mean - expected_mean).sum().item()), 0, delta=0.15
-            )
+        self.normal_normal_conjugate_run(self.mh, num_samples=500, delta=0.15)
 
     def test_distant_normal_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for
         # now to have a faster test.
-        expected_mean, expected_std, queries, observations = (
-            self.compute_distant_normal_normal_moments()
-        )
-        nw = SingleSiteNewtonianMonteCarlo()
-        predictions = nw.infer(queries, observations, 800, 1)
-        for i in range(predictions.get_num_chains()):
-            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
-            self.assertAlmostEqual(
-                abs((mean - expected_mean).sum().item()), 0, delta=0.15
-            )
+        self.distant_normal_normal_conjugate_run(self.mh, num_samples=800, delta=0.15)
 
     def test_dirichlet_categorical_conjugate_run(self):
         pass
