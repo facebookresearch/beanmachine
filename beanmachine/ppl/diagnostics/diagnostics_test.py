@@ -1,6 +1,7 @@
 import unittest
 from typing import Dict
 
+import beanmachine.ppl.diagnostics.common_statistics as common_statistics
 import pandas as pd
 import torch
 import torch.distributions as dist
@@ -99,3 +100,30 @@ class DiagnosticsTest(unittest.TestCase):
 
         self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 3)])
         self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 5), foo()])
+
+    def test_r_hat(self):
+        samples = torch.tensor([[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0, 7.0]])
+        self.assertAlmostEqual(common_statistics.r_hat(samples), 2.3558, delta=0.001)
+        self.assertAlmostEqual(
+            common_statistics.split_r_hat(samples), 3.7193, delta=0.001
+        )
+
+    def test_r_hat_additional_dimension(self):
+        samples = torch.tensor(
+            [
+                [[0.0, 2.0], [2.0, 4.0], [4.0, 8.0], [6.0, 0.0]],
+                [[8.0, 12.0], [10.0, 6.0], [12.0, 1.0], [14.0, 2.0]],
+                [[16.0, -5.0], [18.0, 4.0], [20.0, 2.0], [22.0, 4.0]],
+            ]
+        )
+        dim1, dim2 = common_statistics.r_hat(samples)
+        self.assertAlmostEqual(dim1, 3.2171, delta=0.001)
+        self.assertAlmostEqual(dim2, 0.9849, delta=0.001)
+        dim1, dim2 = common_statistics.split_r_hat(samples)
+        self.assertAlmostEqual(dim1, 5.3385, delta=0.001)
+        self.assertAlmostEqual(dim2, 1.0687, delta=0.001)
+
+    def test_r_hat_error(self):
+        samples = torch.tensor([0.0, 1.0, 2.0, 3.0])
+        self.assertRaises(ValueError, common_statistics.r_hat, samples)
+        self.assertRaises(ValueError, common_statistics.split_r_hat, samples)
