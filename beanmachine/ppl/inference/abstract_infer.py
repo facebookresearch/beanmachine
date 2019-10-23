@@ -42,6 +42,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         observations: Dict[RandomVariable, Tensor],
         num_samples: int,
         num_chains: int = 4,
+        run_in_parallel: bool = False,
     ) -> MonteCarloSamples:
         """
         Run inference algorithms and reset the world/mode at the end.
@@ -56,7 +57,7 @@ class AbstractInference(object, metaclass=ABCMeta):
             self.queries_ = queries
             self.observations_ = observations
 
-            if num_chains > 1:
+            if num_chains > 1 and run_in_parallel:
                 manager = mp.Manager()
                 q = manager.Queue()
                 for chain in range(num_chains):
@@ -73,7 +74,10 @@ class AbstractInference(object, metaclass=ABCMeta):
                     rv_dict = {rv: string_dict[str(rv)] for rv in queries}
                     chain_queries[chain] = rv_dict
             else:
-                chain_queries = [self._infer(num_samples)]
+                chain_queries = []
+                for _ in range(num_chains):
+                    rv_dict = self._infer(num_samples)
+                    chain_queries.append(rv_dict)
 
             monte_carlo_samples = MonteCarloSamples(chain_queries)
         except BaseException as x:
