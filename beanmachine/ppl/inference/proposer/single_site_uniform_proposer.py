@@ -6,7 +6,7 @@ import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 
 
@@ -23,7 +23,7 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
     def __init__(self, world):
         super().__init__(world)
 
-    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
+    def propose(self, node: RVIdentifier) -> Tuple[Tensor, Tensor]:
         """
         Proposes a new value for the node.
 
@@ -39,9 +39,10 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             distribution = dist.Bernoulli(
                 torch.ones(node_distribution.param_shape) / 2.0
             )
+            node_var.proposal_distribution = distribution
             new_value = distribution.sample()
             return (new_value, -1 * distribution.log_prob(new_value))
-        elif isinstance(
+        if isinstance(
             node_distribution.support, dist.constraints._IntegerInterval
         ) and isinstance(node_distribution, dist.Categorical):
             probs = torch.ones(node_distribution.param_shape)
@@ -49,12 +50,12 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             # where K is probs.size(-1).
             probs /= float(node_distribution.param_shape[-1])
             distribution = dist.Categorical(probs)
+            node_var.proposal_distribution = distribution
             new_value = distribution.sample()
             return (new_value, -1 * distribution.log_prob(new_value))
-        else:
-            return super().propose(node)
+        return super().propose(node)
 
-    def post_process(self, node: RandomVariable) -> Tensor:
+    def post_process(self, node: RVIdentifier) -> Tensor:
         """
         Computes the log probability of going back to the old value.
 
@@ -62,6 +63,10 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
         """
         node_var = self.world_.get_node_in_world(node, False)
         node_distribution = node_var.distribution
+        if node_var.proposal_distribution is not None:
+            return node_var.proposal_distribution.log_prob(
+                self.world_.variables_[node].value
+            )
         if isinstance(
             node_distribution.support, dist.constraints._Boolean
         ) and isinstance(node_distribution, dist.Bernoulli):
@@ -78,5 +83,4 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             probs /= float(node_distribution.param_shape[-1])
             distribution = dist.Categorical(probs)
             return distribution.log_prob(self.world_.variables_[node].value)
-        else:
-            return super().post_process(node)
+        return super().post_process(node)

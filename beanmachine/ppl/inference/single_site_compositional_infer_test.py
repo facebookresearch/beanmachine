@@ -51,8 +51,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             log_prob=distribution.log_prob(val),
             parent=set(),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
         self.assertEqual(
             isinstance(
@@ -69,8 +68,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             log_prob=distribution.log_prob(val),
             parent=set(),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         self.assertEqual(
@@ -89,8 +87,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             log_prob=distribution.log_prob(val),
             parent=set(),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         self.assertEqual(
@@ -108,8 +105,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             log_prob=distribution.log_prob(val),
             parent=set(),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
         self.assertEqual(
             isinstance(

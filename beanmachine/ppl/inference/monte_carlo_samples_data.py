@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 import torch
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 
 
@@ -14,7 +14,7 @@ class MonteCarloSamplesData:
     with multiple chains and additional metadata
     """
 
-    def __init__(self, chain_results: List[Dict[RandomVariable, Tensor]]):
+    def __init__(self, chain_results: List[Dict[RVIdentifier, Tensor]]):
         self.rv_dict = defaultdict()
         self.num_chains = len(chain_results)
 

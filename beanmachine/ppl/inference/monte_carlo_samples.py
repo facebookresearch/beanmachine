@@ -4,7 +4,7 @@ import copy
 from typing import Dict, List
 
 from beanmachine.ppl.inference.monte_carlo_samples_data import MonteCarloSamplesData
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 
 
@@ -16,11 +16,11 @@ class MonteCarloSamples(object):
     If a chain is specified, only the data from the chain will be accessible
     """
 
-    def __init__(self, chain_results: List[Dict[RandomVariable, Tensor]]):
+    def __init__(self, chain_results: List[Dict[RVIdentifier, Tensor]]):
         self.data = MonteCarloSamplesData(chain_results)
         self.chain = None
 
-    def __getitem__(self, rv: RandomVariable) -> Tensor:
+    def __getitem__(self, rv: RVIdentifier) -> Tensor:
         """
         Let C be the number of chains,
         S be the number of samples
@@ -62,14 +62,14 @@ class MonteCarloSamples(object):
             raise IndexError("Please specify a valid chain")
         return self._specific_chain_copy(chain)
 
-    def get_variable(self, rv: RandomVariable) -> Tensor:
+    def get_variable(self, rv: RVIdentifier) -> Tensor:
         """
         :param rv: random variable to view values of
         :results: samples drawn during inference for the specified variable
         """
         return self[rv]
 
-    def get_rv_names(self) -> List[RandomVariable]:
+    def get_rv_names(self) -> List[RVIdentifier]:
         """
         :returns: a list of the queried random variables
         """

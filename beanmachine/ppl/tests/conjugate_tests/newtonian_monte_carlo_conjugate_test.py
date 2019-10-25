@@ -35,4 +35,10 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
         self.distant_normal_normal_conjugate_run(self.mh, num_samples=800, delta=0.15)
 
     def test_dirichlet_categorical_conjugate_run(self):
-        pass
+        expected_mean, expected_std, queries, observations = (
+            self.compute_dirichlet_categorical_moments()
+        )
+        mh = SingleSiteNewtonianMonteCarlo()
+        predictions = mh.infer(queries, observations, 100, 1)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
+        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)

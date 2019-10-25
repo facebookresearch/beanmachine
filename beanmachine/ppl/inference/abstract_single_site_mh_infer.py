@@ -8,7 +8,7 @@ import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode, RandomVariable
+from beanmachine.ppl.model.utils import Mode, RVIdentifier
 from torch import Tensor
 
 
@@ -72,7 +72,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             else:
                 self.world_.reject_diff()
 
-    def single_inference_run(self, node: RandomVariable, proposer):
+    def single_inference_run(self, node: RVIdentifier, proposer):
         """
         Run one iteration of the inference algorithms for a given node which is
         to follow the steps below:
@@ -99,7 +99,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         )
 
     @abstractmethod
-    def find_best_single_site_proposer(self, node: RandomVariable):
+    def find_best_single_site_proposer(self, node: RVIdentifier):
         """
         Finds the best proposer for a node.
 
@@ -110,7 +110,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             "Inference algorithm must implement find_best_proposer."
         )
 
-    def _infer(self, num_samples: int) -> Dict[RandomVariable, Tensor]:
+    def _infer(self, num_samples: int) -> Dict[RVIdentifier, Tensor]:
         """
         Run inference algorithms.
 

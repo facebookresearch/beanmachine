@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Tuple
 
 import torch.tensor as tensor
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 
 
@@ -16,7 +16,7 @@ class AbstractProposer(object, metaclass=ABCMeta):
         self.world_ = world
 
     @abstractmethod
-    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
+    def propose(self, node: RVIdentifier) -> Tuple[Tensor, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
         AbstractProposer. This implementation will include how the proposer
@@ -28,7 +28,7 @@ class AbstractProposer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError("Inference algorithm must implement propose.")
 
-    def post_process(self, node: RandomVariable) -> Tensor:
+    def post_process(self, node: RVIdentifier) -> Tensor:
         """
         To be implemented by proposers that need post-processing after diff is
         created to compute the final proposal log update.

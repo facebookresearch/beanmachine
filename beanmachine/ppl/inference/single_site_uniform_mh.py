@@ -5,7 +5,7 @@ from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 
 
 class SingleSiteUniformMetropolisHastings(AbstractSingleSiteMHInference):
@@ -17,7 +17,7 @@ class SingleSiteUniformMetropolisHastings(AbstractSingleSiteMHInference):
         super().__init__()
         self.proposer_ = SingleSiteUniformProposer(self.world_)
 
-    def find_best_single_site_proposer(self, node: RandomVariable):
+    def find_best_single_site_proposer(self, node: RVIdentifier):
         """
         Finds the best proposer for a node which is
         SingleSiteUniformMetropolisHastingsProposer for

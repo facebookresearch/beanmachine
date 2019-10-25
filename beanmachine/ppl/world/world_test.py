@@ -102,8 +102,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
             parent=set(),
             children=set({bar_key}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[bar_key] = Variable(
@@ -112,8 +111,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(
@@ -150,8 +148,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
             parent=set(),
             children=set({bar_key}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[bar_key] = Variable(
@@ -160,8 +157,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         children_log_update, world_log_update, _ = world.propose_change(
@@ -208,8 +204,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.2)),
             parent=set(),
             children=set({bar_key}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[bar_key] = Variable(
@@ -218,8 +213,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         expected_node_update = (
@@ -353,8 +347,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Categorical(tensor([0.5, 0.5])).log_prob(tensor(1.0)),
             parent=set(),
             children=set({Y_key}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[A_key_0] = Variable(
@@ -363,8 +356,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.1)),
             parent=set(),
             children=set({B_key_0}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[B_key_0] = Variable(
@@ -373,8 +365,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.1), tensor(1.0)).log_prob(tensor(0.2)),
             parent=set({A_key_0}),
             children=set({C_key_0, D_key_0}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[C_key_0] = Variable(
@@ -383,8 +374,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.2)),
             parent=set({B_key_0}),
             children=set({D_key_0}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[D_key_0] = Variable(
@@ -393,8 +383,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2)),
             parent=set({B_key_0, C_key_0}),
             children=set({Y_key}),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         world.variables_[Y_key] = Variable(
@@ -403,8 +392,7 @@ class WorldTest(unittest.TestCase):
             log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(1.0)),
             parent=set({D_key_0, X_key}),
             children=set(),
-            mean=None,
-            covariance=None,
+            proposal_distribution=None,
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(

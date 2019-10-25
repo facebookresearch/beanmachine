@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.model.utils import Mode, RandomVariable, float_types
+from beanmachine.ppl.model.utils import Mode, RVIdentifier, float_types
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
 from torch import Tensor
@@ -53,7 +53,7 @@ class StatisticalModel(object):
         return StatisticalModel.__stack_, StatisticalModel.__world_
 
     @staticmethod
-    def get_stack() -> List[RandomVariable]:
+    def get_stack() -> List[RVIdentifier]:
         """
         :returns: __stack_
         """
@@ -86,7 +86,7 @@ class StatisticalModel(object):
         StatisticalModel.__mode_ = mode
 
     @staticmethod
-    def get_observations() -> Dict[RandomVariable, Tensor]:
+    def get_observations() -> Dict[RVIdentifier, Tensor]:
         """
         :returns: __observe_vals_
         """
@@ -104,7 +104,7 @@ class StatisticalModel(object):
         StatisticalModel.__observe_vals_ = val
 
     @staticmethod
-    def get_func_key(function, arguments) -> RandomVariable:
+    def get_func_key(function, arguments) -> RVIdentifier:
         """
         Creates a key to uniquely identify the Random Variable.
 
@@ -114,7 +114,7 @@ class StatisticalModel(object):
         :returns: tuple of function and arguments which is to be used to identify
         a particular function call.
         """
-        return RandomVariable(function=function, arguments=arguments)
+        return RVIdentifier(function=function, arguments=arguments)
 
     @staticmethod
     def sample(f):
@@ -148,8 +148,7 @@ class StatisticalModel(object):
                 log_prob=None,
                 parent=set(),
                 children=set() if len(stack) == 0 else set({stack[-1]}),
-                mean=None,
-                covariance=None,
+                proposal_distribution=None,
             )
 
             world.add_node_to_world(func_key, var)
@@ -159,15 +158,19 @@ class StatisticalModel(object):
 
             var.distribution = distribution
             dist_sample = distribution.sample()
-            var.value = (
-                obs[func_key]
-                if func_key in obs
-                else (
-                    torch.zeros(dist_sample.shape, dtype=dist_sample.dtype)
-                    if isinstance(distribution.support, dist.constraints._Real)
-                    else dist_sample
-                )
-            )
+
+            if func_key in obs:
+                var.value = obs[func_key]
+            elif isinstance(distribution.support, dist.constraints._Real):
+                var.value = torch.zeros(dist_sample.shape, dtype=dist_sample.dtype)
+            elif isinstance(distribution.support, dist.constraints._Simplex):
+                var.value = torch.ones(dist_sample.shape, dtype=dist_sample.dtype)
+                var.value /= dist_sample.shape[-1]
+            elif isinstance(distribution.support, dist.constraints._GreaterThan):
+                var.value = torch.ones(dist_sample.shape, dtype=dist_sample.dtype)
+            else:
+                var.value = dist_sample
+
             if isinstance(var.value, float_types):
                 var.value.requires_grad_(True)
             var.log_prob = distribution.log_prob(var.value).sum()

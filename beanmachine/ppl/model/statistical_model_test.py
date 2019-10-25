@@ -4,7 +4,7 @@ import unittest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.model.statistical_model import (
-    RandomVariable,
+    RVIdentifier,
     StatisticalModel,
     query,
     sample,
@@ -148,7 +148,7 @@ class StatisticalModelTest(unittest.TestCase):
         self.assertEqual(bazbar_expected_parent, world.diff_[bazbar_key].parent)
         self.assertEqual(foobaz_expected_children, world.diff_[foobaz_key].children)
         self.assertEqual(foobaz_expected_parent, world.diff_[foobaz_key].parent)
-        self.assertEqual(type(query_key), RandomVariable)
+        self.assertEqual(type(query_key), RVIdentifier)
 
         foo_expected_dist = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
         bar_expected_dist = dist.Normal(world.diff_[foo_key].value, torch.tensor(1.0))

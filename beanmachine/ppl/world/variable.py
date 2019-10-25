@@ -2,8 +2,9 @@
 from dataclasses import dataclass, fields
 from typing import Optional, Set
 
-import torch
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
+from torch import Tensor
+from torch.distributions import Distribution
 
 
 @dataclass
@@ -41,13 +42,12 @@ class Variable(object):
     )
     """
 
-    distribution: torch.distributions.Distribution
-    value: torch.Tensor
-    parent: Set[Optional[RandomVariable]]
-    children: Set[Optional[RandomVariable]]
-    log_prob: torch.Tensor
-    mean: torch.Tensor
-    covariance: torch.Tensor
+    distribution: Distribution
+    value: Tensor
+    parent: Set[Optional[RVIdentifier]]
+    children: Set[Optional[RVIdentifier]]
+    log_prob: Tensor
+    proposal_distribution: Distribution
 
     def __post_init__(self):
         for field in fields(self):
@@ -82,6 +82,5 @@ class Variable(object):
             self.parent.copy(),
             self.children.copy(),
             self.log_prob,
-            self.mean,
-            self.covariance,
+            self.proposal_distribution,
         )

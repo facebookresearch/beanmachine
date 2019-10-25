@@ -12,7 +12,7 @@ from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaMode
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
 from beanmachine.ppl.inference.abstract_infer import AbstractInference
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 
 
@@ -34,7 +34,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_beta_binomial_moments(
         self
-    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
+    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small beta binomial model.
 
@@ -59,7 +59,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_gamma_gamma_moments(
         self
-    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
+    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small gamma gamma model.
 
@@ -81,7 +81,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_gamma_normal_moments(
         self
-    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
+    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small gamma normal model.
 
@@ -105,7 +105,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def compute_normal_normal_moments(
         self
-    ) -> Tuple[Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]]:
+    ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small normal normal model.
 
@@ -166,9 +166,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def _compare_run(
         self,
-        moments: Tuple[
-            Tensor, Tensor, List[RandomVariable], Dict[RandomVariable, Tensor]
-        ],
+        moments: Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]],
         mh: AbstractInference,
         num_chains: int,
         num_samples: int,

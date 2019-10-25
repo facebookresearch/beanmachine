@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from beanmachine.ppl.diagnostics.common_statistics import confidence_interval, mean, std
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 
 
@@ -24,7 +24,7 @@ class BaseDiagnostics:
             statistics_name = func.__name__
         self.statistics_dict[statistics_name] = (func, display_names)
 
-    def _prepare_input(self, query: RandomVariable, chain: Optional[int] = None):
+    def _prepare_input(self, query: RVIdentifier, chain: Optional[int] = None):
         query_samples = self.samples[query]
         if chain is not None:
             query_samples = query_samples[chain].unsqueeze(0)
@@ -33,7 +33,7 @@ class BaseDiagnostics:
         return query_samples.view(new_dim)
 
     def _create_table(
-        self, query: RandomVariable, results: List[Tensor], func_list: List[str]
+        self, query: RVIdentifier, results: List[Tensor], func_list: List[str]
     ) -> pd.DataFrame:
         out_pd = pd.DataFrame()
         single_result_set = results[0]
@@ -55,12 +55,12 @@ class BaseDiagnostics:
                 out_pd = pd.concat([out_pd, cur])
         return out_pd
 
-    def _stringify_query(self, query: RandomVariable) -> str:
+    def _stringify_query(self, query: RVIdentifier) -> str:
         return f"{query.function.__name__}{query.arguments}"
 
     def summary(
         self,
-        query_list: Optional[List[RandomVariable]] = None,
+        query_list: Optional[List[RVIdentifier]] = None,
         chain: Optional[int] = None,
     ) -> pd.DataFrame:
         """

@@ -7,7 +7,7 @@ import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor
 from torch.autograd import grad
@@ -39,38 +39,59 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
     def __init__(self, world):
         super().__init__(world)
 
-    def compute_normal_mean_covar(self, node_var: Variable) -> Tuple[Tensor, Tensor]:
+    def is_valid(self, vec: Tensor) -> bool:
         """
-        Computes mean and covariance of the MultivariateNormal given the node.
-
-        :param node_var: the node Variable we're proposing a new value for
-        :returns: mean and covariance
+        :returns: whether a tensor is valid or not (not nan and not inf)
         """
-        hessian = None
-        node_val = node_var.value
+        return not (torch.isnan(vec).any() or torch.isinf(vec).any())
 
-        score = node_var.log_prob.clone()
-        for child in node_var.children:
-            score += self.world_.get_node_in_world(child, False).log_prob.clone()
-
-        # pyre-fixme
+    def zero_grad(self, node_val: Tensor):
+        """
+        Zeros the gradient.
+        """
         if hasattr(node_val, "grad") and node_val.grad is not None:
             node_val.grad.zero_()
 
+    def compute_first_gradient(
+        self, score: Tensor, node_val: Tensor
+    ) -> Tuple[bool, Tensor]:
+        """
+        Computes the first gradient.
+
+        :param score: the score to compute the gradient of
+        :param node_val: the value to compute the gradient against
+        :returns: the first gradient
+        """
         if not hasattr(node_val, "grad"):
             raise ValueError("requires_grad_ needs to be set for node values")
+        # pyre-fixme
+        elif node_val.grad is not None:
+            node_val.grad.zero_()
 
         # pyre expects attributes to be defined in constructors or at class
         # top levels and doesn't support attributes that get dynamically added.
 
-        gradient = grad(score, node_val, create_graph=True)[0]
-        first_gradient = gradient.reshape(-1).clone()
+        first_gradient = grad(score, node_val, create_graph=True)[0]
+        return self.is_valid(first_gradient), first_gradient
 
+    def compute_hessian(
+        self, first_gradient: Tensor, node_val: Tensor
+    ) -> Tuple[bool, Tensor]:
+        """
+        Computes the hessian
+
+        :param first_gradient: the first gradient of score with respect to
+        node_val
+        :param node_val: the value to compute the hessian against
+        :returns: computes hessian
+        """
+        hessian = None
         size = first_gradient.shape[0]
         for i in range(size):
 
             second_gradient = (
                 grad(
+                    # pyre-fixme
                     first_gradient.index_select(0, tensor([i])),
                     node_val,
                     create_graph=True,
@@ -82,19 +103,79 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
                 if hessian is not None
                 else (second_gradient).unsqueeze(0)
             )
-
-        if hasattr(node_val, "grad") and node_val.grad is not None:
-            node_val.grad.zero_()
-
         if hessian is None:
             raise ValueError("Something went wrong with gradient computation")
 
+        if not self.is_valid(hessian):
+            return False, tensor(0.0)
+
+        return True, hessian
+
+    def compute_neg_hessian_invserse(
+        self, first_gradient: Tensor, node_val: Tensor
+    ) -> Tuple[bool, Tensor]:
+        """
+        Compute negative hessian inverse.
+
+        :param first_gradient: the first gradient of score with respect to
+        node_val
+        :param node_val: the value to compute the hessian against
+        :returns: computes negative hessian inverse
+        """
+        is_valid, hessian = self.compute_hessian(first_gradient, node_val)
+        if not is_valid:
+            return False, tensor(0.0)
         # to avoid problems with inverse, here we add a small value - 1e-7 to
         # the diagonals
         diag = (1e-7) * torch.eye(hessian.shape[0])
+        # pyre-fixme
         hessian_inverse = (hessian + diag).inverse()
-
         hessian_inverse = (hessian_inverse + hessian_inverse.T) / 2
+        neg_hessian_inverse = -1 * hessian_inverse
+        eig_vals, eig_vec = torch.eig(neg_hessian_inverse, eigenvectors=True)
+        eig_vals = eig_vals[:, 0]
+        num_neg_eig_vals = (eig_vals < 0).sum()
+        if num_neg_eig_vals.item() > 0:
+            eig_vals[eig_vals < 0] = 1e-5
+            eig_vals = torch.eye(len(eig_vals)) * eig_vals
+            eig_vals_64 = eig_vals.to(dtype=torch.float64)
+            eig_vec_64 = eig_vec.to(dtype=torch.float64)
+            neg_hessian_inverse = eig_vec_64 @ eig_vals_64 @ eig_vec_64.T
+            if eig_vals.dtype is torch.float32:
+                neg_hessian_inverse = neg_hessian_inverse.to(dtype=torch.float32)
+
+        return True, neg_hessian_inverse
+
+    def compute_normal_mean_covar(
+        self, node_var: Variable
+    ) -> Tuple[bool, Tensor, Tensor]:
+        """
+        Computes mean and covariance of the MultivariateNormal given the node.
+
+        :param node_var: the node Variable we're proposing a new value for
+        :returns: mean and covariance
+        """
+        node_val = node_var.value
+
+        score = node_var.log_prob.clone()
+        for child in node_var.children:
+            score += self.world_.get_node_in_world(child, False).log_prob.clone()
+
+        is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
+
+        if not is_valid_gradient:
+            self.zero_grad(node_val)
+            return False, tensor(0.0), tensor(0.0)
+
+        first_gradient = gradient.reshape(-1).clone()
+
+        is_valid_hessian, neg_hessian_inverse = self.compute_neg_hessian_invserse(
+            first_gradient, node_val
+        )
+        self.zero_grad(node_val)
+        if not is_valid_hessian:
+            return False, tensor(0.0), tensor(0.0)
+
         # node value may of any arbitrary shape, so here, we transform it into a
         # 1D vector using reshape(-1) and with unsqueeze(0), we change 1D vector
         # of size (N) to (1 x N) matrix.
@@ -102,70 +183,209 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         # here we again call unsqueeze(0) on first_gradient to transform it into
         # a matrix in order to be able to perform matrix multiplication.
         mean = (
-            node_reshaped - first_gradient.unsqueeze(0).mm(hessian_inverse)
+            node_reshaped
+            # pyre-fixme
+            + first_gradient.unsqueeze(0).mm(neg_hessian_inverse)
         ).squeeze(0)
-        covariance = tensor(-1) * hessian_inverse
-        return mean, covariance
+        covariance = neg_hessian_inverse
+        return True, mean, covariance
 
-    def post_process(self, node: RandomVariable) -> Tensor:
+    def compute_alpha(self, node_var: Variable) -> Tuple[bool, Tensor]:
+        """
+        Computes alpha of the Dirichlet proposal given the node.
+
+        :param node_var: the node Variable we're proposing a new value for
+        :returns: alpha of the Dirichlet as proposal distribution
+        """
+        node_val = node_var.value
+        self.zero_grad(node_val)
+
+        score = node_var.log_prob.clone()
+        for child in node_var.children:
+            score += self.world_.get_node_in_world(child, False).log_prob.clone()
+
+        is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
+        if not is_valid_gradient:
+            self.zero_grad(node_val)
+            return False, tensor(0.0)
+
+        first_gradient = gradient.clone().reshape(-1)
+        is_valid_hessian, hessian = self.compute_hessian(first_gradient, node_val)
+
+        self.zero_grad(node_val)
+
+        if not is_valid_hessian:
+            return False, tensor(0.0)
+
+        node_val_reshaped = node_val.clone().reshape(-1)
+        # pyre-fixme
+        hessian_diag = torch.diag(hessian.diag())
+        # pyre-fixme
+        max_non_diag_per_row = (hessian - hessian_diag).max(0).values
+        predicted_alpha = (
+            1
+            - (
+                (node_val_reshaped * node_val_reshaped)
+                * (hessian.diag() - max_non_diag_per_row)
+            )
+        ).reshape(node_val.shape)
+        predicted_alpha = torch.where(
+            predicted_alpha < -1 * 1e-3,
+            # pyre-fixme
+            node_var.distribution.mean,
+            predicted_alpha,
+        )
+
+        predicted_alpha = torch.where(
+            predicted_alpha > 0, predicted_alpha, tensor(1e-3)
+        )
+        return True, predicted_alpha
+
+    def post_process(self, node: RVIdentifier) -> Tensor:
+        """
+        Computes new gradient, with the new proposal distribution and finally
+        computes the log probability of the old value coming from the proposal
+        distribution.
+
+        :param node: the node for which we have already proposed a new value for.
+        :returns: the log probability of proposing the old value from this new world.
+        """
+        node_var = self.world_.get_node_in_world(node, False)
+        support = node_var.distribution.support
+
+        if isinstance(support, dist.constraints._Real):
+            is_valid, old_value_log_proposal = self.post_process_for_real_support(
+                node, node_var
+            )
+
+        elif isinstance(support, dist.constraints._Simplex):
+            is_valid, old_value_log_proposal = self.post_process_for_simplex_support(
+                node, node_var
+            )
+        else:
+            return super().post_process(node)
+
+        if is_valid:
+            return old_value_log_proposal
+        return super().post_process(node)
+
+    def post_process_for_simplex_support(
+        self, node: RVIdentifier, node_var: Variable
+    ) -> Tuple[bool, Tensor]:
+        """
+        Computes new gradient, with alpha for the Dirichlet proposal
+        distribution and finally computes the log probability of the old value
+        coming from the Dirichlet distribution.
+
+        :param node: the node for which we have already proposed a new value for.
+        :returns: the log probability of proposing the old value from this new world.
+        """
+        old_value = self.world_.variables_[node].value
+        is_valid, alpha = self.compute_alpha(node_var)
+        if not is_valid:
+            return False, tensor(0.0)
+        proposal_distribution = dist.Dirichlet(alpha)
+        node_var.proposal_distribution = proposal_distribution
+        return True, proposal_distribution.log_prob(old_value).sum()
+
+    def post_process_for_real_support(
+        self, node: RVIdentifier, node_var: Variable
+    ) -> Tuple[bool, Tensor]:
         """
         Computes new gradient and hessian and hence, new mean and covariance and
         finally computes the log probability of the old value coming from
-        MutlivariateNormal(new mean, new covariance) log(P(X->X')).
+        MutlivariateNormal(new mean, new covariance).
 
         :param node: the node for which we have already proposed a new value for.
-        :param proposal_log_update: proposal log update computed up until now
-        which is log(P(X->X'))
-        :returns: log(P(X'->X)) - log(P(X->X'))
+        :returns: the log probability of proposing the old value from this new world.
         """
-        node_var = self.world_.get_node_in_world(node, False)
         old_value = self.world_.variables_[node].value
-        mean, covariance = self.compute_normal_mean_covar(node_var)
+        is_valid, mean, covariance = self.compute_normal_mean_covar(node_var)
+        if not is_valid:
+            return False, tensor(0.0)
+        proposal_distribution = dist.MultivariateNormal(mean, covariance)
+        node_var.proposal_distribution = proposal_distribution
+        old_value = old_value.reshape(-1)
+        return True, proposal_distribution.log_prob(old_value).sum()
 
-        if torch.isnan(mean.sum()).item() or torch.isnan(covariance.sum()).item():
-            print("Hit nan while computing gradient")
-            return super().post_process(node)
-
-        if mean.sum().item() == float("Inf") or covariance.sum().item() == float("Inf"):
-            print("Hit inf while computing gradient")
-            return super().post_process(node)
-
-        new_value_dist = dist.MultivariateNormal(mean, covariance)
-        node_var.mean = mean
-        node_var.covariance = covariance
-        return new_value_dist.log_prob(old_value).sum()
-
-    def propose(self, node: RandomVariable) -> Tuple[Tensor, Tensor]:
+    def propose(self, node: RVIdentifier) -> Tuple[Tensor, Tensor]:
         """
         Proposes a new value for the node by drawing a sample from the proposal
         distribution and compute the log probability of the new draw coming from
         this proposal distribution log(P(X->X')).
 
         :param node: the node for which we'll need to propose a new value for.
-        :returns: a new proposed value for the node and the difference in log_prob
-        of the old and newly proposed value.
+        :returns: a new proposed value for the node and the -ve log probability of
+        proposing this new value.
         """
         node_var = self.world_.get_node_in_world(node, False)
-        node_val = node_var.value
 
-        if node_var.mean is None and node_var.covariance is None:
-            mean, covariance = self.compute_normal_mean_covar(node_var)
-            node_var.mean = mean
-            node_var.covariance = covariance
+        support = node_var.distribution.support
+
+        if isinstance(support, dist.constraints._Real):
+            is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_real_support(
+                node_var
+            )
+
+        elif isinstance(support, dist.constraints._Simplex):
+            is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_simplex_support(
+                node_var
+            )
         else:
-            mean = node_var.mean
-            covariance = node_var.covariance
-
-        if torch.isnan(mean.sum()).item() or torch.isnan(covariance.sum()).item():
-            print("Hit nan while computing gradient")
             return super().propose(node)
 
-        if mean.sum().item() == float("Inf") or covariance.sum().item() == float("Inf"):
-            print("Hit inf while computing gradient")
-            return super().propose(node)
+        if is_valid:
+            return proposed_value, negative_new_value_log_proposal
+        return super().propose(node)
 
-        new_value_dist = dist.MultivariateNormal(mean, covariance)
-        new_value = new_value_dist.sample().reshape(node_val.shape)
+    def propose_for_real_support(
+        self, node_var: Variable
+    ) -> Tuple[bool, Tensor, Tensor]:
+        """
+        Proposes a new value for the node by drawing a sample from the proposal
+        distribution (MultivariateNormal) and compute the log probability of
+        the new draw coming from this proposal distribution log(P(X->X')).
+
+        :param node: the node for which we'll need to propose a new value for.
+        :param node_var: the Variable associated with the node
+        :returns: a new proposed value for the node and the -ve log probability of
+        proposing this new value.
+        """
+        node_val = node_var.value
+        is_valid, mean, covariance = self.compute_normal_mean_covar(node_var)
+        if not is_valid:
+            return False, tensor(0.0), tensor(0.0)
+        proposal_distribution = dist.MultivariateNormal(mean, covariance)
+        node_var.proposal_distribution = proposal_distribution
+        new_value = proposal_distribution.sample().reshape(node_val.shape)
         new_value.requires_grad_(True)
-        negative_proposal_log_update = -1 * new_value_dist.log_prob(new_value).sum()
-        return (new_value, negative_proposal_log_update)
+        negative_proposal_log_update = (
+            -1 * proposal_distribution.log_prob(new_value).sum()
+        )
+        return True, new_value, negative_proposal_log_update
+
+    def propose_for_simplex_support(
+        self, node_var: Variable
+    ) -> Tuple[bool, Tensor, Tensor]:
+        """
+        Proposes a new value for the node by drawing a sample from the proposal
+        distribution (Dirichlet) and compute the log probability of
+        the new draw coming from this proposal distribution log(P(X->X')).
+
+        :param node: the node for which we'll need to propose a new value for.
+        :param node_var: the Variable associated with the node
+        :returns: a new proposed value for the node and the -ve log probability of
+        proposing this new value.
+        """
+        node_val = node_var.value
+        is_valid, alpha = self.compute_alpha(node_var)
+        if not is_valid:
+            return False, tensor(0.0), tensor(0.0)
+        proposal_distribution = dist.Dirichlet(alpha)
+        node_var.proposal_distribution = proposal_distribution
+        new_value = proposal_distribution.sample().reshape(node_val.shape)
+        new_value.requires_grad_(True)
+        negative_proposal_log_update = (
+            -1 * proposal_distribution.log_prob(new_value).sum()
+        )
+        return True, new_value, negative_proposal_log_update

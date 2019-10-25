@@ -7,7 +7,7 @@ import torch
 
 
 @dataclass(eq=True, frozen=True)
-class RandomVariable:
+class RVIdentifier:
     function: Any
     arguments: Any
 

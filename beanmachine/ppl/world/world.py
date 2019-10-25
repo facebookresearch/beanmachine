@@ -2,13 +2,13 @@
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor, tensor
 
 
-Variables = Dict[RandomVariable, Variable]
+Variables = Dict[RVIdentifier, Variable]
 
 
 class World(object):
@@ -47,22 +47,25 @@ class World(object):
 
     defaultdict(<class 'beanmachine.ppl.utils.variable.Variable'>,
     {
-     RandomVariable(function=<function bar at 0x7f6c82b0e488>, arguments=()):
+     RVIdentifier(function=<function bar at 0x7f6c82b0e488>, arguments=()):
         Variable(
                  distribution=Bernoulli(probs: 0.8999999761581421,
                                         logits: 2.1972243785858154),
                  value=tensor(0.),
-                 parent={RandomVariable(function=<function foo at 0x7f6d343c8bf8>, arguments=())},
+                 parent={RVIdentifier(function=<function foo at 0x7f6d343c8bf8>,
+                    arguments=())},
                  children=set(),
                  log_prob=tensor(-2.3026)
                 ),
-     RandomVariable(function=<function foo at 0x7f6d343c8bf8>, arguments=()):
+     RVIdentifier(function=<function foo at 0x7f6d343c8bf8>, arguments=()):
          Variable(
                   distribution=Bernoulli(probs: 0.10000000149011612,
                                          logits: -2.1972246170043945),
                   value=tensor(0.),
                   parent=set(),
-                  children={RandomVariable(function=<function bar at 0x7f6c82b0e488>, arguments=())},
+                  children={RVIdentifier(
+                                function=<function bar at 0x7f6c82b0e488>,
+                                arguments=())},
                   log_prob=tensor(-0.1054)
                  )
      }
@@ -72,7 +75,7 @@ class World(object):
     def __init__(
         self,
         init_world_log_prob: Tensor = None,
-        init_world_dict: Dict[RandomVariable, Variable] = None,
+        init_world_dict: Dict[RVIdentifier, Variable] = None,
     ):
         self.variables_ = defaultdict(Variable)
         self.log_prob_ = tensor(0.0)
@@ -96,7 +99,7 @@ class World(object):
         )
 
     def to_dot(self) -> str:
-        def get_children(rv: RandomVariable) -> List[Tuple[str, RandomVariable]]:
+        def get_children(rv: RVIdentifier) -> List[Tuple[str, RVIdentifier]]:
             return [("", rv) for rv in self.variables_[rv].children]
 
         return print_graph(self.variables_.keys(), get_children, str, str)
@@ -104,7 +107,7 @@ class World(object):
     def set_observations(self, val: Variables) -> None:
         self.observations_ = val
 
-    def add_node_to_world(self, node: RandomVariable, var: Variable) -> None:
+    def add_node_to_world(self, node: RVIdentifier, var: Variable) -> None:
         """
         Add the node to the world. Since all updates are done through diff_,
         here we will just update diff_.
@@ -114,7 +117,7 @@ class World(object):
         """
         self.diff_[node] = var
 
-    def update_diff_log_prob(self, node: RandomVariable) -> None:
+    def update_diff_log_prob(self, node: RVIdentifier) -> None:
         """
         Adds the log update to diff_log_update_
 
@@ -126,7 +129,7 @@ class World(object):
         )
 
     def get_node_in_world(
-        self, node: RandomVariable, to_be_copied: bool = True
+        self, node: RVIdentifier, to_be_copied: bool = True
     ) -> Optional[Variable]:
         """
         Get the node in the world, by first looking up diff_, if not available,
@@ -149,7 +152,7 @@ class World(object):
                 return self.variables_[node]
         return None
 
-    def contains_in_world(self, node: RandomVariable) -> bool:
+    def contains_in_world(self, node: RVIdentifier) -> bool:
         """
         Looks up both variables_ and diff_ and returns true if node is available
         in any of them, otherwise, returns false
@@ -190,7 +193,7 @@ class World(object):
         self.is_delete_ = defaultdict(bool)
 
     def start_diff_with_proposed_val(
-        self, node: RandomVariable, proposed_value: Tensor
+        self, node: RVIdentifier, proposed_value: Tensor
     ) -> Tensor:
         """
         Starts a diff with new value for node.
@@ -205,6 +208,7 @@ class World(object):
         old_log_prob = var.log_prob
         var.value = proposed_value
         var.log_prob = var.distribution.log_prob(proposed_value).sum()
+        var.proposal_distribution = None
         self.diff_[node] = var
         node_log_update = var.log_prob - old_log_prob
         self.diff_log_update_ += node_log_update
@@ -216,7 +220,7 @@ class World(object):
         """
         self.reset_diff()
 
-    def update_children_parents(self, node: RandomVariable):
+    def update_children_parents(self, node: RVIdentifier):
         """
         Update the parents that the child no longer depends on.
 
@@ -256,7 +260,7 @@ class World(object):
                         ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
 
     def create_child_with_new_distributions(
-        self, node: RandomVariable, stack: List[RandomVariable]
+        self, node: RVIdentifier, stack: List[RVIdentifier]
     ) -> Tensor:
         """
         Adds all node's children to diff_ and re-computes their distrbutions
@@ -292,7 +296,7 @@ class World(object):
         return children_log_update
 
     def propose_change(
-        self, node: RandomVariable, proposed_value: Tensor, stack: List[RandomVariable]
+        self, node: RVIdentifier, proposed_value: Tensor, stack: List[RVIdentifier]
     ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Creates the diff for the proposed change

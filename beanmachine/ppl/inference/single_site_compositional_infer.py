@@ -14,7 +14,7 @@ from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_propos
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 
 
 class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
@@ -26,7 +26,7 @@ class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
         self.proposers_ = proposers
         super().__init__()
 
-    def find_best_single_site_proposer(self, node: RandomVariable):
+    def find_best_single_site_proposer(self, node: RVIdentifier):
         """
         Finds the best proposer for a node given the proposer dicts passed in
         once instantiating the class.
@@ -40,7 +40,9 @@ class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
         node_var = self.world_.get_node_in_world(node, False)
         distribution = node_var.distribution
         support = distribution.support
-        if isinstance(support, dist.constraints._Real):
+        if isinstance(support, dist.constraints._Real) or isinstance(
+            support, dist.constraints._Simplex
+        ):
             return SingleSiteNewtonianMonteCarloProposer(self.world_)
         if isinstance(support, dist.constraints._IntegerInterval) and isinstance(
             distribution, dist.Categorical

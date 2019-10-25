@@ -6,7 +6,7 @@ import torch
 import torch.multiprocessing as mp
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import RandomVariable
+from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 from torch.multiprocessing import Queue
 
@@ -20,7 +20,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         self.reset()
 
     @abstractmethod
-    def _infer(self, num_samples: int) -> Dict[RandomVariable, Tensor]:
+    def _infer(self, num_samples: int) -> Dict[RVIdentifier, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
         AbstractInference.
@@ -38,8 +38,8 @@ class AbstractInference(object, metaclass=ABCMeta):
 
     def infer(
         self,
-        queries: List[RandomVariable],
-        observations: Dict[RandomVariable, Tensor],
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
         num_samples: int,
         num_chains: int = 4,
         run_in_parallel: bool = False,

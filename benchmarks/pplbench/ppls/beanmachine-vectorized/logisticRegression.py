@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates
 import time
 from typing import Any, Dict, List, Tuple
 
@@ -116,8 +117,10 @@ def obtain_posterior(
     samples_formatted = []
     for i in range(num_samples):
         sample_dict = {}
-        for j, parameter in enumerate(samples.keys()):
-            sample_dict[param_keys[j]] = samples[parameter][i].detach().numpy()
+        for j, parameter in enumerate(samples.get_rv_names()):
+            sample_dict[param_keys[j]] = (
+                samples.get_variable(parameter)[i].detach().numpy()
+            )
         samples_formatted.append(sample_dict)
 
     timing_info = {
