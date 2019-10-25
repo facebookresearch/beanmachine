@@ -52,6 +52,18 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         if hasattr(node_val, "grad") and node_val.grad is not None:
             node_val.grad.zero_()
 
+    def compute_score(self, node_var: Variable) -> Tensor:
+        """
+        Computes the score of the node plus its children
+
+        :param node_var: the node variable whose score we are going to compute
+        :returns: the computed score
+        """
+        score = node_var.log_prob.clone()
+        for child in node_var.children:
+            score += self.world_.get_node_in_world(child, False).log_prob.clone()
+        return score
+
     def compute_first_gradient(
         self, score: Tensor, node_val: Tensor
     ) -> Tuple[bool, Tensor]:
@@ -64,12 +76,12 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         """
         if not hasattr(node_val, "grad"):
             raise ValueError("requires_grad_ needs to be set for node values")
-        # pyre-fixme
-        elif node_val.grad is not None:
-            node_val.grad.zero_()
 
         # pyre expects attributes to be defined in constructors or at class
         # top levels and doesn't support attributes that get dynamically added.
+        # pyre-fixme
+        elif node_val.grad is not None:
+            node_val.grad.zero_()
 
         first_gradient = grad(score, node_val, create_graph=True)[0]
         return self.is_valid(first_gradient), first_gradient
@@ -156,11 +168,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :returns: mean and covariance
         """
         node_val = node_var.value
-
-        score = node_var.log_prob.clone()
-        for child in node_var.children:
-            score += self.world_.get_node_in_world(child, False).log_prob.clone()
-
+        score = self.compute_score(node_var)
+        self.zero_grad(node_val)
         is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
 
         if not is_valid_gradient:
@@ -168,12 +177,11 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             return False, tensor(0.0), tensor(0.0)
 
         first_gradient = gradient.reshape(-1).clone()
-
-        is_valid_hessian, neg_hessian_inverse = self.compute_neg_hessian_invserse(
+        is_valid_neg_invserse_hessian, neg_hessian_inverse = self.compute_neg_hessian_invserse(
             first_gradient, node_val
         )
         self.zero_grad(node_val)
-        if not is_valid_hessian:
+        if not is_valid_neg_invserse_hessian:
             return False, tensor(0.0), tensor(0.0)
 
         # node value may of any arbitrary shape, so here, we transform it into a
@@ -190,20 +198,53 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         covariance = neg_hessian_inverse
         return True, mean, covariance
 
+    def compute_alpha_beta(self, node_var: Variable) -> Tuple[bool, Tensor, Tensor]:
+        """
+        Computes alpha and beta of the Gamma proposal given the node.
+
+        :param node_var: the node Variable we're proposing a new value for
+        :returns: alpha and beta of the Gamma distribution as proposal
+        distribution
+        """
+        node_val = node_var.value
+        score = self.compute_score(node_var)
+        self.zero_grad(node_val)
+        is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
+        if not is_valid_gradient:
+            self.zero_grad(node_val)
+            return False, tensor(0.0), tensor(0.0)
+        first_gradient = gradient.reshape(-1).clone()
+        is_valid_hessian, hessian = self.compute_hessian(first_gradient, node_val)
+        self.zero_grad(node_val)
+        if not is_valid_hessian:
+            return False, tensor(0.0), tensor(0.0)
+
+        # pyre-fixme
+        hessian_diag = hessian.diag()
+        # pyre-fixme
+        predicted_alpha = (1 - hessian_diag * (node_val * node_val)).T
+        predicted_beta = -1 * node_val * hessian_diag - first_gradient
+        condition = (predicted_alpha > 0) & (predicted_beta > 0)
+        predicted_alpha = torch.where(condition, predicted_alpha, tensor(1.0))
+        predicted_beta = torch.where(
+            condition,
+            predicted_beta,
+            # pyre-fixme
+            tensor(1.0) / node_var.distribution.mean,
+        )
+        predicted_alpha.reshape(node_val.shape)
+        predicted_beta.reshape(node_val.shape)
+        return True, predicted_alpha, predicted_beta
+
     def compute_alpha(self, node_var: Variable) -> Tuple[bool, Tensor]:
         """
         Computes alpha of the Dirichlet proposal given the node.
 
         :param node_var: the node Variable we're proposing a new value for
-        :returns: alpha of the Dirichlet as proposal distribution
+        :returns: alpha of the Dirichlet distribution as proposal distribution
         """
         node_val = node_var.value
-        self.zero_grad(node_val)
-
-        score = node_var.log_prob.clone()
-        for child in node_var.children:
-            score += self.world_.get_node_in_world(child, False).log_prob.clone()
-
+        score = self.compute_score(node_var)
         is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
         if not is_valid_gradient:
             self.zero_grad(node_val)
@@ -262,6 +303,13 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             is_valid, old_value_log_proposal = self.post_process_for_simplex_support(
                 node, node_var
             )
+        elif (
+            isinstance(support, dist.constraints._GreaterThan)
+            and support.lower_bound == 0
+        ):
+            is_valid, old_value_log_proposal = self.post_process_for_halfspace_support(
+                node, node_var
+            )
         else:
             return super().post_process(node)
 
@@ -308,6 +356,26 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         old_value = old_value.reshape(-1)
         return True, proposal_distribution.log_prob(old_value).sum()
 
+    def post_process_for_halfspace_support(
+        self, node: RVIdentifier, node_var: Variable
+    ) -> Tuple[bool, Tensor]:
+        """
+        Computes new gradient and hessian and hence, new mean and covariance and
+        finally computes the log probability of the old value coming from
+        MutlivariateNormal(new mean, new covariance).
+
+        :param node: the node for which we have already proposed a new value for.
+        :returns: the log probability of proposing the old value from this new world.
+        """
+        old_value = self.world_.variables_[node].value
+        is_valid, alpha, beta = self.compute_alpha_beta(node_var)
+        if not is_valid:
+            return False, tensor(0.0)
+        proposal_distribution = dist.Gamma(alpha, beta)
+        node_var.proposal_distribution = proposal_distribution
+        old_value = old_value.reshape(-1)
+        return True, proposal_distribution.log_prob(old_value).sum()
+
     def propose(self, node: RVIdentifier) -> Tuple[Tensor, Tensor]:
         """
         Proposes a new value for the node by drawing a sample from the proposal
@@ -329,6 +397,13 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
 
         elif isinstance(support, dist.constraints._Simplex):
             is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_simplex_support(
+                node_var
+            )
+        elif (
+            isinstance(support, dist.constraints._GreaterThan)
+            and support.lower_bound == 0
+        ):
+            is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_hspace_support(
                 node_var
             )
         else:
@@ -383,6 +458,34 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             return False, tensor(0.0), tensor(0.0)
         proposal_distribution = dist.Dirichlet(alpha)
         node_var.proposal_distribution = proposal_distribution
+        new_value = proposal_distribution.sample().reshape(node_val.shape)
+        new_value.requires_grad_(True)
+        negative_proposal_log_update = (
+            -1 * proposal_distribution.log_prob(new_value).sum()
+        )
+        return True, new_value, negative_proposal_log_update
+
+    def propose_for_hspace_support(
+        self, node_var: Variable
+    ) -> Tuple[bool, Tensor, Tensor]:
+        """
+        Proposes a new value for the node by drawing a sample from the proposal
+        distribution (Gamma) and compute the log probability of
+        the new draw coming from this proposal distribution log(P(X->X')).
+
+        :param node: the node for which we'll need to propose a new value for.
+        :param node_var: the Variable associated with the node
+        :returns: a new proposed value for the node and the -ve log probability of
+        proposing this new value.
+        """
+        node_val = node_var.value
+        is_valid, alpha, beta = self.compute_alpha_beta(node_var)
+        if not is_valid:
+            return False, tensor(0.0), tensor(0.0)
+
+        proposal_distribution = dist.Gamma(alpha, beta)
+        node_var.proposal_distribution = proposal_distribution
+
         new_value = proposal_distribution.sample().reshape(node_val.shape)
         new_value.requires_grad_(True)
         negative_proposal_log_update = (

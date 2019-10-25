@@ -5,8 +5,8 @@ from typing import Any, Dict, List, Tuple
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
+from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
+    SingleSiteNewtonianMonteCarlo,
 )
 from beanmachine.ppl.model.statistical_model import sample
 from torch import Tensor
@@ -69,7 +69,7 @@ class RobustRegressionModel(object):
 
     def infer(self):
         if self.inference_type == "mcmc":
-            mh = SingleSiteAncestralMetropolisHastings()
+            mh = SingleSiteNewtonianMonteCarlo()
             start_time = time.time()
             samples = mh.infer(
                 [self.beta(), self.nu(), self.sigma(), self.alpha()],
