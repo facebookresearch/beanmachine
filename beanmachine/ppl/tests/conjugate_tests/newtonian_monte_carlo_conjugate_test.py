@@ -19,26 +19,16 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
         pass
 
     def test_gamma_gamma_conjugate_run(self):
-        pass
+        self.gamma_gamma_conjugate_run(self.mh, num_samples=150, delta=0.15)
 
     def test_gamma_normal_conjugate_run(self):
-        pass
+        self.gamma_normal_conjugate_run(self.mh, num_samples=150, delta=0.15)
 
     def test_normal_normal_conjugate_run(self):
-        # Converges with 10k and more iterations but will use a bigger delta for
-        # now to have a faster test.
         self.normal_normal_conjugate_run(self.mh, num_samples=500, delta=0.15)
 
     def test_distant_normal_normal_conjugate_run(self):
-        # Converges with 10k and more iterations but will use a bigger delta for
-        # now to have a faster test.
         self.distant_normal_normal_conjugate_run(self.mh, num_samples=800, delta=0.15)
 
     def test_dirichlet_categorical_conjugate_run(self):
-        expected_mean, expected_std, queries, observations = (
-            self.compute_dirichlet_categorical_moments()
-        )
-        mh = SingleSiteNewtonianMonteCarlo()
-        predictions = mh.infer(queries, observations, 100, 1)
-        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.1)
+        self.dirichlet_categorical_conjugate_run(self.mh, num_samples=100, delta=0.15)
