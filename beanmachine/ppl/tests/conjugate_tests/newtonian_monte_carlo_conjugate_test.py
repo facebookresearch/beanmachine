@@ -22,7 +22,7 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
         self.gamma_gamma_conjugate_run(self.mh, num_samples=150, delta=0.15)
 
     def test_gamma_normal_conjugate_run(self):
-        self.gamma_normal_conjugate_run(self.mh, num_samples=300, delta=0.15)
+        self.gamma_normal_conjugate_run(self.mh, num_samples=500, delta=0.15)
 
     def test_normal_normal_conjugate_run(self):
         self.normal_normal_conjugate_run(self.mh, num_samples=500, delta=0.15)
