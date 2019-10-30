@@ -33,9 +33,8 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
         """
         node_var = self.world_.get_node_in_world(node, False)
         node_distribution = node_var.distribution
-        if isinstance(
-            node_distribution.support, dist.constraints._Boolean
-        ) and isinstance(node_distribution, dist.Bernoulli):
+        if isinstance(node_distribution.support, dist.constraints._Boolean
+                     ) and isinstance(node_distribution, dist.Bernoulli):
             distribution = dist.Bernoulli(
                 torch.ones(node_distribution.param_shape) / 2.0
             )
@@ -67,9 +66,8 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             return node_var.proposal_distribution.log_prob(
                 self.world_.variables_[node].value
             )
-        if isinstance(
-            node_distribution.support, dist.constraints._Boolean
-        ) and isinstance(node_distribution, dist.Bernoulli):
+        if isinstance(node_distribution.support, dist.constraints._Boolean
+                     ) and isinstance(node_distribution, dist.Bernoulli):
             distribution = dist.Bernoulli(
                 torch.ones(node_distribution.param_shape) / 2.0
             )

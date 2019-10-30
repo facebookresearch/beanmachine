@@ -7,7 +7,6 @@ from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaMode
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
 
-
 __all__ = [
     "BetaBinomialModel",
     "CategoricalDirichletModel",

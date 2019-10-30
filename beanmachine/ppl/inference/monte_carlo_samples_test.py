@@ -26,7 +26,10 @@ class MonteCarloSamplesTest(unittest.TestCase):
         mcs = mh.infer([foo_key], {}, 10)
 
         self.assertEqual(mcs[foo_key].shape, torch.zeros(4, 10).shape)
-        self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 10).shape)
+        self.assertEqual(
+            mcs.get_variable(foo_key).shape,
+            torch.zeros(4, 10).shape
+        )
         self.assertEqual(mcs.get_chain(3)[foo_key].shape, torch.zeros(10).shape)
         self.assertEqual(mcs.get_num_chains(), 4)
         self.assertEqual(mcs.get_rv_names(), [foo_key])
@@ -39,7 +42,10 @@ class MonteCarloSamplesTest(unittest.TestCase):
         mcs = mh.infer([foo_key, bar_key], {}, 10, 1)
 
         self.assertEqual(mcs[foo_key].shape, torch.zeros(1, 10).shape)
-        self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(1, 10).shape)
+        self.assertEqual(
+            mcs.get_variable(foo_key).shape,
+            torch.zeros(1, 10).shape
+        )
         self.assertEqual(mcs.get_chain()[foo_key].shape, torch.zeros(10).shape)
         self.assertEqual(mcs.get_num_chains(), 1)
         self.assertEqual(mcs.get_rv_names(), [foo_key, bar_key])
@@ -50,10 +56,14 @@ class MonteCarloSamplesTest(unittest.TestCase):
         foo_key = model.foo()
         mcs = mh.infer([foo_key], {}, 10)
 
-        with self.assertRaisesRegex(IndexError, r"Please specify a valid chain"):
+        with self.assertRaisesRegex(
+            IndexError, r"Please specify a valid chain"
+        ):
             mcs.get_chain(-1)
 
-        with self.assertRaisesRegex(IndexError, r"Please specify a valid chain"):
+        with self.assertRaisesRegex(
+            IndexError, r"Please specify a valid chain"
+        ):
             mcs.get_chain(4)
 
         with self.assertRaisesRegex(

@@ -7,7 +7,9 @@ from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
 )
 
 
-class SingleSiteRandomWalkConjugateTest(unittest.TestCase, AbstractConjugateTests):
+class SingleSiteRandomWalkConjugateTest(
+    unittest.TestCase, AbstractConjugateTests
+):
     def test_beta_binomial_conjugate_run(self):
         pass
 
@@ -26,7 +28,9 @@ class SingleSiteRandomWalkConjugateTest(unittest.TestCase, AbstractConjugateTest
         mh = SingleSiteRandomWalk()
         predictions = mh.infer(queries, observations, 1000)
         mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.3)
+        self.assertAlmostEqual(
+            abs((mean - expected_mean).sum().item()), 0, delta=0.3
+        )
 
     def test_distant_normal_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for
@@ -38,7 +42,9 @@ class SingleSiteRandomWalkConjugateTest(unittest.TestCase, AbstractConjugateTest
         predictions = mh.infer(queries, observations, 5000)
         mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
         # Smaller delta, within reasonable time, would likely require a burn-in period
-        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=1.0)
+        self.assertAlmostEqual(
+            abs((mean - expected_mean).sum().item()), 0, delta=1.0
+        )
 
     def test_dirichlet_categorical_conjugate_run(self):
         pass

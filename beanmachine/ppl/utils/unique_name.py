@@ -3,9 +3,8 @@
 from typing import Any, Callable, Dict, Optional
 
 
-def make_namer(
-    namer: Optional[Callable[[Any], str]] = None, prefix: str = ""
-) -> Callable[[Any], str]:
+def make_namer(namer: Optional[Callable[[Any], str]] = None,
+               prefix: str = "") -> Callable[[Any], str]:
     if namer is None:
         un = UniqueNames(prefix)
         return lambda x: un.name(x)

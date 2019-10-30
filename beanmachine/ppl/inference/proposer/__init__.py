@@ -9,7 +9,6 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 
-
 __all__ = [
     "SingleSiteAncestralProposer",
     "SingleSiteNewtonianMonteCarloProposer",

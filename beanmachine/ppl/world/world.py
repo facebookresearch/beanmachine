@@ -7,7 +7,6 @@ from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor, tensor
 
-
 Variables = Dict[RVIdentifier, Variable]
 
 
@@ -84,18 +83,17 @@ class World(object):
 
     def __str__(self) -> str:
         return (
-            "Variables:\n"
-            + "\n".join(
-                [str(key) + "=" + str(value) for key, value in self.variables_.items()]
-            )
-            + "\n\nObservations:\n"
-            + "\n".join(
+            "Variables:\n" + "\n".join(
+                [
+                    str(key) + "=" + str(value)
+                    for key, value in self.variables_.items()
+                ]
+            ) + "\n\nObservations:\n" + "\n".join(
                 [
                     str(key) + "=" + str(value.item())
                     for key, value in self.observations_.items()
                 ]
-            )
-            + "\n"
+            ) + "\n"
         )
 
     def to_dot(self) -> str:
@@ -125,12 +123,12 @@ class World(object):
         the node
         """
         self.diff_log_update_ += self.diff_[node].log_prob - (
-            self.variables_[node].log_prob if node in self.variables_ else tensor(0.0)
+            self.variables_[node].log_prob
+            if node in self.variables_ else tensor(0.0)
         )
 
-    def get_node_in_world(
-        self, node: RVIdentifier, to_be_copied: bool = True
-    ) -> Optional[Variable]:
+    def get_node_in_world(self, node: RVIdentifier,
+                          to_be_copied: bool = True) -> Optional[Variable]:
         """
         Get the node in the world, by first looking up diff_, if not available,
         then it can be looked up in variables_, while copying into diff_ and
@@ -231,7 +229,8 @@ class World(object):
                 continue
 
             old_parents = (
-                self.variables_[child].parent if child in self.variables_ else set()
+                self.variables_[child].parent
+                if child in self.variables_ else set()
             )
             new_parents = self.diff_[child].parent
 
@@ -240,7 +239,9 @@ class World(object):
             for parent in dropped_parents:
                 parent_var = self.get_node_in_world(parent)
                 parent_var.children.remove(child)
-                if len(parent_var.children) != 0 or parent in self.observations_:
+                if len(
+                    parent_var.children
+                ) != 0 or parent in self.observations_:
                     continue
 
                 self.is_delete_[parent] = True
@@ -252,12 +253,15 @@ class World(object):
                     ancestor_var = self.get_node_in_world(ancestor)
                     ancestor_var.children.remove(ancestor_child)
                     if (
-                        len(ancestor_var.children) == 0
-                        and ancestor not in self.observations_
+                        len(ancestor_var.children) == 0 and
+                        ancestor not in self.observations_
                     ):
                         self.is_delete_[ancestor] = True
-                        self.diff_log_update_ -= self.variables_[ancestor].log_prob
-                        ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
+                        self.diff_log_update_ -= self.variables_[ancestor
+                                                                ].log_prob
+                        ancestors.extend(
+                            [(ancestor, x) for x in ancestor_var.parent]
+                        )
 
     def create_child_with_new_distributions(
         self, node: RVIdentifier, stack: List[RVIdentifier]
@@ -283,7 +287,9 @@ class World(object):
             stack.append(child)
             child_var.distribution = child.function(*child.arguments)
             stack.pop()
-            child_var.log_prob = child_var.distribution.log_prob(child_var.value).sum()
+            child_var.log_prob = child_var.distribution.log_prob(
+                child_var.value
+            ).sum()
             new_log_probs[child] = child_var.log_prob
 
         self.update_children_parents(node)
@@ -296,7 +302,8 @@ class World(object):
         return children_log_update
 
     def propose_change(
-        self, node: RVIdentifier, proposed_value: Tensor, stack: List[RVIdentifier]
+        self, node: RVIdentifier, proposed_value: Tensor,
+        stack: List[RVIdentifier]
     ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Creates the diff for the proposed change
@@ -308,7 +315,11 @@ class World(object):
         difference of old and new log probability of world, difference of old
         and new log probability of node
         """
-        node_log_update = self.start_diff_with_proposed_val(node, proposed_value)
-        children_node_log_update = self.create_child_with_new_distributions(node, stack)
+        node_log_update = self.start_diff_with_proposed_val(
+            node, proposed_value
+        )
+        children_node_log_update = self.create_child_with_new_distributions(
+            node, stack
+        )
         world_log_update = self.diff_log_update_
         return children_node_log_update, world_log_update, node_log_update

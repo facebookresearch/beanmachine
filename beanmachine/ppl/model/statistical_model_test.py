@@ -86,20 +86,28 @@ class StatisticalModelTest(unittest.TestCase):
         self.assertEqual(baz_expected_parent, world.diff_[baz_key].parent)
 
         foo_expected_dist = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
-        bar_expected_dist = dist.Normal(world.diff_[foo_key].value, torch.tensor(1.0))
+        bar_expected_dist = dist.Normal(
+            world.diff_[foo_key].value, torch.tensor(1.0)
+        )
         baz_expected_dist = dist.Normal(
             world.diff_[foo_key].value, world.diff_[bar_key].value
         )
 
-        self.assertEqual(foo_expected_dist.mean, world.diff_[foo_key].distribution.mean)
+        self.assertEqual(
+            foo_expected_dist.mean, world.diff_[foo_key].distribution.mean
+        )
         self.assertEqual(
             foo_expected_dist.stddev, world.diff_[foo_key].distribution.stddev
         )
-        self.assertEqual(bar_expected_dist.mean, world.diff_[bar_key].distribution.mean)
+        self.assertEqual(
+            bar_expected_dist.mean, world.diff_[bar_key].distribution.mean
+        )
         self.assertEqual(
             bar_expected_dist.stddev, world.diff_[bar_key].distribution.stddev
         )
-        self.assertEqual(baz_expected_dist.mean, world.diff_[baz_key].distribution.mean)
+        self.assertEqual(
+            baz_expected_dist.mean, world.diff_[baz_key].distribution.mean
+        )
         self.assertEqual(
             baz_expected_dist.stddev, world.diff_[baz_key].distribution.stddev
         )
@@ -142,16 +150,24 @@ class StatisticalModelTest(unittest.TestCase):
         self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
         self.assertEqual(baz_expected_children, world.diff_[baz_key].children)
         self.assertEqual(baz_expected_parent, world.diff_[baz_key].parent)
-        self.assertEqual(foobar_expected_children, world.diff_[foobar_key].children)
+        self.assertEqual(
+            foobar_expected_children, world.diff_[foobar_key].children
+        )
         self.assertEqual(foobar_expected_parent, world.diff_[foobar_key].parent)
-        self.assertEqual(bazbar_expected_children, world.diff_[bazbar_key].children)
+        self.assertEqual(
+            bazbar_expected_children, world.diff_[bazbar_key].children
+        )
         self.assertEqual(bazbar_expected_parent, world.diff_[bazbar_key].parent)
-        self.assertEqual(foobaz_expected_children, world.diff_[foobaz_key].children)
+        self.assertEqual(
+            foobaz_expected_children, world.diff_[foobaz_key].children
+        )
         self.assertEqual(foobaz_expected_parent, world.diff_[foobaz_key].parent)
         self.assertEqual(type(query_key), RVIdentifier)
 
         foo_expected_dist = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
-        bar_expected_dist = dist.Normal(world.diff_[foo_key].value, torch.tensor(1.0))
+        bar_expected_dist = dist.Normal(
+            world.diff_[foo_key].value, torch.tensor(1.0)
+        )
         baz_expected_dist = dist.Normal(
             world.diff_[foo_key].value, world.diff_[bar_key].value
         )
@@ -165,15 +181,21 @@ class StatisticalModelTest(unittest.TestCase):
             world.diff_[bazbar_key].value, world.diff_[foo_key].value
         )
 
-        self.assertEqual(foo_expected_dist.mean, world.diff_[foo_key].distribution.mean)
+        self.assertEqual(
+            foo_expected_dist.mean, world.diff_[foo_key].distribution.mean
+        )
         self.assertEqual(
             foo_expected_dist.stddev, world.diff_[foo_key].distribution.stddev
         )
-        self.assertEqual(bar_expected_dist.mean, world.diff_[bar_key].distribution.mean)
+        self.assertEqual(
+            bar_expected_dist.mean, world.diff_[bar_key].distribution.mean
+        )
         self.assertEqual(
             bar_expected_dist.stddev, world.diff_[bar_key].distribution.stddev
         )
-        self.assertEqual(baz_expected_dist.mean, world.diff_[baz_key].distribution.mean)
+        self.assertEqual(
+            baz_expected_dist.mean, world.diff_[baz_key].distribution.mean
+        )
         self.assertEqual(
             baz_expected_dist.stddev, world.diff_[baz_key].distribution.stddev
         )
@@ -181,17 +203,20 @@ class StatisticalModelTest(unittest.TestCase):
             foobar_expected_dist.mean, world.diff_[foobar_key].distribution.mean
         )
         self.assertEqual(
-            foobar_expected_dist.stddev, world.diff_[foobar_key].distribution.stddev
+            foobar_expected_dist.stddev,
+            world.diff_[foobar_key].distribution.stddev
         )
         self.assertEqual(
             bazbar_expected_dist.mean, world.diff_[bazbar_key].distribution.mean
         )
         self.assertEqual(
-            bazbar_expected_dist.stddev, world.diff_[bazbar_key].distribution.stddev
+            bazbar_expected_dist.stddev,
+            world.diff_[bazbar_key].distribution.stddev
         )
         self.assertEqual(
             foobaz_expected_dist.mean, world.diff_[foobaz_key].distribution.mean
         )
         self.assertEqual(
-            foobaz_expected_dist.stddev, world.diff_[foobaz_key].distribution.stddev
+            foobaz_expected_dist.stddev,
+            world.diff_[foobaz_key].distribution.stddev
         )

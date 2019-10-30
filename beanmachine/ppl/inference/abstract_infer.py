@@ -31,7 +31,10 @@ class AbstractInference(object, metaclass=ABCMeta):
         try:
             torch.seed()
             rv_dict = self._infer(num_samples)
-            string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
+            string_dict = {
+                str(rv): tensor.detach()
+                for rv, tensor in rv_dict.items()
+            }
             queue.put((None, chain, string_dict))
         except BaseException as x:
             queue.put((x, chain, {}))
@@ -62,7 +65,8 @@ class AbstractInference(object, metaclass=ABCMeta):
                 q = manager.Queue()
                 for chain in range(num_chains):
                     p = mp.Process(
-                        target=self._parallel_infer, args=(q, chain, num_samples)
+                        target=self._parallel_infer,
+                        args=(q, chain, num_samples)
                     )
                     p.start()
 

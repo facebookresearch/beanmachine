@@ -119,9 +119,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         model = NormalNormalModel(mu, std, sigma)
         queries = [model.normal_p()]
         observations = {model.normal(): obs}
-        expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))) * (
-            mu / std.pow(2.0) + obs / sigma.pow(2.0)
-        )
+        expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))
+                        ) * (mu / std.pow(2.0) + obs / sigma.pow(2.0))
         expected_std = (std.pow(2.0) + sigma.pow(2.0)).pow(-0.5)
         return (expected_mean, expected_std, queries, observations)
 
@@ -140,9 +139,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         model = NormalNormalModel(mu, std, sigma)
         queries = [model.normal_p()]
         observations = {model.normal(): obs}
-        expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))) * (
-            mu / std.pow(2.0) + obs / sigma.pow(2.0)
-        )
+        expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))
+                        ) * (mu / std.pow(2.0) + obs / sigma.pow(2.0))
         expected_std = (std.pow(2.0) + sigma.pow(2.0)).pow(-0.5)
         return (expected_mean, expected_std, queries, observations)
 
@@ -166,7 +164,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def _compare_run(
         self,
-        moments: Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]],
+        moments: Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier,
+                                                                Tensor]],
         mh: AbstractInference,
         num_chains: int,
         num_samples: int,
@@ -175,7 +174,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         expected_mean, expected_std, queries, observations = moments
         predictions = mh.infer(queries, observations, num_samples, num_chains)
         for i in range(predictions.get_num_chains()):
-            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            mean, _ = self.compute_statistics(
+                predictions.get_chain(i)[queries[0]]
+            )
             self.assertAlmostEqual(
                 abs((mean - expected_mean).sum().item()), 0, delta=delta
             )

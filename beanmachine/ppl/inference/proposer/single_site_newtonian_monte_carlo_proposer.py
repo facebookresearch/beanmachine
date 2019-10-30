@@ -61,12 +61,12 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         """
         score = node_var.log_prob.clone()
         for child in node_var.children:
-            score += self.world_.get_node_in_world(child, False).log_prob.clone()
+            score += self.world_.get_node_in_world(child,
+                                                   False).log_prob.clone()
         return score
 
-    def compute_first_gradient(
-        self, score: Tensor, node_val: Tensor
-    ) -> Tuple[bool, Tensor]:
+    def compute_first_gradient(self, score: Tensor,
+                               node_val: Tensor) -> Tuple[bool, Tensor]:
         """
         Computes the first gradient.
 
@@ -86,9 +86,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         first_gradient = grad(score, node_val, create_graph=True)[0]
         return self.is_valid(first_gradient), first_gradient
 
-    def compute_hessian(
-        self, first_gradient: Tensor, node_val: Tensor
-    ) -> Tuple[bool, Tensor]:
+    def compute_hessian(self, first_gradient: Tensor,
+                        node_val: Tensor) -> Tuple[bool, Tensor]:
         """
         Computes the hessian
 
@@ -112,8 +111,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
 
             hessian = (
                 torch.cat((hessian, (second_gradient).unsqueeze(0)), 0)
-                if hessian is not None
-                else (second_gradient).unsqueeze(0)
+                if hessian is not None else (second_gradient).unsqueeze(0)
             )
         if hessian is None:
             raise ValueError("Something went wrong with gradient computation")
@@ -154,13 +152,14 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             eig_vec_64 = eig_vec.to(dtype=torch.float64)
             neg_hessian_inverse = eig_vec_64 @ eig_vals_64 @ eig_vec_64.T
             if eig_vals.dtype is torch.float32:
-                neg_hessian_inverse = neg_hessian_inverse.to(dtype=torch.float32)
+                neg_hessian_inverse = neg_hessian_inverse.to(
+                    dtype=torch.float32
+                )
 
         return True, neg_hessian_inverse
 
-    def compute_normal_mean_covar(
-        self, node_var: Variable
-    ) -> Tuple[bool, Tensor, Tensor]:
+    def compute_normal_mean_covar(self, node_var: Variable
+                                 ) -> Tuple[bool, Tensor, Tensor]:
         """
         Computes mean and covariance of the MultivariateNormal given the node.
 
@@ -170,7 +169,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         node_val = node_var.value
         score = self.compute_score(node_var)
         self.zero_grad(node_val)
-        is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
+        is_valid_gradient, gradient = self.compute_first_gradient(
+            score, node_val
+        )
 
         if not is_valid_gradient:
             self.zero_grad(node_val)
@@ -198,7 +199,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         covariance = neg_hessian_inverse
         return True, mean, covariance
 
-    def compute_alpha_beta(self, node_var: Variable) -> Tuple[bool, Tensor, Tensor]:
+    def compute_alpha_beta(self,
+                           node_var: Variable) -> Tuple[bool, Tensor, Tensor]:
         """
         Computes alpha and beta of the Gamma proposal given the node.
 
@@ -209,12 +211,16 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         node_val = node_var.value
         score = self.compute_score(node_var)
         self.zero_grad(node_val)
-        is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
+        is_valid_gradient, gradient = self.compute_first_gradient(
+            score, node_val
+        )
         if not is_valid_gradient:
             self.zero_grad(node_val)
             return False, tensor(0.0), tensor(0.0)
         first_gradient = gradient.reshape(-1).clone()
-        is_valid_hessian, hessian = self.compute_hessian(first_gradient, node_val)
+        is_valid_hessian, hessian = self.compute_hessian(
+            first_gradient, node_val
+        )
         self.zero_grad(node_val)
         if not is_valid_hessian:
             return False, tensor(0.0), tensor(0.0)
@@ -245,13 +251,17 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         """
         node_val = node_var.value
         score = self.compute_score(node_var)
-        is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
+        is_valid_gradient, gradient = self.compute_first_gradient(
+            score, node_val
+        )
         if not is_valid_gradient:
             self.zero_grad(node_val)
             return False, tensor(0.0)
 
         first_gradient = gradient.clone().reshape(-1)
-        is_valid_hessian, hessian = self.compute_hessian(first_gradient, node_val)
+        is_valid_hessian, hessian = self.compute_hessian(
+            first_gradient, node_val
+        )
 
         self.zero_grad(node_val)
 
@@ -264,10 +274,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         # pyre-fixme
         max_non_diag_per_row = (hessian - hessian_diag).max(0).values
         predicted_alpha = (
-            1
-            - (
-                (node_val_reshaped * node_val_reshaped)
-                * (hessian.diag() - max_non_diag_per_row)
+            1 - (
+                (node_val_reshaped * node_val_reshaped) *
+                (hessian.diag() - max_non_diag_per_row)
             )
         ).reshape(node_val.shape)
         predicted_alpha = torch.where(
@@ -304,8 +313,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
                 node, node_var
             )
         elif (
-            isinstance(support, dist.constraints._GreaterThan)
-            and support.lower_bound == 0
+            isinstance(support, dist.constraints._GreaterThan) and
+            support.lower_bound == 0
         ):
             is_valid, old_value_log_proposal = self.post_process_for_halfspace_support(
                 node, node_var
@@ -400,8 +409,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
                 node_var
             )
         elif (
-            isinstance(support, dist.constraints._GreaterThan)
-            and support.lower_bound == 0
+            isinstance(support, dist.constraints._GreaterThan) and
+            support.lower_bound == 0
         ):
             is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_hspace_support(
                 node_var
@@ -413,9 +422,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             return proposed_value, negative_new_value_log_proposal
         return super().propose(node)
 
-    def propose_for_real_support(
-        self, node_var: Variable
-    ) -> Tuple[bool, Tensor, Tensor]:
+    def propose_for_real_support(self, node_var: Variable
+                                ) -> Tuple[bool, Tensor, Tensor]:
         """
         Proposes a new value for the node by drawing a sample from the proposal
         distribution (MultivariateNormal) and compute the log probability of
@@ -439,9 +447,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         )
         return True, new_value, negative_proposal_log_update
 
-    def propose_for_simplex_support(
-        self, node_var: Variable
-    ) -> Tuple[bool, Tensor, Tensor]:
+    def propose_for_simplex_support(self, node_var: Variable
+                                   ) -> Tuple[bool, Tensor, Tensor]:
         """
         Proposes a new value for the node by drawing a sample from the proposal
         distribution (Dirichlet) and compute the log probability of
@@ -465,9 +472,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         )
         return True, new_value, negative_proposal_log_update
 
-    def propose_for_hspace_support(
-        self, node_var: Variable
-    ) -> Tuple[bool, Tensor, Tensor]:
+    def propose_for_hspace_support(self, node_var: Variable
+                                  ) -> Tuple[bool, Tensor, Tensor]:
         """
         Proposes a new value for the node by drawing a sample from the proposal
         distribution (Gamma) and compute the log probability of

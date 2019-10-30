@@ -55,7 +55,8 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
         )
         self.assertEqual(
             isinstance(
-                c.find_best_single_site_proposer(foo_key), SingleSiteUniformProposer
+                c.find_best_single_site_proposer(foo_key),
+                SingleSiteUniformProposer
             ),
             True,
         )
@@ -92,7 +93,8 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
 
         self.assertEqual(
             isinstance(
-                c.find_best_single_site_proposer(foo_key), SingleSiteUniformProposer
+                c.find_best_single_site_proposer(foo_key),
+                SingleSiteUniformProposer
             ),
             True,
         )
@@ -109,7 +111,8 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
         )
         self.assertEqual(
             isinstance(
-                c.find_best_single_site_proposer(foo_key), SingleSiteAncestralProposer
+                c.find_best_single_site_proposer(foo_key),
+                SingleSiteAncestralProposer
             ),
             True,
         )

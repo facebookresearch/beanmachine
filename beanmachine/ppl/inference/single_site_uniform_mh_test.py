@@ -39,13 +39,17 @@ class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
         mh.queries_ = [model.foo()]
         mh.observations_ = {model.bar(): torch.tensor(0.0)}
         mh._infer(10)
-        self.assertEqual(isinstance(mh.proposer_, SingleSiteUniformProposer), True)
+        self.assertEqual(
+            isinstance(mh.proposer_, SingleSiteUniformProposer), True
+        )
         # using _infer instead of infer, as world_ would be reset at the end
         # infer
         self.assertEqual(foo_key in mh.world_.variables_, True)
         self.assertEqual(bar_key in mh.world_.variables_, True)
         self.assertEqual(foo_key in mh.world_.variables_[bar_key].parent, True)
-        self.assertEqual(bar_key in mh.world_.variables_[foo_key].children, True)
+        self.assertEqual(
+            bar_key in mh.world_.variables_[foo_key].children, True
+        )
 
     def test_single_site_uniform_mh_with_categorical(self):
         model = self.SampleCategoricalModel()
@@ -56,10 +60,14 @@ class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
         mh.observations_ = {model.bar(): torch.tensor(1.0)}
         mh._infer(10)
 
-        self.assertEqual(isinstance(mh.proposer_, SingleSiteUniformProposer), True)
+        self.assertEqual(
+            isinstance(mh.proposer_, SingleSiteUniformProposer), True
+        )
         # using _infer instead of infer, as world_ would be reset at the end
         # infer
         self.assertEqual(foo_key in mh.world_.variables_, True)
         self.assertEqual(bar_key in mh.world_.variables_, True)
         self.assertEqual(foo_key in mh.world_.variables_[bar_key].parent, True)
-        self.assertEqual(bar_key in mh.world_.variables_[foo_key].children, True)
+        self.assertEqual(
+            bar_key in mh.world_.variables_[foo_key].children, True
+        )

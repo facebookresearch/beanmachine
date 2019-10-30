@@ -53,15 +53,16 @@ class Variable(object):
         for field in fields(self):
             value = getattr(self, field.name)
             if (
-                value is not None
-                and field.name not in ("parent", "children")
-                and not isinstance(value, field.type)
+                value is not None and
+                field.name not in ("parent", "children") and
+                not isinstance(value, field.type)
             ):
                 raise ValueError(
                     f"Expected {field.name} to be of {field.type}"
                     f", but got {repr(value)}"
                 )
-            if field.name in ("parent", "children") and not isinstance(value, Set):
+            if field.name in ("parent",
+                              "children") and not isinstance(value, Set):
                 raise ValueError(
                     f"Expected {field.name} to be of {field.type}"
                     f", but got {repr(value)}"

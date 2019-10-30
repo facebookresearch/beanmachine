@@ -28,7 +28,11 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
         self.normal_normal_conjugate_run(self.mh, num_samples=500, delta=0.15)
 
     def test_distant_normal_normal_conjugate_run(self):
-        self.distant_normal_normal_conjugate_run(self.mh, num_samples=800, delta=0.15)
+        self.distant_normal_normal_conjugate_run(
+            self.mh, num_samples=800, delta=0.15
+        )
 
     def test_dirichlet_categorical_conjugate_run(self):
-        self.dirichlet_categorical_conjugate_run(self.mh, num_samples=100, delta=0.15)
+        self.dirichlet_categorical_conjugate_run(
+            self.mh, num_samples=100, delta=0.15
+        )

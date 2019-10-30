@@ -36,4 +36,6 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
         pass
 
     def test_dirichlet_categorical_conjugate_run(self):
-        self.dirichlet_categorical_conjugate_run(self.mh, num_samples=5000, delta=0.1)
+        self.dirichlet_categorical_conjugate_run(
+            self.mh, num_samples=5000, delta=0.1
+        )

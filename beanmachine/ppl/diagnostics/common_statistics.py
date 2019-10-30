@@ -2,8 +2,6 @@
 import numpy as np
 import torch
 from torch import Tensor
-
-
 """
 Common statistic functions, they all get a Tensor as input and return a Tensor
 as output
@@ -44,7 +42,9 @@ def r_hat(query_samples: Tensor) -> Tensor:
 def split_r_hat(query_samples: Tensor) -> Tensor:
     n_chains, n_samples = query_samples.shape[:2]
     if n_chains < 2:
-        raise ValueError("split_r_hat cannot be computed with fewer than two chains")
+        raise ValueError(
+            "split_r_hat cannot be computed with fewer than two chains"
+        )
     n_chains = n_chains * 2
     n_samples = n_samples // 2
     query_samples = torch.cat(torch.split(query_samples, n_samples, dim=1)[0:2])

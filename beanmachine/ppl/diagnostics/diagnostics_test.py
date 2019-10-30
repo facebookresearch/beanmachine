@@ -11,14 +11,17 @@ from beanmachine.ppl.inference.single_site_ancestral_mh import (
 )
 from beanmachine.ppl.model.statistical_model import sample
 
-
 diri_dis = dist.Dirichlet(
     torch.tensor([[1.0, 2.0, 3.0], [2.0, 1.0, 3.0], [2.0, 3.0, 1.0]])
 )
 
-beta_dis = dist.Beta(torch.tensor([1.0, 2.0, 3.0]), torch.tensor([9.0, 8.0, 7.0]))
+beta_dis = dist.Beta(
+    torch.tensor([1.0, 2.0, 3.0]), torch.tensor([9.0, 8.0, 7.0])
+)
 
-normal_dis = dist.Normal(torch.tensor([0.0, 1.0, 2.0]), torch.tensor([0.5, 1.0, 1.5]))
+normal_dis = dist.Normal(
+    torch.tensor([0.0, 1.0, 2.0]), torch.tensor([0.5, 1.0, 1.5])
+)
 
 
 @sample
@@ -53,9 +56,13 @@ def dist_summary_stats() -> Dict[str, torch.tensor]:
         "diri": torch.sqrt(diri_dis.variance.reshape(-1)),
         "normal": torch.sqrt(normal_dis.variance.reshape(-1)),
     }
-    exact_CI_2_5 = {"normal": normal_dis.mean - 1.96 * torch.sqrt(normal_dis.variance)}
+    exact_CI_2_5 = {
+        "normal": normal_dis.mean - 1.96 * torch.sqrt(normal_dis.variance)
+    }
     exact_CI_50 = {"normal": normal_dis.mean}
-    exact_CI_97_5 = {"normal": normal_dis.mean + 1.96 * torch.sqrt(normal_dis.variance)}
+    exact_CI_97_5 = {
+        "normal": normal_dis.mean + 1.96 * torch.sqrt(normal_dis.variance)
+    }
 
     exact_stats = {
         "avg": exact_mean,
@@ -77,7 +84,9 @@ class DiagnosticsTest(unittest.TestCase):
                 if not (col in exact_stats):
                     continue
                 for dis, res in exact_stats[col].items():
-                    query_res = summary.loc[summary.index.str.contains(f"^{dis}")]
+                    query_res = summary.loc[
+                        summary.index.str.contains(f"^{dis}")
+                    ]
                     for i, val in enumerate(query_res[col].values):
                         self.assertAlmostEqual(
                             val,
@@ -98,12 +107,20 @@ class DiagnosticsTest(unittest.TestCase):
         out_df = Diagnostics(samples).summary(query_list=[diri(1, 5)], chain=1)
         _inference_evaulation(out_df)
 
-        self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 3)])
-        self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 5), foo()])
+        self.assertRaises(
+            ValueError,
+            Diagnostics(samples).summary, [diri(1, 3)]
+        )
+        self.assertRaises(
+            ValueError,
+            Diagnostics(samples).summary, [diri(1, 5), foo()]
+        )
 
     def test_r_hat(self):
         samples = torch.tensor([[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0, 7.0]])
-        self.assertAlmostEqual(common_statistics.r_hat(samples), 2.3558, delta=0.001)
+        self.assertAlmostEqual(
+            common_statistics.r_hat(samples), 2.3558, delta=0.001
+        )
         self.assertAlmostEqual(
             common_statistics.split_r_hat(samples), 3.7193, delta=0.001
         )

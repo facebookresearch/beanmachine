@@ -12,7 +12,6 @@ from beanmachine.ppl.inference.single_site_uniform_mh import (
     SingleSiteUniformMetropolisHastings,
 )
 
-
 __all__ = [
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteUniformMetropolisHastings",

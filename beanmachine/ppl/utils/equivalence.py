@@ -4,7 +4,6 @@ equivalence classes by an equivalence relation."""
 from collections import defaultdict
 from typing import Callable, Iterable, List, Set, TypeVar
 
-
 _T = TypeVar("T")
 _K = TypeVar("K")
 
@@ -15,7 +14,9 @@ def partition_by_relation(
     # This is a quadratic algorithm, but n is likely to be small.
     result = []
     for item in items:
-        eqv = next(filter((lambda s: relation(next(iter(s)), item)), result), None)
+        eqv = next(
+            filter((lambda s: relation(next(iter(s)), item)), result), None
+        )
         if eqv is None:
             eqv = set()
             result.append(eqv)
@@ -23,9 +24,8 @@ def partition_by_relation(
     return result
 
 
-def partition_by_kernel(
-    items: Iterable[_T], kernel: Callable[[_T], _K]
-) -> List[Set[_T]]:
+def partition_by_kernel(items: Iterable[_T],
+                        kernel: Callable[[_T], _K]) -> List[Set[_T]]:
     d = defaultdict(set)
     for item in items:
         d[kernel(item)].add(item)

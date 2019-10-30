@@ -99,7 +99,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
-            log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
+            log_prob=dist.Normal(tensor(0.0),
+                                 tensor(1.0)).log_prob(tensor(0.5)),
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
@@ -108,7 +109,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[bar_key] = Variable(
             distribution=dist.Normal(tensor(0.5), tensor(1.0)),
             value=tensor(0.1),
-            log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
+            log_prob=dist.Normal(tensor(0.5),
+                                 tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
@@ -118,13 +120,16 @@ class WorldTest(unittest.TestCase):
             foo_key, tensor(0.25), stack
         )
 
-        expected_children_log_update = dist.Normal(tensor(0.25), tensor(1.0)).log_prob(
-            tensor(0.1)
-        ) - dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1))
+        expected_children_log_update = dist.Normal(
+            tensor(0.25), tensor(1.0)
+        ).log_prob(tensor(0.1)) - dist.Normal(tensor(0.5), tensor(1.0)
+                                             ).log_prob(tensor(0.1))
         expected_world_log_update = expected_children_log_update + node_log_update
 
         self.assertAlmostEqual(
-            children_log_update.item(), expected_children_log_update.item(), places=3
+            children_log_update.item(),
+            expected_children_log_update.item(),
+            places=3
         )
         self.assertAlmostEqual(
             world_log_update.item(), expected_world_log_update.item(), places=3
@@ -145,7 +150,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
-            log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
+            log_prob=dist.Normal(tensor(0.0),
+                                 tensor(1.0)).log_prob(tensor(0.5)),
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
@@ -154,7 +160,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[bar_key] = Variable(
             distribution=dist.Normal(tensor(0.5), tensor(1.0)),
             value=tensor(0.1),
-            log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
+            log_prob=dist.Normal(tensor(0.5),
+                                 tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
@@ -165,8 +172,8 @@ class WorldTest(unittest.TestCase):
         )
 
         expected_children_log_update = (
-            dist.Normal(world.diff_[baz_key].value, tensor(1.0))
-            .log_prob(tensor(0.1))
+            dist.Normal(world.diff_[baz_key].value,
+                        tensor(1.0)).log_prob(tensor(0.1))
             .sub(dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)))
         )
 
@@ -174,10 +181,13 @@ class WorldTest(unittest.TestCase):
         expected_world_update = expected_children_log_update.add(
             tensor(expected_node_update)
         ).add(
-            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(world.diff_[baz_key].value)
+            dist.Normal(tensor(0.0),
+                        tensor(1.0)).log_prob(world.diff_[baz_key].value)
         )
         self.assertAlmostEqual(
-            children_log_update.item(), expected_children_log_update.item(), places=3
+            children_log_update.item(),
+            expected_children_log_update.item(),
+            places=3
         )
         self.assertAlmostEqual(
             world_log_update.item(), expected_world_update.item(), places=3
@@ -201,7 +211,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.2),
-            log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.2)),
+            log_prob=dist.Normal(tensor(0.0),
+                                 tensor(1.0)).log_prob(tensor(0.2)),
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
@@ -210,15 +221,15 @@ class WorldTest(unittest.TestCase):
         world.variables_[bar_key] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(1.0)),
             value=tensor(0.1),
-            log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.1)),
+            log_prob=dist.Normal(tensor(0.2),
+                                 tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
         )
 
         expected_node_update = (
-            dist.Normal(tensor(0.0), tensor(1.0))
-            .log_prob(0.35)
+            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(0.35)
             .sub(dist.Normal(tensor(0.0), tensor(1.0)).log_prob(0.2))
         )
 
@@ -227,21 +238,22 @@ class WorldTest(unittest.TestCase):
         )
 
         expected_children_log_update = (
-            dist.Normal(world.diff_[baz_key].value, tensor(1.0))
-            .log_prob(tensor(0.1))
+            dist.Normal(world.diff_[baz_key].value,
+                        tensor(1.0)).log_prob(tensor(0.1))
             .sub(dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.1)))
         )
 
         expected_world_update = expected_children_log_update.add(
             expected_node_update
         ).add(
-            dist.Normal(world.diff_[foo_key].value, tensor(1.0)).log_prob(
-                world.diff_[baz_key].value
-            )
+            dist.Normal(world.diff_[foo_key].value,
+                        tensor(1.0)).log_prob(world.diff_[baz_key].value)
         )
 
         self.assertAlmostEqual(
-            children_log_update.item(), expected_children_log_update.item(), places=3
+            children_log_update.item(),
+            expected_children_log_update.item(),
+            places=3
         )
         self.assertAlmostEqual(
             world_log_update.item(), expected_world_update.item(), places=3
@@ -258,35 +270,32 @@ class WorldTest(unittest.TestCase):
         )
 
         expected_node_update = (
-            dist.Normal(tensor(0.0), tensor(1.0))
-            .log_prob(0.55)
+            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(0.55)
             .sub(dist.Normal(tensor(0.0), tensor(1.0)).log_prob(0.35))
         )
 
         expected_children_log_update = (
             dist.Normal(world.diff_[foobar_key].value, tensor(1.0))
-            .log_prob(tensor(0.1))
-            .sub(
-                dist.Normal(world.diff_[baz_key].value, tensor(1.0)).log_prob(
-                    tensor(0.1)
-                )
+            .log_prob(tensor(0.1)).sub(
+                dist.Normal(world.diff_[baz_key].value,
+                            tensor(1.0)).log_prob(tensor(0.1))
             )
         )
 
         expected_world_update = (
-            expected_children_log_update.add(expected_node_update)
-            .add(
+            expected_children_log_update.add(expected_node_update).add(
                 dist.Normal(world.diff_[foo_key].value, tensor(1.0)).log_prob(
                     world.diff_[foobar_key].value
                 )
-            )
-            .sub(world.variables_[baz_key].log_prob)
+            ).sub(world.variables_[baz_key].log_prob)
         )
 
         self.assertEqual(node_log_update.item(), expected_node_update.item())
 
         self.assertAlmostEqual(
-            children_log_update.item(), expected_children_log_update.item(), places=3
+            children_log_update.item(),
+            expected_children_log_update.item(),
+            places=3
         )
         self.assertAlmostEqual(
             world_log_update.item(), expected_world_update.item(), places=3
@@ -312,9 +321,15 @@ class WorldTest(unittest.TestCase):
         self.assertEqual(baz_key in world.variables_, False)
         self.assertEqual(foobar_key in world.variables_, True)
         self.assertEqual(foobar_key in world.variables_[bar_key].parent, False)
-        self.assertEqual(bar_key in world.variables_[foobar_key].children, False)
-        self.assertEqual(foobar_key in world.variables_[foobaz_key].parent, True)
-        self.assertEqual(foobaz_key in world.variables_[foobar_key].children, True)
+        self.assertEqual(
+            bar_key in world.variables_[foobar_key].children, False
+        )
+        self.assertEqual(
+            foobar_key in world.variables_[foobaz_key].parent, True
+        )
+        self.assertEqual(
+            foobaz_key in world.variables_[foobar_key].children, True
+        )
 
         children_log_update, world_log_update, _ = world.propose_change(
             foo_key, tensor(1.05), stack
@@ -323,8 +338,12 @@ class WorldTest(unittest.TestCase):
         world.accept_diff()
 
         self.assertEqual(foobar_key in world.variables_, False)
-        self.assertEqual(foobar_key in world.variables_[foo_key].children, False)
-        self.assertEqual(foobar_key in world.variables_[foobaz_key].parent, False)
+        self.assertEqual(
+            foobar_key in world.variables_[foo_key].children, False
+        )
+        self.assertEqual(
+            foobar_key in world.variables_[foobaz_key].parent, False
+        )
 
     def test_ancestor_change(self):
         model = self.SampleLargeModelWithAncesters()
@@ -353,7 +372,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[A_key_0] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.1),
-            log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.1)),
+            log_prob=dist.Normal(tensor(0.0),
+                                 tensor(1.0)).log_prob(tensor(0.1)),
             parent=set(),
             children=set({B_key_0}),
             proposal_distribution=None,
@@ -362,7 +382,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[B_key_0] = Variable(
             distribution=dist.Normal(tensor(0.1), tensor(1.0)),
             value=tensor(0.2),
-            log_prob=dist.Normal(tensor(0.1), tensor(1.0)).log_prob(tensor(0.2)),
+            log_prob=dist.Normal(tensor(0.1),
+                                 tensor(1.0)).log_prob(tensor(0.2)),
             parent=set({A_key_0}),
             children=set({C_key_0, D_key_0}),
             proposal_distribution=None,
@@ -371,7 +392,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[C_key_0] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(1.0)),
             value=tensor(0.2),
-            log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.2)),
+            log_prob=dist.Normal(tensor(0.2),
+                                 tensor(1.0)).log_prob(tensor(0.2)),
             parent=set({B_key_0}),
             children=set({D_key_0}),
             proposal_distribution=None,
@@ -380,7 +402,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[D_key_0] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(0.2)),
             value=tensor(0.2),
-            log_prob=dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2)),
+            log_prob=dist.Normal(tensor(0.2),
+                                 tensor(0.2)).log_prob(tensor(0.2)),
             parent=set({B_key_0, C_key_0}),
             children=set({Y_key}),
             proposal_distribution=None,
@@ -389,7 +412,8 @@ class WorldTest(unittest.TestCase):
         world.variables_[Y_key] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(1.0)),
             value=tensor(1.0),
-            log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(1.0)),
+            log_prob=dist.Normal(tensor(0.2),
+                                 tensor(1.0)).log_prob(tensor(1.0)),
             parent=set({D_key_0, X_key}),
             children=set(),
             proposal_distribution=None,
@@ -413,12 +437,15 @@ class WorldTest(unittest.TestCase):
                 b_value = world.diff_[key].value
             if key == A_key_1:
                 a_value = world.diff_[key].value
-        expected_children_log_update = dist.Normal(d_value, tensor(1.0)).log_prob(
-            tensor(1.0)
-        ) - dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(1.0))
+        expected_children_log_update = dist.Normal(
+            d_value, tensor(1.0)
+        ).log_prob(tensor(1.0)) - dist.Normal(tensor(0.2), tensor(1.0)
+                                             ).log_prob(tensor(1.0))
 
         self.assertAlmostEqual(
-            children_log_update.item(), expected_children_log_update.item(), places=3
+            children_log_update.item(),
+            expected_children_log_update.item(),
+            places=3
         )
         expected_node_log_update = tensor(0.0)
 
@@ -427,16 +454,17 @@ class WorldTest(unittest.TestCase):
         )
         expected_world_log_update = expected_children_log_update + node_log_update
         old_nodes_deletions = (
-            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.1))
-            + dist.Normal(tensor(0.1), tensor(1.0)).log_prob(tensor(0.2))
-            + dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.2))
-            + dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2))
+            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.1)) +
+            dist.Normal(tensor(0.1), tensor(1.0)).log_prob(tensor(0.2)) +
+            dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.2)) +
+            dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2))
         )
         new_nodes_additions = (
-            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(a_value)
-            + dist.Normal(a_value, tensor(1.0)).log_prob(b_value)
-            + dist.Normal(b_value, tensor(1.0)).log_prob(c_value)
-            + dist.Normal(b_value.item(), abs(c_value.item()) + 0.1).log_prob(d_value)
+            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(a_value) +
+            dist.Normal(a_value, tensor(1.0)).log_prob(b_value) +
+            dist.Normal(b_value, tensor(1.0)).log_prob(c_value) +
+            dist.Normal(b_value.item(),
+                        abs(c_value.item()) + 0.1).log_prob(d_value)
         )
         expected_world_log_update += new_nodes_additions - old_nodes_deletions
         self.assertAlmostEqual(

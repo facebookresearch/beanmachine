@@ -162,12 +162,20 @@ class StatisticalModel(object):
             if func_key in obs:
                 var.value = obs[func_key]
             elif isinstance(distribution.support, dist.constraints._Real):
-                var.value = torch.zeros(dist_sample.shape, dtype=dist_sample.dtype)
+                var.value = torch.zeros(
+                    dist_sample.shape, dtype=dist_sample.dtype
+                )
             elif isinstance(distribution.support, dist.constraints._Simplex):
-                var.value = torch.ones(dist_sample.shape, dtype=dist_sample.dtype)
+                var.value = torch.ones(
+                    dist_sample.shape, dtype=dist_sample.dtype
+                )
                 var.value /= dist_sample.shape[-1]
-            elif isinstance(distribution.support, dist.constraints._GreaterThan):
-                var.value = torch.ones(dist_sample.shape, dtype=dist_sample.dtype)
+            elif isinstance(
+                distribution.support, dist.constraints._GreaterThan
+            ):
+                var.value = torch.ones(
+                    dist_sample.shape, dtype=dist_sample.dtype
+                )
             else:
                 var.value = dist_sample
 

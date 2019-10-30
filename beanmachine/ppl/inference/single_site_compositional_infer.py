@@ -40,16 +40,13 @@ class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
         node_var = self.world_.get_node_in_world(node, False)
         distribution = node_var.distribution
         support = distribution.support
-        if isinstance(support, dist.constraints._Real) or isinstance(
-            support, dist.constraints._Simplex
-        ):
+        if isinstance(support, dist.constraints._Real
+                     ) or isinstance(support, dist.constraints._Simplex):
             return SingleSiteNewtonianMonteCarloProposer(self.world_)
-        if isinstance(support, dist.constraints._IntegerInterval) and isinstance(
-            distribution, dist.Categorical
-        ):
+        if isinstance(support, dist.constraints._IntegerInterval
+                     ) and isinstance(distribution, dist.Categorical):
             return SingleSiteUniformProposer(self.world_)
-        if isinstance(support, dist.constraints._Boolean) and isinstance(
-            distribution, dist.Bernoulli
-        ):
+        if isinstance(support, dist.constraints._Boolean
+                     ) and isinstance(distribution, dist.Bernoulli):
             return SingleSiteUniformProposer(self.world_)
         return SingleSiteAncestralProposer(self.world_)

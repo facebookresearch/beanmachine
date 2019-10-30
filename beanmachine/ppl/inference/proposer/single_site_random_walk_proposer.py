@@ -42,11 +42,14 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
 
         if isinstance(node_distribution.support, dist.constraints._Real):
             distribution = dist.Normal(
-                node_var.value, torch.ones(node_var.value.shape) * self.step_size
+                node_var.value,
+                torch.ones(node_var.value.shape) * self.step_size
             )
             new_value = distribution.sample()
 
-            negative_proposal_log_update = -1 * distribution.log_prob(new_value).sum()
+            negative_proposal_log_update = -1 * distribution.log_prob(
+                new_value
+            ).sum()
             return (new_value, negative_proposal_log_update)
         return super().propose(node)
 
@@ -63,7 +66,8 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
 
         if isinstance(node_distribution.support, dist.constraints._Real):
             distribution = dist.Normal(
-                node_var.value, torch.ones(node_var.value.shape) * self.step_size
+                node_var.value,
+                torch.ones(node_var.value.shape) * self.step_size
             )
             positive_proposal_log_update = distribution.log_prob(
                 old_node_var.value

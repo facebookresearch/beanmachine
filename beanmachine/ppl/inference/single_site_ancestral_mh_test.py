@@ -32,4 +32,6 @@ class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
         self.assertEqual(foo_key in mh.world_.variables_, True)
         self.assertEqual(bar_key in mh.world_.variables_, True)
         self.assertEqual(foo_key in mh.world_.variables_[bar_key].parent, True)
-        self.assertEqual(bar_key in mh.world_.variables_[foo_key].children, True)
+        self.assertEqual(
+            bar_key in mh.world_.variables_[foo_key].children, True
+        )

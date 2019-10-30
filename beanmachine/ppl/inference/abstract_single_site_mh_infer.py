@@ -134,15 +134,15 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                 # along which we'll be adding samples generated at each iteration
                 if query not in queries_sample:
                     queries_sample[query] = (
-                        query.function._wrapper(*query.arguments).unsqueeze(0).clone()
+                        query.function._wrapper(*query.arguments).unsqueeze(0)
+                        .clone()
                     )
                 else:
                     queries_sample[query] = torch.cat(
                         [
                             queries_sample[query],
                             query.function._wrapper(*query.arguments)
-                            .unsqueeze(0)
-                            .clone(),
+                            .unsqueeze(0).clone(),
                         ],
                         dim=0,
                     )

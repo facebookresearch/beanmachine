@@ -78,7 +78,10 @@ class DotBuilder:
     _current_subgraph: "Optional[DotBuilder]"
 
     def __init__(
-        self, name: str = "graph", is_subgraph: bool = False, is_cluster: bool = False
+        self,
+        name: str = "graph",
+        is_subgraph: bool = False,
+        is_cluster: bool = False
     ):
         self.name = name
         self.is_subgraph = is_subgraph
@@ -221,7 +224,8 @@ class DotEdge:
     constrained: bool
 
     def __init__(
-        self, frm: DotNode, to: DotNode, label: str, color: str, constrained: bool
+        self, frm: DotNode, to: DotNode, label: str, color: str,
+        constrained: bool
     ):
         self.frm = frm
         self.to = to
@@ -238,10 +242,13 @@ class DotEdge:
         if not self.constrained:
             props.append("constraint=false")
         p = "" if len(props) == 0 else "[" + " ".join(props) + "]"
-        return smart_quote(self.frm.name) + " -> " + smart_quote(self.to.name) + p + ";"
+        return smart_quote(self.frm.name
+                          ) + " -> " + smart_quote(self.to.name) + p + ";"
 
 
-_keywords: List[str] = ["digraph", "edge", "graph", "node", "strict", "subgraph"]
+_keywords: List[str] = [
+    "digraph", "edge", "graph", "node", "strict", "subgraph"
+]
 _alphanum = re.compile("^[A-Za-z_][A-Za-z_0-9]*$")
 _numeric = re.compile("^[-]?(\\.[0-9]+|[0-9]+(\\.[0-9]*)?)$")
 

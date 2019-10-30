@@ -66,7 +66,9 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             proposal_distribution=None,
         )
 
-        distribution = dist.MultivariateNormal(val, tensor([[1.0, 0.8], [0.8, 1.0]]))
+        distribution = dist.MultivariateNormal(
+            val, tensor([[1.0, 0.8], [0.8, 1.0]])
+        )
         observed_val = tensor([2.0, 2.0])
         nw.world_.variables_[bar_key] = Variable(
             distribution=distribution,
@@ -87,7 +89,9 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             abs((mean - expected_mean).sum().item()), 0.0, delta=0.01
         )
         self.assertAlmostEqual(
-            abs((covariance - expected_covariance).sum().item()), 0.0, delta=0.01
+            abs((covariance - expected_covariance).sum().item()),
+            0.0,
+            delta=0.01
         )
 
     def test_mean_covariance(self):
@@ -117,7 +121,9 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0])
         expected_covariance = tensor([[1.0, 0.8], [0.8, 1]])
-        self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
+        self.assertAlmostEqual(
+            (mean - expected_mean).sum().item(), 0.0, delta=0.01
+        )
         self.assertAlmostEqual(
             (covariance - expected_covariance).sum().item(), 0.0, delta=0.01
         )
@@ -149,7 +155,9 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0, 1.0, 1.0])
         expected_covariance = torch.eye(4)
-        self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
+        self.assertAlmostEqual(
+            (mean - expected_mean).sum().item(), 0.0, delta=0.01
+        )
         self.assertAlmostEqual(
             (covariance - expected_covariance).sum().item(), 0.0, delta=0.01
         )
@@ -252,43 +260,48 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         score.backward(create_graph=True)
         expected_first_gradient = theta_0_value.grad.clone()
 
-        expected_first_gradient.index_select(0, tensor([0])).backward(create_graph=True)
+        expected_first_gradient.index_select(0, tensor([0])
+                                            ).backward(create_graph=True)
         expected_second_gradient = (
             theta_0_value.grad - expected_first_gradient
         ).unsqueeze(0)
-        expected_covariance = (expected_second_gradient.unsqueeze(0)).inverse() * -1
+        expected_covariance = (expected_second_gradient.unsqueeze(0)
+                              ).inverse() * -1
         self.assertAlmostEqual(
             expected_covariance.item(), covariance.item(), delta=0.001
         )
         expected_first_gradient = expected_first_gradient.unsqueeze(0)
         expected_mean = (
-            theta_0_value.unsqueeze(0)
-            + expected_first_gradient.unsqueeze(0).mm(expected_covariance)
+            theta_0_value.unsqueeze(0) +
+            expected_first_gradient.unsqueeze(0).mm(expected_covariance)
         ).squeeze(0)
         self.assertAlmostEqual(mean.item(), expected_mean.item(), delta=0.001)
 
         proposal_value = (
-            dist.MultivariateNormal(mean, covariance)
-            .sample()
+            dist.MultivariateNormal(mean, covariance).sample()
             .reshape(theta_0_value.shape)
         )
         proposal_value.requires_grad_(True)
         nw.world_.variables_[theta_0_key].value = proposal_value
-        nw.world_.variables_[theta_0_key].log_prob = theta_0_distribution.log_prob(
-            proposal_value
-        )
+        nw.world_.variables_[
+            theta_0_key
+        ].log_prob = theta_0_distribution.log_prob(proposal_value)
 
         y = proposal_value + theta_1_value * x_0_value
         probs_0 = 1 / (1 + (y * -1).exp())
         y_0_distribution = dist.Bernoulli(probs_0)
         nw.world_.variables_[y_0_key].distribution = y_0_distribution
-        nw.world_.variables_[y_0_key].log_prob = y_0_distribution.log_prob(tensor(1.0))
+        nw.world_.variables_[y_0_key].log_prob = y_0_distribution.log_prob(
+            tensor(1.0)
+        )
 
         y = proposal_value + theta_1_value * x_1_value
         probs_1 = 1 / (1 + (y * -1).exp())
         y_1_distribution = dist.Bernoulli(probs_1)
         nw.world_.variables_[y_1_key].distribution = y_1_distribution
-        nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
+        nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(
+            tensor(1.0)
+        )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[theta_0_key]
@@ -307,18 +320,20 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         score.backward(create_graph=True)
         expected_first_gradient = proposal_value.grad.clone()
 
-        expected_first_gradient.index_select(0, tensor([0])).backward(create_graph=True)
+        expected_first_gradient.index_select(0, tensor([0])
+                                            ).backward(create_graph=True)
         expected_second_gradient = (
             proposal_value.grad - expected_first_gradient
         ).unsqueeze(0)
-        expected_covariance = (expected_second_gradient.unsqueeze(0)).inverse() * -1
+        expected_covariance = (expected_second_gradient.unsqueeze(0)
+                              ).inverse() * -1
         self.assertAlmostEqual(
             expected_covariance.item(), covariance.item(), delta=0.001
         )
         expected_first_gradient = expected_first_gradient.unsqueeze(0)
         expected_mean = (
-            proposal_value.unsqueeze(0)
-            + expected_first_gradient.unsqueeze(0).mm(expected_covariance)
+            proposal_value.unsqueeze(0) +
+            expected_first_gradient.unsqueeze(0).mm(expected_covariance)
         ).squeeze(0)
         self.assertAlmostEqual(mean.item(), expected_mean.item(), delta=0.001)
 

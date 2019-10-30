@@ -15,7 +15,9 @@ class BaseDiagnostics:
         self.samples = samples
         self.statistics_dict = {}
 
-    def summaryfn(self, func, display_names: List[str], statistics_name: str = None):
+    def summaryfn(
+        self, func, display_names: List[str], statistics_name: str = None
+    ):
         """
         this function keeps a directory of all summary-related functions,
         so it could handle the overridden functions and new ones that user defines
@@ -28,7 +30,7 @@ class BaseDiagnostics:
         query_samples = self.samples[query]
         if chain is not None:
             query_samples = query_samples[chain].unsqueeze(0)
-        new_dim = (-1,)
+        new_dim = (-1, )
         new_dim += tuple(query_samples.shape[2:])
         return query_samples.view(new_dim)
 
@@ -73,7 +75,9 @@ class BaseDiagnostics:
             query_list = list(self.samples.get_rv_names())
         for query in query_list:
             if not (query in self.samples.get_rv_names()):
-                raise ValueError(f"query {self._stringify_query(query)} does not exist")
+                raise ValueError(
+                    f"query {self._stringify_query(query)} does not exist"
+                )
             query_results = []
             func_list = []
             queried_samples = self._prepare_input(query, chain)
@@ -101,4 +105,6 @@ class Diagnostics(BaseDiagnostics):
         """
         self.summaryfn(mean, display_names=["avg"])
         self.summaryfn(std, display_names=["std"])
-        self.summaryfn(confidence_interval, display_names=["2.5%", "50%", "97.5%"])
+        self.summaryfn(
+            confidence_interval, display_names=["2.5%", "50%", "97.5%"]
+        )
