@@ -283,6 +283,7 @@ class World(object):
             stack.append(child)
             child_var.distribution = child.function(*child.arguments)
             stack.pop()
+            # pyre-fixme[16]: `Distribution` has no attribute `log_prob`.
             child_var.log_prob = child_var.distribution.log_prob(child_var.value).sum()
             new_log_probs[child] = child_var.log_prob
 

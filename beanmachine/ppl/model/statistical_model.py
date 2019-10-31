@@ -66,6 +66,7 @@ class StatisticalModel(object):
         :returns: __world_
         """
         # pyre-fixme[16]: `Type` has no attribute `__world_`.
+        # pyre-fixme[7]: Expected `World` but got `None`.
         return StatisticalModel.__world_
 
     @staticmethod
