@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.tensor as tensor
@@ -171,8 +171,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_chains: int,
         num_samples: int,
         delta: float,
+        random_seed: Optional[int],
     ):
         expected_mean, expected_std, queries, observations = moments
+
+        if random_seed is not None:
+            torch.manual_seed(random_seed)
+
         predictions = mh.infer(queries, observations, num_samples, num_chains)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
@@ -186,6 +191,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
+        random_seed: Optional[int] = 17,
     ):
         """
         Tests the inference run for a small beta binomial model.
@@ -194,9 +200,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_samples: number of samples
         :param num_chains: number of chains
         :param delta: delta to check against expected results
+        :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_beta_binomial_moments()
-        self._compare_run(moments, mh, num_chains, num_samples, delta)
+        self._compare_run(moments, mh, num_chains, num_samples, delta, random_seed)
 
     def gamma_gamma_conjugate_run(
         self,
@@ -204,6 +211,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
+        random_seed: Optional[int] = 17,
     ):
         """
         Tests the inference run for a small gamma gamma model.
@@ -212,9 +220,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_samples: number of samples
         :param num_chains: number of chains
         :param delta: delta to check against expected results
+        :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_gamma_gamma_moments()
-        self._compare_run(moments, mh, num_chains, num_samples, delta)
+        self._compare_run(moments, mh, num_chains, num_samples, delta, random_seed)
 
     def gamma_normal_conjugate_run(
         self,
@@ -222,6 +231,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
+        random_seed: Optional[int] = 17,
     ):
         """
         Tests the inference run for a small gamma normal model.
@@ -230,9 +240,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_samples: number of samples
         :param num_chains: number of chains
         :param delta: delta to check against expected results
+        :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_gamma_normal_moments()
-        self._compare_run(moments, mh, num_chains, num_samples, delta)
+        self._compare_run(moments, mh, num_chains, num_samples, delta, random_seed)
 
     def normal_normal_conjugate_run(
         self,
@@ -240,6 +251,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
+        random_seed: Optional[int] = 17,
     ):
         """
         Tests the inference run for a small normal normal model.
@@ -248,9 +260,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_samples: number of samples
         :param num_chains: number of chains
         :param delta: delta to check against expected results
+        :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_normal_normal_moments()
-        self._compare_run(moments, mh, num_chains, num_samples, delta)
+        self._compare_run(moments, mh, num_chains, num_samples, delta, random_seed)
 
     def distant_normal_normal_conjugate_run(
         self,
@@ -258,6 +271,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
+        random_seed: Optional[int] = 17,
     ):
         """
         Tests the inference run for a small normal normal model
@@ -267,9 +281,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_samples: number of samples
         :param num_chains: number of chains
         :param delta: delta to check against expected results
+        :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_distant_normal_normal_moments()
-        self._compare_run(moments, mh, num_chains, num_samples, delta)
+        self._compare_run(moments, mh, num_chains, num_samples, delta, random_seed)
 
     def dirichlet_categorical_conjugate_run(
         self,
@@ -277,6 +292,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
+        random_seed: Optional[int] = 17,
     ):
         """
         Tests the inference run for a small dirichlet categorical model.
@@ -285,9 +301,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param num_samples: number of samples
         :param num_chains: number of chains
         :param delta: delta to check against expected results
+        :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_dirichlet_categorical_moments()
-        self._compare_run(moments, mh, num_chains, num_samples, delta)
+        self._compare_run(moments, mh, num_chains, num_samples, delta, random_seed)
 
     @abstractmethod
     def test_beta_binomial_conjugate_run(self):

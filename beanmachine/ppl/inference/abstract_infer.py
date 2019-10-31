@@ -27,9 +27,15 @@ class AbstractInference(object, metaclass=ABCMeta):
         """
         raise NotImplementedError("Inference algorithm must implement _infer.")
 
-    def _parallel_infer(self, queue: Queue, chain: int, num_samples: int):
+    @staticmethod
+    def set_seed_for_chain(random_seed: int, chain: int):
+        torch.manual_seed(random_seed + chain * 31)
+
+    def _parallel_infer(
+        self, queue: Queue, chain: int, num_samples: int, random_seed: int
+    ):
         try:
-            torch.seed()
+            AbstractInference.set_seed_for_chain(random_seed, chain)
             rv_dict = self._infer(num_samples)
             string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
@@ -56,13 +62,15 @@ class AbstractInference(object, metaclass=ABCMeta):
         try:
             self.queries_ = queries
             self.observations_ = observations
+            random_seed = int(torch.randint(2 ** 62, (1,)))
 
             if num_chains > 1 and run_in_parallel:
                 manager = mp.Manager()
                 q = manager.Queue()
                 for chain in range(num_chains):
                     p = mp.Process(
-                        target=self._parallel_infer, args=(q, chain, num_samples)
+                        target=self._parallel_infer,
+                        args=(q, chain, num_samples, random_seed),
                     )
                     p.start()
 
@@ -75,7 +83,8 @@ class AbstractInference(object, metaclass=ABCMeta):
                     chain_queries[chain] = rv_dict
             else:
                 chain_queries = []
-                for _ in range(num_chains):
+                for chain in range(num_chains):
+                    AbstractInference.set_seed_for_chain(random_seed, chain)
                     rv_dict = self._infer(num_samples)
                     chain_queries.append(rv_dict)
 
