@@ -14,7 +14,12 @@ REQUIRED_MINOR = 6
 
 
 TEST_REQUIRES = ["pytest", "pytest-cov"]
-DEV_REQUIRES = TEST_REQUIRES + ["black", "flake8", "sphinx", "sphinx-autodoc-typehints"]
+DEV_REQUIRES = TEST_REQUIRES + [
+    "black==19.3b0",
+    "flake8",
+    "sphinx",
+    "sphinx-autodoc-typehints",
+]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 
 
