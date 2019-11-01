@@ -25,12 +25,22 @@ commands:
           name: "Lint with flake8"
           command: flake8
 
+  lint_isort:
+    description: "Lint with isort"
+    steps:
+      - run:
+          name: "Lint with isort"
+          command: >
+            isort --check-only --diff --line-width=88 --multi-line=3
+            --trailing-comma --force-grid-wrap=0 --section-default=THIRDPARTY
+            --lines-after-imports=2 --combine-as
+
   lint_black:
     description: "Lint with black"
     steps:
       - run:
           name: "Lint with black"
-          command: black --check --diff .
+          command: black --check --diff --line-length=88 .
 
   unit_tests:
     description: "Run unit tests"
@@ -49,6 +59,7 @@ jobs:
       - checkout
       - pip_dev_install
       - lint_flake8
+      - lint_isort
       - lint_black
       - unit_tests
 
