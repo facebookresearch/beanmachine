@@ -73,7 +73,8 @@ def effective_sample_size(query_samples: Tensor) -> Tensor:
     rho_per_chain = torch.irfft(padded_acf, 1, onesided=False)
 
     rho_per_chain = rho_per_chain.narrow(-1, 0, n_samples)
-    rho_per_chain = rho_per_chain / (torch.tensor(range(n_samples, 0, -1)))
+    num_per_lag = torch.tensor(range(n_samples, 0, -1), dtype=torch.float32)
+    rho_per_chain = torch.div(rho_per_chain, num_per_lag)
     rho_per_chain = rho_per_chain.transpose(1, -1)
 
     rho_avg = rho_per_chain.mean(dim=0)
