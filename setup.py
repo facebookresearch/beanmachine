@@ -16,6 +16,7 @@ REQUIRED_MINOR = 6
 TEST_REQUIRES = ["pytest", "pytest-cov"]
 DEV_REQUIRES = TEST_REQUIRES + [
     "black==19.3b0",
+    "isort",
     "flake8",
     "sphinx",
     "sphinx-autodoc-typehints",
