@@ -3,6 +3,7 @@ import time
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
+import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
@@ -37,7 +38,7 @@ class LogisticRegressionModel(object):
         self.loc_beta = loc_beta
         self.num_samples = num_samples
         self.inference_type = inference_type
-        self.X = X
+        self.X = torch.cat((torch.ones((1, N)), X))
         self.Y = Y
 
     @sample
@@ -46,13 +47,16 @@ class LogisticRegressionModel(object):
 
     @sample
     def beta(self):
-        return dist.Normal(tensor([self.loc_beta] * self.K), tensor(self.scale_beta))
+        return dist.Normal(
+            tensor([0.0] + [self.loc_beta] * self.K),
+            tensor([self.scale_alpha] + self.scale_beta),
+        )
 
     @sample
     def y(self):
         # Compute X * Beta
         beta_ = self.beta().reshape((1, self.beta().shape[0]))
-        mu = self.alpha().expand(self.N).reshape((1, self.N)) + beta_.mm(self.X)
+        mu = beta_.mm(self.X)
         return dist.Bernoulli(logits=mu)
 
     def infer(self):
@@ -60,9 +64,7 @@ class LogisticRegressionModel(object):
         if self.inference_type == "mcmc":
             nmc = SingleSiteNewtonianMonteCarlo()
             start_time = time.time()
-            samples = nmc.infer(
-                [self.beta(), self.alpha()], dict_y, self.num_samples, 1
-            ).get_chain()
+            samples = nmc.infer([self.beta()], dict_y, self.num_samples, 1).get_chain()
         elif self.inference_type == "vi":
             print("ImplementationError; exiting...")
             exit(1)
@@ -119,7 +121,10 @@ def obtain_posterior(
         sample_dict = {}
         for j, parameter in enumerate(samples.get_rv_names()):
             sample_dict[param_keys[j]] = (
-                samples.get_variable(parameter)[i].detach().numpy()
+                samples.get_variable(parameter)[i][1:].detach().numpy()
+            )
+            sample_dict[param_keys[1]] = (
+                samples.get_variable(parameter)[i][0].detach().numpy()
             )
         samples_formatted.append(sample_dict)
 
