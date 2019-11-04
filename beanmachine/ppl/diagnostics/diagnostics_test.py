@@ -101,6 +101,23 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 3)])
         self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 5), foo()])
 
+    def test_r_hat_column(self):
+        mh = SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([normal()], {}, 100, 2)
+        diagnostics = Diagnostics(samples)
+
+        out_df = diagnostics.summary()
+        self.assertTrue("r_hat" in out_df.columns)
+
+        out_df = diagnostics.summary(chain=0)
+        self.assertTrue("r_hat" not in out_df.columns)
+
+    def test_r_hat_no_column(self):
+        mh = SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([normal()], {}, 100, 1)
+        out_df = Diagnostics(samples).summary()
+        self.assertTrue("r_hat" not in out_df.columns)
+
     def test_r_hat(self):
         samples = torch.tensor([[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0, 7.0]])
         self.assertAlmostEqual(common_statistics.r_hat(samples), 2.3558, delta=0.001)
@@ -144,3 +161,9 @@ class DiagnosticsTest(unittest.TestCase):
         dim1, dim2 = common_statistics.effective_sample_size(samples)
         self.assertAlmostEqual(dim1, 1.9605, delta=0.001)
         self.assertAlmostEqual(dim2, 15.1438, delta=0.001)
+
+    def test_effective_sample_size_columns(self):
+        mh = SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([normal()], {}, 100, 2)
+        out_df = Diagnostics(samples).summary()
+        self.assertTrue("n_eff" in out_df.columns)

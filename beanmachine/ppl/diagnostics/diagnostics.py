@@ -2,9 +2,9 @@
 
 from typing import List, Optional
 
+import beanmachine.ppl.diagnostics.common_statistics as common_stats
 import numpy as np
 import pandas as pd
-from beanmachine.ppl.diagnostics.common_statistics import confidence_interval, mean, std
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
@@ -28,9 +28,7 @@ class BaseDiagnostics:
         query_samples = self.samples[query]
         if chain is not None:
             query_samples = query_samples[chain].unsqueeze(0)
-        new_dim = (-1,)
-        new_dim += tuple(query_samples.shape[2:])
-        return query_samples.view(new_dim)
+        return query_samples
 
     def _create_table(
         self, query: RVIdentifier, results: List[Tensor], func_list: List[str]
@@ -79,11 +77,12 @@ class BaseDiagnostics:
             queried_samples = self._prepare_input(query, chain)
             for _k, (func, display_names) in self.statistics_dict.items():
                 result = func(queried_samples)
-                # the first dimension is equivalant to the size of the display_names
-                if len(display_names) <= 1:
-                    result = result.unsqueeze(0)
-                query_results.append(result)
-                func_list.extend(display_names)
+                if result is not None:
+                    # the first dimension is equivalant to the size of the display_names
+                    if len(display_names) <= 1:
+                        result = result.unsqueeze(0)
+                    query_results.append(result)
+                    func_list.extend(display_names)
             out_df = self._create_table(query, query_results, func_list)
             if frames.empty:
                 frames = out_df
@@ -99,6 +98,10 @@ class Diagnostics(BaseDiagnostics):
         """
         every function related to summary stat should be registered in the constructor
         """
-        self.summaryfn(mean, display_names=["avg"])
-        self.summaryfn(std, display_names=["std"])
-        self.summaryfn(confidence_interval, display_names=["2.5%", "50%", "97.5%"])
+        self.summaryfn(common_stats.mean, display_names=["avg"])
+        self.summaryfn(common_stats.std, display_names=["std"])
+        self.summaryfn(
+            common_stats.confidence_interval, display_names=["2.5%", "50%", "97.5%"]
+        )
+        self.summaryfn(common_stats.split_r_hat, display_names=["r_hat"])
+        self.summaryfn(common_stats.effective_sample_size, display_names=["n_eff"])

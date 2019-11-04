@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import torch
@@ -13,15 +13,17 @@ as output
 
 
 def mean(query_samples: Tensor) -> Tensor:
-    return query_samples.mean(dim=0)
+    return query_samples.mean(dim=[0, 1])
 
 
 def std(query_samples: Tensor) -> Tensor:
-    return torch.std(query_samples, dim=0)
+    return torch.std(query_samples, dim=[0, 1])
 
 
 def confidence_interval(query_samples: Tensor) -> Tensor:
     percentile_list = [2.5, 50, 97.5]
+    query_dim = query_samples.shape[2:]
+    query_samples = query_samples.view(-1, *query_dim)
     return torch.tensor(
         np.percentile(query_samples.detach().numpy(), percentile_list, axis=0)
     )
@@ -39,18 +41,18 @@ def _compute_var(query_samples: Tensor) -> Tuple[Tensor, Tensor]:
     return w, var_hat
 
 
-def r_hat(query_samples: Tensor) -> Tensor:
+def r_hat(query_samples: Tensor) -> Optional[Tensor]:
     n_chains = query_samples.shape[0]
     if n_chains < 2:
-        raise ValueError("r_hat cannot be computed with fewer than two chains")
+        return None
     w, var_hat = _compute_var(query_samples)
     return torch.sqrt(var_hat / w)
 
 
-def split_r_hat(query_samples: Tensor) -> Tensor:
+def split_r_hat(query_samples: Tensor) -> Optional[Tensor]:
     n_chains, n_samples = query_samples.shape[:2]
     if n_chains < 2:
-        raise ValueError("split_r_hat cannot be computed with fewer than two chains")
+        return None
     n_chains = n_chains * 2
     n_samples = n_samples // 2
     query_samples = torch.cat(torch.split(query_samples, n_samples, dim=1)[0:2])
