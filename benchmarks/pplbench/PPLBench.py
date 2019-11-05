@@ -8,6 +8,7 @@ import os
 import pickle
 import pkgutil
 import time
+import traceback
 
 import matplotlib.pyplot as plt
 import models
@@ -505,6 +506,7 @@ def main():
         try:
             module = importlib.import_module(f"ppls.{ppl}.{args.model}")
         except ModuleNotFoundError:
+            traceback.print_exc()
             print(f"{ppl} implementation not found for {args.model}; exiting...")
             exit()
 
