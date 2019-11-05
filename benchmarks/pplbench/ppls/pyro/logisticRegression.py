@@ -37,7 +37,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     global model_args
     model_args = args_dict["model_args"]
     LEARNING_RATE = 0.009
-    NUM_STEPS = 8000
+    NUM_STEPS = 3000
     losses = []
 
     # x_train is (num_features, num_observations)
@@ -80,6 +80,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     plt.xlabel("Step")
     plt.ylabel("ELBO Loss")
     plt.savefig(os.path.join(args_dict["output_dir"], "pyro_elbo_loss.png"))
+    plt.clf()
 
     # repackage samples into shape required by PPLBench
     samples = []
