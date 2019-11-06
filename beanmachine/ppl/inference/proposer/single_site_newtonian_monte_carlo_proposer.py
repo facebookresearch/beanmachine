@@ -243,7 +243,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param node_var: the node Variable we're proposing a new value for
         :returns: alpha of the Dirichlet distribution as proposal distribution
         """
-        node_val = node_var.value
+        node_val = (
+            node_var.value if node_var.extended_val is None else node_var.extended_val
+        )
         score = self.compute_score(node_var)
         is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
         if not is_valid_gradient:
@@ -299,7 +301,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
                 node, node_var
             )
 
-        elif isinstance(support, dist.constraints._Simplex):
+        elif isinstance(support, dist.constraints._Simplex) or isinstance(
+            node_var.distribution, dist.Beta
+        ):
             is_valid, old_value_log_proposal = self.post_process_for_simplex_support(
                 node, node_var
             )
@@ -328,7 +332,11 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param node: the node for which we have already proposed a new value for.
         :returns: the log probability of proposing the old value from this new world.
         """
-        old_value = self.world_.variables_[node].value
+        old_value = (
+            self.world_.variables_[node].extended_val
+            if isinstance(node_var.distribution, dist.Beta)
+            else self.world_.variables_[node].value
+        )
         number_of_variables = len(self.world_.variables_) - len(
             self.world_.observations_
         )
@@ -413,7 +421,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
                 node_var
             )
 
-        elif isinstance(support, dist.constraints._Simplex):
+        elif isinstance(support, dist.constraints._Simplex) or isinstance(
+            node_var.distribution, dist.Beta
+        ):
             is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_simplex_support(
                 node_var
             )
@@ -490,13 +500,16 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             proposal_distribution = dist.Dirichlet(alpha)
             node_var.proposal_distribution = proposal_distribution
         # pyre-fixme
-        new_value = proposal_distribution.sample().reshape(node_val.shape)
-        new_value.requires_grad_(True)
+        new_sample = proposal_distribution.sample()
         negative_proposal_log_update = (
             -1
             # pyre-fixme
-            * proposal_distribution.log_prob(new_value).sum()
+            * proposal_distribution.log_prob(new_sample).sum()
         )
+        if isinstance(node_var.distribution, dist.Beta):
+            new_value = new_sample.transpose(-1, 0)[0].T.reshape(node_val.shape)
+        else:
+            new_value = new_sample.reshape(node_val.shape)
         return True, new_value, negative_proposal_log_update
 
     def propose_for_hspace_support(

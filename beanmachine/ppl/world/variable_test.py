@@ -9,7 +9,7 @@ from beanmachine.ppl.world.variable import Variable
 class VariableTest(unittest.TestCase):
     def test_variable_types(self):
         with self.assertRaises(ValueError):
-            Variable(1, 1, 1, 1, 1, 1)
+            Variable(1, 1, 1, 1, 1, 1, 1)
 
     def test_variable_assignments(self):
         distribution = dist.Normal(0, 1)
@@ -22,6 +22,7 @@ class VariableTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
         self.assertEqual(var.distribution, distribution)
         self.assertEqual(var.value, val)
@@ -41,6 +42,7 @@ class VariableTest(unittest.TestCase):
             parent=set({tmp(name="name")}),
             children=set({tmp(name="name")}),
             proposal_distribution=None,
+            extended_val=None,
         )
         var_copy = var.copy()
         self.assertEqual(var_copy.distribution, distribution)

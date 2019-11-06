@@ -103,6 +103,7 @@ class WorldTest(unittest.TestCase):
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[bar_key] = Variable(
@@ -112,6 +113,7 @@ class WorldTest(unittest.TestCase):
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(
@@ -149,6 +151,7 @@ class WorldTest(unittest.TestCase):
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[bar_key] = Variable(
@@ -158,6 +161,7 @@ class WorldTest(unittest.TestCase):
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         children_log_update, world_log_update, _ = world.propose_change(
@@ -205,6 +209,7 @@ class WorldTest(unittest.TestCase):
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[bar_key] = Variable(
@@ -214,6 +219,7 @@ class WorldTest(unittest.TestCase):
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         expected_node_update = (
@@ -348,6 +354,7 @@ class WorldTest(unittest.TestCase):
             parent=set(),
             children=set({Y_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[A_key_0] = Variable(
@@ -357,6 +364,7 @@ class WorldTest(unittest.TestCase):
             parent=set(),
             children=set({B_key_0}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[B_key_0] = Variable(
@@ -366,6 +374,7 @@ class WorldTest(unittest.TestCase):
             parent=set({A_key_0}),
             children=set({C_key_0, D_key_0}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[C_key_0] = Variable(
@@ -375,6 +384,7 @@ class WorldTest(unittest.TestCase):
             parent=set({B_key_0}),
             children=set({D_key_0}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[D_key_0] = Variable(
@@ -384,6 +394,7 @@ class WorldTest(unittest.TestCase):
             parent=set({B_key_0, C_key_0}),
             children=set({Y_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         world.variables_[Y_key] = Variable(
@@ -393,6 +404,7 @@ class WorldTest(unittest.TestCase):
             parent=set({D_key_0, X_key}),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(

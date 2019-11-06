@@ -52,6 +52,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
         self.assertEqual(
             isinstance(
@@ -69,6 +70,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         self.assertEqual(
@@ -88,6 +90,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         self.assertEqual(
@@ -106,6 +109,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
         self.assertEqual(
             isinstance(

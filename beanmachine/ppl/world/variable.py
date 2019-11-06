@@ -2,7 +2,9 @@
 from dataclasses import dataclass, fields
 from typing import Optional, Set
 
-from beanmachine.ppl.model.utils import RVIdentifier
+import torch
+import torch.distributions as dist
+from beanmachine.ppl.model.utils import RVIdentifier, float_types
 from torch import Tensor
 from torch.distributions import Distribution
 
@@ -48,6 +50,7 @@ class Variable(object):
     children: Set[Optional[RVIdentifier]]
     log_prob: Tensor
     proposal_distribution: Distribution
+    extended_val: Tensor
 
     def __post_init__(self):
         for field in fields(self):
@@ -70,6 +73,42 @@ class Variable(object):
     def __str__(self) -> str:
         return str(self.value.item()) + " from " + str(self.distribution)
 
+    def initialize_value(self, obs: Optional[Tensor]) -> None:
+        """
+        Initialized the Variable value
+
+        :param is_obs: the boolean representing whether the node is an
+        observation or not
+        """
+        distribution = self.distribution
+        # pyre-fixme
+        sample_val = distribution.sample()
+        # pyre-fixme
+        support = distribution.support
+        if obs is not None:
+            self.value = obs
+            return
+        elif isinstance(support, dist.constraints._Real):
+            self.value = torch.zeros(sample_val.shape, dtype=sample_val.dtype)
+        elif isinstance(support, dist.constraints._Simplex):
+            self.value = torch.ones(sample_val.shape, dtype=sample_val.dtype)
+            self.value /= sample_val.shape[-1]
+        elif isinstance(support, dist.constraints._GreaterThan):
+            self.value = torch.ones(sample_val.shape, dtype=sample_val.dtype)
+        else:
+            self.value = sample_val
+
+        if isinstance(distribution, dist.Beta):
+            self.extended_val = torch.cat(
+                (self.value.unsqueeze(-1), (1 - self.value).unsqueeze(-1)), -1
+            )
+
+        if isinstance(self.value, float_types) and self.extended_val is None:
+            self.value.requires_grad_(True)
+        elif isinstance(self.value, float_types):
+            self.extended_val.requires_grad_(True)
+            self.value = self.extended_val.transpose(-1, 0)[0].T
+
     def copy(self):
         """
         Makes a copy of self and returns it.
@@ -83,4 +122,5 @@ class Variable(object):
             self.children.copy(),
             self.log_prob,
             self.proposal_distribution,
+            self.extended_val,
         )

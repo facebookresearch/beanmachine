@@ -3,9 +3,7 @@ from collections import defaultdict
 from functools import wraps
 from typing import Dict, List
 
-import torch
-import torch.distributions as dist
-from beanmachine.ppl.model.utils import Mode, RVIdentifier, float_types
+from beanmachine.ppl.model.utils import Mode, RVIdentifier
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
 from torch import Tensor
@@ -150,6 +148,7 @@ class StatisticalModel(object):
                 parent=set(),
                 children=set() if len(stack) == 0 else set({stack[-1]}),
                 proposal_distribution=None,
+                extended_val=None,
             )
 
             world.add_node_to_world(func_key, var)
@@ -158,22 +157,9 @@ class StatisticalModel(object):
             stack.pop()
 
             var.distribution = distribution
-            dist_sample = distribution.sample()
+            obs = obs[func_key] if func_key in obs else None
+            var.initialize_value(obs)
 
-            if func_key in obs:
-                var.value = obs[func_key]
-            elif isinstance(distribution.support, dist.constraints._Real):
-                var.value = torch.zeros(dist_sample.shape, dtype=dist_sample.dtype)
-            elif isinstance(distribution.support, dist.constraints._Simplex):
-                var.value = torch.ones(dist_sample.shape, dtype=dist_sample.dtype)
-                var.value /= dist_sample.shape[-1]
-            elif isinstance(distribution.support, dist.constraints._GreaterThan):
-                var.value = torch.ones(dist_sample.shape, dtype=dist_sample.dtype)
-            else:
-                var.value = dist_sample
-
-            if isinstance(var.value, float_types):
-                var.value.requires_grad_(True)
             var.log_prob = distribution.log_prob(var.value).sum()
             world.update_diff_log_prob(func_key)
             return var.value

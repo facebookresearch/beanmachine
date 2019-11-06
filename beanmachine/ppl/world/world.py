@@ -2,6 +2,8 @@
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
+import torch
+import torch.distributions as dist
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.variable import Variable
@@ -207,6 +209,16 @@ class World(object):
         var = self.variables_[node].copy()
         old_log_prob = var.log_prob
         var.value = proposed_value
+        if isinstance(var.distribution, dist.Beta):
+            var.extended_val = torch.cat(
+                # pyre-fixme
+                (var.value.unsqueeze(-1), (1 - var.value).unsqueeze(-1)),
+                -1,
+            )
+            var.extended_val.requires_grad_(True)
+            var.value = var.extended_val.transpose(-1, 0)[0].T
+        else:
+            var.value.requires_grad_(True)
         var.log_prob = var.distribution.log_prob(proposed_value).sum()
         var.proposal_distribution = None
         self.diff_[node] = var

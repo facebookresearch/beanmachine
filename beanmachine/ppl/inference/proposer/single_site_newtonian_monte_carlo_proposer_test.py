@@ -64,6 +64,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         distribution = dist.MultivariateNormal(val, tensor([[1.0, 0.8], [0.8, 1.0]]))
@@ -75,6 +76,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -109,6 +111,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -141,6 +144,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -181,6 +185,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         nw.world_.variables_[theta_1_key] = Variable(
@@ -190,6 +195,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         x_distribution = dist.Normal(torch.tensor(0.0), torch.tensor(5.0))
@@ -200,6 +206,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         nw.world_.variables_[x_1_key] = Variable(
@@ -209,6 +216,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         y = theta_0_value + theta_1_value * x_0_value
@@ -222,6 +230,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set({theta_0_key, theta_1_key, x_0_key}),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         y = theta_0_value + theta_1_value * x_1_value
@@ -235,6 +244,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set({theta_0_key, theta_1_key, x_1_key}),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -338,6 +348,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
         world_ = World()
         nw_proposer = SingleSiteNewtonianMonteCarloProposer(world_)
@@ -360,6 +371,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
+            extended_val=None,
         )
         world_ = World()
         nw_proposer = SingleSiteNewtonianMonteCarloProposer(world_)
