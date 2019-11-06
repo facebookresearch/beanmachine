@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.utils import RVIdentifier, float_types
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor, tensor
@@ -215,10 +215,12 @@ class World(object):
                 (var.value.unsqueeze(-1), (1 - var.value).unsqueeze(-1)),
                 -1,
             )
-            var.extended_val.requires_grad_(True)
+            if isinstance(var.extended_val, float_types):
+                var.extended_val.requires_grad_(True)
             var.value = var.extended_val.transpose(-1, 0)[0].T
         else:
-            var.value.requires_grad_(True)
+            if isinstance(var.value, float_types):
+                var.value.requires_grad_(True)
         var.log_prob = var.distribution.log_prob(proposed_value).sum()
         var.proposal_distribution = None
         self.diff_[node] = var

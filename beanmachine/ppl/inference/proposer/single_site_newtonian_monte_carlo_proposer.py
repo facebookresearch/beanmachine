@@ -253,24 +253,30 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             return False, tensor(0.0)
 
         first_gradient = gradient.clone().reshape(-1)
-        is_valid_hessian, hessian = self.compute_hessian(first_gradient, node_val)
+        size = first_gradient.shape[0]
+        hessian_diag_minus_max = torch.zeros(size)
+        for i in range(size):
+            second_gradient = (
+                grad(
+                    # pyre-fixme
+                    first_gradient.index_select(0, tensor([i])),
+                    node_val,
+                    create_graph=True,
+                )[0]
+            ).reshape(-1)
+
+            if not self.is_valid(second_gradient):
+                return False, tensor(0.0)
+
+            hessian_diag_minus_max[i] = second_gradient[i]
+            second_gradient[i] = 0
+            hessian_diag_minus_max[i] -= second_gradient.max()
 
         self.zero_grad(node_val)
 
-        if not is_valid_hessian:
-            return False, tensor(0.0)
-
         node_val_reshaped = node_val.clone().reshape(-1)
-        # pyre-fixme
-        hessian_diag = torch.diag(hessian.diag())
-        # pyre-fixme
-        max_non_diag_per_row = (hessian - hessian_diag).max(0).values
         predicted_alpha = (
-            1
-            - (
-                (node_val_reshaped * node_val_reshaped)
-                * (hessian.diag() - max_non_diag_per_row)
-            )
+            1 - ((node_val_reshaped * node_val_reshaped) * (hessian_diag_minus_max))
         ).reshape(node_val.shape)
         predicted_alpha = torch.where(
             predicted_alpha < -1 * 1e-3,
