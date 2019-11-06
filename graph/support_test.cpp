@@ -5,7 +5,6 @@
 
 #include <beanmachine/graph/graph.h>
 
-using namespace ::testing;
 
 using namespace beanmachine;
 

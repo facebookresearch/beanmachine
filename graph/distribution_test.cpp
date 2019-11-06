@@ -9,7 +9,6 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/tabular.h"
 
-using namespace ::testing;
 
 using namespace beanmachine;
 
