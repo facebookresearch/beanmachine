@@ -4,11 +4,9 @@
 #include <tuple>
 
 #include <gtest/gtest.h>
-#include <torch/torch.h>
 
 #include <beanmachine/graph/graph.h>
 
-using namespace ::testing;
 
 using namespace beanmachine;
 
