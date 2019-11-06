@@ -81,13 +81,12 @@ setup(
     python_requires=">=3.6",
     install_requires=["torch>=1.2", "dataclasses>=0.6", "pandas>=0.24.2"],
     packages=[
+        "beanmachine.ppl.diagnostics",
         "beanmachine.ppl.inference.proposer",
         "beanmachine.ppl.inference",
         "beanmachine.ppl.model",
         "beanmachine.ppl.world",
         "beanmachine.ppl.utils",
-        "beanmachine.ppl.world",
-        "beanmachine.ppl.diagnostics",
     ],
     ext_modules=[
         CppExtension(

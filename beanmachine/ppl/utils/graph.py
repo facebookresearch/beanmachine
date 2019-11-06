@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+"""A mutable graph builder"""
+from typing import Callable, Dict, Generic, List, Optional, TypeVar
+
+from beanmachine.ppl.utils.dotbuilder import DotBuilder
+from beanmachine.ppl.utils.unique_name import make_namer
+
+
+# A plate is a collection of nodes and plates.
+# A graph is a single plate with a collection of edges.
+# That is, in this model of a graph, only the topmost level
+# contains the edges; plates contain no edges.
+
+T = TypeVar("T")  # Node type
+
+
+class Plate(Generic[T]):
+    # Yes, using lists means that we have O(n) removal. But removals are
+    # rare, the lists are typically short, and lists guarantee that
+    # the enumeration order is deterministic, which means that we get
+    # repeatable behavior for testing.
+
+    _plates: "List[Plate[T]]"
+    _parent: "Optional[Plate[T]]"
+    _graph: "Graph[T]"
+    _nodes: List[T]
+
+    def __init__(self, graph: "Graph[T]", parent: "Optional[Plate[T]]") -> None:
+        self._plates = []
+        self._parent = parent
+        self._graph = graph
+        self._nodes = []
+
+    def with_plate(self) -> "Plate[T]":
+        """Add a new Plate to this Plate; returns the new Plate"""
+        sub = Plate(self._graph, self)
+        self._plates.append(sub)
+        return sub
+
+    def without_plate(self, sub: "Plate[T]") -> "Plate[T]":
+        """Removes a given Plate, and all its Plates, and all its nodes."""
+        if sub in self._plates:
+            # Recursively destroy every nested Plate.
+            # We're going to be modifying a collection as we enumerate it
+            # so make a copy.
+            for subsub in sub._plates.copy():
+                sub.without_plate(subsub)
+            # Destroy every node.
+            for node in sub._nodes.copy():
+                sub.without_node(node)
+            # Delete the Plate
+            self._plates.remove(sub)
+        return self
+
+    def with_node(self, node: T) -> "Plate[T]":
+        """Adds a new node to the plate, or, if the node is already in the
+        graph, moves it to this plate. Edges are unaffected by moves."""
+        if node not in self._nodes:
+            # Remove the node from its current Plate.
+            if node in self._graph._nodes:
+                self._graph._nodes[node]._nodes.remove(node)
+            # Let the graph know that this node is in this Plate.
+            self._graph._nodes[node] = self
+            self._nodes.append(node)
+            # If this is a new node, set its incoming and outgoing
+            # edge sets to empty. If it is not a new node, keep
+            # them the same.
+            if node not in self._graph._outgoing:
+                self._graph._outgoing[node] = []
+            if node not in self._graph._incoming:
+                self._graph._incoming[node] = []
+        return self
+
+    def without_node(self, node: T) -> "Plate[T]":
+        if node in self._nodes:
+            # Remove the node
+            del self._graph._nodes[node]
+            self._nodes.remove(node)
+            # Delete all the edges associated with this node
+            for o in list(self._graph._outgoing[node]):
+                self._graph._incoming[o].remove(node)
+            for i in list(self._graph._incoming[node]):
+                self._graph._outgoing[i].remove(node)
+        return self
+
+    def with_edge(self, start: T, end: T) -> "Plate[T]":
+        if start not in self._graph._nodes:
+            self.with_node(start)
+        if end not in self._graph._nodes:
+            self.with_node(end)
+        self._graph._incoming[end].append(start)
+        self._graph._outgoing[start].append(end)
+        return self
+
+
+class Graph(Generic[T]):
+    _nodes: Dict[T, Plate[T]]
+    _outgoing: Dict[T, List[T]]
+    _incoming: Dict[T, List[T]]
+    _top: Plate[T]
+    _to_name: Callable[[T], str]
+    _to_label: Callable[[T], str]
+
+    def __init__(
+        self,
+        to_name: Optional[Callable[[T], str]] = None,
+        to_label: Callable[[T], str] = str,
+    ):
+        # to_name gives a *unique* name to a node.
+        # to_label gives a *not necessarily unique* label when *displaying* a graph.
+        self._nodes = {}
+        self._outgoing = {}
+        self._incoming = {}
+        self._top = Plate(self, None)
+        self._to_name = make_namer(to_name, "N")
+        self._to_label = to_label
+
+    def with_plate(self) -> "Plate[T]":
+        """Add a plate to the top level; returns the plate"""
+        return self._top.with_plate()
+
+    def without_plate(self, sub: Plate[T]) -> "Graph[T]":
+        """Removes a plate from the top level, and all its plates, and
+        all its nodes."""
+        self._top.without_plate(sub)
+        return self
+
+    def global_without_plate(self, sub: Plate[T]) -> "Graph[T]":
+        """Remove a plate no matter where it is, and all its plates,
+        and all its nodes."""
+        if sub._graph == self:
+            p = sub._parent
+            if p is not None:  # This should never happen
+                p.without_plate(sub)
+        return self
+
+    def with_node(self, node: T) -> "Graph[T]":
+        """Add a node to the top level"""
+        self._top.with_node(node)
+        return self
+
+    def without_node(self, node: T) -> "Graph[T]":
+        """Remove a node from the top level"""
+        self._top.without_node(node)
+        return self
+
+    def global_without_node(self, node: T) -> "Graph[T]":
+        """Remove a node no matter where it is"""
+        if node in self._nodes:
+            self._nodes[node].without_node(node)
+        return self
+
+    def with_edge(self, start: T, end: T) -> "Graph[T]":
+        if start not in self._nodes:
+            self.with_node(start)
+        if end not in self._nodes:
+            self.with_node(end)
+        self._incoming[end].append(start)
+        self._outgoing[start].append(end)
+        return self
+
+    def without_edge(self, start: T, end: T) -> "Graph[T]":
+        if start in self._nodes and end in self._nodes:
+            self._incoming[end].remove(start)
+            self._outgoing[start].remove(end)
+        return self
+
+    def to_dot(self,) -> str:
+        """Converts a graph to a program in the DOT language."""
+        db: DotBuilder = DotBuilder()
+
+        def add_nodes(sub: Plate[T], name: str) -> None:
+            if name != "":
+                db.start_subgraph(name, True)
+            namer = make_namer(prefix=name + "_")
+            for subsub in sub._plates:
+                add_nodes(subsub, namer(subsub))
+            for n in sub._nodes:
+                db.with_node(self._to_name(n), self._to_label(n))
+            if name != "":
+                db.end_subgraph()
+
+        add_nodes(self._top, "")
+
+        for start, ends in self._outgoing.items():
+            for end in ends:
+                db.with_edge(self._to_name(start), self._to_name(end))
+
+        return str(db)

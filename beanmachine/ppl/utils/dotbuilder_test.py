@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """Tests for print_graph from dotbuilder.py"""
 import unittest
+from typing import Any, Dict
 
 from beanmachine.ppl.utils.dotbuilder import DotBuilder, print_graph
 
@@ -9,7 +10,7 @@ class GraphPrinterTest(unittest.TestCase):
     def test_print_tree(self) -> None:
         """Tests for print_graph from dotbuilder.py"""
         bar = {"blah": [2, 3, {"abc": (6, 7, (5, 5, 6))}]}
-        d = {"foo": 2, "bar1": bar, "bar2": bar}
+        d: Dict[Any, Any] = {"foo": 2, "bar1": bar, "bar2": bar}
         d["self"] = d  # type: ignore
         observed = print_graph([d])
         expected = """

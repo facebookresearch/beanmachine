@@ -207,7 +207,7 @@ class DotNode:
 
     def __str__(self) -> str:
         props: List[str] = []
-        if len(self.label) != 0:
+        if len(self.label) != 0 and self.label != self.name:
             props.append("label=" + smart_quote(self.label))
         if len(self.color) != 0:
             props.append("color=" + smart_quote(self.label))
