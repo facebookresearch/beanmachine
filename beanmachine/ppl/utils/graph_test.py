@@ -102,3 +102,6 @@ digraph "graph" {
         self.assertTrue(g.are_dags_isomorphic(a2, b2))
         self.assertFalse(g.are_dags_isomorphic(a1, c1))
         self.assertFalse(g.are_dags_isomorphic(a1, b2))
+
+        reachable = ",".join(sorted(str(n.x) for n in g.reachable(b2)))
+        self.assertEqual(reachable, "2,3,4,5")

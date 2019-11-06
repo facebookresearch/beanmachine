@@ -211,7 +211,26 @@ class Graph(Generic[T]):
         h2 = self._dag_hash(n2, map)
         return h1 == h2
 
-    def to_dot(self,) -> str:
+    def reachable(self, node: T) -> List[T]:
+        # Given a node in a graph, return the transitive closure of outgoing
+        # nodes, including the original node.
+        if node not in self._nodes:
+            return []
+        in_flight: List[T] = []
+        done: List[T] = []
+
+        def depth_first(current: T) -> None:
+            if (current not in in_flight) and (current not in done):
+                in_flight.append(current)
+                for child in self._outgoing[current]:
+                    depth_first(child)
+                in_flight.remove(current)
+                done.append(current)
+
+        depth_first(node)
+        return done
+
+    def to_dot(self) -> str:
         """Converts a graph to a program in the DOT language."""
         db: DotBuilder = DotBuilder()
 
