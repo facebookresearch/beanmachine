@@ -5,6 +5,13 @@ import unittest
 from beanmachine.ppl.utils.graph import Graph
 
 
+class X(object):
+    x: int
+
+    def __init__(self, x: int):
+        self.x = x
+
+
 class GraphTest(unittest.TestCase):
     def test_graph(self) -> None:
         self.maxDiff = None
@@ -64,3 +71,34 @@ digraph "graph" {
 """
 
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_isomorphism(self) -> None:
+        #       a1    b1   c1
+        #        |     |
+        #       a2    b2
+        #       / \   / \
+        #     a5   s3    b5
+        #          |
+        #          s4
+        #
+        # a1 and b1 are isomorphic, a1 and c1 are not
+
+        a1 = X(1)
+        b1 = X(1)
+        c1 = X(1)
+        a2 = X(2)
+        a5 = X(5)
+        b2 = X(2)
+        b5 = X(5)
+        s3 = X(3)
+        s4 = X(4)
+        g: Graph[X] = Graph(to_kernel=lambda x: str(x.x))
+        g = g.with_edge(a1, a2).with_edge(a2, a5).with_edge(a2, s3)
+        g = g.with_edge(b1, b2).with_edge(b2, s3).with_edge(b2, b5)
+        g = g.with_edge(s3, s4)
+        g = g.with_node(c1)
+
+        self.assertTrue(g.are_dags_isomorphic(a1, b1))
+        self.assertTrue(g.are_dags_isomorphic(a2, b2))
+        self.assertFalse(g.are_dags_isomorphic(a1, c1))
+        self.assertFalse(g.are_dags_isomorphic(a1, b2))

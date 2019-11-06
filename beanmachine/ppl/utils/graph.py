@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """A mutable graph builder"""
+from hashlib import md5
 from typing import Callable, Dict, Generic, List, Optional, TypeVar
 
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
@@ -100,20 +101,26 @@ class Graph(Generic[T]):
     _top: Plate[T]
     _to_name: Callable[[T], str]
     _to_label: Callable[[T], str]
+    _to_kernel: Callable[[T], str]
 
     def __init__(
         self,
         to_name: Optional[Callable[[T], str]] = None,
         to_label: Callable[[T], str] = str,
+        to_kernel: Callable[[T], str] = str,
     ):
         # to_name gives a *unique* name to a node.
         # to_label gives a *not necessarily unique* label when *displaying* a graph.
+        # to_kernel gives a string that is always the same if two nodes are to
+        #   be treated as isomorphic. This lets us make labels in the output that
+        #   are different than the isomorphism kernel.
         self._nodes = {}
         self._outgoing = {}
         self._incoming = {}
         self._top = Plate(self, None)
         self._to_name = make_namer(to_name, "N")
         self._to_label = to_label
+        self._to_kernel = to_kernel
 
     def with_plate(self) -> "Plate[T]":
         """Add a plate to the top level; returns the plate"""
@@ -164,6 +171,45 @@ class Graph(Generic[T]):
             self._incoming[end].remove(start)
             self._outgoing[start].remove(end)
         return self
+
+    def _is_dag(self, node: T) -> bool:
+        if node not in self._nodes:
+            return True
+        in_flight: List[T] = []
+        done: List[T] = []
+
+        def depth_first(current: T) -> bool:
+            if current in in_flight:
+                return False
+            if current in done:
+                return True
+            in_flight.append(current)
+            for child in self._outgoing[current]:
+                if not depth_first(child):
+                    return False
+            in_flight.remove(current)
+            done.append(current)
+            return True
+
+        return depth_first(node)
+
+    def _dag_hash(self, current: T, map: Dict[T, str]) -> str:
+        if current in map:
+            return map[current]
+        label = self._to_kernel(current)
+        children = (self._dag_hash(c, map) for c in self._outgoing[current])
+        summary = label + "/".join(sorted(children))
+        hash = md5(summary.encode("utf-8")).hexdigest()
+        map[current] = hash
+        return hash
+
+    def are_dags_isomorphic(self, n1: T, n2: T) -> bool:
+        map: Dict[T, str] = {}
+        assert self._is_dag(n1)
+        assert self._is_dag(n2)
+        h1 = self._dag_hash(n1, map)
+        h2 = self._dag_hash(n2, map)
+        return h1 == h2
 
     def to_dot(self,) -> str:
         """Converts a graph to a program in the DOT language."""
