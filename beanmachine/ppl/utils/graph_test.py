@@ -5,11 +5,13 @@ import unittest
 from beanmachine.ppl.utils.graph import Graph
 
 
-class X(object):
-    x: int
+class SimpleNode(object):
+    name: str
+    label: int
 
-    def __init__(self, x: int):
-        self.x = x
+    def __init__(self, name: str, label: int):
+        self.name = name
+        self.label = label
 
 
 class GraphTest(unittest.TestCase):
@@ -73,6 +75,7 @@ digraph "graph" {
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_isomorphism(self) -> None:
+        self.maxDiff = None
         #       a1    b1   c1
         #        |     |
         #       a2    b2
@@ -83,16 +86,18 @@ digraph "graph" {
         #
         # a1 and b1 are isomorphic, a1 and c1 are not
 
-        a1 = X(1)
-        b1 = X(1)
-        c1 = X(1)
-        a2 = X(2)
-        a5 = X(5)
-        b2 = X(2)
-        b5 = X(5)
-        s3 = X(3)
-        s4 = X(4)
-        g: Graph[X] = Graph(to_kernel=lambda x: str(x.x))
+        a1 = SimpleNode("a1", 1)
+        b1 = SimpleNode("b1", 1)
+        c1 = SimpleNode("c1", 1)
+        a2 = SimpleNode("a2", 2)
+        a5 = SimpleNode("a5", 5)
+        b2 = SimpleNode("b2", 2)
+        b5 = SimpleNode("b5", 5)
+        s3 = SimpleNode("s3", 3)
+        s4 = SimpleNode("s4", 4)
+        g: Graph[SimpleNode] = Graph(
+            lambda x: x.name, lambda x: str(x.label), lambda x: str(x.label)
+        )
         g = g.with_edge(a1, a2).with_edge(a2, a5).with_edge(a2, s3)
         g = g.with_edge(b1, b2).with_edge(b2, s3).with_edge(b2, b5)
         g = g.with_edge(s3, s4)
@@ -103,5 +108,36 @@ digraph "graph" {
         self.assertFalse(g.are_dags_isomorphic(a1, c1))
         self.assertFalse(g.are_dags_isomorphic(a1, b2))
 
-        reachable = ",".join(sorted(str(n.x) for n in g.reachable(b2)))
+        reachable = ",".join(sorted(str(n.label) for n in g.reachable(b2)))
         self.assertEqual(reachable, "2,3,4,5")
+
+        g.merge_isomorphic(a2, b2)
+        # After merging b2 into a2:
+        #     a1    b1   c1
+        #       \  /
+        #       a2
+        #      / | \
+        #    a5 s3  b5
+        #        |
+        #        s4
+
+        observed = g.to_dot()
+        expected = """
+digraph "graph" {
+  a1[label=1];
+  a2[label=2];
+  a5[label=5];
+  b1[label=1];
+  b5[label=5];
+  c1[label=1];
+  s3[label=3];
+  s4[label=4];
+  a1 -> a2;
+  a2 -> a5;
+  a2 -> b5;
+  a2 -> s3;
+  b1 -> a2;
+  s3 -> s4;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())

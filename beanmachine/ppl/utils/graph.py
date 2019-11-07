@@ -82,6 +82,8 @@ class Plate(Generic[T]):
                 self._graph._incoming[o].remove(node)
             for i in list(self._graph._incoming[node]):
                 self._graph._outgoing[i].remove(node)
+            del self._graph._outgoing[node]
+            del self._graph._incoming[node]
         return self
 
     def with_edge(self, start: T, end: T) -> "Plate[T]":
@@ -162,8 +164,10 @@ class Graph(Generic[T]):
             self.with_node(start)
         if end not in self._nodes:
             self.with_node(end)
-        self._incoming[end].append(start)
-        self._outgoing[start].append(end)
+        if start not in self._incoming[end]:
+            self._incoming[end].append(start)
+        if end not in self._outgoing[start]:
+            self._outgoing[start].append(end)
         return self
 
     def without_edge(self, start: T, end: T) -> "Graph[T]":
@@ -210,6 +214,15 @@ class Graph(Generic[T]):
         h1 = self._dag_hash(n1, map)
         h2 = self._dag_hash(n2, map)
         return h1 == h2
+
+    def merge_isomorphic(self, n1: T, n2: T) -> None:
+        # All edges of n2 become edges of n1, and n2 is deleted.
+        if n1 in self._nodes and n2 in self._nodes:
+            for in_n2 in self._incoming[n2]:
+                self.with_edge(in_n2, n1)
+            for out_n2 in self._outgoing[n2]:
+                self.with_edge(n1, out_n2)
+            self.without_node(n2)
 
     def reachable(self, node: T) -> List[T]:
         # Given a node in a graph, return the transitive closure of outgoing
