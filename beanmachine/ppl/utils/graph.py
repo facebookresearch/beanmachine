@@ -224,6 +224,11 @@ class Graph(Generic[T]):
                 self.with_edge(n1, out_n2)
             self.without_node(n2)
 
+    def merge_isomorphic_many(self, nodes: List[T]) -> None:
+        # All nodes are merged with n[0]
+        for i in range(1, len(nodes)):
+            self.merge_isomorphic(nodes[0], nodes[i])
+
     def reachable(self, node: T) -> List[T]:
         # Given a node in a graph, return the transitive closure of outgoing
         # nodes, including the original node.

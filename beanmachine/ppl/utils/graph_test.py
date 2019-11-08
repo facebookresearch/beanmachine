@@ -141,3 +141,85 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_merge(self) -> None:
+        self.maxDiff = None
+        #           s1
+        #         /  |  \
+        #       a2   b2   c2
+        #       / \  / \ /  \
+        #     a3   a4  b3    b4
+        #          |         |
+        #          a5        b5
+        #
+        # The three "2" nodes are isomorphic.
+
+        s1 = SimpleNode("s1", 1)
+        a2 = SimpleNode("a2", 2)
+        b2 = SimpleNode("b2", 2)
+        c2 = SimpleNode("c2", 2)
+        a3 = SimpleNode("a3", 3)
+        a4 = SimpleNode("a4", 4)
+        b3 = SimpleNode("b3", 3)
+        b4 = SimpleNode("b4", 4)
+        a5 = SimpleNode("a5", 5)
+        b5 = SimpleNode("b5", 5)
+        g: Graph[SimpleNode] = Graph(
+            lambda x: x.name, lambda x: str(x.label), lambda x: str(x.label)
+        )
+        g = g.with_edge(s1, a2).with_edge(s1, b2).with_edge(s1, c2)
+        g = g.with_edge(a2, a3).with_edge(a2, a4).with_edge(b2, a4)
+        g = g.with_edge(b2, b3).with_edge(c2, b3).with_edge(c2, b4)
+        g = g.with_edge(a4, a5).with_edge(b4, b5)
+
+        observed = g.to_dot()
+        expected = """
+digraph "graph" {
+  a2[label=2];
+  a3[label=3];
+  a4[label=4];
+  a5[label=5];
+  b2[label=2];
+  b3[label=3];
+  b4[label=4];
+  b5[label=5];
+  c2[label=2];
+  s1[label=1];
+  a2 -> a3;
+  a2 -> a4;
+  a4 -> a5;
+  b2 -> a4;
+  b2 -> b3;
+  b4 -> b5;
+  c2 -> b3;
+  c2 -> b4;
+  s1 -> a2;
+  s1 -> b2;
+  s1 -> c2;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+        g.merge_isomorphic_many([a2, b2, c2])
+
+        observed = g.to_dot()
+        expected = """
+digraph "graph" {
+  a2[label=2];
+  a3[label=3];
+  a4[label=4];
+  a5[label=5];
+  b3[label=3];
+  b4[label=4];
+  b5[label=5];
+  s1[label=1];
+  a2 -> a3;
+  a2 -> a4;
+  a2 -> b3;
+  a2 -> b4;
+  a4 -> a5;
+  b4 -> b5;
+  s1 -> a2;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
