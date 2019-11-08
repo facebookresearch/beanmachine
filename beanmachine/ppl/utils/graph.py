@@ -4,6 +4,7 @@ from hashlib import md5
 from typing import Callable, Dict, Generic, List, Optional, TypeVar
 
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
+from beanmachine.ppl.utils.equivalence import partition_by_kernel
 from beanmachine.ppl.utils.unique_name import make_namer
 
 
@@ -203,11 +204,16 @@ class Graph(Generic[T]):
         label = self._to_kernel(current)
         children = (self._dag_hash(c, map) for c in self._outgoing[current])
         summary = label + "/".join(sorted(children))
+
         hash = md5(summary.encode("utf-8")).hexdigest()
         map[current] = hash
         return hash
 
     def are_dags_isomorphic(self, n1: T, n2: T) -> bool:
+        """Determines if two nodes in a graph, which must both be roots of a DAG,
+        are isomorphic. Node labels are given by the function, which must return the
+        same string for two nodes iff the two nodes are value-equal for the purposes of
+        isomorphism detection."""
         map: Dict[T, str] = {}
         assert self._is_dag(n1)
         assert self._is_dag(n2)
@@ -215,19 +221,55 @@ class Graph(Generic[T]):
         h2 = self._dag_hash(n2, map)
         return h1 == h2
 
-    def merge_isomorphic(self, n1: T, n2: T) -> None:
+    def merge_isomorphic(self, n1: T, n2: T) -> bool:
+        """Merges two isomorphic nodes.
+        Returns true if there was any merge made."""
         # All edges of n2 become edges of n1, and n2 is deleted.
-        if n1 in self._nodes and n2 in self._nodes:
-            for in_n2 in self._incoming[n2]:
-                self.with_edge(in_n2, n1)
-            for out_n2 in self._outgoing[n2]:
-                self.with_edge(n1, out_n2)
-            self.without_node(n2)
+        if n1 not in self._nodes or n2 not in self._nodes:
+            return False
+        for in_n2 in self._incoming[n2]:
+            self.with_edge(in_n2, n1)
+        for out_n2 in self._outgoing[n2]:
+            self.with_edge(n1, out_n2)
+        self.without_node(n2)
+        return True
 
-    def merge_isomorphic_many(self, nodes: List[T]) -> None:
-        # All nodes are merged with n[0]
+    def merge_isomorphic_many(self, nodes: List[T]) -> bool:
+        """Merges a collection of two or more isomorphic nodes into nodes[0]
+        Returns true if there was any merge made."""
+        result = False
         for i in range(1, len(nodes)):
-            self.merge_isomorphic(nodes[0], nodes[i])
+            result = self.merge_isomorphic(nodes[0], nodes[i]) or result
+        return result
+
+    def merge_isomorphic_children(self, node: T) -> bool:
+        """Merges all the isomorphic children of a node.
+        Returns true if there was any merge made.
+        The surviving node is the one with the least name."""
+        if node not in self._outgoing:
+            return False
+        map: Dict[T, str] = {}
+
+        def kernel(n: T) -> str:
+            return self._dag_hash(n, map)
+
+        equivalence_classes = partition_by_kernel(self._outgoing[node], kernel)
+        result = False
+        for eqv in equivalence_classes:
+            result = (
+                self.merge_isomorphic_many(sorted(eqv, key=self._to_name)) or result
+            )
+        return result
+
+    def outgoing(self, node: T) -> List[T]:
+        if node in self._outgoing:
+            return list(self._outgoing[node])
+        return []
+
+    def incoming(self, node: T) -> List[T]:
+        if node in self._incoming:
+            return list(self._incoming[node])
+        return []
 
     def reachable(self, node: T) -> List[T]:
         # Given a node in a graph, return the transitive closure of outgoing

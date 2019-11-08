@@ -203,6 +203,14 @@ digraph "graph" {
         g.merge_isomorphic_many([a2, b2, c2])
 
         observed = g.to_dot()
+        #           s1
+        #           |
+        #           a2
+        #       /  |   |   \
+        #     a3   a4  b3  b4
+        #          |       |
+        #          a5      b5
+
         expected = """
 digraph "graph" {
   a2[label=2];
@@ -222,4 +230,33 @@ digraph "graph" {
   s1 -> a2;
 }
 """
+        self.assertEqual(observed.strip(), expected.strip())
+
+        g.merge_isomorphic_children(a2)
+
+        #           s1
+        #           |
+        #           a2
+        #          /  \
+        #         a3   a4
+        #             /  \
+        #            a5   b5
+        # Note that the isomorphic 5 nodes are not recursively merged.
+
+        observed = g.to_dot()
+        expected = """
+digraph "graph" {
+  a2[label=2];
+  a3[label=3];
+  a4[label=4];
+  a5[label=5];
+  b5[label=5];
+  s1[label=1];
+  a2 -> a3;
+  a2 -> a4;
+  a4 -> a5;
+  a4 -> b5;
+  s1 -> a2;
+}
+        """
         self.assertEqual(observed.strip(), expected.strip())
