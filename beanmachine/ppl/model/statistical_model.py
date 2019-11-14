@@ -149,6 +149,10 @@ class StatisticalModel(object):
                 children=set() if len(stack) == 0 else set({stack[-1]}),
                 proposal_distribution=None,
                 extended_val=None,
+                is_discrete=None,
+                transforms=None,
+                unconstrained_value=None,
+                jacobian=None,
             )
 
             world.add_node_to_world(func_key, var)
@@ -157,10 +161,9 @@ class StatisticalModel(object):
             stack.pop()
 
             var.distribution = distribution
-            obs = obs[func_key] if func_key in obs else None
-            var.initialize_value(obs)
 
-            var.log_prob = distribution.log_prob(var.value).sum()
+            obs_value = obs[func_key] if func_key in obs else None
+            var.update_fields(None, obs_value, world.get_transform(func_key))
             world.update_diff_log_prob(func_key)
             return var.value
 

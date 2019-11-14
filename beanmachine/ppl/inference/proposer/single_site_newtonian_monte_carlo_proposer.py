@@ -36,7 +36,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         4) Compute the final proposal log update: log(P(X'->X)) - log(P(X->X'))
     """
 
-    def __init__(self, world):
+    def __init__(self, world) -> None:
         super().__init__(world)
 
     def is_valid(self, vec: Tensor) -> bool:
@@ -45,10 +45,11 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         """
         return not (torch.isnan(vec).any() or torch.isinf(vec).any())
 
-    def zero_grad(self, node_val: Tensor):
+    def zero_grad(self, node_val: Tensor) -> None:
         """
         Zeros the gradient.
         """
+        # pyre-fixme
         if hasattr(node_val, "grad") and node_val.grad is not None:
             node_val.grad.zero_()
 
@@ -62,6 +63,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         score = node_var.log_prob.clone()
         for child in node_var.children:
             score += self.world_.get_node_in_world(child, False).log_prob.clone()
+        score += node_var.jacobian
         return score
 
     def compute_first_gradient(
@@ -100,7 +102,6 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         hessian = None
         size = first_gradient.shape[0]
         for i in range(size):
-
             second_gradient = (
                 grad(
                     # pyre-fixme
@@ -167,7 +168,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param node_var: the node Variable we're proposing a new value for
         :returns: mean and covariance
         """
-        node_val = node_var.value
+        node_val = node_var.unconstrained_value
         score = self.compute_score(node_var)
         self.zero_grad(node_val)
         is_valid_gradient, gradient = self.compute_first_gradient(score, node_val)
@@ -290,6 +291,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         predicted_alpha = (
             1 - ((node_val_reshaped * node_val_reshaped) * (hessian_diag_minus_max))
         ).reshape(node_val.shape)
+
         predicted_alpha = torch.where(
             predicted_alpha < -1 * 1e-3,
             # pyre-fixme
@@ -312,16 +314,20 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :returns: the log probability of proposing the old value from this new world.
         """
         node_var = self.world_.get_node_in_world(node, False)
+
+        if node_var.is_discrete:
+            return super().post_process(node)
+
         support = node_var.distribution.support
 
-        if isinstance(support, dist.constraints._Real):
+        if self.world_.get_transform(node) or isinstance(
+            support, dist.constraints._Real
+        ):
             is_valid, old_value_log_proposal = self.post_process_for_real_support(
                 node, node_var
             )
 
-        elif isinstance(support, dist.constraints._Simplex) or isinstance(
-            node_var.distribution, dist.Beta
-        ):
+        elif isinstance(support, dist.constraints._Simplex):
             is_valid, old_value_log_proposal = self.post_process_for_simplex_support(
                 node, node_var
             )
@@ -348,13 +354,10 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         coming from the Dirichlet distribution.
 
         :param node: the node for which we have already proposed a new value for.
+        :param node_var: the Variable associated with the node
         :returns: the log probability of proposing the old value from this new world.
         """
-        old_value = (
-            self.world_.variables_[node].extended_val
-            if isinstance(node_var.distribution, dist.Beta)
-            else self.world_.variables_[node].value
-        )
+        old_value = self.world_.variables_[node].value
         number_of_variables = len(self.world_.variables_) - len(
             self.world_.observations_
         )
@@ -377,9 +380,10 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         MutlivariateNormal(new mean, new covariance).
 
         :param node: the node for which we have already proposed a new value for.
+        :param node_var: the Variable associated with the node
         :returns: the log probability of proposing the old value from this new world.
         """
-        old_value = self.world_.variables_[node].value
+        old_value = self.world_.variables_[node].unconstrained_value
         number_of_variables = len(self.world_.variables_) - len(
             self.world_.observations_
         )
@@ -392,7 +396,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             node_var.proposal_distribution = proposal_distribution
         old_value = old_value.reshape(-1)
         # pyre-fixme
-        return True, proposal_distribution.log_prob(old_value).sum()
+        return True, proposal_distribution.log_prob(old_value).sum() - node_var.jacobian
 
     def post_process_for_halfspace_support(
         self, node: RVIdentifier, node_var: Variable
@@ -403,6 +407,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         MutlivariateNormal(new mean, new covariance).
 
         :param node: the node for which we have already proposed a new value for.
+        :param node_var: the Variable associated with the node
         :returns: the log probability of proposing the old value from this new world.
         """
         old_value = self.world_.variables_[node].value
@@ -431,17 +436,19 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         proposing this new value.
         """
         node_var = self.world_.get_node_in_world(node, False)
-
         support = node_var.distribution.support
 
-        if isinstance(support, dist.constraints._Real):
+        if node_var.is_discrete:
+            return super().propose(node)
+
+        if self.world_.get_transform(node) or isinstance(
+            support, dist.constraints._Real
+        ):
             is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_real_support(
-                node_var
+                node, node_var
             )
 
-        elif isinstance(support, dist.constraints._Simplex) or isinstance(
-            node_var.distribution, dist.Beta
-        ):
+        elif isinstance(support, dist.constraints._Simplex):
             is_valid, proposed_value, negative_new_value_log_proposal = self.propose_for_simplex_support(
                 node_var
             )
@@ -460,7 +467,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         return super().propose(node)
 
     def propose_for_real_support(
-        self, node_var: Variable
+        self, node: RVIdentifier, node_var: Variable
     ) -> Tuple[bool, Tensor, Tensor]:
         """
         Proposes a new value for the node by drawing a sample from the proposal
@@ -484,13 +491,21 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             proposal_distribution = dist.MultivariateNormal(mean, covariance)
             node_var.proposal_distribution = proposal_distribution
         # pyre-fixme
-        new_value = proposal_distribution.sample().reshape(node_val.shape)
-        new_value.requires_grad_(True)
+        new_value = proposal_distribution.sample()
         negative_proposal_log_update = (
             -1
             # pyre-fixme
             * proposal_distribution.log_prob(new_value).sum()
-        )
+        ) + node_var.jacobian
+
+        if self.world_.get_transform(node):
+            new_value = new_value.reshape(node_var.unconstrained_value.shape)
+            new_value = node_var.transform_from_unconstrained_to_constrained(
+                new_value
+            ).reshape(node_val.shape)
+        else:
+            new_value = new_value.reshape(node_var.value.shape)
+
         return True, new_value, negative_proposal_log_update
 
     def propose_for_simplex_support(
@@ -501,7 +516,6 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         distribution (Dirichlet) and compute the log probability of
         the new draw coming from this proposal distribution log(P(X->X')).
 
-        :param node: the node for which we'll need to propose a new value for.
         :param node_var: the Variable associated with the node
         :returns: a new proposed value for the node and the -ve log probability of
         proposing this new value.
@@ -518,16 +532,11 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             proposal_distribution = dist.Dirichlet(alpha)
             node_var.proposal_distribution = proposal_distribution
         # pyre-fixme
-        new_sample = proposal_distribution.sample()
-        negative_proposal_log_update = (
-            -1
+        new_value = proposal_distribution.sample().reshape(node_val.shape)
+        negative_proposal_log_update = -1 * (
             # pyre-fixme
-            * proposal_distribution.log_prob(new_sample).sum()
+            proposal_distribution.log_prob(new_value).sum()
         )
-        if isinstance(node_var.distribution, dist.Beta):
-            new_value = new_sample.transpose(-1, 0)[0].T.reshape(node_val.shape)
-        else:
-            new_value = new_sample.reshape(node_val.shape)
         return True, new_value, negative_proposal_log_update
 
     def propose_for_hspace_support(
@@ -538,7 +547,6 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         distribution (Gamma) and compute the log probability of
         the new draw coming from this proposal distribution log(P(X->X')).
 
-        :param node: the node for which we'll need to propose a new value for.
         :param node_var: the Variable associated with the node
         :returns: a new proposed value for the node and the -ve log probability of
         proposing this new value.
@@ -558,7 +566,6 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
 
         # pyre-fixme
         new_value = proposal_distribution.sample().reshape(node_val.shape)
-        new_value.requires_grad_(True)
         negative_proposal_log_update = (
             -1
             # pyre-fixme

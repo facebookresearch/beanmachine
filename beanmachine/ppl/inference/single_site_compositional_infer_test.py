@@ -53,6 +53,10 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
         self.assertEqual(
             isinstance(
@@ -71,6 +75,10 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
 
         self.assertEqual(
@@ -91,6 +99,10 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
 
         self.assertEqual(
@@ -110,6 +122,10 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
         self.assertEqual(
             isinstance(

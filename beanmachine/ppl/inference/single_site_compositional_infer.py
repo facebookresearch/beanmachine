@@ -22,8 +22,9 @@ class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
     Compositional inference
     """
 
-    def __init__(self, proposers: Dict = None):
+    def __init__(self, proposers: Dict = None, should_transform: bool = False):
         self.proposers_ = proposers
+        self.should_transform_ = should_transform
         super().__init__()
 
     def find_best_single_site_proposer(self, node: RVIdentifier):

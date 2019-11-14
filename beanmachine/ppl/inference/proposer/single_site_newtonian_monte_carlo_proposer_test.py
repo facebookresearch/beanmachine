@@ -65,6 +65,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set({bar_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
 
         distribution = dist.MultivariateNormal(val, tensor([[1.0, 0.8], [0.8, 1.0]]))
@@ -77,6 +81,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=observed_val,
+            jacobian=tensor(0.0),
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -112,6 +120,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -145,6 +157,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -186,6 +202,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=theta_0_value,
+            jacobian=tensor(0.0),
         )
 
         nw.world_.variables_[theta_1_key] = Variable(
@@ -196,6 +216,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=theta_1_value,
+            jacobian=tensor(0.0),
         )
 
         x_distribution = dist.Normal(torch.tensor(0.0), torch.tensor(5.0))
@@ -207,6 +231,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=x_0_value,
+            jacobian=tensor(0.0),
         )
 
         nw.world_.variables_[x_1_key] = Variable(
@@ -217,6 +245,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=x_1_value,
+            jacobian=tensor(0.0),
         )
 
         y = theta_0_value + theta_1_value * x_0_value
@@ -231,6 +263,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(1.0),
+            jacobian=tensor(0.0),
         )
 
         y = theta_0_value + theta_1_value * x_1_value
@@ -245,6 +281,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(1.0),
+            jacobian=tensor(0.0),
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
@@ -284,6 +324,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
         proposal_value.requires_grad_(True)
         nw.world_.variables_[theta_0_key].value = proposal_value
+        nw.world_.variables_[theta_0_key].unconstrained_value = proposal_value
         nw.world_.variables_[theta_0_key].log_prob = theta_0_distribution.log_prob(
             proposal_value
         )
@@ -349,6 +390,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
         world_ = World()
         nw_proposer = SingleSiteNewtonianMonteCarloProposer(world_)
@@ -372,6 +417,10 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
         )
         world_ = World()
         nw_proposer = SingleSiteNewtonianMonteCarloProposer(world_)

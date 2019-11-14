@@ -66,9 +66,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :return: expected mean, expected standard deviation, conjugate model
         queries and observations
         """
-        shape = tensor([1.0, 1.0])
+        shape = tensor([2.0, 2.0])
         rate = tensor([2.0, 2.0])
-        alpha = tensor([0.5, 0.5])
+        alpha = tensor([1.5, 1.5])
         obs = tensor([2.0, 4.0])
         model = GammaGammaModel(shape, rate, alpha)
         queries = [model.gamma_p()]

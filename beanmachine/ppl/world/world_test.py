@@ -104,6 +104,10 @@ class WorldTest(unittest.TestCase):
             children=set({bar_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.5),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[bar_key] = Variable(
@@ -114,6 +118,10 @@ class WorldTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.1),
+            jacobian=tensor(0.0),
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(
@@ -152,6 +160,10 @@ class WorldTest(unittest.TestCase):
             children=set({bar_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.5),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[bar_key] = Variable(
@@ -162,6 +174,10 @@ class WorldTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.1),
+            jacobian=tensor(0.0),
         )
 
         children_log_update, world_log_update, _ = world.propose_change(
@@ -210,6 +226,10 @@ class WorldTest(unittest.TestCase):
             children=set({bar_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.2),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[bar_key] = Variable(
@@ -220,6 +240,10 @@ class WorldTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.1),
+            jacobian=tensor(0.0),
         )
 
         expected_node_update = (
@@ -355,6 +379,10 @@ class WorldTest(unittest.TestCase):
             children=set({Y_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.0),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[A_key_0] = Variable(
@@ -365,6 +393,10 @@ class WorldTest(unittest.TestCase):
             children=set({B_key_0}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.1),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[B_key_0] = Variable(
@@ -375,6 +407,10 @@ class WorldTest(unittest.TestCase):
             children=set({C_key_0, D_key_0}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.2),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[C_key_0] = Variable(
@@ -385,6 +421,10 @@ class WorldTest(unittest.TestCase):
             children=set({D_key_0}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.2),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[D_key_0] = Variable(
@@ -395,6 +435,10 @@ class WorldTest(unittest.TestCase):
             children=set({Y_key}),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.2),
+            jacobian=tensor(0.0),
         )
 
         world.variables_[Y_key] = Variable(
@@ -405,6 +449,10 @@ class WorldTest(unittest.TestCase):
             children=set(),
             proposal_distribution=None,
             extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(1.0),
+            jacobian=tensor(0.0),
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(
