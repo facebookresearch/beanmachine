@@ -80,7 +80,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
         @sample
         def q(self):
-            return dist.Normal(self.p(), torch.tensor(1.0))
+            return dist.Normal(self.p().to(dtype=torch.float32), torch.tensor(1.0))
 
     # Check that RW sampler is used when it should be.
     def test_single_site_random_walk_support(self):
@@ -99,24 +99,6 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         For RealSupportModel, we expect the RW sampler to be used.
         """
         self.assertIn(False, [0 == pred for pred in predictions])
-
-    # Check that ancestral sampler is deferred to as super() when it should be.
-    def test_single_site_random_walk_super(self):
-        model = self.IntegerSupportModel()
-        mh = SingleSiteRandomWalk()
-        p_key = model.p()
-        queries = [p_key]
-        observations = {model.q(): torch.tensor(100.0)}
-        predictions = mh.infer(queries, observations, 100)
-        predictions = predictions.get_chain()[p_key]
-        """
-        If the ancestral sampler is used, then every sample
-        drawn from the chain will be 0. This is by true by
-        the construction of the rsample function.
-        Conversely, normal noise != 0 w.p. 1, giving some sample which != 0.
-        For IntegerSupportModel, we expect the ancestral sampler to be used.
-        """
-        self.assertNotIn(False, [0 == pred for pred in predictions])
 
     class NormalNormalModel(object):
         def __init__(self, ndim=1):

@@ -2,9 +2,7 @@
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-import torch
-import torch.distributions as dist
-from beanmachine.ppl.model.utils import RVIdentifier, float_types
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor, tensor
@@ -83,6 +81,28 @@ class World(object):
         self.log_prob_ = tensor(0.0)
         self.observations_ = defaultdict()
         self.reset_diff()
+        self.should_transform_ = defaultdict(bool)
+        self.should_transform_all_ = False
+
+    def set_all_nodes_transform(self, should_transform: bool) -> None:
+        self.should_transform_all_ = should_transform
+
+    def set_transform(self, node, val):
+        """
+        Enables transform for a given node.
+
+        :param node: the node to enable the transform for
+        """
+        self.should_transform_[node] = val
+
+    def get_transform(self, node):
+        """
+        Returns whether transform is enabled for a given node.
+
+        :param node: the node to look up
+        :returns: whether the node has transform enabled or not
+        """
+        return self.should_transform_[node] or self.should_transform_all_
 
     def __str__(self) -> str:
         return (
@@ -208,20 +228,7 @@ class World(object):
         self.diff_ = defaultdict(Variable)
         var = self.variables_[node].copy()
         old_log_prob = var.log_prob
-        var.value = proposed_value
-        if isinstance(var.distribution, dist.Beta):
-            var.extended_val = torch.cat(
-                # pyre-fixme
-                (var.value.unsqueeze(-1), (1 - var.value).unsqueeze(-1)),
-                -1,
-            )
-            if isinstance(var.extended_val, float_types):
-                var.extended_val.requires_grad_(True)
-            var.value = var.extended_val.transpose(-1, 0)[0].T
-        else:
-            if isinstance(var.value, float_types):
-                var.value.requires_grad_(True)
-        var.log_prob = var.distribution.log_prob(proposed_value).sum()
+        var.update_fields(proposed_value, None, self.should_transform_[node])
         var.proposal_distribution = None
         self.diff_[node] = var
         node_log_update = var.log_prob - old_log_prob
@@ -297,8 +304,12 @@ class World(object):
             stack.append(child)
             child_var.distribution = child.function(*child.arguments)
             stack.pop()
-            # pyre-fixme[16]: `Distribution` has no attribute `log_prob`.
-            child_var.log_prob = child_var.distribution.log_prob(child_var.value).sum()
+            obs_value = (
+                self.observations_[child] if child in self.observations_ else None
+            )
+            child_var.update_fields(
+                child_var.value, obs_value, self.should_transform_[child]
+            )
             new_log_probs[child] = child_var.log_prob
 
         self.update_children_parents(node)

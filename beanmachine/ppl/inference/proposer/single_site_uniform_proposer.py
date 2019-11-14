@@ -41,7 +41,7 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             )
             node_var.proposal_distribution = distribution
             new_value = distribution.sample()
-            return (new_value, -1 * distribution.log_prob(new_value))
+            return (new_value, -1 * distribution.log_prob(new_value).sum())
         if isinstance(
             node_distribution.support, dist.constraints._IntegerInterval
         ) and isinstance(node_distribution, dist.Categorical):
@@ -52,7 +52,7 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             distribution = dist.Categorical(probs)
             node_var.proposal_distribution = distribution
             new_value = distribution.sample()
-            return (new_value, -1 * distribution.log_prob(new_value))
+            return (new_value, -1 * distribution.log_prob(new_value).sum())
         return super().propose(node)
 
     def post_process(self, node: RVIdentifier) -> Tensor:
@@ -63,17 +63,13 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
         """
         node_var = self.world_.get_node_in_world(node, False)
         node_distribution = node_var.distribution
-        if node_var.proposal_distribution is not None:
-            return node_var.proposal_distribution.log_prob(
-                self.world_.variables_[node].value
-            )
         if isinstance(
             node_distribution.support, dist.constraints._Boolean
         ) and isinstance(node_distribution, dist.Bernoulli):
             distribution = dist.Bernoulli(
                 torch.ones(node_distribution.param_shape) / 2.0
             )
-            return distribution.log_prob(self.world_.variables_[node].value)
+            return distribution.log_prob(self.world_.variables_[node].value).sum()
         if isinstance(
             node_distribution.support, dist.constraints._IntegerInterval
         ) and isinstance(node_distribution, dist.Categorical):
@@ -82,5 +78,5 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             # where K is probs.size(-1).
             probs /= float(node_distribution.param_shape[-1])
             distribution = dist.Categorical(probs)
-            return distribution.log_prob(self.world_.variables_[node].value)
+            return distribution.log_prob(self.world_.variables_[node].value).sum()
         return super().post_process(node)

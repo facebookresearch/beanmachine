@@ -13,8 +13,9 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
     Implementation for SingleSiteNewtonianMonteCarlo
     """
 
-    def __init__(self):
+    def __init__(self, use_transform_: bool = False):
         super().__init__()
+        self.world_.set_all_nodes_transform(use_transform_)
         self.proposer_ = SingleSiteNewtonianMonteCarloProposer(self.world_)
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
