@@ -191,7 +191,10 @@ def obtain_posterior(data_train, args_dict, model=None):
     samples = []
     for _i in tqdm(range(num_samples), desc="inference"):
         curr.update_()
-        samples_dict = {"theta": curr.confusion.numpy(), "pi": curr.prevalence.numpy()}
+        samples_dict = {
+            "theta": curr.confusion.clone().numpy(),
+            "pi": curr.prevalence.clone().numpy(),
+        }
         samples.append(samples_dict)
     infer_time_t2 = time.time()
     timing_info = {
