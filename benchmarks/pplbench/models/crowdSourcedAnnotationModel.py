@@ -209,6 +209,6 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
                     P_k *= sample["theta"][j, k, y[i][index]]
                 P_i += sample["pi"][k] * P_k
             sample_pred_log_lik += np.log(P_i)
-        pred_log_lik_array.append(sample_pred_log_lik / n_items)
+        pred_log_lik_array.append(sample_pred_log_lik)
     # return as a numpy array
     return np.array(pred_log_lik_array)
