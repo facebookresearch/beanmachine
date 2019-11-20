@@ -35,7 +35,7 @@ class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
         :param node: the node for which to return a proposer
         :returns: a proposer for the node
         """
-        if self.proposers_ is not None and node in self.proposers_:
+        if self.proposers_ is not None and node.function in self.proposers_:
             return self.proposers_[node]
 
         node_var = self.world_.get_node_in_world(node, False)
