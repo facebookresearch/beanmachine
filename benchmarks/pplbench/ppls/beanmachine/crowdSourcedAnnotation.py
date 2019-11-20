@@ -96,7 +96,7 @@ class CrowdSourcedAnnotationModel(object):
     # this is observed data. Label given to item i by labeler j
     @sample
     def y(self, i: int, j: int):
-        return dist.Categorical(self.theta(j, self.z(i)))
+        return dist.Categorical(self.theta(j, self.z(i).item()))
 
     def infer(self) -> Tuple[MonteCarloSamples, float]:
         observed_dict = {}

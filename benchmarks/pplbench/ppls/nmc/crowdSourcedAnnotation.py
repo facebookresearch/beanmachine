@@ -147,7 +147,13 @@ class State:
             .log()
             * true_one_hot,
         )
-        grad, = torch.autograd.grad(score.sum(), confusion)
+        ssum = score.sum()
+        grad, = torch.autograd.grad(
+            ssum, confusion, retain_graph=True, create_graph=True
+        )
+        # simulate the cost of computing a vector Hessian
+        for _ in range(State.num_categories):
+            torch.autograd.grad(ssum, confusion, retain_graph=True)
         grad.detach_()
         confusion.requires_grad_(False)
         proposer = Dirichlet(grad * confusion + 1)
@@ -156,7 +162,12 @@ class State:
     def propose_prevalence(self, prior, prevalence, labels):
         prevalence = prevalence.clone().requires_grad_(True)
         score = prior.log_prob(prevalence) + prevalence[labels].log().sum()
-        grad, = torch.autograd.grad(score, prevalence)
+        grad, = torch.autograd.grad(
+            score, prevalence, retain_graph=True, create_graph=True
+        )
+        # simulate the cost of computing a vector Hessian
+        for _ in range(State.num_categories):
+            torch.autograd.grad(score, prevalence, retain_graph=True)
         grad.detach_()
         prevalence.requires_grad_(False)
         return score, simplex_proposer(prevalence, grad)
