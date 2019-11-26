@@ -1,0 +1,13 @@
+\BOOKMARK [1][-]{section.1}{Overview}{}% 1
+\BOOKMARK [1][-]{section.2}{Robust Regression Model}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Data Generation}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{PPL Implementations}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Results}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Noisy-Or Topic Model}{}% 6
+\BOOKMARK [2][-]{subsection.3.1}{Data Generation}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.2}{PPL Implementations}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.3}{Results}{section.3}% 9
+\BOOKMARK [1][-]{section.4}{Crowdsourced Annotation Model}{}% 10
+\BOOKMARK [2][-]{subsection.4.1}{Data Generation}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.2}{PPL Implementations}{section.4}% 12
+\BOOKMARK [2][-]{subsection.4.3}{Results}{section.4}% 13
