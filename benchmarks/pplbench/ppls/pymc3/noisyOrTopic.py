@@ -33,22 +33,28 @@ def obtain_posterior(data_train, args_dict, model=None):
     # Define model and sample
     if args_dict["inference_type"] == "mcmc":
         with pm.Model():
+            # traverse through nodes
             for node in range(K):
+                # leak node
                 if node == 0:
                     nodearray[node] = 1
                 else:
+                    # compute the weighted sum of parents and thier activations
                     parent_accumulator = 0
                     for par, wt in enumerate(graph[:, node]):
                         if wt:
                             parent_accumulator += nodearray[par] * wt
                     prob[node] = 1 - np.exp(-np.sum(parent_accumulator))
+                    # topics are not observed
                     if node < T:
                         pm.Bernoulli(f"node_{node}", p=prob[node])
+                    # words are observed
                     else:
                         pm.Bernoulli(
                             f"node_{node}", p=prob[node], observed=nodearray[node]
                         )
             elapsed_time_compile_pymc3 = time.time() - start_time
+            # Start sampling process
             start_time = time.time()
             samples_pymc3 = pm.sample(
                 num_samples, cores=1, chains=1, discard_tuned_samples=False
