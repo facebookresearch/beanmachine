@@ -146,7 +146,9 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertRaises(ValueError, common_statistics.split_r_hat, samples)
 
     def test_effective_sample_size(self):
-        samples = torch.tensor([[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]])
+        samples = torch.tensor(
+            [[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]], dtype=torch.double
+        )
         n_eff = common_statistics.effective_sample_size(samples)
         self.assertAlmostEqual(n_eff, 2.6114, delta=0.001)
 

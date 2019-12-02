@@ -66,16 +66,18 @@ def effective_sample_size(query_samples: Tensor) -> Tensor:
     samples = query_samples - query_samples.mean(dim=1, keepdim=True)
     samples = samples.transpose(1, -1)
     # computes fourier transform (with padding)
-    padded_samples = torch.cat((samples, torch.zeros(samples.shape)), dim=-1)
+    padding = torch.zeros(samples.shape, dtype=samples.dtype)
+    padded_samples = torch.cat((samples, padding), dim=-1)
     fvi = torch.rfft(padded_samples, 1, onesided=False)
     # multiply by complex conjugate
     acf = fvi.pow(2).sum(-1, keepdim=True)
     # transform back to reals (with padding)
-    padded_acf = torch.cat((acf, torch.zeros(acf.shape)), dim=-1)
+    padding = torch.zeros(acf.shape, dtype=acf.dtype)
+    padded_acf = torch.cat((acf, padding), dim=-1)
     rho_per_chain = torch.irfft(padded_acf, 1, onesided=False)
 
     rho_per_chain = rho_per_chain.narrow(-1, 0, n_samples)
-    num_per_lag = torch.tensor(range(n_samples, 0, -1), dtype=torch.float32)
+    num_per_lag = torch.tensor(range(n_samples, 0, -1), dtype=samples.dtype)
     rho_per_chain = torch.div(rho_per_chain, num_per_lag)
     rho_per_chain = rho_per_chain.transpose(1, -1)
 
@@ -92,7 +94,7 @@ def effective_sample_size(query_samples: Tensor) -> Tensor:
     rho_sum = torch.zeros(rho_2d.shape[0])
 
     for i, chain in enumerate(torch.unbind(rho_2d, dim=0)):
-        total_sum = torch.tensor(0.0)
+        total_sum = torch.tensor(0.0, dtype=samples.dtype)
         for t in range(n_samples // 2):
             rho_even = chain[2 * t]
             rho_odd = chain[2 * t + 1]
