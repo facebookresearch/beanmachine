@@ -3,6 +3,10 @@ import unittest
 
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.examples.conjugate_models import (
+    GammaNormalModel,
+    NormalNormalModel,
+)
 from beanmachine.ppl.inference.single_site_random_walk import SingleSiteRandomWalk
 from beanmachine.ppl.model.statistical_model import sample
 
@@ -17,6 +21,22 @@ class RealSupportDist(dist.Distribution):
     # Ancestral sampling will only return zero.
     def rsample(self, sample_shape):
         return torch.zeros(sample_shape)
+
+    # Not a properly defined PDF on the full support, but allows MCMC to explore.
+    def log_prob(self, value):
+        return torch.zeros(value.shape)
+
+
+# A distribution which apparently takes values on the non-negative number line,
+# but in reality it only returns 1 when sampled from.
+class HalfRealSupportDist(dist.Distribution):
+    has_enumerate_support = False
+    support = dist.constraints.greater_than(lower_bound=0.0)
+    has_rsample = True
+
+    # Ancestral sampling will only return one.
+    def rsample(self, sample_shape):
+        return torch.ones(sample_shape)
 
     # Not a properly defined PDF on the full support, but allows MCMC to explore.
     def log_prob(self, value):
@@ -64,10 +84,24 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         self.assertIn(foo_key, mh.world_.variables_[bar_key].parent)
         self.assertIn(bar_key, mh.world_.variables_[foo_key].children)
 
+    """
+    These tests test for the control flow which branches
+    based on node_distribution.support
+    """
+
     class RealSupportModel(object):
         @sample
         def p(self):
             return RealSupportDist()
+
+        @sample
+        def q(self):
+            return dist.Normal(self.p(), torch.tensor(1.0))
+
+    class HalfRealSupportModel(object):
+        @sample
+        def p(self):
+            return HalfRealSupportDist()
 
         @sample
         def q(self):
@@ -80,15 +114,14 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
         @sample
         def q(self):
-            return dist.Normal(self.p().to(dtype=torch.float32), torch.tensor(1.0))
+            return dist.Normal(self.p(), torch.tensor(1.0))
 
-    # Check that RW sampler is used when it should be.
-    def test_single_site_random_walk_support(self):
+    def test_single_site_random_walk_full_support(self):
         model = self.RealSupportModel()
         mh = SingleSiteRandomWalk()
         p_key = model.p()
         queries = [p_key]
-        observations = {model.q(): torch.tensor(100.0)}
+        observations = {model.q(): torch.tensor(1.0)}
         predictions = mh.infer(queries, observations, 100)
         predictions = predictions.get_chain()[p_key]
         """
@@ -100,35 +133,69 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         """
         self.assertIn(False, [0 == pred for pred in predictions])
 
-    class NormalNormalModel(object):
-        def __init__(self, ndim=1):
-            self.ndim = ndim
-
-        @sample
-        def p(self):
-            return dist.Normal(torch.zeros(self.ndim), torch.ones(self.ndim))
-
-        @sample
-        def q(self):
-            return dist.Normal(self.p(), torch.ones(self.ndim))
-
-    def test_single_site_random_walk_rate(self):
-        model = self.NormalNormalModel(1)
-        mh = SingleSiteRandomWalk(step_size=10)
+    def test_single_site_random_walk_half_support(self):
+        model = self.HalfRealSupportModel()
+        mh = SingleSiteRandomWalk()
         p_key = model.p()
         queries = [p_key]
         observations = {model.q(): torch.tensor(100.0)}
         predictions = mh.infer(queries, observations, 100)
         predictions = predictions.get_chain()[p_key]
+        # Discard the first sample, it may not be drawn from the node's distribution
+        predictions = predictions[1:]
+        """
+        If the ancestral sampler is used, then every sample
+        drawn from the chain will be 1. This is by true by
+        the construction of the rsample function.
+        If RW is correctly reached by control flow, then rsample will
+        draw from a Gamma distribution.
+        """
+        self.assertIn(False, [pred == 1 for pred in predictions])
+
+    """
+    These tests test for quick approximate convergence in conjugate models.
+    """
+
+    def test_single_site_random_walk_rate(self):
+        model = NormalNormalModel(
+            mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
+        )
+        mh = SingleSiteRandomWalk(step_size=10)
+        p_key = model.normal_p()
+        queries = [p_key]
+        observations = {model.normal(): torch.tensor(100.0)}
+        predictions = mh.infer(queries, observations, 100)
+        predictions = predictions.get_chain()[p_key]
         self.assertIn(True, [45 < pred < 55 for pred in predictions])
 
     def test_single_site_random_walk_rate_vector(self):
-        model = self.NormalNormalModel(2)
+        model = NormalNormalModel(
+            mu=torch.zeros(2), std=torch.ones(2), sigma=torch.ones(2)
+        )
         mh = SingleSiteRandomWalk(step_size=10)
-        p_key = model.p()
+        p_key = model.normal_p()
         queries = [p_key]
-        observations = {model.q(): torch.tensor([100.0, -100.0])}
+        observations = {model.normal(): torch.tensor([100.0, -100.0])}
         predictions = mh.infer(queries, observations, 100)
         predictions = predictions.get_chain()[p_key]
         self.assertIn(True, [45 < pred[0] < 55 for pred in predictions])
         self.assertIn(True, [-55 < pred[1] < -45 for pred in predictions])
+
+    def test_single_site_random_walk_half_support_rate(self):
+        model = GammaNormalModel(
+            shape=torch.ones(1), rate=torch.ones(1), mu=torch.ones(1)
+        )
+        mh = SingleSiteRandomWalk(step_size=3.0)
+        p_key = model.gamma()
+        queries = [p_key]
+        observations = {model.normal(): torch.tensor([100.0])}
+        predictions = mh.infer(queries, observations, 100)
+        predictions = predictions.get_chain()[p_key]
+        """
+        Our single piece of evidence is the observed value 100.
+        100 is a very large observation w.r.t our model of mu = 1. This
+        implies that the normal distirubtion has very high variance, so samples
+        from the Gamma distribution will have very small values in expectation.
+        For RWMH with large step size, we expect to see this in < 100 steps.
+        """
+        self.assertIn(True, [pred < 0.01 for pred in predictions])

@@ -40,6 +40,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         node_var = self.world_.get_node_in_world(node, False)
         node_distribution = node_var.distribution
 
+        # Full real number line
         if isinstance(node_distribution.support, dist.constraints._Real):
             distribution = dist.Normal(
                 node_var.value, torch.ones(node_var.value.shape) * self.step_size
@@ -47,6 +48,24 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
             new_value = distribution.sample()
 
             negative_proposal_log_update = -1 * distribution.log_prob(new_value).sum()
+            return (new_value, negative_proposal_log_update)
+        # Half number line
+        # Does not yet support PositiveDefinite or LessThan (TODO?)
+        if isinstance(
+            node_distribution.support, dist.constraints._GreaterThan
+        ) or isinstance(node_distribution.support, dist.constraints._GreaterThanEq):
+            lower_bound = node_distribution.support.lower_bound
+            proposal_distribution = self.gamma_distbn_from_moments(
+                node_var.value - lower_bound, self.step_size ** 2
+            )
+            node_var.proposal_distribution = proposal_distribution
+
+            new_sample = proposal_distribution.sample()
+            negative_proposal_log_update = (
+                -1 * proposal_distribution.log_prob(new_sample).sum()
+            )
+
+            new_value = new_sample + lower_bound
             return (new_value, negative_proposal_log_update)
         return super().propose(node)
 
@@ -69,4 +88,24 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
                 old_node_var.value
             ).sum()
             return positive_proposal_log_update
+
+        if isinstance(
+            node_distribution.support, dist.constraints._GreaterThan
+        ) or isinstance(node_distribution.support, dist.constraints._GreaterThanEq):
+            lower_bound = node_distribution.support.lower_bound
+            node_var.proposal_distribution = self.gamma_distbn_from_moments(
+                node_var.value - lower_bound, self.step_size ** 2
+            )
+
+            positive_proposal_log_update = node_var.proposal_distribution.log_prob(
+                old_node_var.value - lower_bound
+            ).sum()
+            return positive_proposal_log_update
+
         return super().post_process(node)
+
+    def gamma_distbn_from_moments(self, expectation, variance):
+        beta = expectation / variance
+        alpha = expectation * beta
+        distribution = dist.Gamma(concentration=alpha, rate=beta)
+        return distribution
