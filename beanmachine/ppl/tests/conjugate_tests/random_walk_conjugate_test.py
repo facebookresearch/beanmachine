@@ -9,7 +9,14 @@ from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
 
 class SingleSiteRandomWalkConjugateTest(unittest.TestCase, AbstractConjugateTests):
     def test_beta_binomial_conjugate_run(self):
-        pass
+        expected_mean, expected_std, queries, observations = (
+            self.compute_beta_binomial_moments()
+        )
+        mh = SingleSiteRandomWalk(step_size=2.0)
+        predictions = mh.infer(queries, observations, 2000)
+        mean, _ = self.compute_statistics(predictions.get_chain()[queries[0]])
+        # Smaller delta, within reasonable time, would likely require a burn-in period
+        self.assertAlmostEqual(abs((mean - expected_mean).sum().item()), 0, delta=0.5)
 
     def test_gamma_gamma_conjugate_run(self):
         expected_mean, expected_std, queries, observations = (
