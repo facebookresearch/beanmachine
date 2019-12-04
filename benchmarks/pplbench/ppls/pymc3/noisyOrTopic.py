@@ -3,7 +3,16 @@
 import time
 
 import numpy as np
+import theano
+import theano.tensor as t
 import pymc3 as pm
+
+
+@theano.compile.ops.as_op(itypes=[t.lscalar, np.array, int], otypes=[t.lscalar])
+def get_extracted_nodeoutcome(nodeoutcome, nodearray, node):
+    nodeoutcome = int(nodeoutcome)
+    nodearray[node] = nodeoutcome
+    return nodearray
 
 
 def obtain_posterior(data_train, args_dict, model=None):
@@ -29,7 +38,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     prob = np.zeros_like(nodearray)
     # sample the parameter posteriors, time it
     start_time = time.time()
-
     # Define model and sample
     if args_dict["inference_type"] == "mcmc":
         with pm.Model():
@@ -39,7 +47,7 @@ def obtain_posterior(data_train, args_dict, model=None):
                 if node == 0:
                     nodearray[node] = 1
                 else:
-                    # compute the weighted sum of parents and thier activations
+                    # compute the weighted sum of parent activations
                     parent_accumulator = 0
                     for par, wt in enumerate(graph[:, node]):
                         if wt:
@@ -47,7 +55,10 @@ def obtain_posterior(data_train, args_dict, model=None):
                     prob[node] = 1 - np.exp(-np.sum(parent_accumulator))
                     # topics are not observed
                     if node < T:
-                        pm.Bernoulli(f"node_{node}", p=prob[node])
+                        nodeoutcome = pm.Bernoulli(f"node_{node}", p=prob[node])
+                        # debug: create a wrapper to extract a sample out of the distribution
+                        # store the generated sample in nodearray so it's children can read it later
+                        nodearray = get_extracted_nodeoutcome(nodeoutcome, nodearray, node)
                     # words are observed
                     else:
                         pm.Bernoulli(
