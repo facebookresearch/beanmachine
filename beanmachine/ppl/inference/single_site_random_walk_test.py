@@ -4,6 +4,7 @@ import unittest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.examples.conjugate_models import (
+    BetaBinomialModel,
     GammaNormalModel,
     NormalNormalModel,
 )
@@ -43,11 +44,27 @@ class HalfRealSupportDist(dist.Distribution):
         return torch.zeros(value.shape)
 
 
+# A distribution which apparently takes values on an interval of the number line,
+# but in reality it only returns 1 when sampled from.
+class IntervalRealSupportDist(dist.Distribution):
+    has_enumerate_support = False
+    support = dist.constraints.interval(lower_bound=2.0, upper_bound=20.0)
+    has_rsample = True
+
+    # Ancestral sampling will only return zero.
+    def rsample(self, sample_shape):
+        return 3 * torch.ones(sample_shape)
+
+    # Not a properly defined PDF on the full support, but allows MCMC to explore.
+    def log_prob(self, value):
+        return torch.zeros(value.shape)
+
+
 # A distribution which apparently takes values on the non-negative integers,
 # but in reality it only returns zero when sampled from.
 class IntegerSupportDist(dist.Distribution):
     has_enumerate_support = False
-    support = dist.constraints.integer_interval(0, 100)
+    support = dist.constraints.integer_interval(0.0, 100.0)
     has_rsample = True
 
     # Ancestral sampling will only return zero.
@@ -107,6 +124,19 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         def q(self):
             return dist.Normal(self.p(), torch.tensor(1.0))
 
+    class IntervalRealSupportModel(object):
+        def __init__(self):
+            self.lower_bound = IntervalRealSupportDist().support.lower_bound
+            self.upper_bound = IntervalRealSupportDist().support.upper_bound
+
+        @sample
+        def p(self):
+            return IntervalRealSupportDist()
+
+        @sample
+        def q(self):
+            return dist.Normal(self.p(), torch.tensor(1.0))
+
     class IntegerSupportModel(object):
         @sample
         def p(self):
@@ -152,6 +182,39 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         """
         self.assertIn(False, [pred == 1 for pred in predictions])
 
+    def test_single_site_random_walk_interval_support(self):
+        lower_bound = IntervalRealSupportDist().support.lower_bound
+        upper_bound = IntervalRealSupportDist().support.upper_bound
+
+        # Test for a single item of evidence
+        def inner_fnc(evidence: float):
+            model = self.IntervalRealSupportModel()
+            mh = SingleSiteRandomWalk()
+            p_key = model.p()
+            queries = [p_key]
+            observations = {model.q(): torch.tensor(evidence)}
+            predictions = mh.infer(queries, observations, 20)
+            predictions = predictions.get_chain()[p_key]
+            """
+            All generated samples should remain in the correct support
+            if the transform is computed properly
+            """
+
+            self.assertNotIn(
+                False, [lower_bound <= pred <= upper_bound for pred in predictions]
+            )
+
+        # We're mostly interested in the boundary cases
+        evidences = torch.cat(
+            (
+                torch.linspace(lower_bound + 0.1, lower_bound + 1, 4),
+                torch.linspace(upper_bound - 1, upper_bound - 0.1, 4),
+            )
+        )
+
+        for e in evidences:
+            inner_fnc(e)
+
     """
     These tests test for quick approximate convergence in conjugate models.
     """
@@ -185,7 +248,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = GammaNormalModel(
             shape=torch.ones(1), rate=torch.ones(1), mu=torch.ones(1)
         )
-        mh = SingleSiteRandomWalk(step_size=3.0)
+        mh = SingleSiteRandomWalk(step_size=4.0)
         p_key = model.gamma()
         queries = [p_key]
         observations = {model.normal(): torch.tensor([100.0])}
@@ -199,3 +262,23 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         For RWMH with large step size, we expect to see this in < 100 steps.
         """
         self.assertIn(True, [pred < 0.01 for pred in predictions])
+
+    def test_single_site_random_walk_interval_support_rate(self):
+        model = BetaBinomialModel(
+            alpha=torch.ones(1) * 2.0, beta=torch.ones(1), trials=torch.ones(1) * 10.0
+        )
+        mh = SingleSiteRandomWalk(step_size=0.3)
+        p_key = model.beta()
+        queries = [p_key]
+        observations = {model.binomial(): torch.tensor([10.0])}
+        predictions = mh.infer(queries, observations, 50)
+        predictions = predictions.get_chain()[p_key]
+        """
+        Our single piece of evidence is the observed value 10.
+        This is a large observation w.r.t our model  . This
+        implies that the Binomial distirubtion has very large parameter p, so
+        samples from the Beta distribution will have similarly large values in
+        expectation. For RWMH with small step size, we expect to accept enough
+        proposals to reach this value in < 50 steps.
+        """
+        self.assertIn(True, [pred > 0.9 for pred in predictions])
