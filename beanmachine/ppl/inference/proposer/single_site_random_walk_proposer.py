@@ -89,6 +89,17 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
             new_value = (sampled_value * width) + lower_bound
             return (new_value, negative_proposal_log_update)
 
+        # Simplex
+        if isinstance(node_distribution.support, dist.constraints._Simplex):
+            node_var.proposal_distribution = self.dirichlet_distbn_from_moments(
+                node_var.value, self.step_size
+            )
+            sampled_value = node_var.proposal_distribution.sample()
+            negative_proposal_log_update = (
+                -1 * node_var.proposal_distribution.log_prob(sampled_value).sum()
+            )
+            return (sampled_value, negative_proposal_log_update)
+
         return super().propose(node)
 
     def post_process(self, node: RVIdentifier) -> Tensor:
@@ -140,6 +151,16 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
             ).sum()
             return positive_proposal_log_update
 
+        # Simplex
+        if isinstance(node_distribution.support, dist.constraints._Simplex):
+            node_var.proposal_distribution = self.dirichlet_distbn_from_moments(
+                node_var.value, self.step_size
+            )
+            positive_proposal_log_update = node_var.proposal_distribution.log_prob(
+                old_node_var.value
+            ).sum()
+            return positive_proposal_log_update
+
         return super().post_process(node)
 
     def gamma_distbn_from_moments(self, expectation, sigma):
@@ -159,3 +180,9 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         beta = alpha * (1.0 - mu) / mu
         distribution = dist.Beta(concentration1=alpha, concentration0=beta)
         return distribution
+
+    def dirichlet_distbn_from_moments(self, mu, sigma):
+        """ The variances of a dirichlet distribution are inversely
+        proportional to the norm of the concentration vector """
+        alpha = mu / (torch.norm(mu) * sigma ** 2)
+        return dist.Dirichlet(concentration=alpha)

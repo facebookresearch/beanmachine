@@ -5,6 +5,7 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.examples.conjugate_models import (
     BetaBinomialModel,
+    CategoricalDirichletModel,
     GammaNormalModel,
     NormalNormalModel,
 )
@@ -282,3 +283,19 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         proposals to reach this value in < 50 steps.
         """
         self.assertIn(True, [pred > 0.9 for pred in predictions])
+
+    def test_single_site_random_walk_simplex_support_rate(self):
+        model = CategoricalDirichletModel(alpha=torch.tensor([1.0, 10.0]))
+        mh = SingleSiteRandomWalk(step_size=1.0)
+        p_key = model.dirichlet()
+        queries = [p_key]
+        observations = {model.categorical(): torch.tensor([1.0, 1.0, 1.0])}
+        predictions = mh.infer(queries, observations, 50)
+        predictions = predictions.get_chain()[p_key]
+        """
+        Our single piece of evidence is the observed value 1.
+        This is a large observation w.r.t the simplex, which has interval [0,1].
+        Based on our model, we expect that this evidence is drawn from
+        category 1 rather than category 0. So pred[0] << pred[1] typically.
+        """
+        self.assertIn(True, [pred[0] < 0.1 for pred in predictions])
