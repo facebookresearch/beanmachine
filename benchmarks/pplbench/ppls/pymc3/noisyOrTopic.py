@@ -58,7 +58,9 @@ def obtain_posterior(data_train, args_dict, model=None):
                         nodeoutcome = pm.Bernoulli(f"node_{node}", p=prob[node])
                         # debug: create a wrapper to extract a sample out of the distribution
                         # store the generated sample in nodearray so it's children can read it later
-                        nodearray = get_extracted_nodeoutcome(nodeoutcome, nodearray, node)
+                        nodearray = get_extracted_nodeoutcome(
+                            nodeoutcome, nodearray, node
+                        )
                     # words are observed
                     else:
                         pm.Bernoulli(
