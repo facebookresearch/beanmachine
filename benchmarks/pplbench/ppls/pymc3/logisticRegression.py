@@ -33,7 +33,7 @@ def obtain_posterior(data_train, args_dict, model=None):
             elapsed_time_compile_pymc3 = time.time() - start_time
             start_time = time.time()
             samples_pymc3 = pm.sample(
-                num_samples, cores=1, chains=1, discard_tuned_samples=False
+                num_samples, cores=1, chains=1, tune=200, discard_tuned_samples=False
             )
 
     elif args_dict["inference_type"] == "vi":
