@@ -7,12 +7,6 @@ import theano.tensor as t
 import pymc3 as pm
 
 
-# @theano.compile.ops.as_op(itypes=[t.lscalar], otypes=[t.lscalar])
-# def get_extracted_nodeoutcome(nodeoutcome):
-#     nodeoutcome = int(nodeoutcome)
-#     return nodeoutcome
-
-
 def obtain_posterior(data_train, args_dict, model=None):
     """
     PyMC3 implementation of noisy-or topic model
