@@ -8,11 +8,10 @@ import theano.tensor as t
 import pymc3 as pm
 
 
-@theano.compile.ops.as_op(itypes=[t.lscalar, np.array, int], otypes=[t.lscalar])
-def get_extracted_nodeoutcome(nodeoutcome, nodearray, node):
-    nodeoutcome = int(nodeoutcome)
-    nodearray[node] = nodeoutcome
-    return nodearray
+# @theano.compile.ops.as_op(itypes=[t.lscalar], otypes=[t.lscalar])
+# def get_extracted_nodeoutcome(nodeoutcome):
+#     nodeoutcome = int(nodeoutcome)
+#     return nodeoutcome
 
 
 def obtain_posterior(data_train, args_dict, model=None):
@@ -36,6 +35,8 @@ def obtain_posterior(data_train, args_dict, model=None):
     num_samples = int(args_dict["num_samples_pymc3"])
     nodearray = np.concatenate([np.zeros(T), words])
     prob = np.zeros_like(nodearray)
+    nodearray = list(nodearray)
+    prob = list(prob)
     # sample the parameter posteriors, time it
     start_time = time.time()
     # Define model and sample
@@ -48,18 +49,17 @@ def obtain_posterior(data_train, args_dict, model=None):
                     nodearray[node] = 1
                 else:
                     # compute the weighted sum of parent activations
-                    parent_accumulator = 0
+                    parent_accumulator = t.zeros(1)
                     for par, wt in enumerate(graph[:, node]):
                         if wt:
                             parent_accumulator += nodearray[par] * wt
-                    prob[node] = 1 - np.exp(-np.sum(parent_accumulator))
-                    # topics are not observed
+                    prob[node] = pm.Deterministic(
+                        f"prob_{node}", 1 - t.exp(-t.sum(parent_accumulator))
+                    )
+                    # topics are not observed; sample them and update the nodearray
                     if node < T:
-                        nodeoutcome = pm.Bernoulli(f"node_{node}", p=prob[node])
-                        # debug: create a wrapper to extract a sample out of the distribution
-                        # store the generated sample in nodearray so it's children can read it later
-                        nodearray = get_extracted_nodeoutcome(
-                            nodeoutcome, nodearray, node
+                        nodearray[node] = pm.Bernoulli(
+                            f"node_{node}", logit_p=prob[node]
                         )
                     # words are observed
                     else:
