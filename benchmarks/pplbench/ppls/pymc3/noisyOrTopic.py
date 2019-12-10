@@ -3,8 +3,8 @@
 import time
 
 import numpy as np
-import theano.tensor as t
 import pymc3 as pm
+import theano.tensor as t
 
 
 def obtain_posterior(data_train, args_dict, model=None):
