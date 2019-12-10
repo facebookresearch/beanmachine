@@ -3,7 +3,6 @@
 import time
 
 import numpy as np
-import theano
 import theano.tensor as t
 import pymc3 as pm
 
