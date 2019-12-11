@@ -79,7 +79,14 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
-    install_requires=["torch>=1.2", "dataclasses>=0.6", "pandas>=0.24.2"],
+    install_requires=[
+        "torch>=1.2",
+        "dataclasses>=0.6",
+        "pandas>=0.24.2",
+        "plotly>=2.2.1",
+        "scipy>=0.16",
+        "statsmodels>=0.8.0",
+    ],
     packages=[
         "beanmachine.ppl.diagnostics",
         "beanmachine.ppl.inference.proposer",
