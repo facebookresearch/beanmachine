@@ -10,7 +10,10 @@ from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.statistical_model import sample
+from statsmodels.tsa.stattools import acf
 
+
+torch.manual_seed(123)
 
 diri_dis = dist.Dirichlet(
     torch.tensor([[1.0, 2.0, 3.0], [2.0, 1.0, 3.0], [2.0, 3.0, 1.0]])
@@ -69,7 +72,7 @@ def dist_summary_stats() -> Dict[str, torch.tensor]:
 
 
 class DiagnosticsTest(unittest.TestCase):
-    def test_basic_diagnostics(self) -> pd.DataFrame:
+    def test_basic_diagnostics(self):
         def _inference_evaulation(summary: pd.DataFrame):
             exact_stats = dist_summary_stats()
 
@@ -86,8 +89,54 @@ class DiagnosticsTest(unittest.TestCase):
                             delta=0.2,
                         )
 
+        def _test_plot_object(diag, query, query_samples):
+            plot_object = diag.plot([query])
+            trace_object = diag.trace([query])
+            index = 0
+            num_samples = query_samples[0].numel()
+            # test the trace plot over the first chain of beta(0)
+            for i in range(num_samples):
+                assert all(
+                    a == b
+                    for a, b in zip(
+                        plot_object[0]["data"][index]["y"], query_samples[:, i]
+                    )
+                ), f"plot object for {diag._stringify_query(query)} is not correct"
+
+                assert all(
+                    a == b
+                    for a, b in zip(
+                        trace_object[0]["data"][index]["y"], query_samples[:, i]
+                    )
+                ), f"trace object for {diag._stringify_query(query)} {i} is not correct"
+
+                index += 2
+
+        def _test_autocorr_object(diag, query, query_samples):
+            autocorr_object = diag.autocorr([query])
+            index = 0
+            num_samples = query_samples[0].numel()
+            # test the autocorr results over the first chain of beta(0)
+            for i in range(num_samples):
+                expected_acf = acf(
+                    query_samples[:, i].detach().numpy(),
+                    unbiased=True,
+                    nlags=num_samples - 1,
+                )
+                for ns in range(num_samples):
+                    self.assertAlmostEqual(
+                        autocorr_object[0]["data"][index]["y"][ns],
+                        expected_acf[ns],
+                        msg=f"autocorr data for {diag._stringify_query(query)}\
+                              is not correct",
+                        delta=0.1,
+                    )
+                index += 1
+
         mh = SingleSiteAncestralMetropolisHastings()
-        samples = mh.infer([beta(0), diri(1, 5), normal()], {}, 5000, 2)
+        query_list = [beta(0), diri(1, 5), normal()]
+        num_chains = 2
+        samples = mh.infer(query_list, {}, 1000, num_chains)
 
         out_df = Diagnostics(samples).summary()
         _inference_evaulation(out_df)
@@ -100,6 +149,11 @@ class DiagnosticsTest(unittest.TestCase):
 
         self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 3)])
         self.assertRaises(ValueError, Diagnostics(samples).summary, [diri(1, 5), foo()])
+
+        query = beta(0)
+        query_samples = samples[query][0]
+        _test_plot_object(Diagnostics(samples), query, query_samples)
+        _test_autocorr_object(Diagnostics(samples), query, query_samples)
 
     def test_r_hat_column(self):
         mh = SingleSiteAncestralMetropolisHastings()
