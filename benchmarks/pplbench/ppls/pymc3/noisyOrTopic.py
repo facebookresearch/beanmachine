@@ -52,7 +52,7 @@ def obtain_posterior(data_train, args_dict, model=None):
                     # topics are not observed; sample them and update the nodearray
                     if node < T:
                         nodearray[node] = pm.Bernoulli(
-                            f"node_{node}", logit_p=prob[node]
+                            f"node_{node}", p=prob[node]
                         )
                     # words are observed
                     else:
