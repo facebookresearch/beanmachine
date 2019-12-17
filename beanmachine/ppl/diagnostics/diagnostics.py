@@ -11,7 +11,7 @@ import pandas as pd
 import plotly
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.utils import RVIdentifier
-from plotly import tools
+from plotly.subplots import make_subplots
 from torch import Tensor
 
 
@@ -198,14 +198,14 @@ class BaseDiagnostics:
         :param labels: plot labels
         :returns: a plotly subplot object
         """
-        fig = tools.make_subplots(
+        fig = make_subplots(
             rows=math.ceil(len(traces) / 2), cols=2, subplot_titles=tuple(labels)
         )
 
         r = 1
         for trace in traces:
             for data in trace:
-                fig.append_trace(data, row=math.ceil(r / 2), col=((r - 1) % 2) + 1)
+                fig.add_trace(data, row=math.ceil(r / 2), col=((r - 1) % 2) + 1)
             r += 1
         if display:
             plotly.offline.iplot(fig)
