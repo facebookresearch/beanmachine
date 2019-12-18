@@ -4,12 +4,12 @@ import argparse
 import csv
 import datetime
 import importlib
+import multiprocessing
 import os
 import pickle
 import pkgutil
 import time
 import traceback
-import multiprocessing
 
 import matplotlib.pyplot as plt
 import models
