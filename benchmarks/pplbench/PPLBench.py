@@ -33,9 +33,11 @@ def exec_process(func, *args, **kwargs):
     """
     calls func(*args, **kwargs) in a separate process and returns the value
     """
+
     def entry_point(conn):
         conn.send(func(*args, **kwargs))
         conn.close()
+
     parent_conn, child_conn = multiprocessing.Pipe()
     p = multiprocessing.Process(target=entry_point, args=(child_conn,))
     p.start()
