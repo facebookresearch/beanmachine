@@ -122,6 +122,7 @@ class DiagnosticsTest(unittest.TestCase):
                     query_samples[:, i].detach().numpy(),
                     unbiased=True,
                     nlags=num_samples - 1,
+                    fft=False,
                 )
                 for ns in range(num_samples):
                     self.assertAlmostEqual(
