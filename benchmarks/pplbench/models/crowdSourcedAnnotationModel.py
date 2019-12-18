@@ -100,7 +100,7 @@ def get_defaults():
         "runtime": 200,
         "train_test_ratio": 0.5,
         "trials": 10,
-        "model_args": [3, 2.5, 0.5, 100.0],
+        "model_args": [3, 2.5, 0.5, 10.0],
     }
     return defaults
 
@@ -194,7 +194,6 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
             P_i += pi*_k * P_k
         ppll += log(P_i)
     """
-
     y, J_i = data_test
     n_items = len(y)
     K = samples[0]["theta"].shape[1]
