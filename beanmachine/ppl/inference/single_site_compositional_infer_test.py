@@ -133,3 +133,30 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
             ),
             True,
         )
+
+    def test_single_site_compositionl_inference_with_input(self):
+        model = self.SampleModel()
+        c = SingleSiteCompositionalInference({model.foo: SingleSiteAncestralProposer})
+        foo_key = model.foo()
+        c.world_ = World()
+        distribution = dist.Normal(0.1, 1)
+        val = distribution.sample()
+        c.world_.variables_[foo_key] = Variable(
+            distribution=distribution,
+            value=val,
+            log_prob=distribution.log_prob(val),
+            parent=set(),
+            children=set(),
+            proposal_distribution=None,
+            extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
+        )
+        self.assertEqual(
+            isinstance(
+                c.find_best_single_site_proposer(foo_key), SingleSiteAncestralProposer
+            ),
+            True,
+        )
