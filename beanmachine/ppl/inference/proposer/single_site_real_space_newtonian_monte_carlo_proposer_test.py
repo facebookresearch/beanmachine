@@ -4,8 +4,8 @@ import unittest
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
-    SingleSiteNewtonianMonteCarloProposer,
+from beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer import (
+    SingleSiteRealSpaceNewtonianMonteCarloProposer,
 )
 from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
     SingleSiteNewtonianMonteCarlo,
@@ -15,7 +15,7 @@ from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
 
 
-class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
+class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
     class SampleNormalModel(object):
         @sample
         def foo(self):
@@ -48,7 +48,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         model = self.SampleNormalModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
-        nw_proposer = SingleSiteNewtonianMonteCarloProposer(nw.world_)
+        nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
         foo_key = model.foo()
         bar_key = model.bar()
         val = tensor([2.0, 2.0])
@@ -88,7 +88,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[foo_key]
+            nw.world_.variables_[foo_key], nw.world_
         )
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.5, 1.5])
@@ -104,7 +104,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         model = self.SampleNormalModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
-        nw_proposer = SingleSiteNewtonianMonteCarloProposer(nw.world_)
+        nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
         foo_key = model.foo()
         val = tensor([2.0, 2.0])
         val.requires_grad_(True)
@@ -127,7 +127,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[foo_key]
+            nw.world_.variables_[foo_key], nw.world_
         )
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0])
@@ -141,7 +141,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         model = self.SampleNormalModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
-        nw_proposer = SingleSiteNewtonianMonteCarloProposer(nw.world_)
+        nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
         foo_key = model.foo()
         val = tensor([[2.0, 2.0], [2.0, 2.0]])
         val.requires_grad_(True)
@@ -164,7 +164,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[foo_key]
+            nw.world_.variables_[foo_key], nw.world_
         )
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0, 1.0, 1.0])
@@ -178,7 +178,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         model = self.SampleLogisticRegressionModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
-        nw_proposer = SingleSiteNewtonianMonteCarloProposer(nw.world_)
+        nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
 
         theta_0_key = model.theta_0()
         theta_1_key = model.theta_1()
@@ -288,7 +288,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[theta_0_key]
+            nw.world_.variables_[theta_0_key], nw.world_
         )
         self.assertEqual(is_valid, True)
         score = theta_0_distribution.log_prob(theta_0_value)
@@ -342,7 +342,7 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
         nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
 
         is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[theta_0_key]
+            nw.world_.variables_[theta_0_key], nw.world_
         )
         self.assertEqual(is_valid, True)
         score = tensor(0.0)
@@ -375,62 +375,4 @@ class SingleSiteNewtonianMonteCarloProposerTest(unittest.TestCase):
 
         self.assertAlmostEqual(
             covariance.item(), expected_covariance.item(), delta=0.001
-        )
-
-    def test_alpha_for_dirichlet(self):
-        alpha = tensor([[0.5, 0.5], [0.5, 0.5]])
-        distribution = dist.Dirichlet(alpha)
-        val = distribution.sample()
-        val.requires_grad_(True)
-        node_var = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val).sum(),
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=val,
-            jacobian=tensor(0.0),
-        )
-        world_ = World()
-        nw_proposer = SingleSiteNewtonianMonteCarloProposer(world_)
-        is_valid, predicted_alpha = nw_proposer.compute_alpha(node_var)
-        self.assertEqual(is_valid, True)
-        self.assertAlmostEqual(
-            alpha.sum().item(), (predicted_alpha).sum().item(), delta=0.0001
-        )
-
-    def test_alpha_and_beta_for_gamma(self):
-        alpha = tensor([2.0, 2.0, 2.0])
-        beta = tensor([2.0, 2.0, 2.0])
-        distribution = dist.Gamma(alpha, beta)
-        val = distribution.sample()
-        val.requires_grad_(True)
-        node_var = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val).sum(),
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=val,
-            jacobian=tensor(0.0),
-        )
-        world_ = World()
-        nw_proposer = SingleSiteNewtonianMonteCarloProposer(world_)
-        is_valid, predicted_alpha, predicted_beta = nw_proposer.compute_alpha_beta(
-            node_var
-        )
-        self.assertEqual(is_valid, True)
-        self.assertAlmostEqual(
-            alpha.sum().item(), (predicted_alpha).sum().item(), delta=0.0001
-        )
-        self.assertAlmostEqual(
-            beta.sum().item(), (predicted_beta).sum().item(), delta=0.0001
         )

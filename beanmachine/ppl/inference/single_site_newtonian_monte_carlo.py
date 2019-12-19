@@ -16,7 +16,7 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
     def __init__(self, use_transform_: bool = False):
         super().__init__()
         self.world_.set_all_nodes_transform(use_transform_)
-        self.proposer_ = SingleSiteNewtonianMonteCarloProposer(self.world_)
+        self.proposer_ = SingleSiteNewtonianMonteCarloProposer()
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """

@@ -136,7 +136,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
 
     def test_single_site_compositionl_inference_with_input(self):
         model = self.SampleModel()
-        c = SingleSiteCompositionalInference({model.foo: SingleSiteAncestralProposer})
+        c = SingleSiteCompositionalInference({model.foo: SingleSiteAncestralProposer()})
         foo_key = model.foo()
         c.world_ = World()
         distribution = dist.Normal(0.1, 1)

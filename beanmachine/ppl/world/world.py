@@ -2,6 +2,7 @@
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
+import torch.distributions as dist
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.variable import Variable
@@ -150,6 +151,64 @@ class World(object):
             self.variables_[node].log_prob if node in self.variables_ else tensor(0.0)
         )
 
+    def compute_score(self, node_var: Variable) -> Tensor:
+        """
+        Computes the score of the node plus its children
+
+        :param node_var: the node variable whose score we are going to compute
+        :returns: the computed score
+        """
+        score = node_var.log_prob.clone()
+        for child in node_var.children:
+            if child is None:
+                raise ValueError(f"node {child} is not in the world")
+            child_var = self.get_node_in_world_raise_error(child, False)
+            score += child_var.log_prob.clone()
+        score += node_var.jacobian
+        return score
+
+    def get_old_unconstrained_value(self, node: RVIdentifier) -> Optional[Tensor]:
+        """
+        Looks up the node in the world and returns the old unconstrained value
+        of the node.
+
+        :param node: the node to look up
+        :returns: old unconstrained value of the node.
+        """
+        if node in self.variables_:
+            if (
+                isinstance(self.variables_[node].distribution, dist.Beta)
+                and self.variables_[node].proposal_distribution is not None
+                and isinstance(
+                    self.variables_[node].proposal_distribution.proposal_distribution,
+                    dist.Dirichlet,
+                )
+            ):
+                return self.variables_[node].extended_val
+            return self.variables_[node].unconstrained_value
+        return None
+
+    def get_node_in_world_raise_error(
+        self, node: RVIdentifier, to_be_copied: bool = True
+    ) -> Variable:
+        """
+        Get the node in the world, by first looking up diff_, if not available,
+        then it can be looked up in variables_, while copying into diff_ and
+        returns the new diff_ node (if to_be_copied is true, if not returns
+        node's variable in variables_) and if not available in any, returns None
+
+        :param node: node to be looked up in world
+        :param to_be_copied: a flag to determine whether add the new node to
+        diff_ and start tracking its changes or not.
+        :returns: the corresponding node from the world and raises an error if
+        node is not available
+        """
+        node_var = self.get_node_in_world(node, to_be_copied)
+        if node_var is None:
+            raise ValueError(f"Node {node} is not available in world")
+
+        return node_var
+
     def get_node_in_world(
         self, node: RVIdentifier, to_be_copied: bool = True
     ) -> Optional[Variable]:
@@ -172,7 +231,11 @@ class World(object):
                 return self.diff_[node]
             else:
                 return self.variables_[node]
+
         return None
+
+    def get_number_of_variables(self) -> int:
+        return len(self.variables_) - len(self.observations_)
 
     def contains_in_world(self, node: RVIdentifier) -> bool:
         """

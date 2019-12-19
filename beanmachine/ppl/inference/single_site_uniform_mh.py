@@ -15,7 +15,7 @@ class SingleSiteUniformMetropolisHastings(AbstractSingleSiteMHInference):
 
     def __init__(self):
         super().__init__()
-        self.proposer_ = SingleSiteUniformProposer(self.world_)
+        self.proposer_ = SingleSiteUniformProposer()
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """

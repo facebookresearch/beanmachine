@@ -15,7 +15,7 @@ class SingleSiteRandomWalk(AbstractSingleSiteMHInference):
 
     def __init__(self, step_size: float = 1.0):
         super().__init__()
-        self.proposer_ = SingleSiteRandomWalkProposer(self.world_, step_size)
+        self.proposer_ = SingleSiteRandomWalkProposer(step_size)
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """
