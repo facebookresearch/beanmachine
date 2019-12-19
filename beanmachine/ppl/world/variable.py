@@ -11,6 +11,13 @@ from torch import Tensor
 from torch.distributions import Distribution
 
 
+@dataclass(eq=True, frozen=True)
+class ProposalDistribution:
+    proposal_distribution: Optional[Distribution]
+    requires_transform: bool
+    requires_reshape: bool
+
+
 @dataclass
 class Variable(object):
     """
@@ -51,7 +58,7 @@ class Variable(object):
     parent: Set[Optional[RVIdentifier]]
     children: Set[Optional[RVIdentifier]]
     log_prob: Tensor
-    proposal_distribution: Distribution
+    proposal_distribution: ProposalDistribution
     extended_val: Tensor
     is_discrete: bool
     transforms: List
@@ -63,7 +70,7 @@ class Variable(object):
             value = getattr(self, field.name)
             if (
                 value is not None
-                and field.name not in ("parent", "children")
+                and field.name not in ("parent", "children", "proposal_distribution")
                 and not isinstance(value, field.type)
             ):
                 raise ValueError(
@@ -215,6 +222,15 @@ class Variable(object):
         """
         # pyre-fixme
         self.log_prob = self.distribution.log_prob(self.value).sum()
+
+    def set_transform(self, transform: List):
+        """
+        Sets the variable transform to the transform passed in.
+
+        :param transform: the transform value to the set the variable transform
+        to
+        """
+        self.transforms = transform
 
     def transform_from_unconstrained_to_constrained(
         self, unconstrained_sample: Tensor

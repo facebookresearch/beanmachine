@@ -5,7 +5,7 @@ import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.model.statistical_model import StatisticalModel, sample
 from beanmachine.ppl.model.utils import Mode
-from beanmachine.ppl.world.variable import Variable
+from beanmachine.ppl.world import Variable, World
 
 
 class WorldTest(unittest.TestCase):
@@ -520,3 +520,26 @@ class WorldTest(unittest.TestCase):
         self.assertEqual(A_key_1 in world.variables_, True)
         self.assertEqual(B_key_1 in world.variables_, True)
         self.assertEqual(C_key_1 in world.variables_, True)
+
+    def test_get_world_node(self):
+        world = World()
+        with self.assertRaises(ValueError):
+            world.get_node_in_world_raise_error("test")
+
+    def test_compute_score(self):
+        world = World()
+        world.variables_["tmp"] = Variable(
+            distribution=dist.Normal(tensor(0.2), tensor(0.2)),
+            value=tensor(0.2),
+            log_prob=dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2)),
+            parent=set({}),
+            children=set({None}),
+            proposal_distribution=None,
+            extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.2),
+            jacobian=tensor(0.0),
+        )
+        with self.assertRaises(ValueError):
+            world.compute_score(world.variables_["tmp"])

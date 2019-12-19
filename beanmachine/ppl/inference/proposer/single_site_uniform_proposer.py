@@ -1,13 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates
-from typing import Tuple
-
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.utils import RVIdentifier
-from torch import Tensor
+from beanmachine.ppl.world import ProposalDistribution, Variable, World
 
 
 class SingleSiteUniformProposer(SingleSiteAncestralProposer):
@@ -20,28 +18,30 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
     proposal.
     """
 
-    def __init__(self, world):
-        super().__init__(world)
-
-    def propose(self, node: RVIdentifier) -> Tuple[Tensor, Tensor]:
+    def get_proposal_distribution(
+        self, node: RVIdentifier, node_var: Variable, world: World
+    ) -> ProposalDistribution:
         """
-        Proposes a new value for the node.
+        Returns the proposal distribution of the node.
 
-        :param node: the node for which we'll need to propose a new value for.
-        :returns: a new proposed value for the node and the -ve log probability of
-        proposing this new value.
+        :param node: the node for which we're proposing a new value for
+        :param node_var: the Variable of the node
+        :param world: the world in which we're proposing a new value for node
+        :returns: the proposal distribution of the node
         """
-        node_var = self.world_.get_node_in_world(node, False)
         node_distribution = node_var.distribution
         if isinstance(
-            node_distribution.support, dist.constraints._Boolean
+            # pyre-fixme
+            node_distribution.support,
+            dist.constraints._Boolean,
         ) and isinstance(node_distribution, dist.Bernoulli):
-            distribution = dist.Bernoulli(
-                torch.ones(node_distribution.param_shape) / 2.0
+            return ProposalDistribution(
+                proposal_distribution=dist.Bernoulli(
+                    torch.ones(node_distribution.param_shape) / 2.0
+                ),
+                requires_transform=False,
+                requires_reshape=False,
             )
-            node_var.proposal_distribution = distribution
-            new_value = distribution.sample()
-            return (new_value, -1 * distribution.log_prob(new_value).sum())
         if isinstance(
             node_distribution.support, dist.constraints._IntegerInterval
         ) and isinstance(node_distribution, dist.Categorical):
@@ -50,33 +50,9 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
             # where K is probs.size(-1).
             probs /= float(node_distribution.param_shape[-1])
             distribution = dist.Categorical(probs)
-            node_var.proposal_distribution = distribution
-            new_value = distribution.sample()
-            return (new_value, -1 * distribution.log_prob(new_value).sum())
-        return super().propose(node)
-
-    def post_process(self, node: RVIdentifier) -> Tensor:
-        """
-        Computes the log probability of going back to the old value.
-
-        :returns: the log probability of proposing the old value from this new world.
-        """
-        node_var = self.world_.get_node_in_world(node, False)
-        node_distribution = node_var.distribution
-        if isinstance(
-            node_distribution.support, dist.constraints._Boolean
-        ) and isinstance(node_distribution, dist.Bernoulli):
-            distribution = dist.Bernoulli(
-                torch.ones(node_distribution.param_shape) / 2.0
+            return ProposalDistribution(
+                proposal_distribution=distribution,
+                requires_transform=False,
+                requires_reshape=False,
             )
-            return distribution.log_prob(self.world_.variables_[node].value).sum()
-        if isinstance(
-            node_distribution.support, dist.constraints._IntegerInterval
-        ) and isinstance(node_distribution, dist.Categorical):
-            probs = torch.ones(node_distribution.param_shape)
-            # In Categorical distrbution, the samples are integers from 0-k
-            # where K is probs.size(-1).
-            probs /= float(node_distribution.param_shape[-1])
-            distribution = dist.Categorical(probs)
-            return distribution.log_prob(self.world_.variables_[node].value).sum()
-        return super().post_process(node)
+        return super().get_proposal_distribution(node, node_var, world)
