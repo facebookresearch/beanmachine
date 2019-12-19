@@ -87,6 +87,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
+    def setUp(self) -> None:
+        torch.manual_seed(17)
+
     def test_single_site_random_walk_mechanics(self):
         model = self.SampleModel()
         mh = SingleSiteRandomWalk()
