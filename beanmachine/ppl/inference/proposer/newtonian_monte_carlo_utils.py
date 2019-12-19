@@ -78,8 +78,28 @@ def compute_hessian(first_gradient: Tensor, node_val: Tensor) -> Tuple[bool, Ten
     return True, hessian
 
 
+def symmetric_inverse(neg_hessian: Tensor, max_zval: float = 1e5) -> Tensor:
+    """
+    Compute inverse of a symmetric matrix and returns inverse, eigen values
+    and eigen vectors.
+
+    :param neg_hessian: the value that we'd like to compute the inverse of
+    :returns: neg_hessian inverse
+    """
+    eig_vals, eig_vecs = torch.eig(neg_hessian, eigenvectors=True)
+    eig_vals = eig_vals[:, 0]
+    zevals = eig_vals > max_zval
+    neg_evals = eig_vals <= 0
+    if torch.any(zevals) or torch.any(neg_evals):
+        eig_vals[zevals] = max_zval
+        eig_vals[neg_evals] = max_zval
+    neg_hessian_inverse = eig_vecs * eig_vals.reciprocal().unsqueeze(0) @ eig_vecs.t()
+    neg_hessian_inverse = (neg_hessian_inverse + neg_hessian_inverse.T) / 2
+    return neg_hessian_inverse
+
+
 def compute_neg_hessian_invserse(
-    first_gradient: Tensor, node_val: Tensor, min_eig_val: float = 1e-5
+    first_gradient: Tensor, node_val: Tensor, min_diag_val: float = 1e-7
 ) -> Tuple[bool, Tensor]:
     """
     Compute negative hessian inverse.
@@ -94,21 +114,8 @@ def compute_neg_hessian_invserse(
         return False, tensor(0.0)
     # to avoid problems with inverse, here we add a small value - 1e-7 to
     # the diagonals
-    diag = (1e-7) * torch.eye(hessian.shape[0])
-    # pyre-fixme
-    hessian_inverse = (hessian + diag).inverse()
-    hessian_inverse = (hessian_inverse + hessian_inverse.T) / 2
-    neg_hessian_inverse = -1 * hessian_inverse
-    eig_vals, eig_vec = torch.eig(neg_hessian_inverse, eigenvectors=True)
-    eig_vals = eig_vals[:, 0]
-    num_neg_eig_vals = (eig_vals < 0).sum()
-    if num_neg_eig_vals.item() > 0:
-        eig_vals[eig_vals < 0] = min_eig_val
-        eig_vals = torch.eye(len(eig_vals)) * eig_vals
-        eig_vals_64 = eig_vals.to(dtype=torch.float64)
-        eig_vec_64 = eig_vec.to(dtype=torch.float64)
-        neg_hessian_inverse = eig_vec_64 @ eig_vals_64 @ eig_vec_64.T
-        if eig_vals.dtype is torch.float32:
-            neg_hessian_inverse = neg_hessian_inverse.to(dtype=torch.float32)
+    diag = min_diag_val * torch.eye(hessian.shape[0])
+    neg_hessian = -1 * (hessian + diag)
+    neg_hessian_inverse = symmetric_inverse(neg_hessian)
 
     return True, neg_hessian_inverse
