@@ -86,6 +86,7 @@ setup(
         "plotly>=2.2.1",
         "scipy>=0.16",
         "statsmodels>=0.8.0",
+        "tqdm>=4.40.2",
     ],
     packages=[
         "beanmachine.ppl.diagnostics",
