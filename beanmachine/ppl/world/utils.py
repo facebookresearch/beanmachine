@@ -47,7 +47,7 @@ def get_transforms(distribution: Distribution) -> List:
     if isinstance(support, constraints._Interval):
         lower_bound = tensor(support.lower_bound)
         upper_bound = tensor(support.upper_bound)
-        if lower_bound.sum() != 0.0 or upper_bound.sum() != 1.0:
+        if lower_bound.mean() != 0.0 or upper_bound.mean() != 1.0:
             raise ValueError(
                 "Only distributions with 0 as lower bound and 1 as upper bound is supported"
             )
