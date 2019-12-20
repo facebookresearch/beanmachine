@@ -3,8 +3,8 @@ from typing import List
 
 import torch.distributions as dist
 import torch.distributions.constraints as constraints
-from torch.distributions import Distribution
 import torch.tensor as tensor
+from torch.distributions import Distribution
 
 
 def is_discrete(distribution: Distribution) -> bool:
