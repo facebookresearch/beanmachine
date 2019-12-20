@@ -37,7 +37,7 @@ class InferenceUtilsTest(unittest.TestCase):
 
         beta = dist.Beta(1, 1)
         transforms = get_transforms(beta)
-        self.assertListEqual(transforms, [dist.SigmoidTransform()])
+        self.assertListEqual(transforms, [dist.StickBreakingTransform()])
 
         uniform = dist.Uniform(0, 10)
         with self.assertRaises(ValueError):

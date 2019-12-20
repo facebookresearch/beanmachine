@@ -243,6 +243,11 @@ class Variable(object):
         """
         if len(self.transforms) == 0:
             return unconstrained_sample
+        if isinstance(self.distribution, dist.Beta) and isinstance(
+            self.transforms[0], dist.StickBreakingTransform
+        ):
+            val = self.transforms[0]._call(unconstrained_sample)
+            return val.transpose(-1, 0)[0].T
         return self.transforms[0]._call(unconstrained_sample)
 
     def transform_from_constrained_to_unconstrained(
@@ -256,4 +261,17 @@ class Variable(object):
         """
         if len(self.transforms) == 0:
             return constrained_sample
+
+        if isinstance(self.distribution, dist.Beta) and isinstance(
+            self.transforms[0], dist.StickBreakingTransform
+        ):
+            val = torch.cat(
+                (
+                    constrained_sample.unsqueeze(-1),
+                    (1 - constrained_sample).unsqueeze(-1),
+                ),
+                -1,
+            )
+            return self.transforms[0]._inverse(val)
+
         return self.transforms[0]._inverse(constrained_sample)

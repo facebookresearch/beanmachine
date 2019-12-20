@@ -4,6 +4,7 @@ from typing import List
 import torch.distributions as dist
 import torch.distributions.constraints as constraints
 from torch.distributions import Distribution
+import torch.tensor as tensor
 
 
 def is_discrete(distribution: Distribution) -> bool:
@@ -44,20 +45,20 @@ def get_transforms(distribution: Distribution) -> List:
         return []
 
     if isinstance(support, constraints._Interval):
-        lower_bound = support.lower_bound
-        upper_bound = support.upper_bound
-        if lower_bound != 0.0 or upper_bound != 1.0:
+        lower_bound = tensor(support.lower_bound)
+        upper_bound = tensor(support.upper_bound)
+        if lower_bound.sum() != 0.0 or upper_bound.sum() != 1.0:
             raise ValueError(
                 "Only distributions with 0 as lower bound and 1 as upper bound is supported"
             )
 
-        return [dist.SigmoidTransform()]
+        return [dist.StickBreakingTransform()]
 
     if isinstance(support, constraints._GreaterThan) or isinstance(
         support, constraints._GreaterThanEq
     ):
-        lower_bound = support.lower_bound
-        if lower_bound > 0.0:
+        lower_bound = tensor(support.lower_bound)
+        if lower_bound.sum() > 0.0:
             raise ValueError("Only distributions with 0 as lower bound is supported")
 
         return [dist.ExpTransform()]
