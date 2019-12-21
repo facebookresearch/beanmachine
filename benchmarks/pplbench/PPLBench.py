@@ -1,21 +1,28 @@
 # Copyright(C) Facebook, Inc. and its affiliates. All Rights Reserved.
 
 import argparse
-import csv
 import datetime
 import importlib
 import multiprocessing
 import os
 import pickle
 import pkgutil
+import random
 import time
 import traceback
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import models
 import numpy as np
 import pandas as pd
 import ppls
+import torch
+import torch.tensor as tensor
+from beanmachine.ppl.diagnostics.common_statistics import (
+    effective_sample_size,
+    split_r_hat,
+)
 
 
 # helper function(s)
@@ -33,213 +40,163 @@ def exec_process(func, *args, **kwargs):
     """
     calls func(*args, **kwargs) in a separate process and returns the value
     """
+    random_seed = int(torch.randint(2 ** 32, (1,)))
 
-    def entry_point(conn):
+    def entry_point(conn, random_seed):
+        torch.manual_seed(random_seed)
+        np.random.seed(random_seed)
+        random.seed(random_seed)
         conn.send(func(*args, **kwargs))
         conn.close()
 
     parent_conn, child_conn = multiprocessing.Pipe()
-    p = multiprocessing.Process(target=entry_point, args=(child_conn,))
+    p = multiprocessing.Process(target=entry_point, args=(child_conn, random_seed))
     p.start()
     retval = parent_conn.recv()
     p.join()
     return retval
 
 
-def logspace_datadump(averaged_pp_list, x_axis_list, x_axis_name, plot_data_size):
+def get_color_for_ppl(ppl):
     """
-    Create a datadump which uniformly subsamples in logspace
+    Creates a mapping from ppl name to color
     Inputs:
-    - averaged_pp_list: 2D array of average posterior predictive log-likelihoods
-                        with shape [trials, samples]
-    - x_axis_list: if x_axis_name is "time" -> list of timestamps corresponding to
-                each sample in averaged_pp_list, shape [trials, samples]
-                if x_axis_name is "samples" -> list of sample number (1..num_samples)
-    - x_axis_name: "time" if x-axis is time, "samples" if x_axis is samples
-    - plot_data_size(int): size of the subsampled arrays averaged_pp_list and time_axis
-
+    - ppl: name of ppl
     Outputs:
-    - data_dict: 'trials': logspace subsampled trials of averaged_pp_list
-                 'time_axes':  logspace subsampled time axes
-                 'log_indices': list of indices which are uniform in logspace.
+    - color for matplotlib
     """
-    data_dict = {}
-    log_indices = []
-    if x_axis_name == "time":
-        end = np.log10(x_axis_list.shape[1])
+    colors = {
+        "nmc": "C0",
+        "pyro": "C1",
+        "stan": "C2",
+        "jags": "C3",
+        "bootstrapping": "C4",
+        "beanmachine": "C6",
+        "pymc3": "C7",
+        "beanmachine-vectorized": "C8",
+    }
+    if ppl in colors:
+        return colors[ppl]
     else:
-        end = np.log10(len(x_axis_list))
-    log_pre_index = np.logspace(0, end, num=plot_data_size, endpoint=False)
-    for j in log_pre_index:
-        if not int(j) in log_indices:
-            log_indices.append(int(j))
-    data_dict["log_indices"] = log_indices
-    data_dict["trials"] = averaged_pp_list[:, log_indices]
-
-    if x_axis_name == "time":
-        data_dict["time_axes"] = x_axis_list[:, log_indices]
-    else:
-        data_dict["time_axes"] = np.zeros((averaged_pp_list.shape[0], len(log_indices)))
-
-    return data_dict
+        print(f"Please set color in get_color_for_ppl() in PPLBench.py for {ppl}")
+        return "C9"
 
 
-def generate_plot(
-    x_axis_list,
-    x_axis_name,
-    x_axis_min,
-    x_axis_max,
-    averaged_pp_list,
-    args_dict,
-    PPL,
-    trial,
-):
+def generate_plot(posterior_predictive, args_dict):
     """
-    Helper function to generate plots of posterior log likelihood
-    against either time or samples
-
-    returns-
-    plt - a matplotlib object with the plots
-    plt_datadump - data for generating plots
+    Creates a plot for indicating sample posterior convergence for different PPLs
+    Inputs:
+    - posterior_predictive: posterior predictive log likelihoods of posterior samples
+    - args_dict: arguments used for the benchmark run
     """
     K = args_dict["k"]
-    N = args_dict["n"]
+    N = int(args_dict["n"])
+    trials = int(args_dict["trials"])
     train_test_ratio = float(args_dict["train_test_ratio"])
 
-    # plot!
-    plt.xlim(left=x_axis_min, right=x_axis_max)
-    plt.grid(b=True, axis="y")
-    if x_axis_name == "time":
-        plt.xscale("log")
+    plt.figure(figsize=(8, 6))
+    plt.rcParams.update({"font.size": 18})
     plt.title(
         f'{args_dict["model"]} model \n'
-        f"{int(int(N)*train_test_ratio)} data-points \
-| {K} covariates | {trial + 1} trials"
-    )
-    averaged_pp_list = np.array(averaged_pp_list)
-    x_axis_list = np.array(x_axis_list)
-    max_line = np.max(averaged_pp_list, axis=0)
-    min_line = np.min(averaged_pp_list, axis=0)
-    mean_line = np.mean(averaged_pp_list, axis=0)
-
-    if x_axis_name == "time":
-        mean_x_axis_list = np.mean(x_axis_list, axis=0)
-    else:
-        mean_x_axis_list = x_axis_list
-    label = args_dict[f"legend_name_{PPL}"]
-    plt.plot(mean_x_axis_list, mean_line, label=label)
-    plt.fill_between(
-        mean_x_axis_list, y1=max_line, y2=min_line, interpolate=True, alpha=0.3
+        f"{int(N * train_test_ratio)} data-points"
+        f"| {K} covariates | {trials} trials"
     )
 
-    plt_datadump = logspace_datadump(
-        averaged_pp_list, x_axis_list, x_axis_name, int(args_dict["plot_data_size"])
-    )
+    legend = []
+    for ppl_name in posterior_predictive:
+        ppl_data = tensor(posterior_predictive[ppl_name])
+        samples = 1.0 + torch.arange(ppl_data.shape[1])
 
-    return plt, plt_datadump
-
-
-def generate_plot_against_time(timing_info, posterior_predictive, args_dict):
-    """
-    Generates plots of posterior predictive log-likelihood against time
-
-    inputs-
-    timing_info(dict): 'PPL'->'compile_time' and 'inference_time'
-    posterior_predictive(dict): 'PPL'->'trial'->array of posterior_predictives
-
-    returns-
-    plt - a matplotlib object with the plots
-    plt_data - a dict containing data for generating plots
-    """
-    plt_data = {}
-    for PPL in posterior_predictive.keys():
-        averaged_pp_list = []
-        time_axis_list = []
-        for trial in range(len(posterior_predictive[PPL])):
-            # timing_info[PPL][trial] contains 'inference_time'
-            # and 'compile_time' for each trial of each PPL
-            sample_time = timing_info[PPL][trial]["inference_time"]
-            # posterior_predictive[PPL][trial] is a 1D array of
-            # posterior_predictives for a certain PPL for certain trial
-            averaged_pp = np.zeros_like(posterior_predictive[PPL][trial])
-            time_axis = np.linspace(
-                start=0, stop=sample_time, num=len(posterior_predictive[PPL][trial])
-            )
-            if args_dict["include_compile_time"] == "yes":
-                time_axis += timing_info[PPL][trial]["compile_time"]
-            for i in range(len(posterior_predictive[PPL][trial])):
-                averaged_pp[i] = np.mean(posterior_predictive[PPL][trial][: i + 1])
-            averaged_pp_list.append(averaged_pp)
-            time_axis_list.append(time_axis)
-
-        plt, plt_datadump = generate_plot(
-            time_axis_list,
-            "time",
-            0.01,
-            time_axis[-1],
-            averaged_pp_list,
-            args_dict,
-            PPL,
-            trial,
+        avg_log = torch.cumsum(ppl_data, 1) / samples
+        group_avg = torch.mean(avg_log, dim=0)
+        group_min, _ = torch.min(avg_log, dim=0)
+        group_max, _ = torch.max(avg_log, dim=0)
+        ppl_color = get_color_for_ppl(ppl_name)
+        label = args_dict[f"legend_name_{ppl_name}"]
+        line, = plt.plot(samples, group_avg, color=ppl_color, label=label)
+        plt.fill_between(
+            samples, group_min, group_max, color=ppl_color, interpolate=True, alpha=0.3
         )
-        plt_data[PPL] = plt_datadump
-    plt.legend()
-    plt.ylabel("Average log predictive")
-    plt.xlabel(
-        "Time(Seconds)",
-        "NOTE: includes compile time"
-        if args_dict["include_compile_time"] == "yes"
-        else None,
-    )
-
-    return plt, plt_data
+        legend.append(line)
+    legend = sorted(legend, key=lambda line: line.get_label())
+    plt.legend(handles=legend)
+    ax = plt.axes()
+    ax.set_xlabel("Samples")
+    ax.set_ylabel("Average log predictive")
+    ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.1e"))
 
 
-def generate_plot_against_sample(posterior_predictive, args_dict):
+def compute_trial_statistics(posterior_predictive):
     """
-    Generates plots of posterior predictive log-likelihood against number of samples
-
-    inputs-
-    posterior_predictive(dict): 'PPL'->'trial'->array of posterior_predictives
-
-    returns-
-    plt - a matplotlib object with the plots
-    plt_data - a dict containing data for generating plots
+    Computes effective sample size per trial
     """
-    plt_data = {}
-    for PPL in posterior_predictive.keys():
-        sample_axis_list = [
-            i + 1
-            for i in range(
-                int(args_dict[f"num_samples_{PPL}"] / args_dict[f"thinning_{PPL}"])
-            )
-        ]
-        averaged_pp_list = []
+    stats = {}
+    for ppl in posterior_predictive:
+        ppl_data = tensor(posterior_predictive[ppl])
+        num_trials = len(ppl_data)
+        stats[ppl] = {}
+        for t in range(num_trials):
+            stats[ppl][t] = {}
+            ppl_trial = ppl_data[t].unsqueeze(0)
+            n_eff = effective_sample_size(ppl_trial)
+            stats[ppl][t]["n_eff"] = n_eff.item()
+            stats[ppl][t]["num_unique"] = len(torch.unique(ppl_trial))
+    return stats
 
-        for trial in range(len(posterior_predictive[PPL])):
-            # posterior_predictive[PPL][trial] is a 1D array of
-            # posterior_predictives for a certain PPL for certain trial
-            averaged_pp = np.zeros_like(posterior_predictive[PPL][trial])
-            for i in range(len(posterior_predictive[PPL][trial])):
-                averaged_pp[i] = np.mean(posterior_predictive[PPL][trial][: i + 1])
-            averaged_pp_list.append(averaged_pp)
 
-        plt, plt_datadump = generate_plot(
-            sample_axis_list,
-            "samples",
-            1,
-            sample_axis_list[-1],
-            averaged_pp_list,
-            args_dict,
-            PPL,
-            trial,
-        )
-        plt_data[PPL] = plt_datadump
-    plt.legend()
-    plt.ylabel("Average log predictive")
-    plt.xlabel("Samples")
+def combine_dictionaries(trial_info, timing_info):
+    """
+    Combines the timing info with the trial info
+    """
+    for ppl in trial_info:
+        for trial in trial_info[ppl]:
+            trial_info[ppl][trial].update(timing_info[ppl][trial])
+    return trial_info
 
-    return plt, plt_data
+
+def compute_summary_statistics(posterior_predictive):
+    """
+    Computes r_hat and effective sample size (treating each trial as a chain)
+    """
+    stats = {}
+    for ppl in posterior_predictive:
+        stats[ppl] = {}
+        ppl_data = tensor(posterior_predictive[ppl])
+        stats[ppl]["r_hat"] = split_r_hat(ppl_data).item()
+        stats[ppl]["n_eff"] = effective_sample_size(ppl_data).item()
+    return stats
+
+
+def get_sample_subset(posterior_predictive, args_dict):
+    """
+    Return subset of data uniformly drawn from logspace
+    Inputs:
+    - posterior_predictive: posterior predictive log likelihoods of posterior samples
+    - args_dict: arguments used for the benchmark run
+
+    Outputs:
+    - sample_subset: a list of (ppl name, trial, sample, log_pred, avg_log_pred)
+    """
+    sample_subset = []
+    subset_size = int(args_dict["plot_data_size"])
+    num_samples = int(args_dict["num_samples"])
+    num_trials = int(args_dict["trials"])
+    log_space = np.logspace(0, np.log10(num_samples), num=subset_size, endpoint=False)
+    indices = []
+    for num in log_space:
+        if int(num) not in indices:
+            indices.append(int(num))
+
+    for ppl in posterior_predictive:
+        ppl_data = tensor(posterior_predictive[ppl])
+        avg_log = torch.cumsum(ppl_data, 1) / (1.0 + torch.arange(ppl_data.shape[1]))
+        for t in range(num_trials):
+            for i in indices:
+                log_pred = ppl_data[t][i].item()
+                avg_log_pred = avg_log[t][i].item()
+                sample_subset.append((ppl, t, i, log_pred, avg_log_pred))
+
+    return sample_subset
 
 
 def time_to_sample(ppl, module, runtime, data_train, args_dict, model=None):
@@ -391,8 +348,9 @@ def save_data(
     generated_data,
     posterior_samples,
     posterior_predictive,
-    timing_info,
-    plot_data,
+    trial_info,
+    summary_info,
+    posterior_samples_subset,
 ):
     """
     Save data output folder
@@ -401,34 +359,10 @@ def save_data(
     generated_data: data generated in benchmark run
     posterior_samples: posterior samples generated by PPLs in benchmark run
     posterior_predictive: posterior predictive log likelihoods of posterior samples
-    timing_info: timing information of each PPL, i.e. the compile and inference times
-    plot_data: data structure that stores information to recreate the plots
+    trial_info: compile and inference times and n_eff for each trial for each PPL
+    summary_info: effective sample size and r hat for each PPL
+    posterior_samples_subset: subset of posterior samples for plot generation
     """
-    x_axis_names = ["samples", "time"]
-    for i in range(len(plot_data)):
-        with open(
-            os.path.join(
-                args_dict["output_dir"], "plot_data_{}.csv".format(x_axis_names[i])
-            ),
-            "w",
-        ) as csv_file:
-            csvwriter = csv.writer(csv_file, delimiter=",")
-            csvwriter.writerow(
-                ["ppl", "trial", "sample", "average_log_predictive", "time"]
-            )
-            for ppl in plot_data[i]:
-                for trial in range(plot_data[i][ppl]["trials"].shape[0]):
-                    for sample in range(len(plot_data[i][ppl]["trials"][trial, :])):
-                        csvwriter.writerow(
-                            [
-                                ppl,
-                                trial + 1,
-                                plot_data[i][ppl]["log_indices"][sample]
-                                * args_dict[f"thinning_{ppl}"],
-                                plot_data[i][ppl]["trials"][trial, sample],
-                                plot_data[i][ppl]["time_axes"][trial, sample],
-                            ]
-                        )
 
     with open(os.path.join(args_dict["output_dir"], "arguments.csv"), "w") as csv_file:
         pd.DataFrame.from_dict(args_dict, orient="index").to_csv(csv_file)
@@ -445,10 +379,43 @@ def save_data(
         ) as csv_file:
             pd.DataFrame.from_dict(posterior_samples, orient="index").to_csv(csv_file)
 
+    with open(os.path.join(args_dict["output_dir"], "trial_info.csv"), "w") as csv_file:
+        columns = [
+            "ppl",
+            "trial",
+            "n_eff",
+            "num_unique",
+            "compile_time",
+            "inference_time",
+        ]
+        data = []
+        for ppl in trial_info:
+            for trial in trial_info[ppl]:
+                stats = []
+                for col in columns[2:]:
+                    stats.append(trial_info[ppl][trial][col])
+                data.append((ppl, trial, *stats))
+        pd.DataFrame(data, columns=columns).to_csv(csv_file, index=False)
+
     with open(
-        os.path.join(args_dict["output_dir"], "timing_info.csv"), "w"
+        os.path.join(args_dict["output_dir"], "summary_info.csv"), "w"
     ) as csv_file:
-        pd.DataFrame.from_dict(timing_info, orient="index").to_csv(csv_file)
+        columns = ["ppl", "r_hat", "n_eff"]
+        data = []
+        for ppl in summary_info:
+            stats = []
+            for col in columns[1:]:
+                stats.append(summary_info[ppl][col])
+            data.append((ppl, *stats))
+        pd.DataFrame(data, columns=columns).to_csv(csv_file, index=False)
+
+    with open(
+        os.path.join(args_dict["output_dir"], "posterior_samples_subset.csv"), "w"
+    ) as csv_file:
+        columns = ["ppl", "trial", "sample", "log_predictive", "average_log_predictive"]
+        pd.DataFrame(posterior_samples_subset, columns=columns).to_csv(
+            csv_file, index=False
+        )
 
     with open(
         os.path.join(args_dict["output_dir"], "posterior_predictives.pkl"), "wb"
@@ -588,28 +555,19 @@ def main():
                 f"\n var: {np.array(posterior_predictive[ppl][i]).var()}"
             )
 
-    # generate plots and save
-    plot_time, plot_data_time = generate_plot_against_time(
-        timing_info=timing_info,
-        posterior_predictive=posterior_predictive,
-        args_dict=args_dict,
-    )
-
-    plot_time.savefig(
-        os.path.join(
-            args_dict["output_dir"], "time_posterior_convergence_behaviour.png"
-        )
-    )
-    plot_time.clf()
-    plot_sample, plot_data_sample = generate_plot_against_sample(
-        posterior_predictive=posterior_predictive, args_dict=args_dict
-    )
-    plot_sample.savefig(
+    generate_plot(posterior_predictive, args_dict)
+    plt.savefig(
         os.path.join(
             args_dict["output_dir"], "sample_posterior_convergence_behaviour.png"
-        )
+        ),
+        bbox_inches="tight",
+        dpi=600,
     )
-    plot_data = [plot_data_sample] + [plot_data_time]
+
+    posterior_samples_subset = get_sample_subset(posterior_predictive, args_dict)
+    trial_info = compute_trial_statistics(posterior_predictive)
+    trial_info = combine_dictionaries(trial_info, timing_info)
+    summary_info = compute_summary_statistics(posterior_predictive)
 
     # save data
     save_data(
@@ -617,8 +575,9 @@ def main():
         generated_data,
         posterior_samples,
         posterior_predictive,
-        timing_info,
-        plot_data,
+        trial_info,
+        summary_info,
+        posterior_samples_subset,
     )
     print(f"Output in : {args_dict['output_dir']}")
 
