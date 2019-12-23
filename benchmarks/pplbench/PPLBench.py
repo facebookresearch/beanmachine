@@ -105,7 +105,7 @@ def generate_plot(posterior_predictive, args_dict):
     legend = []
     for ppl_name in posterior_predictive:
         ppl_data = tensor(posterior_predictive[ppl_name])
-        samples = 1.0 + torch.arange(ppl_data.shape[1])
+        samples = 1.0 + torch.arange(ppl_data.shape[1], dtype=ppl_data.dtype)
 
         avg_log = torch.cumsum(ppl_data, 1) / samples
         group_avg = torch.mean(avg_log, dim=0)
@@ -162,7 +162,8 @@ def compute_summary_statistics(posterior_predictive):
     for ppl in posterior_predictive:
         stats[ppl] = {}
         ppl_data = tensor(posterior_predictive[ppl])
-        stats[ppl]["r_hat"] = split_r_hat(ppl_data).item()
+        if len(ppl_data) > 1:
+            stats[ppl]["r_hat"] = split_r_hat(ppl_data).item()
         stats[ppl]["n_eff"] = effective_sample_size(ppl_data).item()
     return stats
 
@@ -189,7 +190,9 @@ def get_sample_subset(posterior_predictive, args_dict):
 
     for ppl in posterior_predictive:
         ppl_data = tensor(posterior_predictive[ppl])
-        avg_log = torch.cumsum(ppl_data, 1) / (1.0 + torch.arange(ppl_data.shape[1]))
+        avg_log = torch.cumsum(ppl_data, 1) / (
+            1.0 + torch.arange(ppl_data.shape[1], dtype=ppl_data.dtype)
+        )
         for t in range(num_trials):
             for i in indices:
                 log_pred = ppl_data[t][i].item()
