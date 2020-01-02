@@ -1,4 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+from typing import Dict, Tuple
+
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
@@ -30,26 +32,38 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         super().__init__()
 
     def get_proposal_distribution(
-        self, node: RVIdentifier, node_var: Variable, world: World
-    ) -> ProposalDistribution:
+        self,
+        node: RVIdentifier,
+        node_var: Variable,
+        world: World,
+        auxiliary_variables: Dict,
+    ) -> Tuple[ProposalDistribution, Dict]:
         """
         Returns the proposal distribution of the node.
 
         :param node: the node for which we're proposing a new value for
         :param node_var: the Variable of the node
         :param world: the world in which we're proposing a new value for node
-        :returns: the proposal distribution of the node
+        :param auxiliary_variables: additional auxiliary variables that may be
+        required to find a proposal distribution
+        :returns: the tuple of proposal distribution of the node and arguments
+        that was used or needs to be used to find the proposal distribution
         """
         node_distribution = node_var.distribution
 
         # pyre-fixme
         if isinstance(node_distribution.support, dist.constraints._Real):
-            return ProposalDistribution(
-                proposal_distribution=dist.Normal(
-                    node_var.value, torch.ones(node_var.value.shape) * self.step_size
+            return (
+                ProposalDistribution(
+                    proposal_distribution=dist.Normal(
+                        node_var.value,
+                        torch.ones(node_var.value.shape) * self.step_size,
+                    ),
+                    requires_transform=False,
+                    requires_reshape=False,
+                    arguments={},
                 ),
-                requires_transform=False,
-                requires_reshape=False,
+                {},
             )
         if isinstance(
             node_distribution.support, dist.constraints._GreaterThan
@@ -60,10 +74,14 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
                 node_var.value - lower_bound, self.step_size ** 2
             )
 
-            return ProposalDistribution(
-                proposal_distribution=proposal_distribution,
-                requires_transform=True,
-                requires_reshape=False,
+            return (
+                ProposalDistribution(
+                    proposal_distribution=proposal_distribution,
+                    requires_transform=True,
+                    requires_reshape=False,
+                    arguments={},
+                ),
+                {},
             )
         if isinstance(node_distribution.support, dist.constraints._Interval):
             lower_bound = node_distribution.support.lower_bound
@@ -79,21 +97,31 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
             else:
                 requires_transform = False
 
-            return ProposalDistribution(
-                proposal_distribution=proposal_distribution,
-                requires_transform=requires_transform,
-                requires_reshape=False,
+            return (
+                ProposalDistribution(
+                    proposal_distribution=proposal_distribution,
+                    requires_transform=requires_transform,
+                    requires_reshape=False,
+                    arguments={},
+                ),
+                {},
             )
         if isinstance(node_distribution.support, dist.constraints._Simplex):
             proposal_distribution = self.dirichlet_distbn_from_moments(
                 node_var.value, self.step_size
             )
-            return ProposalDistribution(
-                proposal_distribution=proposal_distribution,
-                requires_transform=False,
-                requires_reshape=False,
+            return (
+                ProposalDistribution(
+                    proposal_distribution=proposal_distribution,
+                    requires_transform=False,
+                    requires_reshape=False,
+                    arguments={},
+                ),
+                {},
             )
-        return super().get_proposal_distribution(node, node_var, world)
+        return super().get_proposal_distribution(
+            node, node_var, world, auxiliary_variables
+        )
 
     def gamma_distbn_from_moments(self, expectation, sigma):
         """

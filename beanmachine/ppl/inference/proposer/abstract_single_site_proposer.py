@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
-from typing import Tuple
+from typing import Dict, Tuple
 
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import World
@@ -13,7 +13,7 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor]:
+    def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor, Dict]:
         """
         Abstract method to be implemented by classes that inherit from
         AbstractProposer. This implementation will include how the proposer
@@ -22,12 +22,15 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         :param node: the node for which we'll need to propose a new value for.
         :param world: the world in which we'll propose a new value for node.
         :returns: a new proposed value for the node and the -ve log probability of
-        proposing this new value.
+        proposing this new value and auxiliary variables that needs to be passed
+        to post process.
         """
         raise NotImplementedError("Inference algorithm must implement propose.")
 
     @abstractmethod
-    def post_process(self, node: RVIdentifier, world: World) -> Tensor:
+    def post_process(
+        self, node: RVIdentifier, world: World, auxiliary_variables: Dict
+    ) -> Tensor:
         """
         To be implemented by proposers that need post-processing after diff is
         created to compute the final proposal log update.
@@ -35,6 +38,8 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         :param node: the node for which we have already proposed a new value for.
         :param world: the world in which we have already proposed a new value
         for node.
+        :param auxiliary_variables: Dict of auxiliary variables that is passed
+        from propose.
         :returns: the log probability of proposing the old value from this new world.
         """
         raise NotImplementedError("Inference algorithm must implement propose.")

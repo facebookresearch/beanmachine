@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 from abc import ABCMeta, abstractmethod
-from typing import Tuple
+from typing import Dict, Tuple
 
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.abstract_single_site_proposer import (
@@ -18,28 +18,22 @@ class AbstractSingleSiteSingleStepProposer(
     Abstract Single-Site Single-Step Proposer
     """
 
-    def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor]:
+    def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor, Dict]:
         """
         Proposes a new value for the node.
 
         :param node: the node for which we'll need to propose a new value for.
         :param world: the world in which we'll propose a new value for node.
         :returns: a new proposed value for the node and the -ve log probability of
-        proposing this new value.
+        proposing this new value and dict of auxiliary variables that needs to
+        be passed to post process.
         """
         node_var = world.get_node_in_world_raise_error(node, False)
-        number_of_variables = world.get_number_of_variables()
 
-        # if the number of variables in the world is 1 and proposal distribution
-        # has already been computed, we can use the old proposal distribution
-        # and skip re-computing the gradient, since there are no other variable
-        # in the world that may change the gradient and the old one is still
-        # correct.
-        if node_var.proposal_distribution is None or number_of_variables != 1:
-            proposal_distribution_struct = self.get_proposal_distribution(
-                node, node_var, world
-            )
-            node_var.proposal_distribution = proposal_distribution_struct
+        proposal_distribution_struct, auxiliary_variables = self.get_proposal_distribution(
+            node, node_var, world, {}
+        )
+        node_var.proposal_distribution = proposal_distribution_struct
         proposal_distribution_struct = node_var.proposal_distribution
         proposal_distribution = proposal_distribution_struct.proposal_distribution
         requires_transform = proposal_distribution_struct.requires_transform
@@ -67,15 +61,19 @@ class AbstractSingleSiteSingleStepProposer(
                 negative_proposal_log_update + node_var.jacobian
             )
 
-        return (new_value, negative_proposal_log_update)
+        return (new_value, negative_proposal_log_update, auxiliary_variables)
 
-    def post_process(self, node: RVIdentifier, world: World) -> Tensor:
+    def post_process(
+        self, node: RVIdentifier, world: World, auxiliary_variables: Dict
+    ) -> Tensor:
         """
         Computes the log probability of going back to the old value.
 
         :param node: the node for which we'll need to propose a new value for.
         :param world: the world in which we have already proposed a new value
         for node.
+        :param auxiliary_variables: Dict of auxiliary variables that is passed
+        from propose.
         :returns: the log probability of proposing the old value from this new world.
         """
         old_unconstrained_value = world.get_old_unconstrained_value(node)
@@ -84,18 +82,10 @@ class AbstractSingleSiteSingleStepProposer(
             raise ValueError("old unconstrained value is not available in world")
 
         node_var = world.get_node_in_world_raise_error(node, False)
-        number_of_variables = world.get_number_of_variables()
-
-        # if the number of variables in the world is 1 and proposal distribution
-        # has already been computed, we can use the old proposal distribution
-        # and skip re-computing the gradient, since there are no other variable
-        # in the world that may change the gradient and the old one is still
-        # correct.
-        if node_var.proposal_distribution is None or number_of_variables != 1:
-            proposal_distribution_struct = self.get_proposal_distribution(
-                node, node_var, world
-            )
-            node_var.proposal_distribution = proposal_distribution_struct
+        proposal_distribution_struct, _ = self.get_proposal_distribution(
+            node, node_var, world, auxiliary_variables
+        )
+        node_var.proposal_distribution = proposal_distribution_struct
 
         proposal_distribution_struct = node_var.proposal_distribution
         proposal_distribution = proposal_distribution_struct.proposal_distribution
@@ -120,14 +110,21 @@ class AbstractSingleSiteSingleStepProposer(
 
     @abstractmethod
     def get_proposal_distribution(
-        self, node: RVIdentifier, node_var: Variable, world: World
-    ) -> ProposalDistribution:
+        self,
+        node: RVIdentifier,
+        node_var: Variable,
+        world: World,
+        auxiliary_variables: Dict,
+    ) -> Tuple[ProposalDistribution, Dict]:
         """
         Returns the proposal distribution of the node.
 
         :param node: the node for which we're proposing a new value for
         :param node_var: the Variable of the node
         :param world: the world in which we're proposing a new value for node
-        :returns: the proposal distribution of the node
+        :param auxiliary_variables: additional auxiliary variables that may be
+        required to find a proposal distribution
+        :returns: the tuple of proposal distribution of the node and arguments
+        that was used or needs to be used to find the proposal distribution
         """
         raise NotImplementedError("get_proposal_distribution needs to be implemented")
