@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import unittest
+from typing import Dict, Tuple
 
 import torch
 import torch.distributions as dist
@@ -18,22 +19,36 @@ from beanmachine.ppl.world import ProposalDistribution, Variable, World
 class SingleSiteCustomProposerTest(unittest.TestCase):
     class CustomeProposer(AbstractSingleSiteSingleStepProposer):
         def get_proposal_distribution(
-            self, node: RVIdentifier, node_var: Variable, world: World
-        ) -> ProposalDistribution:
+            self,
+            node: RVIdentifier,
+            node_var: Variable,
+            world: World,
+            additional_args: Dict,
+        ) -> Tuple[ProposalDistribution, Dict]:
 
             if node.function.__name__ == "foo":
                 bar_node = list(node_var.children)[0]
                 bar_node_var = world.get_node_in_world_raise_error(bar_node, False)
-                return ProposalDistribution(
-                    proposal_distribution=dist.Gamma(bar_node_var.value, tensor(1.0)),
-                    requires_transform=False,
-                    requires_reshape=False,
+                return (
+                    ProposalDistribution(
+                        proposal_distribution=dist.Gamma(
+                            bar_node_var.value, tensor(1.0)
+                        ),
+                        requires_transform=False,
+                        requires_reshape=False,
+                        arguments={},
+                    ),
+                    {},
                 )
             else:
-                return ProposalDistribution(
-                    proposal_distribution=node_var.distribution,
-                    requires_transform=False,
-                    requires_reshape=False,
+                return (
+                    ProposalDistribution(
+                        proposal_distribution=node_var.distribution,
+                        requires_transform=False,
+                        requires_reshape=False,
+                        arguments={},
+                    ),
+                    {},
                 )
 
     class SampleGammaModel(object):

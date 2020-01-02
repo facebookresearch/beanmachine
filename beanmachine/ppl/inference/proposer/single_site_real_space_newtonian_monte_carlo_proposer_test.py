@@ -87,9 +87,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
+        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[foo_key], nw.world_
         )
+        mean = (diff + node_val_reshaped).squeeze(0)
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.5, 1.5])
         expected_covariance = tensor([[0.5000, 0.4000], [0.4000, 0.5000]])
@@ -126,9 +127,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
+        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[foo_key], nw.world_
         )
+        mean = (diff + node_val_reshaped).squeeze(0)
+
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0])
         expected_covariance = tensor([[1.0, 0.8], [0.8, 1]])
@@ -163,9 +166,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
+        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[foo_key], nw.world_
         )
+        mean = (diff + node_val_reshaped).squeeze(0)
+
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0, 1.0, 1.0])
         expected_covariance = torch.eye(4)
@@ -287,9 +292,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
+        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[theta_0_key], nw.world_
         )
+        mean = (diff + node_val_reshaped).squeeze(0)
+
         self.assertEqual(is_valid, True)
         score = theta_0_distribution.log_prob(theta_0_value)
         score += (
@@ -341,9 +348,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         nw.world_.variables_[y_1_key].distribution = y_1_distribution
         nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
 
-        is_valid, mean, covariance = nw_proposer.compute_normal_mean_covar(
+        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[theta_0_key], nw.world_
         )
+        mean = (diff + node_val_reshaped).squeeze(0)
+
         self.assertEqual(is_valid, True)
         score = tensor(0.0)
 

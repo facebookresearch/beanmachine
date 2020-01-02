@@ -1,4 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+from typing import Dict, Tuple
+
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
@@ -21,8 +23,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
     Single-Site Newtonian Monte Carlo Implementations
 
     In this implementation, we draw a new sample from a proposal that is a
-    MultivariateNormal with followings specifications:
-        mean = sampled_value - gradient * hessian_inversed
+    MultivariateNormal with followings specifications with distance being
+    sampled from Beta(nmc_alpha, nmc_beta)
+        mean = sampled_value - distance * (gradient * hessian_inversed)
         covariance = - hessian_inversed
 
     Where the gradient and hessian are computed over the log probability of
@@ -39,22 +42,31 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         4) Compute the final proposal log update: log(P(X'->X)) - log(P(X->X'))
     """
 
-    def __init__(self):
-        self.real_space_proposer_ = SingleSiteRealSpaceNewtonianMonteCarloProposer()
+    def __init__(self, nmc_alpha: float = 10.0, nmc_beta: float = 1.0):
+        self.real_space_proposer_ = SingleSiteRealSpaceNewtonianMonteCarloProposer(
+            nmc_alpha, nmc_beta
+        )
         self.half_space_proposer_ = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
         self.simplex_proposer_ = SingleSiteSimplexNewtonianMonteCarloProposer()
         super().__init__()
 
     def get_proposal_distribution(
-        self, node: RVIdentifier, node_var: Variable, world: World
-    ) -> ProposalDistribution:
+        self,
+        node: RVIdentifier,
+        node_var: Variable,
+        world: World,
+        auxiliary_variables: Dict,
+    ) -> Tuple[ProposalDistribution, Dict]:
         """
         Returns the proposal distribution of the node.
 
         :param node: the node for which we're proposing a new value for
         :param node_var: the Variable of the node
         :param world: the world in which we're proposing a new value for node
-        :returns: the proposal distribution of the node
+        :param auxiliary_variables: additional auxiliary variables that may be
+        required to find a proposal distribution
+        :returns: the tuple of proposal distribution of the node and arguments
+        that was used or needs to be used to find the proposal distribution
         """
         # pyre-fixme
         node_distribution_support = node_var.distribution.support
@@ -62,16 +74,18 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             node_distribution_support, dist.constraints._Real
         ):
             return self.real_space_proposer_.get_proposal_distribution(
-                node, node_var, world
+                node, node_var, world, auxiliary_variables
             )
         elif isinstance(node_distribution_support, dist.constraints._GreaterThan):
             return self.half_space_proposer_.get_proposal_distribution(
-                node, node_var, world
+                node, node_var, world, {}
             )
         elif isinstance(
             node_distribution_support, dist.constraints._Simplex
         ) or isinstance(node_var.distribution, dist.Beta):
             return self.simplex_proposer_.get_proposal_distribution(
-                node, node_var, world
+                node, node_var, world, {}
             )
-        return super().get_proposal_distribution(node, node_var, world)
+        return super().get_proposal_distribution(
+            node, node_var, world, auxiliary_variables
+        )

@@ -85,14 +85,16 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         :param proposer: the proposer with which propose a new value for node
         :returns: samples for the query
         """
-        proposed_value, negative_proposal_log_update = proposer.propose(
+        proposed_value, negative_proposal_log_update, auxiliary_variables = proposer.propose(
             node, self.world_
         )
 
         children_log_updates, world_log_updates, node_log_update = self.world_.propose_change(
             node, proposed_value, self.stack_
         )
-        positive_proposal_log_update = proposer.post_process(node, self.world_)
+        positive_proposal_log_update = proposer.post_process(
+            node, self.world_, auxiliary_variables
+        )
         proposal_log_update = (
             positive_proposal_log_update + negative_proposal_log_update
         )

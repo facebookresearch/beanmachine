@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates
-from typing import Tuple
+from typing import Dict, Tuple
 
 import torch
 import torch.distributions as dist
@@ -89,21 +89,43 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         return True, predicted_alpha
 
     def get_proposal_distribution(
-        self, node: RVIdentifier, node_var: Variable, world: World
-    ) -> ProposalDistribution:
+        self,
+        node: RVIdentifier,
+        node_var: Variable,
+        world: World,
+        auxiliary_variables: Dict,
+    ) -> Tuple[ProposalDistribution, Dict]:
         """
         Returns the proposal distribution of the node.
 
         :param node: the node for which we're proposing a new value for
         :param node_var: the Variable of the node
         :param world: the world in which we're proposing a new value for node
-        :returns: the proposal distribution of the node
+        :param auxiliary_variables: additional auxiliary variables that may be
+        required to find a proposal distribution
+        :returns: the tuple of proposal distribution of the node and arguments
+        that was used or needs to be used to find the proposal distribution
         """
+        # if the number of variables in the world is 1 and proposal distribution
+        # has already been computed, we can use the old proposal distribution
+        # and skip re-computing the gradient, since there are no other variable
+        # in the world that may change the gradient and the old one is still
+        # correct.
+        number_of_variables = world.get_number_of_variables()
+        if node_var.proposal_distribution is not None and number_of_variables == 1:
+            return (node_var.proposal_distribution, {})
+
         is_valid, alpha = self.compute_alpha(node_var, world)
         if not is_valid:
-            return super().get_proposal_distribution(node, node_var, world)
-        return ProposalDistribution(
-            proposal_distribution=dist.Dirichlet(alpha),
-            requires_transform=False,
-            requires_reshape=True,
+            return super().get_proposal_distribution(
+                node, node_var, world, auxiliary_variables
+            )
+        return (
+            ProposalDistribution(
+                proposal_distribution=dist.Dirichlet(alpha),
+                requires_transform=False,
+                requires_reshape=True,
+                arguments={},
+            ),
+            {},
         )

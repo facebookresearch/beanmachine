@@ -13,10 +13,17 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
     Implementation for SingleSiteNewtonianMonteCarlo
     """
 
-    def __init__(self, use_transform_: bool = False):
+    def __init__(
+        self,
+        use_transform_: bool = False,
+        real_space_alpha: float = 10.0,
+        real_space_beta: float = 1.0,
+    ):
         super().__init__()
         self.world_.set_all_nodes_transform(use_transform_)
-        self.proposer_ = SingleSiteNewtonianMonteCarloProposer()
+        self.proposer_ = SingleSiteNewtonianMonteCarloProposer(
+            real_space_alpha, real_space_beta
+        )
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """
