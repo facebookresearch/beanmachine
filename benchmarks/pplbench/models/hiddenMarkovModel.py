@@ -42,8 +42,8 @@ Pass these arguments in following order -
 
 def get_defaults():
     defaults = {
-        "n": 60,
-        "k": 12,
+        "n": 50,
+        "k": 3,
         "train_test_ratio": 0.5,
         "runtime": 80,
         "trials": 10,
@@ -96,6 +96,7 @@ def generate_model(args_dict):
     """
 
     K = int(args_dict["k"])
+    N = int(args_dict["n"])
     concentration, mu_loc, mu_scale, sigma_shape, sigma_scale = list(
         map(float, args_dict["model_args"])
     )
@@ -104,7 +105,7 @@ def generate_model(args_dict):
     theta = dist.Dirichlet(alpha).sample((K,))
     mus = dist.Normal(mu_loc, mu_scale).sample((K,))
     sigmas = dist.Gamma(sigma_shape, sigma_scale).sample((K,))
-    return {"theta": theta, "mus": mus, "sigmas": sigmas, "K": K}
+    return {"theta": theta, "mus": mus, "sigmas": sigmas, "K": K, "N": N}
 
 
 def generate_data(args_dict, model=None):
@@ -121,7 +122,6 @@ def generate_data(args_dict, model=None):
 
     print("Generating data")
     N = int(args_dict["n"])
-    train_test_ratio = float(args_dict["train_test_ratio"])
     theta = model["theta"]
     mus = model["mus"]
     sigmas = model["sigmas"]
@@ -132,12 +132,11 @@ def generate_data(args_dict, model=None):
     train_data = observs
 
     # Test data
-    xk = hiddens[-1]
-    # want many samples of obs Y(K+1)
-    dctxk = dist.Categorical(theta[xk])
-    xk1samples = dctxk.sample((int(train_test_ratio * N),))
-    yk1samples = [dist.Normal(mus[xk1], sigmas[xk1]).sample() for xk1 in xk1samples]
-    test_data = yk1samples
+    xn1 = hiddens[-1]
+    # Want sample of obs Y(N) given X(N-1)
+    xn = dist.Categorical(theta[xn1]).sample()
+    yn = dist.Normal(mus[xn], sigmas[xn]).sample()
+    test_data = yn
 
     return {"data_train": train_data, "data_test": test_data}
 
@@ -158,6 +157,7 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
     """
 
     K = model["K"]
+    N = model["N"]
 
     # Log-prob of observing (Y(N+1) = yn1 | X(N+1) ~ hidden_transition_pmf)
     # hidden_transition_pmf is determined by X(N) (outside of this fnc.'s scope)
@@ -171,21 +171,17 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
         ]
         return scipy.special.logsumexp(ls)
 
+    yN = data_test
     pred_log_lik_array = []
     for sample in samples:
         # transition likelihood:
         theta = sample["theta"]
         mus = sample["mus"]
         sigmas = sample["sigmas"]
-        xn = sample["x[N]"]
+        xn1 = sample["X[" + str(N - 1) + "]"]
 
-        hidden_transition_pmf = dist.Categorical(torch.from_numpy(theta[int(xn)]))
-        pred_log_lik_array.append(
-            np.sum(
-                log_prob_obs(yn1, hidden_transition_pmf, mus, sigmas)
-                for yn1 in data_test
-            )
-        )
+        hidden_transition_pmf = dist.Categorical(torch.from_numpy(theta[int(xn1)]))
+        pred_log_lik_array.append(log_prob_obs(yN, hidden_transition_pmf, mus, sigmas))
 
     # return as a numpy array of sum of log likelihood over test data
     return pred_log_lik_array

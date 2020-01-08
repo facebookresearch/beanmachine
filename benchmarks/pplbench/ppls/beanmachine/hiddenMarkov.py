@@ -74,10 +74,10 @@ class HiddenMarkovModel(object):
         observations_dict = [
             (self.Y(n), self.observations[n]) for n in range(self.N)
         ] + [(self.X(0), tensor(0.0))]
-        # + [(self.Theta(k), theta[k]) for k in range(self.K)]
+
         observations_dict = dict(observations_dict)
         start_time = time.time()
-        inferred = mh.infer(queries, observations_dict, self.num_samples)
+        inferred = mh.infer(queries, observations_dict, self.num_samples, num_chains=1)
         elapsed_time_sample_beanmachine = time.time() - start_time
         # Return as a tuple of: thetas, mus, sigmas, xNs
         samples = (
@@ -131,19 +131,20 @@ def obtain_posterior(
 
     samples, elapsed_time_sample_beanmachine = hmm.infer()
 
-    thetas, mus, sigmas, xNs = samples
+    thetas, mus, sigmas, xn1s = samples
     # Want to swap the way these are ordered, so we can iterate through.
     thetas = [[thetasK[i] for thetasK in thetas] for i in range(num_samples)]
     mus = [[musK[i] for musK in mus] for i in range(num_samples)]
     sigmas = [[sigmasK[i] for sigmasK in sigmas] for i in range(num_samples)]
+    # Now, e.g., thetas[i] gives the 'i'th MCMC sample of theta[0 .. K] as a list
 
     samples_formatted = []
-    for theta, mu, sigma, xN in zip(thetas, mus, sigmas, xNs):
+    for theta, mu, sigma, xn1 in zip(thetas, mus, sigmas, xn1s):
         result = {}
         result["theta"] = theta
         result["mus"] = mu
         result["sigmas"] = sigma
-        result["x[N]"] = xN
+        result["X[" + str(N - 1) + "]"] = xn1
         samples_formatted.append(result)
 
     # samples_formatted = [{"x[N]": sample} for sample in samples]
