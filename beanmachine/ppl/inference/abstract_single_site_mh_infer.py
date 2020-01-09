@@ -10,6 +10,7 @@ from beanmachine.ppl.inference.abstract_infer import AbstractInference
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import Mode, RVIdentifier
 from torch import Tensor
+from tqdm import tqdm
 
 
 class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
@@ -124,7 +125,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         self.initialize_world()
         queries_sample = defaultdict()
 
-        for _ in range(num_samples):
+        for _ in tqdm(iterable=range(num_samples), desc="Samples collected"):
             for node in self.world_.get_all_world_vars().copy():
                 if node in self.observations_:
                     continue
