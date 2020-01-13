@@ -43,6 +43,7 @@ def get_defaults():
         "train_test_ratio": 0.5,
         "trials": 10,
         "model_args": [10.0, 2.5, 0.0, 10.0],
+        "inference_type": "mcmc",
     }
     return defaults
 
