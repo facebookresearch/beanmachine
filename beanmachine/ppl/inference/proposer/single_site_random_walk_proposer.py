@@ -144,8 +144,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         :param sigma: sigma value
         :returns: returns the Beta distribution given mu and sigma.
         """
-        if torch.norm(mu) < 1e-5:
-            mu = 1e-5 * torch.ones(mu.shape)
+        mu = torch.clamp(mu, 1e-3, 1)
         """
         https://stats.stackexchange.com/questions/12232/calculating-the-
         parameters-of-a-beta-distribution-using-the-mean-and-variance
