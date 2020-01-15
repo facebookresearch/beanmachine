@@ -564,7 +564,7 @@ def main():
             args_dict["output_dir"], "sample_posterior_convergence_behaviour.png"
         ),
         bbox_inches="tight",
-        dpi=600,
+        dpi=300,
     )
 
     posterior_samples_subset = get_sample_subset(posterior_predictive, args_dict)
