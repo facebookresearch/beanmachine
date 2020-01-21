@@ -42,10 +42,6 @@ class LogisticRegressionModel(object):
         self.Y = Y
 
     @sample
-    def alpha(self):
-        return dist.Normal(tensor([0.0]), tensor([self.scale_alpha]))
-
-    @sample
     def beta(self):
         return dist.Normal(
             tensor([0.0] + [self.loc_beta] * self.K),
