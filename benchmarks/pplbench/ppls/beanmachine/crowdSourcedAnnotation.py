@@ -63,6 +63,7 @@ class CrowdSourcedAnnotationModel(object):
     ):
         alphas = (1 - expected_correctness) / (num_categories - 1)
         alpha = torch.ones((num_categories, num_categories)) * alphas * concentration
+        # pyre-fixme[16]: `float` has no attribute `__setitem__`.
         alpha[torch.arange(num_categories), torch.arange(num_categories)] = (
             expected_correctness * concentration
         )
