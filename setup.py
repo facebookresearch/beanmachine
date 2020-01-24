@@ -95,6 +95,7 @@ setup(
         "beanmachine.ppl.model",
         "beanmachine.ppl.world",
         "beanmachine.ppl.utils",
+        "beanmachine.applications.clara",
     ],
     ext_modules=[
         CppExtension(
