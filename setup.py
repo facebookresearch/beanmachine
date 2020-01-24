@@ -24,6 +24,9 @@ DEV_REQUIRES = TEST_REQUIRES + [
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 
 
+EXTRA_COMPILE_ARGS = ["-std=c++14", "-Werror"]
+
+
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
     error = (
@@ -104,8 +107,14 @@ setup(
                 - set(glob("beanmachine/graph/*_test.cpp"))
             ),
             include_dirs=["."],
-            extra_compile_args=["-std=c++14", "-Werror"],
-        )
+            extra_compile_args=EXTRA_COMPILE_ARGS,
+        ),
+        CppExtension(
+            name="beanmachine.ppl.utils.tensorops",
+            sources=["beanmachine/ppl/utils/tensorops.cpp"],
+            include_dirs=["."],
+            extra_compile_args=EXTRA_COMPILE_ARGS,
+        ),
     ],
     cmdclass={"build_ext": BuildExtension},
     extras_require={
