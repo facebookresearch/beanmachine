@@ -62,6 +62,8 @@ class AbstractInference(object, metaclass=ABCMeta):
         try:
             self.queries_ = queries
             self.observations_ = observations
+            # pyre-fixme[6]: Expected `Union[bytes, str, typing.SupportsInt]` for
+            #  1st param but got `Tensor`.
             random_seed = int(torch.randint(2 ** 62, (1,)))
 
             if num_chains > 1 and run_in_parallel:

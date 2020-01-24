@@ -75,9 +75,14 @@ class World(object):
 
     def __init__(
         self,
+        # pyre-fixme[9]: init_world_log_prob has type `Tensor`; used as `None`.
         init_world_log_prob: Tensor = None,
+        # pyre-fixme[9]: init_world_dict has type `Dict[RVIdentifier, Variable]`;
+        #  used as `None`.
         init_world_dict: Dict[RVIdentifier, Variable] = None,
     ):
+        # pyre-fixme[6]: Expected `Optional[typing.Callable[[],
+        #  Variable[collections._VT]]]` for 1st param but got `Type[Variable]`.
         self.variables_ = defaultdict(Variable)
         self.log_prob_ = tensor(0.0)
         self.observations_ = defaultdict()
@@ -273,6 +278,8 @@ class World(object):
         """
         Resets the diff
         """
+        # pyre-fixme[6]: Expected `Optional[typing.Callable[[],
+        #  Variable[collections._VT]]]` for 1st param but got `Type[Variable]`.
         self.diff_ = defaultdict(Variable)
         self.diff_log_update_ = tensor(0.0)
         self.is_delete_ = defaultdict(bool)
@@ -288,6 +295,8 @@ class World(object):
         :returns: difference of old and new log probability of the node after
         updating the node value to the proposed value
         """
+        # pyre-fixme[6]: Expected `Optional[typing.Callable[[],
+        #  Variable[collections._VT]]]` for 1st param but got `Type[Variable]`.
         self.diff_ = defaultdict(Variable)
         var = self.variables_[node].copy()
         old_log_prob = var.log_prob
@@ -323,6 +332,7 @@ class World(object):
 
             for parent in dropped_parents:
                 parent_var = self.get_node_in_world(parent)
+                # pyre-fixme[16]: `Optional` has no attribute `children`.
                 parent_var.children.remove(child)
                 if len(parent_var.children) != 0 or parent in self.observations_:
                     continue
@@ -330,6 +340,7 @@ class World(object):
                 self.is_delete_[parent] = True
                 self.diff_log_update_ -= self.variables_[parent].log_prob
 
+                # pyre-fixme[16]: `Optional` has no attribute `parent`.
                 ancestors = [(parent, x) for x in parent_var.parent]
                 while len(ancestors) > 0:
                     ancestor_child, ancestor = ancestors.pop(0)

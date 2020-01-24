@@ -22,6 +22,7 @@ class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
     Compositional inference
     """
 
+    # pyre-fixme[9]: proposers has type `Dict[typing.Any, typing.Any]`; used as `None`.
     def __init__(self, proposers: Dict = None, should_transform: bool = False):
         self.proposers_ = {}
         if proposers is not None:

@@ -51,6 +51,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         alpha = alpha + obs
         beta = beta - obs + trials
         expected_mean = alpha / (alpha + beta)
+        # pyre-fixme[16]: `float` has no attribute `pow`.
         expected_std = (
             (alpha * beta) / (alpha + beta).pow(2.0) * (alpha + beta + 1.0)
         ).pow(0.5)
@@ -181,6 +182,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         predictions = mh.infer(queries, observations, num_samples, num_chains)
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
+            #  `assertAlmostEqual`.
             self.assertAlmostEqual(
                 abs((mean - expected_mean).sum().item()), 0, delta=delta
             )

@@ -165,7 +165,10 @@ class BaseDiagnostics:
             trace, labels = common_plots.plot_helper(queried_samples, func)
             title = f"{self._stringify_query(query)} {display_name}"
             fig = self._display_results(
-                trace, [title + label for label in labels], display
+                trace,
+                [title + label for label in labels],
+                # pyre-fixme[6]: Expected `bool` for 3rd param but got `Optional[bool]`.
+                display,
             )
             figs.append(fig)
         return figs

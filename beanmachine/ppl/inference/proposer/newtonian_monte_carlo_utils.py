@@ -95,6 +95,7 @@ def symmetric_inverse(neg_hessian: Tensor, max_zval: float = 1e5) -> Tensor:
         eig_vals[neg_evals] = max_zval
     neg_hessian_inverse = eig_vecs * eig_vals.reciprocal().unsqueeze(0) @ eig_vecs.t()
     neg_hessian_inverse = (neg_hessian_inverse + neg_hessian_inverse.T) / 2
+    # pyre-fixme[7]: Expected `Tensor` but got `float`.
     return neg_hessian_inverse
 
 
