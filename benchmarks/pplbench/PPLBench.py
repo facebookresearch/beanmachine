@@ -330,7 +330,7 @@ def get_args(models_list, ppls_list):
     )
     parser.add_argument(
         "--save-samples",
-        default="no",
+        default="yes",
         help="if yes, samples will be stored in posterior_samples.csv",
     )
     parser.add_argument(
