@@ -7,6 +7,8 @@ import torch
 from torch import tensor
 from torch.distributions import Bernoulli, MultivariateNormal, Normal
 
+from .utils import gradients
+
 
 def obtain_posterior(
     data_train: Tuple[Any, Any], args_dict: Dict, model=None
@@ -86,12 +88,3 @@ def obtain_posterior(
 
     timing_info = {"compile_time": 0, "inference_time": t2 - t1}
     return (samples_formatted, timing_info)
-
-
-def gradients(output, inp):
-    grad = torch.autograd.grad(output, inp, create_graph=True)[0]
-    n = inp.numel()
-    hess = torch.zeros(n, n)
-    for j in range(n):
-        hess[j] = torch.autograd.grad(grad[j], inp, retain_graph=True)[0]
-    return grad, hess
