@@ -13,8 +13,6 @@ from beanmachine.ppl.model.statistical_model import sample
 from statsmodels.tsa.stattools import acf
 
 
-torch.manual_seed(123)
-
 diri_dis = dist.Dirichlet(
     torch.tensor([[1.0, 2.0, 3.0], [2.0, 1.0, 3.0], [2.0, 3.0, 1.0]])
 )
@@ -134,6 +132,7 @@ class DiagnosticsTest(unittest.TestCase):
                     )
                 index += 1
 
+        torch.manual_seed(123)
         mh = SingleSiteAncestralMetropolisHastings()
         query_list = [beta(0), diri(1, 5), normal()]
         num_chains = 2
