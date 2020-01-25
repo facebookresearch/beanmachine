@@ -154,7 +154,7 @@ def combine_dictionaries(trial_info, timing_info):
     return trial_info
 
 
-def compute_summary_statistics(posterior_predictive):
+def compute_summary_statistics(posterior_predictive, timing_info, args_dict):
     """
     Computes r_hat and effective sample size (treating each trial as a chain)
     """
@@ -165,6 +165,11 @@ def compute_summary_statistics(posterior_predictive):
         if len(ppl_data) > 1:
             stats[ppl]["r_hat"] = split_r_hat(ppl_data).item()
         stats[ppl]["n_eff"] = effective_sample_size(ppl_data).item()
+        num_trials = int(args_dict["trials"])
+        total_inference_time = sum(
+            [timing_info[ppl][trial]["inference_time"] for trial in range(num_trials)]
+        )
+        stats[ppl]["n_eff/time"] = stats[ppl]["n_eff"] / total_inference_time
     return stats
 
 
@@ -403,7 +408,7 @@ def save_data(
     with open(
         os.path.join(args_dict["output_dir"], "summary_info.csv"), "w"
     ) as csv_file:
-        columns = ["ppl", "r_hat", "n_eff"]
+        columns = ["ppl", "r_hat", "n_eff", "n_eff/time"]
         data = []
         for ppl in summary_info:
             stats = []
@@ -570,7 +575,9 @@ def main():
     posterior_samples_subset = get_sample_subset(posterior_predictive, args_dict)
     trial_info = compute_trial_statistics(posterior_predictive)
     trial_info = combine_dictionaries(trial_info, timing_info)
-    summary_info = compute_summary_statistics(posterior_predictive)
+    summary_info = compute_summary_statistics(
+        posterior_predictive, timing_info, args_dict
+    )
 
     # save data
     save_data(
