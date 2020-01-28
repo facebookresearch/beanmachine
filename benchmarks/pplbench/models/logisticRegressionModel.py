@@ -19,13 +19,14 @@ p = sigmoid(mu)
 
 mu = alpha + beta*X
 
-X ~ normal(0, 10)
+X ~ normal(0, x_scales)
+x_scales ~ exp(normal(0, x_scale))
 alpha ~ Normal(0, alpha_scale)
 beta ~ Normal(beta_loc, beta_scale)
 
 Model specific arguments:
 Pass these arguments in following order -
-[alpha_scale, beta_scale, beta_loc]
+[alpha_scale, beta_scale, beta_loc, x_scale]
 """
 
 import numpy as np
@@ -40,7 +41,7 @@ def get_defaults():
         "runtime": 200,
         "train_test_ratio": 0.5,
         "trials": 10,
-        "model_args": [10, 2.5, 0],
+        "model_args": [10, 2.5, 0, 10],
     }
     return defaults
 
@@ -72,12 +73,14 @@ def generate_data(args_dict, model=None):
     alpha_scale = (args_dict["model_args"])[0]
     beta_scale = (args_dict["model_args"])[1]
     beta_locs = (args_dict["model_args"])[2] * np.ones(K).reshape([-1, 1])
+    x_scale = (args_dict["model_args"])[3]
 
     alpha = stats.norm.rvs(loc=0, scale=alpha_scale, size=N)
     beta = stats.norm.rvs(loc=beta_locs, scale=beta_scale, size=(K, N))
 
-    # model
-    x = np.random.normal(0, 10, size=(K, N))
+    x_scales = np.random.normal(0, x_scale, size=K).reshape([-1, 1])
+    x_scales = np.exp(x_scales)
+    x = np.random.normal(0, x_scales, size=(K, N))
     mu = alpha + np.sum(beta * x, axis=0)
     y = torch.distributions.Bernoulli(logits=torch.tensor(mu)).sample().numpy()
     y = y.astype(dtype=np.int32)
