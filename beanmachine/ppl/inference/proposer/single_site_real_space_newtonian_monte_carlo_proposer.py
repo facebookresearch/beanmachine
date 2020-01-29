@@ -93,7 +93,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # correct.
         aux_vars = {}
         if "frac_dist" not in auxiliary_variables:
-            frac_dist = dist.Beta(self.alpha_, self.beta_).sample()
+            beta_ = dist.Beta(tensor(self.alpha_), tensor(self.beta_))
+            frac_dist = beta_.sample()
             aux_vars["frac_dist"] = frac_dist
         else:
             frac_dist = auxiliary_variables["frac_dist"]
@@ -103,8 +104,24 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             node_val_reshaped = node_var.proposal_distribution.arguments[
                 "node_val_reshaped"
             ]
+            covariance = (
+                # pyre-fixme
+                node_var.proposal_distribution.proposal_distribution.covariance_matrix
+            )
+
             mean = (node_val_reshaped + distance * frac_dist).squeeze(0)
-            return (node_var.proposal_distribution, aux_vars)
+            return (
+                ProposalDistribution(
+                    proposal_distribution=dist.MultivariateNormal(mean, covariance),
+                    requires_transform=node_var.proposal_distribution.requires_transform,
+                    requires_reshape=True,
+                    arguments={
+                        "distance": distance,
+                        "node_val_reshaped": node_val_reshaped,
+                    },
+                ),
+                aux_vars,
+            )
 
         is_valid, covariance, distance, node_val_reshaped = self.compute_normal_mean_covar(
             node_var, world
