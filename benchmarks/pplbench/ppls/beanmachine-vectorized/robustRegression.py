@@ -23,14 +23,14 @@ class RobustRegressionModel(object):
         N: int,
         K: int,
         scale_alpha: float,
-        scale_beta: float,
+        scale_beta: List[float],
         loc_beta: float,
         rate_sigma: float,
         num_samples: int,
         inference_type: str,
         X: Tensor,
         Y: Tensor,
-    ):
+    ) -> None:
         self.N = N
         self.K = K
         self.scale_alpha = scale_alpha
@@ -39,7 +39,7 @@ class RobustRegressionModel(object):
         self.rate_sigma = rate_sigma
         self.num_samples = num_samples
         self.inference_type = inference_type
-        self.X = X
+        self.X = torch.cat((torch.ones((1, N)), X))
         self.Y = Y
 
     @sample
@@ -51,20 +51,17 @@ class RobustRegressionModel(object):
         return dist.Exponential(self.rate_sigma)
 
     @sample
-    def alpha(self):
-        return dist.Normal(0, self.scale_alpha)
-
-    @sample
     def beta(self):
         return dist.Normal(
-            torch.zeros((1, self.K)) + self.loc_beta,
-            torch.ones((1, self.K)) * self.scale_beta,
+            tensor([0.0] + [self.loc_beta] * self.K),
+            tensor([self.scale_alpha] + self.scale_beta),
         )
 
     @sample
     def y(self):
         # Compute X * Beta
-        mu = (self.alpha() + self.beta() @ self.X).squeeze(0)
+        beta_ = self.beta().reshape((1, self.beta().shape[0]))
+        mu = beta_.mm(self.X)
         return dist.StudentT(self.nu(), mu, self.sigma())
 
     def infer(self):
@@ -72,7 +69,7 @@ class RobustRegressionModel(object):
             mh = SingleSiteNewtonianMonteCarlo()
             start_time = time.time()
             samples = mh.infer(
-                [self.beta(), self.nu(), self.sigma(), self.alpha()],
+                [self.beta(), self.nu(), self.sigma()],
                 {self.y(): self.Y},
                 self.num_samples,
                 1,
@@ -103,6 +100,7 @@ def obtain_posterior(
     K = int(x_train.shape[0])
 
     alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
+    beta_scale = [beta_scale] * K
     num_samples = args_dict["num_samples_beanmachine-vectorized"]
     inference_type = args_dict["inference_type"]
 
@@ -124,14 +122,20 @@ def obtain_posterior(
 
     # repackage samples into format required by PPLBench
     # List of dict, where each dict has key = param (string), value = value of param
-    param_keys = ["beta", "nu", "sigma", "alpha"]
+    param_keys = ["beta", "nu", "sigma"]
     samples_formatted = []
     for i in range(num_samples):
         sample_dict = {}
         for j, parameter in enumerate(samples.get_rv_names()):
             if j == 0:
                 sample_dict[param_keys[j]] = (
-                    samples.get_variable(parameter)[i].detach().numpy().reshape(1, K)
+                    samples.get_variable(parameter)[i][1:]
+                    .detach()
+                    .numpy()
+                    .reshape(1, K)
+                )
+                sample_dict["alpha"] = (
+                    samples.get_variable(parameter)[i][0].detach().numpy()
                 )
             else:
                 sample_dict[param_keys[j]] = samples[parameter][i].item()
