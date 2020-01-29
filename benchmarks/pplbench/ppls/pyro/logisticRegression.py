@@ -12,7 +12,7 @@ import torch
 
 def logistic_model(x_train, y_train=None):
     K = int(x_train.shape[1])
-    scale_alpha, scale_beta, loc_beta = model_args
+    scale_alpha, scale_beta, loc_beta, _ = model_args
 
     alpha = pyro.sample("alpha", dist.Normal(0.0, scale_alpha))
     beta = pyro.sample("beta", dist.Normal(torch.ones(K) * loc_beta, scale_beta)).view(

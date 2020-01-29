@@ -19,7 +19,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     x_train, y_train = data_train
     K = int(x_train.shape[0])
     thinning = args_dict["thinning_pymc3"]
-    alpha_scale, beta_scale, beta_loc = args_dict["model_args"]
+    alpha_scale, beta_scale, beta_loc, _ = args_dict["model_args"]
     num_samples = int(args_dict["num_samples_pymc3"])
 
     # Define model and sample

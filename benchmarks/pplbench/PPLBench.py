@@ -74,12 +74,13 @@ def get_color_for_ppl(ppl):
         "beanmachine": "C6",
         "pymc3": "C7",
         "beanmachine-vectorized": "C8",
+        "numpyro": "C9",
     }
     if ppl in colors:
         return colors[ppl]
     else:
         print(f"Please set color in get_color_for_ppl() in PPLBench.py for {ppl}")
-        return "C9"
+        return "C10"
 
 
 def generate_plot(posterior_predictive, args_dict):
@@ -93,6 +94,7 @@ def generate_plot(posterior_predictive, args_dict):
     N = int(args_dict["n"])
     trials = int(args_dict["trials"])
     train_test_ratio = float(args_dict["train_test_ratio"])
+    num_samples = int(args_dict["num_samples"])
 
     plt.figure(figsize=(8, 6))
     plt.rcParams.update({"font.size": 18})
@@ -104,15 +106,23 @@ def generate_plot(posterior_predictive, args_dict):
 
     legend = []
     for ppl_name in posterior_predictive:
+        # ppl_data is of shape (num_trials, samples)
         ppl_data = tensor(posterior_predictive[ppl_name])
         samples = 1.0 + torch.arange(ppl_data.shape[1], dtype=ppl_data.dtype)
-
         avg_log = torch.cumsum(ppl_data, 1) / samples
         group_avg = torch.mean(avg_log, dim=0)
         group_min, _ = torch.min(avg_log, dim=0)
         group_max, _ = torch.max(avg_log, dim=0)
         ppl_color = get_color_for_ppl(ppl_name)
         label = args_dict[f"legend_name_{ppl_name}"]
+        if ppl_data.shape[1] != num_samples:
+            samples = 1.0 + torch.arange(num_samples, dtype=ppl_data.dtype)
+            num_warmup = num_samples - ppl_data.shape[1]
+            mask = np.ones(num_warmup)
+            mask[:] = np.nan
+            group_avg = np.append(mask, group_avg.numpy())
+            group_min = np.append(mask, group_min.numpy())
+            group_max = np.append(mask, group_max.numpy())
         line, = plt.plot(samples, group_avg, color=ppl_color, label=label)
         plt.fill_between(
             samples, group_min, group_max, color=ppl_color, interpolate=True, alpha=0.3
@@ -195,15 +205,23 @@ def get_sample_subset(posterior_predictive, args_dict):
 
     for ppl in posterior_predictive:
         ppl_data = tensor(posterior_predictive[ppl])
+        num_warmup = num_samples - ppl_data.shape[1]
         avg_log = torch.cumsum(ppl_data, 1) / (
             1.0 + torch.arange(ppl_data.shape[1], dtype=ppl_data.dtype)
         )
         for t in range(num_trials):
             for i in indices:
-                log_pred = ppl_data[t][i].item()
-                avg_log_pred = avg_log[t][i].item()
+                if num_warmup > 0:
+                    if i < num_warmup:
+                        log_pred = None
+                        avg_log_pred = None
+                    else:
+                        log_pred = ppl_data[t][i - num_warmup].item()
+                        avg_log_pred = ppl_data[t][i - num_warmup].item()
+                else:
+                    log_pred = ppl_data[t][i].item()
+                    avg_log_pred = avg_log[t][i].item()
                 sample_subset.append((ppl, t, i, log_pred, avg_log_pred))
-
     return sample_subset
 
 
