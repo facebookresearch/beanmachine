@@ -78,58 +78,42 @@ def compute_hessian(first_gradient: Tensor, node_val: Tensor) -> Tuple[bool, Ten
     return True, hessian
 
 
-def symmetric_inverse(neg_hessian: Tensor, max_zval: float = 1e8) -> Tensor:
+def symmetric_inverse(
+    neg_hessian: Tensor, max_zval: float = 1e8
+) -> Tuple[Tensor, Tensor]:
     """
     Compute inverse of a symmetric matrix and returns inverse, eigen values
     and eigen vectors.
 
     :param neg_hessian: the value that we'd like to compute the inverse of
-    :returns: neg_hessian inverse
+    :returns: eigen value and eigen vector of the negative hessian inverse
     """
-    # pyre-fixme
-    neg_hessian_diag_vec = neg_hessian.diag()
-    neg_hessian_diag = torch.eye(len(neg_hessian_diag_vec)) * neg_hessian_diag_vec
-    if ((neg_hessian - neg_hessian_diag) != 0).sum() == 0:
-        neg_evals = neg_hessian_diag_vec <= 0
-        if torch.any(neg_evals):
-            neg_hessian_diag_vec[neg_evals] = max_zval
-        return torch.eye(len(neg_hessian_diag_vec)) * neg_hessian_diag_vec.reciprocal()
-
     eig_vals, eig_vecs = torch.eig(neg_hessian, eigenvectors=True)
     eig_vals = eig_vals[:, 0]
     neg_evals = eig_vals <= 0
     if torch.any(neg_evals):
         eig_vals[neg_evals] = max_zval
     inverse_eig_vals = eig_vals.reciprocal()
-
-    neg_hessian_inverse = (
-        eig_vecs @ (torch.eye(len(inverse_eig_vals)) * inverse_eig_vals) @ eig_vecs.T
-    )
-    neg_hessian_inverse = (neg_hessian_inverse + neg_hessian_inverse.T) / 2
-    # pyre-fixme[7]: Expected `Tensor` but got `float`.
-    return neg_hessian_inverse
+    return eig_vecs, inverse_eig_vals
 
 
-def compute_neg_hessian_invserse(
-    first_gradient: Tensor,
-    node_val: Tensor,
-    min_diag_val: float = 1e-7,
-    min_eig_val: float = 1e-5,
-) -> Tuple[bool, Tensor]:
+def compute_neg_hessian_invserse_eigvals_eigvecs(
+    first_gradient: Tensor, node_val: Tensor
+) -> Tuple[bool, Tensor, Tensor]:
     """
-    Compute negative hessian inverse.
+    Compute hessian and returns eigen values and eigen vectors of the negative
+    hessian inverse.
 
     :param first_gradient: the first gradient of score with respect to
     node_val
     :param node_val: the value to compute the hessian against
-    :returns: computes negative hessian inverse
+    :returns: eigen values and eigen vectors of the negative hessian inverse
     """
     is_valid, hessian = compute_hessian(first_gradient, node_val)
     if not is_valid:
-        return False, tensor(0.0)
+        return False, tensor(0.0), tensor(0.0)
     # to avoid problems with inverse, here we add a small value - 1e-7 to
     # the diagonals
-    diag = min_diag_val * torch.eye(hessian.shape[0])
-    neg_hessian = -1 * (hessian + diag)
-    neg_hessian_inverse = symmetric_inverse(neg_hessian)
-    return True, neg_hessian_inverse
+    neg_hessian = -1 * hessian
+    eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
+    return True, eig_vecs, eig_vals

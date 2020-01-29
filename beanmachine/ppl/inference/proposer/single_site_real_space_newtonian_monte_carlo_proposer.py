@@ -1,13 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 from typing import Dict, Tuple
 
+import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     compute_first_gradient,
-    compute_neg_hessian_invserse,
+    compute_neg_hessian_invserse_eigvals_eigvecs,
     zero_grad,
 )
+from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
@@ -27,7 +29,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
 
     def compute_normal_mean_covar(
         self, node_var: Variable, world: World
-    ) -> Tuple[bool, Tensor, Tensor, Tensor]:
+    ) -> Tuple[bool, Tensor, Tensor, Tensor, Tensor]:
         """
         Computes mean and covariance of the MultivariateNormal given the node.
             mean = x - first_grad * hessian_inverse
@@ -44,16 +46,16 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
 
         if not is_valid_gradient:
             zero_grad(node_val)
-            return False, tensor(0.0), tensor(0.0), tensor(0.0)
+            return False, tensor(0.0), tensor(0.0), tensor(0.0), tensor(0.0)
 
         first_gradient = gradient.reshape(-1).clone()
-        is_valid_neg_invserse_hessian, neg_hessian_inverse = compute_neg_hessian_invserse(
+        is_valid_neg_invserse_hessian, eig_vecs, eig_vals = compute_neg_hessian_invserse_eigvals_eigvecs(
             first_gradient, node_val
         )
         zero_grad(node_val)
         node_val.detach()
         if not is_valid_neg_invserse_hessian:
-            return False, tensor(0.0), tensor(0.0), tensor(0.0)
+            return False, tensor(0.0), tensor(0.0), tensor(0.0), tensor(0.0)
 
         # node value may of any arbitrary shape, so here, we transform it into a
         # 1D vector using reshape(-1) and with unsqueeze(0), we change 1D vector
@@ -62,9 +64,12 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # here we again call unsqueeze(0) on first_gradient to transform it into
         # a matrix in order to be able to perform matrix multiplication.
         # pyre-fixme
-        distance = first_gradient.unsqueeze(0).mm(neg_hessian_inverse)
-        covariance = neg_hessian_inverse
-        return True, covariance, distance, node_reshaped
+        distance = (
+            eig_vecs
+            @ (torch.eye(len(eig_vals)) * eig_vals)
+            @ (eig_vecs.T @ first_gradient.unsqueeze(0).T)
+        ).T
+        return True, eig_vals, eig_vecs, distance, node_reshaped
 
     def get_proposal_distribution(
         self,
@@ -104,15 +109,15 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             node_val_reshaped = node_var.proposal_distribution.arguments[
                 "node_val_reshaped"
             ]
-            covariance = (
+            eig_vals, eig_vecs = (
                 # pyre-fixme
-                node_var.proposal_distribution.proposal_distribution.covariance_matrix
+                node_var.proposal_distribution.proposal_distribution.eig_decompositions
             )
 
             mean = (node_val_reshaped + distance * frac_dist).squeeze(0)
             return (
                 ProposalDistribution(
-                    proposal_distribution=dist.MultivariateNormal(mean, covariance),
+                    proposal_distribution=NormalEig(mean, eig_vals, eig_vecs),
                     requires_transform=node_var.proposal_distribution.requires_transform,
                     requires_reshape=True,
                     arguments={
@@ -123,7 +128,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
                 aux_vars,
             )
 
-        is_valid, covariance, distance, node_val_reshaped = self.compute_normal_mean_covar(
+        is_valid, eig_vals, eig_vecs, distance, node_val_reshaped = self.compute_normal_mean_covar(
             node_var, world
         )
         if not is_valid:
@@ -136,7 +141,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             requires_transform = True
         return (
             ProposalDistribution(
-                proposal_distribution=dist.MultivariateNormal(mean, covariance),
+                proposal_distribution=NormalEig(mean, eig_vals, eig_vecs),
                 requires_transform=requires_transform,
                 requires_reshape=True,
                 arguments={
