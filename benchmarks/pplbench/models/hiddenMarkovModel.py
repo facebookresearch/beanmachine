@@ -36,7 +36,8 @@ X_0 = 0
 
 Model specific arguments:
 Pass these arguments in following order -
-[concentration, mu_loc, mu_scale, sigma_shape, sigma_scale]
+If observe_model is True, we observe transition matrix, mus and sigmas.
+[concentration, mu_loc, mu_scale, sigma_shape, sigma_scale, observe_model]
 """
 
 
@@ -47,7 +48,7 @@ def get_defaults():
         "train_test_ratio": 0.5,
         "runtime": 80,
         "trials": 10,
-        "model_args": [0.1, 1.0, 5.0, 3.0, 3.0],
+        "model_args": [0.1, 1.0, 5.0, 3.0, 3.0, True],
     }
     defaults["rng_seed"] = int(np.random.random() * 1000.0)
     return defaults
@@ -97,7 +98,7 @@ def generate_model(args_dict):
 
     K = int(args_dict["k"])
     N = int(args_dict["n"])
-    concentration, mu_loc, mu_scale, sigma_shape, sigma_scale = list(
+    concentration, mu_loc, mu_scale, sigma_shape, sigma_scale, observe_model = list(
         map(float, args_dict["model_args"])
     )
 
