@@ -16,7 +16,7 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
         nw = SingleSiteNewtonianMonteCarlo()
         self.beta_binomial_conjugate_run(nw, num_samples=150, delta=0.15)
         nw = SingleSiteNewtonianMonteCarlo(True, 5.0, 1.0)
-        self.beta_binomial_conjugate_run(nw, num_samples=1500, delta=0.15)
+        self.beta_binomial_conjugate_run(nw, num_samples=150, delta=0.15)
 
     def test_gamma_gamma_conjugate_run(self):
         nw_transform = SingleSiteNewtonianMonteCarlo()
