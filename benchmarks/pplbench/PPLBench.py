@@ -426,7 +426,10 @@ def save_data(
     with open(
         os.path.join(args_dict["output_dir"], "summary_info.csv"), "w"
     ) as csv_file:
-        columns = ["ppl", "r_hat", "n_eff", "n_eff/time"]
+        if int(args_dict["trials"]) == 1:
+            columns = ["ppl", "n_eff"]
+        else:
+            columns = ["ppl", "r_hat", "n_eff"]
         data = []
         for ppl in summary_info:
             stats = []

@@ -38,6 +38,8 @@ Model specific arguments:
 Pass these arguments in following order -
 If observe_model is True, we observe transition matrix, mus and sigmas.
 [concentration, mu_loc, mu_scale, sigma_shape, sigma_scale, observe_model]
+observe_model functions as a boolean, but it is always cast to a float before use.
+So it can be assigned as 0 or 1.
 """
 
 
@@ -48,7 +50,7 @@ def get_defaults():
         "train_test_ratio": 0.5,
         "runtime": 80,
         "trials": 10,
-        "model_args": [0.1, 1.0, 5.0, 3.0, 3.0, True],
+        "model_args": [0.1, 1.0, 5.0, 3.0, 3.0, 1.0],
     }
     defaults["rng_seed"] = int(np.random.random() * 1000.0)
     return defaults
@@ -159,10 +161,11 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
 
     K = model["K"]
     N = model["N"]
+    xn1str = "X[" + str(N - 1) + "]"
 
-    # Log-prob of observing (Y(N+1) = yn1 | X(N+1) ~ hidden_transition_pmf)
-    # hidden_transition_pmf is determined by X(N) (outside of this fnc.'s scope)
-    # Compute by summing over possible values of X(N+1).
+    # Log-prob of observing (Y(N) = yn | X(N) ~ hidden_transition_pmf)
+    # hidden_transition_pmf is determined by X(N-1) (outside of this fnc.'s scope)
+    # Compute by summing over possible values of X(N).
     def log_prob_obs(yn1, hidden_transition_pmf, mus, sigmas):
 
         ls = [
@@ -173,15 +176,22 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
         return scipy.special.logsumexp(ls)
 
     yN = data_test
+    theta = model["theta"]
+    mus = model["mus"]
+    sigmas = model["sigmas"]
     pred_log_lik_array = []
     for sample in samples:
-        # transition likelihood:
-        theta = sample["theta"]
-        mus = sample["mus"]
-        sigmas = sample["sigmas"]
-        xn1 = sample["X[" + str(N - 1) + "]"]
+        xn1 = int(sample[xn1str])
+        # hidden_transition_pmf is transition likelihood
 
-        hidden_transition_pmf = dist.Categorical(torch.from_numpy(theta[int(xn1)]))
+        if model:
+            hidden_transition_pmf = dist.Categorical(theta[xn1])
+        else:
+            theta = sample["theta"]
+            mus = sample["mus"]
+            sigmas = sample["sigmas"]
+            hidden_transition_pmf = dist.Categorical(torch.from_numpy(theta[xn1]))
+
         pred_log_lik_array.append(log_prob_obs(yN, hidden_transition_pmf, mus, sigmas))
 
     # return as a numpy array of sum of log likelihood over test data
