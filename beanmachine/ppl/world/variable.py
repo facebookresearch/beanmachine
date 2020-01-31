@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from dataclasses import dataclass, fields
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 import torch
 import torch.distributions as dist
@@ -13,7 +13,7 @@ from torch.distributions import Distribution
 
 @dataclass(eq=True, frozen=True)
 class ProposalDistribution:
-    proposal_distribution: Optional[Distribution]
+    proposal_distribution: Optional[Any]
     requires_transform: bool
     requires_reshape: bool
     arguments: Dict

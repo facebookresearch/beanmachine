@@ -94,7 +94,10 @@ class AbstractSingleSiteSingleStepProposer(
 
         if (
             requires_reshape
-            and not isinstance(node_var.distribution, dist.Beta)
+            and not (
+                isinstance(node_var.distribution, dist.Beta)
+                and not world.get_transform(node)
+            )
             and not isinstance(node_var.distribution, dist.Gamma)
         ):
             old_unconstrained_value = old_unconstrained_value.reshape(-1)
