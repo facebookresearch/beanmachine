@@ -87,9 +87,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
+        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[foo_key], nw.world_
         )
+        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
         mean = (diff + node_val_reshaped).squeeze(0)
         self.assertEqual(is_valid, True)
         expected_mean = tensor([1.5, 1.5])
@@ -127,9 +128,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
+        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[foo_key], nw.world_
         )
+        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
         mean = (diff + node_val_reshaped).squeeze(0)
 
         self.assertEqual(is_valid, True)
@@ -166,9 +168,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
+        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[foo_key], nw.world_
         )
+        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
         mean = (diff + node_val_reshaped).squeeze(0)
 
         self.assertEqual(is_valid, True)
@@ -292,9 +295,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
+        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[theta_0_key], nw.world_
         )
+        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
         mean = (diff + node_val_reshaped).squeeze(0)
 
         self.assertEqual(is_valid, True)
@@ -348,9 +352,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         nw.world_.variables_[y_1_key].distribution = y_1_distribution
         nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
 
-        is_valid, covariance, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
+        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
             nw.world_.variables_[theta_0_key], nw.world_
         )
+        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
+
         mean = (diff + node_val_reshaped).squeeze(0)
 
         self.assertEqual(is_valid, True)

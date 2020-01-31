@@ -32,6 +32,7 @@ class NormalEig(object):
         self.base_dist = torch.distributions.normal.Normal(
             torch.zeros(1, self.n), torch.ones(1, self.n)
         )
+        self.singular_eig_decompositions = eig_vals, eig_vecs
 
     def sample(self):
         with torch.no_grad():

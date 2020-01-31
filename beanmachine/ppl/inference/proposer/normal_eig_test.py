@@ -26,7 +26,7 @@ class NormalEigTest(unittest.TestCase):
             ref_dist.log_prob(val).item(), test_dist.log_prob(val).item(), 2
         )
         # test that the empirical mean is correct
-        emp_mean = sum(test_dist.sample() for _ in range(1000)) / 1000
+        emp_mean = sum(test_dist.sample() for _ in range(10000)) / 10000
         self.assertTrue(((mean - emp_mean).abs() < 0.1).all())
         # test that the empirical covariance is correct
 
