@@ -76,12 +76,13 @@ def get_color_for_ppl(ppl):
         "beanmachine-vectorized": "C8",
         "numpyro": "C9",
         "turingjl": "C10",
+        "gen": "C11",
     }
     if ppl in colors:
         return colors[ppl]
     else:
         print(f"Please set color in get_color_for_ppl() in PPLBench.py for {ppl}")
-        return "C10"
+        return "C12"
 
 
 def generate_plot(posterior_predictive, args_dict):
@@ -99,11 +100,11 @@ def generate_plot(posterior_predictive, args_dict):
 
     plt.figure(figsize=(8, 6))
     plt.rcParams.update({"font.size": 18})
-    plt.title(
-        f'{args_dict["model"]} model \n'
-        f"{int(N * train_test_ratio)} data-points"
-        f"| {K} covariates | {trials} trials"
-    )
+    #plt.title(
+    #    f'{args_dict["model"]} model \n'
+    #    f"{int(N * train_test_ratio)} data-points"
+    #    f"| {K} covariates | {trials} trials"
+    #)
 
     legend = []
     for ppl_name in posterior_predictive:
