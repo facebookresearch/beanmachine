@@ -2,6 +2,7 @@ from typing import Tuple
 
 import torch
 import torch.tensor as tensor
+from beanmachine.ppl.utils import tensorops
 from torch import Tensor
 from torch.autograd import grad
 
@@ -97,21 +98,26 @@ def symmetric_inverse(
     return eig_vecs, inverse_eig_vals
 
 
-def compute_neg_hessian_inverse_eigvals_eigvecs(
-    first_gradient: Tensor, node_val: Tensor
-) -> Tuple[bool, Tensor, Tensor]:
+def compute_eigvals_eigvecs(
+    score: Tensor, node_val: Tensor
+) -> Tuple[bool, Tensor, Tensor, Tensor]:
     """
     Compute hessian and returns eigen values and eigen vectors of the negative
     hessian inverse.
 
-    :param first_gradient: the first gradient of score with respect to
-    node_val
+    :param score: the score function
     :param node_val: the value to compute the hessian against
-    :returns: eigen values and eigen vectors of the negative hessian inverse
+    :returns: first gradient, eigen values and eigen vectors of the negative
+    hessian inverse
     """
-    is_valid, hessian = compute_hessian(first_gradient, node_val)
-    if not is_valid:
-        return False, tensor(0.0), tensor(0.0)
+    # pyre-fixme
+    first_gradient, hessian = tensorops.gradients(score, node_val)
+    is_valid_first_grad_and_hessian = is_valid(first_gradient) or is_valid(hessian)
+    if not is_valid_first_grad_and_hessian:
+        return False, tensor(0.0), tensor(0.0), tensor(0.0)
+    # to avoid problems with inverse, here we add a small value - 1e-7 to
+    # the diagonals
     neg_hessian = -1 * hessian.detach()
+    # pyre-fixme
     eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
-    return True, eig_vecs, eig_vals
+    return True, first_gradient, eig_vecs, eig_vals

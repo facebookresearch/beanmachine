@@ -5,8 +5,7 @@ import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
-    compute_first_gradient,
-    compute_neg_hessian_inverse_eigvals_eigvecs,
+    compute_eigvals_eigvecs,
     zero_grad,
 )
 from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
@@ -42,15 +41,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         node_val = node_var.unconstrained_value
         score = world.compute_score(node_var)
         zero_grad(node_val)
-        is_valid_gradient, gradient = compute_first_gradient(score, node_val)
-
-        if not is_valid_gradient:
-            zero_grad(node_val)
-            return False, tensor(0.0), tensor(0.0), tensor(0.0), tensor(0.0)
-
-        first_gradient = gradient.reshape(-1).clone()
-        is_valid_neg_invserse_hessian, eig_vecs, eig_vals = compute_neg_hessian_inverse_eigvals_eigvecs(
-            first_gradient, node_val
+        is_valid_neg_invserse_hessian, first_gradient, eig_vecs, eig_vals = compute_eigvals_eigvecs(
+            score, node_val
         )
         zero_grad(node_val)
         node_val.detach()
