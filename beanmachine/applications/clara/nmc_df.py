@@ -50,34 +50,30 @@ class LabelingErrorBMModel(object):
         return theta_means, theta_cis
 
     def _process_clara_input_df_for_nmc(self, df: pd.DataFrame):
-        labels = [y for x in df.ratings.values for y in x]
-        labelers = [y for x in df.labelers.values for y in x]
-        num_labels = df.num_labels.values
+        labels = df.ratings.values[0]
+        labelers = df.labelers.values[0]
+        num_labels = df.num_labels.values[0]
+        labeler_idx = category_idx = 0
+        rating_vocab, labelers_names = {}, {}
 
-        rating_vocab, labelers_names = set(), set()
-        for _, e in enumerate(labels):
-            if e not in rating_vocab:
-                rating_vocab.add(e)
-        for _, e in enumerate(labelers):
-            if e not in labelers_names:
-                labelers_names.add(e)
+        for e in labelers:
+            if e not in labelers_names.keys():
+                labelers_names[e] = labeler_idx
+                labeler_idx += 1
+        for e in labels:
+            if e not in rating_vocab.keys():
+                rating_vocab[e] = category_idx
+                category_idx += 1
 
-        num_categories = len(rating_vocab)
-        num_labelers = len(labelers_names)
         concentration, expected_correctness = 10, 0.75
         args_dict = {}
-        args_dict["k"] = num_labelers
+        args_dict["k"] = labeler_idx
         args_dict["num_samples_nmc"] = self.num_samples
         args_dict["burn_in_nmc"] = self.burn_in
-        args_dict["model_args"] = (
-            num_categories,
-            1,
-            expected_correctness,
-            concentration,
-        )
+        args_dict["model_args"] = (category_idx, 1, expected_correctness, concentration)
 
         data_train = (labels, labelers, num_labels)
-        return (data_train, args_dict, num_labels, num_categories)
+        return (data_train, args_dict, num_labels, category_idx)
 
     def _process_item_output(
         self, prevalence_samples, labeler_confusion, num_categories, input_df
@@ -119,10 +115,10 @@ class LabelingErrorBMModel(object):
                         item_samples[s, i, k] *= labeler_confusion[s][item_labeler][k][
                             item_rating
                         ]
-                        item_samples[s, i, :] /= sum(item_samples[s, i, :])
+                item_samples[s, i, :] /= sum(item_samples[s, i, :])
 
             item_means[i] = np.mean(item_samples[:, i], axis=0)
-            lb, ub = np.percentile(item_samples[:, i], [2.5, 97.5], axis=0)
+            lb, ub = np.percentile(item_samples[:, i], [self.lb, self.ub], axis=0)
             item_cis[i, :, 0] = lb
             item_cis[i, :, 1] = ub
 
@@ -136,7 +132,7 @@ class LabelingErrorBMModel(object):
         for lg in range(n_labeler_groups):
             s = psis[:, lg]
             mean = np.mean(s, axis=0)
-            lb, ub = np.percentile(s, [2.5, 97.5], axis=0)
+            lb, ub = np.percentile(s, [self.lb, self.ub], axis=0)
             psi_means[lg] = mean
             psi_cis[lg, :, :, 0] = lb
             psi_cis[lg, :, :, 1] = ub

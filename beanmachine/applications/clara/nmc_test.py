@@ -37,24 +37,26 @@ def generate_data(pi: List[float]):
     J_i = []
     y = []
     i = 0
+    num_labels = []
     while i < n_items:
         num_j = np.random.poisson(1)
         # check if we sampled 0, if yes redo this loop
         if num_j == 0:
             continue
-        J_i.append(np.random.choice(J, size=num_j, replace=False))
+        cur_labelers = []
+        cur_labelers = np.random.choice(J, size=num_j, replace=False)
         y_i = []
-        for j in J_i[i]:
+        for j in cur_labelers:
             y_i.append(np.random.choice(range(K), p=theta[j, z[i]]))
         i += 1
-        y.append(y_i)
+        J_i.extend(cur_labelers)
+        y.extend(y_i)
+        num_labels.append(num_j)
 
-    df = pd.DataFrame()
-    df["id"] = list(range(n_items))
-    df["labelers"] = J_i
-    df["num_labels"] = df["labelers"].str.len()
-    df["ratings"] = y
-    return df
+    items = []
+    row = {"labelers": J_i, "ratings": y, "num_labels": num_labels}
+    items.append(row)
+    return pd.DataFrame(items)
 
 
 class TestNMC(unittest.TestCase):
