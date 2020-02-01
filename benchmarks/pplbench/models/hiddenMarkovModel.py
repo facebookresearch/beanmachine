@@ -190,7 +190,9 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
             theta = sample["theta"]
             mus = sample["mus"]
             sigmas = sample["sigmas"]
-            hidden_transition_pmf = dist.Categorical(torch.from_numpy(theta[xn1]))
+            hidden_transition_pmf = dist.Categorical(
+                torch.from_numpy(np.array(theta[xn1]))
+            )
 
         pred_log_lik_array.append(log_prob_obs(yN, hidden_transition_pmf, mus, sigmas))
 

@@ -75,6 +75,7 @@ def get_color_for_ppl(ppl):
         "pymc3": "C7",
         "beanmachine-vectorized": "C8",
         "numpyro": "C9",
+        "turingjl": "C10",
     }
     if ppl in colors:
         return colors[ppl]
