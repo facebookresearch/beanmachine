@@ -33,6 +33,7 @@ Pass these arguments in following order -
 
 import numpy as np
 from scipy import stats
+from tqdm import tqdm
 
 
 def get_defaults():
@@ -105,7 +106,7 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
     """
     x_test, y_test = data_test
     pred_log_lik_array = []
-    for sample in samples:
+    for sample in tqdm(samples, desc="eval", leave=False):
         loc = (sample["alpha"] + np.dot(sample["beta"], x_test)).reshape(-1)
         log_lik_test = stats.t.logpdf(
             y_test, df=float(sample["nu"]), loc=loc, scale=float(sample["sigma"])

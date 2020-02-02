@@ -14,17 +14,7 @@ from torch.distributions import (
 )
 from tqdm import tqdm
 
-
-def halfspace_proposer(val, grad, hess):
-    if hess > 0:
-        if grad < 0:
-            return Exponential(-grad)
-        else:
-            assert False
-    alpha = 1 - val ** 2 * hess
-    beta = -val * hess - grad
-    assert alpha > 0 and beta > 0
-    return Gamma(alpha, beta)
+from .utils import gradients, halfspace_proposer, real_proposer
 
 
 def obtain_posterior(
@@ -113,43 +103,21 @@ def obtain_posterior(
         def compute_beta_gradients_(self):
             self.beta.requires_grad_(True)
             self.compute_score_()
-            self.beta_grad, = torch.autograd.grad(
-                self.score, self.beta, create_graph=True
-            )
-            self.beta_hess = torch.zeros(K + 1, K + 1)
-            for j in range(K + 1):
-                self.beta_hess[j], = torch.autograd.grad(
-                    self.beta_grad[j], self.beta, retain_graph=True
-                )
+            self.beta_grad, self.beta_hess = gradients(self.score, self.beta)
             self.beta_grad.detach_()
             self.beta_hess.detach_()
             self.beta.requires_grad_(False)
 
         def compute_beta_proposer_(self):
             self.compute_beta_gradients_()
-            # proposer for beta
-            neg_hess_inv = (
-                torch.inverse(-self.beta_hess)
-                + torch.eye(self.beta_hess.shape[0]) * 1e-5
+            self.beta_proposer = real_proposer(
+                self.beta, self.beta_grad, self.beta_hess
             )
-            # fixup any negative eigenvalues
-            eval, evec = torch.eig(neg_hess_inv, eigenvectors=True)
-            eval = eval[:, 0]  # note: a symmetric matrix has only real eigen vals
-            num_neg_evals = (eval < 0).sum()
-            if num_neg_evals.item() > 0:
-                eval[eval < 0] = 1e-5  # convert negative eigen vals to positive
-                eval = torch.eye(len(eval)) * eval
-                eval = eval.to(dtype=torch.float64)
-                evec = evec.to(dtype=torch.float64)
-                neg_hess_inv = evec @ eval @ evec.T
-                neg_hess_inv = neg_hess_inv.to(dtype=torch.float32)
-            mu = self.beta + (neg_hess_inv @ self.beta_grad.unsqueeze(1)).squeeze(1)
-            self.beta_proposer = MultivariateNormal(mu, neg_hess_inv)
 
     samples = []
     t1 = time.time()
     theta = State()
-    for _i in tqdm(range(num_samples), desc="inference"):
+    for _i in tqdm(range(num_samples), desc="inference", leave=False):
         # propose nu
         theta.compute_nu_proposer_()
         nu = theta.nu_proposer.sample()
@@ -192,7 +160,7 @@ def obtain_posterior(
         samples.append(theta.clone())
     t2 = time.time()
     samples_formatted = []
-    for i in tqdm(range(num_samples), desc="collect samples"):
+    for i in tqdm(range(num_samples), desc="collect samples", leave=False):
         theta = samples[i]
         sample_dict = {
             "sigma": theta.sigma.item(),
