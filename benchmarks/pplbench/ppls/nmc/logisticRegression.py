@@ -5,7 +5,10 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import torch
 from torch import tensor
-from torch.distributions import Bernoulli, MultivariateNormal, Normal
+from torch.distributions import Bernoulli, Normal
+from tqdm import tqdm
+
+from .utils import gradients, real_proposer
 
 
 def obtain_posterior(
@@ -51,19 +54,18 @@ def obtain_posterior(
         theta.requires_grad_(True)
         score = log_joint(theta)
         grad, hess = gradients(score, theta)
-        grad.detach_()
-        hess.detach_()
+        grad = grad.detach()
+        hess = hess.detach()
         theta.requires_grad_(False)
-        neg_hess_inv = torch.inverse(-hess)
-        mu = theta + torch.mm(neg_hess_inv, grad.unsqueeze(1)).squeeze(1)
-        return score, MultivariateNormal(mu, neg_hess_inv)
+        proposer = real_proposer(theta, grad, hess)
+        return score, proposer
 
     # initialize to zero
     samples = []
     theta = torch.zeros(K + 1, requires_grad=True)
     score, proposer = get_score_and_proposer(theta)
     t1 = time.time()
-    for _i in range(num_samples):
+    for _i in tqdm(range(num_samples), desc="inference", leave=False):
         theta2 = proposer.sample()
         score2, proposer2 = get_score_and_proposer(theta2)
         logacc = (
@@ -77,7 +79,7 @@ def obtain_posterior(
         samples.append(theta.clone())
     t2 = time.time()
     samples_formatted = []
-    for i in range(num_samples):
+    for i in tqdm(range(num_samples), desc="collect", leave=False):
         sample_dict = {
             "alpha": samples[i][0].item(),
             "beta": samples[i][1:].detach().numpy(),
@@ -86,12 +88,3 @@ def obtain_posterior(
 
     timing_info = {"compile_time": 0, "inference_time": t2 - t1}
     return (samples_formatted, timing_info)
-
-
-def gradients(output, inp):
-    grad = torch.autograd.grad(output, inp, create_graph=True)[0]
-    n = inp.numel()
-    hess = torch.zeros(n, n)
-    for j in range(n):
-        hess[j] = torch.autograd.grad(grad[j], inp, retain_graph=True)[0]
-    return grad, hess

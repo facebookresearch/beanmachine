@@ -32,6 +32,7 @@ Pass these arguments in following order -
 import numpy as np
 import torch
 from scipy import stats
+from tqdm import tqdm
 
 
 def get_defaults():
@@ -108,7 +109,7 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
     x_test, y_test = data_test
     y_test = torch.tensor(np.array(y_test, dtype=np.double))
     pred_log_lik_array = []
-    for sample in samples:
+    for sample in tqdm(samples, desc="eval", leave=False):
         mu = torch.tensor(
             (sample["alpha"] + np.dot(sample["beta"], x_test)).reshape(-1)
         )
