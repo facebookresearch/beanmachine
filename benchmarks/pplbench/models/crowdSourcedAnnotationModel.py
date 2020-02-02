@@ -68,6 +68,7 @@ Pass these arguments in following order -
 """
 
 import numpy as np
+from tqdm import tqdm
 
 
 def vector_index_form(y, J_i):
@@ -198,7 +199,7 @@ def evaluate_posterior_predictive(samples, data_test, model=None):
     n_items = len(y)
     K = samples[0]["theta"].shape[1]
     pred_log_lik_array = []
-    for sample in samples:
+    for sample in tqdm(samples, desc="eval", leave=False):
         sample_pred_log_lik = 0
         for i in range(n_items):
             P_i = 0

@@ -161,7 +161,7 @@ class State:
         # simulate the cost of computing a vector Hessian
         for _ in range(State.num_categories):
             torch.autograd.grad(ssum, confusion, retain_graph=True)
-        grad.detach_()
+        grad = grad.detach()
         confusion.requires_grad_(False)
         proposer = Dirichlet(grad * confusion + 1)
         return score, proposer
@@ -175,7 +175,7 @@ class State:
         # simulate the cost of computing a vector Hessian
         for _ in range(State.num_categories):
             torch.autograd.grad(score, prevalence, retain_graph=True)
-        grad.detach_()
+        grad = grad.detach()
         prevalence.requires_grad_(False)
         return score, simplex_proposer(prevalence, grad)
 

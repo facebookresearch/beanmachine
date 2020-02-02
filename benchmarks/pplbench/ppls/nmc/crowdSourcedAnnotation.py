@@ -6,7 +6,7 @@ from torch import tensor
 from torch.distributions import Categorical, Dirichlet
 from tqdm import tqdm
 
-from .utils import simplex_proposer
+from .utils import gradients, simplex_proposer
 
 
 class State:
@@ -154,7 +154,7 @@ class State:
         # simulate the cost of computing a vector Hessian
         for _ in range(State.num_categories):
             torch.autograd.grad(ssum, confusion, retain_graph=True)
-        grad.detach_()
+        grad = grad.detach()
         confusion.requires_grad_(False)
         proposer = Dirichlet(grad * confusion + 1)
         return score, proposer
@@ -162,15 +162,11 @@ class State:
     def propose_prevalence(self, prior, prevalence, labels):
         prevalence = prevalence.clone().requires_grad_(True)
         score = prior.log_prob(prevalence) + prevalence[labels].log().sum()
-        grad, = torch.autograd.grad(
-            score, prevalence, retain_graph=True, create_graph=True
-        )
-        # simulate the cost of computing a vector Hessian
-        for _ in range(State.num_categories):
-            torch.autograd.grad(score, prevalence, retain_graph=True)
-        grad.detach_()
+        grad, hess = gradients(score, prevalence)
+        grad = grad.detach()
+        hess = hess.detach()
         prevalence.requires_grad_(False)
-        return score, simplex_proposer(prevalence, grad)
+        return score, simplex_proposer(prevalence, grad, hess)
 
 
 def obtain_posterior(data_train, args_dict, model=None):
@@ -200,7 +196,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     # repeatedly update the state
     infer_time_t1 = time.time()
     samples = []
-    for _i in tqdm(range(num_samples), desc="inference"):
+    for _i in tqdm(range(num_samples), desc="inference", leave=False):
         curr.update_()
         samples_dict = {
             "theta": curr.confusion.clone().numpy(),

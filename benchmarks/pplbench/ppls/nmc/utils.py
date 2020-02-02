@@ -1,4 +1,6 @@
 # Copyright(C) Facebook, Inc. and its affiliates. All Rights Reserved.
+# The proposers in this file are documented in the Newtonian Monte Carlo paper.
+# https://arxiv.org/abs/2001.05567
 import torch
 from torch.distributions import Dirichlet, Exponential, Gamma, MultivariateNormal
 
@@ -104,10 +106,14 @@ class NormalEig(object):
         return self.base_dist.log_prob(z).sum() - self.log_sqrt_det
 
 
-def simplex_proposer(val, grad):
+def simplex_proposer(val, grad, hess):
     """
     propose for a simplex-constrained random variable
     """
-    conc = grad * val + 1
+    # We want to subtract the maximum off-diagonal element from the diagonal
+    # element in each row, but since the diagonals should be negative and the
+    # off-diagonals positive we can simply compute the max for each row and
+    # subtract
+    conc = 1 - val ** 2 * (hess.diagonal() - hess.max(axis=1).values)
     assert (conc > 0).all()
     return Dirichlet(conc)
