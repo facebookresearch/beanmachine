@@ -459,7 +459,7 @@ def main():
     # check is user passed model arguments, if yes parse them in an array as numbers
     if not args_dict["model_args"] == "default":
         args_dict["model_args"] = [
-            eval(x) for x in (args_dict["model_args"]).split(",")
+            float(x) for x in (args_dict["model_args"]).split(",")
         ]
     # check if model exists, get model defaults for unspecified args
     if str(args.model) in models_list:
@@ -563,15 +563,13 @@ def main():
         for i in range(int(args_dict["trials"])):
             print("Starting trial", i + 1, "of", args_dict["trials"])
             # obtain posterior samples and timing info
-            posterior_samples[ppl][i], timing_info[ppl][i] = exec_process(
-                module.obtain_posterior,
+            posterior_samples[ppl][i], timing_info[ppl][i] = module.obtain_posterior(
                 data_train=generated_data["data_train"],
                 args_dict=args_dict,
                 model=model_instance,
             )
             # compute posterior predictive
-            posterior_predictive[ppl][i] = exec_process(
-                model.evaluate_posterior_predictive,
+            posterior_predictive[ppl][i] = model.evaluate_posterior_predictive(
                 samples=posterior_samples[ppl][i].copy(),
                 data_test=generated_data["data_test"],
                 model=model_instance,
