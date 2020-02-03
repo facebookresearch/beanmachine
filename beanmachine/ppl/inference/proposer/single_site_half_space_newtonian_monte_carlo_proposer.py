@@ -5,7 +5,6 @@ import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
-    compute_first_gradient,
     is_valid,
     zero_grad,
 )
@@ -13,9 +12,9 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
-from torch.autograd import grad
 
 
 class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -38,30 +37,11 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         node_val = node_var.value
         score = world.compute_score(node_var)
         zero_grad(node_val)
-        is_valid_gradient, gradient = compute_first_gradient(score, node_val)
-        if not is_valid_gradient:
-            zero_grad(node_val)
-            return False, tensor(0.0), tensor(0.0)
-        first_gradient = gradient.reshape(-1).clone()
-        size = first_gradient.shape[0]
-        hessian_diag = torch.zeros(size)
-        for i in range(size):
-            second_gradient = (
-                grad(
-                    # pyre-fixme
-                    first_gradient.index_select(0, tensor([i])),
-                    node_val,
-                    create_graph=True,
-                )[0]
-            ).reshape(-1)
-
-            if not is_valid(second_gradient):
-                return False, tensor(0.0), tensor(0.0)
-
-            hessian_diag[i] = second_gradient[i]
-
+        # pyre-fixme
+        first_gradient, hessian_diag = tensorops.halfspace_gradients(score, node_val)
         zero_grad(node_val)
-        node_val.detach()
+        if not is_valid(first_gradient) or not is_valid(hessian_diag):
+            return False, tensor(0.0), tensor(0.0)
         node_val_reshaped = node_val.reshape(-1)
         # pyre-fixme
         predicted_alpha = (1 - hessian_diag * (node_val_reshaped * node_val_reshaped)).T
