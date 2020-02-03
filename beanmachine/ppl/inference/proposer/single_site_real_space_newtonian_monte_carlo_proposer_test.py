@@ -87,12 +87,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[foo_key], nw.world_
-        )
-        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
-        mean = (diff + node_val_reshaped).squeeze(0)
-        self.assertEqual(is_valid, True)
+        prop_dist = nw_proposer.get_proposal_distribution(
+            foo_key, nw.world_.variables_[foo_key], nw.world_, {}
+        )[0]
+        mean, covariance = parse_arguments(prop_dist.arguments)
         expected_mean = tensor([1.5, 1.5])
         expected_covariance = tensor([[0.5000, 0.4000], [0.4000, 0.5000]])
         self.assertAlmostEqual(
@@ -128,13 +126,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[foo_key], nw.world_
-        )
-        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
-        mean = (diff + node_val_reshaped).squeeze(0)
+        prop_dist = nw_proposer.get_proposal_distribution(
+            foo_key, nw.world_.variables_[foo_key], nw.world_, {}
+        )[0]
+        mean, covariance = parse_arguments(prop_dist.arguments)
 
-        self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0])
         expected_covariance = tensor([[1.0, 0.8], [0.8, 1]])
         self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
@@ -168,13 +164,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[foo_key], nw.world_
-        )
-        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
-        mean = (diff + node_val_reshaped).squeeze(0)
+        prop_dist = nw_proposer.get_proposal_distribution(
+            foo_key, nw.world_.variables_[foo_key], nw.world_, {}
+        )[0]
+        mean, covariance = parse_arguments(prop_dist.arguments)
 
-        self.assertEqual(is_valid, True)
         expected_mean = tensor([1.0, 1.0, 1.0, 1.0])
         expected_covariance = torch.eye(4)
         self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
@@ -295,13 +289,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[theta_0_key], nw.world_
-        )
-        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
-        mean = (diff + node_val_reshaped).squeeze(0)
+        prop_dist = nw_proposer.get_proposal_distribution(
+            theta_0_key, nw.world_.variables_[theta_0_key], nw.world_, {}
+        )[0]
+        mean, covariance = parse_arguments(prop_dist.arguments)
 
-        self.assertEqual(is_valid, True)
         score = theta_0_distribution.log_prob(theta_0_value)
         score += (
             1 / (1 + (-1 * (theta_0_value + theta_1_value * x_0_value)).exp())
@@ -352,14 +344,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         nw.world_.variables_[y_1_key].distribution = y_1_distribution
         nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
 
-        is_valid, eig_vals, eig_vecs, diff, node_val_reshaped = nw_proposer.compute_normal_mean_covar(
-            nw.world_.variables_[theta_0_key], nw.world_
-        )
-        covariance = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
+        prop_dist = nw_proposer.get_proposal_distribution(
+            theta_0_key, nw.world_.variables_[theta_0_key], nw.world_, {}
+        )[0]
+        mean, covariance = parse_arguments(prop_dist.arguments)
 
-        mean = (diff + node_val_reshaped).squeeze(0)
-
-        self.assertEqual(is_valid, True)
         score = tensor(0.0)
 
         score = theta_0_distribution.log_prob(proposal_value)
@@ -391,3 +380,15 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         self.assertAlmostEqual(
             covariance.item(), expected_covariance.item(), delta=0.001
         )
+
+
+# simple function to read the arguments from a proposal distribution object
+# and reconstruct the mean and covariance
+def parse_arguments(_arguments):
+    if "covar" in _arguments:
+        covar = _arguments["covar"]
+    else:
+        (eig_vals, eig_vecs) = _arguments["eig_decomp"]
+        covar = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T
+    mean = (_arguments["distance"] + _arguments["node_val_reshaped"]).squeeze(0)
+    return mean, covar

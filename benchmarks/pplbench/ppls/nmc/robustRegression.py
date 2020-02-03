@@ -4,14 +4,7 @@ from typing import Any, Dict, List, Tuple
 
 import torch
 from torch import tensor
-from torch.distributions import (
-    Bernoulli,
-    Exponential,
-    Gamma,
-    MultivariateNormal,
-    Normal,
-    StudentT,
-)
+from torch.distributions import Bernoulli, Exponential, Gamma, Normal, StudentT
 from tqdm import tqdm
 
 from .utils import gradients, halfspace_proposer, real_proposer
@@ -103,9 +96,9 @@ def obtain_posterior(
         def compute_beta_gradients_(self):
             self.beta.requires_grad_(True)
             self.compute_score_()
-            self.beta_grad, self.beta_hess = gradients(self.score, self.beta)
-            self.beta_grad.detach_()
-            self.beta_hess.detach_()
+            grad, hess = gradients(self.score, self.beta)
+            self.beta_grad = grad.detach()
+            self.beta_hess = hess.detach()
             self.beta.requires_grad_(False)
 
         def compute_beta_proposer_(self):
