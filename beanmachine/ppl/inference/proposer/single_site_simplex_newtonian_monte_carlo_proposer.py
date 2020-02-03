@@ -124,7 +124,7 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             ProposalDistribution(
                 proposal_distribution=dist.Dirichlet(alpha),
                 requires_transform=False,
-                requires_reshape=True,
+                requires_reshape=False,
                 arguments={},
             ),
             {},
