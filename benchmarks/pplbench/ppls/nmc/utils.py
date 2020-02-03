@@ -1,12 +1,15 @@
 # Copyright(C) Facebook, Inc. and its affiliates. All Rights Reserved.
 # The proposers in this file are documented in the Newtonian Monte Carlo paper.
 # https://arxiv.org/abs/2001.05567
+from typing import Tuple
+
 import torch
+from torch import Tensor
 from torch.distributions import Dirichlet, Exponential, Gamma, MultivariateNormal
 
 
 # python implementation of gradient computation
-def py_gradients(output, inp):
+def py_gradients(output: Tensor, inp: Tensor) -> Tuple[Tensor, Tensor]:
     grad = torch.autograd.grad(output, inp, create_graph=True)[0]
     n = inp.numel()
     hess = torch.zeros(n, n)
@@ -25,7 +28,7 @@ except ImportError:
     gradients = py_gradients
 
 
-def halfspace_proposer(val, grad, hess):
+def halfspace_proposer(val: Tensor, grad: Tensor, hess: Tensor) -> Tensor:
     """
     proposer for 1-d R+ variable
     """
