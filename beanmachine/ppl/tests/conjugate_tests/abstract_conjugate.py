@@ -98,7 +98,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         observations = {model.normal(): obs}
         shape = shape + tensor([0.5, 0.5])
         deviations = (obs - mu).pow(2.0)
-        deviations = deviations.sum(0)
         rate = rate + (deviations * (0.5))
         expected_mean = shape / rate
         expected_std = (expected_mean / rate).pow(0.5)
