@@ -6,6 +6,10 @@ from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import tensor
 
 
+def tidy(s: str) -> str:
+    return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
+
+
 class BMGraphBuilderTest(unittest.TestCase):
     def test_1(self) -> None:
         """Test 1"""
@@ -21,7 +25,7 @@ class BMGraphBuilderTest(unittest.TestCase):
         neg = bmg.add_negate(real)
         add = bmg.add_addition(two, neg)
         bmg.add_multiplication(tens, add)
-        bmg.add_observation(flip, tr)
+        bmg.add_observation(samp, tr)
 
         observed = bmg.to_dot()
         expected = """
@@ -38,7 +42,7 @@ digraph "graph" {
   N8[label="+"];
   N9[label="*"];
   N10 -> N3[label=value];
-  N10 -> N4[label=operand];
+  N10 -> N5[label=operand];
   N4 -> N0[label=probability];
   N5 -> N4[label=operand];
   N6 -> N5[label=operand];
@@ -51,3 +55,21 @@ digraph "graph" {
 """
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
+
+        g = bmg.to_bmg()
+        observed = g.to_string()
+        expected = """
+Node 0 type 1 parents [ ] children [ 4 ] real value 0.5
+Node 1 type 1 parents [ ] children [ 8 ] real value 2
+Node 2 type 1 parents [ ] children [ 9 ] tensor value  4
+ 5
+[ CPUFloatType{2} ]
+Node 3 type 1 parents [ ] children [ ] boolean value 1
+Node 4 type 2 parents [ 0 ] children [ 5 ] unknown value
+Node 5 type 3 parents [ 4 ] children [ 6 ] boolean value 1
+Node 6 type 3 parents [ 5 ] children [ 7 ] unknown value
+Node 7 type 3 parents [ 6 ] children [ 8 ] unknown value
+Node 8 type 3 parents [ 1 7 ] children [ 9 ] unknown value
+Node 9 type 3 parents [ 2 8 ] children [ ] unknown value
+        """
+        self.assertEqual(tidy(observed), tidy(expected))
