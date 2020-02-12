@@ -33,6 +33,10 @@ class BMGNode(ABC):
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         pass
 
+    @abstractmethod
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        pass
+
 
 class ConstantNode(BMGNode, metaclass=ABCMeta):
     edges = []
@@ -40,6 +44,24 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
 
     def __init__(self):
         BMGNode.__init__(self, [])
+
+    @abstractmethod
+    def _value_to_cpp(self) -> str:
+        pass
+
+    @abstractmethod
+    def _value_to_python(self) -> str:
+        pass
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_cpp()
+        return f"uint n{n} = g.add_constant({v});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_python()
+        return f"n{n} = g.add_constant({v})"
 
 
 class BooleanNode(ConstantNode):
@@ -58,8 +80,11 @@ class BooleanNode(ConstantNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(bool(self.value))
 
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return f"n{d[self]} = g.add_constant(bool({self.value}))"
+    def _value_to_python(self) -> str:
+        return str(bool(self.value))
+
+    def _value_to_cpp(self) -> str:
+        return str(bool(self.value)).lower()
 
 
 class RealNode(ConstantNode):
@@ -78,8 +103,11 @@ class RealNode(ConstantNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(float(self.value))
 
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return f"n{d[self]} = g.add_constant(float({self.value}))"
+    def _value_to_python(self) -> str:
+        return str(float(self.value))
+
+    def _value_to_cpp(self) -> str:
+        return str(float(self.value))
 
 
 class TensorNode(ConstantNode):
@@ -92,14 +120,33 @@ class TensorNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
+    @staticmethod
+    def _tensor_to_python(t: Tensor) -> str:
+        if len(t.shape) == 0:
+            return str(t.item())
+        return "[" + ",".join(TensorNode._tensor_to_python(c) for c in t) + "]"
+
+    @staticmethod
+    def _tensor_to_label(t: Tensor) -> str:
+        length = len(t.shape)
+        if length == 0 or length == 1:
+            return TensorNode._tensor_to_python(t)
+        return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
+
     def label(self) -> str:
-        return str(self.value)
+        return TensorNode._tensor_to_label(self.value)
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(self.value)
 
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return f"n{d[self]} = g.add_constant({self.value})"
+    def _value_to_python(self) -> str:
+        t = TensorNode._tensor_to_python(self.value)
+        return f"tensor({t})"
+
+    def _value_to_cpp(self) -> str:
+        values = ",".join(str(element) for element in self.value.storage())
+        dims = ",".join(str(dim) for dim in self.value.shape)
+        return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
 
 
 class DistributionNode(BMGNode, metaclass=ABCMeta):
@@ -133,6 +180,14 @@ class BernoulliNode(DistributionNode):
             + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
         )
 
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
+        )
+
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
     def __init__(self, children: List[BMGNode]):
@@ -161,6 +216,15 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         left = d[self.left()]
         right = d[self.right()]
         return f"n{n} = g.add_operator(graph.{ot}, [n{left}, n{right}])"
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        ot = str(self.operator_type).replace(".", "::")
+        left = d[self.left()]
+        right = d[self.right()]
+        return (
+            f"uint n{d[self]} = g.add_operator(\n"
+            + f"  graph::{ot}, std::vector<uint>({{n{left}, n{right}}}));"
+        )
 
 
 class AdditionNode(BinaryOperatorNode):
@@ -207,6 +271,17 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         o = d[self.operand()]
         ot = str(self.operator_type)
         return f"n{n} = g.add_operator(graph.{ot}, [n{o}])"
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        o = d[self.operand()]
+        # Since OperatorType is not actually an enum, there is no
+        # name attribute to use.
+        ot = str(self.operator_type).replace(".", "::")
+        return (
+            f"uint n{n} = g.add_operator(\n"
+            + f"  graph::{ot}, std::vector<uint>({{n{o}}}));"
+        )
 
 
 class NegateNode(UnaryOperatorNode):
@@ -297,6 +372,10 @@ class Observation(BMGNode):
         v = self.value().value
         return f"g.observe(n{d[self.observed()]}, {v})"
 
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        v = self.value()._value_to_cpp()
+        return f"g.observe([n{d[self.observed()]}], {v});"
+
 
 class Query(BMGNode):
     edges = ["operator"]
@@ -321,6 +400,9 @@ class Query(BMGNode):
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return f"g.query(n{d[self.operator()]})"
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return f"g.query(n{d[self.operator()]});"
 
 
 class BMGraphBuilder:
@@ -424,3 +506,8 @@ from torch import tensor
 g = graph.Graph()
 """
         return header + "\n".join(n._to_python(self.nodes) for n in self.nodes)
+
+    def to_cpp(self) -> str:
+        return "graph::Graph g;\n" + "\n".join(
+            n._to_cpp(self.nodes) for n in self.nodes
+        )
