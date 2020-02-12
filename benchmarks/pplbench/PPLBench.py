@@ -349,7 +349,7 @@ def get_args(models_list, ppls_list):
     parser.add_argument(
         "--save-samples",
         default="yes",
-        help="if yes, samples will be stored in posterior_samples.csv",
+        help="if yes, samples will be stored in posterior_samples.(csv|pkl)",
     )
     parser.add_argument(
         "--save-generated-data",
@@ -404,6 +404,10 @@ def save_data(
             os.path.join(args_dict["output_dir"], "posterior_samples.csv"), "w"
         ) as csv_file:
             pd.DataFrame.from_dict(posterior_samples, orient="index").to_csv(csv_file)
+        with open(
+            os.path.join(args_dict["output_dir"], "posterior_samples.pkl"), "wb"
+        ) as pkl_file:
+            pickle.dump(posterior_samples, pkl_file)
 
     with open(os.path.join(args_dict["output_dir"], "trial_info.csv"), "w") as csv_file:
         columns = [
