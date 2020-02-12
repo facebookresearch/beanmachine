@@ -73,3 +73,23 @@ Node 8 type 3 parents [ 1 7 ] children [ 9 ] unknown value
 Node 9 type 3 parents [ 2 8 ] children [ ] unknown value
         """
         self.assertEqual(tidy(observed), tidy(expected))
+
+        observed = bmg.to_python()
+
+        expected = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant(float(0.5))
+n1 = g.add_constant(float(2))
+n2 = g.add_constant(tensor([4., 5.]))
+n3 = g.add_constant(bool(True))
+n4 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n0])
+n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+n6 = g.add_operator(graph.OperatorType.TO_REAL, [n5])
+n7 = g.add_operator(graph.OperatorType.NEGATE, [n6])
+n8 = g.add_operator(graph.OperatorType.ADD, [n1, n7])
+n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n8])
+g.observe(n5, True)
+"""
+        self.assertEqual(observed.strip(), expected.strip())
