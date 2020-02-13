@@ -1,8 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
-# the beanmachine/graph/ directory is a temporary symlink to graph/
-beanmachine/graph
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
