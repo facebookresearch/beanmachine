@@ -48,8 +48,10 @@ class SingleSiteCompositionalInference(AbstractSingleSiteMHInference):
         node_var = self.world_.get_node_in_world(node, False)
         distribution = node_var.distribution
         support = distribution.support
-        if isinstance(support, dist.constraints._Real) or isinstance(
-            support, dist.constraints._Simplex
+        if (
+            isinstance(support, dist.constraints._Real)
+            or isinstance(support, dist.constraints._Simplex)
+            or isinstance(support, dist.constraints._GreaterThan)
         ):
             return self.newtonian_monte_carlo_proposer_
         if isinstance(support, dist.constraints._IntegerInterval) and isinstance(
