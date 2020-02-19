@@ -52,7 +52,6 @@ def get_defaults():
         "trials": 10,
         "model_args": [0.1, 1.0, 5.0, 3.0, 3.0, 1.0],
     }
-    defaults["rng_seed"] = int(np.random.random() * 1000.0)
     return defaults
 
 
@@ -97,6 +96,7 @@ def generate_model(args_dict):
     - theta : Transition matrix for hidden states
     - mu_j , sigma_j : Parameters of emission distribution for hidden state X_j
     """
+    torch.manual_seed(args_dict["rng_seed"])
 
     K = int(args_dict["k"])
     N = int(args_dict["n"])
