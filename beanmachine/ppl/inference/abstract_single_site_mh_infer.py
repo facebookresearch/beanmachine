@@ -29,7 +29,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         :param queries: random variables to query
         :param observations: observed random variables with their values
         """
-        StatisticalModel.set_observations(self.observations_)
+        self.world_.set_observations(self.observations_)
         StatisticalModel.set_mode(Mode.INFERENCE)
         for node in self.observations_:
             # makes the call for the observation node, which will run sample(node())
@@ -91,7 +91,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         )
 
         children_log_updates, world_log_updates, node_log_update = self.world_.propose_change(
-            node, proposed_value, self.stack_
+            node, proposed_value
         )
         positive_proposal_log_update = proposer.post_process(
             node, self.world_, auxiliary_variables

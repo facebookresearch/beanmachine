@@ -91,11 +91,11 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change(self):
         model = self.SampleModel()
-        stack, world = StatisticalModel.reset()
+        world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         StatisticalModel.set_mode(Mode.INFERENCE)
-        StatisticalModel.set_observations({bar_key: tensor(0.1)})
+        world.set_observations({bar_key: tensor(0.1)})
         world.variables_[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
@@ -125,7 +125,7 @@ class WorldTest(unittest.TestCase):
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(
-            foo_key, tensor(0.25), stack
+            foo_key, tensor(0.25)
         )
 
         expected_children_log_update = dist.Normal(tensor(0.25), tensor(1.0)).log_prob(
@@ -145,12 +145,12 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change_with_parent_update_and_new_node(self):
         model = self.SampleModelWithParentUpdate()
-        stack, world = StatisticalModel.reset()
+        world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
         StatisticalModel.set_mode(Mode.INFERENCE)
-        StatisticalModel.set_observations({bar_key: tensor(0.1)})
+        world.set_observations({bar_key: tensor(0.1)})
 
         world.variables_[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
@@ -181,7 +181,7 @@ class WorldTest(unittest.TestCase):
         )
 
         children_log_update, world_log_update, _ = world.propose_change(
-            foo_key, tensor(0.25), stack
+            foo_key, tensor(0.25)
         )
 
         expected_children_log_update = (
@@ -209,14 +209,14 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change_with_multiple_parent_update(self):
         model = self.SampleLargeModelUpdate()
-        stack, world = StatisticalModel.reset()
+        world = StatisticalModel.reset()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
         foobar_key = model.foobar()
         foobaz_key = model.foobaz()
         StatisticalModel.set_mode(Mode.INFERENCE)
-        StatisticalModel.set_observations({bar_key: tensor(0.1)})
+        world.set_observations({bar_key: tensor(0.1)})
 
         world.variables_[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
@@ -253,7 +253,7 @@ class WorldTest(unittest.TestCase):
         )
 
         children_log_update, world_log_update, _ = world.propose_change(
-            foo_key, tensor(0.35), stack
+            foo_key, tensor(0.35)
         )
 
         expected_children_log_update = (
@@ -284,7 +284,7 @@ class WorldTest(unittest.TestCase):
         world.accept_diff()
 
         children_log_update, world_log_update, node_log_update = world.propose_change(
-            foo_key, tensor(0.55), stack
+            foo_key, tensor(0.55)
         )
 
         expected_node_update = (
@@ -334,7 +334,7 @@ class WorldTest(unittest.TestCase):
         self.assertEqual(baz_key in world.variables_[foo_key].children, False)
 
         children_log_update, world_log_update, _ = world.propose_change(
-            foo_key, tensor(0.75), stack
+            foo_key, tensor(0.75)
         )
 
         world.accept_diff()
@@ -347,7 +347,7 @@ class WorldTest(unittest.TestCase):
         self.assertEqual(foobaz_key in world.variables_[foobar_key].children, True)
 
         children_log_update, world_log_update, _ = world.propose_change(
-            foo_key, tensor(1.05), stack
+            foo_key, tensor(1.05)
         )
 
         world.accept_diff()
@@ -358,7 +358,7 @@ class WorldTest(unittest.TestCase):
 
     def test_ancestor_change(self):
         model = self.SampleLargeModelWithAncesters()
-        stack, world = StatisticalModel.reset()
+        world = StatisticalModel.reset()
         X_key = model.X()
         A_key_0 = model.A(0.0)
         A_key_1 = model.A(1.0)
@@ -370,7 +370,7 @@ class WorldTest(unittest.TestCase):
         D_key_1 = model.D(1.0)
         Y_key = model.Y()
         StatisticalModel.set_mode(Mode.INFERENCE)
-        StatisticalModel.set_observations({Y_key: tensor(0.1)})
+        world.set_observations({Y_key: tensor(0.1)})
         world.variables_[X_key] = Variable(
             distribution=dist.Categorical(tensor([0.5, 0.5])),
             value=tensor(0.0),
@@ -456,7 +456,7 @@ class WorldTest(unittest.TestCase):
         )
 
         children_log_update, world_log_update, node_log_update = world.propose_change(
-            X_key, tensor(1.0), stack
+            X_key, tensor(1.0)
         )
 
         a_value = tensor(0.0)
@@ -543,3 +543,91 @@ class WorldTest(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             world.compute_score(world.variables_["tmp"])
+
+    def test_update_graph_small_bar(self):
+        model = self.SampleModel()
+        world = StatisticalModel.reset()
+        foo_key = model.foo()
+        bar_key = model.bar()
+
+        StatisticalModel.set_mode(Mode.INFERENCE)
+        world.update_graph(bar_key)
+
+        foo_expected_parent = set()
+        foo_expected_children = set({bar_key})
+        bar_expected_parent = set({foo_key})
+        bar_expected_children = set()
+
+        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
+        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
+        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
+        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
+
+        foo_expected_dist = dist.Normal(tensor(0.0), tensor(1.0))
+        bar_expected_dist = dist.Normal(world.diff_[foo_key].value, tensor(1.0))
+
+        self.assertEqual(foo_expected_dist.mean, world.diff_[foo_key].distribution.mean)
+        self.assertEqual(
+            foo_expected_dist.stddev, world.diff_[foo_key].distribution.stddev
+        )
+        self.assertEqual(bar_expected_dist.mean, world.diff_[bar_key].distribution.mean)
+        self.assertEqual(
+            bar_expected_dist.stddev, world.diff_[bar_key].distribution.stddev
+        )
+
+    def test_update_graph_small_foo(self):
+        model = self.SampleModel()
+        world = StatisticalModel.reset()
+        foo_key = model.foo()
+
+        StatisticalModel.set_mode(Mode.INFERENCE)
+        world.update_graph(foo_key)
+
+        foo_expected_parent = set()
+        foo_expected_children = set()
+
+        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
+        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
+
+    def test_update_graph_parent_update(self):
+        model = self.SampleModelWithParentUpdate()
+        world = StatisticalModel.reset()
+        foo_key = model.foo()
+        bar_key = model.bar()
+        baz_key = model.baz()
+
+        StatisticalModel.set_mode(Mode.INFERENCE)
+        world.update_graph(foo_key)
+        world.update_graph(bar_key)
+        world.update_graph(baz_key)
+        world.accept_diff()
+
+        world.propose_change(foo_key, tensor(0.8))
+
+        foo_expected_parent = set()
+        foo_expected_children = set({bar_key})
+        bar_expected_parent = set({foo_key})
+        bar_expected_children = set()
+
+        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
+        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
+        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
+        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
+
+        world.accept_diff()
+
+        world.propose_change(foo_key, tensor(0.2))
+
+        foo_expected_parent = set()
+        foo_expected_children = set({bar_key})
+        baz_expected_parent = set()
+        baz_expected_children = set({bar_key})
+        bar_expected_parent = set({foo_key, baz_key})
+        bar_expected_children = set()
+
+        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
+        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
+        self.assertEqual(baz_expected_children, world.diff_[baz_key].children)
+        self.assertEqual(baz_expected_parent, world.diff_[baz_key].parent)
+        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
+        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)

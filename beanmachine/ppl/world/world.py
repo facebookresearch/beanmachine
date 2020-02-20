@@ -84,6 +84,7 @@ class World(object):
         # pyre-fixme[6]: Expected `Optional[typing.Callable[[],
         #  Variable[collections._VT]]]` for 1st param but got `Type[Variable]`.
         self.variables_ = defaultdict(Variable)
+        self.stack_ = []
         self.log_prob_ = tensor(0.0)
         self.observations_ = defaultdict()
         self.reset_diff()
@@ -329,7 +330,6 @@ class World(object):
             new_parents = self.diff_[child].parent
 
             dropped_parents = old_parents - new_parents
-
             for parent in dropped_parents:
                 parent_var = self.get_node_in_world(parent)
                 # pyre-fixme[16]: `Optional` has no attribute `children`.
@@ -354,18 +354,15 @@ class World(object):
                         self.diff_log_update_ -= self.variables_[ancestor].log_prob
                         ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
 
-    def create_child_with_new_distributions(
-        self, node: RVIdentifier, stack: List[RVIdentifier]
-    ) -> Tensor:
+    def create_child_with_new_distributions(self, node: RVIdentifier) -> Tensor:
         """
         Adds all node's children to diff_ and re-computes their distrbutions
         and log_prob
 
         :param node: the node whose value was just updated to a proposed value
         and thus its children's distributions are needed to be recomputed.
-        :param stack: the inference stack
         :returns: difference of old and new log probability of the immediate
-        children of the resampled node.
+        children of the resampled node
         """
         old_log_probs = defaultdict()
         new_log_probs = defaultdict()
@@ -375,9 +372,9 @@ class World(object):
                 continue
             old_log_probs[child] = child_var.log_prob
             child_var.parent = set()
-            stack.append(child)
+            self.stack_.append(child)
             child_var.distribution = child.function(*child.arguments)
-            stack.pop()
+            self.stack_.pop()
             obs_value = (
                 self.observations_[child] if child in self.observations_ else None
             )
@@ -396,19 +393,62 @@ class World(object):
         return children_log_update
 
     def propose_change(
-        self, node: RVIdentifier, proposed_value: Tensor, stack: List[RVIdentifier]
+        self, node: RVIdentifier, proposed_value: Tensor
     ) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Creates the diff for the proposed change
 
         :param node: the node who has a new proposed value
         :param proposed_value: the proposed value for node
-        :param stack: the inference stack
         :returns: difference of old and new log probability of node's children,
         difference of old and new log probability of world, difference of old
         and new log probability of node
         """
         node_log_update = self.start_diff_with_proposed_val(node, proposed_value)
-        children_node_log_update = self.create_child_with_new_distributions(node, stack)
+        children_node_log_update = self.create_child_with_new_distributions(node)
         world_log_update = self.diff_log_update_
         return children_node_log_update, world_log_update, node_log_update
+
+    def update_graph(self, node: RVIdentifier) -> Tensor:
+        """
+        Updates the parents and children of the node based on the stack
+
+        :param node: the node which was called from StatisticalModel.sample()
+        """
+        if len(self.stack_) > 0:
+            self.get_node_in_world_raise_error(self.stack_[-1]).parent.add(node)
+
+        node_var = self.get_node_in_world(node, False)
+        if node_var is not None:
+            if len(self.stack_) > 0 and self.stack_[-1] not in node_var.children:
+                var_copy = node_var.copy()
+                var_copy.children.add(self.stack_[-1])
+                self.add_node_to_world(node, var_copy)
+            return node_var.value
+
+        node_var = Variable(
+            # pyre-fixme
+            distribution=None,
+            value=None,
+            log_prob=None,
+            parent=set(),
+            children=set() if len(self.stack_) == 0 else set({self.stack_[-1]}),
+            proposal_distribution=None,
+            extended_val=None,
+            is_discrete=None,
+            transforms=None,
+            unconstrained_value=None,
+            jacobian=None,
+        )
+
+        self.add_node_to_world(node, node_var)
+
+        self.stack_.append(node)
+        node_var.distribution = node.function(*node.arguments)
+        self.stack_.pop()
+
+        obs_value = self.observations_[node] if node in self.observations_ else None
+        node_var.update_fields(None, obs_value, self.get_transform(node))
+        self.update_diff_log_prob(node)
+
+        return node_var.value

@@ -1,12 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from collections import defaultdict
 from functools import wraps
-from typing import Dict, List
 
 from beanmachine.ppl.model.utils import Mode, RVIdentifier
-from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
-from torch import Tensor
 
 
 class StatisticalModel(object):
@@ -34,28 +30,17 @@ class StatisticalModel(object):
         return Normal(mu(z(i)), gamma)
     """
 
-    __stack_ = []
     __world_ = None
     __mode_ = Mode.INITIALIZE
-    __observe_vals_ = defaultdict()
 
     @staticmethod
     def reset():
         """
-        Initialize world and stack at the beginning of inference
+        Initialize world at the beginning of inference
         """
-        StatisticalModel.__stack_ = []
         StatisticalModel.__world_ = World()
         StatisticalModel.__mode_ = Mode.INITIALIZE
-        StatisticalModel.__observe_vals_ = defaultdict()
-        return StatisticalModel.__stack_, StatisticalModel.__world_
-
-    @staticmethod
-    def get_stack() -> List[RVIdentifier]:
-        """
-        :returns: __stack_
-        """
-        return StatisticalModel.__stack_
+        return StatisticalModel.__world_
 
     @staticmethod
     def get_world() -> World:
@@ -80,23 +65,6 @@ class StatisticalModel(object):
         :param mode: the mode to update the __mode_ to
         """
         StatisticalModel.__mode_ = mode
-
-    @staticmethod
-    def get_observations() -> Dict[RVIdentifier, Tensor]:
-        """
-        :returns: __observe_vals_
-        """
-        return StatisticalModel.__observe_vals_
-
-    @staticmethod
-    def set_observations(val):
-        """
-        Update __observe_vals_ to val
-
-        :param val: the value to set the __observe_vals_ to
-        """
-        StatisticalModel.__world_.set_observations(val)
-        StatisticalModel.__observe_vals_ = val
 
     @staticmethod
     def get_func_key(function, arguments) -> RVIdentifier:
@@ -124,44 +92,7 @@ class StatisticalModel(object):
             if StatisticalModel.__mode_ == Mode.INITIALIZE:
                 return func_key
             world = StatisticalModel.__world_
-            stack = StatisticalModel.__stack_
-            obs = StatisticalModel.__observe_vals_
-
-            if len(stack) > 0:
-                world.get_node_in_world(stack[-1]).parent.add(func_key)
-
-            var = world.get_node_in_world(func_key)
-            if var is not None:
-                if len(stack) > 0:
-                    var.children.add(stack[-1])
-
-                return var.value
-
-            var = Variable(
-                distribution=None,
-                value=None,
-                log_prob=None,
-                parent=set(),
-                children=set() if len(stack) == 0 else set({stack[-1]}),
-                proposal_distribution=None,
-                extended_val=None,
-                is_discrete=None,
-                transforms=None,
-                unconstrained_value=None,
-                jacobian=None,
-            )
-
-            world.add_node_to_world(func_key, var)
-            stack.append(func_key)
-            distribution = f(*args)
-            stack.pop()
-
-            var.distribution = distribution
-
-            obs_value = obs[func_key] if func_key in obs else None
-            var.update_fields(None, obs_value, world.get_transform(func_key))
-            world.update_diff_log_prob(func_key)
-            return var.value
+            return world.update_graph(func_key)
 
         f._wrapper = wrapper
         return wrapper
