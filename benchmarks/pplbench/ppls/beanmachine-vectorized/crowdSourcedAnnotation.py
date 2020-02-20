@@ -12,6 +12,24 @@ from beanmachine.ppl.model.statistical_model import sample
 from torch import tensor
 
 
+class Fixed(dist.Distribution):
+    has_enumerate_support = False
+    support = dist.constraints.real
+    has_rsample = True
+
+    def __init__(self, stored_log_prob):
+        self.stored_log_prob = stored_log_prob
+
+    def rsample(self, sample_shape):
+        return torch.zeros(sample_shape)
+
+    def sample(self):
+        return torch.tensor(0.0)
+
+    def log_prob(self, value):
+        return self.stored_log_prob
+
+
 class CrowdSourcedAnnotationModel(object):
     def __init__(
         self,
@@ -65,18 +83,15 @@ class CrowdSourcedAnnotationModel(object):
     # this is a dummy observation of true for each item
     @sample
     def true(self):
-        # we will compute the likelihood of items items labels
-        likelihood = (
-            self.pi()
-            * torch.zeros((self.num_items, self.num_categories))
-            .scatter_add_(
-                0,
-                self.flattened_items.unsqueeze(1).expand(-1, self.num_categories),
-                self.theta()[self.flattened_labelers, :, self.flattened_labels].log_(),
-            )
-            .exp_()
-        ).sum(dim=1)
-        return dist.Bernoulli(likelihood)
+        # we will compute the likelihood of labels given the prevalence and confusion
+        likelihood = self.pi().log() + torch.zeros(
+            (self.num_items, self.num_categories)
+        ).scatter_add_(
+            0,
+            self.flattened_items.unsqueeze(1).expand(-1, self.num_categories),
+            self.theta()[self.flattened_labelers, :, self.flattened_labels].log_(),
+        )
+        return Fixed(torch.logsumexp(likelihood, 1).sum())
 
     def infer(self) -> Tuple[MonteCarloSamples, float]:
         observed_dict = {self.true(): torch.ones(self.num_items)}
