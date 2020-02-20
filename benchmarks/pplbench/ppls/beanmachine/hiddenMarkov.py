@@ -56,12 +56,12 @@ class HiddenMarkovModel(object):
         if n == 0:
             return dist.Categorical(tensor([1.0] + [0.0] * (self.K - 1)))
         else:
-            return dist.Categorical(self.Theta(self.X(n - 1)))
+            return dist.Categorical(self.Theta(self.X(n - 1).item()))
 
     # Noisy observations/emissions
     @sample
     def Y(self, n: int):
-        return dist.Normal(self.Mu(self.X(n)), self.Sigma(self.X(n)))
+        return dist.Normal(self.Mu(self.X(n).item()), self.Sigma(self.X(n).item()))
 
     def infer(self):
         mh = SingleSiteCompositionalInference()
