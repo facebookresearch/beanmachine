@@ -1,6 +1,5 @@
 # Copyright(C) Facebook, Inc. and its affiliates. All Rights Reserved.
 
-import numpy as np
 import scipy.special
 import torch
 import torch.distributions as dist
