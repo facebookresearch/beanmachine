@@ -101,6 +101,6 @@ class AbstractInference(object, metaclass=ABCMeta):
         """
         Resets world, mode and observation
         """
-        self.stack_, self.world_ = StatisticalModel.reset()
+        self.world_ = StatisticalModel.reset()
         self.queries_ = []
         self.observations_ = {}
