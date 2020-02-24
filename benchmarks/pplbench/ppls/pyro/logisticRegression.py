@@ -11,7 +11,7 @@ import torch
 
 
 def logistic_model(x_train, y_train=None):
-    K = int(x_train.shape[1])
+    K = x_train.shape[1]
     scale_alpha, scale_beta, loc_beta, _ = model_args
 
     alpha = pyro.sample("alpha", dist.Normal(0.0, scale_alpha))
@@ -52,7 +52,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     # the guide serves as an approximation to the posterior
     guide = autoguide.AutoDiagonalNormal(logistic_model)
     optimiser = pyro.optim.Adam({"lr": LEARNING_RATE})
-    loss = pyro.infer.Trace_ELBO(vectorize_particles=True)
+    loss = pyro.infer.JitTrace_ELBO(vectorize_particles=True)
 
     # set up the inference algorithm
     svi = pyro.infer.SVI(
