@@ -354,7 +354,9 @@ class World(object):
                         self.diff_log_update_ -= self.variables_[ancestor].log_prob
                         ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
 
-    def create_child_with_new_distributions(self, node: RVIdentifier) -> Tensor:
+    def create_child_with_new_distributions(
+        self, node: RVIdentifier
+    ) -> Tuple[Tensor, bool]:
         """
         Adds all node's children to diff_ and re-computes their distrbutions
         and log_prob
@@ -362,7 +364,8 @@ class World(object):
         :param node: the node whose value was just updated to a proposed value
         and thus its children's distributions are needed to be recomputed.
         :returns: difference of old and new log probability of the immediate
-        children of the resampled node
+        children of the resampled node, and flag indicating if parents of children
+        have changed
         """
         old_log_probs = defaultdict()
         new_log_probs = defaultdict()
@@ -384,30 +387,65 @@ class World(object):
             new_log_probs[child] = child_var.log_prob
 
         self.update_children_parents(node)
+        graph_update = len(self.diff_) > len(self.variables_[node].children) + 1
 
         children_log_update = tensor(0.0)
         for node in old_log_probs:
             if node in new_log_probs and not self.is_delete_[node]:
                 children_log_update += new_log_probs[node] - old_log_probs[node]
         self.diff_log_update_ += children_log_update
-        return children_log_update
+        return children_log_update, graph_update
 
-    def propose_change(
-        self, node: RVIdentifier, proposed_value: Tensor
-    ) -> Tuple[Tensor, Tensor, Tensor]:
+    def propose_change_unconstrained_value(
+        self,
+        node: RVIdentifier,
+        proposed_unconstrained_value: Tensor,
+        allow_graph_update=True,
+    ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """
         Creates the diff for the proposed change
 
         :param node: the node who has a new proposed value
         :param proposed_value: the proposed value for node
+        :param allow_graph_update: allow parents of node to update
         :returns: difference of old and new log probability of node's children,
         difference of old and new log probability of world, difference of old
         and new log probability of node
         """
+        node_var = self.get_node_in_world_raise_error(node, False)
+        proposed_value = node_var.transform_from_unconstrained_to_constrained(
+            proposed_unconstrained_value
+        )
+        return self.propose_change(node, proposed_value, allow_graph_update)
+
+    def propose_change(
+        self, node: RVIdentifier, proposed_value: Tensor, allow_graph_update=True
+    ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
+        """
+        Creates the diff for the proposed change
+
+        :param node: the node who has a new proposed value
+        :param proposed_value: the proposed value for node
+        :param allow_graph_update: allow parents of node to update
+        :returns: difference of old and new log probability of node's children,
+        difference of old and new log probability of world, difference of old
+        and new log probability of node, new score of world
+        """
         node_log_update = self.start_diff_with_proposed_val(node, proposed_value)
-        children_node_log_update = self.create_child_with_new_distributions(node)
+        children_node_log_update, graph_update = self.create_child_with_new_distributions(
+            node
+        )
+        if not allow_graph_update and graph_update:
+            raise RuntimeError(f"Computation graph changed after proposal for {node}")
         world_log_update = self.diff_log_update_
-        return children_node_log_update, world_log_update, node_log_update
+        diff_node_var = self.get_node_in_world_raise_error(node, False)
+        proposed_score = self.compute_score(diff_node_var)
+        return (
+            children_node_log_update,
+            world_log_update,
+            node_log_update,
+            proposed_score,
+        )
 
     def update_graph(self, node: RVIdentifier) -> Tensor:
         """

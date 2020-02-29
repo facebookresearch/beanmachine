@@ -90,7 +90,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
             node, self.world_
         )
 
-        children_log_updates, world_log_updates, node_log_update = self.world_.propose_change(
+        children_log_updates, _, node_log_update, _ = self.world_.propose_change(
             node, proposed_value
         )
         positive_proposal_log_update = proposer.post_process(

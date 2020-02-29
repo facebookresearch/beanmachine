@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 import torch
 import torch.tensor as tensor
@@ -23,7 +23,12 @@ def zero_grad(node_val: Tensor) -> None:
         node_val.grad.zero_()
 
 
-def compute_first_gradient(score: Tensor, node_val: Tensor) -> Tuple[bool, Tensor]:
+def compute_first_gradient(
+    score: Tensor,
+    node_val: Tensor,
+    create_graph: bool = False,
+    retain_graph: Optional[bool] = None,
+) -> Tuple[bool, Tensor]:
     """
     Computes the first gradient.
 
@@ -31,16 +36,18 @@ def compute_first_gradient(score: Tensor, node_val: Tensor) -> Tuple[bool, Tenso
     :param node_val: the value to compute the gradient against
     :returns: the first gradient
     """
-    if not hasattr(node_val, "grad"):
+    if not node_val.requires_grad:
         raise ValueError("requires_grad_ needs to be set for node values")
 
     # pyre expects attributes to be defined in constructors or at class
     # top levels and doesn't support attributes that get dynamically added.
     # pyre-fixme
-    elif node_val.grad is not None:
+    elif node_val.is_leaf and node_val.grad is not None:
         node_val.grad.zero_()
 
-    first_gradient = grad(score, node_val, create_graph=True)[0]
+    first_gradient = grad(
+        score, node_val, create_graph=create_graph, retain_graph=retain_graph
+    )[0]
     return is_valid(first_gradient), first_gradient
 
 
