@@ -124,7 +124,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        children_log_update, world_log_update, node_log_update = world.propose_change(
+        children_log_update, world_log_update, node_log_update, _ = world.propose_change(
             foo_key, tensor(0.25)
         )
 
@@ -180,7 +180,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        children_log_update, world_log_update, _ = world.propose_change(
+        children_log_update, world_log_update, _, _ = world.propose_change(
             foo_key, tensor(0.25)
         )
 
@@ -252,7 +252,7 @@ class WorldTest(unittest.TestCase):
             .sub(dist.Normal(tensor(0.0), tensor(1.0)).log_prob(0.2))
         )
 
-        children_log_update, world_log_update, _ = world.propose_change(
+        children_log_update, world_log_update, _, score = world.propose_change(
             foo_key, tensor(0.35)
         )
 
@@ -283,7 +283,7 @@ class WorldTest(unittest.TestCase):
 
         world.accept_diff()
 
-        children_log_update, world_log_update, node_log_update = world.propose_change(
+        children_log_update, world_log_update, node_log_update, score = world.propose_change(
             foo_key, tensor(0.55)
         )
 
@@ -333,7 +333,7 @@ class WorldTest(unittest.TestCase):
         self.assertEqual(baz_key in world.variables_, False)
         self.assertEqual(baz_key in world.variables_[foo_key].children, False)
 
-        children_log_update, world_log_update, _ = world.propose_change(
+        children_log_update, world_log_update, _, _ = world.propose_change(
             foo_key, tensor(0.75)
         )
 
@@ -346,7 +346,7 @@ class WorldTest(unittest.TestCase):
         self.assertEqual(foobar_key in world.variables_[foobaz_key].parent, True)
         self.assertEqual(foobaz_key in world.variables_[foobar_key].children, True)
 
-        children_log_update, world_log_update, _ = world.propose_change(
+        children_log_update, world_log_update, _, _ = world.propose_change(
             foo_key, tensor(1.05)
         )
 
@@ -455,7 +455,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        children_log_update, world_log_update, node_log_update = world.propose_change(
+        children_log_update, world_log_update, node_log_update, score = world.propose_change(
             X_key, tensor(1.0)
         )
 
@@ -631,3 +631,44 @@ class WorldTest(unittest.TestCase):
         self.assertEqual(baz_expected_parent, world.diff_[baz_key].parent)
         self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
         self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
+
+    def test_world_propose_change_score(self):
+        model = self.SampleModel()
+        world = StatisticalModel.reset()
+        foo_key = model.foo()
+        bar_key = model.bar()
+        StatisticalModel.set_mode(Mode.INFERENCE)
+
+        world.set_observations({bar_key: tensor(0.1)})
+        world.variables_[foo_key] = Variable(
+            distribution=dist.Normal(tensor(0.0), tensor(1.0)),
+            value=tensor(0.5),
+            log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
+            parent=set(),
+            children=set({bar_key}),
+            proposal_distribution=None,
+            extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.5),
+            jacobian=tensor(0.0),
+        )
+        world.variables_[bar_key] = Variable(
+            distribution=dist.Normal(tensor(0.5), tensor(1.0)),
+            value=tensor(0.1),
+            log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
+            parent=set({foo_key}),
+            children=set(),
+            proposal_distribution=None,
+            extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=tensor(0.1),
+            jacobian=tensor(0.0),
+        )
+
+        score = world.propose_change(foo_key, tensor(0.25))[3]
+        expected_score = dist.Normal(0, 1).log_prob(0.25) + dist.Normal(
+            0.25, 1.0
+        ).log_prob(0.1)
+        self.assertAlmostEqual(score, expected_score)
