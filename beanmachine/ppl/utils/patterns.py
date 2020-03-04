@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A rules engine for tree transformation"""
+"""A pattern matching engine"""
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
