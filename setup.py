@@ -83,7 +83,7 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=[
-        "torch>=1.2",
+        "torch>=1.4.0",
         "dataclasses>=0.6",
         "pandas>=0.24.2",
         "plotly>=2.2.1",
