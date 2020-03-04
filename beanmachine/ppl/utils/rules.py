@@ -96,6 +96,9 @@ class Rule(ABC):
     def apply(self, test: Any) -> RuleResult:
         pass
 
+    def __call__(self, test: Any) -> RuleResult:
+        return self.apply(test)
+
 
 class PatternRule(Rule):
     """If the test value matches the pattern, then the test value is passed

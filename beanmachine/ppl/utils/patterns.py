@@ -96,6 +96,9 @@ class PatternBase(ABC):
     def __str__(self) -> str:
         return self._to_str("test")
 
+    def __call__(self, test: Any) -> MatchResult:
+        return self.match(test)
+
 
 Pattern = Union[PatternBase, int, str, float, type, None]
 

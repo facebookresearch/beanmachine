@@ -27,8 +27,6 @@ class RulesTest(unittest.TestCase):
 
         # TODO: Rules to string
 
-        # TODO: Make a pattern and a rule callable.
-
         self.maxDiff = None
 
         z = Num(n=0)
@@ -43,21 +41,21 @@ class RulesTest(unittest.TestCase):
         once = try_once(remove_plus_zero)
         many = try_many(remove_plus_zero)
 
-        result = once.apply(oo).expect_success()
+        result = once(oo).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(oo))
 
-        result = once.apply(zo_z).expect_success()
+        result = once(zo_z).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(zo))
 
-        result = once.apply(z_oz).expect_success()
+        result = once(z_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(oz))
 
-        result = many.apply(z_oz).expect_success()
+        result = many(z_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(o))
 
-        result = many.apply(zo_z).expect_success()
+        result = many(zo_z).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(o))
 
         # Does not recurse!
-        result = many.apply(zo_oz).expect_success()
+        result = many(zo_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(zo_oz))

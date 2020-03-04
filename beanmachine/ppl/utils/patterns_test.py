@@ -32,20 +32,20 @@ class PatternsTest(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(tidy(observed), tidy(expected))
 
-        result = p.match(ast.parse("0 * True + 1.5").body[0].value)
+        result = p(ast.parse("0 * True + 1.5").body[0].value)
         self.assertTrue(result.is_success())
         # This one fails because it is binop(0, binop(true, 1.5)), and the
         # pattern is looking for binop(binop(0, true), 1.5)
-        result = p.match(ast.parse("0 + True * 1.5").body[0].value)
+        result = p(ast.parse("0 + True * 1.5").body[0].value)
         self.assertTrue(result.is_fail())
 
     def test_negate(self) -> None:
         """Test negate"""
 
         p = negate(ast_str(s="abc"))
-        result = p.match(ast.parse("'abc'").body[0].value)
+        result = p(ast.parse("'abc'").body[0].value)
         self.assertTrue(result.is_fail())
-        result = p.match(ast.parse("1+2").body[0].value)
+        result = p(ast.parse("1+2").body[0].value)
         self.assertTrue(result.is_success())
 
     def test_1(self) -> None:
@@ -63,7 +63,7 @@ class PatternsTest(unittest.TestCase):
 
         zero = Num(n=0)
         one = Num(n=1)
-        result = b.match(BinOp(op=Add(), left=zero, right=one))
+        result = b(BinOp(op=Add(), left=zero, right=one))
         self.assertTrue(result.is_success())
-        result = b.match(BinOp(op=Add(), left=one, right=zero))
+        result = b(BinOp(op=Add(), left=one, right=zero))
         self.assertTrue(result.is_fail())
