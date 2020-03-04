@@ -129,6 +129,10 @@ uint Graph::add_constant(AtomicValue value) {
   return add_node(std::move(node), std::vector<uint>());
 }
 
+uint Graph::add_constant_probability(double value) {
+  return add_constant(AtomicValue(AtomicType::PROBABILITY, value));
+}
+
 uint Graph::add_distribution(
     DistributionType dist_type,
     AtomicType sample_type,
