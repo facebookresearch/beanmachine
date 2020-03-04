@@ -260,7 +260,7 @@ def match(pattern: Pattern, test: Any) -> MatchResult:
     raise TypeError(f"Expected pattern, got {type(pattern).__name__}")
 
 
-def _to_pattern(pattern: Pattern) -> PatternBase:
+def to_pattern(pattern: Pattern) -> PatternBase:
     """Takes any value that can be used as a pattern, and returns an object that
     derives from PatternBase that has the same semantics."""
     if isinstance(pattern, PatternBase):
@@ -296,7 +296,7 @@ class Negate(PatternBase):
         return Success(result.test, result.submatches)
 
     def _to_str(self, test: str) -> str:
-        return f"not({_to_pattern(self.pattern)._to_str(test)})"
+        return f"not({to_pattern(self.pattern)._to_str(test)})"
 
 
 # This is a *pattern combinator*. It takes a pattern and returns a modification
@@ -332,7 +332,7 @@ class MatchEvery(PatternBase):
 
     def _to_str(self, test: str) -> str:
         children = " and ".join(
-            _to_pattern(pattern)._to_str(test) for pattern in self.patterns
+            to_pattern(pattern)._to_str(test) for pattern in self.patterns
         )
         return f"({children})"
 
@@ -382,7 +382,7 @@ class MatchAny(PatternBase):
 
     def _to_str(self, test: str) -> str:
         children = " or ".join(
-            _to_pattern(pattern)._to_str(test) for pattern in self.patterns
+            to_pattern(pattern)._to_str(test) for pattern in self.patterns
         )
         return f"({children})"
 
@@ -434,7 +434,7 @@ class Subpattern(PatternBase):
         return Fail(test, submatches)
 
     def _to_str(self, test: str) -> str:
-        return _to_pattern(self.subpattern)._to_str(f"{test}.{self.name}")
+        return to_pattern(self.subpattern)._to_str(f"{test}.{self.name}")
 
 
 class AttributeSubpattern(PatternBase):
@@ -458,7 +458,7 @@ class AttributeSubpattern(PatternBase):
         return Fail(test, submatches)
 
     def _to_str(self, test: str) -> str:
-        return _to_pattern(self.subpattern)._to_str(f"{test}.{self.name}")
+        return to_pattern(self.subpattern)._to_str(f"{test}.{self.name}")
 
 
 # Another combinator

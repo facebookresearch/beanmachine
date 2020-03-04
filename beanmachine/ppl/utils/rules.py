@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A rules engine for tree transformation"""
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, Iterable, List, Tuple
 
 from beanmachine.ppl.utils.patterns import (
     MatchResult,
@@ -9,6 +9,7 @@ from beanmachine.ppl.utils.patterns import (
     anyPattern,
     failPattern,
     match,
+    to_pattern,
 )
 
 
@@ -121,6 +122,9 @@ class PatternRule(Rule):
         result = self.projection(test)
         return Success(test, result)
 
+    def __str__(self) -> str:
+        return f"{self.name}( {str(to_pattern(self.pattern)) }"
+
 
 def _identity(x: Any) -> Any:
     return x
@@ -139,10 +143,8 @@ def pattern_rules(
     """Constructs a rule from a sequence of pairs of patterns and projections.
     Patterns are checked in order, and the first one that matches is used for the
     projection; if none match then the rule fails."""
-    rule = fail
-    for pattern, action in pairs:
-        rule = or_else(PatternRule(pattern, action, name), rule, name)
-    return rule
+    rules = (PatternRule(pattern, action, name) for pattern, action in pairs)
+    return FirstMatch(rules)
 
 
 class Choose(Rule):
@@ -174,12 +176,40 @@ class Choose(Rule):
             return self.consequence.apply(rule_result.result)
         return self.alternative.apply(test)
 
+    def __str__(self) -> str:
+        a = str(self.condition)
+        b = str(self.consequence)
+        c = str(self.alternative)
+        return f"choose( {a}, {b}, {c} )"
 
-def compose(first: Rule, second: Rule, name: str = "compose") -> Rule:
-    """Apply the first rule; if it fails, the operation fails. If it succeeds,
-    apply the second rule to its output.
-    That is, Compose(a, b)(test) has the semantics of b(a(test))"""
-    return Choose(first, second, fail, name)
+
+class Compose(Rule):
+    """Apply the first rule to the test.
+    If it succeeds, apply the second rule to its output.
+    That is, Compose(a, b)(test) has the semantics of
+    if a(test) then b(a(test)) else fail"""
+
+    # Compose could be implemented as Choose(a, b, fail), but for debugging
+    # purposes it is better to explicitly implement it.
+
+    first: Rule
+    second: Rule
+
+    def __init__(self, first: Rule, second: Rule, name: str = "compose") -> None:
+        Rule.__init__(self, name)
+        self.first = first
+        self.second = second
+
+    def apply(self, test: Any) -> RuleResult:
+        rule_result = self.first.apply(test)
+        if isinstance(rule_result, Success):
+            return self.second.apply(rule_result.result)
+        return rule_result
+
+    def __str__(self) -> str:
+        a = str(self.first)
+        b = str(self.second)
+        return f"compose( {a}, {b} )"
 
 
 class Recursive(Rule):
@@ -194,20 +224,109 @@ class Recursive(Rule):
     def apply(self, test: Any) -> RuleResult:
         return self.rule_maker().apply(test)
 
-
-def or_else(first: Rule, second: Rule, name: str = "or_else") -> Rule:
-    """Try the first rule. If it succeeds, pass its result to identity, which
-    always succeeds. If it fails, try the second rule."""
-    return Choose(first, identity, second, name)
+    def __str__(self) -> str:
+        return self.name
 
 
-def try_once(rule: Rule, name: str = "try_once") -> Rule:
-    """Try the rule; if it succeeds, use the result. If it fails use the test
-    value."""
-    return or_else(rule, identity, name)
+class OrElse(Rule):
+    """Apply the first rule to the test.
+    If it succeeds, use that result.
+    If it fails, apply the second rule to the test and return that."""
+
+    # OrElse could be implemented as Choose(first, identity, second), but for debugging
+    # purposes it is better to explicitly implement it.
+
+    first: Rule
+    second: Rule
+
+    def __init__(self, first: Rule, second: Rule, name: str = "or_else") -> None:
+        Rule.__init__(self, name)
+        self.first = first
+        self.second = second
+
+    def apply(self, test: Any) -> RuleResult:
+        rule_result = self.first.apply(test)
+        if isinstance(rule_result, Success):
+            return rule_result
+        return self.second.apply(test)
+
+    def __str__(self) -> str:
+        a = str(self.first)
+        b = str(self.second)
+        return f"or_else( {a}, {b} )"
 
 
-def try_many(rule: Rule, name: str = "try_many") -> Rule:
-    """Try the rule; if it succeeds, try it again with the result, and so on.
-    When it eventually fails, return the final result."""
-    return try_once(compose(rule, Recursive(lambda: try_many(rule, name))), name)
+class FirstMatch(Rule):
+    """Apply each rule to the test until one succeeds; if none succeed, then fail."""
+
+    # FirstMatch([a,b,c]) could be implemented as OrElse(a, OrElse(b, c)) but for
+    # debugging purposes it is better to explicitly implement it.
+
+    rules: List[Rule]
+
+    def __init__(self, rules: Iterable[Rule], name: str = "first_match") -> None:
+        Rule.__init__(self, name)
+        self.rules = list(rules)
+
+    def apply(self, test: Any) -> RuleResult:
+        for rule in self.rules:
+            rule_result = rule.apply(test)
+            if isinstance(rule_result, Success):
+                return rule_result
+        return Fail(test)
+
+    def __str__(self) -> str:
+        rs = ", ".join(str(rule) for rule in self.rules)
+        return f"first_match( {rs} )"
+
+
+class TryOnce(Rule):
+    """Apply the rule to the test.
+    If it succeeds, use that result.
+    If it fails, use the test as the result and succeed.
+    This rule always succeeds."""
+
+    # TryOnce could be implemented as OrElse(rule, identity), but for debugging
+    # purposes it is better to explicitly implement it.
+
+    rule: Rule
+
+    def __init__(self, rule: Rule, name: str = "try_once") -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+
+    def apply(self, test: Any) -> RuleResult:
+        rule_result = self.rule.apply(test)
+        if isinstance(rule_result, Success):
+            return rule_result
+        return Success(test, test)
+
+    def __str__(self) -> str:
+        return f"try_once( {str(self.rule)} )"
+
+
+class TryMany(Rule):
+    """Repeatedly apply a rule; the result is that of the last application
+    that succeeded, or the original test if none succeeded.
+    This rule always succeeds."""
+
+    # TryMany could be implemented as TryOnce(Compose(rule, Recursive(TryMany(rule))))
+    # but for debugging purposes it is better to explicitly implement it.
+
+    rule: Rule
+
+    def __init__(self, rule: Rule, name: str = "try_many") -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+
+    def apply(self, test: Any) -> RuleResult:
+        current: Success = Success(test, test)
+        while True:
+            rule_result = self.rule.apply(current.result)
+            if isinstance(rule_result, Success):
+                current = rule_result
+            else:
+                return current
+
+    def __str__(self) -> str:
+        return f"try_many( {str(self.rule)} )"

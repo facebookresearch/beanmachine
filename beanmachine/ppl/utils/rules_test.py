@@ -6,7 +6,7 @@ import unittest
 from ast import Add, BinOp, Num
 
 from beanmachine.ppl.utils.ast_patterns import binop, num
-from beanmachine.ppl.utils.rules import pattern_rules, try_many, try_once
+from beanmachine.ppl.utils.rules import TryMany, TryOnce, pattern_rules
 
 
 def tidy(s: str) -> str:
@@ -25,8 +25,6 @@ class RulesTest(unittest.TestCase):
             "remove_plus_zero",
         )
 
-        # TODO: Rules to string
-
         self.maxDiff = None
 
         z = Num(n=0)
@@ -38,8 +36,23 @@ class RulesTest(unittest.TestCase):
         z_oz = BinOp(op=Add(), left=z, right=oz)
         zo_oz = BinOp(op=Add(), left=zo, right=oz)
 
-        once = try_once(remove_plus_zero)
-        many = try_many(remove_plus_zero)
+        once = TryOnce(remove_plus_zero)
+        many = TryMany(remove_plus_zero)
+
+        observed = str(once)
+        expected = """
+try_once(
+  first_match(
+    remove_plus_zero(
+      (isinstance(test, BinOp) and
+      isinstance(test.op, Add) and
+      (isinstance(test.left, Num) and test.left.n==0)),
+    remove_plus_zero(
+      (isinstance(test, BinOp) and
+      isinstance(test.op, Add) and
+      (isinstance(test.right, Num) and test.right.n==0)) ) )
+"""
+        self.assertEqual(tidy(observed), tidy(expected))
 
         result = once(oo).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(oo))
