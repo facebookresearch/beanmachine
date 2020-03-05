@@ -18,15 +18,17 @@ Bernoulli::Bernoulli(
     throw std::invalid_argument(
         "Bernoulli distribution must have exactly one parent");
   }
-  // if the parent is a constant then we can directly check the type
+  // check the parent type
+  const auto& parent0 = in_nodes[0]->value;
+  if (parent0.type != graph::AtomicType::REAL
+      and parent0.type != graph::AtomicType::PROBABILITY) {
+    throw std::invalid_argument(
+        "Bernoulli parent must be probability- or real-valued");
+  }
+  // if the parent is a constant then we can directly check the value
   if (in_nodes[0]->node_type == graph::NodeType::CONSTANT) {
-    graph::AtomicValue constant = in_nodes[0]->value;
-    if (constant.type != graph::AtomicType::REAL) {
-      throw std::invalid_argument(
-          "Bernoulli parent probability must be real-valued");
-    }
     // all probabilities must be between 0 and 1
-    if (constant._double > 1 or constant._double < 0) {
+    if (parent0._double > 1 or parent0._double < 0) {
       throw std::invalid_argument(
           "Bernoulli probability must be between 0 and 1");
     }

@@ -32,9 +32,11 @@ TEST(testgraph, support) {
       std::vector<uint>{o3});
   uint o4 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
+  uint ro2 = g.add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o2}));
+  uint ro4 = g.add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o4}));
   // o2 and o4 -> o5
   uint o5 = g.add_operator(
-      graph::OperatorType::MULTIPLY, std::vector<uint>({o2, o4}));
+      graph::OperatorType::MULTIPLY, std::vector<uint>({ro2, ro4}));
   uint d3 = g.add_distribution(
       graph::DistributionType::BERNOULLI,
       graph::AtomicType::BOOLEAN,
@@ -77,25 +79,28 @@ TEST(testgraph, support) {
   EXPECT_EQ(det_anc.back(), o7);
   EXPECT_EQ(sto_anc.size(), 1);
   EXPECT_EQ(sto_anc.front(), o6);
-  // query o5 so support is now 11 nodes:
-  //   c1, c2, o1, d1, o2, c3, c4, o3, d2, o4, o5
-  // but we only include operators o1, o2, o3, o4, and o5
+  // query o5 so support is now 13 nodes:
+  //   c1, c2, o1, d1, o2, ro2, c3, c4, o3, d2, o4, ro5, o5
+  // but we only include operators o1, o2, ro2, o3, o4, ro4, and o5
   g.query(o5);
   supp = g.compute_support();
-  EXPECT_EQ(supp.size(), 5);
+  EXPECT_EQ(supp.size(), 7);
   // o4 -> det: o5, d3 sto: o4, o6
-  // limiting to operators: o4 -> det: o5 sto: o4, o6
+  // limiting to operators: o4 -> det: ro4, o5 sto: o4, o6
   // note: o7 and o8 are not in the descendants of o4
   // because the descendant chain gets cut off at the stochastic node o6
-  // limiting to support: o4 -> det: o5 sto: o4
+  // limiting to support: o4 -> det: ro4, o5 sto: o4
   std::tie(det_nodes, sto_nodes) = g.compute_descendants(o4, supp);
-  EXPECT_EQ(det_nodes.size(), 1);
-  EXPECT_EQ(det_nodes.front(), o5);
+  EXPECT_EQ(det_nodes.size(), 2);
+  EXPECT_EQ(det_nodes.front(), ro4);
+  EXPECT_EQ(det_nodes.back(), o5);
   EXPECT_EQ(sto_nodes.size(), 1);
   EXPECT_EQ(sto_nodes.front(), o4);
   std::tie(det_anc, sto_anc) = g.compute_ancestors(o5);
-  // ancestors(o5) = det: sto: o2 o4
-  EXPECT_EQ(det_anc.size(), 0);
+  // ancestors(o5) = det: ro2, ro4, sto: o2 o4
+  EXPECT_EQ(det_anc.size(), 2);
+  EXPECT_EQ(det_anc.front(), ro2);
+  EXPECT_EQ(det_anc.back(), ro4);
   EXPECT_EQ(sto_anc.size(), 2);
   EXPECT_EQ(sto_anc.front(), o2);
   EXPECT_EQ(sto_anc.back(), o4);

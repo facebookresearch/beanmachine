@@ -15,6 +15,7 @@ PYBIND11_MODULE(graph, module) {
   py::enum_<AtomicType>(module, "AtomicType")
       .value("BOOLEAN", AtomicType::BOOLEAN)
       .value("REAL", AtomicType::REAL)
+      .value("PROBABILITY", AtomicType::PROBABILITY)
       .value("TENSOR", AtomicType::TENSOR);
 
   py::class_<AtomicValue>(module, "AtomicValue")
@@ -24,11 +25,13 @@ PYBIND11_MODULE(graph, module) {
       .def_readonly("type", &AtomicValue::type)
       .def_readonly("bool", &AtomicValue::_bool)
       .def_readonly("real", &AtomicValue::_double)
+      .def_readonly("probability", &AtomicValue::_double)
       .def_readonly("tensor", &AtomicValue::_tensor);
 
   py::enum_<OperatorType>(module, "OperatorType")
       .value("SAMPLE", OperatorType::SAMPLE)
       .value("TO_REAL", OperatorType::TO_REAL)
+      .value("TO_TENSOR", OperatorType::TO_TENSOR)
       .value("NEGATE", OperatorType::NEGATE)
       .value("EXP", OperatorType::EXP)
       .value("EXPM1", OperatorType::EXPM1)
@@ -73,6 +76,11 @@ PYBIND11_MODULE(graph, module) {
           "add_constant",
           (uint(Graph::*)(AtomicValue)) & Graph::add_constant,
           "add a Node with a constant value",
+          py::arg("value"))
+      .def(
+          "add_constant_probability",
+          (uint(Graph::*)(double)) & Graph::add_constant_probability,
+          "add a Node with a constant probability value",
           py::arg("value"))
       .def(
           "add_distribution",

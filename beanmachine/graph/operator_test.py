@@ -6,7 +6,7 @@ import beanmachine.graph as bmg
 
 
 class TestOperators(unittest.TestCase):
-    def test_oper_args(self):
+    def test_oper_args(self) -> None:
         """
         We will test test number of arguments for each operator 0, 1, 2, 3 etc.
         """
@@ -14,12 +14,24 @@ class TestOperators(unittest.TestCase):
         c1 = g.add_constant(torch.FloatTensor([0, 1, -1]))
         c2 = g.add_constant(torch.FloatTensor([0, 1, -1]))
         c3 = g.add_constant(torch.FloatTensor([0, 1, -1]))
+        c4 = g.add_constant_probability(0.6)
+        c5 = g.add_constant_probability(0.7)
         # test TO_REAL
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [])
-        g.add_operator(bmg.OperatorType.TO_REAL, [c1])
         with self.assertRaises(ValueError):
-            g.add_operator(bmg.OperatorType.TO_REAL, [c1, c2])
+            # can't convert tensor to real
+            g.add_operator(bmg.OperatorType.TO_REAL, [c1])
+        g.add_operator(bmg.OperatorType.TO_REAL, [c4])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.TO_REAL, [c4, c5])
+        # test TO_TENSOR
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.TO_TENSOR, [])
+        g.add_operator(bmg.OperatorType.TO_TENSOR, [c1])
+        g.add_operator(bmg.OperatorType.TO_TENSOR, [c4])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.TO_TENSOR, [c1, c2])
         # test EXP
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.EXP, [])
@@ -47,11 +59,12 @@ class TestOperators(unittest.TestCase):
         g.add_operator(bmg.OperatorType.ADD, [c1, c2])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2, c3])
 
-    def test_arithmetic(self):
+    def test_arithmetic(self) -> None:
         g = bmg.Graph()
         const1 = torch.FloatTensor([0, 1, -1])
         c1 = g.add_constant(const1)
-        o1 = g.add_operator(bmg.OperatorType.NEGATE, [c1])
+        o0 = g.add_operator(bmg.OperatorType.TO_TENSOR, [c1])
+        o1 = g.add_operator(bmg.OperatorType.NEGATE, [o0])
         o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
         o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2, c1])
         o4 = g.add_operator(bmg.OperatorType.EXPM1, [c1])
@@ -66,7 +79,18 @@ class TestOperators(unittest.TestCase):
         result = const1 + torch.exp(-const1) * const1 + torch.expm1(const1)
         self.assertTrue((samples[0][0].tensor == result).all().item())
 
-    def test_sample(self):
+    def test_probability(self) -> None:
+        g = bmg.Graph()
+        c1 = g.add_constant_probability(0.8)
+        c2 = g.add_constant_probability(0.7)
+        o1 = g.add_operator(bmg.OperatorType.NEGATE, [c1])
+        o2 = g.add_operator(bmg.OperatorType.MULTIPLY, [o1, c2])
+        g.query(o2)
+        samples = g.infer(2)
+        self.assertEqual(samples[0][0].type, bmg.AtomicType.PROBABILITY)
+        self.assertAlmostEquals(samples[0][0].probability, 0.14, 3)
+
+    def test_sample(self) -> None:
         # negative test we can't exponentiate the sample from a Bernoulli
         g = bmg.Graph()
         c1 = g.add_constant(0.6)
@@ -74,13 +98,9 @@ class TestOperators(unittest.TestCase):
             bmg.DistributionType.BERNOULLI, bmg.AtomicType.BOOLEAN, [c1]
         )
         s1 = g.add_operator(bmg.OperatorType.SAMPLE, [d1])
-        o1 = g.add_operator(bmg.OperatorType.EXP, [s1])
-        g.query(o1)
-        # note: this error is raised by the torch library so we don't want to
-        # assert on the error message here
-        with self.assertRaises(RuntimeError) as cm:
-            g.infer(1)
-        self.assertTrue("invalid parent type" in str(cm.exception))
+        with self.assertRaises(ValueError) as cm:
+            o1 = g.add_operator(bmg.OperatorType.EXP, [s1])
+        self.assertTrue("operator requires real/tensor parent" in str(cm.exception))
 
         # the proper way to do it is to convert to floating point first
         g = bmg.Graph()
