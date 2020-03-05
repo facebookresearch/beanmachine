@@ -7,6 +7,7 @@ import unittest
 from beanmachine.ppl.utils.ast_patterns import (
     ast_str,
     binop,
+    expr,
     module,
     name_constant,
     num,
@@ -66,3 +67,17 @@ class PatternsTest(unittest.TestCase):
         self.assertTrue(result.is_success())
         result = p(ast.parse("1 + 2"))
         self.assertTrue(result.is_fail())
+
+        p = module(body=[expr(value=binop()), expr(value=binop())])
+        observed = str(p)
+        expected = """
+(isinstance(test, Module) and
+[(isinstance(test.body[0], Expr) and isinstance(test.body[0].value, BinOp)),
+(isinstance(test.body[1], Expr) and isinstance(test.body[1].value, BinOp))])
+"""
+        self.assertEqual(tidy(observed), tidy(expected))
+
+        result = p(ast.parse("1 + 2"))
+        self.assertTrue(result.is_fail())
+        result = p(ast.parse("1 + 2; 3 * 4"))
+        self.assertTrue(result.is_success())

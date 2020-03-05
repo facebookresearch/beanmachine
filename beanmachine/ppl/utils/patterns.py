@@ -241,11 +241,18 @@ class TypePattern(PatternBase):
         return f"isinstance({test}, {self.typ.__name__})"
 
 
+def _match_list_pattern(patterns: List[Pattern], test: Any) -> MatchResult:
+    if not isinstance(test, list) or len(test) != len(patterns):
+        return Fail(test)
+    submatches = {str(i): match(pattern, test[i]) for i, pattern in enumerate(patterns)}
+    if any(result.is_fail() for result in submatches.values()):
+        return Fail(test, submatches)
+    return Success(test, submatches)
+
+
 def match(pattern: Pattern, test: Any) -> MatchResult:
     if pattern is None:
         return Success(test) if test is None else Fail(test)
-    if pattern is Any:
-        return Success(test)
     if (
         isinstance(pattern, int)
         or isinstance(pattern, str)
@@ -253,10 +260,8 @@ def match(pattern: Pattern, test: Any) -> MatchResult:
         or isinstance(pattern, float)
     ):
         return Success(test) if test == pattern else Fail(test)
-    if isinstance(pattern, list) and len(pattern) == 0:
-        if isinstance(test, list) and len(test) == 0:
-            return Success(test)
-        return Fail(test)
+    if isinstance(pattern, list):
+        return _match_list_pattern(pattern, test)
     if isinstance(pattern, type):
         return Success(test) if isinstance(test, pattern) else Fail(test)
     if isinstance(pattern, PatternBase):
@@ -279,8 +284,10 @@ def to_pattern(pattern: Pattern) -> PatternBase:
         return FloatPattern(pattern)
     if isinstance(pattern, str):
         return StringPattern(pattern)
-    if isinstance(pattern, list) and len(pattern) == 0:
-        return EmptyListPattern()
+    if isinstance(pattern, list):
+        if len(pattern) == 0:
+            return EmptyListPattern()
+        return ListPattern(pattern)
     if isinstance(pattern, type):
         return TypePattern(pattern)
     raise TypeError(f"Expected pattern, got {type(pattern).__name__}")
@@ -489,6 +496,26 @@ class EmptyListPattern(PatternBase):
 
     def _to_str(self, test: str) -> str:
         return f"{test}==[]"
+
+
+class ListPattern(PatternBase):
+    """This pattern matches a list of patterns to a list."""
+
+    name: str
+    patterns: List[Pattern]
+
+    def __init__(self, patterns: List[Pattern], name: str = "list_pattern") -> None:
+        self.patterns = patterns
+        self.name = name
+
+    def match(self, test: Any) -> MatchResult:
+        return _match_list_pattern(self.patterns, test)
+
+    def _to_str(self, test: str) -> str:
+        ps = ", ".join(
+            to_pattern(p)._to_str(f"{test}[{i}]") for i, p in enumerate(self.patterns)
+        )
+        return f"[{ps}]"
 
 
 # This complex combinator takes a type and a list of patterns to match against
