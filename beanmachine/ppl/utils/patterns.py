@@ -518,6 +518,29 @@ class ListPattern(PatternBase):
         return f"[{ps}]"
 
 
+class ListAny(PatternBase):
+    """Matches a list where one or more elements of the list match the pattern."""
+
+    name: str
+    pattern: Pattern
+
+    def __init__(self, pattern: Pattern, name: str = "list_any") -> None:
+        self.pattern = pattern
+        self.name = name
+
+    def match(self, test: Any) -> MatchResult:
+        if not isinstance(test, list):
+            return Fail(test)
+        # TODO: We could bail out after the first success.
+        submatches = {str(i): match(self.pattern, t) for i, t in enumerate(test)}
+        if any(result.is_success() for result in submatches.values()):
+            return Success(test, submatches)
+        return Fail(test, submatches)
+
+    def _to_str(self, test: str) -> str:
+        return f"{test}.any(x:{to_pattern(self.pattern)._to_str('x')})"
+
+
 # This complex combinator takes a type and a list of patterns to match against
 # attributes of the type, and then returns the resulting pattern that matches
 # values of that type with attributes that match all the given patterns.

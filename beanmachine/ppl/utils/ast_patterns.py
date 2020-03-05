@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pattern matching for ASTs"""
-from ast import Add, BinOp, Expr, Module, NameConstant, Num, Str
+from ast import Add, BinOp, Compare, Expr, Is, Load, Module, NameConstant, Num, Str
 
 from beanmachine.ppl.utils.patterns import (
     Pattern,
@@ -11,9 +11,19 @@ from beanmachine.ppl.utils.patterns import (
 
 add: Pattern = Add
 
+ast_is: Pattern = Is
+
+load: Pattern = Load
+
 
 def binop(op: Pattern = _any, left: Pattern = _any, right: Pattern = _any) -> Pattern:
     return type_and_attributes(BinOp, [("op", op), ("left", left), ("right", right)])
+
+
+def compare(left: Pattern = _any, ops: Pattern = _any, comparators: Pattern = _any):
+    return type_and_attributes(
+        Compare, [("left", left), ("ops", ops), ("comparators", comparators)]
+    )
 
 
 def expr(value: Pattern = _any) -> Pattern:
