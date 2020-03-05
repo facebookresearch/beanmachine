@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import torch
 import torch.multiprocessing as mp
@@ -20,7 +20,9 @@ class AbstractInference(object, metaclass=ABCMeta):
         self.reset()
 
     @abstractmethod
-    def _infer(self, num_samples: int) -> Dict[RVIdentifier, Tensor]:
+    def _infer(
+        self, num_samples: int, num_adapt_steps: int = 0
+    ) -> Tuple[Dict[RVIdentifier, Tensor], Dict[RVIdentifier, Tensor]]:
         """
         Abstract method to be implemented by classes that inherit from
         AbstractInference.
@@ -32,12 +34,20 @@ class AbstractInference(object, metaclass=ABCMeta):
         torch.manual_seed(random_seed + chain * 31)
 
     def _parallel_infer(
-        self, queue: Queue, chain: int, num_samples: int, random_seed: int
+        self,
+        queue: Queue,
+        chain: int,
+        num_samples: int,
+        random_seed: int,
+        num_adapt_steps: int,
     ):
         try:
             AbstractInference.set_seed_for_chain(random_seed, chain)
-            rv_dict = self._infer(num_samples)
-            string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
+            rv_dicts = self._infer(num_samples, num_adapt_steps)
+            string_dict = tuple(
+                {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
+                for rv_dict in rv_dicts
+            )
             queue.put((None, chain, string_dict))
         except BaseException as x:
             queue.put((x, chain, {}))
@@ -49,6 +59,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_samples: int,
         num_chains: int = 4,
         run_in_parallel: bool = False,
+        num_adapt_steps: int = 0,
     ) -> MonteCarloSamples:
         """
         Run inference algorithms and reset the world/mode at the end.
@@ -57,6 +68,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         :param observations: observed random variables with their values
         :params num_samples: number of samples to collect for the query.
         :params num_chains: number of chains to run
+        :params num_adapt_steps: number of steps to allow proposer adaptation.
         :returns: view of data for chains and samples for query
         """
         try:
@@ -76,19 +88,23 @@ class AbstractInference(object, metaclass=ABCMeta):
                     )
                     p.start()
 
-                chain_queries = [{}] * num_chains
+                chain_queries_dict = {}
                 for _ in range(num_chains):
-                    (error, chain, string_dict) = q.get()
+                    (error, chain, string_dicts) = q.get()
                     if error is not None:
                         raise error
-                    rv_dict = {rv: string_dict[str(rv)] for rv in queries}
-                    chain_queries[chain] = rv_dict
+                    rv_dicts = tuple(
+                        {rv: string_dict[str(rv)] for rv in queries}
+                        for string_dict in string_dicts
+                    )
+                    chain_queries_dict[chain] = rv_dicts
+                chain_queries = [chain_queries_dict[i] for i in range(num_chains)]
             else:
                 chain_queries = []
                 for chain in range(num_chains):
                     AbstractInference.set_seed_for_chain(random_seed, chain)
-                    rv_dict = self._infer(num_samples)
-                    chain_queries.append(rv_dict)
+                    rv_dicts = self._infer(num_samples, num_adapt_steps)
+                    chain_queries.append(rv_dicts)
 
             monte_carlo_samples = MonteCarloSamples(chain_queries)
         except BaseException as x:

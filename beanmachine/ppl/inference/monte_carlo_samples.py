@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.abs
 
 import copy
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from beanmachine.ppl.inference.monte_carlo_samples_data import MonteCarloSamplesData
 from beanmachine.ppl.model.utils import RVIdentifier
@@ -16,27 +16,23 @@ class MonteCarloSamples(object):
     If a chain is specified, only the data from the chain will be accessible
     """
 
-    def __init__(self, chain_results: List[Dict[RVIdentifier, Tensor]]):
+    def __init__(
+        self,
+        chain_results: List[
+            Tuple[Dict[RVIdentifier, Tensor], Dict[RVIdentifier, Tensor]]
+        ],
+        num_adapt_steps=0,
+    ):
         self.data = MonteCarloSamplesData(chain_results)
         self.chain = None
+        self.num_adapt_steps = num_adapt_steps
 
     def __getitem__(self, rv: RVIdentifier) -> Tensor:
         """
-        Let C be the number of chains,
-        S be the number of samples
-
-        if no chain specified:
-            samples[var] returns a Tensor of (C, S, (shape of Var))
-        if a chain is specified:
-            samples[var] returns a Tensor of (S, (shape of Var))
-
-        :param rv: random variable to see samples
-        :returns: samples drawn during inference for the specified variable
+        :param rv: random variable to view values of
+        :results: samples drawn during inference for the specified variable
         """
-        if self.chain is None:
-            return self.data.rv_dict[rv]
-        else:
-            return self.data.rv_dict[rv][self.chain]
+        return self.get_variable(rv, False)
 
     def __str__(self):
         return str(self.data.rv_dict)
@@ -62,12 +58,42 @@ class MonteCarloSamples(object):
             raise IndexError("Please specify a valid chain")
         return self._specific_chain_copy(chain)
 
-    def get_variable(self, rv: RVIdentifier) -> Tensor:
+    def get_variable(self, rv: RVIdentifier, include_adapt_steps=False) -> Tensor:
         """
-        :param rv: random variable to view values of
-        :results: samples drawn during inference for the specified variable
+        Let C be the number of chains,
+        S be the number of samples
+
+        If include_adapt_steps, S' = S.
+        Else, S' = S - num_adapt_steps.
+
+        if no chain specified:
+            samples[var] returns a Tensor of (C, S', (shape of Var))
+        if a chain is specified:
+            samples[var] returns a Tensor of (S', (shape of Var))
+
+        :param rv: random variable to see samples
+        :param include_adapt_steps: Indicates whether the beginning of the
+            chain should be included with the healthy samples.
+        :returns: samples drawn during inference for the specified variable
         """
-        return self[rv]
+
+        steps_start = self.num_adapt_steps
+        if include_adapt_steps:
+            steps_start = 0
+
+        if self.chain is None:
+            return self.data.rv_dict[rv][:, steps_start:]
+        else:
+            return self.data.rv_dict[rv][self.chain, steps_start:]
+
+    def get_acceptance_results(self) -> Dict[RVIdentifier, Tensor]:
+        """
+        :param rv: random variable to see samples
+        :returns: Dict pairing RV to Tensor. The tensor contains bools indicating
+        whether samples drawn during inference resulted from an accepted MH diff.
+        """
+
+        return self.data.acceptance_results_dict
 
     def get_rv_names(self) -> List[RVIdentifier]:
         """

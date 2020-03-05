@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Tuple
 
 from beanmachine.ppl.model.utils import RVIdentifier
-from beanmachine.ppl.world import World
+from beanmachine.ppl.world import Variable, World
 from torch import Tensor
 
 
@@ -43,3 +43,30 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         :returns: the log probability of proposing the old value from this new world.
         """
         raise NotImplementedError("Inference algorithm must implement propose.")
+
+    def do_adaptation(
+        self,
+        node: RVIdentifier,
+        node_var: Variable,
+        node_acceptance_results: Tensor,
+        iteration_number: int,
+        num_adapt_steps: int,
+    ) -> None:
+        """
+        To be implemented by proposers that are capable of adaptation at
+        the beginning of the chain.
+
+        :param node: the node for which we have already proposed a new value for.
+        :param node_var: the Variable object associated with node.
+        :param node_acceptance_results: the boolean values of acceptances for
+         values collected so far within _infer().
+        :param iteration_number: The current iteration of inference
+        :param num_adapt_steps: The number of inference iterations for adaptation.
+        :returns: Nothing.
+        """
+        return
+
+        """ No need for: NotImplementedError(
+        "Inference and proposer algorithm must implement do_adaptation.")
+        This is because not all inference methods require adaptation.
+        """
