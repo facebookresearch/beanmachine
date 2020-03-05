@@ -13,7 +13,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     name_constant,
     num,
 )
-from beanmachine.ppl.utils.patterns import ListAny, negate
+from beanmachine.ppl.utils.patterns import ListAll, ListAny, negate
 
 
 def tidy(s: str) -> str:
@@ -95,3 +95,16 @@ test.body.any(x:(isinstance(x, Expr) and isinstance(x.value, Compare))))
         self.assertTrue(result.is_success())
         result = p(ast.parse("1 + 2; 3 * 4"))
         self.assertTrue(result.is_fail())
+
+        p = module(ListAll(expr(compare())))
+        observed = str(p)
+        expected = """
+(isinstance(test, Module) and
+test.body.all(x:(isinstance(x, Expr) and isinstance(x.value, Compare))))
+"""
+        self.assertEqual(tidy(observed), tidy(expected))
+
+        result = p(ast.parse("1 + 2; x is None"))
+        self.assertTrue(result.is_fail())
+        result = p(ast.parse("x is None; y is None"))
+        self.assertTrue(result.is_success())
