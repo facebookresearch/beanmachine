@@ -61,7 +61,8 @@ enum class DistributionType {
   UNKNOWN = 0,
   TABULAR = 1,
   BERNOULLI = 2,
-  BERNOULLI_NOISY_OR = 3
+  BERNOULLI_NOISY_OR = 3,
+  BETA = 4
 };
 
 enum class NodeType {

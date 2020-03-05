@@ -209,12 +209,13 @@ void Graph::collect_sample() {
       if (value.type == AtomicType::BOOLEAN) {
         means[pos] += double(value._bool);
       }
-      else if (value.type == AtomicType::REAL) {
+      else if (value.type == AtomicType::REAL
+          or value.type == AtomicType::PROBABILITY) {
         means[pos] += value._double;
       }
       else {
         throw std::runtime_error("Mean aggregation only supported for "
-          "boolean- and real-valued nodes");
+          "boolean/real/probability-valued nodes");
       }
       pos++;
     }

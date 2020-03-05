@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include "beanmachine/graph/bernoulli.h"
 #include "beanmachine/graph/bernoulli_noisy_or.h"
+#include "beanmachine/graph/beta.h"
 #include "beanmachine/graph/distribution.h"
 #include "beanmachine/graph/tabular.h"
 
@@ -24,6 +25,8 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     return std::make_unique<Bernoulli>(sample_type, in_nodes);
   } else if (dist_type == graph::DistributionType::BERNOULLI_NOISY_OR) {
     return std::make_unique<BernoulliNoisyOr>(sample_type, in_nodes);
+  } else if (dist_type == graph::DistributionType::BETA) {
+    return std::make_unique<Beta>(sample_type, in_nodes);
   }
   throw std::invalid_argument(
       "Unknown distribution " + std::to_string(static_cast<int>(dist_type)));
