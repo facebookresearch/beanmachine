@@ -3,9 +3,14 @@
 import ast
 import re
 import unittest
-from ast import Add, BinOp, Num
 
-from beanmachine.ppl.utils.ast_patterns import ast_str, binop, name_constant, num
+from beanmachine.ppl.utils.ast_patterns import (
+    ast_str,
+    binop,
+    module,
+    name_constant,
+    num,
+)
 from beanmachine.ppl.utils.patterns import negate
 
 
@@ -48,22 +53,16 @@ class PatternsTest(unittest.TestCase):
         result = p(ast.parse("1+2").body[0].value)
         self.assertTrue(result.is_success())
 
-    def test_1(self) -> None:
-        """Tests for patterns.py"""
+    def test_list_patterns(self) -> None:
+        """Tests for list patterns"""
 
-        b = binop(op=Add, left=num(n=0))
-        observed = str(b)
-
-        expected = """
-(isinstance(test, BinOp) and isinstance(test.op, Add) and
-(isinstance(test.left, Num) and test.left.n==0))
-"""
+        p = module(body=[])
+        observed = str(p)
+        expected = """(isinstance(test, Module) and test.body==[])"""
         self.maxDiff = None
         self.assertEqual(tidy(observed), tidy(expected))
 
-        zero = Num(n=0)
-        one = Num(n=1)
-        result = b(BinOp(op=Add(), left=zero, right=one))
+        result = p(ast.parse(""))
         self.assertTrue(result.is_success())
-        result = b(BinOp(op=Add(), left=one, right=zero))
+        result = p(ast.parse("1 + 2"))
         self.assertTrue(result.is_fail())

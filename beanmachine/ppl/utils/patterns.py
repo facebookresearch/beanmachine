@@ -100,7 +100,7 @@ class PatternBase(ABC):
         return self.match(test)
 
 
-Pattern = Union[PatternBase, int, str, float, type, None]
+Pattern = Union[PatternBase, int, str, float, type, list, None]
 
 
 class PredicatePattern(PatternBase):
@@ -253,6 +253,10 @@ def match(pattern: Pattern, test: Any) -> MatchResult:
         or isinstance(pattern, float)
     ):
         return Success(test) if test == pattern else Fail(test)
+    if isinstance(pattern, list) and len(pattern) == 0:
+        if isinstance(test, list) and len(test) == 0:
+            return Success(test)
+        return Fail(test)
     if isinstance(pattern, type):
         return Success(test) if isinstance(test, pattern) else Fail(test)
     if isinstance(pattern, PatternBase):
@@ -275,6 +279,8 @@ def to_pattern(pattern: Pattern) -> PatternBase:
         return FloatPattern(pattern)
     if isinstance(pattern, str):
         return StringPattern(pattern)
+    if isinstance(pattern, list) and len(pattern) == 0:
+        return EmptyListPattern()
     if isinstance(pattern, type):
         return TypePattern(pattern)
     raise TypeError(f"Expected pattern, got {type(pattern).__name__}")
@@ -466,6 +472,23 @@ def attribute(name: str, subpattern: Pattern) -> Pattern:
     if is_any(subpattern):
         return subpattern
     return AttributeSubpattern(name, subpattern)
+
+
+class EmptyListPattern(PatternBase):
+    """This pattern matches an empty list."""
+
+    name: str
+
+    def __init__(self, name: str = "empty_list") -> None:
+        self.name = name
+
+    def match(self, test: Any) -> MatchResult:
+        if isinstance(test, list) and len(test) == 0:
+            return Success(test)
+        return Fail(test)
+
+    def _to_str(self, test: str) -> str:
+        return f"{test}==[]"
 
 
 # This complex combinator takes a type and a list of patterns to match against
