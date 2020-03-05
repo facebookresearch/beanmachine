@@ -96,6 +96,9 @@ Operator::Operator(
     }
     case graph::OperatorType::NEGATE: {
       check_unary_op(op_type, in_nodes);
+      if (type0 == graph::AtomicType::NATURAL) {
+        throw std::invalid_argument("operator NEGATE doesn't support NATURALs");
+      }
       value.type = type0;
       break;
     }

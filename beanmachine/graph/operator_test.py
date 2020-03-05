@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch  # isort:skip  torch has to be imported before graph
+import math
 import unittest
 
 import beanmachine.graph as bmg
@@ -16,6 +17,7 @@ class TestOperators(unittest.TestCase):
         c3 = g.add_constant(torch.FloatTensor([0, 1, -1]))
         c4 = g.add_constant_probability(0.6)
         c5 = g.add_constant_probability(0.7)
+        c6 = g.add_constant(23)  # NATURAL
         # test TO_REAL
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [])
@@ -23,6 +25,7 @@ class TestOperators(unittest.TestCase):
             # can't convert tensor to real
             g.add_operator(bmg.OperatorType.TO_REAL, [c1])
         g.add_operator(bmg.OperatorType.TO_REAL, [c4])
+        g.add_operator(bmg.OperatorType.TO_REAL, [c6])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [c4, c5])
         # test TO_TENSOR
@@ -30,6 +33,7 @@ class TestOperators(unittest.TestCase):
             g.add_operator(bmg.OperatorType.TO_TENSOR, [])
         g.add_operator(bmg.OperatorType.TO_TENSOR, [c1])
         g.add_operator(bmg.OperatorType.TO_TENSOR, [c4])
+        g.add_operator(bmg.OperatorType.TO_TENSOR, [c6])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_TENSOR, [c1, c2])
         # test EXP
@@ -60,6 +64,26 @@ class TestOperators(unittest.TestCase):
         g.add_operator(bmg.OperatorType.ADD, [c1, c2, c3])
 
     def test_arithmetic(self) -> None:
+        g = bmg.Graph()
+        c1 = g.add_constant(3)  # natural
+        o0 = g.add_operator(bmg.OperatorType.TO_REAL, [c1])
+        o1 = g.add_operator(bmg.OperatorType.NEGATE, [o0])
+        o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
+        o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2, o0])
+        o4 = g.add_operator(bmg.OperatorType.EXPM1, [o0])
+        o5 = g.add_operator(bmg.OperatorType.ADD, [o0, o3, o4])
+        g.query(o5)
+        samples = g.infer(2)
+        # both samples should have exactly the same value since we are doing
+        # deterministic operators only
+        self.assertEqual(samples[0][0].type, bmg.AtomicType.REAL)
+        self.assertEqual(samples[0][0].real, samples[1][0].real)
+        # the result should be identical to doing this math directly on tensors
+        const1 = 3.0
+        result = const1 + math.exp(-const1) * const1 + math.expm1(const1)
+        self.assertAlmostEqual(samples[0][0].real, result, 3)
+
+    def test_tensor_arithmetic(self) -> None:
         g = bmg.Graph()
         const1 = torch.FloatTensor([0, 1, -1])
         c1 = g.add_constant(const1)
