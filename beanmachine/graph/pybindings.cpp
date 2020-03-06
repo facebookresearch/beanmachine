@@ -16,16 +16,19 @@ PYBIND11_MODULE(graph, module) {
       .value("BOOLEAN", AtomicType::BOOLEAN)
       .value("REAL", AtomicType::REAL)
       .value("PROBABILITY", AtomicType::PROBABILITY)
+      .value("NATURAL", AtomicType::NATURAL)
       .value("TENSOR", AtomicType::TENSOR);
 
   py::class_<AtomicValue>(module, "AtomicValue")
       .def(py::init<bool>())
       .def(py::init<double>())
+      .def(py::init<unsigned long long int>())
       .def(py::init<torch::Tensor>())
       .def_readonly("type", &AtomicValue::type)
       .def_readonly("bool", &AtomicValue::_bool)
       .def_readonly("real", &AtomicValue::_double)
       .def_readonly("probability", &AtomicValue::_double)
+      .def_readonly("natural", &AtomicValue::_natural)
       .def_readonly("tensor", &AtomicValue::_tensor);
 
   py::enum_<OperatorType>(module, "OperatorType")
@@ -67,6 +70,11 @@ PYBIND11_MODULE(graph, module) {
           "add_constant",
           (uint(Graph::*)(double)) & Graph::add_constant,
           "add a Node with a constant real value",
+          py::arg("value"))
+      .def(
+          "add_constant",
+          (uint(Graph::*)(unsigned long long int)) & Graph::add_constant,
+          "add a Node with a constant natural (integers >= 0) value",
           py::arg("value"))
       .def(
           "add_constant",

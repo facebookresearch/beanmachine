@@ -119,6 +119,10 @@ uint Graph::add_constant(double value) {
   return add_constant(AtomicValue(value));
 }
 
+uint Graph::add_constant(unsigned long long int value) {
+  return add_constant(AtomicValue(value));
+}
+
 uint Graph::add_constant(torch::Tensor value) {
   return add_constant(AtomicValue(value));
 }

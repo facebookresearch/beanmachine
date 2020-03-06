@@ -14,6 +14,8 @@ void to_real(graph::Node* node) {
   } else if (parent.type == graph::AtomicType::REAL
       or parent.type == graph::AtomicType::PROBABILITY) {
     node->value._double = parent._double;
+  } else if (parent.type == graph::AtomicType::NATURAL) {
+    node->value._double = (double) parent._natural;
   } else {
     throw std::runtime_error(
       "invalid parent type " + std::to_string(static_cast<int>(parent.type))
@@ -29,6 +31,8 @@ void to_tensor(graph::Node* node) {
   } else if (parent.type == graph::AtomicType::REAL
       or parent.type == graph::AtomicType::PROBABILITY) {
     node->value._tensor = torch::tensor({parent._double}, torch::dtype(torch::kDouble));
+  } else if (parent.type == graph::AtomicType::NATURAL) {
+    node->value._tensor = torch::tensor({(double) parent._natural}, torch::dtype(torch::kDouble));
   } else if (parent.type == graph::AtomicType::TENSOR) {
     node->value._tensor = parent._tensor.toType(torch::kDouble);
   } else {
