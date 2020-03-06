@@ -19,15 +19,15 @@ BernoulliNoisyOr::BernoulliNoisyOr(
     throw std::invalid_argument(
         "BernoulliNoisyOr distribution must have exactly one parent");
   }
+  const auto& parent0 = in_nodes[0]->value;
+  if (parent0.type != graph::AtomicType::REAL) {
+    throw std::invalid_argument(
+        "BernoulliNoisyOr parent probability must be real-valued");
+  }
   // if the parent is a constant then we can directly check the type
   if (in_nodes[0]->node_type == graph::NodeType::CONSTANT) {
-    graph::AtomicValue constant = in_nodes[0]->value;
-    if (constant.type != graph::AtomicType::REAL) {
-      throw std::invalid_argument(
-          "BernoulliNoisyOr parent probability must be real-valued");
-    }
-    // all probabilities must be greater than 0
-    if (constant._double < 0) {
+    // the input parameter must be greater than 0
+    if (parent0._double < 0) {
       throw std::invalid_argument(
           "BernoulliNoisyOr parameter must be >= 0");
     }

@@ -25,14 +25,16 @@ class BMGraphBuilderTest(unittest.TestCase):
         real = bmg.add_to_real(samp)
         neg = bmg.add_negate(real)
         add = bmg.add_addition(two, neg)
-        bmg.add_multiplication(tens, add)
+        add_t = bmg.add_to_tensor(add)
+        bmg.add_multiplication(tens, add_t)
         bmg.add_observation(samp, tr)
 
         observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.5];
-  N10[label=Observation];
+  N10[label="*"];
+  N11[label=Observation];
   N1[label=2];
   N2[label="[[10,20],\\\\n[40,50]]"];
   N3[label=True];
@@ -41,17 +43,18 @@ digraph "graph" {
   N6[label=ToReal];
   N7[label="-"];
   N8[label="+"];
-  N9[label="*"];
-  N10 -> N3[label=value];
-  N10 -> N5[label=operand];
+  N9[label=ToTensor];
+  N10 -> N2[label=left];
+  N10 -> N9[label=right];
+  N11 -> N3[label=value];
+  N11 -> N5[label=operand];
   N4 -> N0[label=probability];
   N5 -> N4[label=operand];
   N6 -> N5[label=operand];
   N7 -> N6[label=operand];
   N8 -> N1[label=left];
   N8 -> N7[label=right];
-  N9 -> N2[label=left];
-  N9 -> N8[label=right];
+  N9 -> N8[label=operand];
 }
 """
         self.maxDiff = None
@@ -71,7 +74,8 @@ Node 5 type 3 parents [ 4 ] children [ 6 ] boolean value 1
 Node 6 type 3 parents [ 5 ] children [ 7 ] unknown value
 Node 7 type 3 parents [ 6 ] children [ 8 ] unknown value
 Node 8 type 3 parents [ 1 7 ] children [ 9 ] unknown value
-Node 9 type 3 parents [ 2 8 ] children [ ] unknown value
+Node 9 type 3 parents [ 8 ] children [ 10 ] unknown value
+Node 10 type 3 parents [ 2 9 ] children [ ] unknown value
         """
         # TODO: This test is disabled due to problems with how torch dumps out tensors
         # TODO: self.assertEqual(tidy(observed), tidy(expected))
@@ -91,7 +95,8 @@ n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
 n6 = g.add_operator(graph.OperatorType.TO_REAL, [n5])
 n7 = g.add_operator(graph.OperatorType.NEGATE, [n6])
 n8 = g.add_operator(graph.OperatorType.ADD, [n1, n7])
-n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n8])
+n9 = g.add_operator(graph.OperatorType.TO_TENSOR, [n8])
+n10 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n9])
 g.observe(n5, True)
 """
         self.assertEqual(observed.strip(), expected.strip())
@@ -117,7 +122,9 @@ uint n7 = g.add_operator(
 uint n8 = g.add_operator(
   graph::OperatorType::ADD, std::vector<uint>({n1, n7}));
 uint n9 = g.add_operator(
-  graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n8}));
+  graph::OperatorType::TO_TENSOR, std::vector<uint>({n8}));
+uint n10 = g.add_operator(
+  graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n9}));
 g.observe([n5], true);
 """
         self.assertEqual(observed.strip(), expected.strip())

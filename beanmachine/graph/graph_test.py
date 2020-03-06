@@ -124,7 +124,7 @@ class TestBayesNet(unittest.TestCase):
             g.add_distribution(
                 graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c3]
             )
-        self.assertTrue("must be real-valued" in str(cm.exception))
+        self.assertTrue("must be probability- or real-valued" in str(cm.exception))
 
         # negative test on value of parent
         c4 = g.add_constant(1.1)
