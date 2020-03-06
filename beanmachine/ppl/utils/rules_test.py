@@ -6,7 +6,7 @@ import unittest
 from ast import parse
 
 from beanmachine.ppl.utils.ast_patterns import add, ast_domain, binop, num
-from beanmachine.ppl.utils.rules import TryMany, TryOnce, pattern_rules
+from beanmachine.ppl.utils.rules import TryMany as many, TryOnce as once, pattern_rules
 
 
 def tidy(s: str) -> str:
@@ -37,10 +37,13 @@ class RulesTest(unittest.TestCase):
         z_oz = m.body[6].value
         zo_oz = m.body[7].value
 
-        once = TryOnce(remove_plus_zero)
-        many = TryMany(remove_plus_zero)
+        _all = ast_domain.all_children
+        some = ast_domain.some_children
 
-        observed = str(once)
+        rpz_once = once(remove_plus_zero)
+        rpz_many = many(remove_plus_zero)
+
+        observed = str(rpz_once)
         expected = """
 try_once(
   first_match(
@@ -55,12 +58,10 @@ try_once(
 """
         self.assertEqual(tidy(observed), tidy(expected))
 
-        _all = ast_domain.all_children
-
         # Note that _all on this list does not recurse down to the
         # children of the list elements. It runs the rule once on
         # each list element, adn that's it.
-        result = _all(once)([oo, zo_z, z_oz, zo_oz]).expect_success()
+        result = _all(rpz_once)([oo, zo_z, z_oz, zo_oz]).expect_success()
         self.assertEqual(ast.dump(result[0]), ast.dump(oo))
         self.assertEqual(ast.dump(result[1]), ast.dump(zo))
         self.assertEqual(ast.dump(result[2]), ast.dump(oz))
@@ -69,7 +70,7 @@ try_once(
         # Again, this does not recurse to the children. Rather, it keeps
         # running the rule until the pattern fails; that is different than
         # recursing down into the children!
-        result = _all(many)([oo, zo_z, z_oz, zo_oz]).expect_success()
+        result = _all(rpz_many)([oo, zo_z, z_oz, zo_oz]).expect_success()
         self.assertEqual(ast.dump(result[0]), ast.dump(oo))
         self.assertEqual(ast.dump(result[1]), ast.dump(o))
         self.assertEqual(ast.dump(result[2]), ast.dump(o))
@@ -79,11 +80,21 @@ try_once(
         # run the rule once on all *children* of a node. Again, this applies the
         # rule just to the children; it does not recurse down into their
         # children, and it does not re-run the rule on the result.
-        result = _all(once)(z_oz).expect_success()
+        result = _all(rpz_once)(z_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(zo))
 
-        result = _all(once)(zo_z).expect_success()
+        result = _all(rpz_once)(zo_z).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(oz))
 
-        result = _all(once)(zo_oz).expect_success()
+        result = _all(rpz_once)(zo_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(oo))
+
+        # Above we had a test for _all(many(rpz))([oo, zo_z, z_oz, zo_oz]);
+        # we can get the same results with:
+        result = many(some(remove_plus_zero))([oo, zo_z, z_oz, zo_oz]).expect_success()
+        self.assertEqual(ast.dump(result[0]), ast.dump(oo))
+        self.assertEqual(ast.dump(result[1]), ast.dump(o))
+        self.assertEqual(ast.dump(result[2]), ast.dump(o))
+        self.assertEqual(ast.dump(result[3]), ast.dump(zo_oz))
+
+        # Both attain a fixpoint.

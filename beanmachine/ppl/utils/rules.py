@@ -400,6 +400,80 @@ class AllChildren(Rule):
         return f"all_children( {str(self.rule)} )"
 
 
+class SomeChildren(Rule):
+    """Apply a rule to all children.  Succeeds if the rule succeeds for one or
+    more children, and returns a constructed object with the children replaced
+    with the new values. Otherwise, fails."""
+
+    get_children: Callable[[Any], Dict[str, Any]]
+    construct: Callable[[type, Dict[str, Any]], Any]
+    rule: Rule
+
+    def __init__(
+        self,
+        rule: Rule,
+        get_children: Callable[[Any], Dict[str, Any]],
+        construct: Callable[[type, Dict[str, Any]], Any],
+        name: str = "some_children",
+    ) -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+        self.get_children = get_children
+        self.construct = construct
+
+    def _apply_to_list(self, test: List[Any]) -> RuleResult:
+        # Easy out:
+        if len(test) == 0:
+            return Fail(test)
+        results = [self.rule.apply(child) for child in test]
+        # Were there any successes?
+        if not any(result.is_success() for result in results):
+            return Fail(test)
+        # Were there any successes that returned a different value?
+        new_values = [
+            result.expect_success() if result.is_success() else result.test
+            for result in results
+        ]
+        if all(new_value is child for child, new_value in zip(test, new_values)):
+            # Everything succeeded and there were no changes.
+            return Success(test, test)
+        # Everything succeeded but there was at least one different value.
+        # TODO: At this point we need to deal with operations that
+        # TODO: wanted to delete or insert items.
+        return Success(test, new_values)
+
+    def apply(self, test: Any) -> RuleResult:
+        if isinstance(test, list):
+            return self._apply_to_list(test)
+        children = self.get_children(test)
+        # Easy out for leaves.
+        if len(children) == 0:
+            return Fail(test)
+        results = {
+            child_name: self.rule.apply(child_value)
+            for child_name, child_value in children.items()
+        }
+        # Were there any successes?
+        if not any(result.is_success() for result in results.values()):
+            return Fail(test)
+        # Were there any successes that returned a different value?
+        new_values = {
+            n: results[n].expect_success()
+            if results[n].is_success()
+            else results[n].test
+            for n in results
+        }
+        if all(new_values[n] is children[n] for n in new_values):
+            # Everything succeeded and there were no changes.
+            return Success(test, test)
+        # Everything succeeded but there was at least one different value.
+        # Construct a new object.
+        return Success(test, self.construct(type(test), new_values))
+
+    def __str__(self) -> str:
+        return f"all_children( {str(self.rule)} )"
+
+
 class RuleDomain:
     get_children: Callable[[Any], Dict[str, Any]]
     construct: Callable[[type, Dict[str, Any]], Any]
@@ -414,3 +488,6 @@ class RuleDomain:
 
     def all_children(self, rule: Rule, name: str = "all_children") -> Rule:
         return AllChildren(rule, self.get_children, self.construct, name)
+
+    def some_children(self, rule: Rule, name: str = "some_children") -> Rule:
+        return SomeChildren(rule, self.get_children, self.construct, name)
