@@ -142,6 +142,53 @@ class TestBayesNet(unittest.TestCase):
         means = g.infer_mean(1)
         self.assertEqual(len(means), 1, "exactly one node queried")
 
+    def test_beta(self):
+        g = graph.Graph()
+        c1 = g.add_constant(1.1)
+        c2 = g.add_constant(5.0)
+        # negative tests on number of parents
+        # 0 parents not allowed
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.BETA, graph.AtomicType.PROBABILITY, []
+            )
+        self.assertTrue(
+            "Beta distribution must have exactly two parents" in str(cm.exception)
+        )
+        # 1 parent not allowed
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.BETA, graph.AtomicType.PROBABILITY, [c1]
+            )
+        self.assertTrue(
+            "Beta distribution must have exactly two parents" in str(cm.exception)
+        )
+        # negative test on type of parent
+        c3 = g.add_constant(True)
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.BETA, graph.AtomicType.PROBABILITY, [c3, c3]
+            )
+        self.assertTrue("must be real-valued" in str(cm.exception))
+        # negative test on sample type
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.BETA, graph.AtomicType.REAL, [c1, c2]
+            )
+        self.assertTrue("Beta produces probability samples" in str(cm.exception))
+        # 2 real-valued parents with probability sample type are OK
+        d1 = g.add_distribution(
+            graph.DistributionType.BETA, graph.AtomicType.PROBABILITY, [c1, c2]
+        )
+        # now let's draw some samples from the Beta distribution
+        v1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
+        g.query(v1)
+        samples = g.infer(1, graph.InferenceType.REJECTION)
+        self.assertTrue(samples[0][0].type == graph.AtomicType.PROBABILITY)
+        self.assertTrue(samples[0][0].probability > 0 and samples[0][0].probability < 1)
+        means = g.infer_mean(10000, graph.InferenceType.REJECTION)
+        self.assertAlmostEqual(means[0], 1.1 / (1.1 + 5.0), 2, "beta mean")
+
     def _create_graph(self):
         g = graph.Graph()
         c1 = g.add_constant(torch.FloatTensor([0.8, 0.2]))
