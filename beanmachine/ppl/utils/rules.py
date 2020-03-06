@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A rules engine for tree transformation"""
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple
 
 from beanmachine.ppl.utils.patterns import (
     MatchResult,
@@ -332,3 +332,74 @@ class TryMany(Rule):
 
     def __str__(self) -> str:
         return f"try_many( {str(self.rule)} )"
+
+
+class AllChildren(Rule):
+    """Apply a rule to all children.  Succeeds if the rule succeeds for all children,
+    and returns a constructed object with the children replaced with the new values.
+    Otherwise, fails."""
+
+    get_children: Callable[[Any], Dict[str, Any]]
+    construct: Callable[[type, Dict[str, Any]], Any]
+    rule: Rule
+
+    def __init__(
+        self,
+        rule: Rule,
+        get_children: Callable[[Any], Dict[str, Any]],
+        construct: Callable[[type, Dict[str, Any]], Any],
+        name: str = "all_children",
+    ) -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+        self.get_children = get_children
+        self.construct = construct
+
+    def apply(self, test: Any) -> RuleResult:
+        # TODO: We'll need to deal with lists. Which also means that
+        # TODO: we'll need a list splicing and list removal operation
+        # TODO: to change the size of a list.
+        children = self.get_children(test)
+
+        # Easy out for leaves.
+        if len(children) == 0:
+            return Success(test, test)
+
+        results = {
+            child_name: self.rule.apply(child_value)
+            for child_name, child_value in children.items()
+        }
+
+        # Were there any failures?
+        if any(result.is_fail() for result in results.values()):
+            return Fail(test)
+
+        # Were there any successes that returned a different value?
+        new_values = {n: results[n].expect_success() for n in results}
+
+        if all(new_values[n] is children[n] for n in new_values):
+            # Everything succeeded and there were no changes.
+            return Success(test, test)
+
+        # Everything succeeded but there was at least one different value.
+        # Construct a new object.
+        return Success(test, self.construct(type(test), new_values))
+
+    def __str__(self) -> str:
+        return f"all_children( {str(self.rule)} )"
+
+
+class RuleDomain:
+    get_children: Callable[[Any], Dict[str, Any]]
+    construct: Callable[[type, Dict[str, Any]], Any]
+
+    def __init__(
+        self,
+        get_children: Callable[[Any], Dict[str, Any]],
+        construct: Callable[[type, Dict[str, Any]], Any],
+    ) -> None:
+        self.get_children = get_children
+        self.construct = construct
+
+    def all_children(self, rule: Rule, name: str = "all_children") -> Rule:
+        return AllChildren(rule, self.get_children, self.construct, name)

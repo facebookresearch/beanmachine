@@ -5,7 +5,7 @@ import re
 import unittest
 from ast import Add, BinOp, Num
 
-from beanmachine.ppl.utils.ast_patterns import binop, num
+from beanmachine.ppl.utils.ast_patterns import ast_domain, binop, num
 from beanmachine.ppl.utils.rules import TryMany, TryOnce, pattern_rules
 
 
@@ -72,3 +72,15 @@ try_once(
         # Does not recurse!
         result = many(zo_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(zo_oz))
+
+        _all = ast_domain.all_children
+
+        # This does not recurse either; it rewrites the left and
+        # right child, *only*. So given 0 + (1 + 0) it executes
+        # the pattern on both sides of the outer +, giving 0 on
+        # the left and one on the right.
+        result = _all(once)(z_oz).expect_success()
+        self.assertEqual(ast.dump(result), ast.dump(zo))
+
+        result = _all(once)(zo_oz).expect_success()
+        self.assertEqual(ast.dump(result), ast.dump(oo))

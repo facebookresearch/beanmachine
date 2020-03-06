@@ -1,12 +1,38 @@
 #!/usr/bin/env python3
 """Pattern matching for ASTs"""
-from ast import Add, BinOp, Compare, Expr, Is, Load, Module, NameConstant, Num, Str
+from ast import (
+    AST,
+    Add,
+    BinOp,
+    Compare,
+    Expr,
+    Is,
+    Load,
+    Module,
+    NameConstant,
+    Num,
+    Str,
+    iter_fields,
+)
+from typing import Dict
 
 from beanmachine.ppl.utils.patterns import (
     Pattern,
     anyPattern as _any,
     type_and_attributes,
 )
+from beanmachine.ppl.utils.rules import RuleDomain
+
+
+def _get_children(node: AST) -> Dict[str, AST]:
+    return dict(iter_fields(node))
+
+
+def _construct(typ: type, children: Dict[str, AST]) -> AST:
+    return typ(**children)
+
+
+ast_domain = RuleDomain(_get_children, _construct)
 
 
 add: Pattern = Add
