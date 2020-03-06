@@ -474,6 +474,60 @@ class SomeChildren(Rule):
         return f"all_children( {str(self.rule)} )"
 
 
+class OneChild(Rule):
+    """Apply a rule to all children until the first success.  Succeeds if it
+    finds one success and returns a constructed object with the child replaced
+    with the new value. Otherwise, fails."""
+
+    get_children: Callable[[Any], Dict[str, Any]]
+    construct: Callable[[type, Dict[str, Any]], Any]
+    rule: Rule
+
+    def __init__(
+        self,
+        rule: Rule,
+        get_children: Callable[[Any], Dict[str, Any]],
+        construct: Callable[[type, Dict[str, Any]], Any],
+        name: str = "one_child",
+    ) -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+        self.get_children = get_children
+        self.construct = construct
+
+    def _apply_to_list(self, test: List[Any]) -> RuleResult:
+        for i, child in enumerate(test):
+            result = self.rule.apply(child)
+            if result.is_success():
+                new_value = result.expect_success()
+                if new_value is child:
+                    return Success(test, test)
+                new_values = test.copy()
+                new_values[i] = new_value
+                # TODO: At this point we need to deal with operations that
+                # TODO: wanted to delete or insert items.
+                return Success(test, new_values)
+        return Fail(test)
+
+    def apply(self, test: Any) -> RuleResult:
+        if isinstance(test, list):
+            return self._apply_to_list(test)
+        children = self.get_children(test)
+        for child_name, child_value in children.items():
+            result = self.rule.apply(child_value)
+            if result.is_success():
+                new_value = result.expect_success()
+                if new_value is child_value:
+                    return Success(test, test)
+                new_values = children.copy()
+                new_values[child_name] = child_value
+                return Success(test, self.construct(type(test), new_values))
+        return Fail(test)
+
+    def __str__(self) -> str:
+        return f"one_child( {str(self.rule)} )"
+
+
 class RuleDomain:
     get_children: Callable[[Any], Dict[str, Any]]
     construct: Callable[[type, Dict[str, Any]], Any]
@@ -491,3 +545,6 @@ class RuleDomain:
 
     def some_children(self, rule: Rule, name: str = "some_children") -> Rule:
         return SomeChildren(rule, self.get_children, self.construct, name)
+
+    def one_child(self, rule: Rule, name: str = "one_child") -> Rule:
+        return OneChild(rule, self.get_children, self.construct, name)

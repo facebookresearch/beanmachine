@@ -39,6 +39,7 @@ class RulesTest(unittest.TestCase):
 
         _all = ast_domain.all_children
         some = ast_domain.some_children
+        one = ast_domain.one_child
 
         rpz_once = once(remove_plus_zero)
         rpz_many = many(remove_plus_zero)
@@ -98,3 +99,11 @@ try_once(
         self.assertEqual(ast.dump(result[3]), ast.dump(zo_oz))
 
         # Both attain a fixpoint.
+
+        # OneChild applies a rule to members of a list or the children of a node,
+        # until the first success, and then it stops.
+        result = one(remove_plus_zero)([oo, zo_z, z_oz, zo_oz]).expect_success()
+        self.assertEqual(ast.dump(result[0]), ast.dump(oo))  # Rule fails
+        self.assertEqual(ast.dump(result[1]), ast.dump(zo))  # Rule succeeds
+        self.assertEqual(ast.dump(result[2]), ast.dump(z_oz))  # Rule does not run
+        self.assertEqual(ast.dump(result[3]), ast.dump(zo_oz))  # Rule does not run
