@@ -189,6 +189,21 @@ class TestBayesNet(unittest.TestCase):
         means = g.infer_mean(10000, graph.InferenceType.REJECTION)
         self.assertAlmostEqual(means[0], 1.1 / (1.1 + 5.0), 2, "beta mean")
 
+    def test_binomial(self):
+        g = graph.Graph()
+        c1 = g.add_constant(10)
+        c2 = g.add_constant_probability(0.55)
+        d1 = g.add_distribution(
+            graph.DistributionType.BINOMIAL, graph.AtomicType.NATURAL, [c1, c2]
+        )
+        v1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
+        g.query(v1)
+        samples = g.infer(1, graph.InferenceType.REJECTION)
+        self.assertTrue(samples[0][0].type == graph.AtomicType.NATURAL)
+        self.assertTrue(samples[0][0].natural <= 10)
+        means = g.infer_mean(10000, graph.InferenceType.REJECTION)
+        self.assertTrue(means[0] > 5 and means[0] < 6)
+
     def _create_graph(self):
         g = graph.Graph()
         c1 = g.add_constant(torch.FloatTensor([0.8, 0.2]))

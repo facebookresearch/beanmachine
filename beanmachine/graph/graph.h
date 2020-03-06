@@ -20,19 +20,21 @@ namespace graph {
 // note: NATURAL numbers include zero (ISO 80000-2)
 enum class AtomicType { UNKNOWN = 0, BOOLEAN = 1, PROBABILITY, REAL, NATURAL, TENSOR };
 
+typedef unsigned long long int natural_t;
+
 class AtomicValue {
  public:
   AtomicType type;
   union {
     bool _bool;
     double _double;
-    unsigned long long int _natural;
+    natural_t _natural;
   };
   torch::Tensor _tensor;
   AtomicValue() : type(AtomicType::UNKNOWN) {}
   explicit AtomicValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
-  explicit AtomicValue(unsigned long long int value) : type(AtomicType::NATURAL), _natural(value) {}
+  explicit AtomicValue(natural_t value) : type(AtomicType::NATURAL), _natural(value) {}
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
   AtomicValue(AtomicType type, double value) : type(type), _double(value) {}
@@ -40,6 +42,8 @@ class AtomicValue {
     return type == other.type and
         ((type == AtomicType::BOOLEAN and _bool == other._bool) or
          (type == AtomicType::REAL and _double == other._double) or
+         (type == AtomicType::PROBABILITY and _double == other._double) or
+         (type == AtomicType::NATURAL and _natural == other._natural) or
          (type == AtomicType::TENSOR and
           _tensor.eq(other._tensor).all().item<uint8_t>()));
   }
@@ -65,7 +69,8 @@ enum class DistributionType {
   TABULAR = 1,
   BERNOULLI = 2,
   BERNOULLI_NOISY_OR = 3,
-  BETA = 4
+  BETA = 4,
+  BINOMIAL = 5
 };
 
 enum class NodeType {
@@ -119,7 +124,7 @@ struct Graph {
   // Graph builder APIs -> return the node number
   uint add_constant(bool value);
   uint add_constant(double value);
-  uint add_constant(unsigned long long int value);
+  uint add_constant(natural_t value);
   uint add_constant(torch::Tensor value);
   uint add_constant(AtomicValue value);
   uint add_constant_probability(double value);
@@ -131,6 +136,7 @@ struct Graph {
   // inference related
   void observe(uint var, bool val);
   void observe(uint var, double val);
+  void observe(uint var, natural_t val);
   void observe(uint var, torch::Tensor val);
   void observe(uint var, AtomicValue val);
   uint query(uint var); // returns the index of the query in the samples

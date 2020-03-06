@@ -22,7 +22,7 @@ PYBIND11_MODULE(graph, module) {
   py::class_<AtomicValue>(module, "AtomicValue")
       .def(py::init<bool>())
       .def(py::init<double>())
-      .def(py::init<unsigned long long int>())
+      .def(py::init<graph::natural_t>())
       .def(py::init<torch::Tensor>())
       .def_readonly("type", &AtomicValue::type)
       .def_readonly("bool", &AtomicValue::_bool)
@@ -45,7 +45,8 @@ PYBIND11_MODULE(graph, module) {
       .value("TABULAR", DistributionType::TABULAR)
       .value("BERNOULLI", DistributionType::BERNOULLI)
       .value("BERNOULLI_NOISY_OR", DistributionType::BERNOULLI_NOISY_OR)
-      .value("BETA", DistributionType::BETA);
+      .value("BETA", DistributionType::BETA)
+      .value("BINOMIAL", DistributionType::BINOMIAL);
 
   py::enum_<NodeType>(module, "NodeType")
       .value("CONSTANT", NodeType::CONSTANT)
@@ -73,7 +74,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("value"))
       .def(
           "add_constant",
-          (uint(Graph::*)(unsigned long long int)) & Graph::add_constant,
+          (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
           "add a Node with a constant natural (integers >= 0) value",
           py::arg("value"))
       .def(
@@ -113,6 +114,12 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "observe",
           (void (Graph::*)(uint, double)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, natural_t)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))

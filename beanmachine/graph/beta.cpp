@@ -10,7 +10,7 @@ Beta::Beta(
     graph::AtomicType sample_type,
     const std::vector<graph::Node*>& in_nodes)
     : Distribution(graph::DistributionType::BETA, sample_type) {
-  // a Beta has two parents which are real numbers at outpuBETts a probability
+  // a Beta has two parents which are real numbers and it outputs a probability
   if (sample_type != graph::AtomicType::PROBABILITY) {
     throw std::invalid_argument("Beta produces probability samples");
   }

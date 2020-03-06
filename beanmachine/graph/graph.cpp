@@ -119,7 +119,7 @@ uint Graph::add_constant(double value) {
   return add_constant(AtomicValue(value));
 }
 
-uint Graph::add_constant(unsigned long long int value) {
+uint Graph::add_constant(natural_t value) {
   return add_constant(AtomicValue(value));
 }
 
@@ -164,14 +164,15 @@ void Graph::observe(uint node_id, double val) {
   observe(node_id, AtomicValue(val));
 }
 
+void Graph::observe(uint node_id, natural_t val) {
+  observe(node_id, AtomicValue(val));
+}
+
 void Graph::observe(uint node_id, torch::Tensor val) {
   observe(node_id, AtomicValue(val));
 }
 
 void Graph::observe(uint node_id, AtomicValue value) {
-  if (value.type != AtomicType::BOOLEAN) {
-    throw std::invalid_argument("observe expects a boolean value");
-  }
   Node* node = check_node(node_id, NodeType::OPERATOR);
   oper::Operator* op = static_cast<oper::Operator*>(node);
   if (op->op_type != OperatorType::SAMPLE) {
@@ -180,6 +181,13 @@ void Graph::observe(uint node_id, AtomicValue value) {
   if (observed.find(node_id) != observed.end()) {
     throw std::invalid_argument(
       "duplicate observe for node_id " + std::to_string(node_id));
+  }
+  if (node->value.type != value.type) {
+    throw std::invalid_argument(
+      "observe expected type "
+      + std::to_string(static_cast<int>(node->value.type))
+      + " instead got "
+      + std::to_string(static_cast<int>(value.type)));
   }
   node->value = value;
   node->is_observed = true;
@@ -217,9 +225,12 @@ void Graph::collect_sample() {
           or value.type == AtomicType::PROBABILITY) {
         means[pos] += value._double;
       }
+      else if (value.type == AtomicType::NATURAL) {
+        means[pos] += value._natural;
+      }
       else {
         throw std::runtime_error("Mean aggregation only supported for "
-          "boolean/real/probability-valued nodes");
+          "boolean/real/probability/natural-valued nodes");
       }
       pos++;
     }
