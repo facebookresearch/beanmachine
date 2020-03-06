@@ -3,9 +3,9 @@
 import ast
 import re
 import unittest
-from ast import Add, BinOp, Num
+from ast import parse
 
-from beanmachine.ppl.utils.ast_patterns import ast_domain, binop, num
+from beanmachine.ppl.utils.ast_patterns import add, ast_domain, binop, num
 from beanmachine.ppl.utils.rules import TryMany, TryOnce, pattern_rules
 
 
@@ -19,22 +19,23 @@ class RulesTest(unittest.TestCase):
 
         remove_plus_zero = pattern_rules(
             [
-                (binop(op=Add, left=num(n=0)), lambda b: b.right),
-                (binop(op=Add, right=num(n=0)), lambda b: b.left),
+                (binop(op=add, left=num(n=0)), lambda b: b.right),
+                (binop(op=add, right=num(n=0)), lambda b: b.left),
             ],
             "remove_plus_zero",
         )
 
         self.maxDiff = None
 
-        z = Num(n=0)
-        o = Num(n=1)
-        oo = BinOp(op=Add(), left=o, right=o)
-        zo = BinOp(op=Add(), left=z, right=o)
-        oz = BinOp(op=Add(), left=o, right=z)
-        zo_z = BinOp(op=Add(), left=zo, right=z)
-        z_oz = BinOp(op=Add(), left=z, right=oz)
-        zo_oz = BinOp(op=Add(), left=zo, right=oz)
+        m = parse("0; 1; 1+1; 0+1; 1+0; 0+1+0; 0+(1+0); (0+1)+(1+0)")
+        # z = m.body[0].value
+        o = m.body[1].value
+        oo = m.body[2].value
+        zo = m.body[3].value
+        oz = m.body[4].value
+        zo_z = m.body[5].value
+        z_oz = m.body[6].value
+        zo_oz = m.body[7].value
 
         once = TryOnce(remove_plus_zero)
         many = TryMany(remove_plus_zero)
@@ -54,33 +55,35 @@ try_once(
 """
         self.assertEqual(tidy(observed), tidy(expected))
 
-        result = once(oo).expect_success()
-        self.assertEqual(ast.dump(result), ast.dump(oo))
-
-        result = once(zo_z).expect_success()
-        self.assertEqual(ast.dump(result), ast.dump(zo))
-
-        result = once(z_oz).expect_success()
-        self.assertEqual(ast.dump(result), ast.dump(oz))
-
-        result = many(z_oz).expect_success()
-        self.assertEqual(ast.dump(result), ast.dump(o))
-
-        result = many(zo_z).expect_success()
-        self.assertEqual(ast.dump(result), ast.dump(o))
-
-        # Does not recurse!
-        result = many(zo_oz).expect_success()
-        self.assertEqual(ast.dump(result), ast.dump(zo_oz))
-
         _all = ast_domain.all_children
 
-        # This does not recurse either; it rewrites the left and
-        # right child, *only*. So given 0 + (1 + 0) it executes
-        # the pattern on both sides of the outer +, giving 0 on
-        # the left and one on the right.
+        # Note that _all on this list does not recurse down to the
+        # children of the list elements. It runs the rule once on
+        # each list element, adn that's it.
+        result = _all(once)([oo, zo_z, z_oz, zo_oz]).expect_success()
+        self.assertEqual(ast.dump(result[0]), ast.dump(oo))
+        self.assertEqual(ast.dump(result[1]), ast.dump(zo))
+        self.assertEqual(ast.dump(result[2]), ast.dump(oz))
+        self.assertEqual(ast.dump(result[3]), ast.dump(zo_oz))
+
+        # Again, this does not recurse to the children. Rather, it keeps
+        # running the rule until the pattern fails; that is different than
+        # recursing down into the children!
+        result = _all(many)([oo, zo_z, z_oz, zo_oz]).expect_success()
+        self.assertEqual(ast.dump(result[0]), ast.dump(oo))
+        self.assertEqual(ast.dump(result[1]), ast.dump(o))
+        self.assertEqual(ast.dump(result[2]), ast.dump(o))
+        self.assertEqual(ast.dump(result[3]), ast.dump(zo_oz))
+
+        # Now instead of running the rule on all elements of a list, let's
+        # run the rule once on all *children* of a node. Again, this applies the
+        # rule just to the children; it does not recurse down into their
+        # children, and it does not re-run the rule on the result.
         result = _all(once)(z_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(zo))
+
+        result = _all(once)(zo_z).expect_success()
+        self.assertEqual(ast.dump(result), ast.dump(oz))
 
         result = _all(once)(zo_oz).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(oo))

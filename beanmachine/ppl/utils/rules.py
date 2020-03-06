@@ -355,32 +355,43 @@ class AllChildren(Rule):
         self.get_children = get_children
         self.construct = construct
 
-    def apply(self, test: Any) -> RuleResult:
-        # TODO: We'll need to deal with lists. Which also means that
-        # TODO: we'll need a list splicing and list removal operation
-        # TODO: to change the size of a list.
-        children = self.get_children(test)
+    def _apply_to_list(self, test: List[Any]) -> RuleResult:
+        # Easy out:
+        if len(test) == 0:
+            return Success(test, test)
+        results = [self.rule.apply(child) for child in test]
+        # Were there any failures?
+        if any(result.is_fail() for result in results):
+            return Fail(test)
+        # Were there any successes that returned a different value?
+        new_values = [result.expect_success() for result in results]
+        if all(new_value is child for child, new_value in zip(test, new_values)):
+            # Everything succeeded and there were no changes.
+            return Success(test, test)
+        # Everything succeeded but there was at least one different value.
+        # TODO: At this point we need to deal with operations that
+        # TODO: wanted to delete or insert items.
+        return Success(test, new_values)
 
+    def apply(self, test: Any) -> RuleResult:
+        if isinstance(test, list):
+            return self._apply_to_list(test)
+        children = self.get_children(test)
         # Easy out for leaves.
         if len(children) == 0:
             return Success(test, test)
-
         results = {
             child_name: self.rule.apply(child_value)
             for child_name, child_value in children.items()
         }
-
         # Were there any failures?
         if any(result.is_fail() for result in results.values()):
             return Fail(test)
-
         # Were there any successes that returned a different value?
         new_values = {n: results[n].expect_success() for n in results}
-
         if all(new_values[n] is children[n] for n in new_values):
             # Everything succeeded and there were no changes.
             return Success(test, test)
-
         # Everything succeeded but there was at least one different value.
         # Construct a new object.
         return Success(test, self.construct(type(test), new_values))
