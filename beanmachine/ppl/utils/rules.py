@@ -56,6 +56,7 @@ class RuleResult(ABC):
 
 class Fail(RuleResult):
     def __init__(self, test: Any = None) -> None:
+        # pyre-fixme[6]: Expected `MatchResult` for 1st param but got `Fail`.
         MatchResult.__init__(self, test)
 
     def is_success(self) -> bool:
@@ -72,6 +73,7 @@ class Success(RuleResult):
     result: Any
 
     def __init__(self, test: Any, result: Any) -> None:
+        # pyre-fixme[6]: Expected `MatchResult` for 1st param but got `Success`.
         MatchResult.__init__(self, test)
         self.result = result
 
