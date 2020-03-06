@@ -14,7 +14,7 @@ TEST(testcavi, noisy_or) {
   // see cavi_test.py:build_graph2 for an explanation of this model
   graph::Graph g;
   uint c_one = g.add_constant(1.0);
-  uint c_prior = g.add_constant(0.01);
+  uint c_prior = g.add_constant_probability(0.01);
   uint d_prior = g.add_distribution(
     graph::DistributionType::BERNOULLI,
     graph::AtomicType::BOOLEAN,

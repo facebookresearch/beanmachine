@@ -17,7 +17,7 @@
 namespace beanmachine {
 namespace graph {
 
-enum class AtomicType { UNKNOWN = 0, BOOLEAN = 1, REAL, TENSOR };
+enum class AtomicType { UNKNOWN = 0, BOOLEAN = 1, PROBABILITY, REAL, TENSOR };
 
 class AtomicValue {
  public:
@@ -32,6 +32,7 @@ class AtomicValue {
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
+  AtomicValue(AtomicType type, double value) : type(type), _double(value) {}
   bool operator==(const AtomicValue& other) const {
     return type == other.type and
         ((type == AtomicType::BOOLEAN and _bool == other._bool) or
@@ -48,6 +49,7 @@ enum class OperatorType {
   UNKNOWN = 0,
   SAMPLE = 1, // This is the ~ operator in models
   TO_REAL,
+  TO_TENSOR,
   NEGATE,
   EXP,
   EXPM1,
@@ -115,6 +117,7 @@ struct Graph {
   uint add_constant(double value);
   uint add_constant(torch::Tensor value);
   uint add_constant(AtomicValue value);
+  uint add_constant_probability(double value);
   uint add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,

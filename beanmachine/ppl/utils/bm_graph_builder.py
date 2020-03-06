@@ -310,6 +310,19 @@ class ToRealNode(UnaryOperatorNode):
         return "ToReal(" + str(self.operand()) + ")"
 
 
+class ToTensorNode(UnaryOperatorNode):
+    operator_type = OperatorType.TO_TENSOR
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def label(self) -> str:
+        return "ToTensor"
+
+    def __str__(self) -> str:
+        return "ToTensor(" + str(self.operand()) + ")"
+
+
 class ExpNode(UnaryOperatorNode):
     operator_type = OperatorType.EXP
 
@@ -461,6 +474,11 @@ class BMGraphBuilder:
 
     def add_to_real(self, operand: BMGNode) -> ToRealNode:
         node = ToRealNode(operand)
+        self.add_node(node)
+        return node
+
+    def add_to_tensor(self, operand: BMGNode) -> ToTensorNode:
+        node = ToTensorNode(operand)
         self.add_node(node)
         return node
 
