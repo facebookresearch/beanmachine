@@ -17,7 +17,8 @@
 namespace beanmachine {
 namespace graph {
 
-enum class AtomicType { UNKNOWN = 0, BOOLEAN = 1, PROBABILITY, REAL, TENSOR };
+// note: NATURAL numbers include zero (ISO 80000-2)
+enum class AtomicType { UNKNOWN = 0, BOOLEAN = 1, PROBABILITY, REAL, NATURAL, TENSOR };
 
 class AtomicValue {
  public:
@@ -25,11 +26,13 @@ class AtomicValue {
   union {
     bool _bool;
     double _double;
+    unsigned long long int _natural;
   };
   torch::Tensor _tensor;
   AtomicValue() : type(AtomicType::UNKNOWN) {}
   explicit AtomicValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
+  explicit AtomicValue(unsigned long long int value) : type(AtomicType::NATURAL), _natural(value) {}
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
   AtomicValue(AtomicType type, double value) : type(type), _double(value) {}
@@ -116,6 +119,7 @@ struct Graph {
   // Graph builder APIs -> return the node number
   uint add_constant(bool value);
   uint add_constant(double value);
+  uint add_constant(unsigned long long int value);
   uint add_constant(torch::Tensor value);
   uint add_constant(AtomicValue value);
   uint add_constant_probability(double value);
