@@ -22,7 +22,6 @@ def obtain_posterior(data_train, args_dict, model):
     K = int(args_dict["k"])
     word_fraction = (args_dict["model_args"])[3]
     T = int(K * (1 - word_fraction))
-    thinning = args_dict["thinning_jags"]
     assert len(words.shape) == 1
     nodearray = np.concatenate([np.zeros(T), words])
     mask = np.concatenate((np.ones(T), np.zeros_like(words)))
@@ -47,9 +46,7 @@ def obtain_posterior(data_train, args_dict, model):
     if args_dict["inference_type"] == "mcmc":
         # sample the parameter posteriors, time it
         start_time = time.time()
-        samples_jags = model.sample(
-            int(args_dict["num_samples_jags"]), vars=["node"], thin=thinning
-        )
+        samples_jags = model.sample(int(args_dict["num_samples_jags"]), vars=["node"])
         elapsed_time_sample_jags = time.time() - start_time
     elif args_dict["inference_type"] == "vi":
         print("Jags does not support Variational Inference")
@@ -64,7 +61,7 @@ def obtain_posterior(data_train, args_dict, model):
         # in PPLbench, we flatten it
         if samples_jags[parameter].shape[0] == 1:
             samples_jags[parameter] = samples_jags[parameter].squeeze()
-    for i in range(int(args_dict["num_samples_jags"] / args_dict["thinning_jags"])):
+    for i in range(int(args_dict["num_samples_jags"])):
         sample_dict = {}
         for parameter in samples_jags.keys():
             # convert from [parameter][sample] dict to [sample][parameter]

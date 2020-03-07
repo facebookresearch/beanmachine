@@ -90,7 +90,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     for parameter in samples_pyro.keys():
         if samples_pyro[parameter].shape[0] == 1:
             samples_pyro[parameter] = samples_pyro[parameter].squeeze()
-    for i in range(int(args_dict["num_samples_pyro"] / args_dict["thinning_pyro"])):
+    for i in range(int(args_dict["num_samples_pyro"])):
         sample_dict = {}
         for parameter in samples_pyro.keys():
             sample_dict[parameter] = samples_pyro[parameter][i]

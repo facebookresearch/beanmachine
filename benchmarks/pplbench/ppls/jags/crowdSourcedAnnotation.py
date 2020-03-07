@@ -57,7 +57,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     vector_y, vector_J_i, num_labels = data_train
     J = int(args_dict["k"])
     n_items = len(num_labels)
-    thinning = args_dict["thinning_jags"]
     K, _, expected_correctness, concentration = args_dict["model_args"]
     # item array for jags; change from list-of-lengths format of num_labels
     # to list-of-items associated with each label and labeler in vector_y, vector_J_i
@@ -86,7 +85,7 @@ def obtain_posterior(data_train, args_dict, model=None):
         start_time = time.time()
         # Choose the parameters to watch and iterations:
         samples_jags = brmodel.sample(
-            int(args_dict["num_samples_jags"]), vars=["theta", "pi"], thin=thinning
+            int(args_dict["num_samples_jags"]), vars=["theta", "pi"]
         )
         elapsed_time_sample_jags = time.time() - start_time
     elif args_dict["inference_type"] == "vi":
@@ -102,7 +101,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     for parameter in samples_jags.keys():
         if samples_jags[parameter].shape[0] == 1:
             samples_jags[parameter] = samples_jags[parameter].squeeze()
-    for i in range(int(args_dict["num_samples_jags"] / float(thinning))):
+    for i in range(int(args_dict["num_samples_jags"])):
         sample_dict = {}
         for parameter in samples_jags.keys():
             sample_dict[parameter] = samples_jags[parameter][i]

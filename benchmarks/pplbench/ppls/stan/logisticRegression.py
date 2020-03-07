@@ -59,7 +59,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     x_train, y_train = data_train
     N = int(x_train.shape[1])
     K = int(x_train.shape[0])
-    thinning = args_dict["thinning_stan"]
     alpha_scale, beta_scale, beta_loc, _ = args_dict["model_args"]
 
     data_stan = {
@@ -94,7 +93,6 @@ def obtain_posterior(data_train, args_dict, model=None):
             data=data_stan,
             iter=int(args_dict["num_samples_stan"]),
             chains=1,
-            thin=thinning,
             check_hmc_diagnostics=False,
         )
         samples_stan = fit.extract(
@@ -113,7 +111,7 @@ def obtain_posterior(data_train, args_dict, model=None):
 
     # repackage samples into shape required by PPLBench
     samples = []
-    for i in range(int(args_dict["num_samples_stan"] / args_dict["thinning_stan"])):
+    for i in range(int(args_dict["num_samples_stan"])):
         sample_dict = {}
         for parameter in samples_stan.keys():
             sample_dict[parameter] = samples_stan[parameter][i]

@@ -18,7 +18,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     """
     x_train, y_train = data_train
     K = int(x_train.shape[0])
-    thinning = args_dict["thinning_pymc3"]
     alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
     num_samples = int(args_dict["num_samples_pymc3"])
 
@@ -44,7 +43,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     elapsed_time_sample_pymc3 = time.time() - start_time
     # repackage samples into shape required by PPLBench
     samples = []
-    for i in range(0, int(args_dict["num_samples_pymc3"]), thinning):
+    for i in range(0, int(args_dict["num_samples_pymc3"])):
         sample_dict = {}
         for parameter in ["alpha", "beta", "nu", "sigma"]:
             sample_dict[parameter] = samples_pymc3[parameter][i]

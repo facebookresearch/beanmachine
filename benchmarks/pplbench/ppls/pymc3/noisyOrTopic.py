@@ -23,7 +23,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     K = int(args_dict["k"])
     word_fraction = (args_dict["model_args"])[3]
     T = int(K * (1 - word_fraction))
-    thinning = args_dict["thinning_pymc3"]
     assert len(words.shape) == 1
     num_samples = int(args_dict["num_samples_pymc3"])
     nodearray = np.concatenate([np.zeros(T), words])
@@ -69,7 +68,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     elapsed_time_sample_pymc3 = time.time() - start_time
     # repackage samples into shape required by PPLBench
     samples = []
-    for i in range(0, num_samples, thinning):
+    for i in range(0, num_samples):
         sample_dict = {}
         sample_dict["node"] = np.zeros(T)
         sample_dict["node"][0] = 1

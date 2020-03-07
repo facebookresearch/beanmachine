@@ -36,27 +36,6 @@ def get_lists():
     return models_list, ppls_list
 
 
-def exec_process(func, *args, **kwargs):
-    """
-    calls func(*args, **kwargs) in a separate process and returns the value
-    """
-    random_seed = int(torch.randint(2 ** 32, (1,)))
-
-    def entry_point(conn, random_seed):
-        torch.manual_seed(random_seed)
-        np.random.seed(random_seed)
-        random.seed(random_seed)
-        conn.send(func(*args, **kwargs))
-        conn.close()
-
-    parent_conn, child_conn = multiprocessing.Pipe()
-    p = multiprocessing.Process(target=entry_point, args=(child_conn, random_seed))
-    p.start()
-    retval = parent_conn.recv()
-    p.join()
-    return retval
-
-
 def get_color_for_ppl(ppl):
     """
     Creates a mapping from ppl name to color
@@ -225,78 +204,6 @@ def get_sample_subset(posterior_predictive, args_dict):
     return sample_subset
 
 
-def time_to_sample(ppl, module, runtime, data_train, args_dict, model=None):
-    """
-    Estimates the number of samples to run the inference given
-    an expected runtime with a simple linear regression model:
-
-    samples = alpha + beta * runtime
-
-    inputs-
-    module(PPL implementation module): the implementation to be timed
-    runtime(seconds): how long to run the inference
-    data_train(dict): training data
-    args_dict: arguments
-
-    returns-
-    target_num_samples = number of posterior samples that would approximately
-                  require that runtime
-    """
-    print("Estimating number of samples for given runtime...")
-    args_dict[f"num_samples_{ppl}"] = 300
-    args_dict[f"thinning_{ppl}"] = 1
-    _, timing_info = module.obtain_posterior(
-        data_train=data_train, args_dict=args_dict, model=model
-    )
-
-    if args_dict["include_compile_time"] == "yes":
-        runtime = runtime - timing_info["compile_time"]
-    time_for_300_samples = timing_info["inference_time"]
-    args_dict[f"num_samples_{ppl}"] = 600
-    _, timing_info = module.obtain_posterior(
-        data_train=data_train, args_dict=args_dict, model=model
-    )
-    time_for_600_samples = timing_info["inference_time"]
-    beta = 300 / (time_for_600_samples - time_for_300_samples)
-    alpha = 0.5 * (
-        (600 - beta * time_for_600_samples) + (300 - beta * time_for_300_samples)
-    )
-    target_num_samples = int(alpha + beta * runtime)
-    if target_num_samples <= 0:
-        print("ModelError:Target runtime too small; consider increasing it")
-        exit(1)
-    print(
-        f"Inference requires {target_num_samples} samples"
-        f" to run for {runtime} seconds"
-    )
-    return target_num_samples
-
-
-def estimate_thinning(args_dict):
-    min_num_samples = np.inf
-    for p in (args_dict["ppls"]).split(","):
-        ppls_args = p.split(":")
-        if len(ppls_args) == 1:
-            ppl = p
-        else:
-            ppl, _ = ppls_args
-        if args_dict[f"num_samples_{ppl}"] <= min_num_samples:
-            min_num_samples = args_dict[f"num_samples_{ppl}"]
-    for p in (args_dict["ppls"]).split(","):
-        ppls_args = p.split(":")
-        if len(ppls_args) == 1:
-            ppl = p
-        else:
-            ppl, _ = ppls_args
-        args_dict[f"thinning_{ppl}"] = int(
-            args_dict[f"num_samples_{ppl}"] / float(min_num_samples)
-        )
-        args_dict[f"num_samples_{ppl}"] = int(
-            args_dict[f"thinning_{ppl}"] * min_num_samples
-        )
-    return args_dict
-
-
 def get_args(models_list, ppls_list):
     # configure input arguments
     parser = argparse.ArgumentParser(
@@ -319,12 +226,6 @@ def get_args(models_list, ppls_list):
         help=str("Choose the PPLs to benchmark. Options: " + str(ppls_list)),
     )
     parser.add_argument("--inference-type", default="mcmc", help="Options: mcmc, vi")
-    parser.add_argument(
-        "-t",
-        "--runtime",
-        default="default",
-        help="estimated runtime (seconds/(model,ppl)",
-    )
     parser.add_argument(
         "-s",
         "--num-samples",
@@ -463,7 +364,7 @@ def main():
     # check is user passed model arguments, if yes parse them in an array as numbers
     if not args_dict["model_args"] == "default":
         args_dict["model_args"] = [
-            eval(x) for x in (args_dict["model_args"]).split(",")
+            float(x) for x in (args_dict["model_args"]).split(",")
         ]
     # check if model exists, get model defaults for unspecified args
     if str(args.model) in models_list:
@@ -488,18 +389,7 @@ def main():
     # generate data
     generated_data = model.generate_data(args_dict=args_dict, model=model_instance)
 
-    estimated_total_time = (
-        1.1
-        * int(args_dict["runtime"])
-        * int(args_dict["trials"])
-        * len(args_dict["ppls"].split(","))
-    )
-
-    print(
-        "Starting benchmark; estimated time is"
-        f" {int(estimated_total_time / 3600.)} hour(s),"
-        f"{int((estimated_total_time % 3600) / 60)} minutes"
-    )
+    print("Starting benchmark...")
 
     # Create timestamped folder outputs
     if not os.path.isdir(os.path.join(".", "outputs")):
@@ -511,7 +401,6 @@ def main():
     os.mkdir(args_dict["output_dir"])
     print(f"Outputs will be saved in : {args_dict['output_dir']}")
 
-    # estimate samples for given runtime and decide thinning
     for p in (args.ppls).split(","):
         ppls_args = p.split(":")
         if len(ppls_args) == 1:
@@ -529,21 +418,8 @@ def main():
             exit()
 
         args_dict[f"legend_name_{ppl}"] = legend_name
+        args_dict[f"num_samples_{ppl}"] = int(args_dict["num_samples"])
 
-        if args_dict["num_samples"] == 100:
-            # estimate number of samples required for given time
-            args_dict[f"num_samples_{ppl}"] = time_to_sample(
-                ppl=ppl,
-                module=module,
-                runtime=int(args.runtime),
-                data_train=generated_data["data_train"],
-                args_dict=args_dict.copy(),
-                model=model_instance,
-            )
-        else:
-            args_dict[f"num_samples_{ppl}"] = int(args_dict["num_samples"])
-
-    args_dict = estimate_thinning(args_dict)
     # obtain samples and evaluate predictvies
     timing_info = {}
     posterior_samples = {}
@@ -567,15 +443,13 @@ def main():
         for i in range(int(args_dict["trials"])):
             print("Starting trial", i + 1, "of", args_dict["trials"])
             # obtain posterior samples and timing info
-            posterior_samples[ppl][i], timing_info[ppl][i] = exec_process(
-                module.obtain_posterior,
+            posterior_samples[ppl][i], timing_info[ppl][i] = module.obtain_posterior(
                 data_train=generated_data["data_train"],
                 args_dict=args_dict,
                 model=model_instance,
             )
             # compute posterior predictive
-            posterior_predictive[ppl][i] = exec_process(
-                model.evaluate_posterior_predictive,
+            posterior_predictive[ppl][i] = model.evaluate_posterior_predictive(
                 samples=posterior_samples[ppl][i].copy(),
                 data_test=generated_data["data_test"],
                 model=model_instance,

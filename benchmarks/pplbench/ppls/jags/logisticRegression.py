@@ -38,7 +38,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     x_train, y_train = data_train
     N = int(x_train.shape[1])
     K = int(x_train.shape[0])
-    thinning = args_dict["thinning_jags"]
     alpha_scale = (args_dict["model_args"])[0]
     beta_scale = (args_dict["model_args"])[1]
 
@@ -61,7 +60,7 @@ def obtain_posterior(data_train, args_dict, model=None):
         start_time = time.time()
         # Choose the parameters to watch and iterations:
         samples_jags = brmodel.sample(
-            int(args_dict["num_samples_jags"]), vars=["alpha", "beta"], thin=thinning
+            int(args_dict["num_samples_jags"]), vars=["alpha", "beta"]
         )
         elapsed_time_sample_jags = time.time() - start_time
     elif args_dict["inference_type"] == "vi":
@@ -76,7 +75,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     for parameter in samples_jags.keys():
         if samples_jags[parameter].shape[0] == 1:
             samples_jags[parameter] = samples_jags[parameter].squeeze()
-    for i in range(int(args_dict["num_samples_jags"] / args_dict["thinning_jags"])):
+    for i in range(int(args_dict["num_samples_jags"])):
         sample_dict = {}
         for parameter in samples_jags.keys():
             sample_dict[parameter] = samples_jags[parameter][i].T

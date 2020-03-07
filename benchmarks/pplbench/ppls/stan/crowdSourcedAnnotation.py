@@ -84,7 +84,6 @@ def obtain_posterior(data_train, args_dict, model=None):
     vector_y, vector_J_i, num_labels = data_train
     n_labelers = int(args_dict["k"])
     n_items = len(num_labels)
-    thinning = args_dict["thinning_stan"]
     n_categories, _, expected_correctness, concentration = args_dict["model_args"]
 
     data_stan = {
@@ -120,10 +119,7 @@ def obtain_posterior(data_train, args_dict, model=None):
     start_time = time.time()
     if args_dict["inference_type"] == "mcmc":
         fit = model.sampling(
-            data=data_stan,
-            iter=int(args_dict["num_samples_stan"]),
-            chains=1,
-            thin=thinning,
+            data=data_stan, iter=int(args_dict["num_samples_stan"]), chains=1
         )
     elif args_dict["inference_type"] == "vi":
         fit = model.vb(data=data_stan, iter=args_dict["num_samples_stan"])
@@ -132,7 +128,7 @@ def obtain_posterior(data_train, args_dict, model=None):
 
     # repackage samples into shape required by PPLBench
     samples = []
-    for i in range(int(args_dict["num_samples_stan"] / float(thinning))):
+    for i in range(int(args_dict["num_samples_stan"])):
         sample_dict = {}
         for parameter in samples_stan.keys():
             sample_dict[parameter] = samples_stan[parameter][i]

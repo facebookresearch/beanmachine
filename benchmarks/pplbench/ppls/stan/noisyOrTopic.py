@@ -24,7 +24,6 @@ def obtain_posterior(data_train, args_dict, model):
     words = data_train
     K = int(args_dict["k"])
     word_fraction = (args_dict["model_args"])[3]
-    thinning = args_dict["thinning_stan"]
     T = int(K * (1 - word_fraction))
     assert len(words.shape) == 1
     # construct the Stan code for the graph
@@ -123,7 +122,6 @@ model {
             data=data_stan,
             iter=int(args_dict["num_samples_stan"]),
             chains=1,
-            thin=thinning,
             check_hmc_diagnostics=False,
         )
         samples_stan = fit.extract(pars=["topic"], permuted=False, inc_warmup=True)
@@ -143,7 +141,7 @@ model {
     samples_stan["topic"] = np.insert(samples_stan["topic"], 0, 1, axis=2)
     # repackage samples into shape required by PPLBench
     samples = []
-    for i in range(int(args_dict["num_samples_stan"] / args_dict["thinning_stan"])):
+    for i in range(int(args_dict["num_samples_stan"])):
         sample_dict = {}
         for parameter in samples_stan.keys():
             sample_dict["node"] = samples_stan[parameter][i].reshape(-1)
