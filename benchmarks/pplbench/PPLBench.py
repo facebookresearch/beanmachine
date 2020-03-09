@@ -19,10 +19,7 @@ import pandas as pd
 import ppls
 import torch
 import torch.tensor as tensor
-from beanmachine.ppl.diagnostics.common_statistics import (
-    effective_sample_size,
-    split_r_hat,
-)
+from utils import effective_sample_size, split_r_hat
 
 
 # helper function(s)
