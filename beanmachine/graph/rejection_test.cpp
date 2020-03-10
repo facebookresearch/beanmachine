@@ -2,7 +2,6 @@
 #include <array>
 
 #include <gtest/gtest.h>
-#include <torch/torch.h>
 
 #include "beanmachine/graph/graph.h"
 
