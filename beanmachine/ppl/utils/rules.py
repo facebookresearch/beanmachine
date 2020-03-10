@@ -334,6 +334,57 @@ class TryMany(Rule):
         return f"try_many( {str(self.rule)} )"
 
 
+class ListEdit:
+    """Consider a rule which descends through an AST looking for a particular
+    statement to replace. If the rule replaces a particular statement with
+    another statement, we can express that with a straightforward rule that
+    succeeds and produces the new statement. But how can we represent rules that
+    either delete a statement (that is, replace it with nothing) or replace it
+    with more than one statement?
+    To express this concept, a rule should succeed and return a ListEdit([s1, s2...])
+    where the list contains the replacements; if the list is empty then the
+    element is deleted."""
+
+    edits: List[Any]
+
+    def __init__(self, edits: List[Any]):
+        self.edits = edits
+
+
+remove_from_list = ListEdit([])
+
+
+def _expand_edits(items: Iterable[Any]) -> Iterable[Any]:
+    """Suppose we have a list [X, Y, Z] and we wish to replace
+    Y with A, B.  We will produce the sequence
+    [X, ListEdit([A, B], Z)]; this function expands the ListEdit
+    structure and splices the elements into the list, producing
+    [X, A, B, Z]."""
+    for item in items:
+        if isinstance(item, ListEdit):
+            for expanded in _expand_edits(item.edits):
+                yield expanded
+        else:
+            yield item
+
+
+def _list_unchanged(xs: List[Any], ys: List[Any]) -> bool:
+    if xs is ys:
+        return True
+    # When we do a rewrite step that produces no change, we try to
+    # guarantee that the "rewritten" value is reference identical to
+    # the original value. We can therefore take advantage of this
+    # fact when comparing two reference-unequal lists.  Using normal
+    # structural equality on lists verifies that each member has the
+    # same structure as the corresponding member, but we can be faster
+    # than that by verifying that each member is reference equal; if
+    # any member is reference-unequal then something was rewritten
+    # to a different value.
+    if len(xs) != len(ys):
+        return False
+    return all(x is y for x, y in zip(xs, ys))
+
+
 class AllChildren(Rule):
     """Apply a rule to all children.  Succeeds if the rule succeeds for all children,
     and returns a constructed object with the children replaced with the new values.
@@ -363,14 +414,13 @@ class AllChildren(Rule):
         # Were there any failures?
         if any(result.is_fail() for result in results):
             return Fail(test)
-        # Were there any successes that returned a different value?
-        new_values = [result.expect_success() for result in results]
-        if all(new_value is child for child, new_value in zip(test, new_values)):
-            # Everything succeeded and there were no changes.
+        # Splice in any list edits.
+        new_values = list(_expand_edits(result.expect_success() for result in results))
+        # Is the resulting list different? If not, make sure the result is
+        # reference equal.
+        if _list_unchanged(new_values, test):
             return Success(test, test)
         # Everything succeeded but there was at least one different value.
-        # TODO: At this point we need to deal with operations that
-        # TODO: wanted to delete or insert items.
         return Success(test, new_values)
 
     def apply(self, test: Any) -> RuleResult:
@@ -429,17 +479,17 @@ class SomeChildren(Rule):
         # Were there any successes?
         if not any(result.is_success() for result in results):
             return Fail(test)
+        # Splice in any list edits.
+        new_values = list(
+            _expand_edits(
+                result.expect_success() if result.is_success() else result.test
+                for result in results
+            )
+        )
         # Were there any successes that returned a different value?
-        new_values = [
-            result.expect_success() if result.is_success() else result.test
-            for result in results
-        ]
-        if all(new_value is child for child, new_value in zip(test, new_values)):
-            # Everything succeeded and there were no changes.
+        if _list_unchanged(new_values, test):
             return Success(test, test)
         # Everything succeeded but there was at least one different value.
-        # TODO: At this point we need to deal with operations that
-        # TODO: wanted to delete or insert items.
         return Success(test, new_values)
 
     def apply(self, test: Any) -> RuleResult:
@@ -504,8 +554,9 @@ class OneChild(Rule):
                     return Success(test, test)
                 new_values = test.copy()
                 new_values[i] = new_value
-                # TODO: At this point we need to deal with operations that
-                # TODO: wanted to delete or insert items.
+                new_values = list(_expand_edits(new_values))
+                if _list_unchanged(new_values, test):
+                    return Success(test, test)
                 return Success(test, new_values)
         return Fail(test)
 

@@ -3,10 +3,17 @@
 import ast
 import re
 import unittest
-from ast import parse
+from ast import Expr, parse
 
-from beanmachine.ppl.utils.ast_patterns import add, ast_domain, binop, num
-from beanmachine.ppl.utils.rules import TryMany as many, TryOnce as once, pattern_rules
+from beanmachine.ppl.utils.ast_patterns import add, ast_domain, binop, expr, num
+from beanmachine.ppl.utils.rules import (
+    ListEdit,
+    PatternRule,
+    TryMany as many,
+    TryOnce as once,
+    pattern_rules,
+    remove_from_list,
+)
 
 
 def tidy(s: str) -> str:
@@ -14,7 +21,7 @@ def tidy(s: str) -> str:
 
 
 class RulesTest(unittest.TestCase):
-    def test_1(self) -> None:
+    def test_rules(self) -> None:
         """Tests for rules.py"""
 
         remove_plus_zero = pattern_rules(
@@ -107,3 +114,65 @@ try_once(
         self.assertEqual(ast.dump(result[1]), ast.dump(zo))  # Rule succeeds
         self.assertEqual(ast.dump(result[2]), ast.dump(z_oz))  # Rule does not run
         self.assertEqual(ast.dump(result[3]), ast.dump(zo_oz))  # Rule does not run
+
+        # Testing list editing:
+
+        # Let's start with a simple test: remove all the zeros from a list
+        # of integers:
+
+        remove_zeros = PatternRule(0, lambda b: remove_from_list, "remove_zeros")
+        result = _all(once(remove_zeros))(
+            [0, 1, 0, 2, 0, 0, 3, 4, 0, 0]
+        ).expect_success()
+        self.assertEqual(result, [1, 2, 3, 4])
+
+        # Let's try some deeper combinations. Here we apply a rule to all
+        # children of a module -- that is, the body. That rule then applies
+        # remove_num_statements once to all members of the body list.
+
+        remove_num_statements = PatternRule(
+            expr(num()), lambda b: remove_from_list, "remove_num_statements"
+        )
+        t = ast.parse("0; 1; 2 + 3; 4 + 5 + 6; 7 + 8 * 9;")
+        result = _all(_all(once(remove_num_statements)))(t).expect_success()
+        self.assertEqual(
+            ast.dump(result), ast.dump(ast.parse("2 + 3; 4 + 5 + 6; 7 + 8 * 9;"))
+        )
+
+        # Split every statement that is a binop into two statements,
+        # and keep going until you can split no more:
+
+        split_binops = PatternRule(
+            expr(binop()),
+            lambda b: ListEdit([Expr(b.value.left), Expr(b.value.right)]),
+            "split_binops",
+        )
+
+        # This correctly implements those semantics.
+        # The "some" fails when no more work can be done, so the "many"
+        # repeats until a fixpoint is reached for the statement list.
+
+        result = _all(many(some(split_binops)))(t).expect_success()
+        self.assertEqual(
+            ast.dump(result), ast.dump(ast.parse("0; 1; 2; 3; 4; 5; 6; 7; 8; 9;"))
+        )
+
+        # TODO: Unfortunately, this does not attain a fixpoint.
+        # TODO: This seems like it should have the same behaviour as the
+        # TODO: previous, but what happens is:  split_binops returns a ListEdit.
+        # TODO: TryMany then checks whether split_binops applies again;
+        # TODO: it does not because a ListEdit is not an Expr(BinOp); it is a
+        # TODO: ListEdit possibly containing an Expr(BinOp).  It then returns the
+        # TODO: ListEdit to AllChildren, which splices in the result and goes on
+        # TODO: to the next item in the list.
+        # TODO:
+        # TODO: We have a problem here: should rules which return ListEdits to other
+        # TODO: rules have those other rules automatically distribute their behaviour
+        # TODO: across the ListEdit?  Should we disallow a rule from returning a
+        # TODO: ListEdit to anything other than All/Some/One, which are the only
+        # TODO: combinators that know how to splice in the edit?  Give this some
+        # TODO:  thought.
+        result = _all(_all(many(split_binops)))(t).expect_success()
+        self.assertEqual(
+            ast.dump(result), ast.dump(ast.parse("0; 1; 2; 3; 4 + 5; 6; 7; 8 * 9;"))
+        )
