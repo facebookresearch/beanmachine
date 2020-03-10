@@ -44,7 +44,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             probs = 1 / (1 + (y * -1).exp())
             return dist.Bernoulli(probs)
 
-    def test_mean_covariance_for_node_with_child(self):
+    def test_mean_scale_tril_for_node_with_child(self):
         model = self.SampleNormalModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
@@ -90,17 +90,19 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         prop_dist = nw_proposer.get_proposal_distribution(
             foo_key, nw.world_.variables_[foo_key], nw.world_, {}
         )[0]
-        mean, covariance = parse_arguments(prop_dist.arguments)
+        mean, scale_tril = parse_arguments(prop_dist.arguments)
         expected_mean = tensor([1.5, 1.5])
-        expected_covariance = tensor([[0.5000, 0.4000], [0.4000, 0.5000]])
+        expected_scale_tril = torch.cholesky(
+            tensor([[0.5000, 0.4000], [0.4000, 0.5000]])
+        )
         self.assertAlmostEqual(
             abs((mean - expected_mean).sum().item()), 0.0, delta=0.01
         )
         self.assertAlmostEqual(
-            abs((covariance - expected_covariance).sum().item()), 0.0, delta=0.01
+            abs((scale_tril - expected_scale_tril).sum().item()), 0.0, delta=0.01
         )
 
-    def test_mean_covariance(self):
+    def test_mean_scale_tril(self):
         model = self.SampleNormalModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
@@ -129,16 +131,16 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         prop_dist = nw_proposer.get_proposal_distribution(
             foo_key, nw.world_.variables_[foo_key], nw.world_, {}
         )[0]
-        mean, covariance = parse_arguments(prop_dist.arguments)
+        mean, scale_tril = parse_arguments(prop_dist.arguments)
 
         expected_mean = tensor([1.0, 1.0])
-        expected_covariance = tensor([[1.0, 0.8], [0.8, 1]])
+        expected_scale_tril = torch.cholesky(tensor([[1.0, 0.8], [0.8, 1]]))
         self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
         self.assertAlmostEqual(
-            (covariance - expected_covariance).sum().item(), 0.0, delta=0.01
+            (scale_tril - expected_scale_tril).sum().item(), 0.0, delta=0.01
         )
 
-    def test_mean_covariance_for_iids(self):
+    def test_mean_scale_tril_for_iids(self):
         model = self.SampleNormalModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
@@ -167,16 +169,16 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         prop_dist = nw_proposer.get_proposal_distribution(
             foo_key, nw.world_.variables_[foo_key], nw.world_, {}
         )[0]
-        mean, covariance = parse_arguments(prop_dist.arguments)
+        mean, scale_tril = parse_arguments(prop_dist.arguments)
 
         expected_mean = tensor([1.0, 1.0, 1.0, 1.0])
-        expected_covariance = torch.eye(4)
+        expected_scale_tril = torch.eye(4)
         self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
         self.assertAlmostEqual(
-            (covariance - expected_covariance).sum().item(), 0.0, delta=0.01
+            (scale_tril - expected_scale_tril).sum().item(), 0.0, delta=0.01
         )
 
-    def test_multi_mean_covariance_computation_in_inference(self):
+    def test_multi_mean_scale_tril_computation_in_inference(self):
         model = self.SampleLogisticRegressionModel()
         nw = SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
@@ -292,7 +294,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         prop_dist = nw_proposer.get_proposal_distribution(
             theta_0_key, nw.world_.variables_[theta_0_key], nw.world_, {}
         )[0]
-        mean, covariance = parse_arguments(prop_dist.arguments)
+        mean, scale_tril = parse_arguments(prop_dist.arguments)
 
         score = theta_0_distribution.log_prob(theta_0_value)
         score += (
@@ -309,19 +311,21 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         expected_second_gradient = (
             theta_0_value.grad - expected_first_gradient
         ).unsqueeze(0)
-        expected_covariance = (expected_second_gradient.unsqueeze(0)).inverse() * -1
+
+        expected_covar = expected_second_gradient.unsqueeze(0).inverse() * -1
+        expected_scale_tril = torch.cholesky(expected_covar)
         self.assertAlmostEqual(
-            expected_covariance.item(), covariance.item(), delta=0.001
+            expected_scale_tril.item(), scale_tril.item(), delta=0.001
         )
         expected_first_gradient = expected_first_gradient.unsqueeze(0)
         expected_mean = (
             theta_0_value.unsqueeze(0)
-            + expected_first_gradient.unsqueeze(0).mm(expected_covariance)
+            + expected_first_gradient.unsqueeze(0).mm(expected_covar)
         ).squeeze(0)
         self.assertAlmostEqual(mean.item(), expected_mean.item(), delta=0.001)
 
         proposal_value = (
-            dist.MultivariateNormal(mean, covariance)
+            dist.MultivariateNormal(mean, scale_tril=scale_tril)
             .sample()
             .reshape(theta_0_value.shape)
         )
@@ -347,7 +351,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         prop_dist = nw_proposer.get_proposal_distribution(
             theta_0_key, nw.world_.variables_[theta_0_key], nw.world_, {}
         )[0]
-        mean, covariance = parse_arguments(prop_dist.arguments)
+        mean, scale_tril = parse_arguments(prop_dist.arguments)
 
         score = tensor(0.0)
 
@@ -366,27 +370,30 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         expected_second_gradient = (
             proposal_value.grad - expected_first_gradient
         ).unsqueeze(0)
-        expected_covariance = (expected_second_gradient.unsqueeze(0)).inverse() * -1
+        expected_scale_tril = torch.cholesky(
+            (expected_second_gradient.unsqueeze(0)).inverse() * -1
+        )
         self.assertAlmostEqual(
-            expected_covariance.item(), covariance.item(), delta=0.001
+            expected_scale_tril.item(), scale_tril.item(), delta=0.001
         )
         expected_first_gradient = expected_first_gradient.unsqueeze(0)
+        expected_covar = expected_second_gradient.unsqueeze(0).inverse() * -1
         expected_mean = (
             proposal_value.unsqueeze(0)
-            + expected_first_gradient.unsqueeze(0).mm(expected_covariance)
+            + expected_first_gradient.unsqueeze(0).mm(expected_covar)
         ).squeeze(0)
         self.assertAlmostEqual(mean.item(), expected_mean.item(), delta=0.001)
 
         self.assertAlmostEqual(
-            covariance.item(), expected_covariance.item(), delta=0.001
+            scale_tril.item(), expected_scale_tril.item(), delta=0.001
         )
 
 
 # simple function to read the arguments from a proposal distribution object
-# and reconstruct the mean and covariance
+# and reconstruct the mean and scale_tril
 def parse_arguments(_arguments):
-    if "covar" in _arguments:
-        covar = _arguments["covar"]
+    if "scale_tril" in _arguments:
+        covar = _arguments["scale_tril"]
     else:
         (eig_vals, eig_vecs) = _arguments["eig_decomp"]
         covar = eig_vecs @ (torch.eye(len(eig_vals)) * eig_vals) @ eig_vecs.T

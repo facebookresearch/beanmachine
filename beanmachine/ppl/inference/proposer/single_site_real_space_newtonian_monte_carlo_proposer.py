@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 from typing import Dict, Tuple
 
+import numpy
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
@@ -65,11 +66,13 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             distance = _arguments["distance"]
             node_val_reshaped = _arguments["node_val_reshaped"]
             mean = (node_val_reshaped + distance * frac_dist).squeeze(0)
-            if "covar" in _arguments:
-                _proposer = dist.MultivariateNormal(mean, _arguments["covar"])
+            if "scale_tril" in _arguments:
+                _proposer = dist.MultivariateNormal(
+                    mean, scale_tril=_arguments["scale_tril"]
+                )
             else:
                 (eig_vals, eig_vecs) = _arguments["eig_decomp"]
-                _proposer = NormalEig(mean, eig_vecs, eig_vecs)
+                _proposer = NormalEig(mean, eig_vals=eig_vals, eig_vecs=eig_vecs)
             return (
                 ProposalDistribution(
                     proposal_distribution=_proposer,
@@ -97,14 +100,25 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         _arguments = {"node_val_reshaped": node_val_reshaped}
         # we will first attempt a covariance-inverse-based proposer
         try:
+            # TODO(nazaninkt): Change this back to torch once the issue with
+            # cholesky runtime is fixed.
             # pyre-fixme
-            covar = neg_hessian.inverse()
-            distance = (covar @ first_gradient.unsqueeze(1)).T
+            L = torch.from_numpy(numpy.linalg.cholesky(neg_hessian.numpy())).to(
+                # pyre-fixme
+                dtype=neg_hessian.dtype
+            )
+            # H^{-1} = (L L^T)^{-1}
+            #        = L^{-T} L^{-1}
+            # so L^{-1} is (lower) cholesky factor of H^{-1}
+            L_inv = torch.triangular_solve(
+                torch.eye(L.size(-1)).to(dtype=neg_hessian.dtype), L, upper=False
+            ).solution.t()
+            distance = torch.cholesky_solve(first_gradient.unsqueeze(1), L).t()
             _arguments["distance"] = distance
             mean = (node_val_reshaped + distance * frac_dist).squeeze(0)
-            _proposer = dist.MultivariateNormal(mean, covar)
-            _arguments["covar"] = covar
-        except RuntimeError:
+            _proposer = dist.MultivariateNormal(mean, scale_tril=L_inv)
+            _arguments["scale_tril"] = L_inv
+        except numpy.linalg.LinAlgError:
             # pyre-fixme
             eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
             # pyre-fixme
