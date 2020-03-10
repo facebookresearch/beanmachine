@@ -1,4 +1,4 @@
-import benchmarks.pplbench.models.seismicLocationUtil as seismic
+import benchmarks.pplbench.models.seismic_location_util as seismic
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor

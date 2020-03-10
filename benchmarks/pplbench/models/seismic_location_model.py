@@ -46,7 +46,7 @@ Model specific arguments:
 return dictionary with mu and theta
 """
 
-import benchmarks.pplbench.models.seismicLocationUtil as seismic
+import benchmarks.pplbench.models.seismic_location_util as seismic
 import numpy as np
 import torch
 import torch.distributions as dist

@@ -1,6 +1,6 @@
 from typing import Dict, Tuple
 
-import benchmarks.pplbench.models.seismicLocationUtil as seismic
+import benchmarks.pplbench.models.seismic_location_util as seismic
 import numpy as np
 import torch
 import torch.distributions as dist
@@ -13,7 +13,7 @@ from beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_prop
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import World
-from benchmarks.pplbench.ppls.beanmachine.seismicProjectionModel import (
+from benchmarks.pplbench.ppls.beanmachine.seismic_projection_model import (
     SeismicProjectionModel,
 )
 from torch import Tensor

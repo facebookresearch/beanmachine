@@ -25,9 +25,9 @@ from utils import effective_sample_size, split_r_hat
 # helper function(s)
 def get_lists():
     models_list = [
-        m.name[:-5]  # strip the "Model" suffix
+        m.name[:-6]  # strip the "_model" suffix
         for m in pkgutil.iter_modules(models.__path__)
-        if m.name.endswith("Model")
+        if m.name.endswith("_model")
     ]
     ppls_list = [m.name for m in pkgutil.iter_modules(ppls.__path__)]
     return models_list, ppls_list
@@ -365,7 +365,7 @@ def main():
         ]
     # check if model exists, get model defaults for unspecified args
     if str(args.model) in models_list:
-        model = importlib.import_module(str("models." + args.model + "Model"))
+        model = importlib.import_module(str("models." + args.model + "_model"))
         defaults = model.get_defaults()
         for key in args_dict.keys():
             if args_dict[key] == "default":
@@ -373,7 +373,9 @@ def main():
                     args_dict[key] = defaults[key]
                 else:
                     print(
-                        "ModelError: no default found for", key, "in noisyOrTopicModel"
+                        "ModelError: no default found for",
+                        key,
+                        "in noisy_or_topic_model",
                     )
                     exit(1)
     else:

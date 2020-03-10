@@ -5,10 +5,10 @@ import torch.tensor as tensor
 from beanmachine.ppl.inference.single_site_compositional_infer import (
     SingleSiteCompositionalInference,
 )
-from benchmarks.pplbench.ppls.beanmachine.seismicProjectionModel import (
+from benchmarks.pplbench.ppls.beanmachine.seismic_projection_model import (
     SeismicProjectionModel,
 )
-from benchmarks.pplbench.ppls.beanmachine.seismicProposer import (
+from benchmarks.pplbench.ppls.beanmachine.seismic_proposer import (
     SingleSiteSeismicProposer,
 )
 
