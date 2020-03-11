@@ -1,7 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
+import numpy as np
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
@@ -9,11 +10,12 @@ from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.statistical_model import sample
+from ppls.pplbench_ppl import PPLBenchPPL
 from torch import Tensor
 
 
 """
-For model definition, see models/robustRegressionModel.py
+For model definition, see models/robust_regression_model.py
 """
 
 
@@ -90,60 +92,61 @@ class RobustRegressionModel(object):
         return (samples_beta.detach().numpy(), samples, elapsed_time_sample_beanmachine)
 
 
-def obtain_posterior(
-    data_train: Tuple[Any, Any], args_dict: Dict, model: RobustRegressionModel
-) -> Tuple[List, Dict]:
-    """
-    Beanmachine impmementation of robust regression model.
+class RobustRegression(PPLBenchPPL):
+    def obtain_posterior(
+        self, data_train: Tuple[np.ndarray, np.ndarray], args_dict: Dict, model=None
+    ) -> Tuple[List, Dict]:
+        """
+        Beanmachine impmementation of robust regression model.
 
-    :param data_train: tuple of np.ndarray (x_train, y_train)
-    :param args_dict: a dict of model arguments
-    :returns: samples_beanmachine(dict): posterior samples of all parameters
-    :returns: timing_info(dict): compile_time, inference_time
-    """
-    # shape of x_train: (num_features, num_samples)
-    x_train, y_train = data_train
-    y_train = [tensor(y) for y in y_train]
-    N = int(x_train.shape[1])
-    K = int(x_train.shape[0])
+        :param data_train: tuple of np.ndarray (x_train, y_train)
+        :param args_dict: a dict of model arguments
+        :returns: samples_beanmachine(dict): posterior samples of all parameters
+        :returns: timing_info(dict): compile_time, inference_time
+        """
+        # shape of x_train: (num_features, num_samples)
+        x_train, y_train = data_train
+        y_train = [tensor(y) for y in y_train]
+        N = int(x_train.shape[1])
+        K = int(x_train.shape[0])
 
-    alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
-    num_samples = args_dict["num_samples_beanmachine"]
-    inference_type = args_dict["inference_type"]
+        alpha_scale, beta_scale, beta_loc, sigma_mean = args_dict["model_args"]
+        num_samples = args_dict["num_samples_beanmachine"]
+        inference_type = args_dict["inference_type"]
 
-    start_time = time.time()
-    robust_regression_model = RobustRegressionModel(
-        N,
-        K,
-        alpha_scale,
-        beta_scale,
-        beta_loc,
-        1.0 / sigma_mean,
-        num_samples,
-        inference_type,
-        Tensor(x_train),
-        Tensor(y_train),
-    )
-    elapsed_time_compile_beanmachine = time.time() - start_time
-    samples_beta, samples, elapsed_time_sample_beanmachine = (
-        robust_regression_model.infer()
-    )
+        start_time = time.time()
+        robust_regression_model = RobustRegressionModel(
+            N,
+            K,
+            alpha_scale,
+            beta_scale,
+            beta_loc,
+            1.0 / sigma_mean,
+            num_samples,
+            inference_type,
+            Tensor(x_train),
+            Tensor(y_train),
+        )
+        elapsed_time_compile_beanmachine = time.time() - start_time
+        samples_beta, samples, elapsed_time_sample_beanmachine = (
+            robust_regression_model.infer()
+        )
 
-    # repackage samples into format required by PPLBench
-    # List of dict, where each dict has key = param (string), value = value of param
-    param_keys = ["nu", "sigma", "alpha"]
-    samples_formatted = []
-    for i in range(num_samples):
-        sample_dict = {}
-        sample_dict["beta"] = samples_beta[i]
-        for j, parameter in enumerate(samples.get_rv_names()):
-            if j >= len(param_keys):
-                break
-            sample_dict[param_keys[j]] = samples.get_variable(parameter)[i].item()
-        samples_formatted.append(sample_dict)
+        # repackage samples into format required by PPLBench
+        # List of dict, where each dict has key = param (string), value = value of param
+        param_keys = ["nu", "sigma", "alpha"]
+        samples_formatted = []
+        for i in range(num_samples):
+            sample_dict = {}
+            sample_dict["beta"] = samples_beta[i]
+            for j, parameter in enumerate(samples.get_rv_names()):
+                if j >= len(param_keys):
+                    break
+                sample_dict[param_keys[j]] = samples.get_variable(parameter)[i].item()
+            samples_formatted.append(sample_dict)
 
-    timing_info = {
-        "compile_time": elapsed_time_compile_beanmachine,
-        "inference_time": elapsed_time_sample_beanmachine,
-    }
-    return (samples_formatted, timing_info)
+        timing_info = {
+            "compile_time": elapsed_time_compile_beanmachine,
+            "inference_time": elapsed_time_sample_beanmachine,
+        }
+        return (samples_formatted, timing_info)

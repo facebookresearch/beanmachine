@@ -8,6 +8,7 @@ from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
     SingleSiteNewtonianMonteCarlo,
 )
 from beanmachine.ppl.model.statistical_model import sample
+from ppls.pplbench_ppl import PPLBenchPPL
 
 
 class NoisyOrModel(object):
@@ -55,40 +56,41 @@ class NoisyOrModel(object):
         return (samples, elapsed_time_sample_beanmachine)
 
 
-def obtain_posterior(data_train, args_dict, model):
-    """
-    Beanmachine impmementation of Noisy-Or Topic Model.
+class NoisyOrTopic(PPLBenchPPL):
+    def obtain_posterior(self, data_train, args_dict, model):
+        """
+        Beanmachine impmementation of Noisy-Or Topic Model.
 
-    Inputs:
-    - data_train(tuple of np.ndarray): graph, words
-    - args_dict: a dict of model arguments
-    Returns:
-    - samples_bm(dict): posterior samples of all parameters
-    - timing_info(dict): compile_time, inference_time
-    """
-    graph = model
-    words = data_train
-    words = torch.Tensor(words)
+        Inputs:
+        - data_train(tuple of np.ndarray): graph, words
+        - args_dict: a dict of model arguments
+        Returns:
+        - samples_bm(dict): posterior samples of all parameters
+        - timing_info(dict): compile_time, inference_time
+        """
+        graph = model
+        words = data_train
+        words = torch.Tensor(words)
 
-    K = int(args_dict["k"])
-    word_fraction = (args_dict["model_args"])[3]
-    T = int(K * (1 - word_fraction))
-    iterations = int(args_dict["num_samples_beanmachine"])
-    inference_type = args_dict["inference_type"]
-    assert len(words.shape) == 1
+        K = int(args_dict["k"])
+        word_fraction = (args_dict["model_args"])[3]
+        T = int(K * (1 - word_fraction))
+        iterations = int(args_dict["num_samples_beanmachine"])
+        inference_type = args_dict["inference_type"]
+        assert len(words.shape) == 1
 
-    noisy_or_model = NoisyOrModel(graph, words, T, iterations, inference_type)
-    samples, elapsed_time_bm = noisy_or_model.infer()
-    # repackage samples into format required by PPLBench
+        noisy_or_model = NoisyOrModel(graph, words, T, iterations, inference_type)
+        samples, elapsed_time_bm = noisy_or_model.infer()
+        # repackage samples into format required by PPLBench
 
-    samples_formatted = []
-    all_node_samples = np.zeros((iterations, T))
-    for t in range(1, T):
-        all_node_samples[:, t] = samples[noisy_or_model.node(t)].detach().numpy()
-    all_node_samples[:, 0] = 1.0
-    for i in range(iterations):
-        sample_dict = {}
-        sample_dict["node"] = all_node_samples[i]
-        samples_formatted.append(sample_dict)
-    timing_info = {"compile_time": 0, "inference_time": elapsed_time_bm}
-    return (samples_formatted, timing_info)
+        samples_formatted = []
+        all_node_samples = np.zeros((iterations, T))
+        for t in range(1, T):
+            all_node_samples[:, t] = samples[noisy_or_model.node(t)].detach().numpy()
+        all_node_samples[:, 0] = 1.0
+        for i in range(iterations):
+            sample_dict = {}
+            sample_dict["node"] = all_node_samples[i]
+            samples_formatted.append(sample_dict)
+        timing_info = {"compile_time": 0, "inference_time": elapsed_time_bm}
+        return (samples_formatted, timing_info)

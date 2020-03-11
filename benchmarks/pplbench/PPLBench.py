@@ -3,6 +3,7 @@
 import argparse
 import datetime
 import importlib
+import inspect
 import os
 import pickle
 import pkgutil
@@ -17,6 +18,7 @@ import pandas as pd
 import ppls
 import torch
 import torch.tensor as tensor
+from ppls.pplbench_ppl import PPLBenchPPL
 from utils import effective_sample_size, split_r_hat
 
 
@@ -408,7 +410,7 @@ def main():
 
         # check if the ppl has a corresponding model implementation module
         try:
-            module = importlib.import_module(f"ppls.{ppl}.{args.model}")
+            ppl_module = importlib.import_module(f"ppls.{ppl}.{args.model}")
         except ModuleNotFoundError:
             traceback.print_exc()
             print(f"{ppl} implementation not found for {args.model}; exiting...")
@@ -429,7 +431,10 @@ def main():
             ppl, _ = ppls_args
         # check if the ppl has a corresponding model implementation module
         try:
-            module = importlib.import_module(f"ppls.{ppl}.{args.model}")
+            ppl_module = importlib.import_module(f"ppls.{ppl}.{args.model}")
+            for name, ppl_class in inspect.getmembers(ppl_module, inspect.isclass):
+                if issubclass(ppl_class, PPLBenchPPL) and name != "PPLBenchPPL":
+                    ppl_instance = ppl_class()
         except ModuleNotFoundError:
             continue
         print(f"{ppl}:")
@@ -440,7 +445,9 @@ def main():
         for i in range(int(args_dict["trials"])):
             print("Starting trial", i + 1, "of", args_dict["trials"])
             # obtain posterior samples and timing info
-            posterior_samples[ppl][i], timing_info[ppl][i] = module.obtain_posterior(
+            posterior_samples[ppl][i], timing_info[ppl][
+                i
+            ] = ppl_instance.obtain_posterior(
                 data_train=generated_data["data_train"],
                 args_dict=args_dict,
                 model=model_instance,

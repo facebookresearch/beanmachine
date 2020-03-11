@@ -9,6 +9,7 @@ from beanmachine.ppl.inference.single_site_compositional_infer import (
     SingleSiteCompositionalInference,
 )
 from beanmachine.ppl.model.statistical_model import sample
+from ppls.pplbench_ppl import PPLBenchPPL
 from torch import Tensor, tensor
 
 
@@ -115,64 +116,66 @@ class HiddenMarkovModel(object):
         return (samples, elapsed_time_sample_beanmachine)
 
 
-def obtain_posterior(
-    data_train: List, args_dict: Dict, model: Optional[Tensor]
-) -> Tuple[List, Dict]:
-    """
-    Beanmachine impmementation of HMM prediction.
+class HiddenMarkov(PPLBenchPPL):
+    def obtain_posterior(
+        self, data_train: List, args_dict: Dict, model: Optional[Tensor]
+    ) -> Tuple[List, Dict]:
+        """
+        Beanmachine impmementation of HMM prediction.
 
-    :param data_train:
-    :param args_dict: a dict of model arguments
-    :returns: samples_beanmachine(dict): posterior samples of all parameters
-    :returns: timing_info(dict): compile_time, inference_time
-    """
-    concentration, mu_loc, mu_scale, sigma_shape, sigma_rate, observe_model = list(
-        map(float, args_dict["model_args"])
-    )
-    N = int(args_dict["n"])
-    K = int(args_dict["k"])
-    num_samples = int(args_dict["num_samples"])
-    if not observe_model:
-        model = None
+        :param data_train:
+        :param args_dict: a dict of model arguments
+        :returns: samples_beanmachine(dict): posterior samples of all parameters
+        :returns: timing_info(dict): compile_time, inference_time
+        """
+        concentration, mu_loc, mu_scale, sigma_shape, sigma_rate, observe_model = list(
+            map(float, args_dict["model_args"])
+        )
+        N = int(args_dict["n"])
+        K = int(args_dict["k"])
+        num_samples = int(args_dict["num_samples"])
+        if not observe_model:
+            model = None
 
-    start_time = time.time()
-    # hmm = HiddenMarkovModel(N, K, theta, sigma, data_train, num_samples)
-    hmm = HiddenMarkovModel(
-        N,
-        K,
-        data_train,
-        num_samples,
-        concentration,
-        mu_loc,
-        mu_scale,
-        sigma_shape,
-        sigma_rate,
-        model,
-    )
-    elapsed_time_compile_beanmachine = time.time() - start_time
+        start_time = time.time()
+        # hmm = HiddenMarkovModel(N, K, theta, sigma, data_train, num_samples)
+        hmm = HiddenMarkovModel(
+            N,
+            K,
+            data_train,
+            num_samples,
+            concentration,
+            mu_loc,
+            mu_scale,
+            sigma_shape,
+            sigma_rate,
+            model,
+        )
+        elapsed_time_compile_beanmachine = time.time() - start_time
 
-    samples, elapsed_time_sample_beanmachine = hmm.infer()
+        samples, elapsed_time_sample_beanmachine = hmm.infer()
 
-    # repackage samples into shape required by PPLBench
-    xn1str = "X[" + str(N - 1) + "]"
-    if observe_model:
-        samples_formatted = [{xn1str: xn1} for xn1 in samples]
+        # repackage samples into shape required by PPLBench
+        xn1str = "X[" + str(N - 1) + "]"
+        if observe_model:
+            samples_formatted = [{xn1str: xn1} for xn1 in samples]
 
-    else:
-        thetas, mus, sigmas, xn1s = samples
-        # Want to swap the way these are ordered, so we can iterate through.
-        thetas = [[thetasK[i] for thetasK in thetas] for i in range(num_samples)]
-        mus = [[musK[i] for musK in mus] for i in range(num_samples)]
-        sigmas = [[sigmasK[i] for sigmasK in sigmas] for i in range(num_samples)]
-        # Now, e.g., thetas[i] gives the 'i'th MCMC sample of theta[0 .. K] as a list
+        else:
+            thetas, mus, sigmas, xn1s = samples
+            # Want to swap the way these are ordered, so we can iterate through.
+            thetas = [[thetasK[i] for thetasK in thetas] for i in range(num_samples)]
+            mus = [[musK[i] for musK in mus] for i in range(num_samples)]
+            sigmas = [[sigmasK[i] for sigmasK in sigmas] for i in range(num_samples)]
+            # Now, e.g., thetas[i] gives the 'i'th
+            # MCMC sample of theta[0 .. K] as a list
 
-        samples_formatted = [
-            {"theta": theta, "mus": mu, "sigmas": sigma, xn1str: xn1}
-            for theta, mu, sigma, xn1 in zip(thetas, mus, sigmas, xn1s)
-        ]
+            samples_formatted = [
+                {"theta": theta, "mus": mu, "sigmas": sigma, xn1str: xn1}
+                for theta, mu, sigma, xn1 in zip(thetas, mus, sigmas, xn1s)
+            ]
 
-    timing_info = {
-        "compile_time": elapsed_time_compile_beanmachine,
-        "inference_time": elapsed_time_sample_beanmachine,
-    }
-    return (samples_formatted, timing_info)
+        timing_info = {
+            "compile_time": elapsed_time_compile_beanmachine,
+            "inference_time": elapsed_time_sample_beanmachine,
+        }
+        return (samples_formatted, timing_info)

@@ -7,6 +7,7 @@ import pyro
 import pyro.distributions as dist
 import torch
 import torch.nn as nn
+from ppls.pplbench_ppl import PPLBenchPPL
 from pyro.infer.mcmc import NUTS
 from pyro.infer.mcmc.api import MCMC
 
@@ -49,54 +50,55 @@ def robust_model(x_train, y_train, args_dict):
         pyro.sample("obs", dist.StudentT(df, prediction_mean, sigma), obs=y_train)
 
 
-def obtain_posterior(data_train, args_dict, model=None):
-    """
-    Pyro impmementation of robust regression model.
+class RobustRegression(PPLBenchPPL):
+    def obtain_posterior(self, data_train, args_dict, model=None):
+        """
+        Pyro impmementation of robust regression model.
 
-    Inputs:
-    - data_train(tuple of np.ndarray): x_train, y_train
-    - args_dict: a dict of model arguments
-    Returns:
-    - samples_jags(dict): posterior samples of all parameters
-    - timing_info(dict): compile_time, inference_time
-    """
-    assert pyro.__version__.startswith("0.3.4")
-    x_train, y_train = data_train
-    if args_dict["inference_type"] == "mcmc":
-        start_time = time.time()
-        nuts_kernel = NUTS(model=robust_model, adapt_step_size=True)
-        mcmc = MCMC(
-            nuts_kernel, num_samples=args_dict["num_samples_pyro"], warmup_steps=0
-        )
-        mcmc.run(x_train.T, y_train, args_dict)
-        samples_pyro = mcmc.get_samples()
-    elif args_dict["inference_type"] == "vi":
-        print("ImplementationError; exiting...")
-        exit(1)
+        Inputs:
+        - data_train(tuple of np.ndarray): x_train, y_train
+        - args_dict: a dict of model arguments
+        Returns:
+        - samples_jags(dict): posterior samples of all parameters
+        - timing_info(dict): compile_time, inference_time
+        """
+        assert pyro.__version__.startswith("0.3.4")
+        x_train, y_train = data_train
+        if args_dict["inference_type"] == "mcmc":
+            start_time = time.time()
+            nuts_kernel = NUTS(model=robust_model, adapt_step_size=True)
+            mcmc = MCMC(
+                nuts_kernel, num_samples=args_dict["num_samples_pyro"], warmup_steps=0
+            )
+            mcmc.run(x_train.T, y_train, args_dict)
+            samples_pyro = mcmc.get_samples()
+        elif args_dict["inference_type"] == "vi":
+            print("ImplementationError; exiting...")
+            exit(1)
 
-    elapsed_time_sample_pyro = time.time() - start_time
-    samples_pyro["beta"] = samples_pyro["module$$$linear.weight"].numpy()
-    samples_pyro["alpha"] = samples_pyro["module$$$linear.bias"].numpy()
-    samples_pyro["nu"] = samples_pyro["nu"].numpy().T
-    samples_pyro["sigma"] = samples_pyro["sigma"].numpy().T
-    del samples_pyro["module$$$linear.weight"]
-    del samples_pyro["module$$$linear.bias"]
+        elapsed_time_sample_pyro = time.time() - start_time
+        samples_pyro["beta"] = samples_pyro["module$$$linear.weight"].numpy()
+        samples_pyro["alpha"] = samples_pyro["module$$$linear.bias"].numpy()
+        samples_pyro["nu"] = samples_pyro["nu"].numpy().T
+        samples_pyro["sigma"] = samples_pyro["sigma"].numpy().T
+        del samples_pyro["module$$$linear.weight"]
+        del samples_pyro["module$$$linear.bias"]
 
-    # repackage samples into shape required by PPLBench
-    samples = []
-    # move axes to facilitate iterating over samples
-    # change [sample, chain, values] to [chain, sample, value]
-    samples_pyro["beta"] = np.moveaxis(samples_pyro["beta"], [0, 1, 2], [1, 0, 2])
-    for parameter in samples_pyro.keys():
-        if samples_pyro[parameter].shape[0] == 1:
-            samples_pyro[parameter] = samples_pyro[parameter].squeeze()
-    for i in range(int(args_dict["num_samples_pyro"])):
-        sample_dict = {}
+        # repackage samples into shape required by PPLBench
+        samples = []
+        # move axes to facilitate iterating over samples
+        # change [sample, chain, values] to [chain, sample, value]
+        samples_pyro["beta"] = np.moveaxis(samples_pyro["beta"], [0, 1, 2], [1, 0, 2])
         for parameter in samples_pyro.keys():
-            sample_dict[parameter] = samples_pyro[parameter][i]
-        samples.append(sample_dict)
-    timing_info = {
-        "compile_time": 0,  # no compiliation for pyro
-        "inference_time": elapsed_time_sample_pyro,
-    }
-    return (samples, timing_info)
+            if samples_pyro[parameter].shape[0] == 1:
+                samples_pyro[parameter] = samples_pyro[parameter].squeeze()
+        for i in range(int(args_dict["num_samples_pyro"])):
+            sample_dict = {}
+            for parameter in samples_pyro.keys():
+                sample_dict[parameter] = samples_pyro[parameter][i]
+            samples.append(sample_dict)
+        timing_info = {
+            "compile_time": 0,  # no compiliation for pyro
+            "inference_time": elapsed_time_sample_pyro,
+        }
+        return (samples, timing_info)

@@ -6,6 +6,7 @@ import time
 
 import numpy as np
 import pystan
+from ppls.pplbench_ppl import PPLBenchPPL
 
 
 CODE = """
@@ -44,81 +45,84 @@ model {
 """
 
 
-def obtain_posterior(data_train, args_dict, model=None):
-    """
-    Stan impmementation of robust regression model.
+class LogisticRegression(PPLBenchPPL):
+    def obtain_posterior(self, data_train, args_dict, model=None):
+        """
+        Stan impmementation of robust regression model.
 
-    Inputs:
-    - data_train(tuple of np.ndarray): x_train, y_train
-    - args_dict: a dict of model arguments
-    Returns:
-    - samples_stan(dict): posterior samples of all parameters
-    - timing_info(dict): compile_time, inference_time
-    """
-    global CODE
-    x_train, y_train = data_train
-    N = int(x_train.shape[1])
-    K = int(x_train.shape[0])
-    alpha_scale, beta_scale, beta_loc, _ = args_dict["model_args"]
+        Inputs:
+        - data_train(tuple of np.ndarray): x_train, y_train
+        - args_dict: a dict of model arguments
+        Returns:
+        - samples_stan(dict): posterior samples of all parameters
+        - timing_info(dict): compile_time, inference_time
+        """
+        global CODE
+        x_train, y_train = data_train
+        N = int(x_train.shape[1])
+        K = int(x_train.shape[0])
+        alpha_scale, beta_scale, beta_loc, _ = args_dict["model_args"]
 
-    data_stan = {
-        "N": N,
-        "K": K,
-        "X": x_train.T,
-        "y": y_train,
-        "scale_alpha": alpha_scale,
-        "scale_beta": beta_scale * np.ones(K),
-        "beta_loc": beta_loc * np.ones(K),
-    }
+        data_stan = {
+            "N": N,
+            "K": K,
+            "X": x_train.T,
+            "y": y_train,
+            "scale_alpha": alpha_scale,
+            "scale_beta": beta_scale * np.ones(K),
+            "beta_loc": beta_loc * np.ones(K),
+        }
 
-    code_loaded = None
-    pkl_filename = os.path.join(args_dict["output_dir"], "stan_logisticRegression.pkl")
-    if os.path.isfile(pkl_filename):
-        model, code_loaded, elapsed_time_compile_stan = pickle.load(
-            open(pkl_filename, "rb")
+        code_loaded = None
+        pkl_filename = os.path.join(
+            args_dict["output_dir"], "stan_logisticRegression.pkl"
         )
-    if code_loaded != CODE:
-        # compile the model, time it
-        start_time = time.time()
-        model = pystan.StanModel(model_code=CODE, model_name="logistic_regression")
-        elapsed_time_compile_stan = time.time() - start_time
-        # save it to the file 'model.pkl' for later use
-        with open(pkl_filename, "wb") as f:
-            pickle.dump((model, CODE, elapsed_time_compile_stan), f)
+        if os.path.isfile(pkl_filename):
+            model, code_loaded, elapsed_time_compile_stan = pickle.load(
+                open(pkl_filename, "rb")
+            )
+        if code_loaded != CODE:
+            # compile the model, time it
+            start_time = time.time()
+            model = pystan.StanModel(model_code=CODE, model_name="logistic_regression")
+            elapsed_time_compile_stan = time.time() - start_time
+            # save it to the file 'model.pkl' for later use
+            with open(pkl_filename, "wb") as f:
+                pickle.dump((model, CODE, elapsed_time_compile_stan), f)
 
-    if args_dict["inference_type"] == "mcmc":
-        # sample the parameter posteriors, time it
-        start_time = time.time()
-        fit = model.sampling(
-            data=data_stan,
-            iter=int(args_dict["num_samples_stan"]),
-            chains=1,
-            check_hmc_diagnostics=False,
-        )
-        samples_stan = fit.extract(
-            pars=["alpha", "beta"], permuted=False, inc_warmup=True
-        )
-        elapsed_time_sample_stan = time.time() - start_time
+        if args_dict["inference_type"] == "mcmc":
+            # sample the parameter posteriors, time it
+            start_time = time.time()
+            fit = model.sampling(
+                data=data_stan,
+                iter=int(args_dict["num_samples_stan"]),
+                chains=1,
+                check_hmc_diagnostics=False,
+            )
+            samples_stan = fit.extract(
+                pars=["alpha", "beta"], permuted=False, inc_warmup=True
+            )
+            elapsed_time_sample_stan = time.time() - start_time
 
-    elif args_dict["inference_type"] == "vi":
-        # sample the parameter posteriors, time it
-        start_time = time.time()
-        fit = model.vb(data=data_stan, iter=args_dict["num_samples_stan"])
-        samples_stan = fit.extract(
-            pars=["alpha", "beta"], permuted=False, inc_warmup=True
-        )
-        elapsed_time_sample_stan = time.time() - start_time
+        elif args_dict["inference_type"] == "vi":
+            # sample the parameter posteriors, time it
+            start_time = time.time()
+            fit = model.vb(data=data_stan, iter=args_dict["num_samples_stan"])
+            samples_stan = fit.extract(
+                pars=["alpha", "beta"], permuted=False, inc_warmup=True
+            )
+            elapsed_time_sample_stan = time.time() - start_time
 
-    # repackage samples into shape required by PPLBench
-    samples = []
-    for i in range(int(args_dict["num_samples_stan"])):
-        sample_dict = {}
-        for parameter in samples_stan.keys():
-            sample_dict[parameter] = samples_stan[parameter][i]
-        samples.append(sample_dict)
-    timing_info = {
-        "compile_time": elapsed_time_compile_stan,
-        "inference_time": elapsed_time_sample_stan,
-    }
+        # repackage samples into shape required by PPLBench
+        samples = []
+        for i in range(int(args_dict["num_samples_stan"])):
+            sample_dict = {}
+            for parameter in samples_stan.keys():
+                sample_dict[parameter] = samples_stan[parameter][i]
+            samples.append(sample_dict)
+        timing_info = {
+            "compile_time": elapsed_time_compile_stan,
+            "inference_time": elapsed_time_sample_stan,
+        }
 
-    return (samples, timing_info)
+        return (samples, timing_info)

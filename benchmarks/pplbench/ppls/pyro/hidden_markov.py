@@ -5,7 +5,8 @@ import pyro
 import pyro.distributions as dist
 import torch
 import torch.tensor as tensor
-from pyro.infer.mcmc import MCMC, NUTS
+from ppls.pplbench_ppl import PPLBenchPPL
+from pyro.infer.mcmc.api import MCMC, NUTS
 
 
 def hmm_model(K, N, observations, model_args, model):
@@ -50,64 +51,66 @@ def hmm_model(K, N, observations, model_args, model):
         )
 
 
-def obtain_posterior(
-    data_train: List, args_dict: Dict, model=None
-) -> Tuple[List, Dict]:
-    """
-    Pyro impmementation of HMM prediction.
+class HiddenMarkov(PPLBenchPPL):
+    def obtain_posterior(
+        self, data_train: List, args_dict: Dict, model=None
+    ) -> Tuple[List, Dict]:
+        """
+        Pyro impmementation of HMM prediction.
 
-    :param data_train:
-    :param args_dict: a dict of model arguments
-    :returns: samples_numpyro(dict): posterior samples of all parameters
-    :returns: timing_info(dict): compile_time, inference_time
-    """
+        :param data_train:
+        :param args_dict: a dict of model arguments
+        :returns: samples_numpyro(dict): posterior samples of all parameters
+        :returns: timing_info(dict): compile_time, inference_time
+        """
+        assert pyro.__version__.startswith("0.4.1")
 
-    N = int(args_dict["n"])
-    K = int(args_dict["k"])
-    num_samples = int(args_dict["num_samples_pyro"])
-    num_warmup = 50
-    observations = data_train
-    # observations = torch.stack(observations).numpy()
-    concentration, mu_loc, mu_scale, sigma_shape, sigma_scale, observe_model = list(
-        map(float, args_dict["model_args"])
-    )
+        N = int(args_dict["n"])
+        K = int(args_dict["k"])
+        num_samples = int(args_dict["num_samples_pyro"])
+        num_warmup = 50
+        observations = data_train
+        # observations = torch.stack(observations).numpy()
+        concentration, mu_loc, mu_scale, sigma_shape, sigma_scale, observe_model = list(
+            map(float, args_dict["model_args"])
+        )
 
-    assert num_samples - num_warmup > 0
+        assert num_samples - num_warmup > 0
 
-    # Run NUTS
-    start_time = time.time()
-    nuts_kernel = NUTS(model=hmm_model)
-    mcmc = MCMC(
-        kernel=nuts_kernel,
-        num_samples=num_samples - num_warmup,
-        warmup_steps=num_warmup,
-        num_chains=1,
-    )
-    mcmc.run(
-        K=K,
-        N=N,
-        observations=observations,
-        model_args=args_dict["model_args"],
-        model=model,
-    )
-    samples_pyro = mcmc.get_samples()
-    elapsed_time_sample_numpyro = time.time() - start_time
-    # repackage samples into shape required by PPLBench
-    samples = []
+        # Run NUTS
+        start_time = time.time()
+        nuts_kernel = NUTS(model=hmm_model)
+        mcmc = MCMC(
+            kernel=nuts_kernel,
+            num_samples=num_samples - num_warmup,
+            warmup_steps=num_warmup,
+            num_chains=1,
+        )
+        mcmc.run(
+            K=K,
+            N=N,
+            observations=observations,
+            model_args=args_dict["model_args"],
+            model=model,
+        )
+        samples_pyro = mcmc.get_samples()
+        elapsed_time_sample_numpyro = time.time() - start_time
+        # repackage samples into shape required by PPLBench
+        samples = []
 
-    for i in range(num_samples):
-        result = {}
-        if not observe_model:
-            result["theta"] = samples_pyro["theta"][i].numpy()
-            result["mus"] = samples_pyro["mus"][i]
-            result["sigmas"] = samples_pyro["sigmas"][i]
+        for i in range(num_samples):
+            result = {}
+            if not observe_model:
+                result["theta"] = samples_pyro["theta"][i].numpy()
+                result["mus"] = samples_pyro["mus"][i]
+                result["sigmas"] = samples_pyro["sigmas"][i]
 
-        # NOTE: Pyro doesn't have values for discrete latent states (X's)
-        # so assigning everything to 1 so it doesn't break.
-        # We can use this model to get timing info, not evaluation info.
-        result["X[" + str(N - 1) + "]"] = 1
-        samples.append(result)
-    timing_info = {"compile_time": 0, "inference_time": elapsed_time_sample_numpyro}
-    print("inference time: ", elapsed_time_sample_numpyro)
+            # NOTE: Pyro doesn't have values for discrete latent states (X's)
+            # so assigning everything to 1 so it doesn't break.
+            # We can use this model to get timing info, not evaluation info.
+            result["X[" + str(N - 1) + "]"] = 1
+            samples.append(result)
+        timing_info = {"compile_time": 0, "inference_time": elapsed_time_sample_numpyro}
+        print("inference time: ", elapsed_time_sample_numpyro)
 
-    return (samples, timing_info)
+        return (samples, timing_info)

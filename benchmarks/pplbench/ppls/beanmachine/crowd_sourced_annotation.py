@@ -9,43 +9,8 @@ from beanmachine.ppl.inference.single_site_compositional_infer import (
     SingleSiteCompositionalInference,
 )
 from beanmachine.ppl.model.statistical_model import sample
+from ppls.pplbench_ppl import PPLBenchPPL
 from torch import tensor
-
-
-def format_data(Y_i: List, J_i: List, num_labels: List) -> Tuple[List, List]:
-    """
-    param: Y_i: List of all the labels produced by different labelers
-    param: J_i: List of the labelers that produced the respective label
-    param: num_labels: List representing number of labels for each item
-
-    Example:
-    Y_i = [1, 1, 1, 0, 2, 2, 1, 2, 1, 1, 1, 0, 0,
-        1, 1, 1, 0, 1, 1, 2, 0, 1, 1, 2, 0, 0, 2, 1]
-    J_i = [0, 7, 5, 1, 4, 9, 3, 8, 5, 3, 5, 9, 2,
-        4, 2, 6, 0, 9, 5, 8, 1, 9, 4, 8, 9, 0, 7, 5]
-    num_labels = [1, 4, 4, 2, 2, 3, 5, 1, 5, 1]
-
-    Returns:
-    [[1], [1, 1, 0, 2], [2, 1, 2, 1], [1, 1], [0, 0],
-    [1, 1, 1], [0, 1, 1, 2, 0], [1], [1, 2, 0, 0, 2], [1]]
-    [[0], [7, 5, 1, 4], [9, 3, 8, 5], [3, 5], [9, 2],
-    [4, 2, 6], [0, 9, 5, 8, 1], [9], [4, 8, 9, 0, 7], [5]]
-    """
-    Y_ij = []
-    J_ij = []
-    counter = 0
-    for i in range(len(num_labels)):
-        y = []
-        j = []
-        num_labelers = num_labels[i]
-        for _j in range(num_labelers):
-            y.append(Y_i[counter])
-            j.append(J_i[counter])
-            counter += 1
-
-        Y_ij.append(y)
-        J_ij.append(j)
-    return (Y_ij, J_ij)
 
 
 class CrowdSourcedAnnotationModel(object):
@@ -129,61 +94,99 @@ class CrowdSourcedAnnotationModel(object):
         return (samples, elapsed_time_sample_beanmachine)
 
 
-def obtain_posterior(
-    data_train: Tuple[List, List, List],
-    args_dict: Dict,
-    model: CrowdSourcedAnnotationModel,
-) -> Tuple[List, Dict]:
-    """
-    Beanmachine impmementation of CLARA model.
+class CrowdSourcedAnnotation(PPLBenchPPL):
+    def format_data(
+        self, Y_i: List, J_i: List, num_labels: List, model=None
+    ) -> Tuple[List, List]:
+        """
+        param: Y_i: List of all the labels produced by different labelers
+        param: J_i: List of the labelers that produced the respective label
+        param: num_labels: List representing number of labels for each item
 
-    :param data_train: tuple of np.ndarray (y, J_i, num_labels)
-    :param args_dict: a dict of model arguments
-    :returns: samples_beanmachine(dict): posterior samples of all parameters
-    :returns: timing_info(dict): compile_time, inference_time
-    """
-    vector_y, vector_J_i, num_labels = data_train
-    Y_ij, J_ij = format_data(vector_y, vector_J_i, num_labels)
-    num_labelers = int(args_dict["k"])
-    num_items = len(num_labels)
-    num_categories, labeler_rate, expected_correctness, concentration = args_dict[
-        "model_args"
-    ]
-    iterations = args_dict["num_samples_beanmachine"]
-    inference_type = args_dict["inference_type"]
+        Example:
+        Y_i = [1, 1, 1, 0, 2, 2, 1, 2, 1, 1, 1, 0, 0,
+            1, 1, 1, 0, 1, 1, 2, 0, 1, 1, 2, 0, 0, 2, 1]
+        J_i = [0, 7, 5, 1, 4, 9, 3, 8, 5, 3, 5, 9, 2,
+            4, 2, 6, 0, 9, 5, 8, 1, 9, 4, 8, 9, 0, 7, 5]
+        num_labels = [1, 4, 4, 2, 2, 3, 5, 1, 5, 1]
 
-    crowdSourcedAnnotationModel = CrowdSourcedAnnotationModel(
-        expected_correctness,
-        concentration,
-        num_categories,
-        num_labelers,
-        num_items,
-        Y_ij,
-        J_ij,
-        iterations,
-        inference_type,
-    )
-    start_time = time.time()
-    samples, timing_info = crowdSourcedAnnotationModel.infer()
-    elapsed_time_beanmachine = time.time() - start_time
+        Returns:
+        [[1], [1, 1, 0, 2], [2, 1, 2, 1], [1, 1], [0, 0],
+        [1, 1, 1], [0, 1, 1, 2, 0], [1], [1, 2, 0, 0, 2], [1]]
+        [[0], [7, 5, 1, 4], [9, 3, 8, 5], [3, 5], [9, 2],
+        [4, 2, 6], [0, 9, 5, 8, 1], [9], [4, 8, 9, 0, 7], [5]]
+        """
+        Y_ij = []
+        J_ij = []
+        counter = 0
+        for i in range(len(num_labels)):
+            y = []
+            j = []
+            num_labelers = num_labels[i]
+            for _j in range(num_labelers):
+                y.append(Y_i[counter])
+                j.append(J_i[counter])
+                counter += 1
 
-    # repackage samples into shape required by PPLBench
-    samples_formatted = []
-    for i in range(args_dict["num_samples_beanmachine"]):
-        sample_dict = {}
-        sample_dict["pi"] = (
-            samples.get_variable(crowdSourcedAnnotationModel.pi())[i].detach().numpy()
+            Y_ij.append(y)
+            J_ij.append(j)
+        return (Y_ij, J_ij)
+
+    def obtain_posterior(
+        self, data_train: Tuple[List, List, List], args_dict: Dict, model=None
+    ) -> Tuple[List, Dict]:
+        """
+        Beanmachine impmementation of CLARA model.
+
+        :param data_train: tuple of np.ndarray (y, J_i, num_labels)
+        :param args_dict: a dict of model arguments
+        :returns: samples_beanmachine(dict): posterior samples of all parameters
+        :returns: timing_info(dict): compile_time, inference_time
+        """
+        vector_y, vector_J_i, num_labels = data_train
+        Y_ij, J_ij = self.format_data(vector_y, vector_J_i, num_labels)
+        num_labelers = int(args_dict["k"])
+        num_items = len(num_labels)
+        num_categories, labeler_rate, expected_correctness, concentration = args_dict[
+            "model_args"
+        ]
+        iterations = args_dict["num_samples_beanmachine"]
+        inference_type = args_dict["inference_type"]
+
+        crowdSourcedAnnotationModel = CrowdSourcedAnnotationModel(
+            expected_correctness,
+            concentration,
+            num_categories,
+            num_labelers,
+            num_items,
+            Y_ij,
+            J_ij,
+            iterations,
+            inference_type,
         )
-        theta = np.zeros((num_labelers, num_categories, num_categories))
-        for j in range(num_labelers):
-            for k in range(num_categories):
-                theta[j, k, :] = (
-                    samples.get_variable(crowdSourcedAnnotationModel.theta(j, k))[i]
-                    .detach()
-                    .numpy()
-                )
-        sample_dict["theta"] = theta
-        samples_formatted.append(sample_dict)
-    timing_info = {"compile_time": 0, "inference_time": elapsed_time_beanmachine}
+        start_time = time.time()
+        samples, timing_info = crowdSourcedAnnotationModel.infer()
+        elapsed_time_beanmachine = time.time() - start_time
 
-    return (samples_formatted, timing_info)
+        # repackage samples into shape required by PPLBench
+        samples_formatted = []
+        for i in range(args_dict["num_samples_beanmachine"]):
+            sample_dict = {}
+            sample_dict["pi"] = (
+                samples.get_variable(crowdSourcedAnnotationModel.pi())[i]
+                .detach()
+                .numpy()
+            )
+            theta = np.zeros((num_labelers, num_categories, num_categories))
+            for j in range(num_labelers):
+                for k in range(num_categories):
+                    theta[j, k, :] = (
+                        samples.get_variable(crowdSourcedAnnotationModel.theta(j, k))[i]
+                        .detach()
+                        .numpy()
+                    )
+            sample_dict["theta"] = theta
+            samples_formatted.append(sample_dict)
+        timing_info = {"compile_time": 0, "inference_time": elapsed_time_beanmachine}
+
+        return (samples_formatted, timing_info)

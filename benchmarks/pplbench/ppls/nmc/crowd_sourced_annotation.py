@@ -2,6 +2,7 @@
 import time
 
 import torch
+from ppls.pplbench_ppl import PPLBenchPPL
 from torch import tensor
 from torch.distributions import Categorical, Dirichlet
 from tqdm import tqdm
@@ -169,43 +170,44 @@ class State:
         return score, simplex_proposer(prevalence, grad, hess)
 
 
-def obtain_posterior(data_train, args_dict, model=None):
-    """
-    NMC implementation of crowdsourced annotation model
+class CrowdSourcedAnnotation(PPLBenchPPL):
+    def obtain_posterior(self, data_train, args_dict, model=None):
+        """
+        NMC implementation of crowdsourced annotation model
 
-    Inputs:
-    - data_train(tuple of np.ndarray): vector_y, vector_J_i, num_labels
-    - args_dict: a dict of model arguments
-    Returns:
-    - samples(dict): posterior samples of all parameters
-    - timing_info(dict): compile_time, inference_time
-    """
-    num_samples = args_dict["num_samples_nmc"]
-    n_categories, _, expected_correctness, concentration = args_dict["model_args"]
-    # first parse out the data into static fields in the State class
-    compile_time_t1 = time.time()
-    State.init_class(
-        int(args_dict["k"]),
-        n_categories,
-        expected_correctness,
-        concentration,
-        *data_train
-    )
-    curr = State()
-    compile_time_t2 = time.time()
-    # repeatedly update the state
-    infer_time_t1 = time.time()
-    samples = []
-    for _i in tqdm(range(num_samples), desc="inference", leave=False):
-        curr.update_()
-        samples_dict = {
-            "theta": curr.confusion.clone().numpy(),
-            "pi": curr.prevalence.clone().numpy(),
+        Inputs:
+        - data_train(tuple of np.ndarray): vector_y, vector_J_i, num_labels
+        - args_dict: a dict of model arguments
+        Returns:
+        - samples(dict): posterior samples of all parameters
+        - timing_info(dict): compile_time, inference_time
+        """
+        num_samples = args_dict["num_samples_nmc"]
+        n_categories, _, expected_correctness, concentration = args_dict["model_args"]
+        # first parse out the data into static fields in the State class
+        compile_time_t1 = time.time()
+        State.init_class(
+            int(args_dict["k"]),
+            n_categories,
+            expected_correctness,
+            concentration,
+            *data_train
+        )
+        curr = State()
+        compile_time_t2 = time.time()
+        # repeatedly update the state
+        infer_time_t1 = time.time()
+        samples = []
+        for _i in tqdm(range(num_samples), desc="inference", leave=False):
+            curr.update_()
+            samples_dict = {
+                "theta": curr.confusion.clone().numpy(),
+                "pi": curr.prevalence.clone().numpy(),
+            }
+            samples.append(samples_dict)
+        infer_time_t2 = time.time()
+        timing_info = {
+            "compile_time": compile_time_t2 - compile_time_t1,
+            "inference_time": infer_time_t2 - infer_time_t1,
         }
-        samples.append(samples_dict)
-    infer_time_t2 = time.time()
-    timing_info = {
-        "compile_time": compile_time_t2 - compile_time_t1,
-        "inference_time": infer_time_t2 - infer_time_t1,
-    }
-    return (samples, timing_info)
+        return (samples, timing_info)
