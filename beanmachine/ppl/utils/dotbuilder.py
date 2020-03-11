@@ -102,10 +102,9 @@ class DotBuilder:
     def start_subgraph(self, name: str, is_cluster: bool) -> "DotBuilder":
         sg = self._current_subgraph
         if sg is None:
-            self._current_subgraph = DotBuilder(name, True, is_cluster)
-            # pyre-fixme[6]: Expected `DotBuilder` for 1st param but got
-            #  `Optional[DotBuilder]`.
-            self._subgraphs.append(self._current_subgraph)
+            csg = DotBuilder(name, True, is_cluster)
+            self._current_subgraph = csg
+            self._subgraphs.append(csg)
         else:
             sg.start_subgraph(name, is_cluster)
         return self
