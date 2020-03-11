@@ -57,6 +57,7 @@ class MatchResult(ABC):
 
 class Fail(MatchResult):
     """A pattern that always fails."""
+
     # TODO: If we save the patterns that failed as well, then we can build a
     # TODO: diagnostic engine that describes why a value failed to match against
     # TODO: a complex pattern.
@@ -74,6 +75,7 @@ class Fail(MatchResult):
 
 class Success(MatchResult):
     """A pattern that always succeeds."""
+
     def __init__(
         self, test: Any = None, submatches: Optional[Dict[str, MatchResult]] = None
     ) -> None:
