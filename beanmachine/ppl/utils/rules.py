@@ -7,6 +7,7 @@ from beanmachine.ppl.utils.patterns import (
     Pattern,
     anyPattern,
     failPattern,
+    is_any,
     match,
     to_pattern,
 )
@@ -99,6 +100,10 @@ class Rule(ABC):
     def __call__(self, test: Any) -> RuleResult:
         return self.apply(test)
 
+    @abstractmethod
+    def always_succeeds(self) -> bool:
+        pass
+
 
 class PatternRule(Rule):
     """If the test value matches the pattern, then the test value is passed
@@ -123,6 +128,9 @@ class PatternRule(Rule):
 
     def __str__(self) -> str:
         return f"{self.name}( {str(to_pattern(self.pattern)) }"
+
+    def always_succeeds(self) -> bool:
+        return is_any(self.pattern)
 
 
 def _identity(x: Any) -> Any:
@@ -181,6 +189,11 @@ class Choose(Rule):
         c = str(self.alternative)
         return f"choose( {a}, {b}, {c} )"
 
+    def always_succeeds(self) -> bool:
+        if self.condition.always_succeeds():
+            return self.consequence.always_succeeds()
+        return self.consequence.always_succeeds() and self.alternative.always_succeeds()
+
 
 class Compose(Rule):
     """Apply the first rule to the test.
@@ -210,6 +223,9 @@ class Compose(Rule):
         b = str(self.second)
         return f"compose( {a}, {b} )"
 
+    def always_succeeds(self) -> bool:
+        return self.first.always_succeeds() and self.second.always_succeeds()
+
 
 class Recursive(Rule):
     """Delay construction of a rule until we need it, so as to avoid recursion."""
@@ -225,6 +241,9 @@ class Recursive(Rule):
 
     def __str__(self) -> str:
         return self.name
+
+    def always_succeeds(self) -> bool:
+        return False
 
 
 class OrElse(Rule):
@@ -254,6 +273,9 @@ class OrElse(Rule):
         b = str(self.second)
         return f"or_else( {a}, {b} )"
 
+    def always_succeeds(self) -> bool:
+        return self.first.always_succeeds() or self.second.always_succeeds()
+
 
 class FirstMatch(Rule):
     """Apply each rule to the test until one succeeds; if none succeed, then fail."""
@@ -277,6 +299,9 @@ class FirstMatch(Rule):
     def __str__(self) -> str:
         rs = ", ".join(str(rule) for rule in self.rules)
         return f"first_match( {rs} )"
+
+    def always_succeeds(self) -> bool:
+        return any(r.always_succeeds() for r in self.rules)
 
 
 class TryOnce(Rule):
@@ -303,6 +328,9 @@ class TryOnce(Rule):
     def __str__(self) -> str:
         return f"try_once( {str(self.rule)} )"
 
+    def always_succeeds(self) -> bool:
+        return True
+
 
 class TryMany(Rule):
     """Repeatedly apply a rule; the result is that of the last application
@@ -317,6 +345,11 @@ class TryMany(Rule):
     def __init__(self, rule: Rule, name: str = "try_many") -> None:
         Rule.__init__(self, name)
         self.rule = rule
+        if rule.always_succeeds():
+            raise ValueError(
+                "TryMany has been given a rule that always succeeds,"
+                + " which will cause an infinite loop."
+            )
 
     def apply(self, test: Any) -> RuleResult:
         current: Success = Success(test, test)
@@ -329,6 +362,9 @@ class TryMany(Rule):
 
     def __str__(self) -> str:
         return f"try_many( {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return True
 
 
 class ListEdit:
@@ -446,6 +482,9 @@ class AllChildren(Rule):
     def __str__(self) -> str:
         return f"all_children( {str(self.rule)} )"
 
+    def always_succeeds(self) -> bool:
+        return self.rule.always_succeeds()
+
 
 class SomeChildren(Rule):
     """Apply a rule to all children.  Succeeds if the rule succeeds for one or
@@ -520,6 +559,9 @@ class SomeChildren(Rule):
     def __str__(self) -> str:
         return f"all_children( {str(self.rule)} )"
 
+    def always_succeeds(self) -> bool:
+        return self.rule.always_succeeds()
+
 
 class OneChild(Rule):
     """Apply a rule to all children until the first success.  Succeeds if it
@@ -574,6 +616,9 @@ class OneChild(Rule):
 
     def __str__(self) -> str:
         return f"one_child( {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return self.rule.always_succeeds()
 
 
 class RuleDomain:

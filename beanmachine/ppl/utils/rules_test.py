@@ -11,6 +11,7 @@ from beanmachine.ppl.utils.rules import (
     PatternRule,
     TryMany as many,
     TryOnce as once,
+    fail,
     pattern_rules,
     remove_from_list,
 )
@@ -176,3 +177,22 @@ try_once(
         self.assertEqual(
             ast.dump(result), ast.dump(ast.parse("0; 1; 2; 3; 4 + 5; 6; 7; 8 * 9;"))
         )
+
+    def test_infinite_loop_detection(self) -> None:
+        # While working on a previous test case I accidentally created a pattern
+        # that has an infinite loop; one of the benefits of a combinator-based
+        # approach to rewriting is we can often detect statically when a particular
+        # combination of rules must produce an infinite loop, and raise an error.
+
+        # In particular, we know several of the rules always succeed (TryMany,
+        # TryOnce, identity) and if any of these rules are ever passed to TryMany,
+        # we've got an infinite loop right there.
+
+        # Here's an example. fail always fails, but once always succeeds. Since
+        # once always succeeds, _all(once(anything)) always succeeds, which means
+        # that we've given something that always succeeds to many, and we'll loop
+        # forever.
+
+        with self.assertRaises(ValueError):
+            _all = ast_domain.all_children
+            _all(many(_all(once(fail))))
