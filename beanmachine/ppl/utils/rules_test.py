@@ -3,16 +3,19 @@
 import ast
 import re
 import unittest
-from ast import Expr, parse
+from ast import Expr, Num, parse
 
 from beanmachine.ppl.utils.ast_patterns import add, ast_domain, binop, expr, num
+from beanmachine.ppl.utils.patterns import PredicatePattern, match_every
 from beanmachine.ppl.utils.rules import (
     ListEdit,
     PatternRule,
     TryMany as many,
     TryOnce as once,
     fail,
+    if_then,
     pattern_rules,
+    projection_rule,
     remove_from_list,
 )
 
@@ -22,7 +25,7 @@ def tidy(s: str) -> str:
 
 
 class RulesTest(unittest.TestCase):
-    def test_rules(self) -> None:
+    def test_rules_1(self) -> None:
         """Tests for rules.py"""
 
         remove_plus_zero = pattern_rules(
@@ -196,3 +199,16 @@ try_once(
         with self.assertRaises(ValueError):
             _all = ast_domain.all_children
             _all(many(_all(once(fail))))
+
+    def test_rules_2(self) -> None:
+        """Tests for rules.py"""
+        self.maxDiff = None
+        _all = ast_domain.all_children
+        num_stmt = expr(num())
+        even = PatternRule(
+            match_every(num_stmt, PredicatePattern(lambda e: e.value.n % 2 == 0))
+        )
+        add_one = projection_rule(lambda e: Expr(Num(e.value.n + 1)))
+        t = ast.parse("0; 1; 2; 3; 4; 5 + 6")
+        result = _all(_all(if_then(even, add_one)))(t).expect_success()
+        self.assertEqual(ast.dump(result), ast.dump(ast.parse("1; 1; 3; 3; 5; 5 + 6")))

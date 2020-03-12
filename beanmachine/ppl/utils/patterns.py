@@ -111,17 +111,15 @@ class PredicatePattern(PatternBase):
     """A pattern is logically a predicate; this pattern just encapsulates any
     predicate that returns a match result."""
 
-    predicate: Callable[[Any], MatchResult]
+    predicate: Callable[[Any], bool]
     name: str
 
-    def __init__(
-        self, predicate: Callable[[Any], MatchResult], name: str = "if"
-    ) -> None:
+    def __init__(self, predicate: Callable[[Any], bool], name: str = "if") -> None:
         self.predicate = predicate
         self.name = name
 
     def match(self, test: Any) -> MatchResult:
-        return self.predicate(test)
+        return Success(test) if self.predicate(test) else Fail(test)
 
     def _to_str(self, test: str) -> str:
         return f"{self.name}({test})"

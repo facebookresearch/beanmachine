@@ -105,6 +105,10 @@ class Rule(ABC):
         pass
 
 
+def _identity(x: Any) -> Any:
+    return x
+
+
 class PatternRule(Rule):
     """If the test value matches the pattern, then the test value is passed
     to the projection and the rule succeeds. Otherwise, the rule fails."""
@@ -113,7 +117,10 @@ class PatternRule(Rule):
     projection: Callable[[Any], Any]
 
     def __init__(
-        self, pattern: Pattern, projection: Callable[[Any], Any], name: str = "pattern"
+        self,
+        pattern: Pattern,
+        projection: Callable[[Any], Any] = _identity,
+        name: str = "pattern",
     ) -> None:
         Rule.__init__(self, name)
         self.pattern = pattern
@@ -133,13 +140,13 @@ class PatternRule(Rule):
         return is_any(self.pattern)
 
 
-def _identity(x: Any) -> Any:
-    return x
+def projection_rule(projection: Callable[[Any], Any], name: str = "projection") -> Rule:
+    return PatternRule(anyPattern, projection, name)
 
 
 # The identity rule is the rule that always succeeds, and the projection
 # is an identity function.
-identity: Rule = PatternRule(anyPattern, _identity, "identity")
+identity: Rule = projection_rule(_identity, "identity")
 # The fail rule is the rule that never succeeds.
 fail: Rule = PatternRule(failPattern, _identity, "fail")
 
@@ -152,6 +159,35 @@ def pattern_rules(
     projection; if none match then the rule fails."""
     rules = (PatternRule(pattern, action, name) for pattern, action in pairs)
     return FirstMatch(rules)
+
+
+class Check(Rule):
+    """Apply the given rule; if it fails, fail. If it succeeds, the result
+    is the original test value, not the transformed value.  This is useful
+    for scenarios where we wish to know if a particular thing is true of
+    a node before we apply an expensive rule to it."""
+
+    rule: Rule
+
+    def __init__(self, rule: Rule, name: str = "check") -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+
+    def apply(self, test: Any) -> RuleResult:
+        rule_result = self.rule.apply(test)
+        if rule_result.is_success():
+            return Success(test, test)
+        return rule_result
+
+    def __str__(self) -> str:
+        r = str(self.rule)
+        return f"check( {r} )"
+
+    def always_succeeds(self) -> bool:
+        # Note that it is strange to have a Check which always succeeds
+        # because that is the same as the identity rule.
+        # TODO: Consider implementing some sort of warning for this case?
+        return self.rule.always_succeeds()
 
 
 class Choose(Rule):
@@ -193,6 +229,14 @@ class Choose(Rule):
         if self.condition.always_succeeds():
             return self.consequence.always_succeeds()
         return self.consequence.always_succeeds() and self.alternative.always_succeeds()
+
+
+def if_then(condition: Rule, consequence: Rule, alternative: Rule = identity):
+    """Apply the condition rule, then apply the original test to either the
+    consequence or the alternative, depending on whether the condition succeeded
+    or failed. Note that this is different than Choose. Choose applies the
+    condition to the result of the condition, not to the original test."""
+    return Choose(Check(condition), consequence, alternative)
 
 
 class Compose(Rule):
