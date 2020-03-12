@@ -685,3 +685,38 @@ class RuleDomain:
 
     def one_child(self, rule: Rule, name: str = "one_child") -> Rule:
         return OneChild(rule, self.get_children, self.construct, name)
+
+    # CONSIDER: Should we implement a class for bottom-up traversal, so that
+    # CONSIDER: there is a place to put a breakpoint, and so on?
+    def bottom_up(self, rule: Rule, name: str = "bottom_up") -> Rule:
+        """The bottom-up combinator applies a rule to all leaves, then to the rewritten
+        parent, and so on up to the root."""
+        return Compose(
+            self.all_children(Recursive(lambda: self.bottom_up(rule, name))), rule
+        )
+
+    # CONSIDER: Similarly.
+    def top_down(self, rule: Rule, name: str = "top_down") -> Rule:
+        """The top-down combinator applies a rule to the root, then to the new root's
+        children, and so on down to the leaves."""
+        return Compose(
+            rule, self.all_children(Recursive(lambda: self.top_down(rule, name)))
+        )
+
+    # CONSIDER: Similarly.
+    def down_then_up(
+        self, pre_rule: Rule, post_rule: Rule, name: str = "down_then_up"
+    ) -> Rule:
+        """The down-then-up combinator is a combination of the bottom-up and
+        top-down combinators; it applies the 'pre' rule in a top-down traversal
+        and then the 'post' rule on the way back up."""
+
+        return Compose(
+            Compose(
+                pre_rule,
+                self.all_children(
+                    Recursive(lambda: self.down_then_up(pre_rule, post_rule, name))
+                ),
+            ),
+            post_rule,
+        )

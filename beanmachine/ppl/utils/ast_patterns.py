@@ -14,7 +14,7 @@ from ast import (
     Str,
     iter_fields,
 )
-from typing import Dict
+from typing import Any, Dict
 
 from beanmachine.ppl.utils.patterns import (
     Pattern,
@@ -24,8 +24,10 @@ from beanmachine.ppl.utils.patterns import (
 from beanmachine.ppl.utils.rules import RuleDomain
 
 
-def _get_children(node: AST) -> Dict[str, AST]:
-    return dict(iter_fields(node))
+def _get_children(node: Any) -> Dict[str, Any]:
+    if isinstance(node, AST):
+        return dict(iter_fields(node))
+    return {}
 
 
 def _construct(typ: type, children: Dict[str, AST]) -> AST:

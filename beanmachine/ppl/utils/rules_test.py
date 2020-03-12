@@ -51,6 +51,8 @@ class RulesTest(unittest.TestCase):
         _all = ast_domain.all_children
         some = ast_domain.some_children
         one = ast_domain.one_child
+        top_down = ast_domain.top_down
+        bottom_up = ast_domain.bottom_up
 
         rpz_once = once(remove_plus_zero)
         rpz_many = many(remove_plus_zero)
@@ -180,6 +182,39 @@ try_once(
         self.assertEqual(
             ast.dump(result), ast.dump(ast.parse("0; 1; 2; 3; 4 + 5; 6; 7; 8 * 9;"))
         )
+
+        # Test top-down and bottom-up combinators:
+
+        # The top-down and bottom-up combinators recursively apply a rule to every
+        # node in a tree; top-down rewrites the root and then rewrites all the new
+        # children; bottom-up rewrites the leaves and then the new parents.
+
+        # What is the difference between bottom-up and top-down traversals?
+        # Consider this example.
+
+        test = parse("m(0, 1, 2+3, [0+4, 5+0, 0+6+0], {0+(7+0): (0+8)+(9+0)})")
+        expected = parse("m(0, 1, 2+3, [4, 5, 6], {7: 8+9})")
+        result = bottom_up(rpz_once)(test).expect_success()
+        self.assertEqual(ast.dump(result), ast.dump(expected))
+
+        # As we'd expect, the bottom-up traversal eliminates all the +0 operations
+        # from the tree. But top-down does not!
+
+        result = top_down(rpz_once)(test).expect_success()
+        expected = parse("m(0, 1, 2+3, [4, 5, 0+6], {7+0: 8+9})")
+        self.assertEqual(ast.dump(result), ast.dump(expected))
+
+        # Why are 0+6+0 and 0+(7+0) not simplified to 6 and 7 by top_down?
+        # Well, think about what top-down does when it encounters 0+6+0.
+        # First it notes that 0+6+0 has the form x+0 and simplifies it to x,
+        # so we have 0+6.  Then we recurse on the children, but the children
+        # are not of the form 0+x or x+0, so we're done.  I said rpz_once,
+        # not rpz_many, which would keep trying to simplify until proceding
+        # to the children:
+
+        result = top_down(rpz_many)(test).expect_success()
+        expected = parse("m(0, 1, 2+3, [4, 5, 6], {7: 8+9})")
+        self.assertEqual(ast.dump(result), ast.dump(expected))
 
     def test_infinite_loop_detection(self) -> None:
         # While working on a previous test case I accidentally created a pattern
