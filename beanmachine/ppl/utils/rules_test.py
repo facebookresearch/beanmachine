@@ -28,6 +28,7 @@ from beanmachine.ppl.utils.rules import (
     TryMany as many,
     TryOnce as once,
     at_least_once,
+    either_or_both,
     fail,
     if_then,
     list_member_children,
@@ -357,3 +358,18 @@ def toss(i):
         expected = "(False < True < 1)"
         observed = astor.to_source(result)
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_rules_4(self) -> None:
+        """Tests for rules.py"""
+        self.maxDiff = None
+
+        # either_or_both logically takes two rules A and B, and tries to apply
+        # Compose(A, B), A, or B, in that order. The first that succeeds is
+        # the result.
+
+        zero_to_one = PatternRule(0, lambda n: 1)
+        one_to_two = PatternRule(1, lambda n: 2)
+        eob = either_or_both(zero_to_one, one_to_two)
+        self.assertEqual(eob(0).expect_success(), 2)
+        self.assertEqual(eob(1).expect_success(), 2)
+        self.assertTrue(eob(2).is_fail())

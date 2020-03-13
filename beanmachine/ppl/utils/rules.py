@@ -379,6 +379,14 @@ class TryOnce(Rule):
         return True
 
 
+def either_or_both(first: Rule, second: Rule, name: str = "either_or_both") -> Rule:
+    """Do the first rule; if it succeeds, try doing the second rule, but do
+    not worry if it fails. If the first rule fails, do the second rule. The
+    net effect is, either first, or second, or first-then-second happens,
+    or both fail."""
+    return Choose(first, TryOnce(second), second, name)
+
+
 class TryMany(Rule):
     """Repeatedly apply a rule; the result is that of the last application
     that succeeded, or the original test if none succeeded.
