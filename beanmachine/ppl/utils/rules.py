@@ -502,6 +502,18 @@ class AllListMembers(Rule):
         return False
 
 
+# We have n-ary operators that have both "term" children and "list member"
+# children; for example Compare(left, ops, comps) has a left child and then
+# a list of arbitrarily many other operands in comps. When applying a rule to
+# all children normally Compare is considered to have 3 children and we
+# apply the rule to each, but it is convenient to apply the rule to all the
+# logical children -- the ops, the comps, and left -- rather than to the lists
+# themselves. This combinator enables that scenario.
+# TODO: always_succeeds will be wrong for the returned object.
+def list_member_children(rule: Rule) -> Rule:
+    return if_then(is_list, AllListMembers(rule), rule)
+
+
 class AllTermChildren(Rule):
     """Apply a rule to all children.  Succeeds if the rule succeeds for all children,
     and returns a constructed object with the children replaced with the new values.

@@ -3,11 +3,13 @@
 import ast
 import re
 import unittest
-from ast import Expr, FunctionDef, Num, Pass, parse
 
+import astor
 from beanmachine.ppl.utils.ast_patterns import (
     add,
     ast_domain,
+    ast_false,
+    ast_true,
     binop,
     expr,
     function_def,
@@ -27,6 +29,7 @@ from beanmachine.ppl.utils.rules import (
     TryOnce as once,
     fail,
     if_then,
+    list_member_children,
     pattern_rules,
     projection_rule,
     remove_from_list,
@@ -51,7 +54,7 @@ class RulesTest(unittest.TestCase):
 
         self.maxDiff = None
 
-        m = parse("0; 1; 1+1; 0+1; 1+0; 0+1+0; 0+(1+0); (0+1)+(1+0)")
+        m = ast.parse("0; 1; 1+1; 0+1; 1+0; 0+1+0; 0+(1+0); (0+1)+(1+0)")
         # z = m.body[0].value
         o = m.body[1].value
         oo = m.body[2].value
@@ -163,7 +166,7 @@ try_once(
 
         split_binops = PatternRule(
             expr(binop()),
-            lambda b: ListEdit([Expr(b.value.left), Expr(b.value.right)]),
+            lambda b: ListEdit([ast.Expr(b.value.left), ast.Expr(b.value.right)]),
             "split_binops",
         )
 
@@ -205,8 +208,8 @@ try_once(
         # What is the difference between bottom-up and top-down traversals?
         # Consider this example.
 
-        test = parse("m(0, 1, 2+3, [0+4, 5+0, 0+6+0], {0+(7+0): (0+8)+(9+0)})")
-        expected = parse("m(0, 1, 2+3, [4, 5, 6], {7: 8+9})")
+        test = ast.parse("m(0, 1, 2+3, [0+4, 5+0, 0+6+0], {0+(7+0): (0+8)+(9+0)})")
+        expected = ast.parse("m(0, 1, 2+3, [4, 5, 6], {7: 8+9})")
         result = bottom_up(rpz_once)(test).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(expected))
 
@@ -214,7 +217,7 @@ try_once(
         # from the tree. But top-down does not!
 
         result = top_down(rpz_once)(test).expect_success()
-        expected = parse("m(0, 1, 2+3, [4, 5, 0+6], {7+0: 8+9})")
+        expected = ast.parse("m(0, 1, 2+3, [4, 5, 0+6], {7+0: 8+9})")
         self.assertEqual(ast.dump(result), ast.dump(expected))
 
         # Why are 0+6+0 and 0+(7+0) not simplified to 6 and 7 by top_down?
@@ -226,7 +229,7 @@ try_once(
         # to the children:
 
         result = top_down(rpz_many)(test).expect_success()
-        expected = parse("m(0, 1, 2+3, [4, 5, 6], {7: 8+9})")
+        expected = ast.parse("m(0, 1, 2+3, [4, 5, 6], {7: 8+9})")
         self.assertEqual(ast.dump(result), ast.dump(expected))
 
     def test_infinite_loop_detection(self) -> None:
@@ -256,7 +259,7 @@ try_once(
         even = PatternRule(
             match_every(num_stmt, PredicatePattern(lambda e: e.value.n % 2 == 0))
         )
-        add_one = projection_rule(lambda e: Expr(Num(e.value.n + 1)))
+        add_one = projection_rule(lambda e: ast.Expr(ast.Num(e.value.n + 1)))
         t = ast.parse("0; 1; 2; 3; 4; 5 + 6")
         result = _all(_all(if_then(even, add_one)))(t).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(ast.parse("1; 1; 3; 3; 5; 5 + 6")))
@@ -271,10 +274,10 @@ try_once(
             [
                 (
                     function_def(decorator_list=ListAny(name(id="sample"))),
-                    lambda f: FunctionDef(
+                    lambda f: ast.FunctionDef(
                         name=f.name,
                         args=f.args,
-                        body=[Pass()],
+                        body=[ast.Pass()],
                         returns=None,
                         decorator_list=[],
                     ),
@@ -306,3 +309,43 @@ def toss(i):
         m = ast.parse(source)
         result = _all(_all(rule))(m).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(ast.parse(expected)))
+
+    def test_rules_3(self) -> None:
+        """Tests for rules.py"""
+        self.maxDiff = None
+
+        # Some nodes, like BoolOp, have the interesting property that they
+        # have both regular children and children in a list, which makes it
+        # inconvenient to apply a rule to all the "logical" children. This
+        # combinator helps with that.
+
+        t = ast.NameConstant(True)
+        f = ast.NameConstant(False)
+
+        swap_bools = pattern_rules(
+            [(ast_true, lambda n: f), (ast_false, lambda n: t)], "swap_bools"
+        )
+
+        # First we'll try it without the combinator:
+
+        _all = ast_domain.all_children
+
+        # "True < False < 1" has this structure:
+        c = ast.Compare(ops=[ast.Lt(), ast.Lt()], left=t, comparators=[f, ast.Num(1)])
+        result = _all(once(swap_bools))(c).expect_success()
+
+        # all applies the rule to op, left and comparators; since op and comparators
+        # do not match the pattern, they're unchanged. But we do not recurse
+        # into values, so we only change the first one:
+
+        expected = "(False < False < 1)"
+        observed = astor.to_source(result)
+        self.assertEqual(observed.strip(), expected.strip())
+
+        # This version treats all the ops and values as children, and as
+        # we intend, the rule operates on all the children:
+
+        result = _all(list_member_children(once(swap_bools)))(c).expect_success()
+        expected = "(False < True < 1)"
+        observed = astor.to_source(result)
+        self.assertEqual(observed.strip(), expected.strip())
