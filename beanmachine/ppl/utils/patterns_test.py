@@ -40,11 +40,11 @@ class PatternsTest(unittest.TestCase):
         self.assertEqual(tidy(observed), tidy(expected))
 
         result = p(ast.parse("0 * True + 1.5").body[0].value)
-        self.assertTrue(result.is_success())
+        self.assertTrue(result)
         # This one fails because it is binop(0, binop(true, 1.5)), and the
         # pattern is looking for binop(binop(0, true), 1.5)
         result = p(ast.parse("0 + True * 1.5").body[0].value)
-        self.assertTrue(result.is_fail())
+        self.assertFalse(result)
 
     def test_negate(self) -> None:
         """Test negate"""

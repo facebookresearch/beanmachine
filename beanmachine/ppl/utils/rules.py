@@ -53,6 +53,9 @@ class RuleResult(ABC):
     def expect_success(self) -> Any:
         pass
 
+    def __bool__(self) -> bool:
+        return self.is_success()
+
 
 class Fail(RuleResult):
     def __init__(self, test: Any = None) -> None:

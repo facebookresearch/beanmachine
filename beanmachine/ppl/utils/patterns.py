@@ -51,6 +51,9 @@ class MatchResult(ABC):
     def __str__(self) -> str:
         return f"{type(self).__name__}:{self.test}"
 
+    def __bool__(self) -> bool:
+        return self.is_success()
+
     # TODO: Display as a tree and graph also
 
 

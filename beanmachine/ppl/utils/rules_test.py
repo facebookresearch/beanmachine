@@ -247,8 +247,8 @@ try_once(
         # once, and then runs it until it fails.
 
         alorpz = at_least_once(remove_plus_zero)
-        self.assertTrue(alorpz(o).is_fail())
-        self.assertTrue(alorpz(z_oz).is_success())
+        self.assertFalse(alorpz(o))
+        self.assertTrue(alorpz(z_oz))
 
     def test_infinite_loop_detection(self) -> None:
         # While working on a previous test case I accidentally created a pattern
