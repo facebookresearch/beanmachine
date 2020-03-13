@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Pattern matching for ASTs"""
 import ast
+import math
 from typing import Any, Dict
 
 import torch
@@ -116,6 +117,10 @@ def call(
     )
 
 
+def call_to(id: Pattern = _any, args: Pattern = _any) -> Pattern:
+    return call(func=match_any(attribute(attr=id), name(id=id)), args=args)
+
+
 def compare(left: Pattern = _any, ops: Pattern = _any, comparators: Pattern = _any):
     return type_and_attributes(
         ast.Compare, [("left", left), ("ops", ops), ("comparators", comparators)]
@@ -226,17 +231,16 @@ class ConstantList(PatternBase):
 constant_list = ConstantList()
 
 tensor_name_str: Pattern = "tensor"
-tensor_name: Pattern = name(id=tensor_name_str)
+
 # TODO: Matches "tensor" and "foo.tensor"
 # TODO: Do we need to specifically match just torch? What if there is an alias?
-tensor_ctor: Pattern = match_any(attribute(attr=tensor_name_str), tensor_name)
 
 # Recognizes tensor(1)
-constant_tensor_1: Pattern = call(func=tensor_ctor, args=[number_constant])
+constant_tensor_1: Pattern = call_to(id=tensor_name_str, args=[number_constant])
 
 # Recognizes tensor(1), tensor([]), tensor([1, 2]), tensor([[1, 2], [3, 4]]) and so on
-constant_tensor_any: Pattern = call(
-    func=tensor_ctor, args=[match_any(number_constant, constant_list)]
+constant_tensor_any: Pattern = call_to(
+    id=tensor_name_str, args=[match_any(number_constant, constant_list)]
 )
 
 # int, float, bool or tensor
@@ -261,13 +265,20 @@ def ast_to_constant_value(x: ast.AST) -> Any:
     raise TypeError()
 
 
+_make_nan = ast.Call(
+    func=ast.Name(id="float", ctx=ast.Load()), args=[ast.Str(s="nan")], keywords=[]
+)
+
+
 def constant_value_to_ast(x: Any) -> ast.AST:
     # Note that the check for bool must go first, because for unknown reasons
     # isinstance(True, int) is True.
     if isinstance(x, bool):
         return ast.NameConstant(value=x)
-    if isinstance(x, int) or isinstance(x, float):
+    if isinstance(x, int):
         return ast.Num(n=x)
+    if isinstance(x, float):
+        return _make_nan if math.isnan(x) else ast.Num(n=x)
     if isinstance(x, torch.Tensor):
         return ast.Call(
             func=ast.Attribute(

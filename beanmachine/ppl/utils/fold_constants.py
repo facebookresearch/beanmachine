@@ -2,15 +2,20 @@
 """Tools to transform Bean Machine programs to Bean Machine Graph"""
 
 import ast
+import math
 from typing import Any, Callable, Dict
 
+import torch
 from beanmachine.ppl.utils.ast_patterns import (
     ast_domain,
     ast_to_constant_value,
     binop,
     boolop,
+    call_to,
     compare,
+    constant_literal,
     constant_numeric,
+    constant_tensor_any,
     constant_value_to_ast,
     if_exp,
     match_any,
@@ -35,6 +40,7 @@ from beanmachine.ppl.utils.rules import (
     at_least_once,
     ignore_div_zero,
     ignore_runtime_error,
+    ignore_value_error,
     pattern_rules,
 )
 
@@ -207,9 +213,31 @@ _fold_comparison: Rule = PatternRule(
 )
 
 
+_fold_tensor_log: Rule = PatternRule(
+    call_to(id="log", args=[constant_tensor_any]),
+    lambda c: constant_value_to_ast(torch.log(ast_to_constant_value(c.args[0]))),
+    "fold_tensor_log",
+)
+
+_fold_log: Rule = ignore_value_error(
+    PatternRule(
+        call_to(id="log", args=[constant_literal]),
+        lambda c: constant_value_to_ast(math.log(ast_to_constant_value(c.args[0]))),
+        "fold_log",
+    )
+)
+
+_fold_pure: Rule = first([_fold_tensor_log, _fold_log], "fold_pure")
+
 _fold_constants = ignore_runtime_error(
     first(
-        [_fold_arithmetic, _fold_logic, _fold_conditional, _fold_comparison],
+        [
+            _fold_arithmetic,
+            _fold_logic,
+            _fold_conditional,
+            _fold_comparison,
+            _fold_pure,
+        ],
         "fold_constants",
     )
 )

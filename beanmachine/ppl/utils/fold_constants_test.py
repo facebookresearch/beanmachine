@@ -122,3 +122,30 @@ x = 1 if not ((True or False) and True) else 2
         result = fold(m)
         expected = "tensor([1, 2, 3]) + tensor([1, 2]) + x"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_constant_fold_6(self) -> None:
+        """Tests for fold_constants.py"""
+        # We can fold certain pure functions, like math.log or torch.log.
+        source = (
+            "torch.log(tensor([1.0, 2.0, 3.0])) + x + "
+            + "tensor([math.log(2.7), 2.0, 3.0])"
+        )
+        m = ast.parse(source)
+        result = fold(m)
+        expected = (
+            "torch.tensor([0.9932518005371094, 2.6931471824645996, "
+            + "4.098612308502197]) + x"
+        )
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # If the code is wrong and throws an exception, folding is a no-op.
+        # Note that we do manage to fold log of -1.0 down to NaN.  However
+        # we do not consider "float('nan')" to be a constant float, so
+        # that expression will not participate in folding afterwards.
+        source = """torch.log(tensor([-1.0])) + x + tensor([math.log(0.0), 2.0, 3.0])"""
+        m = ast.parse(source)
+        result = fold(m)
+        expected = (
+            "torch.tensor([float('nan')]) + x + tensor([math.log(0.0), 2.0, 3.0])"
+        )
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())

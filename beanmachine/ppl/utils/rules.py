@@ -207,6 +207,10 @@ def ignore_runtime_error(rule: Rule) -> Rule:
     return IgnoreException(rule, [RuntimeError], "ignore_runtime_error")
 
 
+def ignore_value_error(rule: Rule) -> Rule:
+    return IgnoreException(rule, [ValueError], "ignore_value_error")
+
+
 class Check(Rule):
     """Apply the given rule; if it fails, fail. If it succeeds, the result
     is the original test value, not the transformed value.  This is useful
