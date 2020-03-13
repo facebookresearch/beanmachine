@@ -15,21 +15,22 @@ class SingleAssignmentTest(unittest.TestCase):
         self.maxDiff = None
 
         source = """
-def x():
+def f():
     if a and b:
-        return 1 + x + 2
+        return 1 + ~x + 2
     return 8 * y / (4 * z)
 """
         m = ast.parse(source)
         result = single_assignment(fold(m))
         expected = """
-def x():
+def f():
     if a and b:
         a3 = 3
-        r1 = a3 + x
+        a5 = ~x
+        r1 = a3 + a5
         return r1
-    a5 = 2.0
-    a4 = a5 * y
+    a6 = 2.0
+    a4 = a6 * y
     r2 = a4 / z
     return r2
 """

@@ -11,6 +11,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     binop,
     match_any,
     name,
+    unaryop,
 )
 from beanmachine.ppl.utils.patterns import Pattern, negate
 from beanmachine.ppl.utils.rules import (
@@ -38,6 +39,8 @@ _binops: Pattern = match_any(
     ast.RShift,
     ast.Sub,
 )
+
+_unops: Pattern = match_any(ast.USub, ast.UAdd, ast.Invert, ast.Not)
 
 
 class SingleAssignment:
@@ -83,6 +86,17 @@ class SingleAssignment:
     def _handle_assign(self) -> Rule:
         return pattern_rules(
             [
+                (
+                    assign(value=unaryop(operand=_not_identifier, op=_unops)),
+                    self._fix_it(
+                        "a",
+                        lambda a: a.value.operand,
+                        lambda a, v: ast.Assign(
+                            targets=a.targets,
+                            value=ast.UnaryOp(operand=v, op=a.value.op),
+                        ),
+                    ),
+                ),
                 (
                     assign(value=binop(left=_not_identifier, op=_binops)),
                     self._fix_it(
