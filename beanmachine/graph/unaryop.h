@@ -5,6 +5,7 @@
 namespace beanmachine {
 namespace oper {
 
+void complement(graph::Node* node);
 void to_real(graph::Node* node);
 void to_pos_real(graph::Node* node);
 void to_tensor(graph::Node* node);

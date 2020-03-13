@@ -6,6 +6,20 @@
 namespace beanmachine {
 namespace oper {
 
+void complement(graph::Node* node) {
+  assert(node->in_nodes.size() == 1);
+  const graph::AtomicValue& parent = node->in_nodes[0]->value;
+  if (parent.type == graph::AtomicType::BOOLEAN) {
+    node->value._bool = parent._bool ? false : true;
+  } else if (parent.type == graph::AtomicType::PROBABILITY) {
+    node->value._double = 1 - parent._double;
+  } else {
+    throw std::runtime_error(
+      "invalid parent type " + std::to_string(static_cast<int>(parent.type))
+      + " for COMPLEMENT operator at node_id " + std::to_string(node->index));
+  }
+}
+
 void to_real(graph::Node* node) {
   assert(node->in_nodes.size() == 1);
   const graph::AtomicValue& parent = node->in_nodes[0]->value;
@@ -64,14 +78,10 @@ void to_tensor(graph::Node* node) {
 void negate(graph::Node* node) {
   assert(node->in_nodes.size() == 1);
   const graph::AtomicValue& parent = node->in_nodes[0]->value;
-  if (parent.type == graph::AtomicType::BOOLEAN) {
-    node->value._bool = parent._bool ? false : true;
-  } else if (parent.type == graph::AtomicType::REAL) {
+  if (parent.type == graph::AtomicType::REAL) {
     node->value._double = -parent._double;
   } else if (parent.type == graph::AtomicType::TENSOR) {
     node->value._tensor = parent._tensor.neg();
-  } else if (parent.type == graph::AtomicType::PROBABILITY) {
-    node->value._double = 1 - parent._double;
   } else {
     throw std::runtime_error(
       "invalid parent type " + std::to_string(static_cast<int>(parent.type))

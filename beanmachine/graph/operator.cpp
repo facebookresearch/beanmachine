@@ -81,6 +81,17 @@ Operator::Operator(
       value.type = dist->sample_type;
       break;
     }
+    case graph::OperatorType::COMPLEMENT: {
+      check_unary_op(op_type, in_nodes);
+      if (type0 != graph::AtomicType::PROBABILITY
+          and type0 != graph::AtomicType::BOOLEAN) {
+        throw std::invalid_argument(
+          "operator COMPLEMENT only supports boolean/probability parent"
+        );
+      }
+      value.type = type0;
+      break;
+    }
     case graph::OperatorType::TO_REAL: {
       check_unary_op(op_type, in_nodes);
       if (type0 == graph::AtomicType::TENSOR) {
@@ -107,10 +118,10 @@ Operator::Operator(
     }
     case graph::OperatorType::NEGATE: {
       check_unary_op(op_type, in_nodes);
-      if (type0 == graph::AtomicType::NATURAL
-          or type0 == graph::AtomicType::POS_REAL) {
+      if (type0 != graph::AtomicType::REAL
+          and type0 != graph::AtomicType::TENSOR) {
         throw std::invalid_argument(
-            "operator NEGATE doesn't support NATURAL or POS_REAL parent");
+            "operator NEGATE only supports real/tensor parent");
       }
       value.type = type0;
       break;
@@ -164,6 +175,10 @@ void Operator::eval(std::mt19937& gen) {
   }
 
   switch (op_type) {
+    case graph::OperatorType::COMPLEMENT: {
+      complement(this);
+      break;
+    }
     case graph::OperatorType::TO_REAL: {
       to_real(this);
       break;
