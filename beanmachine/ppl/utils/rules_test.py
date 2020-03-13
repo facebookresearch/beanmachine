@@ -25,6 +25,7 @@ from beanmachine.ppl.utils.patterns import (
 from beanmachine.ppl.utils.rules import (
     ListEdit,
     PatternRule,
+    SomeOf,
     TryMany as many,
     TryOnce as once,
     at_least_once,
@@ -402,3 +403,13 @@ def toss(i):
 
         # If the rule applies to no node, then we fail.
         self.assertTrue(somebu(eob)(result).is_fail())
+
+        # SomeOf extends either_or_both to arbitrarily many rules.
+        zero_to_one = PatternRule(0, lambda n: 1)
+        one_to_two = PatternRule(1, lambda n: 2)
+        three_to_four = PatternRule(3, lambda n: 4)
+        so = SomeOf([zero_to_one, one_to_two, three_to_four])
+        self.assertEqual(so(0).expect_success(), 2)
+        self.assertEqual(so(1).expect_success(), 2)
+        self.assertEqual(so(3).expect_success(), 4)
+        self.assertTrue(so(2).is_fail())

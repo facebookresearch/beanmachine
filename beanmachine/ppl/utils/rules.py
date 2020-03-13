@@ -387,6 +387,38 @@ def either_or_both(first: Rule, second: Rule, name: str = "either_or_both") -> R
     return Choose(first, TryOnce(second), second, name)
 
 
+class SomeOf(Rule):
+    # This is logically the extension of either-or-both to arbitrarily many rules.
+    """Takes a list of rules and composes together as many of them as succeed.
+    At least one must succeed, otherwise the rule fails."""
+    rules: List[Rule]
+
+    def __init__(self, rules: List[Rule], name: str = "some_of") -> None:
+        Rule.__init__(self, name)
+        self.rules = rules
+
+    def apply(self, test: Any) -> RuleResult:
+        result = Fail()
+        current_test = test
+        for current_rule in self.rules:
+            current_result = current_rule.apply(current_test)
+            # If we succeeded, this becomes the input to the next rule.
+            # If we failed, just ignore it and try the next rule.
+            if current_result.is_success():
+                current_test = current_result.expect_success()
+                result = current_result
+        if result.is_success():
+            return Success(test, result.expect_success())
+        return Fail(test)
+
+    def __str__(self) -> str:
+        rs = ",".join(str(r) for r in self.rules)
+        return f"some_of( {rs} )"
+
+    def always_succeeds(self) -> bool:
+        return any(r.always_succeeds() for r in self.rules)
+
+
 class TryMany(Rule):
     """Repeatedly apply a rule; the result is that of the last application
     that succeeded, or the original test if none succeeded.
