@@ -822,9 +822,29 @@ class RuleDomain:
     # CONSIDER: Similarly.
     def top_down(self, rule: Rule, name: str = "top_down") -> Rule:
         """The top-down combinator applies a rule to the root, then to the new root's
-        children, and so on down to the leaves."""
+        children, and so on down to the leaves. It succeeds iff the rule succeeds on
+        every node."""
         return Compose(
             rule, self.all_children(Recursive(lambda: self.top_down(rule, name)))
+        )
+
+    def some_top_down(self, rule: Rule, name: str = "some_top_down") -> Rule:
+        """The some-top-down combinator is like top_down, in that it applies a
+        rule to every node in the tree starting from the top. However, top_down
+        requires that the rule succeed for all nodes in the tree; some_top_down
+        applies the rule to as many nodes in the tree as possible, leaves alone
+        nodes for which it fails (aside from possibly rewriting the children),
+        and fails only if the rule applied to no node."""
+
+        # This combinator is particularly useful because it ensures that
+        # either progress is made, or the rule fails, and it makes as much
+        # progress as possible on each attempt.
+        #
+        # Note that many(some_top_down(rule)) is a fixpoint combinator.
+
+        return either_or_both(
+            rule,
+            self.some_children(Recursive(lambda: self.some_top_down(rule, name)), name),
         )
 
     # CONSIDER: Similarly.

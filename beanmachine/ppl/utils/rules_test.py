@@ -373,3 +373,19 @@ def toss(i):
         self.assertEqual(eob(0).expect_success(), 2)
         self.assertEqual(eob(1).expect_success(), 2)
         self.assertTrue(eob(2).is_fail())
+
+        # The some_top_down combinator applies a rule to every node in the tree,
+        # from root to leaves, but ignores nodes for which the rule fails.
+        # It succeeds iff the rule succeeded on any node in the tree. This is
+        # useful because it guarantees that if it succeeds, then it did the most
+        # work it could do applying a rule to a tree.
+
+        sometd = ast_domain.some_top_down
+
+        result = sometd(eob)(ast.parse("0 + 1 * 2 + 3")).expect_success()
+        expected = "2 + 2 * 2 + 3"
+        observed = astor.to_source(result)
+        self.assertEqual(observed.strip(), expected.strip())
+
+        # If the rule applies to no node, then we fail.
+        self.assertTrue(sometd(eob)(result).is_fail())
