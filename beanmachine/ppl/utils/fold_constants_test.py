@@ -4,7 +4,7 @@ import ast
 import unittest
 
 import astor
-from beanmachine.ppl.utils.fold_constants import fold
+from beanmachine.ppl.utils.fold_constants import _fix_associative_ops, fold
 
 
 class ConstantFoldTest(unittest.TestCase):
@@ -50,4 +50,12 @@ x = 1 if not ((True or False) and True) else 2
         m = ast.parse(source)
         result = fold(m)
         expected = "True"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_constant_fold_2(self) -> None:
+        """Tests for fold_constants.py"""
+        source = """a + (b + c * (d * (e + (f + g))))"""
+        m = ast.parse(source)
+        result = _fix_associative_ops(m).expect_success()
+        expected = "a + b + c * d * (e + f + g)"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())

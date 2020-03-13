@@ -13,6 +13,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     boolop,
     compare,
     if_exp,
+    match_any,
     negative_num,
     non_zero_num,
     num,
@@ -21,7 +22,10 @@ from beanmachine.ppl.utils.ast_patterns import (
 from beanmachine.ppl.utils.patterns import (
     HeadTail,
     ListAll,
+    Pattern,
+    PredicatePattern,
     anyPattern as _any,
+    match_every,
     nonEmptyList,
 )
 from beanmachine.ppl.utils.rules import (
@@ -32,6 +36,7 @@ from beanmachine.ppl.utils.rules import (
     Rule,
     TryMany as many,
     TryOnce as once,
+    at_least_once,
     list_member_children,
     pattern_rules,
 )
@@ -39,6 +44,7 @@ from beanmachine.ppl.utils.rules import (
 
 _all = ast_domain.all_children
 _bottom_up = ast_domain.bottom_up
+_some_top_down = ast_domain.some_top_down
 
 # TODO: Fold operations on constant tensors.
 # TODO: Fold matmul?
@@ -225,6 +231,44 @@ _fold_constants = first(
     [_fold_arithmetic, _fold_logic, _fold_conditional, _fold_comparisons],
     "fold_constants",
 )
+
+##########
+#
+# Now let's look at some rules that apply to nodes that are *not* all constants.
+#
+##########
+
+# The first problem we're trying to solve here is that "(x + 1) + (y + 2)" or
+# can be optimized to "(x + 3) + y" but we have no way given the rules
+# above of discovering that. But here's what we can do.
+#
+# First, we can rewrite the tree so that (x + 1) + (y + 2) is in the more
+# normal form of x + 1 + y + 2.
+
+_associative_operator: Pattern = match_any(
+    ast.Add, ast.BitAnd, ast.BitOr, ast.BitXor, ast.Mult
+)
+_ops_match_right: Pattern = PredicatePattern(
+    lambda b: isinstance(b.op, type(b.right.op))
+)
+_associate_to_left: Rule = PatternRule(
+    match_every(
+        binop(op=_associative_operator, right=binop(op=_associative_operator)),
+        _ops_match_right,
+    ),
+    lambda b: ast.BinOp(
+        op=b.op,
+        left=ast.BinOp(op=b.op, left=b.left, right=b.right.left),
+        right=b.right.right,
+    ),
+)
+#
+# We now need a way to apply this rule everywhere, repeatedly, until it can
+# no longer be applied. That is, we wish to reach a fixpoint of this
+# transformation. This combinator does so relatively efficiently:
+
+_fix_associative_ops = many(_some_top_down(at_least_once(_associate_to_left)))
+# This always succeeds and reaches a fixpoint.
 
 # We have a rule that turns "1 < 2 < 3" into "True and True", which means that
 # a straightforward "run the rule once on every node, leaves to root" does not
