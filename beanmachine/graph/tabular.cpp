@@ -47,8 +47,7 @@ Tabular::Tabular(
   // go through each of the parents other than the tensor and verify its type
   for (uint paridx = 1; paridx < in_nodes.size(); paridx++) {
     const graph::Node* parent = in_nodes[paridx];
-    if (parent->node_type == graph::NodeType::CONSTANT and
-        parent->value.type != graph::AtomicType::BOOLEAN) {
+    if (parent->value.type != graph::AtomicType::BOOLEAN) {
       throw std::invalid_argument(
           "Tabular distribution only supports boolean parents currently");
     }

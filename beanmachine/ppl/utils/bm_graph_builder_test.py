@@ -16,7 +16,7 @@ class BMGraphBuilderTest(unittest.TestCase):
 
         t = tensor([[10, 20], [40, 50]])
         bmg = BMGraphBuilder()
-        half = bmg.add_real(0.5)
+        half = bmg.add_probability(0.5)
         two = bmg.add_real(2)
         tens = bmg.add_tensor(t)
         tr = bmg.add_boolean(True)
@@ -86,7 +86,7 @@ Node 10 type 3 parents [ 2 9 ] children [ ] unknown value
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(0.5)
+n0 = g.add_constant_probability(0.5)
 n1 = g.add_constant(2.0)
 n2 = g.add_constant(tensor([[10,20],[40,50]]))
 n3 = g.add_constant(True)
@@ -105,7 +105,7 @@ g.observe(n5, True)
 
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(0.5);
+uint n0 = g.add_constant_probability(0.5);
 uint n1 = g.add_constant(2.0);
 uint n2 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
 uint n3 = g.add_constant(true);

@@ -11,8 +11,8 @@ using namespace beanmachine;
 TEST(testgraph, support) {
   graph::Graph g;
   // c1 and c2 are parents of o1 -> d1 -> o2
-  uint c1 = g.add_constant(.3);
-  uint c2 = g.add_constant(.4);
+  uint c1 = g.add_constant_probability(.3);
+  uint c2 = g.add_constant_probability(.4);
   uint o1 = g.add_operator(
       graph::OperatorType::MULTIPLY, std::vector<uint>({c1, c2}));
   uint d1 = g.add_distribution(
@@ -22,29 +22,29 @@ TEST(testgraph, support) {
   uint o2 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
   // c3 and c4 are parents of o3 -> d2 -> o4
-  uint c3 = g.add_constant(.3);
-  uint c4 = g.add_constant(.4);
+  uint c3 = g.add_constant_pos_real(.3);
+  uint c4 = g.add_constant_pos_real(.4);
   uint o3 = g.add_operator(
       graph::OperatorType::MULTIPLY, std::vector<uint>({c3, c4}));
   uint d2 = g.add_distribution(
-      graph::DistributionType::BERNOULLI,
+      graph::DistributionType::BERNOULLI_NOISY_OR,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>{o3});
   uint o4 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
-  uint ro2 = g.add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o2}));
-  uint ro4 = g.add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o4}));
+  uint ro2 = g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o2}));
+  uint ro4 = g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o4}));
   // o2 and o4 -> o5
   uint o5 = g.add_operator(
       graph::OperatorType::MULTIPLY, std::vector<uint>({ro2, ro4}));
   uint d3 = g.add_distribution(
-      graph::DistributionType::BERNOULLI,
+      graph::DistributionType::BERNOULLI_NOISY_OR,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>({o5}));
   uint o6 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d3}));
   uint o7 =
-      g.add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o6}));
+      g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o6}));
   uint o8 = g.add_operator(
       graph::OperatorType::MULTIPLY, std::vector<uint>({o3, o7}));
   // observe o4 so support includes c3, c4, o3, d2, o4
