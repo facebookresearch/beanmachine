@@ -234,7 +234,7 @@ class Choose(Rule):
         return self.consequence.always_succeeds() and self.alternative.always_succeeds()
 
 
-def if_then(condition: Rule, consequence: Rule, alternative: Rule = identity):
+def if_then(condition: Rule, consequence: Rule, alternative: Rule = identity) -> Rule:
     """Apply the condition rule, then apply the original test to either the
     consequence or the alternative, depending on whether the condition succeeded
     or failed. Note that this is different than Choose. Choose applies the
@@ -414,6 +414,12 @@ class TryMany(Rule):
         return True
 
 
+def at_least_once(rule: Rule) -> Rule:
+    """Try a rule once; if it fails, fail. If it succeeds,
+    try it again as many times as it keeps succeeding."""
+    return Compose(rule, TryMany(rule))
+
+
 class ListEdit:
     """Consider a rule which descends through an AST looking for a particular
     statement to replace. If the rule replaces a particular statement with
@@ -427,7 +433,7 @@ class ListEdit:
 
     edits: List[Any]
 
-    def __init__(self, edits: List[Any]):
+    def __init__(self, edits: List[Any]) -> None:
         self.edits = edits
 
 

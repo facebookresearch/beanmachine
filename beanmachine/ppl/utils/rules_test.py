@@ -27,6 +27,7 @@ from beanmachine.ppl.utils.rules import (
     PatternRule,
     TryMany as many,
     TryOnce as once,
+    at_least_once,
     fail,
     if_then,
     list_member_children,
@@ -231,6 +232,13 @@ try_once(
         result = top_down(rpz_many)(test).expect_success()
         expected = ast.parse("m(0, 1, 2+3, [4, 5, 6], {7: 8+9})")
         self.assertEqual(ast.dump(result), ast.dump(expected))
+
+        # The at_least_once combinator requires that a rule succeed at least
+        # once, and then runs it until it fails.
+
+        alorpz = at_least_once(remove_plus_zero)
+        self.assertTrue(alorpz(o).is_fail())
+        self.assertTrue(alorpz(z_oz).is_success())
 
     def test_infinite_loop_detection(self) -> None:
         # While working on a previous test case I accidentally created a pattern
