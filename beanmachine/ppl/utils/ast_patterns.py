@@ -5,7 +5,11 @@ from typing import Any, Dict
 
 from beanmachine.ppl.utils.patterns import (
     Pattern,
+    PredicatePattern,
     anyPattern as _any,
+    match_any,
+    match_every,
+    negate,
     type_and_attributes,
 )
 from beanmachine.ppl.utils.rules import RuleDomain
@@ -24,19 +28,67 @@ def _construct(typ: type, children: Dict[str, ast.AST]) -> ast.AST:
 ast_domain = RuleDomain(_get_children, _construct)
 
 
+ast_and: Pattern = ast.And
+
 add: Pattern = ast.Add
+
+bit_and: Pattern = ast.BitAnd
+
+bit_or: Pattern = ast.BitOr
+
+bit_xor: Pattern = ast.BitXor
+
+div: Pattern = ast.Div
+
+eq: Pattern = ast.Eq
+
+gt: Pattern = ast.Gt
+
+gte: Pattern = ast.GtE
+
+invert: Pattern = ast.Invert
 
 ast_is: Pattern = ast.Is
 
+ast_is_not: Pattern = ast.IsNot
+
 load: Pattern = ast.Load
 
+lshift: Pattern = ast.LShift
+
+lt: Pattern = ast.Lt
+
+lte: Pattern = ast.LtE
+
+mod: Pattern = ast.Mod
+
+mult: Pattern = ast.Mult
+
+not_eq: Pattern = ast.NotEq
+
+ast_or: Pattern = ast.Or
+
 ast_pass: Pattern = ast.Pass
+
+ast_pow: Pattern = ast.Pow
+
+rshift: Pattern = ast.RShift
+
+sub: Pattern = ast.Sub
+
+uadd: Pattern = ast.UAdd
+
+usub: Pattern = ast.USub
 
 
 def binop(op: Pattern = _any, left: Pattern = _any, right: Pattern = _any) -> Pattern:
     return type_and_attributes(
         ast.BinOp, [("op", op), ("left", left), ("right", right)]
     )
+
+
+def boolop(op: Pattern = _any, values: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.BoolOp, [("op", op), ("values", values)])
 
 
 def call(
@@ -76,6 +128,12 @@ def function_def(
     )
 
 
+def if_exp(test: Pattern = _any, body: Pattern = _any, orelse: Pattern = _any):
+    return type_and_attributes(
+        ast.IfExp, [("test", test), ("body", body), ("orelse", orelse)]
+    )
+
+
 def module(body: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Module, [("body", body)])
 
@@ -98,3 +156,22 @@ def ast_str(s: Pattern = _any) -> Pattern:
 
 def ast_return(value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Return, [("value", value)])
+
+
+def unaryop(op: Pattern = _any, operand: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.UnaryOp, [("op", op), ("operand", operand)])
+
+
+zero = match_any(num(0), num(0.0))
+
+non_zero_num = match_every(num(), negate(zero))
+
+negative_num = match_every(num(), PredicatePattern(lambda n: n.n < 0))
+
+ast_true = name_constant(True)
+
+ast_false = name_constant(False)
+
+bool_constant = match_any(ast_true, ast_false)
+
+any_constant = match_any(num(), name_constant())
