@@ -3,10 +3,23 @@
 import ast
 import re
 import unittest
-from ast import Expr, Num, parse
+from ast import Expr, FunctionDef, Num, Pass, parse
 
-from beanmachine.ppl.utils.ast_patterns import add, ast_domain, binop, expr, num
-from beanmachine.ppl.utils.patterns import PredicatePattern, match_every
+from beanmachine.ppl.utils.ast_patterns import (
+    add,
+    ast_domain,
+    binop,
+    expr,
+    function_def,
+    name,
+    num,
+)
+from beanmachine.ppl.utils.patterns import (
+    ListAny,
+    PredicatePattern,
+    anyPattern as _default,
+    match_every,
+)
 from beanmachine.ppl.utils.rules import (
     ListEdit,
     PatternRule,
@@ -247,3 +260,49 @@ try_once(
         t = ast.parse("0; 1; 2; 3; 4; 5 + 6")
         result = _all(_all(if_then(even, add_one)))(t).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(ast.parse("1; 1; 3; 3; 5; 5 + 6")))
+
+    def test_find_samples(self) -> None:
+        """Find all the functions that have a decorator, delete everything else."""
+
+        self.maxDiff = None
+        _all = ast_domain.all_children
+
+        rule = pattern_rules(
+            [
+                (
+                    function_def(decorator_list=ListAny(name(id="sample"))),
+                    lambda f: FunctionDef(
+                        name=f.name,
+                        args=f.args,
+                        body=[Pass()],
+                        returns=None,
+                        decorator_list=[],
+                    ),
+                ),
+                (_default, lambda x: remove_from_list),
+            ]
+        )
+        source = """
+# foo.py
+@sample
+def bias() -> Beta:
+    return Beta(1, 1)
+
+@sample
+def toss(i) -> Bernoulli:
+    return Bernoulli(bias())
+
+def foo():
+    return 123
+        """
+
+        expected = """
+def bias():
+    pass
+
+def toss(i):
+    pass
+        """
+        m = ast.parse(source)
+        result = _all(_all(rule))(m).expect_success()
+        self.assertEqual(ast.dump(result), ast.dump(ast.parse(expected)))
