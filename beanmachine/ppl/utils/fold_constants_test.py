@@ -41,16 +41,13 @@ x = 1 if not ((True or False) and True) else 2
         # I've added a rule to the constant folder that detects comparisons
         # where *all* the operands are constant numbers and lowers them first
         # into the binary operator form, and lowers the binary operator form
-        # to True or False.
-        #
-        # The result here illustrates that adding rules that produce intermediate
-        # nodes can cause us to stop reaching a fixpoint. Previous to adding comparison
-        # folding, the constant folder would always reach a fixpoint after a single
-        # bottom-up pass, but now that bottom-up pass can leave nodes behind
-        # that can be further optimized. We'll fix this in a subsequent diff.
+        # to True or False. In the example below, we first lower to
+        # "1 < 2 and 2 < 3", then recurse to produce "True and True", and then
+        # we run the constant folding rule on the node again to produce True.
+        # This gets us to a fixpoint.
 
         source = """1 < 2 < 3"""
         m = ast.parse(source)
         result = fold(m)
-        expected = "True and True"
+        expected = "True"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())

@@ -30,6 +30,7 @@ from beanmachine.ppl.utils.rules import (
     PatternRule,
     Recursive,
     Rule,
+    TryMany as many,
     TryOnce as once,
     list_member_children,
     pattern_rules,
@@ -42,11 +43,12 @@ _bottom_up = ast_domain.bottom_up
 # TODO: Fold operations on constant tensors.
 # TODO: Fold matmul?
 
+##########
+#
 # These operations fold expressions that are entirely constant. Folding expressions
 # such as "x and true" to "x" will be a different pass.
-
-# TODO: For the associative operations, turn "nonconst + const + const" into
-# TODO: "const + const + nonconst" first, so that the constants can be folded.
+#
+##########
 
 _fold_arithmetic: Rule = pattern_rules(
     [
@@ -224,7 +226,12 @@ _fold_constants = first(
     "fold_constants",
 )
 
-_fold_all_constants: Rule = _bottom_up(once(_fold_constants), "fold_all_constants")
+# We have a rule that turns "1 < 2 < 3" into "True and True", which means that
+# a straightforward "run the rule once on every node, leaves to root" does not
+# necessarily reach a fixpoint. However, running the rule *many* times on
+# each node, *until it fails*, does produce a fixpoint.
+
+_fold_all_constants: Rule = _bottom_up(many(_fold_constants), "fold_all_constants")
 
 # Python parses "-1" as UnaryOp(USub, Num(1)). We need to fold that to Num(-1)
 # so that we can fold expressions like (-2)*(3). But we should then turn that
