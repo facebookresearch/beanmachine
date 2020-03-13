@@ -81,6 +81,10 @@ uadd: Pattern = ast.UAdd
 usub: Pattern = ast.USub
 
 
+def assign(targets: Pattern = _any, value: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.Assign, [("targets", targets), ("value", value)])
+
+
 def attribute(
     value: Pattern = _any, attr: Pattern = _any, ctx: Pattern = _any
 ) -> Pattern:

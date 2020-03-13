@@ -17,17 +17,20 @@ class SingleAssignmentTest(unittest.TestCase):
         source = """
 def x():
     if a and b:
-        return 1 + 2
-    return 3 * 4
+        return 1 + x + 2
+    return 8 * y / (4 * z)
 """
         m = ast.parse(source)
         result = single_assignment(fold(m))
         expected = """
 def x():
     if a and b:
-        r1 = 3
+        a3 = 3
+        r1 = a3 + x
         return r1
-    r2 = 12
+    a5 = 2.0
+    a4 = a5 * y
+    r2 = a4 / z
     return r2
 """
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
