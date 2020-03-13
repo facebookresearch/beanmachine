@@ -8,17 +8,21 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_domain,
     ast_false,
     ast_true,
+    attribute,
     binop,
     bool_constant,
     boolop,
+    call,
     compare,
     if_exp,
     match_any,
+    name,
     negative_num,
     non_zero_num,
     num,
     unaryop,
 )
+from beanmachine.ppl.utils.ast_tools import with_args
 from beanmachine.ppl.utils.patterns import (
     HeadTail,
     ListAll,
@@ -50,8 +54,21 @@ _some_bottom_up = ast_domain.some_bottom_up
 _some_top_down = ast_domain.some_top_down
 _some = ast_domain.some_children
 
-# TODO: Fold operations on constant tensors.
 # TODO: Fold matmul?
+
+##########
+#
+# We will need a pattern that recognizes any constant tensor.
+# For now, let's just recognize the pattern where we have a
+# call to "tensor" where the lone argument is a constant number.
+#
+##########
+
+_tensor_name: Pattern = name(id=match_any("tensor", "Tensor"))
+
+_constant_tensor_1: Pattern = call(
+    func=match_any(attribute(attr=_tensor_name), _tensor_name), args=[num()]
+)
 
 ##########
 #
@@ -63,51 +80,217 @@ _some = ast_domain.some_children
 _fold_arithmetic: Rule = pattern_rules(
     [
         (unaryop(op=ast.USub, operand=num()), lambda u: ast.Num(-u.operand.n)),
+        (
+            unaryop(op=ast.USub, operand=_constant_tensor_1),
+            lambda u: with_args(u.operand, [ast.Num(-u.operand.args[0].n)]),
+        ),
         (unaryop(op=ast.UAdd, operand=num()), lambda u: ast.Num(+u.operand.n)),
+        (
+            unaryop(op=ast.UAdd, operand=_constant_tensor_1),
+            lambda u: with_args(u.operand, [ast.Num(+u.operand.args[0].n)]),
+        ),
         (unaryop(op=ast.Invert, operand=num()), lambda u: ast.Num(~u.operand.n)),
+        (
+            unaryop(op=ast.Invert, operand=_constant_tensor_1),
+            lambda u: with_args(u.operand, [ast.Num(~u.operand.args[0].n)]),
+        ),
         (
             binop(op=ast.Add, left=num(), right=num()),
             lambda b: ast.Num(b.left.n + b.right.n),
+        ),
+        (
+            binop(op=ast.Add, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n + u.right.n)]),
+        ),
+        (
+            binop(op=ast.Add, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n + u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.Add, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n + u.right.args[0].n)]
+            ),
         ),
         (
             binop(op=ast.BitAnd, left=num(), right=num()),
             lambda b: ast.Num(b.left.n & b.right.n),
         ),
         (
+            binop(op=ast.BitAnd, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n & u.right.n)]),
+        ),
+        (
+            binop(op=ast.BitAnd, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n & u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.BitAnd, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n & u.right.args[0].n)]
+            ),
+        ),
+        (
             binop(op=ast.BitOr, left=num(), right=num()),
             lambda b: ast.Num(b.left.n | b.right.n),
+        ),
+        (
+            binop(op=ast.BitOr, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n | u.right.n)]),
+        ),
+        (
+            binop(op=ast.BitOr, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n | u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.BitOr, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n | u.right.args[0].n)]
+            ),
         ),
         (
             binop(op=ast.BitXor, left=num(), right=num()),
             lambda b: ast.Num(b.left.n ^ b.right.n),
         ),
         (
+            binop(op=ast.BitXor, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n ^ u.right.n)]),
+        ),
+        (
+            binop(op=ast.BitXor, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n ^ u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.BitXor, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n ^ u.right.args[0].n)]
+            ),
+        ),
+        (
             binop(op=ast.Div, left=num(), right=non_zero_num),
             lambda b: ast.Num(b.left.n / b.right.n),
+        ),
+        (
+            binop(op=ast.Div, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n / u.right.n)]),
+        ),
+        (
+            binop(op=ast.Div, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n / u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.Div, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n / u.right.args[0].n)]
+            ),
         ),
         (
             binop(op=ast.LShift, left=num(), right=num()),
             lambda b: ast.Num(b.left.n << b.right.n),
         ),
         (
+            binop(op=ast.LShift, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n << u.right.n)]),
+        ),
+        (
+            binop(op=ast.LShift, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n << u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.LShift, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n << u.right.args[0].n)]
+            ),
+        ),
+        (
             binop(op=ast.Mod, left=num(), right=non_zero_num),
             lambda b: ast.Num(b.left.n % b.right.n),
+        ),
+        (
+            binop(op=ast.Mod, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n % u.right.n)]),
+        ),
+        (
+            binop(op=ast.Mod, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n % u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.Mod, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n % u.right.args[0].n)]
+            ),
         ),
         (
             binop(op=ast.Mult, left=num(), right=num()),
             lambda b: ast.Num(b.left.n * b.right.n),
         ),
         (
+            binop(op=ast.Mult, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n * u.right.n)]),
+        ),
+        (
+            binop(op=ast.Mult, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n * u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.Mult, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n * u.right.args[0].n)]
+            ),
+        ),
+        (
             binop(op=ast.Pow, left=num(), right=num()),
             lambda b: ast.Num(b.left.n ** b.right.n),
+        ),
+        (
+            binop(op=ast.Pow, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n ** u.right.n)]),
+        ),
+        (
+            binop(op=ast.Pow, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n ** u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.Pow, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n ** u.right.args[0].n)]
+            ),
         ),
         (
             binop(op=ast.RShift, left=num(), right=num()),
             lambda b: ast.Num(b.left.n >> b.right.n),
         ),
         (
+            binop(op=ast.RShift, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n << u.right.n)]),
+        ),
+        (
+            binop(op=ast.RShift, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n << u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.RShift, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n << u.right.args[0].n)]
+            ),
+        ),
+        (
             binop(op=ast.Sub, left=num(), right=num()),
             lambda b: ast.Num(b.left.n - b.right.n),
+        ),
+        (
+            binop(op=ast.Sub, left=_constant_tensor_1, right=num()),
+            lambda u: with_args(u.left, [ast.Num(u.left.args[0].n - u.right.n)]),
+        ),
+        (
+            binop(op=ast.Sub, left=num(), right=_constant_tensor_1),
+            lambda u: with_args(u.left, [ast.Num(u.left.n - u.right.args[0].n)]),
+        ),
+        (
+            binop(op=ast.Sub, left=_constant_tensor_1, right=_constant_tensor_1),
+            lambda u: with_args(
+                u.left, [ast.Num(u.left.args[0].n - u.right.args[0].n)]
+            ),
         ),
     ],
     "fold_arithmetic",
@@ -359,15 +542,17 @@ _fix_associative_ops = _some_top_down(at_least_once(_associate_to_left))
 # moves the constant deeper into the tree.
 
 _ops_match_left: Pattern = PredicatePattern(lambda b: isinstance(b.op, type(b.left.op)))
-_not_a_constant_number: Pattern = negate(num())
+_is_constant = match_any(num(), _constant_tensor_1)
+_not_a_constant_number: Pattern = negate(_is_constant)
+
 _const_to_right: Rule = pattern_rules(
     [
         (
             match_every(
                 binop(
                     op=_associative_operator,
-                    left=binop(op=_associative_operator, right=num()),
-                    right=num(),
+                    left=binop(op=_associative_operator, right=_is_constant),
+                    right=_is_constant,
                 ),
                 _ops_match_left,
             ),
@@ -379,7 +564,11 @@ _const_to_right: Rule = pattern_rules(
         ),
         (
             # x - c1 + c2 => x + (c2 - c1)
-            binop(left=binop(op=ast.Sub, right=num()), op=ast.Add, right=num()),
+            binop(
+                left=binop(op=ast.Sub, right=_is_constant),
+                op=ast.Add,
+                right=_is_constant,
+            ),
             lambda b: ast.BinOp(
                 left=b.left.left,
                 op=ast.Add(),
@@ -388,7 +577,11 @@ _const_to_right: Rule = pattern_rules(
         ),
         (
             # x - c1 - c2 => x - (c1 + c2)
-            binop(left=binop(op=ast.Sub, right=num()), op=ast.Sub, right=num()),
+            binop(
+                left=binop(op=ast.Sub, right=_is_constant),
+                op=ast.Sub,
+                right=_is_constant,
+            ),
             lambda b: ast.BinOp(
                 left=b.left.left,
                 op=ast.Sub(),
@@ -397,7 +590,11 @@ _const_to_right: Rule = pattern_rules(
         ),
         (
             # x + c1 - c2 => x + (c1 - c2)
-            binop(left=binop(op=ast.Add, right=num()), op=ast.Sub, right=num()),
+            binop(
+                left=binop(op=ast.Add, right=_is_constant),
+                op=ast.Sub,
+                right=_is_constant,
+            ),
             lambda b: ast.BinOp(
                 left=b.left.left,
                 op=ast.Add(),
@@ -406,7 +603,11 @@ _const_to_right: Rule = pattern_rules(
         ),
         (
             # x / c1 * c2 => x * (c2 / c1)
-            binop(left=binop(op=ast.Div, right=num()), op=ast.Mult, right=num()),
+            binop(
+                left=binop(op=ast.Div, right=_is_constant),
+                op=ast.Mult,
+                right=_is_constant,
+            ),
             lambda b: ast.BinOp(
                 left=b.left.left,
                 op=ast.Mult(),
@@ -415,7 +616,11 @@ _const_to_right: Rule = pattern_rules(
         ),
         (
             # x / c1 / c2 => x / (c1 * c2)
-            binop(left=binop(op=ast.Div, right=num()), op=ast.Div, right=num()),
+            binop(
+                left=binop(op=ast.Div, right=_is_constant),
+                op=ast.Div,
+                right=_is_constant,
+            ),
             lambda b: ast.BinOp(
                 left=b.left.left,
                 op=ast.Div(),
@@ -424,7 +629,11 @@ _const_to_right: Rule = pattern_rules(
         ),
         (
             # x * c1 / c2 => x * (c1 / c2)
-            binop(left=binop(op=ast.Mult, right=num()), op=ast.Div, right=num()),
+            binop(
+                left=binop(op=ast.Mult, right=_is_constant),
+                op=ast.Div,
+                right=_is_constant,
+            ),
             lambda b: ast.BinOp(
                 left=b.left.left,
                 op=ast.Mult(),
@@ -441,7 +650,7 @@ _const_to_left: Rule = pattern_rules(
                 binop(
                     op=_associative_operator,
                     left=binop(op=_associative_operator, right=_not_a_constant_number),
-                    right=num(),
+                    right=_is_constant,
                 ),
                 _ops_match_left,
             ),
@@ -456,7 +665,7 @@ _const_to_left: Rule = pattern_rules(
             binop(
                 left=binop(op=ast.Sub, right=_not_a_constant_number),
                 op=ast.Add,
-                right=num(),
+                right=_is_constant,
             ),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left.left, op=ast.Add(), right=b.right),
@@ -469,7 +678,7 @@ _const_to_left: Rule = pattern_rules(
             binop(
                 left=binop(op=ast.Sub, right=_not_a_constant_number),
                 op=ast.Sub,
-                right=num(),
+                right=_is_constant,
             ),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left.left, op=ast.Sub(), right=b.right),
@@ -482,7 +691,7 @@ _const_to_left: Rule = pattern_rules(
             binop(
                 left=binop(op=ast.Add, right=_not_a_constant_number),
                 op=ast.Sub,
-                right=num(),
+                right=_is_constant,
             ),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left.left, op=ast.Sub(), right=b.right),
@@ -495,7 +704,7 @@ _const_to_left: Rule = pattern_rules(
             binop(
                 left=binop(op=ast.Div, right=_not_a_constant_number),
                 op=ast.Mult,
-                right=num(),
+                right=_is_constant,
             ),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left.left, op=ast.Mult(), right=b.right),
@@ -508,7 +717,7 @@ _const_to_left: Rule = pattern_rules(
             binop(
                 left=binop(op=ast.Div, right=_not_a_constant_number),
                 op=ast.Div,
-                right=num(),
+                right=_is_constant,
             ),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left.left, op=ast.Div(), right=b.right),
@@ -521,7 +730,7 @@ _const_to_left: Rule = pattern_rules(
             binop(
                 left=binop(op=ast.Mult, right=_not_a_constant_number),
                 op=ast.Div,
-                right=num(),
+                right=_is_constant,
             ),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left.left, op=ast.Div(), right=b.right),

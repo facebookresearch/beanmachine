@@ -81,6 +81,14 @@ uadd: Pattern = ast.UAdd
 usub: Pattern = ast.USub
 
 
+def attribute(
+    value: Pattern = _any, attr: Pattern = _any, ctx: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.Attribute, [("value", value), ("attr", attr), ("ctx", ctx)]
+    )
+
+
 def binop(op: Pattern = _any, left: Pattern = _any, right: Pattern = _any) -> Pattern:
     return type_and_attributes(
         ast.BinOp, [("op", op), ("left", left), ("right", right)]

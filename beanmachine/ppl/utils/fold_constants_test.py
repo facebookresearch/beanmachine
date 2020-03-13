@@ -4,7 +4,6 @@ import ast
 import unittest
 
 import astor
-from beanmachine.ppl.utils.ast_patterns import ast_domain
 from beanmachine.ppl.utils.fold_constants import (
     _fix_associative_ops,
     _move_constants,
@@ -98,4 +97,12 @@ x = 1 if not ((True or False) and True) else 2
         m = ast.parse(source)
         result = fold(m)
         expected = "x + 5 + 12 * y"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_constant_fold_4(self) -> None:
+        """Tests for fold_constants.py"""
+        source = """-tensor(1) + x + tensor(2) + 3 + tensor(4) * y * tensor(5)"""
+        m = ast.parse(source)
+        result = fold(m)
+        expected = "tensor(4) + x + tensor(20) * y"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())

@@ -2,6 +2,7 @@
 """Debugging tools for working with ASTs"""
 
 import ast
+import copy
 from ast import AST
 from typing import Any, List, Tuple
 
@@ -37,3 +38,9 @@ def print_graph(node: AST) -> str:
         return []
 
     return db.print_graph([node], get_children, None, _get_name)
+
+
+def with_args(node: ast.Call, args: List) -> ast.Call:
+    c: ast.Call = copy.copy(node)
+    c.args = args
+    return c
