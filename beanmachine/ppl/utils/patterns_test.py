@@ -13,7 +13,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     name_constant,
     num,
 )
-from beanmachine.ppl.utils.patterns import ListAll, ListAny, negate
+from beanmachine.ppl.utils.patterns import HeadTail, ListAll, ListAny, negate
 
 
 def tidy(s: str) -> str:
@@ -107,4 +107,16 @@ test.body.all(x:(isinstance(x, Expr) and isinstance(x.value, Compare))))
         result = p(ast.parse("1 + 2; x is None"))
         self.assertTrue(result.is_fail())
         result = p(ast.parse("x is None; y is None"))
+        self.assertTrue(result.is_success())
+
+        # This pattern says that the body is a list where the head
+        # is a binop statement and the tail is empty; that is, there
+        # is only one item in the list. We could match any list pattern
+        # against the tail.
+        p = module(HeadTail(expr(binop()), []))
+        result = p(ast.parse("1 + 2; x is None"))
+        self.assertTrue(result.is_fail())
+        result = p(ast.parse("x is None"))
+        self.assertTrue(result.is_fail())
+        result = p(ast.parse("1 + 2"))
         self.assertTrue(result.is_success())

@@ -22,7 +22,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 # of those were.
 
 
-# TODO: List comprehension patterns
 # TODO: Tensor comprehension patterns
 
 
@@ -498,6 +497,46 @@ class EmptyListPattern(PatternBase):
 
     def _to_str(self, test: str) -> str:
         return f"{test}==[]"
+
+
+class HeadTail(PatternBase):
+    """This combinator takes a pattern to match the head of a list and
+    a pattern to match the tail. If the list is empty, it automatically
+    fails; otherwise both patterns must match.  The tail pattern is not
+    attempted if the head pattern fails."""
+
+    name: str
+    head: Pattern
+    tail: Pattern
+
+    def __init__(
+        self,
+        head: Pattern = anyPattern,
+        tail: Pattern = anyPattern,
+        name: str = "head_tail",
+    ) -> None:
+        self.name = name
+        self.head = head
+        self.tail = tail
+
+    def match(self, test: Any) -> MatchResult:
+        if not isinstance(test, list) or len(test) == 0:
+            return Fail(test)
+        # Python allows this interesting list destructuring:
+        h, *t = test
+        head_result = match(self.head, h)
+        if head_result.is_fail():
+            return Fail(test, {"head": h})
+        tail_result = match(self.tail, t)
+        submatches = {"head": head_result, "tail": tail_result}
+        if tail_result.is_fail():
+            return Fail(test, submatches)
+        return Success(test, submatches)
+
+    def _to_str(self, test: str) -> str:
+        h = to_pattern(self.head)._to_str(test + "[0]")
+        t = to_pattern(self.tail)._to_str(test + "[1:]")
+        return f"{h} and {t}"
 
 
 class ListPattern(PatternBase):
