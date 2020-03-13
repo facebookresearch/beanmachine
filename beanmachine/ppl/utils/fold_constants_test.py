@@ -4,7 +4,13 @@ import ast
 import unittest
 
 import astor
-from beanmachine.ppl.utils.fold_constants import _fix_associative_ops, fold
+from beanmachine.ppl.utils.ast_patterns import ast_domain
+from beanmachine.ppl.utils.fold_constants import (
+    _fix_associative_ops,
+    _move_constants,
+    fold,
+)
+from beanmachine.ppl.utils.rules import TryMany as many
 
 
 class ConstantFoldTest(unittest.TestCase):
@@ -70,4 +76,18 @@ x = 1 if not ((True or False) and True) else 2
         m = ast.parse(source)
         result = _fix_associative_ops(m).expect_success()
         expected = "a / b * c / d * e * f * g * h / i"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # We should be able to fold constants in expressions like this by
+        # first fixing the associative operators...
+        source = """((a - 2) + (b - 3)) + ((c + 4 + 5) - (6 + d - 7))"""
+        m = ast.parse(source)
+        assoc_fixed = _fix_associative_ops(m).expect_success()
+        expected = "a - 2 + b - 3 + c + 4 + 5 - 6 - d + 7"
+        self.assertEqual(astor.to_source(assoc_fixed).strip(), expected.strip())
+
+        # ... and then creating a fixpoint combinator on _move_constants:
+        some_td = ast_domain.some_top_down
+        result = many(some_td(_move_constants))(assoc_fixed).expect_success()
+        expected = "a + 5 + b + c - d"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())

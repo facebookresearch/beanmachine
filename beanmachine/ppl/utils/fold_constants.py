@@ -26,6 +26,7 @@ from beanmachine.ppl.utils.patterns import (
     PredicatePattern,
     anyPattern as _any,
     match_every,
+    negate,
     nonEmptyList,
 )
 from beanmachine.ppl.utils.rules import (
@@ -45,6 +46,7 @@ from beanmachine.ppl.utils.rules import (
 _all = ast_domain.all_children
 _bottom_up = ast_domain.bottom_up
 _some_top_down = ast_domain.some_top_down
+_some = ast_domain.some_children
 
 # TODO: Fold operations on constant tensors.
 # TODO: Fold matmul?
@@ -258,6 +260,7 @@ _associate_to_left: Rule = pattern_rules(
                 binop(op=_associative_operator, right=binop(op=_associative_operator)),
                 _ops_match_right,
             ),
+            # x op (y op z) => x op y op z
             lambda b: ast.BinOp(
                 op=b.op,
                 left=ast.BinOp(op=b.op, left=b.left, right=b.right.left),
@@ -265,6 +268,7 @@ _associate_to_left: Rule = pattern_rules(
             ),
         ),
         (
+            # x - (y - z) => x - y + z
             binop(op=ast.Sub, right=binop(op=ast.Sub)),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left, op=ast.Sub(), right=b.right.left),
@@ -273,6 +277,7 @@ _associate_to_left: Rule = pattern_rules(
             ),
         ),
         (
+            # x - (y + z) => x - y - z
             binop(op=ast.Sub, right=binop(op=ast.Add)),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left, op=ast.Sub(), right=b.right.left),
@@ -281,6 +286,7 @@ _associate_to_left: Rule = pattern_rules(
             ),
         ),
         (
+            # x + (y - z) => x + y - z
             binop(op=ast.Add, right=binop(op=ast.Sub)),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left, op=ast.Add(), right=b.right.left),
@@ -289,6 +295,7 @@ _associate_to_left: Rule = pattern_rules(
             ),
         ),
         (
+            # x / (y / z) => x / y * z
             binop(op=ast.Div, right=binop(op=ast.Div)),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left, op=ast.Div(), right=b.right.left),
@@ -297,6 +304,7 @@ _associate_to_left: Rule = pattern_rules(
             ),
         ),
         (
+            # x / (y * z) => x / y / z
             binop(op=ast.Div, right=binop(op=ast.Mult)),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left, op=ast.Div(), right=b.right.left),
@@ -305,6 +313,7 @@ _associate_to_left: Rule = pattern_rules(
             ),
         ),
         (
+            # x * (y / z) => x * y / z
             binop(op=ast.Mult, right=binop(op=ast.Div)),
             lambda b: ast.BinOp(
                 left=ast.BinOp(left=b.left, op=ast.Mult(), right=b.right.left),
@@ -324,6 +333,219 @@ _associate_to_left: Rule = pattern_rules(
 
 _fix_associative_ops = many(_some_top_down(at_least_once(_associate_to_left)))
 # This always succeeds and reaches a fixpoint.
+
+# Second, we can make two new rules, where C is "constant" and N is "not constant":
+#
+# (X + C1) + C2 => X + (C1 + C2)
+# (X + N) + C   => (X + C) + N
+#
+# and then we have a fold opportunity on the new children. By repeatedly applying
+# these rules to an expression in its normal form we gradually eliminate all the
+# folding possibilities and reach a fixpoint.
+#
+# That is, in our example we will go from x + 1 + y + 2 to:
+#
+# x + 1 + 2 + y
+# x + (1 + 2) + y
+# x + 3 + y
+#
+# and now we can't go further.
+#
+# Plainly we wish to apply this rule from top to bottom, since the second operation
+# moves the constant deeper into the tree.
+
+_ops_match_left: Pattern = PredicatePattern(lambda b: isinstance(b.op, type(b.left.op)))
+_not_a_constant_number: Pattern = negate(num())
+_const_to_right: Rule = pattern_rules(
+    [
+        (
+            match_every(
+                binop(
+                    op=_associative_operator,
+                    left=binop(op=_associative_operator, right=num()),
+                    right=num(),
+                ),
+                _ops_match_left,
+            ),
+            lambda b: ast.BinOp(
+                op=b.op,
+                left=b.left.left,
+                right=ast.BinOp(op=b.op, left=b.left.right, right=b.right),
+            ),
+        ),
+        (
+            # x - c1 + c2 => x + (c2 - c1)
+            binop(left=binop(op=ast.Sub, right=num()), op=ast.Add, right=num()),
+            lambda b: ast.BinOp(
+                left=b.left.left,
+                op=ast.Add(),
+                right=ast.BinOp(left=b.right, op=ast.Sub(), right=b.left.right),
+            ),
+        ),
+        (
+            # x - c1 - c2 => x - (c1 + c2)
+            binop(left=binop(op=ast.Sub, right=num()), op=ast.Sub, right=num()),
+            lambda b: ast.BinOp(
+                left=b.left.left,
+                op=ast.Sub(),
+                right=ast.BinOp(left=b.left.right, op=ast.Add(), right=b.right),
+            ),
+        ),
+        (
+            # x + c1 - c2 => x + (c1 - c2)
+            binop(left=binop(op=ast.Add, right=num()), op=ast.Sub, right=num()),
+            lambda b: ast.BinOp(
+                left=b.left.left,
+                op=ast.Add(),
+                right=ast.BinOp(left=b.left.right, op=ast.Sub(), right=b.right),
+            ),
+        ),
+        (
+            # x / c1 * c2 => x * (c2 / c1)
+            binop(left=binop(op=ast.Div, right=num()), op=ast.Mult, right=num()),
+            lambda b: ast.BinOp(
+                left=b.left.left,
+                op=ast.Mult(),
+                right=ast.BinOp(left=b.right, op=ast.Div(), right=b.left.right),
+            ),
+        ),
+        (
+            # x / c1 / c2 => x / (c1 * c2)
+            binop(left=binop(op=ast.Div, right=num()), op=ast.Div, right=num()),
+            lambda b: ast.BinOp(
+                left=b.left.left,
+                op=ast.Div(),
+                right=ast.BinOp(left=b.left.right, op=ast.Mult(), right=b.right),
+            ),
+        ),
+        (
+            # x * c1 / c2 => x * (c1 / c2)
+            binop(left=binop(op=ast.Mult, right=num()), op=ast.Div, right=num()),
+            lambda b: ast.BinOp(
+                left=b.left.left,
+                op=ast.Mult(),
+                right=ast.BinOp(left=b.left.right, op=ast.Div(), right=b.right),
+            ),
+        ),
+    ],
+    "const_to_right",
+)
+_const_to_left: Rule = pattern_rules(
+    [
+        (
+            match_every(
+                binop(
+                    op=_associative_operator,
+                    left=binop(op=_associative_operator, right=_not_a_constant_number),
+                    right=num(),
+                ),
+                _ops_match_left,
+            ),
+            lambda b: ast.BinOp(
+                op=b.op,
+                left=ast.BinOp(op=b.op, left=b.left.left, right=b.right),
+                right=b.left.right,
+            ),
+        ),
+        (
+            # x - n + c => x + c - n
+            binop(
+                left=binop(op=ast.Sub, right=_not_a_constant_number),
+                op=ast.Add,
+                right=num(),
+            ),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left.left, op=ast.Add(), right=b.right),
+                op=ast.Sub(),
+                right=b.left.right,
+            ),
+        ),
+        (
+            # x - n - c => x - c - n
+            binop(
+                left=binop(op=ast.Sub, right=_not_a_constant_number),
+                op=ast.Sub,
+                right=num(),
+            ),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left.left, op=ast.Sub(), right=b.right),
+                op=ast.Sub(),
+                right=b.left.right,
+            ),
+        ),
+        (
+            # x + n - c => x - c + n
+            binop(
+                left=binop(op=ast.Add, right=_not_a_constant_number),
+                op=ast.Sub,
+                right=num(),
+            ),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left.left, op=ast.Sub(), right=b.right),
+                op=ast.Add(),
+                right=b.left.right,
+            ),
+        ),
+        (
+            # x / n * c => x * c / n
+            binop(
+                left=binop(op=ast.Div, right=_not_a_constant_number),
+                op=ast.Mult,
+                right=num(),
+            ),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left.left, op=ast.Mult(), right=b.right),
+                op=ast.Div(),
+                right=b.left.right,
+            ),
+        ),
+        (
+            # x / n / c => x / c / n
+            binop(
+                left=binop(op=ast.Div, right=_not_a_constant_number),
+                op=ast.Div,
+                right=num(),
+            ),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left.left, op=ast.Div(), right=b.right),
+                op=ast.Div(),
+                right=b.left.right,
+            ),
+        ),
+        (
+            # x * n / c => x / c * n
+            binop(
+                left=binop(op=ast.Mult, right=_not_a_constant_number),
+                op=ast.Div,
+                right=num(),
+            ),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left.left, op=ast.Div(), right=b.right),
+                op=ast.Mult(),
+                right=b.left.right,
+            ),
+        ),
+    ],
+    "const_to_left",
+)
+
+# We want to move a constant around if we can; if we do, then we want to
+# try to apply a fold to the new children that were just created. Since
+# we might not be able to do a fold, if we can't find any children
+# that are foldable, we don't stress about it, we just keep going.
+
+# We can easily get in a situation where applying this rule once makes
+# it possible that it applies again, so we'll keep trying to do it until
+# we can no longer.
+
+_move_constants: Rule = at_least_once(
+    Compose(
+        first([_const_to_right, _const_to_left]),
+        once(_some(_fold_constants)),
+        "move_constants",
+    )
+)
+# This fails if we can't move a constant.
 
 # We have a rule that turns "1 < 2 < 3" into "True and True", which means that
 # a straightforward "run the rule once on every node, leaves to root" does not
