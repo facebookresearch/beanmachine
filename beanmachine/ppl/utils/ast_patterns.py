@@ -4,9 +4,13 @@ import ast
 from typing import Any, Dict
 
 from beanmachine.ppl.utils.patterns import (
+    ListAll as list_all,
+    MatchResult,
     Pattern,
+    PatternBase,
     PredicatePattern,
     anyPattern as _any,
+    match,
     match_any,
     match_every,
     negate,
@@ -140,10 +144,16 @@ def function_def(
     )
 
 
-def if_exp(test: Pattern = _any, body: Pattern = _any, orelse: Pattern = _any):
+def if_exp(
+    test: Pattern = _any, body: Pattern = _any, orelse: Pattern = _any
+) -> Pattern:
     return type_and_attributes(
         ast.IfExp, [("test", test), ("body", body), ("orelse", orelse)]
     )
+
+
+def ast_list(elts: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.List, [("elts", elts)])
 
 
 def module(body: Pattern = _any) -> Pattern:
@@ -174,16 +184,57 @@ def unaryop(op: Pattern = _any, operand: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.UnaryOp, [("op", op), ("operand", operand)])
 
 
-zero = match_any(num(0), num(0.0))
+zero: Pattern = match_any(num(0), num(0.0))
 
-non_zero_num = match_every(num(), negate(zero))
+number_constant: Pattern = ast.Num
 
-negative_num = match_every(num(), PredicatePattern(lambda n: n.n < 0))
+non_zero_num: Pattern = match_every(number_constant, negate(zero))
 
-ast_true = name_constant(True)
+negative_num: Pattern = match_every(
+    number_constant, PredicatePattern(lambda n: n.n < 0)
+)
 
-ast_false = name_constant(False)
+ast_true: Pattern = name_constant(True)
 
-bool_constant = match_any(ast_true, ast_false)
+ast_false: Pattern = name_constant(False)
 
-any_constant = match_any(num(), name_constant())
+bool_constant: Pattern = match_any(ast_true, ast_false)
+
+bool_constant: Pattern = match_any(ast_true, ast_false)
+
+any_constant: Pattern = match_any(number_constant, bool_constant)
+
+
+constant_list: PatternBase
+
+
+class ConstantList(PatternBase):
+    """A recursively-defined pattern which matches a list expression containing only
+    numeric literals, or lists of numeric literals, and so on."""
+
+    # Note that the empty list does match; that's by design.
+
+    def match(self, test: Any) -> MatchResult:
+        return match(
+            ast_list(elts=list_all(match_any(number_constant, constant_list))), test
+        )
+
+    def _to_str(self, test: str) -> str:
+        return f"{test} is a constant list"
+
+
+constant_list = ConstantList()
+
+tensor_name_str: Pattern = "tensor"
+tensor_name: Pattern = name(id=tensor_name_str)
+# TODO: Matches "tensor" and "foo.tensor"
+# TODO: Do we need to specifically match just torch? What if there is an alias?
+tensor_ctor: Pattern = match_any(attribute(attr=tensor_name_str), tensor_name)
+
+# Recognizes tensor(1)
+constant_tensor_1: Pattern = call(func=tensor_ctor, args=[number_constant])
+
+# Recognizes tensor(1), tensor([]), tensor([1, 2]), tensor([[1, 2], [3, 4]]) and so on
+constant_tensor_any: Pattern = call(
+    func=tensor_ctor, args=[match_any(number_constant, constant_list)]
+)

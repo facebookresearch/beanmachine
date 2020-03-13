@@ -11,6 +11,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_false,
     ast_true,
     binop,
+    constant_tensor_any,
     expr,
     function_def,
     name,
@@ -41,6 +42,10 @@ from beanmachine.ppl.utils.rules import (
 
 def tidy(s: str) -> str:
     return re.sub(" +", " ", s.replace("\n", " ")).strip()
+
+
+def first_expr(s: str) -> ast.AST:
+    return ast.parse(s).body[0].value
 
 
 class RulesTest(unittest.TestCase):
@@ -413,3 +418,22 @@ def toss(i):
         self.assertEqual(so(1).expect_success(), 2)
         self.assertEqual(so(3).expect_success(), 4)
         self.assertTrue(so(2).is_fail())
+
+    def test_rules_5(self) -> None:
+        """Tests for rules.py"""
+        self.maxDiff = None
+
+        self.assertTrue(
+            constant_tensor_any(first_expr("torch.tensor(1.0)")).is_success()
+        )
+        self.assertTrue(
+            constant_tensor_any(first_expr("tensor([1.0, 2.0])")).is_success()
+        )
+        self.assertTrue(
+            constant_tensor_any(first_expr("tensor([[1,2],[3,4]])")).is_success()
+        )
+        self.assertTrue(constant_tensor_any(first_expr("torch.tensor(w)")).is_fail())
+        self.assertTrue(constant_tensor_any(first_expr("tensor([y, 2.0])")).is_fail())
+        self.assertTrue(
+            constant_tensor_any(first_expr("tensor([[1,z],[3,4]])")).is_fail()
+        )
