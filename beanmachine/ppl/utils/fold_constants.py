@@ -35,6 +35,7 @@ from beanmachine.ppl.utils.rules import (
     PatternRule,
     Recursive,
     Rule,
+    SomeOf,
     TryMany as many,
     TryOnce as once,
     at_least_once,
@@ -45,6 +46,7 @@ from beanmachine.ppl.utils.rules import (
 
 _all = ast_domain.all_children
 _bottom_up = ast_domain.bottom_up
+_some_bottom_up = ast_domain.some_bottom_up
 _some_top_down = ast_domain.some_top_down
 _some = ast_domain.some_children
 
@@ -329,10 +331,12 @@ _associate_to_left: Rule = pattern_rules(
 #
 # We now need a way to apply this rule everywhere, repeatedly, until it can
 # no longer be applied. That is, we wish to reach a fixpoint of this
-# transformation. This combinator does so relatively efficiently:
+# transformation. However, we also still want to know if no progress is being
+# made. We can meet both of these needs like this:
 
-_fix_associative_ops = many(_some_top_down(at_least_once(_associate_to_left)))
-# This always succeeds and reaches a fixpoint.
+_fix_associative_ops = _some_top_down(at_least_once(_associate_to_left))
+# This fails if no progress is made. many(_fix_associative_ops) reaches a fixpoint
+# and always succeeds.
 
 # Second, we can make two new rules, where C is "constant" and N is "not constant":
 #
@@ -538,11 +542,13 @@ _const_to_left: Rule = pattern_rules(
 # it possible that it applies again, so we'll keep trying to do it until
 # we can no longer.
 
-_move_constants: Rule = at_least_once(
-    Compose(
-        first([_const_to_right, _const_to_left]),
-        once(_some(_fold_constants)),
-        "move_constants",
+_move_constants: Rule = _some_top_down(
+    at_least_once(
+        Compose(
+            first([_const_to_right, _const_to_left]),
+            once(_some(_fold_constants)),
+            "move_constants",
+        )
     )
 )
 # This fails if we can't move a constant.
@@ -552,7 +558,25 @@ _move_constants: Rule = at_least_once(
 # necessarily reach a fixpoint. However, running the rule *many* times on
 # each node, *until it fails*, does produce a fixpoint.
 
-_fold_all_constants: Rule = _bottom_up(many(_fold_constants), "fold_all_constants")
+# All right; let's put it all together. To fold, we need to:
+# (1) Canonicalize associative operators
+# (2) Move constants to the left in associative operators
+# (3) Fold constants
+# Each one of these rules fails if it does not make progress,
+# so the whole thing fails if it does not make progress.
+
+
+_fold_all_constants: Rule = many(
+    SomeOf(
+        [
+            _fix_associative_ops,
+            _move_constants,
+            _some_bottom_up(at_least_once(_fold_constants)),
+        ],
+        "fold_all_constants",
+    )
+)
+
 
 # Python parses "-1" as UnaryOp(USub, Num(1)). We need to fold that to Num(-1)
 # so that we can fold expressions like (-2)*(3). But we should then turn that

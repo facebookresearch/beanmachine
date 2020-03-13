@@ -62,19 +62,20 @@ x = 1 if not ((True or False) and True) else 2
         """Tests for fold_constants.py"""
         source = """a + (b + c * (d * (e + (f + g))))"""
         m = ast.parse(source)
-        result = _fix_associative_ops(m).expect_success()
+        fao = many(_fix_associative_ops)
+        result = fao(m).expect_success()
         expected = "a + b + c * d * (e + f + g)"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
         source = """(a - (b - c)) + (d - (e + f)) + (g + (h - i))"""
         m = ast.parse(source)
-        result = _fix_associative_ops(m).expect_success()
+        result = fao(m).expect_success()
         expected = "a - b + c + d - e - f + g + h - i"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
         source = """(a / (b / c)) / (d / (e * f)) * (g * (h / i))"""
         m = ast.parse(source)
-        result = _fix_associative_ops(m).expect_success()
+        result = fao(m).expect_success()
         expected = "a / b * c / d * e * f * g * h / i"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
@@ -82,12 +83,19 @@ x = 1 if not ((True or False) and True) else 2
         # first fixing the associative operators...
         source = """((a - 2) + (b - 3)) + ((c + 4 + 5) - (6 + d - 7))"""
         m = ast.parse(source)
-        assoc_fixed = _fix_associative_ops(m).expect_success()
+        assoc_fixed = fao(m).expect_success()
         expected = "a - 2 + b - 3 + c + 4 + 5 - 6 - d + 7"
         self.assertEqual(astor.to_source(assoc_fixed).strip(), expected.strip())
 
         # ... and then creating a fixpoint combinator on _move_constants:
-        some_td = ast_domain.some_top_down
-        result = many(some_td(_move_constants))(assoc_fixed).expect_success()
+        result = many(_move_constants)(assoc_fixed).expect_success()
         expected = "a + 5 + b + c - d"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_constant_fold_3(self) -> None:
+        """Tests for fold_constants.py"""
+        source = """x + (1 if (1 < 2 < (3 + 4)) else 2) * (3 * y * 4) + 5"""
+        m = ast.parse(source)
+        result = fold(m)
+        expected = "x + 5 + 12 * y"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
