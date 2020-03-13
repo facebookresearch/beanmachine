@@ -11,26 +11,34 @@ from beanmachine.ppl.utils.ast_patterns import (
     binop,
     bool_constant,
     boolop,
+    compare,
     if_exp,
     negative_num,
     non_zero_num,
     num,
     unaryop,
 )
-from beanmachine.ppl.utils.patterns import ListAll
+from beanmachine.ppl.utils.patterns import (
+    HeadTail,
+    ListAll,
+    anyPattern as _any,
+    nonEmptyList,
+)
 from beanmachine.ppl.utils.rules import (
     Compose,
     FirstMatch as first,
     PatternRule,
+    Recursive,
+    Rule,
     TryOnce as once,
+    list_member_children,
     pattern_rules,
 )
 
 
+_all = ast_domain.all_children
 _bottom_up = ast_domain.bottom_up
 
-# TODO: Comparison operators are strange in Python; we can do a fold on them
-# TODO: if we're clever.
 # TODO: Fold operations on constant tensors.
 # TODO: Fold matmul?
 
@@ -40,7 +48,7 @@ _bottom_up = ast_domain.bottom_up
 # TODO: For the associative operations, turn "nonconst + const + const" into
 # TODO: "const + const + nonconst" first, so that the constants can be folded.
 
-_fold_arithmetic = pattern_rules(
+_fold_arithmetic: Rule = pattern_rules(
     [
         (unaryop(op=ast.USub, operand=num()), lambda u: ast.Num(-u.operand.n)),
         (unaryop(op=ast.UAdd, operand=num()), lambda u: ast.Num(+u.operand.n)),
@@ -93,7 +101,7 @@ _fold_arithmetic = pattern_rules(
     "fold_arithmetic",
 )
 
-_fold_logic = pattern_rules(
+_fold_logic: Rule = pattern_rules(
     [
         (
             boolop(op=ast.And, values=ListAll(bool_constant)),
@@ -111,7 +119,7 @@ _fold_logic = pattern_rules(
     "fold_logic",
 )
 
-_fold_conditional = pattern_rules(
+_fold_conditional: Rule = pattern_rules(
     [
         (
             if_exp(test=ast_true, body=any_constant, orelse=any_constant),
@@ -125,11 +133,98 @@ _fold_conditional = pattern_rules(
     "fold_conditional",
 )
 
-_fold_constants = first(
-    [_fold_arithmetic, _fold_logic, _fold_conditional], "fold_constants"
+# If we have "1 < 2" then turn it into True.
+# If we have "1 < 2 < 3" then turn it into "1 < 2 and 2 < 3"
+_fold_comparison_once: Rule = pattern_rules(
+    [
+        (
+            compare(left=num(), ops=[ast.Eq], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n == c.comparators[0].n),
+        ),
+        (
+            compare(left=num(), ops=[ast.Gt], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n > c.comparators[0].n),
+        ),
+        (
+            compare(left=num(), ops=[ast.GtE], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n >= c.comparators[0].n),
+        ),
+        (
+            compare(left=num(), ops=[ast.Is], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n is c.comparators[0].n),
+        ),
+        (
+            compare(left=num(), ops=[ast.IsNot], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n is not c.comparators[0].n),
+        ),
+        (
+            compare(left=num(), ops=[ast.Lt], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n < c.comparators[0].n),
+        ),
+        (
+            compare(left=num(), ops=[ast.LtE], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n <= c.comparators[0].n),
+        ),
+        (
+            compare(left=num(), ops=[ast.NotEq], comparators=[num()]),
+            lambda c: ast.NameConstant(c.left.n != c.comparators[0].n),
+        ),
+        (
+            compare(
+                left=num(), ops=HeadTail(_any, nonEmptyList), comparators=ListAll(num())
+            ),
+            lambda c: ast.BoolOp(
+                op=ast.And(),
+                values=[
+                    ast.Compare(
+                        left=c.left, ops=[c.ops[0]], comparators=[c.comparators[0]]
+                    ),
+                    ast.Compare(
+                        left=c.comparators[0],
+                        ops=c.ops[1:],
+                        comparators=c.comparators[1:],
+                    ),
+                ],
+            ),
+        ),
+    ],
+    "fold_comparison",
 )
 
-_fold_all_constants = _bottom_up(once(_fold_constants), "fold_all_constants")
+# A couple notes on this rule construction, since this is our first rule that
+# does a recursive list transformation.
+
+# fold_comparison_once produces something that can have the optimization run again
+# on its children.  Since we produce a bool_op, which has a list as a child, say
+# that we're going to recurse on list members as children. Thus we'll need an
+# all(list_member_children) in here somewhere.  But how do we efficiently recurse
+# on the new children?
+
+# We don't want to say top_down(_fold_comparison_once) because that then fails
+# unless the rule applies to every node in the tree.  We don't want to say
+# top_down(once(_fold_comparison_once)) because then we do a complete tree
+# traversal every time this rule is applied, which is inefficient.  What we want
+# to say is: *if* the rule applies then apply it, and then *attempt* to apply
+# the rule again to the *immediate* children.  We'll make a new combinator
+# that does this "shallow" top-down traversal for us:
+
+
+def _shallow_top_down(rule: Rule) -> Rule:
+    return Compose(
+        rule,
+        _all(list_member_children(once(Recursive(lambda: _shallow_top_down(rule))))),
+    )
+
+
+_fold_comparisons: Rule = _shallow_top_down(_fold_comparison_once)
+
+
+_fold_constants = first(
+    [_fold_arithmetic, _fold_logic, _fold_conditional, _fold_comparisons],
+    "fold_constants",
+)
+
+_fold_all_constants: Rule = _bottom_up(once(_fold_constants), "fold_all_constants")
 
 # Python parses "-1" as UnaryOp(USub, Num(1)). We need to fold that to Num(-1)
 # so that we can fold expressions like (-2)*(3). But we should then turn that
@@ -139,7 +234,7 @@ _fix_unary_minus = PatternRule(
     negative_num, lambda n: ast.UnaryOp(op=ast.USub(), operand=ast.Num(-n.n))
 )
 
-_fix_all = _bottom_up(once(_fix_unary_minus))
+_fix_all: Rule = _bottom_up(once(_fix_unary_minus))
 
 _rules = Compose(_fold_all_constants, _fix_all)
 

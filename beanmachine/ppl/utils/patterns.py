@@ -499,6 +499,11 @@ class EmptyListPattern(PatternBase):
         return f"{test}==[]"
 
 
+emptyList = EmptyListPattern()
+
+nonEmptyList = match_every(list, negate(emptyList))
+
+
 class HeadTail(PatternBase):
     """This combinator takes a pattern to match the head of a list and
     a pattern to match the tail. If the list is empty, it automatically
