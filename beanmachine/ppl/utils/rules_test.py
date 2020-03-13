@@ -389,3 +389,16 @@ def toss(i):
 
         # If the rule applies to no node, then we fail.
         self.assertTrue(sometd(eob)(result).is_fail())
+
+        # The some_bottom_up combinator is the same as some_top_down but it
+        # works from leaves to root instead of root to leaves.
+
+        somebu = ast_domain.some_bottom_up
+
+        result = somebu(eob)(ast.parse("0 + 1 * 2 + 3")).expect_success()
+        expected = "2 + 2 * 2 + 3"
+        observed = astor.to_source(result)
+        self.assertEqual(observed.strip(), expected.strip())
+
+        # If the rule applies to no node, then we fail.
+        self.assertTrue(somebu(eob)(result).is_fail())

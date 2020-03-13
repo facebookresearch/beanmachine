@@ -847,6 +847,26 @@ class RuleDomain:
             self.some_children(Recursive(lambda: self.some_top_down(rule, name)), name),
         )
 
+    def some_bottom_up(self, rule: Rule, name: str = "some_bottom_up") -> Rule:
+        """The some-bottom-up combinator is like bottom_up, in that it applies a
+        rule to every node in the tree starting from the leaves. However, bottom_up
+        requires that the rule succeed for all nodes in the tree; some_bottom_up
+        applies the rule to as many nodes in the tree as possible, leaves alone
+        nodes for which it fails, and fails only if the rule applied to no node."""
+
+        # This combinator is particularly useful because it ensures that
+        # either progress is made, or the rule fails, and it makes as much
+        # progress as possible on each attempt.
+        #
+        # Note that many(some_bottom_up(rule)) is a fixpoint combinator.
+
+        return either_or_both(
+            self.some_children(
+                Recursive(lambda: self.some_bottom_up(rule, name)), name
+            ),
+            rule,
+        )
+
     # CONSIDER: Similarly.
     def down_then_up(
         self, pre_rule: Rule, post_rule: Rule, name: str = "down_then_up"
