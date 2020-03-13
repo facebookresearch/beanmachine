@@ -150,6 +150,9 @@ identity: Rule = projection_rule(_identity, "identity")
 # The fail rule is the rule that never succeeds.
 fail: Rule = PatternRule(failPattern, _identity, "fail")
 
+# This rule succeeds if the test is a list.
+is_list: Rule = PatternRule(list, _identity, "is_list")
+
 
 def pattern_rules(
     pairs: List[Tuple[Pattern, Callable[[Any], Any]]], name: str = "pattern_rules"
@@ -462,7 +465,44 @@ def _list_unchanged(xs: List[Any], ys: List[Any]) -> bool:
     return all(x is y for x, y in zip(xs, ys))
 
 
-class AllChildren(Rule):
+class AllListMembers(Rule):
+    """Apply a rule to all members.  Succeeds if the rule succeeds for all members,
+    and returns a list with the members replaced with the new values.
+    Otherwise, fails."""
+
+    rule: Rule
+
+    def __init__(self, rule: Rule, name: str = "all_children") -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+
+    def apply(self, test: Any) -> RuleResult:
+        # Easy outs:
+        if not isinstance(test, list):
+            return Fail(test)
+        if len(test) == 0:
+            return Success(test, test)
+        results = [self.rule.apply(child) for child in test]
+        # Were there any failures?
+        if any(result.is_fail() for result in results):
+            return Fail(test)
+        # Splice in any list edits.
+        new_values = list(_expand_edits(result.expect_success() for result in results))
+        # Is the resulting list different? If not, make sure the result is
+        # reference equal.
+        if _list_unchanged(new_values, test):
+            return Success(test, test)
+        # Everything succeeded but there was at least one different value.
+        return Success(test, new_values)
+
+    def __str__(self) -> str:
+        return f"all_list_members( {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return False
+
+
+class AllTermChildren(Rule):
     """Apply a rule to all children.  Succeeds if the rule succeeds for all children,
     and returns a constructed object with the children replaced with the new values.
     Otherwise, fails."""
@@ -483,26 +523,7 @@ class AllChildren(Rule):
         self.get_children = get_children
         self.construct = construct
 
-    def _apply_to_list(self, test: List[Any]) -> RuleResult:
-        # Easy out:
-        if len(test) == 0:
-            return Success(test, test)
-        results = [self.rule.apply(child) for child in test]
-        # Were there any failures?
-        if any(result.is_fail() for result in results):
-            return Fail(test)
-        # Splice in any list edits.
-        new_values = list(_expand_edits(result.expect_success() for result in results))
-        # Is the resulting list different? If not, make sure the result is
-        # reference equal.
-        if _list_unchanged(new_values, test):
-            return Success(test, test)
-        # Everything succeeded but there was at least one different value.
-        return Success(test, new_values)
-
     def apply(self, test: Any) -> RuleResult:
-        if isinstance(test, list):
-            return self._apply_to_list(test)
         children = self.get_children(test)
         # Easy out for leaves.
         if len(children) == 0:
@@ -524,10 +545,83 @@ class AllChildren(Rule):
         return Success(test, self.construct(type(test), new_values))
 
     def __str__(self) -> str:
+        return f"all_term_children( {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return self.rule.always_succeeds()
+
+
+# The wrapper is just to ensure that always_succeeds has the right semantics.
+class AllChildren(Rule):
+    """Apply a rule to all children or list members."""
+
+    rule: Rule
+    combined_rule: Rule
+
+    def __init__(
+        self,
+        rule: Rule,
+        get_children: Callable[[Any], Dict[str, Any]],
+        construct: Callable[[type, Dict[str, Any]], Any],
+        name: str = "all_children",
+    ) -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+        self.combined_rule = if_then(
+            is_list,
+            AllListMembers(rule),
+            AllTermChildren(rule, get_children, construct),
+        )
+
+    def apply(self, test: Any) -> RuleResult:
+        return self.combined_rule(test)
+
+    def __str__(self) -> str:
         return f"all_children( {str(self.rule)} )"
 
     def always_succeeds(self) -> bool:
         return self.rule.always_succeeds()
+
+
+class SomeListMembers(Rule):
+    """Apply a rule to all members.  Succeeds if the rule succeeds for one or
+    more members, and returns a list with the children replaced
+    with the new values. Otherwise, fails."""
+
+    rule: Rule
+
+    def __init__(self, rule: Rule, name: str = "some_list_members") -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+
+    def apply(self, test: Any) -> RuleResult:
+        # Easy outs:
+        if not isinstance(test, list):
+            return Fail(test)
+        if len(test) == 0:
+            return Fail(test)
+        results = [self.rule.apply(child) for child in test]
+        # Were there any successes?
+        if not any(result.is_success() for result in results):
+            return Fail(test)
+        # Splice in any list edits.
+        new_values = list(
+            _expand_edits(
+                result.expect_success() if result.is_success() else result.test
+                for result in results
+            )
+        )
+        # Were there any successes that returned a different value?
+        if _list_unchanged(new_values, test):
+            return Success(test, test)
+        # Everything succeeded but there was at least one different value.
+        return Success(test, new_values)
+
+    def __str__(self) -> str:
+        return f"some_list_members( {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return False
 
 
 class SomeChildren(Rule):
@@ -551,30 +645,7 @@ class SomeChildren(Rule):
         self.get_children = get_children
         self.construct = construct
 
-    def _apply_to_list(self, test: List[Any]) -> RuleResult:
-        # Easy out:
-        if len(test) == 0:
-            return Fail(test)
-        results = [self.rule.apply(child) for child in test]
-        # Were there any successes?
-        if not any(result.is_success() for result in results):
-            return Fail(test)
-        # Splice in any list edits.
-        new_values = list(
-            _expand_edits(
-                result.expect_success() if result.is_success() else result.test
-                for result in results
-            )
-        )
-        # Were there any successes that returned a different value?
-        if _list_unchanged(new_values, test):
-            return Success(test, test)
-        # Everything succeeded but there was at least one different value.
-        return Success(test, new_values)
-
     def apply(self, test: Any) -> RuleResult:
-        if isinstance(test, list):
-            return self._apply_to_list(test)
         children = self.get_children(test)
         # Easy out for leaves.
         if len(children) == 0:
@@ -601,10 +672,46 @@ class SomeChildren(Rule):
         return Success(test, self.construct(type(test), new_values))
 
     def __str__(self) -> str:
-        return f"all_children( {str(self.rule)} )"
+        return f"some_children( {str(self.rule)} )"
 
     def always_succeeds(self) -> bool:
-        return self.rule.always_succeeds()
+        # Fails if there are no children
+        return False
+
+
+class OneListMember(Rule):
+    """Apply a rule to all members until the first success.  Succeeds if it
+    finds one success and returns a list with the child replaced
+    with the new value. Otherwise, fails."""
+
+    rule: Rule
+
+    def __init__(self, rule: Rule, name: str = "one_child") -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+
+    def apply(self, test: Any) -> RuleResult:
+        if not isinstance(test, list):
+            return Fail(test)
+        for i, child in enumerate(test):
+            result = self.rule.apply(child)
+            if result.is_success():
+                new_value = result.expect_success()
+                if new_value is child:
+                    return Success(test, test)
+                new_values = test.copy()
+                new_values[i] = new_value
+                new_values = list(_expand_edits(new_values))
+                if _list_unchanged(new_values, test):
+                    return Success(test, test)
+                return Success(test, new_values)
+        return Fail(test)
+
+    def __str__(self) -> str:
+        return f"one_list_member( {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return False
 
 
 class OneChild(Rule):
@@ -628,24 +735,7 @@ class OneChild(Rule):
         self.get_children = get_children
         self.construct = construct
 
-    def _apply_to_list(self, test: List[Any]) -> RuleResult:
-        for i, child in enumerate(test):
-            result = self.rule.apply(child)
-            if result.is_success():
-                new_value = result.expect_success()
-                if new_value is child:
-                    return Success(test, test)
-                new_values = test.copy()
-                new_values[i] = new_value
-                new_values = list(_expand_edits(new_values))
-                if _list_unchanged(new_values, test):
-                    return Success(test, test)
-                return Success(test, new_values)
-        return Fail(test)
-
     def apply(self, test: Any) -> RuleResult:
-        if isinstance(test, list):
-            return self._apply_to_list(test)
         children = self.get_children(test)
         for child_name, child_value in children.items():
             result = self.rule.apply(child_value)
@@ -662,7 +752,7 @@ class OneChild(Rule):
         return f"one_child( {str(self.rule)} )"
 
     def always_succeeds(self) -> bool:
-        return self.rule.always_succeeds()
+        return False
 
 
 class RuleDomain:
@@ -681,10 +771,18 @@ class RuleDomain:
         return AllChildren(rule, self.get_children, self.construct, name)
 
     def some_children(self, rule: Rule, name: str = "some_children") -> Rule:
-        return SomeChildren(rule, self.get_children, self.construct, name)
+        return if_then(
+            is_list,
+            SomeListMembers(rule),
+            SomeChildren(rule, self.get_children, self.construct, name),
+        )
 
     def one_child(self, rule: Rule, name: str = "one_child") -> Rule:
-        return OneChild(rule, self.get_children, self.construct, name)
+        return if_then(
+            is_list,
+            OneListMember(rule),
+            OneChild(rule, self.get_children, self.construct, name),
+        )
 
     # CONSIDER: Should we implement a class for bottom-up traversal, so that
     # CONSIDER: there is a place to put a breakpoint, and so on?
