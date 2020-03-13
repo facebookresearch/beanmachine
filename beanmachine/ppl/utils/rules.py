@@ -164,6 +164,49 @@ def pattern_rules(
     return FirstMatch(rules)
 
 
+_exception = [Exception]
+
+
+class IgnoreException(Rule):
+    """Apply the given rule; if it throws an exception, the rule fails."""
+
+    rule: Rule
+    expected: List[type]
+
+    def __init__(
+        self, rule: Rule, expected: List[type] = _exception, name: str = "handle"
+    ) -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+        self.expected = expected
+
+    def apply(self, test: Any) -> RuleResult:
+        try:
+            return self.rule.apply(test)
+        except Exception as x:
+            if any(isinstance(x, t) for t in self.expected):
+                return Fail(test)
+            # We did not expect this exception; do not eat the bug.
+            raise
+
+    def __str__(self) -> str:
+        r = str(self.rule)
+        return f"ignore_exception( {r} )"
+
+    def always_succeeds(self) -> bool:
+        # Presumably you would not be wrapping a rule that never throws,
+        # so let's assume that this can fail.
+        return False
+
+
+def ignore_div_zero(rule: Rule) -> Rule:
+    return IgnoreException(rule, [ZeroDivisionError], "ignore_div_zero")
+
+
+def ignore_runtime_error(rule: Rule) -> Rule:
+    return IgnoreException(rule, [RuntimeError], "ignore_runtime_error")
+
+
 class Check(Rule):
     """Apply the given rule; if it fails, fail. If it succeeds, the result
     is the original test value, not the transformed value.  This is useful

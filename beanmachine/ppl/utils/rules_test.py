@@ -3,6 +3,7 @@
 import ast
 import re
 import unittest
+from typing import Any
 
 import astor
 from beanmachine.ppl.utils.ast_patterns import (
@@ -33,6 +34,8 @@ from beanmachine.ppl.utils.rules import (
     either_or_both,
     fail,
     if_then,
+    ignore_div_zero,
+    ignore_runtime_error,
     list_member_children,
     pattern_rules,
     projection_rule,
@@ -437,3 +440,23 @@ def toss(i):
         self.assertTrue(
             constant_tensor_any(first_expr("tensor([[1,z],[3,4]])")).is_fail()
         )
+
+    def test_rules_6(self) -> None:
+        """Tests for rules.py"""
+
+        # Sometimes a rule's projection will fail with an exception through
+        # no fault of our own; it can be expensive or impossible to detect
+        # a coming exception in some cases. In those cases we can use a combinator
+        # which causes rules that throw exceptions to fail rather than throw.
+
+        def always_throws(x: Any):
+            raise NotImplementedError()
+
+        self.maxDiff = None
+
+        d = ignore_div_zero(PatternRule([int, int], lambda l: l[0] / l[1]))
+        self.assertEquals(d([10, 5]).expect_success(), 2)
+        self.assertTrue(d([10, 0]).is_fail())
+
+        n = ignore_runtime_error(PatternRule(int, always_throws))
+        self.assertTrue(n(123).is_fail())
