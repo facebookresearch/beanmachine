@@ -3,6 +3,7 @@
 import ast
 from typing import Any, Dict
 
+import torch
 from beanmachine.ppl.utils.patterns import (
     ListAll as list_all,
     MatchResult,
@@ -200,10 +201,9 @@ ast_false: Pattern = name_constant(False)
 
 bool_constant: Pattern = match_any(ast_true, ast_false)
 
-bool_constant: Pattern = match_any(ast_true, ast_false)
+constant_literal: Pattern = match_any(number_constant, bool_constant)
 
-any_constant: Pattern = match_any(number_constant, bool_constant)
-
+any_list: Pattern = ast.List
 
 constant_list: PatternBase
 
@@ -216,7 +216,7 @@ class ConstantList(PatternBase):
 
     def match(self, test: Any) -> MatchResult:
         return match(
-            ast_list(elts=list_all(match_any(number_constant, constant_list))), test
+            ast_list(elts=list_all(match_any(constant_literal, constant_list))), test
         )
 
     def _to_str(self, test: str) -> str:
@@ -238,3 +238,46 @@ constant_tensor_1: Pattern = call(func=tensor_ctor, args=[number_constant])
 constant_tensor_any: Pattern = call(
     func=tensor_ctor, args=[match_any(number_constant, constant_list)]
 )
+
+# int, float, bool or tensor
+constant_numeric: Pattern = match_any(
+    number_constant, bool_constant, constant_tensor_any
+)
+
+
+def ast_to_constant_value(x: ast.AST) -> Any:
+    if match(number_constant, x).is_success():
+        assert isinstance(x, ast.Num)
+        return x.n
+    if match(bool_constant, x).is_success():
+        assert isinstance(x, ast.NameConstant)
+        return x.value
+    if match(constant_tensor_any, x).is_success():
+        assert isinstance(x, ast.Call)
+        return torch.tensor(ast_to_constant_value(x.args[0]))
+    if match(any_list, x).is_success():
+        assert isinstance(x, ast.List)
+        return [ast_to_constant_value(e) for e in x.elts]
+    raise TypeError()
+
+
+def constant_value_to_ast(x: Any) -> ast.AST:
+    # Note that the check for bool must go first, because for unknown reasons
+    # isinstance(True, int) is True.
+    if isinstance(x, bool):
+        return ast.NameConstant(value=x)
+    if isinstance(x, int) or isinstance(x, float):
+        return ast.Num(n=x)
+    if isinstance(x, torch.Tensor):
+        return ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id="torch", ctx=ast.Load()),
+                attr="tensor",
+                ctx=ast.Load(),
+            ),
+            args=[constant_value_to_ast(x.tolist())],
+            keywords=[],
+        )
+    if isinstance(x, list):
+        return ast.List(elts=[constant_value_to_ast(e) for e in x])
+    raise TypeError(f"Unexpected constant of type {str(type(x))}")

@@ -104,5 +104,21 @@ x = 1 if not ((True or False) and True) else 2
         source = """-tensor(1) + x + tensor(2) + 3 + tensor(4) * y * tensor(5)"""
         m = ast.parse(source)
         result = fold(m)
-        expected = "tensor(4) + x + tensor(20) * y"
+        expected = "torch.tensor(4) + x + torch.tensor(20) * y"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        source = """-tensor([1, 2]) + x + tensor([4, 8])"""
+        m = ast.parse(source)
+        result = fold(m)
+        expected = "torch.tensor([3, 6]) + x"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_constant_fold_5(self) -> None:
+        """Tests for fold_constants.py"""
+        # These tests produce errors, but folding should still succeed and
+        # reach a fixpoint.
+        source = """tensor([1, 2, 3]) + x + tensor([1, 2])"""
+        m = ast.parse(source)
+        result = fold(m)
+        expected = "tensor([1, 2, 3]) + tensor([1, 2]) + x"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
