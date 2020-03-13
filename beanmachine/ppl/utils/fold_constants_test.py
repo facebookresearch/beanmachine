@@ -59,3 +59,15 @@ x = 1 if not ((True or False) and True) else 2
         result = _fix_associative_ops(m).expect_success()
         expected = "a + b + c * d * (e + f + g)"
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        source = """(a - (b - c)) + (d - (e + f)) + (g + (h - i))"""
+        m = ast.parse(source)
+        result = _fix_associative_ops(m).expect_success()
+        expected = "a - b + c + d - e - f + g + h - i"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        source = """(a / (b / c)) / (d / (e * f)) * (g * (h / i))"""
+        m = ast.parse(source)
+        result = _fix_associative_ops(m).expect_success()
+        expected = "a / b * c / d * e * f * g * h / i"
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())

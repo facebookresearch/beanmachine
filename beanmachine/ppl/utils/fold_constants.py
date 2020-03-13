@@ -251,17 +251,72 @@ _associative_operator: Pattern = match_any(
 _ops_match_right: Pattern = PredicatePattern(
     lambda b: isinstance(b.op, type(b.right.op))
 )
-_associate_to_left: Rule = PatternRule(
-    match_every(
-        binop(op=_associative_operator, right=binop(op=_associative_operator)),
-        _ops_match_right,
-    ),
-    lambda b: ast.BinOp(
-        op=b.op,
-        left=ast.BinOp(op=b.op, left=b.left, right=b.right.left),
-        right=b.right.right,
-    ),
+_associate_to_left: Rule = pattern_rules(
+    [
+        (
+            match_every(
+                binop(op=_associative_operator, right=binop(op=_associative_operator)),
+                _ops_match_right,
+            ),
+            lambda b: ast.BinOp(
+                op=b.op,
+                left=ast.BinOp(op=b.op, left=b.left, right=b.right.left),
+                right=b.right.right,
+            ),
+        ),
+        (
+            binop(op=ast.Sub, right=binop(op=ast.Sub)),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left, op=ast.Sub(), right=b.right.left),
+                op=ast.Add(),
+                right=b.right.right,
+            ),
+        ),
+        (
+            binop(op=ast.Sub, right=binop(op=ast.Add)),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left, op=ast.Sub(), right=b.right.left),
+                op=ast.Sub(),
+                right=b.right.right,
+            ),
+        ),
+        (
+            binop(op=ast.Add, right=binop(op=ast.Sub)),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left, op=ast.Add(), right=b.right.left),
+                op=ast.Sub(),
+                right=b.right.right,
+            ),
+        ),
+        (
+            binop(op=ast.Div, right=binop(op=ast.Div)),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left, op=ast.Div(), right=b.right.left),
+                op=ast.Mult(),
+                right=b.right.right,
+            ),
+        ),
+        (
+            binop(op=ast.Div, right=binop(op=ast.Mult)),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left, op=ast.Div(), right=b.right.left),
+                op=ast.Div(),
+                right=b.right.right,
+            ),
+        ),
+        (
+            binop(op=ast.Mult, right=binop(op=ast.Div)),
+            lambda b: ast.BinOp(
+                left=ast.BinOp(left=b.left, op=ast.Mult(), right=b.right.left),
+                op=ast.Div(),
+                right=b.right.right,
+            ),
+        ),
+    ],
+    "associate_to_left",
 )
+
+
 #
 # We now need a way to apply this rule everywhere, repeatedly, until it can
 # no longer be applied. That is, we wish to reach a fixpoint of this
