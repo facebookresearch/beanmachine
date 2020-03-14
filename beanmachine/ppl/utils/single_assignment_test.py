@@ -17,7 +17,7 @@ class SingleAssignmentTest(unittest.TestCase):
         source = """
 def f():
     if a and b:
-        return 1 + ~x + 2
+        return 1 + ~x + 2 + g(5, 6)
     return 8 * y / (4 * z)
 """
         m = ast.parse(source)
@@ -25,12 +25,16 @@ def f():
         expected = """
 def f():
     if a and b:
-        a3 = 3
-        a5 = ~x
-        r1 = a3 + a5
+        a5 = 3
+        a8 = ~x
+        a3 = a5 + a8
+        a9 = 5
+        a10 = 6
+        a6 = g(a9, a10)
+        r1 = a3 + a6
         return r1
-    a6 = 2.0
-    a4 = a6 * y
+    a7 = 2.0
+    a4 = a7 * y
     r2 = a4 / z
     return r2
 """

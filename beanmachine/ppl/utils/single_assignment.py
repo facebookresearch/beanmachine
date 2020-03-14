@@ -9,11 +9,13 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_domain,
     ast_return,
     binop,
+    call,
+    match,
     match_any,
     name,
     unaryop,
 )
-from beanmachine.ppl.utils.patterns import Pattern, negate
+from beanmachine.ppl.utils.patterns import ListAny, Pattern, PatternBase, negate
 from beanmachine.ppl.utils.rules import (
     FirstMatch as first,
     ListEdit,
@@ -26,6 +28,7 @@ from beanmachine.ppl.utils.rules import (
 
 _some_top_down = ast_domain.some_top_down
 _not_identifier: Pattern = negate(name())
+_list_not_identifier: PatternBase = ListAny(_not_identifier)
 _binops: Pattern = match_any(
     ast.Add,
     ast.BitAnd,
@@ -76,6 +79,34 @@ class SingleAssignment:
 
         return _do_it
 
+    def _fix_call(self) -> Callable[[ast.Assign], ListEdit]:
+        def _do_it(a: ast.Assign) -> ListEdit:
+            id = self._unique_id("a")
+            c = a.value
+            assert isinstance(c, ast.Call)
+            args_original = c.args
+
+            index, value = next(
+                (i, v) for i, v in enumerate(args_original) if match(_not_identifier, v)
+            )
+
+            args_new = (
+                args_original[:index]
+                + [ast.Name(id=id, ctx=ast.Load())]
+                + args_original[index + 1 :]
+            )
+            return ListEdit(
+                [
+                    ast.Assign(targets=[ast.Name(id=id, ctx=ast.Store())], value=value),
+                    ast.Assign(
+                        targets=a.targets,
+                        value=ast.Call(func=c.func, args=args_new, keywords=c.keywords),
+                    ),
+                ]
+            )
+
+        return _do_it
+
     def _handle_return(self) -> Rule:
         return PatternRule(
             ast_return(value=_not_identifier),
@@ -119,6 +150,7 @@ class SingleAssignment:
                         ),
                     ),
                 ),
+                (assign(value=call(args=_list_not_identifier)), self._fix_call()),
             ],
             "handle_assign",
         )
