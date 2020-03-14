@@ -7,6 +7,7 @@ from beanmachine.ppl.utils.bm_to_bmg import to_python
 
 source1 = """
 from beanmachine.ppl.model.statistical_model import sample
+import torch
 from torch import exp, log, tensor
 from torch.distributions.bernoulli import Bernoulli
 
@@ -26,26 +27,30 @@ def Z():
 """
 
 expected1 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+bmg = BMGraphBuilder()
 from beanmachine.ppl.model.statistical_model import sample
+import torch
 from torch import exp, log, tensor
 from torch.distributions.bernoulli import Bernoulli
 
 
-@sample
+@memoize
 def X():
     a4 = bmg.add_tensor(tensor(0.01))
     r1 = bmg.add_bernoulli(a4)
-    return r1
+    return bmg.add_sample(r1)
 
 
-@sample
+@memoize
 def Y():
     a5 = bmg.add_tensor(tensor(0.01))
     r2 = bmg.add_bernoulli(a5)
-    return r2
+    return bmg.add_sample(r2)
 
 
-@sample
+@memoize
 def Z():
     a7 = bmg.add_real(1)
     a12 = bmg.add_tensor(torch.tensor(-0.010050326585769653))
@@ -61,7 +66,12 @@ def Z():
     a8 = bmg.add_negate(a9)
     a6 = bmg.add_addition(a7, a8)
     r3 = bmg.add_bernoulli(a6)
-    return r3
+    return bmg.add_sample(r3)
+
+
+X()
+Y()
+Z()
 """
 
 

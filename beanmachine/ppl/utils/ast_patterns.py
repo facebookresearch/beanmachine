@@ -87,6 +87,27 @@ uadd: Pattern = ast.UAdd
 usub: Pattern = ast.USub
 
 
+def arguments(
+    args: Pattern = _any,
+    vararg: Pattern = _any,
+    kwonlyargs: Pattern = _any,
+    kw_defaults: Pattern = _any,
+    kwarg: Pattern = _any,
+    defaults: Pattern = _any,
+) -> Pattern:
+    return type_and_attributes(
+        ast.arguments,
+        [
+            ("args", args),
+            ("vararg", vararg),
+            ("kwonlyargs", kwonlyargs),
+            ("kw_defaults", kw_defaults),
+            ("kwarg", kwarg),
+            ("defaults", defaults),
+        ],
+    )
+
+
 def assign(targets: Pattern = _any, value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Assign, [("targets", targets), ("value", value)])
 
