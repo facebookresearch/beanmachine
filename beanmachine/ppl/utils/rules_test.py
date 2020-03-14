@@ -25,6 +25,7 @@ from beanmachine.ppl.utils.patterns import (
     match_every,
 )
 from beanmachine.ppl.utils.rules import (
+    AllOf,
     ListEdit,
     PatternRule,
     SomeOf,
@@ -421,6 +422,14 @@ def toss(i):
         self.assertEqual(so(1).expect_success(), 2)
         self.assertEqual(so(3).expect_success(), 4)
         self.assertTrue(so(2).is_fail())
+
+        # AllOf extends composition to arbitrarily many rRulesTest
+        two_to_three = PatternRule(2, lambda n: 3)
+        ao1 = AllOf([zero_to_one, one_to_two, two_to_three])
+        self.assertEqual(ao1(0).expect_success(), 3)
+        self.assertTrue(ao1(1).is_fail())
+        ao2 = AllOf([zero_to_one, one_to_two, three_to_four])
+        self.assertTrue(ao2(0).is_fail())
 
     def test_rules_5(self) -> None:
         """Tests for rules.py"""

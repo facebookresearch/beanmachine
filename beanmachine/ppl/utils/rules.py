@@ -469,6 +469,34 @@ class SomeOf(Rule):
         return any(r.always_succeeds() for r in self.rules)
 
 
+class AllOf(Rule):
+    # This is logically the extension of composition to arbitrarily many rules.
+    """Takes a list of rules and composes together all of them.
+    All must succeed, otherwise the rule fails."""
+    rules: List[Rule]
+
+    def __init__(self, rules: List[Rule], name: str = "all_of") -> None:
+        Rule.__init__(self, name)
+        self.rules = rules
+
+    def apply(self, test: Any) -> RuleResult:
+        current_test = test
+        result = Success(test, test)
+        for current_rule in self.rules:
+            result = current_rule.apply(current_test)
+            if result.is_fail():
+                return Fail(test)
+            current_test = result.expect_success()
+        return Success(test, result.expect_success())
+
+    def __str__(self) -> str:
+        rs = ",".join(str(r) for r in self.rules)
+        return f"all_of( {rs} )"
+
+    def always_succeeds(self) -> bool:
+        return all(r.always_succeeds() for r in self.rules)
+
+
 class TryMany(Rule):
     """Repeatedly apply a rule; the result is that of the last application
     that succeeded, or the original test if none succeeded.
