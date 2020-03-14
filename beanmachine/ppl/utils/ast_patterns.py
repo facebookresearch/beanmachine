@@ -204,6 +204,7 @@ ast_true: Pattern = name_constant(True)
 
 ast_false: Pattern = name_constant(False)
 
+# TODO: Rename this constant_bool for consistency
 bool_constant: Pattern = match_any(ast_true, ast_false)
 
 constant_literal: Pattern = match_any(number_constant, bool_constant)

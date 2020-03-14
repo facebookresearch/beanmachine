@@ -33,34 +33,34 @@ from torch.distributions.bernoulli import Bernoulli
 
 @sample
 def X():
-    a4 = tensor(0.01)
-    r1 = Bernoulli(a4)
+    a4 = bmg.add_tensor(tensor(0.01))
+    r1 = bmg.add_bernoulli(a4)
     return r1
 
 
 @sample
 def Y():
-    a5 = tensor(0.01)
-    r2 = Bernoulli(a5)
+    a5 = bmg.add_tensor(tensor(0.01))
+    r2 = bmg.add_bernoulli(a5)
     return r2
 
 
 @sample
 def Z():
-    a7 = 1
-    a12 = torch.tensor(-0.010050326585769653)
+    a7 = bmg.add_real(1)
+    a12 = bmg.add_tensor(torch.tensor(-0.010050326585769653))
     a16 = X()
-    a18 = torch.tensor(-4.605170249938965)
-    a14 = a16 * a18
-    a11 = a12 + a14
+    a18 = bmg.add_tensor(torch.tensor(-4.605170249938965))
+    a14 = bmg.add_multiplication(a16, a18)
+    a11 = bmg.add_addition(a12, a14)
     a15 = Y()
-    a17 = torch.tensor(-4.605170249938965)
-    a13 = a15 * a17
-    a10 = a11 + a13
-    a9 = exp(a10)
-    a8 = -a9
-    a6 = a7 + a8
-    r3 = Bernoulli(a6)
+    a17 = bmg.add_tensor(torch.tensor(-4.605170249938965))
+    a13 = bmg.add_multiplication(a15, a17)
+    a10 = bmg.add_addition(a11, a13)
+    a9 = bmg.add_exp(a10)
+    a8 = bmg.add_negate(a9)
+    a6 = bmg.add_addition(a7, a8)
+    r3 = bmg.add_bernoulli(a6)
     return r3
 """
 
