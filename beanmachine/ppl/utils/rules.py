@@ -891,6 +891,50 @@ class OneChild(Rule):
         return False
 
 
+class SpecificChild(Rule):
+    """Apply a rule to a specific child.  If it succeeds, replace the child
+    with the new value; otherwise, fail. The child is required to exist."""
+
+    get_children: Callable[[Any], Dict[str, Any]]
+    construct: Callable[[type, Dict[str, Any]], Any]
+    child: str
+    rule: Rule
+
+    def __init__(
+        self,
+        child: str,
+        rule: Rule,
+        get_children: Callable[[Any], Dict[str, Any]],
+        construct: Callable[[type, Dict[str, Any]], Any],
+        name: str = "specific_child",
+    ) -> None:
+        Rule.__init__(self, name)
+        self.rule = rule
+        self.get_children = get_children
+        self.construct = construct
+        self.child = child
+
+    def apply(self, test: Any) -> RuleResult:
+        children = self.get_children(test)
+        assert self.child in children
+        value = children[self.child]
+        result = self.rule.apply(value)
+        if result.is_fail():
+            return Fail(test)
+        new_value = result.expect_success()
+        if new_value is value:
+            return Success(test, test)
+        new_values = children.copy()
+        new_values[self.child] = new_value
+        return Success(test, self.construct(type(test), new_values))
+
+    def __str__(self) -> str:
+        return f"specific_child( {self.child}, {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return self.rule.always_succeeds()
+
+
 class RuleDomain:
     get_children: Callable[[Any], Dict[str, Any]]
     construct: Callable[[type, Dict[str, Any]], Any]
@@ -919,6 +963,11 @@ class RuleDomain:
             OneListMember(rule),
             OneChild(rule, self.get_children, self.construct, name),
         )
+
+    def specific_child(
+        self, child: str, rule: Rule, name: str = "specific_child"
+    ) -> Rule:
+        return SpecificChild(child, rule, self.get_children, self.construct, name)
 
     # CONSIDER: Should we implement a class for bottom-up traversal, so that
     # CONSIDER: there is a place to put a breakpoint, and so on?

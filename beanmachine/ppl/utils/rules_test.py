@@ -58,6 +58,7 @@ one = ast_domain.one_child
 top_down = ast_domain.top_down
 bottom_up = ast_domain.bottom_up
 descend_until = ast_domain.descend_until
+specific_child = ast_domain.specific_child
 
 
 class RulesTest(unittest.TestCase):
@@ -529,5 +530,31 @@ def h():
         """
 
         result = descend_until(t, r)(ast.parse(s)).expect_success()
+        observed = astor.to_source(result)
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_rules_8(self) -> None:
+        """Tests for rules.py"""
+
+        # specific_child applies a rule to a specified child of the rule
+        # input; the input is required to have such a child. If the rule
+        # succeeds then the output is the input with the rewritten child.
+
+        self.maxDiff = None
+
+        # replace all 1 with 2, but only in functions decorated with @frob:
+
+        r = top_down(
+            once(
+                if_then(
+                    PatternRule(binop()),
+                    specific_child("left", PatternRule(num(1), lambda n: ast.Num(2))),
+                )
+            )
+        )
+
+        s = "1 + 1 * 1 + 1"
+        expected = "2 + 2 * 1 + 1"
+        result = r(ast.parse(s)).expect_success()
         observed = astor.to_source(result)
         self.assertEqual(observed.strip(), expected.strip())
