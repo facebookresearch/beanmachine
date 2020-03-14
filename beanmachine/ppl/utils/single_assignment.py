@@ -10,8 +10,10 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_return,
     binop,
     call,
+    constant_tensor_any,
     match,
     match_any,
+    match_every,
     name,
     unaryop,
 )
@@ -150,7 +152,17 @@ class SingleAssignment:
                         ),
                     ),
                 ),
-                (assign(value=call(args=_list_not_identifier)), self._fix_call()),
+                # If we have foo(x + y, 2) rewrite that to foo(t1, t2). But
+                # if foo is "tensor" and we have a constant tensor, do not
+                # rewrite it; it is already in the correct form.
+                (
+                    assign(
+                        value=match_every(
+                            negate(constant_tensor_any), call(args=_list_not_identifier)
+                        )
+                    ),
+                    self._fix_call(),
+                ),
             ],
             "handle_assign",
         )

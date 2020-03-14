@@ -18,6 +18,7 @@ class SingleAssignmentTest(unittest.TestCase):
 def f():
     if a and b:
         return 1 + ~x + 2 + g(5, 6)
+    z = tensor([1.0 + 2.0, 4.0])
     return 8 * y / (4 * z)
 """
         m = ast.parse(source)
@@ -33,6 +34,7 @@ def f():
         a6 = g(a9, a10)
         r1 = a3 + a6
         return r1
+    z = tensor([3.0, 4.0])
     a7 = 2.0
     a4 = a7 * y
     r2 = a4 / z
