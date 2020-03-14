@@ -52,6 +52,14 @@ def first_expr(s: str) -> ast.AST:
     return ast.parse(s).body[0].value
 
 
+_all = ast_domain.all_children
+some = ast_domain.some_children
+one = ast_domain.one_child
+top_down = ast_domain.top_down
+bottom_up = ast_domain.bottom_up
+descend_until = ast_domain.descend_until
+
+
 class RulesTest(unittest.TestCase):
     def test_rules_1(self) -> None:
         """Tests for rules.py"""
@@ -75,12 +83,6 @@ class RulesTest(unittest.TestCase):
         zo_z = m.body[5].value
         z_oz = m.body[6].value
         zo_oz = m.body[7].value
-
-        _all = ast_domain.all_children
-        some = ast_domain.some_children
-        one = ast_domain.one_child
-        top_down = ast_domain.top_down
-        bottom_up = ast_domain.bottom_up
 
         rpz_once = once(remove_plus_zero)
         rpz_many = many(remove_plus_zero)
@@ -469,3 +471,63 @@ def toss(i):
 
         n = ignore_runtime_error(PatternRule(int, always_throws))
         self.assertTrue(n(123).is_fail())
+
+    def test_rules_7(self) -> None:
+        """Tests for rules.py"""
+
+        # descend_until is a handy combinator that descends through the tree,
+        # top down, until a test rule succeeds. It then applies a rule to
+        # the nodes that succeeded but does not further recurse down. It does
+        # this for all matching nodes in the tree starting from the root.
+
+        self.maxDiff = None
+
+        # replace all 1 with 2, but only in functions decorated with @frob:
+
+        t = PatternRule(function_def(decorator_list=ListAny(name(id="frob"))))
+        r = top_down(once(PatternRule(num(1), lambda n: ast.Num(2))))
+
+        s = """
+0
+1
+
+@frob
+def f():
+    0
+    1
+
+@frob
+def g():
+    1
+    1
+
+def h():
+    0
+    1
+        """
+
+        expected = """
+0
+1
+
+
+@frob
+def f():
+    0
+    2
+
+
+@frob
+def g():
+    2
+    2
+
+
+def h():
+    0
+    1
+        """
+
+        result = descend_until(t, r)(ast.parse(s)).expect_success()
+        observed = astor.to_source(result)
+        self.assertEqual(observed.strip(), expected.strip())

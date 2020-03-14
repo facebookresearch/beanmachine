@@ -994,3 +994,16 @@ class RuleDomain:
             ),
             post_rule,
         )
+
+    def descend_until(
+        self, test: Rule, rule: Rule, name: str = "descend_until"
+    ) -> Rule:
+        """descend_until starts at the top of the tree and descends down it
+        checking every node to see if "test" succeeds. If it does, it stops
+        descending and runs "rule" on that node. It does this on every node
+        that meets the test starting from the root."""
+        return if_then(
+            test,
+            rule,
+            self.all_children(Recursive(lambda: self.descend_until(test, rule))),
+        )
