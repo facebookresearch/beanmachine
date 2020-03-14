@@ -616,9 +616,9 @@ class ListAll(PatternBase):
 # This complex combinator takes a type and a list of patterns to match against
 # attributes of the type, and then returns the resulting pattern that matches
 # values of that type with attributes that match all the given patterns.
-def type_and_attributes(typ: type, patterns: List[Tuple[str, Pattern]]) -> Pattern:
+def type_and_attributes(typ: type, patterns: Dict[str, Pattern]) -> Pattern:
     t: List[Pattern] = [typ]
     tuples: List[Pattern] = [
-        attribute(name, subpattern) for (name, subpattern) in patterns
+        attribute(name, subpattern) for (name, subpattern) in patterns.items()
     ]
     return match_every(*(t + tuples))

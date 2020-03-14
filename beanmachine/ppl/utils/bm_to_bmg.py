@@ -16,7 +16,6 @@ from beanmachine.ppl.utils.ast_patterns import (
     constant_numeric,
     constant_tensor_any,
     function_def,
-    module,
     name,
     unaryop,
 )

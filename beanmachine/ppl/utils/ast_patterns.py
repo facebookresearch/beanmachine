@@ -97,44 +97,42 @@ def arguments(
 ) -> Pattern:
     return type_and_attributes(
         ast.arguments,
-        [
-            ("args", args),
-            ("vararg", vararg),
-            ("kwonlyargs", kwonlyargs),
-            ("kw_defaults", kw_defaults),
-            ("kwarg", kwarg),
-            ("defaults", defaults),
-        ],
+        {
+            "args": args,
+            "vararg": vararg,
+            "kwonlyargs": kwonlyargs,
+            "kw_defaults": kw_defaults,
+            "kwarg": kwarg,
+            "defaults": defaults,
+        },
     )
 
 
 def assign(targets: Pattern = _any, value: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.Assign, [("targets", targets), ("value", value)])
+    return type_and_attributes(ast.Assign, {"targets": targets, "value": value})
 
 
 def attribute(
     value: Pattern = _any, attr: Pattern = _any, ctx: Pattern = _any
 ) -> Pattern:
     return type_and_attributes(
-        ast.Attribute, [("value", value), ("attr", attr), ("ctx", ctx)]
+        ast.Attribute, {"value": value, "attr": attr, "ctx": ctx}
     )
 
 
 def binop(op: Pattern = _any, left: Pattern = _any, right: Pattern = _any) -> Pattern:
-    return type_and_attributes(
-        ast.BinOp, [("op", op), ("left", left), ("right", right)]
-    )
+    return type_and_attributes(ast.BinOp, {"op": op, "left": left, "right": right})
 
 
 def boolop(op: Pattern = _any, values: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.BoolOp, [("op", op), ("values", values)])
+    return type_and_attributes(ast.BoolOp, {"op": op, "values": values})
 
 
 def call(
     func: Pattern = _any, args: Pattern = _any, keywords: Pattern = _any
 ) -> Pattern:
     return type_and_attributes(
-        ast.Call, [("func", func), ("args", args), ("keywords", keywords)]
+        ast.Call, {"func": func, "args": args, "keywords": keywords}
     )
 
 
@@ -144,12 +142,12 @@ def call_to(id: Pattern = _any, args: Pattern = _any) -> Pattern:
 
 def compare(left: Pattern = _any, ops: Pattern = _any, comparators: Pattern = _any):
     return type_and_attributes(
-        ast.Compare, [("left", left), ("ops", ops), ("comparators", comparators)]
+        ast.Compare, {"left": left, "ops": ops, "comparators": comparators}
     )
 
 
 def expr(value: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.Expr, [("value", value)])
+    return type_and_attributes(ast.Expr, {"value": value})
 
 
 def function_def(
@@ -161,13 +159,13 @@ def function_def(
 ) -> Pattern:
     return type_and_attributes(
         ast.FunctionDef,
-        [
-            ("name", name),
-            ("args", args),
-            ("body", body),
-            ("decorator_list", decorator_list),
-            ("returns", returns),
-        ],
+        {
+            "name": name,
+            "args": args,
+            "body": body,
+            "decorator_list": decorator_list,
+            "returns": returns,
+        },
     )
 
 
@@ -175,40 +173,40 @@ def if_exp(
     test: Pattern = _any, body: Pattern = _any, orelse: Pattern = _any
 ) -> Pattern:
     return type_and_attributes(
-        ast.IfExp, [("test", test), ("body", body), ("orelse", orelse)]
+        ast.IfExp, {"test": test, "body": body, "orelse": orelse}
     )
 
 
 def ast_list(elts: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.List, [("elts", elts)])
+    return type_and_attributes(ast.List, {"elts": elts})
 
 
 def module(body: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.Module, [("body", body)])
+    return type_and_attributes(ast.Module, {"body": body})
 
 
 def name(id: Pattern = _any, ctx: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.Name, [("id", id), ("ctx", ctx)])
+    return type_and_attributes(ast.Name, {"id": id, "ctx": ctx})
 
 
 def name_constant(value: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.NameConstant, [("value", value)])
+    return type_and_attributes(ast.NameConstant, {"value": value})
 
 
 def num(n: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.Num, [("n", n)])
+    return type_and_attributes(ast.Num, {"n": n})
 
 
 def ast_str(s: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.Str, [("s", s)])
+    return type_and_attributes(ast.Str, {"s": s})
 
 
 def ast_return(value: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.Return, [("value", value)])
+    return type_and_attributes(ast.Return, {"value": value})
 
 
 def unaryop(op: Pattern = _any, operand: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.UnaryOp, [("op", op), ("operand", operand)])
+    return type_and_attributes(ast.UnaryOp, {"op": op, "operand": operand})
 
 
 zero: Pattern = match_any(num(0), num(0.0))
