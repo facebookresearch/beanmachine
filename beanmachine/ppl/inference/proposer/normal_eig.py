@@ -30,7 +30,8 @@ class NormalEig(object):
         # a base distribution of independent normals is used to draw
         # samples that will be stretched along the eigen directions
         self.base_dist = torch.distributions.normal.Normal(
-            torch.zeros(1, self.n), torch.ones(1, self.n)
+            torch.zeros(1, self.n).to(dtype=eig_vals.dtype),
+            torch.ones(1, self.n).to(dtype=eig_vals.dtype),
         )
         self.singular_eig_decompositions = eig_vals, eig_vecs
 
