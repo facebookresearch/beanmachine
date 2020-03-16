@@ -230,12 +230,21 @@ def _bm_to_bmg_ast(source: str) -> ast.AST:
     assert isinstance(bmg, ast.Module)
     bmg = _prepend_statements(bmg, _header.body)
     assert isinstance(bmg, ast.Module)
-    footer = ast.Assign(
-        targets=[ast.Name(id="roots", ctx=ast.Store())],
-        value=ast.List(elts=_samples_to_calls(a.body).expect_success(), ctx=ast.Load()),
-    )
+    footer: List[ast.stmt] = [
+        ast.Assign(
+            targets=[ast.Name(id="roots", ctx=ast.Store())],
+            value=ast.List(
+                elts=_samples_to_calls(a.body).expect_success(), ctx=ast.Load()
+            ),
+        ),
+        ast.Expr(
+            value=_make_bmg_call(
+                name="remove_orphans", args=[ast.Name(id="roots", ctx=ast.Load())]
+            )
+        ),
+    ]
 
-    bmg = _append_statements(bmg, [footer])
+    bmg = _append_statements(bmg, footer)
     ast.fix_missing_locations(bmg)
     # TODO: Fix negative constants back to standard form.
     return bmg
@@ -252,7 +261,7 @@ def to_graph_builder(source: str) -> BMGraphBuilder:
     c = compile(a, "<BMGAST>", "exec")
     g = {}
     exec(c, g)
-    bmg: BMGraphBuilder = g["bmg"]
+    bmg = g["bmg"]
     return bmg
 
 

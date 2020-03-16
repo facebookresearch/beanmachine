@@ -430,6 +430,11 @@ class BMGraphBuilder:
     def __init__(self):
         self.nodes = {}
 
+    def remove_orphans(self, roots: List[BMGNode]) -> None:
+        self.nodes = {}
+        for root in roots:
+            self.add_node(root)
+
     def add_node(self, node: BMGNode) -> None:
         # Maintain the invariant that children are always before parents
         # in the list.

@@ -80,6 +80,7 @@ def Z():
 
 
 roots = [X(), Y(), Z()]
+bmg.remove_orphans(roots)
 """
 
 expected_python_1 = (
@@ -87,131 +88,126 @@ expected_python_1 = (
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(tensor(0.009999999776482582))
-n1 = g.add_constant(0.009999999776482582)
-n2 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n1])"""  # noqa: B950
+n0 = g.add_constant(0.009999999776482582)
+n1 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n0])"""  # noqa: B950
     + """
-n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
-n4 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
-n5 = g.add_constant(1.0)
-n6 = g.add_constant(tensor(-0.010050326585769653))
-n7 = g.add_constant(tensor(-4.605170249938965))
-n8 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n7])
-n9 = g.add_operator(graph.OperatorType.ADD, [n6, n8])
-n10 = g.add_operator(graph.OperatorType.MULTIPLY, [n4, n7])
-n11 = g.add_operator(graph.OperatorType.ADD, [n9, n10])
-n12 = g.add_operator(graph.OperatorType.EXP, [n11])
-n13 = g.add_operator(graph.OperatorType.NEGATE, [n12])
-n14 = g.add_operator(graph.OperatorType.ADD, [n5, n13])
-n15 = g.add_operator(graph.OperatorType.TO_REAL, [n14])
-n16 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n15])"""  # noqa: B950
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n4 = g.add_constant(1.0)
+n5 = g.add_constant(tensor(-0.010050326585769653))
+n6 = g.add_constant(tensor(-4.605170249938965))
+n7 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n6])
+n8 = g.add_operator(graph.OperatorType.ADD, [n5, n7])
+n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n6])
+n10 = g.add_operator(graph.OperatorType.ADD, [n8, n9])
+n11 = g.add_operator(graph.OperatorType.EXP, [n10])
+n12 = g.add_operator(graph.OperatorType.NEGATE, [n11])
+n13 = g.add_operator(graph.OperatorType.ADD, [n4, n12])
+n14 = g.add_operator(graph.OperatorType.TO_REAL, [n13])
+n15 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n14])"""  # noqa: B950
     + """
-n17 = g.add_operator(graph.OperatorType.SAMPLE, [n16])
+n16 = g.add_operator(graph.OperatorType.SAMPLE, [n15])
 """
 )
 
 expected_dot_1 = """
 digraph "graph" {
   N0[label=0.009999999776482582];
-  N10[label="*"];
-  N11[label="+"];
-  N12[label=Exp];
-  N13[label="-"];
-  N14[label="+"];
-  N15[label=ToReal];
-  N16[label=Bernoulli];
-  N17[label=Sample];
-  N1[label=0.009999999776482582];
-  N2[label=Bernoulli];
+  N10[label="+"];
+  N11[label=Exp];
+  N12[label="-"];
+  N13[label="+"];
+  N14[label=ToReal];
+  N15[label=Bernoulli];
+  N16[label=Sample];
+  N1[label=Bernoulli];
+  N2[label=Sample];
   N3[label=Sample];
-  N4[label=Sample];
-  N5[label=1];
-  N6[label=-0.010050326585769653];
-  N7[label=-4.605170249938965];
-  N8[label="*"];
-  N9[label="+"];
-  N10 -> N4[label=left];
-  N10 -> N7[label=right];
-  N11 -> N10[label=right];
-  N11 -> N9[label=left];
+  N4[label=1];
+  N5[label=-0.010050326585769653];
+  N6[label=-4.605170249938965];
+  N7[label="*"];
+  N8[label="+"];
+  N9[label="*"];
+  N1 -> N0[label=probability];
+  N10 -> N8[label=left];
+  N10 -> N9[label=right];
+  N11 -> N10[label=operand];
   N12 -> N11[label=operand];
-  N13 -> N12[label=operand];
-  N14 -> N13[label=right];
-  N14 -> N5[label=left];
-  N15 -> N14[label=operand];
-  N16 -> N15[label=probability];
-  N17 -> N16[label=operand];
-  N2 -> N1[label=probability];
-  N3 -> N2[label=operand];
-  N4 -> N2[label=operand];
-  N8 -> N3[label=left];
+  N13 -> N12[label=right];
+  N13 -> N4[label=left];
+  N14 -> N13[label=operand];
+  N15 -> N14[label=probability];
+  N16 -> N15[label=operand];
+  N2 -> N1[label=operand];
+  N3 -> N1[label=operand];
+  N7 -> N2[label=left];
+  N7 -> N6[label=right];
+  N8 -> N5[label=left];
   N8 -> N7[label=right];
-  N9 -> N6[label=left];
-  N9 -> N8[label=right];
+  N9 -> N3[label=left];
+  N9 -> N6[label=right];
 }
 """
 
 expected_cpp_1 = """
 graph::Graph g;
-uint n0 = g.add_constant(torch::from_blob((float[]){0.009999999776482582}, {}));
-uint n1 = g.add_constant(0.009999999776482582);
-uint n2 = g.add_distribution(
+uint n0 = g.add_constant(0.009999999776482582);
+uint n1 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
-  std::vector<uint>({n1}));
+  std::vector<uint>({n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n3 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n2}));
-uint n4 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n2}));
-uint n5 = g.add_constant(1.0);
-uint n6 = g.add_constant(torch::from_blob((float[]){-0.010050326585769653}, {}));
-uint n7 = g.add_constant(torch::from_blob((float[]){-4.605170249938965}, {}));
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n4 = g.add_constant(1.0);
+uint n5 = g.add_constant(torch::from_blob((float[]){-0.010050326585769653}, {}));
+uint n6 = g.add_constant(torch::from_blob((float[]){-4.605170249938965}, {}));
+uint n7 = g.add_operator(
+  graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n6}));
 uint n8 = g.add_operator(
-  graph::OperatorType::MULTIPLY, std::vector<uint>({n3, n7}));
+  graph::OperatorType::ADD, std::vector<uint>({n5, n7}));
 uint n9 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n6, n8}));
+  graph::OperatorType::MULTIPLY, std::vector<uint>({n3, n6}));
 uint n10 = g.add_operator(
-  graph::OperatorType::MULTIPLY, std::vector<uint>({n4, n7}));
+  graph::OperatorType::ADD, std::vector<uint>({n8, n9}));
 uint n11 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n9, n10}));
+  graph::OperatorType::EXP, std::vector<uint>({n10}));
 uint n12 = g.add_operator(
-  graph::OperatorType::EXP, std::vector<uint>({n11}));
+  graph::OperatorType::NEGATE, std::vector<uint>({n11}));
 uint n13 = g.add_operator(
-  graph::OperatorType::NEGATE, std::vector<uint>({n12}));
+  graph::OperatorType::ADD, std::vector<uint>({n4, n12}));
 uint n14 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n5, n13}));
-uint n15 = g.add_operator(
-  graph::OperatorType::TO_REAL, std::vector<uint>({n14}));
-uint n16 = g.add_distribution(
+  graph::OperatorType::TO_REAL, std::vector<uint>({n13}));
+uint n15 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
-  std::vector<uint>({n15}));
-uint n17 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n16}));
+  std::vector<uint>({n14}));
+uint n16 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n15}));
 """
 
 expected_bmg_1 = """
-Node 0 type 1 parents [ ] children [ ] tensor value 0.01
+Node 0 type 1 parents [ ] children [ 1 ] real value 0.01
+Node 1 type 2 parents [ 0 ] children [ 2 3 ] unknown value
+Node 2 type 3 parents [ 1 ] children [ 7 ] unknown value
+Node 3 type 3 parents [ 1 ] children [ 9 ] unknown value
+Node 4 type 1 parents [ ] children [ 13 ] real value 1
+Node 5 type 1 parents [ ] children [ 8 ] tensor value -0.0100503
 [ CPUFloatType{} ]
-Node 1 type 1 parents [ ] children [ 2 ] real value 0.01
-Node 2 type 2 parents [ 1 ] children [ 3 4 ] unknown value
-Node 3 type 3 parents [ 2 ] children [ 8 ] unknown value
-Node 4 type 3 parents [ 2 ] children [ 10 ] unknown value
-Node 5 type 1 parents [ ] children [ 14 ] real value 1
-Node 6 type 1 parents [ ] children [ 9 ] tensor value -0.0100503
+Node 6 type 1 parents [ ] children [ 7 9 ] tensor value -4.60517
 [ CPUFloatType{} ]
-Node 7 type 1 parents [ ] children [ 8 10 ] tensor value -4.60517
-[ CPUFloatType{} ]
-Node 8 type 3 parents [ 3 7 ] children [ 9 ] unknown value
-Node 9 type 3 parents [ 6 8 ] children [ 11 ] unknown value
-Node 10 type 3 parents [ 4 7 ] children [ 11 ] unknown value
-Node 11 type 3 parents [ 9 10 ] children [ 12 ] unknown value
+Node 7 type 3 parents [ 2 6 ] children [ 8 ] unknown value
+Node 8 type 3 parents [ 5 7 ] children [ 10 ] unknown value
+Node 9 type 3 parents [ 3 6 ] children [ 10 ] unknown value
+Node 10 type 3 parents [ 8 9 ] children [ 11 ] unknown value
+Node 11 type 3 parents [ 10 ] children [ 12 ] unknown value
 Node 12 type 3 parents [ 11 ] children [ 13 ] unknown value
-Node 13 type 3 parents [ 12 ] children [ 14 ] unknown value
-Node 14 type 3 parents [ 5 13 ] children [ 15 ] unknown value
-Node 15 type 3 parents [ 14 ] children [ 16 ] unknown value
-Node 16 type 2 parents [ 15 ] children [ 17 ] unknown value
-Node 17 type 3 parents [ 16 ] children [ ] unknown value
+Node 13 type 3 parents [ 4 12 ] children [ 14 ] unknown value
+Node 14 type 3 parents [ 13 ] children [ 15 ] unknown value
+Node 15 type 2 parents [ 14 ] children [ 16 ] unknown value
+Node 16 type 3 parents [ 15 ] children [ ] unknown value
 """
 
 
@@ -279,49 +275,45 @@ def z():
 
 
 roots = [z()]
+bmg.remove_orphans(roots)
 """
 
 expected_dot_2 = """
 digraph "graph" {
-  N0[label=0];
-  N10[label="+"];
-  N11[label=1];
-  N12[label=0.6000000238418579];
-  N13[label=0.6000000238418579];
-  N14[label=Bernoulli];
-  N15[label=Sample];
-  N16[label=0.4000000059604645];
-  N17[label="*"];
-  N18[label="+"];
-  N19[label=ToReal];
-  N1[label=0.5];
-  N20[label=Bernoulli];
-  N21[label=Sample];
-  N2[label=0.10000000149011612];
-  N3[label=0.0];
-  N4[label=0.5];
-  N5[label=Bernoulli];
-  N6[label=Sample];
-  N7[label=0.30000001192092896];
-  N8[label="*"];
-  N9[label="*"];
-  N10 -> N8[label=left];
-  N10 -> N9[label=right];
-  N14 -> N13[label=probability];
-  N15 -> N14[label=operand];
-  N17 -> N15[label=left];
-  N17 -> N16[label=right];
-  N18 -> N10[label=left];
-  N18 -> N17[label=right];
-  N19 -> N18[label=operand];
-  N20 -> N19[label=probability];
-  N21 -> N20[label=operand];
-  N5 -> N4[label=probability];
-  N6 -> N5[label=operand];
-  N8 -> N6[label=left];
-  N8 -> N7[label=right];
-  N9 -> N2[label=right];
-  N9 -> N6[label=left];
+  N0[label=0.5];
+  N10[label=Sample];
+  N11[label=0.4000000059604645];
+  N12[label="*"];
+  N13[label="+"];
+  N14[label=ToReal];
+  N15[label=Bernoulli];
+  N16[label=Sample];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=0.30000001192092896];
+  N4[label="*"];
+  N5[label=0.10000000149011612];
+  N6[label="*"];
+  N7[label="+"];
+  N8[label=0.6000000238418579];
+  N9[label=Bernoulli];
+  N1 -> N0[label=probability];
+  N10 -> N9[label=operand];
+  N12 -> N10[label=left];
+  N12 -> N11[label=right];
+  N13 -> N12[label=right];
+  N13 -> N7[label=left];
+  N14 -> N13[label=operand];
+  N15 -> N14[label=probability];
+  N16 -> N15[label=operand];
+  N2 -> N1[label=operand];
+  N4 -> N2[label=left];
+  N4 -> N3[label=right];
+  N6 -> N2[label=left];
+  N6 -> N5[label=right];
+  N7 -> N4[label=left];
+  N7 -> N6[label=right];
+  N9 -> N8[label=probability];
 }
 """
 
