@@ -221,7 +221,7 @@ def x(n):
 
 @sample
 def z():
-  return Bernoulli(x(0) * tensor(0.3) + x(0) * tensor(0.1) + x(1) * tensor(0.4))
+  return Bernoulli(x(0) * tensor(0.3) + x(0) / tensor(10.0) + x(1) * tensor(0.4))
 """
 
 # In the medium term, we need to create a mechanism in BMG to represent
@@ -262,8 +262,8 @@ def z():
     a8 = bmg.add_multiplication(a11, a15)
     a19 = bmg.add_real(0)
     a16 = x(a19)
-    a20 = bmg.add_tensor(tensor(0.1))
-    a12 = bmg.add_multiplication(a16, a20)
+    a20 = bmg.add_tensor(tensor(10.0))
+    a12 = bmg.add_division(a16, a20)
     a6 = bmg.add_addition(a8, a12)
     a17 = bmg.add_real(1)
     a13 = x(a17)
@@ -292,8 +292,8 @@ digraph "graph" {
   N2[label=Sample];
   N3[label=0.30000001192092896];
   N4[label="*"];
-  N5[label=0.10000000149011612];
-  N6[label="*"];
+  N5[label=10.0];
+  N6[label="/"];
   N7[label="+"];
   N8[label=0.6000000238418579];
   N9[label=Bernoulli];

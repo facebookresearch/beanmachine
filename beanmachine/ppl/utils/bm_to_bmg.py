@@ -40,13 +40,10 @@ from beanmachine.ppl.utils.single_assignment import single_assignment
 # TODO: Detect unsupported operators
 # TODO: Detect unsupported control flow
 # TODO: Would be helpful if we could track original source code locations.
-# TODO: Transform y**x into exp(x*log(y))
-# TODO: How to handle division? Turn x/y into x * exp(-log(y))?
 # TODO: Collapse adds and multiplies in the graph
-# TODO: Are we imposing a restriction that a sample method always returns
-# TODO: a distribution? How will we represent things like
-# TODO: @sample def x(): return Bern(0.5) + Bern(0.5)
-# TODO: ?
+# TODO: Impose a restruction that a sample method always returns a distribution
+# TODO: Add support for query methods -- that is, methods that represent an
+# TODO: operation on a distribution.
 
 _top_down = ast_domain.top_down
 _bottom_up = ast_domain.bottom_up
@@ -122,6 +119,13 @@ _add_multiplication = PatternRule(
     ),
 )
 
+_add_division = PatternRule(
+    assign(value=binop(op=ast.Div)),
+    lambda a: ast.Assign(
+        a.targets, _make_bmg_call("add_division", [a.value.left, a.value.right])
+    ),
+)
+
 _add_exp = PatternRule(
     assign(value=call_to(id="exp")),
     lambda a: ast.Assign(a.targets, _make_bmg_call("add_exp", [a.value.args[0]])),
@@ -154,6 +158,7 @@ _math_to_bmg = _top_down(
                 _add_negate,
                 _add_addition,
                 _add_multiplication,
+                _add_division,
                 _add_exp,
                 _add_bernoulli,
             ]
