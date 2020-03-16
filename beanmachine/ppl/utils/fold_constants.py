@@ -214,7 +214,7 @@ _fold_comparison: Rule = PatternRule(
 )
 
 
-_tensor_1_functions: List[Callable] = [torch.exp, torch.log]
+_tensor_1_functions: List[Callable] = [torch.exp, torch.log, torch.neg]
 _tensor_1 = {f.__name__: f for f in _tensor_1_functions}
 
 _fold_tensor_1: Rule = PatternRule(

@@ -129,7 +129,7 @@ x = 1 if not ((True or False) and True) else 2
         source = (
             "torch.log(tensor([1.0, 2.0, 3.0])) + x + "
             + "tensor([math.log(2.7), math.acos(0.1), 3.0]) + "
-            + "torch.exp(tensor([1.0, 2.0, 3.0])) + "
+            + "torch.exp(torch.neg(tensor([-1.0, -2.0, -3.0]))) + "
             + "tensor([math.exp(1.0), 2.0, 3.0])"
         )
         m = ast.parse(source)

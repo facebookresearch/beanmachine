@@ -213,7 +213,7 @@ Node 16 type 3 parents [ 15 ] children [ ] unknown value
 
 source2 = """
 import torch
-from torch import exp, log, tensor
+from torch import exp, log, tensor, neg
 
 @sample
 def x(n):
@@ -221,7 +221,7 @@ def x(n):
 
 @sample
 def z():
-  return Bernoulli(tensor(0.3) ** x(0) + x(0) / tensor(10.0) + x(1) * tensor(0.4))
+  return Bernoulli(tensor(0.3) ** x(0) + x(0) / tensor(10.0) - neg(x(1) * tensor(0.4)))
 """
 
 # In the medium term, we need to create a mechanism in BMG to represent
@@ -241,14 +241,14 @@ from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 bmg = BMGraphBuilder()
 import torch
-from torch import exp, log, tensor
+from torch import exp, log, tensor, neg
 
 
 @memoize
 def x(n):
     a5 = bmg.add_tensor(tensor(0.5))
-    a19 = bmg.add_tensor(tensor(0.1))
-    a14 = bmg.add_multiplication(n, a19)
+    a18 = bmg.add_tensor(tensor(0.1))
+    a14 = bmg.add_multiplication(n, a18)
     a10 = bmg.add_exp(a14)
     a7 = bmg.add_log(a10)
     a3 = bmg.add_addition(a5, a7)
@@ -259,18 +259,20 @@ def x(n):
 @memoize
 def z():
     a11 = bmg.add_tensor(tensor(0.3))
-    a20 = bmg.add_real(0)
-    a15 = x(a20)
+    a19 = bmg.add_real(0)
+    a15 = x(a19)
     a8 = bmg.add_power(a11, a15)
-    a21 = bmg.add_real(0)
-    a16 = x(a21)
-    a22 = bmg.add_tensor(tensor(10.0))
-    a12 = bmg.add_division(a16, a22)
+    a20 = bmg.add_real(0)
+    a16 = x(a20)
+    a21 = bmg.add_tensor(tensor(10.0))
+    a12 = bmg.add_division(a16, a21)
     a6 = bmg.add_addition(a8, a12)
-    a17 = bmg.add_real(1)
-    a13 = x(a17)
-    a18 = bmg.add_tensor(tensor(0.4))
-    a9 = bmg.add_multiplication(a13, a18)
+    a23 = bmg.add_real(1)
+    a22 = x(a23)
+    a24 = bmg.add_tensor(tensor(0.4))
+    a17 = bmg.add_multiplication(a22, a24)
+    a13 = bmg.add_negate(a17)
+    a9 = bmg.add_negate(a13)
     a4 = bmg.add_addition(a6, a9)
     r2 = bmg.add_bernoulli(bmg.add_to_real(a4))
     return bmg.add_sample(r2)
@@ -286,10 +288,12 @@ digraph "graph" {
   N10[label=Sample];
   N11[label=0.4000000059604645];
   N12[label="*"];
-  N13[label="+"];
-  N14[label=ToReal];
-  N15[label=Bernoulli];
-  N16[label=Sample];
+  N13[label="-"];
+  N14[label="-"];
+  N15[label="+"];
+  N16[label=ToReal];
+  N17[label=Bernoulli];
+  N18[label=Sample];
   N1[label=0.5];
   N2[label=Bernoulli];
   N3[label=Sample];
@@ -302,11 +306,13 @@ digraph "graph" {
   N10 -> N9[label=operand];
   N12 -> N10[label=left];
   N12 -> N11[label=right];
-  N13 -> N12[label=right];
-  N13 -> N7[label=left];
+  N13 -> N12[label=operand];
   N14 -> N13[label=operand];
-  N15 -> N14[label=probability];
+  N15 -> N14[label=right];
+  N15 -> N7[label=left];
   N16 -> N15[label=operand];
+  N17 -> N16[label=probability];
+  N18 -> N17[label=operand];
   N2 -> N1[label=probability];
   N3 -> N2[label=operand];
   N4 -> N0[label=left];

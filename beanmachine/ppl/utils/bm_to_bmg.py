@@ -100,9 +100,14 @@ _add_tensor = PatternRule(
     lambda a: ast.Assign(a.targets, _make_bmg_call("add_tensor", [a.value])),
 )
 
-_add_negate = PatternRule(
+_add_negate_usub = PatternRule(
     assign(value=unaryop(op=ast.USub)),
     lambda a: ast.Assign(a.targets, _make_bmg_call("add_negate", [a.value.operand])),
+)
+
+_add_negate_tensor = PatternRule(
+    assign(value=call_to(id="neg")),
+    lambda a: ast.Assign(a.targets, _make_bmg_call("add_negate", [a.value.args[0]])),
 )
 
 _add_addition = PatternRule(
@@ -166,7 +171,8 @@ _math_to_bmg = _top_down(
                 _add_boolean,
                 _add_real,
                 _add_tensor,
-                _add_negate,
+                _add_negate_usub,
+                _add_negate_tensor,
                 _add_addition,
                 _add_multiplication,
                 _add_division,
