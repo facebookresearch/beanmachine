@@ -163,6 +163,25 @@ def expr(value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Expr, {"value": value})
 
 
+def ast_for(
+    target: Pattern = _any,
+    iter: Pattern = _any,
+    body: Pattern = _any,
+    orelse: Pattern = _any,
+    type_comment: Pattern = _any,
+) -> Pattern:
+    return type_and_attributes(
+        ast.For,
+        {
+            "target": target,
+            "iter": iter,
+            "body": body,
+            "orelse": orelse,
+            "type_comment": type_comment,
+        },
+    )
+
+
 def function_def(
     name: Pattern = _any,
     args: Pattern = _any,

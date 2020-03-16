@@ -5,8 +5,10 @@ import ast
 
 from beanmachine.ppl.utils.ast_patterns import (
     ast_domain,
+    ast_for,
     boolop,
     constant_falsy,
+    constant_list,
     constant_truthy,
     if_statement,
 )
@@ -15,6 +17,7 @@ from beanmachine.ppl.utils.patterns import HeadTail, anyPattern as _any
 from beanmachine.ppl.utils.rules import (
     AllOf as _all,
     ListEdit,
+    PatternRule,
     Rule,
     TryMany as many,
     TryOnce as once,
@@ -72,7 +75,27 @@ _optimize_if: Rule = pattern_rules(
     ]
 )
 
-_rules = _all([_top_down(many(_optimize_logic)), _top_down(once(_optimize_if))])
+# TODO: Disallow loops with break and continue ?
+
+_unroll_loop: Rule = PatternRule(
+    ast_for(iter=constant_list),
+    lambda f: ListEdit(
+        [
+            statement
+            for element in f.iter.elts
+            for statement in ([ast.Assign(targets=[f.target], value=element)] + f.body)
+        ]
+        + f.orelse
+    ),
+)
+
+_rules = _all(
+    [
+        _top_down(many(_optimize_logic)),
+        _top_down(once(_optimize_if)),
+        _top_down(once(_unroll_loop)),
+    ]
+)
 
 
 def optimize(node: ast.AST) -> ast.AST:

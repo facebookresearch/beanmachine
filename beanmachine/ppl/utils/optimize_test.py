@@ -290,3 +290,26 @@ if b:
 5
 """
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_loop_unroll(self) -> None:
+        """Tests for optimize.py"""
+
+        self.maxDiff = None
+
+        source = """
+for x in [1, 2, 3]:
+    f(x)
+else:
+    g()
+    """
+        m = ast.parse(source)
+        result = optimize(m)
+        expected = """
+x = 1
+f(x)
+x = 2
+f(x)
+x = 3
+f(x)
+g()"""
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
