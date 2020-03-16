@@ -222,6 +222,10 @@ def unaryop(op: Pattern = _any, operand: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.UnaryOp, {"op": op, "operand": operand})
 
 
+def unarysub(operand: Pattern = _any) -> Pattern:
+    return unaryop(op=ast.USub, operand=operand)
+
+
 zero: Pattern = match_any(num(0), num(0.0))
 
 number_constant: Pattern = ast.Num
@@ -268,8 +272,12 @@ tensor_name_str: Pattern = "tensor"
 # TODO: Matches "tensor" and "foo.tensor"
 # TODO: Do we need to specifically match just torch? What if there is an alias?
 
-# Recognizes tensor(1)
-constant_tensor_1: Pattern = call_to(id=tensor_name_str, args=[number_constant])
+
+# Recognizes tensor(pattern) and tensor([pattern]) -- that is, a tensor that represents
+# a single value.
+def tensor_single_value(p: Pattern) -> Pattern:
+    return call_to(id=tensor_name_str, args=[match_any(p, ast_list(elts=[p]))])
+
 
 # Recognizes tensor(1), tensor([]), tensor([1, 2]), tensor([[1, 2], [3, 4]]) and so on
 constant_tensor_any: Pattern = call_to(
@@ -279,6 +287,21 @@ constant_tensor_any: Pattern = call_to(
 # int, float, bool or tensor
 constant_numeric: Pattern = match_any(
     number_constant, bool_constant, constant_tensor_any
+)
+
+
+# 0, 0.0 and False are all treated as false.
+# A tensor with a single falsy value is treated as false.
+constant_falsy_literal: Pattern = match_any(zero, ast_false)
+constant_falsy: Pattern = match_any(
+    constant_falsy_literal, tensor_single_value(constant_falsy_literal)
+)
+
+# A non-zero literal and True are treated as true.
+# A tensor with a single truthy value is treated as true.
+constant_truthy_literal: Pattern = match_any(non_zero_num, ast_true)
+constant_truthy: Pattern = match_any(
+    constant_truthy_literal, tensor_single_value(constant_truthy_literal)
 )
 
 

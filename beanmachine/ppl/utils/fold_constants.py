@@ -22,6 +22,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     match_any,
     negative_num,
     unaryop,
+    unarysub,
 )
 from beanmachine.ppl.utils.patterns import (
     ListAll,
@@ -57,9 +58,9 @@ _some = ast_domain.some_children
 
 ##########
 #
-# These operations fold expressions that are entirely constant. Folding expressions
-# such as "x and true" to "x" will be a different pass.
-# TODO: Optimization pass
+# These operations fold expressions that are entirely constant. Code to optimize
+# partially-constant expressions and statements such as optimizing "x and true"
+# to "x", or "if True: foo() else: bar()" to "foo()" is in optimize.py.
 #
 ##########
 
@@ -640,14 +641,33 @@ _fold_all_constants: Rule = many(
 # Python parses "-1" as UnaryOp(USub, Num(1)). We need to fold that to Num(-1)
 # so that we can fold expressions like (-2)*(3). But we should then turn that
 # Num(-6) back into UnaryOp(USub, Num(6)) when we're done.
+#
+# These operations are useful in other passes as well, so we'll expose APIs
+# that do these.
 
-_fix_unary_minus = PatternRule(
-    negative_num, lambda n: ast.UnaryOp(op=ast.USub(), operand=ast.Num(-n.n))
+_fold_unary_minus = _bottom_up(
+    once(
+        PatternRule(unarysub(operand=constant_literal), lambda u: ast.Num(-u.operand.n))
+    )
 )
 
-_fix_all: Rule = _bottom_up(once(_fix_unary_minus))
+_fix_unary_minus = _bottom_up(
+    once(
+        PatternRule(
+            negative_num, lambda n: ast.UnaryOp(op=ast.USub(), operand=ast.Num(-n.n))
+        )
+    )
+)
 
-_rules = Compose(_fold_all_constants, _fix_all)
+_rules = Compose(_fold_all_constants, _fix_unary_minus)
+
+
+def fold_unary_minus(node: ast.AST) -> ast.AST:
+    return _fold_unary_minus(node).expect_success()
+
+
+def fix_unary_minus(node: ast.AST) -> ast.AST:
+    return _fix_unary_minus(node).expect_success()
 
 
 def fold(node: ast.AST) -> ast.AST:
