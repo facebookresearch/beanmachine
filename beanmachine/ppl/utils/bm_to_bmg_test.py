@@ -221,7 +221,7 @@ def x(n):
 
 @sample
 def z():
-  return Bernoulli(x(0) * tensor(0.3) + x(0) / tensor(10.0) + x(1) * tensor(0.4))
+  return Bernoulli(tensor(0.3) ** x(0) + x(0) / tensor(10.0) + x(1) * tensor(0.4))
 """
 
 # In the medium term, we need to create a mechanism in BMG to represent
@@ -256,19 +256,19 @@ def x(n):
 
 @memoize
 def z():
-    a14 = bmg.add_real(0)
-    a11 = x(a14)
-    a15 = bmg.add_tensor(tensor(0.3))
-    a8 = bmg.add_multiplication(a11, a15)
+    a11 = bmg.add_tensor(tensor(0.3))
+    a18 = bmg.add_real(0)
+    a14 = x(a18)
+    a8 = bmg.add_power(a11, a14)
     a19 = bmg.add_real(0)
-    a16 = x(a19)
+    a15 = x(a19)
     a20 = bmg.add_tensor(tensor(10.0))
-    a12 = bmg.add_division(a16, a20)
+    a12 = bmg.add_division(a15, a20)
     a6 = bmg.add_addition(a8, a12)
-    a17 = bmg.add_real(1)
-    a13 = x(a17)
-    a18 = bmg.add_tensor(tensor(0.4))
-    a9 = bmg.add_multiplication(a13, a18)
+    a16 = bmg.add_real(1)
+    a13 = x(a16)
+    a17 = bmg.add_tensor(tensor(0.4))
+    a9 = bmg.add_multiplication(a13, a17)
     a4 = bmg.add_addition(a6, a9)
     r2 = bmg.add_bernoulli(bmg.add_to_real(a4))
     return bmg.add_sample(r2)
@@ -280,7 +280,7 @@ bmg.remove_orphans(roots)
 
 expected_dot_2 = """
 digraph "graph" {
-  N0[label=0.5];
+  N0[label=0.30000001192092896];
   N10[label=Sample];
   N11[label=0.4000000059604645];
   N12[label="*"];
@@ -288,16 +288,15 @@ digraph "graph" {
   N14[label=ToReal];
   N15[label=Bernoulli];
   N16[label=Sample];
-  N1[label=Bernoulli];
-  N2[label=Sample];
-  N3[label=0.30000001192092896];
-  N4[label="*"];
+  N1[label=0.5];
+  N2[label=Bernoulli];
+  N3[label=Sample];
+  N4[label="**"];
   N5[label=10.0];
   N6[label="/"];
   N7[label="+"];
   N8[label=0.6000000238418579];
   N9[label=Bernoulli];
-  N1 -> N0[label=probability];
   N10 -> N9[label=operand];
   N12 -> N10[label=left];
   N12 -> N11[label=right];
@@ -306,10 +305,11 @@ digraph "graph" {
   N14 -> N13[label=operand];
   N15 -> N14[label=probability];
   N16 -> N15[label=operand];
-  N2 -> N1[label=operand];
-  N4 -> N2[label=left];
+  N2 -> N1[label=probability];
+  N3 -> N2[label=operand];
+  N4 -> N0[label=left];
   N4 -> N3[label=right];
-  N6 -> N2[label=left];
+  N6 -> N3[label=left];
   N6 -> N5[label=right];
   N7 -> N4[label=left];
   N7 -> N6[label=right];

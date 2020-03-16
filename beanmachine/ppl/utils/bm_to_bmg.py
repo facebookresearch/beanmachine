@@ -126,6 +126,13 @@ _add_division = PatternRule(
     ),
 )
 
+_add_power = PatternRule(
+    assign(value=binop(op=ast.Pow)),
+    lambda a: ast.Assign(
+        a.targets, _make_bmg_call("add_power", [a.value.left, a.value.right])
+    ),
+)
+
 _add_exp = PatternRule(
     assign(value=call_to(id="exp")),
     lambda a: ast.Assign(a.targets, _make_bmg_call("add_exp", [a.value.args[0]])),
@@ -145,7 +152,6 @@ _add_sample = PatternRule(
     ast_return(), lambda r: ast.Return(value=_make_bmg_call("add_sample", [r.value]))
 )
 
-# TODO: add_to_real
 # TODO: add_observation
 
 _math_to_bmg = _top_down(
@@ -159,6 +165,7 @@ _math_to_bmg = _top_down(
                 _add_addition,
                 _add_multiplication,
                 _add_division,
+                _add_power,
                 _add_exp,
                 _add_bernoulli,
             ]
