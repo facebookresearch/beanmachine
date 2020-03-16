@@ -128,3 +128,39 @@ uint n10 = g.add_operator(
 g.observe([n5], true);
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_2(self) -> None:
+        """Test 2"""
+
+        # TODO: We haven't implemented DIVISION in BMG C++ code yet.
+        # TODO: When we do, update this test to show that we're representing
+        # TODO: it correctly.
+
+        bmg = BMGraphBuilder()
+        one = bmg.add_real(1)
+        two = bmg.add_real(2)
+        # This should be folded:
+        half = bmg.add_division(one, two)
+        flip = bmg.add_bernoulli(half)
+        samp = bmg.add_sample(flip)
+        real = bmg.add_to_real(samp)
+        div = bmg.add_division(real, two)
+        bmg.remove_orphans([div])
+        observed = bmg.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=ToReal];
+  N4[label=2];
+  N5[label="/"];
+  N1 -> N0[label=probability];
+  N2 -> N1[label=operand];
+  N3 -> N2[label=operand];
+  N5 -> N3[label=left];
+  N5 -> N4[label=right];
+}
+"""
+        self.maxDiff = None
+        self.assertEqual(observed.strip(), expected.strip())
