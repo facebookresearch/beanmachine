@@ -8,10 +8,18 @@ from beanmachine.ppl.utils.ast_patterns import (
     boolop,
     constant_falsy,
     constant_truthy,
+    if_statement,
 )
 from beanmachine.ppl.utils.fold_constants import fix_unary_minus, fold_unary_minus
 from beanmachine.ppl.utils.patterns import HeadTail, anyPattern as _any
-from beanmachine.ppl.utils.rules import Rule, TryMany as many, pattern_rules
+from beanmachine.ppl.utils.rules import (
+    AllOf as _all,
+    ListEdit,
+    Rule,
+    TryMany as many,
+    TryOnce as once,
+    pattern_rules,
+)
 
 
 _top_down = ast_domain.top_down
@@ -56,8 +64,15 @@ _optimize_logic: Rule = pattern_rules(
     "optimize_logic",
 )
 
+_optimize_if: Rule = pattern_rules(
+    [
+        (if_statement(test=constant_truthy), lambda s: ListEdit(s.body)),
+        # The orelse is [] if the else clause is missing, so this is fine.
+        (if_statement(test=constant_falsy), lambda s: ListEdit(s.orelse)),
+    ]
+)
 
-_rules = _top_down(many(_optimize_logic))
+_rules = _all([_top_down(many(_optimize_logic)), _top_down(once(_optimize_if))])
 
 
 def optimize(node: ast.AST) -> ast.AST:

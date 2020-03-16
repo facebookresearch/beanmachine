@@ -190,6 +190,12 @@ def if_exp(
     )
 
 
+def if_statement(
+    test: Pattern = _any, body: Pattern = _any, orelse: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(ast.If, {"test": test, "body": body, "orelse": orelse})
+
+
 def ast_list(elts: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.List, {"elts": elts})
 

@@ -260,3 +260,33 @@ tensor([1])
 tensor([1.0])
 tensor([-1.0])"""
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_optimize_if(self) -> None:
+        """Tests for optimize.py"""
+
+        self.maxDiff = None
+
+        source = """
+if True or a:
+    if False or b:
+        1
+else:
+    2
+
+if False and c:
+    if True and d:
+        3
+else:
+    if True or e:
+        4
+    5
+"""
+        m = ast.parse(source)
+        result = optimize(m)
+        expected = """
+if b:
+    1
+4
+5
+"""
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
