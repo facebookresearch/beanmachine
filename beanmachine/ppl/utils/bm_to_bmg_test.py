@@ -9,6 +9,7 @@ from beanmachine.ppl.utils.bm_to_bmg import (
     to_python,
     to_python_raw,
 )
+from beanmachine.ppl.utils.memoize import RecursionError
 
 
 def tidy(s: str) -> str:
@@ -484,3 +485,46 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_bmg(source1).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_1))
+
+    def test_cyclic_model(self) -> None:
+        """Tests for to_cpp from bm_to_bmg.py"""
+
+        # The dependency graph here is x -> y -> z -> x
+        bad_model_1 = """
+import torch
+from torch import tensor
+
+@sample
+def x():
+  return Bernoulli(y())
+
+@sample
+def y():
+  return Bernoulli(z())
+
+@sample
+def z():
+  return Bernoulli(x())
+"""
+        with self.assertRaises(RecursionError):
+            to_bmg(bad_model_1)
+
+        # The dependency graph here is z -> x(2) -> y(0) -> x(1) -> y(0)
+        bad_model_2 = """
+import torch
+from torch import tensor
+
+@sample
+def x(n):
+  return Bernoulli(y(0))
+
+@sample
+def y(n):
+  return Bernoulli(x(n + 1))
+
+@sample
+def z():
+  return Bernoulli(x(2))
+"""
+        with self.assertRaises(RecursionError):
+            to_bmg(bad_model_2)

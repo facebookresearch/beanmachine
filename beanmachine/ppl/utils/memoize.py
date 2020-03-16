@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from functools import wraps
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from beanmachine.ppl.model import StatisticalModel
 from torch import Tensor
@@ -15,19 +15,33 @@ def _get_memoization_key(f, args):
     return StatisticalModel.get_func_key(f, new_args)
 
 
+class RecursionError(Exception):
+    pass
+
+
 def memoize(f):
     """
     Decorator to be used to memoize arbitrary functions.
     """
 
     cache: Dict[Any, Any] = {}
+    # TODO: Can we use a more efficient type than a list? We don't know
+    # TODO: if the key is hashable.
+    in_flight: List[Any] = []
 
     @wraps(f)
     def wrapper(*args):
         key = _get_memoization_key(f, args)
         if key not in cache:
-            result = f(*args)
-            cache[key] = result
+            if key in in_flight:
+                # TODO: Better error
+                raise RecursionError()
+            in_flight.append(key)
+            try:
+                result = f(*args)
+                cache[key] = result
+            finally:
+                in_flight.pop()
         return cache[key]
 
     f._wrapper = wrapper
