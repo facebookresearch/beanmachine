@@ -370,6 +370,20 @@ class ExpNode(UnaryOperatorNode):
         return "Exp(" + str(self.operand()) + ")"
 
 
+class LogNode(UnaryOperatorNode):
+    # TODO: We do not support LOG in BMG yet; when we do, update this:
+    operator_type = OperatorType.EXP  # TODO
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def label(self) -> str:
+        return "Log"
+
+    def __str__(self) -> str:
+        return "Log(" + str(self.operand()) + ")"
+
+
 class SampleNode(UnaryOperatorNode):
     operator_type = OperatorType.SAMPLE
 
@@ -574,6 +588,16 @@ class BMGraphBuilder:
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.exp(operand.value))
         node = ExpNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_log(self, operand: BMGNode) -> ExpNode:
+        if isinstance(operand, TensorNode):
+            return self.add_constant(torch.log(operand.value))
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(math.log(operand.value))
+        node = LogNode(operand)
         self.add_node(node)
         return node
 
