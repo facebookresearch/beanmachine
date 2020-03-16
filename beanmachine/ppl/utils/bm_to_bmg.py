@@ -202,10 +202,8 @@ _samples_to_calls = AllListMembers(
     if_then(
         all_of([_is_sample, _no_params]),
         projection_rule(
-            lambda f: ast.Expr(
-                value=ast.Call(
-                    func=ast.Name(id=f.name, ctx=ast.Load()), args=[], keywords=[]
-                )
+            lambda f: ast.Call(
+                func=ast.Name(id=f.name, ctx=ast.Load()), args=[], keywords=[]
             )
         ),
         projection_rule(lambda f: ListEdit([])),
@@ -232,8 +230,12 @@ def _bm_to_bmg_ast(source: str) -> ast.AST:
     assert isinstance(bmg, ast.Module)
     bmg = _prepend_statements(bmg, _header.body)
     assert isinstance(bmg, ast.Module)
-    footer = _samples_to_calls(a.body).expect_success()
-    bmg = _append_statements(bmg, footer)
+    footer = ast.Assign(
+        targets=[ast.Name(id="roots", ctx=ast.Store())],
+        value=ast.List(elts=_samples_to_calls(a.body).expect_success(), ctx=ast.Load()),
+    )
+
+    bmg = _append_statements(bmg, [footer])
     ast.fix_missing_locations(bmg)
     # TODO: Fix negative constants back to standard form.
     return bmg

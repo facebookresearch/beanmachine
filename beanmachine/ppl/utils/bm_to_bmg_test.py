@@ -79,9 +79,7 @@ def Z():
     return bmg.add_sample(r3)
 
 
-X()
-Y()
-Z()
+roots = [X(), Y(), Z()]
 """
 
 expected_python_1 = (
@@ -280,7 +278,7 @@ def z():
     return bmg.add_sample(r2)
 
 
-z()
+roots = [z()]
 """
 
 expected_dot_2 = """
