@@ -138,6 +138,11 @@ _add_exp = PatternRule(
     lambda a: ast.Assign(a.targets, _make_bmg_call("add_exp", [a.value.args[0]])),
 )
 
+_add_log = PatternRule(
+    assign(value=call_to(id="log")),
+    lambda a: ast.Assign(a.targets, _make_bmg_call("add_log", [a.value.args[0]])),
+)
+
 _add_bernoulli = PatternRule(
     assign(value=call_to(id="Bernoulli")),
     lambda a: ast.Assign(
@@ -167,6 +172,7 @@ _math_to_bmg = _top_down(
                 _add_division,
                 _add_power,
                 _add_exp,
+                _add_log,
                 _add_bernoulli,
             ]
         )

@@ -213,11 +213,11 @@ Node 16 type 3 parents [ 15 ] children [ ] unknown value
 
 source2 = """
 import torch
-from torch import tensor
+from torch import exp, log, tensor
 
 @sample
 def x(n):
-  return Bernoulli(tensor(0.5) + n * tensor(0.1))
+  return Bernoulli(tensor(0.5) + log(exp(n * tensor(0.1))))
 
 @sample
 def z():
@@ -241,14 +241,16 @@ from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 bmg = BMGraphBuilder()
 import torch
-from torch import tensor
+from torch import exp, log, tensor
 
 
 @memoize
 def x(n):
     a5 = bmg.add_tensor(tensor(0.5))
-    a10 = bmg.add_tensor(tensor(0.1))
-    a7 = bmg.add_multiplication(n, a10)
+    a19 = bmg.add_tensor(tensor(0.1))
+    a14 = bmg.add_multiplication(n, a19)
+    a10 = bmg.add_exp(a14)
+    a7 = bmg.add_log(a10)
     a3 = bmg.add_addition(a5, a7)
     r1 = bmg.add_bernoulli(bmg.add_to_real(a3))
     return bmg.add_sample(r1)
@@ -257,18 +259,18 @@ def x(n):
 @memoize
 def z():
     a11 = bmg.add_tensor(tensor(0.3))
-    a18 = bmg.add_real(0)
-    a14 = x(a18)
-    a8 = bmg.add_power(a11, a14)
-    a19 = bmg.add_real(0)
-    a15 = x(a19)
-    a20 = bmg.add_tensor(tensor(10.0))
-    a12 = bmg.add_division(a15, a20)
+    a20 = bmg.add_real(0)
+    a15 = x(a20)
+    a8 = bmg.add_power(a11, a15)
+    a21 = bmg.add_real(0)
+    a16 = x(a21)
+    a22 = bmg.add_tensor(tensor(10.0))
+    a12 = bmg.add_division(a16, a22)
     a6 = bmg.add_addition(a8, a12)
-    a16 = bmg.add_real(1)
-    a13 = x(a16)
-    a17 = bmg.add_tensor(tensor(0.4))
-    a9 = bmg.add_multiplication(a13, a17)
+    a17 = bmg.add_real(1)
+    a13 = x(a17)
+    a18 = bmg.add_tensor(tensor(0.4))
+    a9 = bmg.add_multiplication(a13, a18)
     a4 = bmg.add_addition(a6, a9)
     r2 = bmg.add_bernoulli(bmg.add_to_real(a4))
     return bmg.add_sample(r2)
