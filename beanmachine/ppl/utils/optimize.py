@@ -10,12 +10,14 @@ from beanmachine.ppl.utils.ast_patterns import (
     constant_falsy,
     constant_list,
     constant_truthy,
+    if_exp,
     if_statement,
 )
 from beanmachine.ppl.utils.fold_constants import fix_unary_minus, fold_unary_minus
 from beanmachine.ppl.utils.patterns import HeadTail, anyPattern as _any
 from beanmachine.ppl.utils.rules import (
     AllOf as _all,
+    FirstMatch as first,
     ListEdit,
     PatternRule,
     Rule,
@@ -25,6 +27,7 @@ from beanmachine.ppl.utils.rules import (
 )
 
 
+_bottom_up = ast_domain.bottom_up
 _top_down = ast_domain.top_down
 
 
@@ -67,6 +70,14 @@ _optimize_logic: Rule = pattern_rules(
     "optimize_logic",
 )
 
+
+_optimize_conditional: Rule = pattern_rules(
+    [
+        (if_exp(test=constant_truthy), lambda i: i.body),
+        (if_exp(test=constant_falsy), lambda i: i.orelse),
+    ]
+)
+
 _optimize_if: Rule = pattern_rules(
     [
         (if_statement(test=constant_truthy), lambda s: ListEdit(s.body)),
@@ -91,7 +102,7 @@ _unroll_loop: Rule = PatternRule(
 
 _rules = _all(
     [
-        _top_down(many(_optimize_logic)),
+        _bottom_up(many(first([_optimize_conditional, _optimize_logic]))),
         _top_down(once(_optimize_if)),
         _top_down(once(_unroll_loop)),
     ]

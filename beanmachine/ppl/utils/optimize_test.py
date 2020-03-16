@@ -313,3 +313,19 @@ x = 3
 f(x)
 g()"""
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_optimize_if_exp(self) -> None:
+        """Tests for optimize.py"""
+
+        self.maxDiff = None
+
+        source = """
+a = b if True or c else d
+e = b if False and c else d
+    """
+        m = ast.parse(source)
+        result = optimize(m)
+        expected = """
+a = b
+e = d"""
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
