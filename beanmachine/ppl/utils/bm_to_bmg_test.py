@@ -456,9 +456,9 @@ def x(n):
 @sample
 def z():
   sum = 0.0
-  a = 0
-  b = 1
-  for n in [a, b]:
+  a = 2
+  b = 3
+  for n in [a, a+b]:
       sum = sum + log(tensor(0.01)) * x(n)
   return Bernoulli(
     1 - exp(log(tensor(0.99)) + sum)
@@ -475,12 +475,12 @@ from torch import exp, log, tensor, neg
 
 @memoize
 def x(n):
-    a7 = bmg.add_tensor(tensor(0.5))
-    a17 = bmg.add_tensor(tensor(0.1))
-    a15 = bmg.add_multiplication(n, a17)
-    a13 = bmg.add_exp(a15)
-    a10 = bmg.add_log(a13)
-    a4 = bmg.add_addition(a7, a10)
+    a8 = bmg.add_tensor(tensor(0.5))
+    a18 = bmg.add_tensor(tensor(0.1))
+    a16 = bmg.add_multiplication(n, a18)
+    a14 = bmg.add_exp(a16)
+    a11 = bmg.add_log(a14)
+    a4 = bmg.add_addition(a8, a11)
     r1 = bmg.add_bernoulli(bmg.add_to_real(a4))
     return bmg.add_sample(r1)
 
@@ -488,21 +488,22 @@ def x(n):
 @memoize
 def z():
     sum = bmg.add_real(0.0)
-    a = bmg.add_real(0)
-    b = bmg.add_real(1)
-    f2 = [a, b]
+    a = bmg.add_real(2)
+    b = bmg.add_real(3)
+    a5 = bmg.add_addition(a, b)
+    f2 = [a, a5]
     for n in f2:
-        a8 = bmg.add_tensor(torch.tensor(-4.605170249938965))
-        a11 = x(n)
-        a5 = bmg.add_multiplication(a8, a11)
-        sum = bmg.add_addition(sum, a5)
-    a9 = bmg.add_real(1)
-    a18 = bmg.add_tensor(torch.tensor(-0.010050326585769653))
-    a16 = bmg.add_addition(a18, sum)
-    a14 = bmg.add_exp(a16)
-    a12 = bmg.add_negate(a14)
-    a6 = bmg.add_addition(a9, a12)
-    r3 = bmg.add_bernoulli(bmg.add_to_real(a6))
+        a9 = bmg.add_tensor(torch.tensor(-4.605170249938965))
+        a12 = x(n)
+        a6 = bmg.add_multiplication(a9, a12)
+        sum = bmg.add_addition(sum, a6)
+    a10 = bmg.add_real(1)
+    a19 = bmg.add_tensor(torch.tensor(-0.010050326585769653))
+    a17 = bmg.add_addition(a19, sum)
+    a15 = bmg.add_exp(a17)
+    a13 = bmg.add_negate(a15)
+    a7 = bmg.add_addition(a10, a13)
+    r3 = bmg.add_bernoulli(bmg.add_to_real(a7))
     return bmg.add_sample(r3)
 
 

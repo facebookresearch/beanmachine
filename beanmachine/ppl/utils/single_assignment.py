@@ -2,12 +2,13 @@
 """Tools to transform Bean Machine programs to Bean Machine Graph"""
 
 import ast
-from typing import Callable
+from typing import Callable, List, Tuple
 
 from beanmachine.ppl.utils.ast_patterns import (
     assign,
     ast_domain,
     ast_for,
+    ast_list,
     ast_return,
     binop,
     call,
@@ -86,29 +87,45 @@ class SingleAssignment:
 
         return _do_it
 
+    def _splice_non_identifier(
+        self, original: List[ast.expr]
+    ) -> Tuple[ast.Assign, List[ast.expr]]:
+        id = self._unique_id("a")
+        index, value = next(
+            (i, v) for i, v in enumerate(original) if match(_not_identifier, v)
+        )
+        rewritten = (
+            original[:index] + [ast.Name(id=id, ctx=ast.Load())] + original[index + 1 :]
+        )
+        assignment = ast.Assign(targets=[ast.Name(id=id, ctx=ast.Store())], value=value)
+        return assignment, rewritten
+
     def _fix_call(self) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
-            id = self._unique_id("a")
             c = a.value
             assert isinstance(c, ast.Call)
-            args_original = c.args
-
-            index, value = next(
-                (i, v) for i, v in enumerate(args_original) if match(_not_identifier, v)
-            )
-
-            args_new = (
-                args_original[:index]
-                + [ast.Name(id=id, ctx=ast.Load())]
-                + args_original[index + 1 :]
-            )
+            assignment, args_new = self._splice_non_identifier(c.args)
             return ListEdit(
                 [
-                    ast.Assign(targets=[ast.Name(id=id, ctx=ast.Store())], value=value),
+                    assignment,
                     ast.Assign(
                         targets=a.targets,
                         value=ast.Call(func=c.func, args=args_new, keywords=c.keywords),
                     ),
+                ]
+            )
+
+        return _do_it
+
+    def _fix_list(self) -> Callable[[ast.Assign], ListEdit]:
+        def _do_it(a: ast.Assign) -> ListEdit:
+            c = a.value
+            assert isinstance(c, ast.List)
+            assignment, elts_new = self._splice_non_identifier(c.elts)
+            return ListEdit(
+                [
+                    assignment,
+                    ast.Assign(targets=a.targets, value=ast.List(elts=elts_new)),
                 ]
             )
 
@@ -181,6 +198,7 @@ class SingleAssignment:
                     ),
                     self._fix_call(),
                 ),
+                (assign(value=ast_list(elts=_list_not_identifier)), self._fix_list()),
             ],
             "handle_assign",
         )
