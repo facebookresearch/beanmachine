@@ -108,6 +108,10 @@ def arguments(
     )
 
 
+def ast_assert(expr: Pattern = _any, msg: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.Assert, {"expr": expr, "msg": msg})
+
+
 def assign(targets: Pattern = _any, value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Assign, {"targets": targets, "value": value})
 

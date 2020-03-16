@@ -21,8 +21,11 @@ import torch
 from torch import exp, log, tensor
 from torch.distributions.bernoulli import Bernoulli
 
+assert 1 + 1 == 2, "math still works"
+
 @sample
 def X():
+  assert 2 + 2 == 4, "math still works"
   return Bernoulli(tensor(0.01))
 
 @sample

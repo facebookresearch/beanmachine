@@ -8,6 +8,7 @@ import astor
 from beanmachine.ppl.utils.ast_patterns import (
     arguments,
     assign,
+    ast_assert,
     ast_domain,
     ast_return,
     binop,
@@ -26,13 +27,13 @@ from beanmachine.ppl.utils.rules import (
     AllListMembers,
     AllOf as all_of,
     FirstMatch as first,
-    ListEdit,
     PatternRule,
     SomeListMembers,
     TryMany as many,
     TryOnce as once,
     if_then,
     projection_rule,
+    remove_from_list,
 )
 from beanmachine.ppl.utils.single_assignment import single_assignment
 
@@ -49,6 +50,11 @@ _top_down = ast_domain.top_down
 _bottom_up = ast_domain.bottom_up
 _descend_until = ast_domain.descend_until
 _specific_child = ast_domain.specific_child
+
+
+_eliminate_assertion = PatternRule(ast_assert(), lambda a: remove_from_list)
+
+_eliminate_all_assertions = _top_down(once(_eliminate_assertion))
 
 _eliminate_subtraction = PatternRule(
     binop(op=ast.Sub),
@@ -236,7 +242,7 @@ _samples_to_calls = AllListMembers(
                 func=ast.Name(id=f.name, ctx=ast.Load()), args=[], keywords=[]
             )
         ),
-        projection_rule(lambda f: ListEdit([])),
+        projection_rule(lambda f: remove_from_list),
     )
 )
 
@@ -245,6 +251,7 @@ _to_bmg = all_of([_math_to_bmg, _returns_to_bmg, _sample_to_memoize])
 
 def _bm_to_bmg_ast(source: str) -> ast.AST:
     a: ast.Module = ast.parse(source)
+    a = _eliminate_all_assertions(a).expect_success()
     f = fold(a)
     assert isinstance(f, ast.Module)
     # The AST has now had constants folded and associative
