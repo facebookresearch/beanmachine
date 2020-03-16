@@ -2,8 +2,11 @@
 # from beanmachine.graph import Graph
 """A builder for the BeanMachine Graph language"""
 
+import math
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Dict, List
+
+import torch
 
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
@@ -438,6 +441,17 @@ class BMGraphBuilder:
                 self.add_node(child)
             self.nodes[node] = len(self.nodes)
 
+    def add_constant(self, value: Any) -> ConstantNode:
+        if isinstance(value, bool):
+            return self.add_boolean(value)
+        if isinstance(value, int):
+            return self.add_real(value)
+        if isinstance(value, float):
+            return self.add_real(value)
+        if isinstance(value, Tensor):
+            return self.add_tensor(value)
+        raise TypeError("value must be a bool, real or tensor")
+
     @memoize
     def add_real(self, value: float) -> RealNode:
         node = RealNode(value)
@@ -463,25 +477,35 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_addition(self, left: BMGNode, right: BMGNode) -> AdditionNode:
+    def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value + right.value)
         node = AdditionNode(left, right)
         self.add_node(node)
         return node
 
     @memoize
-    def add_multiplication(self, left: BMGNode, right: BMGNode) -> MultiplicationNode:
+    def add_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value * right.value)
         node = MultiplicationNode(left, right)
         self.add_node(node)
         return node
 
     @memoize
-    def add_negate(self, operand: BMGNode) -> NegateNode:
+    def add_negate(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(-operand.value)
         node = NegateNode(operand)
         self.add_node(node)
         return node
 
     @memoize
     def add_to_real(self, operand: BMGNode) -> ToRealNode:
+        if isinstance(operand, RealNode):
+            return operand
+        if isinstance(operand, ConstantNode):
+            return self.add_real(float(operand.value))
         node = ToRealNode(operand)
         self.add_node(node)
         return node
@@ -494,6 +518,10 @@ class BMGraphBuilder:
 
     @memoize
     def add_exp(self, operand: BMGNode) -> ExpNode:
+        if isinstance(operand, TensorNode):
+            return self.add_constant(torch.exp(operand.value))
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(math.exp(operand.value))
         node = ExpNode(operand)
         self.add_node(node)
         return node

@@ -90,7 +90,7 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant(tensor(0.009999999776482582))
-n1 = g.add_operator(graph.OperatorType.TO_REAL, [n0])
+n1 = g.add_constant(0.009999999776482582)
 n2 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n1])"""  # noqa: B950
     + """
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
@@ -123,7 +123,7 @@ digraph "graph" {
   N15[label=ToReal];
   N16[label=Bernoulli];
   N17[label=Sample];
-  N1[label=ToReal];
+  N1[label=0.009999999776482582];
   N2[label=Bernoulli];
   N3[label=Sample];
   N4[label=Sample];
@@ -132,7 +132,6 @@ digraph "graph" {
   N7[label=-4.605170249938965];
   N8[label="*"];
   N9[label="+"];
-  N1 -> N0[label=operand];
   N10 -> N4[label=left];
   N10 -> N7[label=right];
   N11 -> N10[label=right];
@@ -157,8 +156,7 @@ digraph "graph" {
 expected_cpp_1 = """
 graph::Graph g;
 uint n0 = g.add_constant(torch::from_blob((float[]){0.009999999776482582}, {}));
-uint n1 = g.add_operator(
-  graph::OperatorType::TO_REAL, std::vector<uint>({n0}));
+uint n1 = g.add_constant(0.009999999776482582);
 uint n2 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
@@ -195,9 +193,9 @@ uint n17 = g.add_operator(
 """
 
 expected_bmg_1 = """
-Node 0 type 1 parents [ ] children [ 1 ] tensor value 0.01
+Node 0 type 1 parents [ ] children [ ] tensor value 0.01
 [ CPUFloatType{} ]
-Node 1 type 3 parents [ 0 ] children [ 2 ] unknown value
+Node 1 type 1 parents [ ] children [ 2 ] real value 0.01
 Node 2 type 2 parents [ 1 ] children [ 3 4 ] unknown value
 Node 3 type 3 parents [ 2 ] children [ 8 ] unknown value
 Node 4 type 3 parents [ 2 ] children [ 10 ] unknown value
@@ -288,56 +286,44 @@ z()
 expected_dot_2 = """
 digraph "graph" {
   N0[label=0];
-  N10[label="*"];
-  N11[label="+"];
-  N12[label=1];
-  N13[label="*"];
-  N14[label="+"];
-  N15[label=ToReal];
-  N16[label=Bernoulli];
-  N17[label=Sample];
-  N18[label=0.4000000059604645];
-  N19[label="*"];
+  N10[label="+"];
+  N11[label=1];
+  N12[label=0.6000000238418579];
+  N13[label=0.6000000238418579];
+  N14[label=Bernoulli];
+  N15[label=Sample];
+  N16[label=0.4000000059604645];
+  N17[label="*"];
+  N18[label="+"];
+  N19[label=ToReal];
   N1[label=0.5];
-  N20[label="+"];
-  N21[label=ToReal];
-  N22[label=Bernoulli];
-  N23[label=Sample];
+  N20[label=Bernoulli];
+  N21[label=Sample];
   N2[label=0.10000000149011612];
-  N3[label="*"];
-  N4[label="+"];
-  N5[label=ToReal];
-  N6[label=Bernoulli];
-  N7[label=Sample];
-  N8[label=0.30000001192092896];
+  N3[label=0.0];
+  N4[label=0.5];
+  N5[label=Bernoulli];
+  N6[label=Sample];
+  N7[label=0.30000001192092896];
+  N8[label="*"];
   N9[label="*"];
-  N10 -> N2[label=right];
-  N10 -> N7[label=left];
-  N11 -> N10[label=right];
-  N11 -> N9[label=left];
-  N13 -> N12[label=left];
-  N13 -> N2[label=right];
-  N14 -> N13[label=right];
-  N14 -> N1[label=left];
+  N10 -> N8[label=left];
+  N10 -> N9[label=right];
+  N14 -> N13[label=probability];
   N15 -> N14[label=operand];
-  N16 -> N15[label=probability];
-  N17 -> N16[label=operand];
-  N19 -> N17[label=left];
-  N19 -> N18[label=right];
-  N20 -> N11[label=left];
-  N20 -> N19[label=right];
+  N17 -> N15[label=left];
+  N17 -> N16[label=right];
+  N18 -> N10[label=left];
+  N18 -> N17[label=right];
+  N19 -> N18[label=operand];
+  N20 -> N19[label=probability];
   N21 -> N20[label=operand];
-  N22 -> N21[label=probability];
-  N23 -> N22[label=operand];
-  N3 -> N0[label=left];
-  N3 -> N2[label=right];
-  N4 -> N1[label=left];
-  N4 -> N3[label=right];
-  N5 -> N4[label=operand];
-  N6 -> N5[label=probability];
-  N7 -> N6[label=operand];
-  N9 -> N7[label=left];
-  N9 -> N8[label=right];
+  N5 -> N4[label=probability];
+  N6 -> N5[label=operand];
+  N8 -> N6[label=left];
+  N8 -> N7[label=right];
+  N9 -> N2[label=right];
+  N9 -> N6[label=left];
 }
 """
 
