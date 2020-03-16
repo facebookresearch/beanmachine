@@ -140,6 +140,15 @@ def call_to(id: Pattern = _any, args: Pattern = _any) -> Pattern:
     return call(func=match_any(attribute(attr=id), name(id=id)), args=args)
 
 
+def id_from_call(c: ast.Call) -> str:
+    f = c.func
+    if isinstance(f, ast.Name):
+        return f.id
+    if isinstance(f, ast.Attribute):
+        return f.attr
+    raise ValueError("Unexpected argument to id_from_call")
+
+
 def compare(left: Pattern = _any, ops: Pattern = _any, comparators: Pattern = _any):
     return type_and_attributes(
         ast.Compare, {"left": left, "ops": ops, "comparators": comparators}

@@ -3,7 +3,7 @@
 
 import ast
 import math
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List
 
 import torch
 from beanmachine.ppl.utils.ast_patterns import (
@@ -17,6 +17,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     constant_numeric,
     constant_tensor_any,
     constant_value_to_ast,
+    id_from_call,
     if_exp,
     match_any,
     negative_num,
@@ -213,38 +214,32 @@ _fold_comparison: Rule = PatternRule(
 )
 
 
-_fold_tensor_log: Rule = PatternRule(
-    call_to(id="log", args=[constant_tensor_any]),
-    lambda c: constant_value_to_ast(torch.log(ast_to_constant_value(c.args[0]))),
+_tensor_1_functions: List[Callable] = [torch.exp, torch.log]
+_tensor_1 = {f.__name__: f for f in _tensor_1_functions}
+
+_fold_tensor_1: Rule = PatternRule(
+    call_to(id=match_any(*(_tensor_1.keys())), args=[constant_tensor_any]),
+    lambda c: constant_value_to_ast(
+        _tensor_1[id_from_call(c)](ast_to_constant_value(c.args[0]))
+    ),
     "fold_tensor_log",
 )
 
-_fold_log: Rule = ignore_value_error(
-    PatternRule(
-        call_to(id="log", args=[constant_literal]),
-        lambda c: constant_value_to_ast(math.log(ast_to_constant_value(c.args[0]))),
-        "fold_log",
-    )
-)
+_math_1_functions: List[Callable] = [math.acos, math.exp, math.log]
+_math_1 = {f.__name__: f for f in _math_1_functions}
 
-_fold_tensor_exp: Rule = PatternRule(
-    call_to(id="exp", args=[constant_tensor_any]),
-    lambda c: constant_value_to_ast(torch.exp(ast_to_constant_value(c.args[0]))),
-    "fold_tensor_exp",
-)
-
-_fold_exp: Rule = ignore_value_error(
+_fold_math_1: Rule = ignore_value_error(
     PatternRule(
-        call_to(id="exp", args=[constant_literal]),
-        lambda c: constant_value_to_ast(math.exp(ast_to_constant_value(c.args[0]))),
-        "fold_exp",
+        call_to(id=match_any(*(_math_1.keys())), args=[constant_literal]),
+        lambda c: constant_value_to_ast(
+            _math_1[id_from_call(c)](ast_to_constant_value(c.args[0]))
+        ),
+        "fold_math_1",
     )
 )
 
 
-_fold_pure: Rule = first(
-    [_fold_tensor_log, _fold_log, _fold_tensor_exp, _fold_exp], "fold_pure"
-)
+_fold_pure: Rule = first([_fold_tensor_1, _fold_math_1], "fold_pure")
 
 _fold_constants = ignore_runtime_error(
     first(

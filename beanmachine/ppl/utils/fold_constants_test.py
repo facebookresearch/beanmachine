@@ -128,14 +128,14 @@ x = 1 if not ((True or False) and True) else 2
         # We can fold certain pure functions, like math.log or torch.log.
         source = (
             "torch.log(tensor([1.0, 2.0, 3.0])) + x + "
-            + "tensor([math.log(2.7), 2.0, 3.0]) + "
+            + "tensor([math.log(2.7), math.acos(0.1), 3.0]) + "
             + "torch.exp(tensor([1.0, 2.0, 3.0])) + "
             + "tensor([math.exp(1.0), 2.0, 3.0])"
         )
         m = ast.parse(source)
         result = fold(m)
         expected = (
-            "torch.tensor([6.429815292358398, 12.082202911376953, "
+            "torch.tensor([6.429815292358398, 11.552831649780273, "
             + "27.18414878845215]) + x"
         )
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
