@@ -40,6 +40,18 @@ _optimize_logic: Rule = pattern_rules(
             boolop(op=ast.And, values=HeadTail(constant_truthy)),
             lambda b: ast.BoolOp(op=b.op, values=b.values[1:]),
         ),
+        # (x or ...) becomes x if x is logically true.
+        (boolop(op=ast.Or, values=HeadTail(constant_truthy)), lambda b: b.values[0]),
+        # (x or y) becomes y if x is logically false.
+        (
+            boolop(op=ast.Or, values=HeadTail(constant_falsy, [_any])),
+            lambda b: b.values[1],
+        ),
+        # (x or ...) becomes ... if x is logically false.
+        (
+            boolop(op=ast.Or, values=HeadTail(constant_falsy)),
+            lambda b: ast.BoolOp(op=b.op, values=b.values[1:]),
+        ),
     ],
     "optimize_logic",
 )
