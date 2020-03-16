@@ -112,6 +112,45 @@ def _identity(x: Any) -> Any:
     return x
 
 
+class Trace(Rule):
+    """This combinator introduces a side effect to be executed every time the
+    child rule is executed, and when it succeeds or fails. It is useful for
+    debugging."""
+
+    rule: Rule
+    logger: Callable[[Rule, Any], None]
+
+    def __init__(self, rule: Rule, logger: Callable[[Rule, Any], None]) -> None:
+        Rule.__init__(self, rule.name)
+        self.rule = rule
+        self.logger = logger
+
+    def apply(self, test: Any) -> RuleResult:
+        self.logger(self.rule, None)
+        result = self.rule(test)
+        self.logger(self.rule, result)
+        return result
+
+    def __str__(self) -> str:
+        return str(self.rule)
+
+    def always_succeeds(self) -> bool:
+        return self.rule.always_succeeds()
+
+
+def make_logger(log: List[str]) -> Callable[[Rule], Rule]:
+    def logger(rule: Rule, value: Any) -> None:
+        if value is None:
+            log.append(f"Started {rule.name}")
+        else:
+            log.append(f"Finished {rule.name}")
+
+    def trace(rule: Rule) -> Rule:
+        return Trace(rule, logger)
+
+    return trace
+
+
 class PatternRule(Rule):
     """If the test value matches the pattern, then the test value is passed
     to the projection and the rule succeeds. Otherwise, the rule fails."""
@@ -984,7 +1023,7 @@ class RuleDomain:
         children, and so on down to the leaves. It succeeds iff the rule succeeds on
         every node."""
         return Compose(
-            rule, self.all_children(Recursive(lambda: self.top_down(rule, name)))
+            rule, self.all_children(Recursive(lambda: self.top_down(rule, name))), name
         )
 
     def some_top_down(self, rule: Rule, name: str = "some_top_down") -> Rule:

@@ -38,6 +38,7 @@ from beanmachine.ppl.utils.rules import (
     ignore_div_zero,
     ignore_runtime_error,
     list_member_children,
+    make_logger,
     pattern_rules,
     projection_rule,
     remove_from_list,
@@ -544,11 +545,20 @@ def h():
 
         # replace all 1 with 2, but only in functions decorated with @frob:
 
-        r = top_down(
-            once(
-                if_then(
-                    PatternRule(binop()),
-                    specific_child("left", PatternRule(num(1), lambda n: ast.Num(2))),
+        log = []
+        trace = make_logger(log)
+
+        r = trace(
+            top_down(
+                once(
+                    if_then(
+                        PatternRule(binop()),
+                        trace(
+                            specific_child(
+                                "left", PatternRule(num(1), lambda n: ast.Num(2))
+                            )
+                        ),
+                    )
                 )
             )
         )
@@ -557,4 +567,17 @@ def h():
         expected = "2 + 2 * 1 + 1"
         result = r(ast.parse(s)).expect_success()
         observed = astor.to_source(result)
+        self.assertEqual(observed.strip(), expected.strip())
+
+        observed = "\n".join(log)
+        expected = """
+Started top_down
+Started specific_child
+Finished specific_child
+Started specific_child
+Finished specific_child
+Started specific_child
+Finished specific_child
+Finished top_down
+        """
         self.assertEqual(observed.strip(), expected.strip())
