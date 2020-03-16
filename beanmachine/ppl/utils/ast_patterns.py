@@ -168,17 +168,9 @@ def ast_for(
     iter: Pattern = _any,
     body: Pattern = _any,
     orelse: Pattern = _any,
-    type_comment: Pattern = _any,
 ) -> Pattern:
     return type_and_attributes(
-        ast.For,
-        {
-            "target": target,
-            "iter": iter,
-            "body": body,
-            "orelse": orelse,
-            "type_comment": type_comment,
-        },
+        ast.For, {"target": target, "iter": iter, "body": body, "orelse": orelse}
     )
 
 

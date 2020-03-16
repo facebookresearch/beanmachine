@@ -7,6 +7,7 @@ from typing import Callable
 from beanmachine.ppl.utils.ast_patterns import (
     assign,
     ast_domain,
+    ast_for,
     ast_return,
     binop,
     call,
@@ -55,7 +56,11 @@ class SingleAssignment:
     def __init__(self) -> None:
         self._count = 0
         self._rules = many(
-            _some_top_down(first([self._handle_return(), self._handle_assign()]))
+            _some_top_down(
+                first(
+                    [self._handle_return(), self._handle_for(), self._handle_assign()]
+                )
+            )
         )
 
     def _unique_id(self, prefix: str) -> str:
@@ -114,6 +119,19 @@ class SingleAssignment:
             ast_return(value=_not_identifier),
             self._fix_it("r", lambda r: r.value, lambda r, v: ast.Return(value=v)),
             "handle_return",
+        )
+
+    def _handle_for(self) -> Rule:
+        return PatternRule(
+            ast_for(iter=_not_identifier),
+            self._fix_it(
+                "f",
+                lambda f: f.iter,
+                lambda f, v: ast.For(
+                    target=f.target, iter=v, body=f.body, orelse=f.orelse
+                ),
+            ),
+            "handle_for",
         )
 
     def _handle_assign(self) -> Rule:

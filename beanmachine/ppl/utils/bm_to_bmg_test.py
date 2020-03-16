@@ -445,6 +445,71 @@ digraph "graph" {
 }
 """
 
+source4 = """
+import torch
+from torch import exp, log, tensor, neg
+
+@sample
+def x(n):
+  return Bernoulli(tensor(0.5) + log(exp(n * tensor(0.1))))
+
+@sample
+def z():
+  sum = 0.0
+  a = 0
+  b = 1
+  for n in [a, b]:
+      sum = sum + log(tensor(0.01)) * x(n)
+  return Bernoulli(
+    1 - exp(log(tensor(0.99)) + sum)
+  )
+"""
+
+expected_raw_4 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+bmg = BMGraphBuilder()
+import torch
+from torch import exp, log, tensor, neg
+
+
+@memoize
+def x(n):
+    a7 = bmg.add_tensor(tensor(0.5))
+    a17 = bmg.add_tensor(tensor(0.1))
+    a15 = bmg.add_multiplication(n, a17)
+    a13 = bmg.add_exp(a15)
+    a10 = bmg.add_log(a13)
+    a4 = bmg.add_addition(a7, a10)
+    r1 = bmg.add_bernoulli(bmg.add_to_real(a4))
+    return bmg.add_sample(r1)
+
+
+@memoize
+def z():
+    sum = bmg.add_real(0.0)
+    a = bmg.add_real(0)
+    b = bmg.add_real(1)
+    f2 = [a, b]
+    for n in f2:
+        a8 = bmg.add_tensor(torch.tensor(-4.605170249938965))
+        a11 = x(n)
+        a5 = bmg.add_multiplication(a8, a11)
+        sum = bmg.add_addition(sum, a5)
+    a9 = bmg.add_real(1)
+    a18 = bmg.add_tensor(torch.tensor(-0.010050326585769653))
+    a16 = bmg.add_addition(a18, sum)
+    a14 = bmg.add_exp(a16)
+    a12 = bmg.add_negate(a14)
+    a6 = bmg.add_addition(a9, a12)
+    r3 = bmg.add_bernoulli(bmg.add_to_real(a6))
+    return bmg.add_sample(r3)
+
+
+roots = [z()]
+bmg.remove_orphans(roots)
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -456,6 +521,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_2.strip())
         observed = to_python_raw(source3)
         self.assertEqual(observed.strip(), expected_raw_3.strip())
+        observed = to_python_raw(source4)
+        self.assertEqual(observed.strip(), expected_raw_4.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
