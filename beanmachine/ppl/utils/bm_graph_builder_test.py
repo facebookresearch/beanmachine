@@ -190,3 +190,12 @@ digraph "graph" {
         self.assertFalse(bmg.add_tensor(tensor(False)))
         self.assertFalse(bmg.add_tensor(tensor(0.0)))
         self.assertFalse(bmg.add_tensor(tensor([0.0])))
+
+    def test_4(self) -> None:
+        """Test 4"""
+        bmg = BMGraphBuilder()
+        one = bmg.add_real(1.0)
+        tru = bmg.add_boolean(True)
+        fal = bmg.add_boolean(False)
+        lst = bmg.add_list([tru, fal])
+        self.assertEqual(fal, lst[one])

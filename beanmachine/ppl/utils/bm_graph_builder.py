@@ -120,6 +120,37 @@ class RealNode(ConstantNode):
         return bool(self.value)
 
 
+class ListNode(BMGNode):
+    # TODO: A list node does not appear in the final graph at this time; it
+    # TODO: is useful when constructing the final graph from a BM program that
+    # TODO: uses lists. Consider if we want a list type in the graph.
+    def __init__(self, children: List[BMGNode]):
+        BMGNode.__init__(self, children)
+        self.edges = [str(x) for x in range(len(children))]
+
+    def label(self) -> str:
+        return "list"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        # TODO: list nodes are not currently part of the graph
+        return -1
+
+    def _to_python(self, d: Dict[BMGNode, int]) -> str:
+        # TODO: list nodes are not currently part of the graph
+        return ""
+
+    def _to_cpp(self, d: Dict[BMGNode, int]) -> str:
+        # TODO: list nodes are not currently part of the graph
+        return ""
+
+    def __getitem__(self, key) -> BMGNode:
+        if not isinstance(key, RealNode):
+            raise ValueError(
+                "BeanMachine list must be indexed with a known numeric value"
+            )
+        return self.children[int(key.value)]
+
+
 class TensorNode(ConstantNode):
     value: Tensor
 
@@ -629,6 +660,13 @@ class BMGraphBuilder:
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.log(operand.value))
         node = LogNode(operand)
+        self.add_node(node)
+        return node
+
+    # TODO: Do NOT memoize add_list; if we eventually add a list node to the
+    # TODO: underlying graph, revisit this decision.
+    def add_list(self, elements: List[BMGNode]) -> ExpNode:
+        node = ListNode(elements)
         self.add_node(node)
         return node
 
