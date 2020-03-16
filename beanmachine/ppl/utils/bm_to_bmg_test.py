@@ -219,12 +219,137 @@ Node 17 type 3 parents [ 16 ] children [ ] unknown value
 """
 
 
+source2 = """
+import torch
+from torch import tensor
+
+@sample
+def x(n):
+  return Bernoulli(tensor(0.5) + n * tensor(0.1))
+
+@sample
+def z():
+  return Bernoulli(x(0) * tensor(0.3) + x(0) * tensor(0.1) + x(1) * tensor(0.4))
+"""
+
+# In the medium term, we need to create a mechanism in BMG to represent
+# "random variable with index".  This in particular will be necessary
+# for scenarios like "Bernoulli(y(x())"; suppose x is a random variable
+# either True and False and y(n) is a random variable that takes in True
+# or False and produces a sample from 0.0 to 1.0. We do not have
+# a way in BMG today to represent this because we require exactly as many
+# sample nodes in the graph as there are samples in the program.
+#
+# However, because we do hoist the indices of x(0) and x(1) as nodes
+# in the graph here, and because nodes are deduplicated, we end
+# up doing the right thing when the indices are constants.
+
+expected_raw_2 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+bmg = BMGraphBuilder()
+import torch
+from torch import tensor
+
+
+@memoize
+def x(n):
+    a5 = bmg.add_tensor(tensor(0.5))
+    a10 = bmg.add_tensor(tensor(0.1))
+    a7 = bmg.add_multiplication(n, a10)
+    a3 = bmg.add_addition(a5, a7)
+    r1 = bmg.add_bernoulli(bmg.add_to_real(a3))
+    return bmg.add_sample(r1)
+
+
+@memoize
+def z():
+    a14 = bmg.add_real(0)
+    a11 = x(a14)
+    a15 = bmg.add_tensor(tensor(0.3))
+    a8 = bmg.add_multiplication(a11, a15)
+    a19 = bmg.add_real(0)
+    a16 = x(a19)
+    a20 = bmg.add_tensor(tensor(0.1))
+    a12 = bmg.add_multiplication(a16, a20)
+    a6 = bmg.add_addition(a8, a12)
+    a17 = bmg.add_real(1)
+    a13 = x(a17)
+    a18 = bmg.add_tensor(tensor(0.4))
+    a9 = bmg.add_multiplication(a13, a18)
+    a4 = bmg.add_addition(a6, a9)
+    r2 = bmg.add_bernoulli(bmg.add_to_real(a4))
+    return bmg.add_sample(r2)
+
+
+z()
+"""
+
+expected_dot_2 = """
+digraph "graph" {
+  N0[label=0];
+  N10[label="*"];
+  N11[label="+"];
+  N12[label=1];
+  N13[label="*"];
+  N14[label="+"];
+  N15[label=ToReal];
+  N16[label=Bernoulli];
+  N17[label=Sample];
+  N18[label=0.4000000059604645];
+  N19[label="*"];
+  N1[label=0.5];
+  N20[label="+"];
+  N21[label=ToReal];
+  N22[label=Bernoulli];
+  N23[label=Sample];
+  N2[label=0.10000000149011612];
+  N3[label="*"];
+  N4[label="+"];
+  N5[label=ToReal];
+  N6[label=Bernoulli];
+  N7[label=Sample];
+  N8[label=0.30000001192092896];
+  N9[label="*"];
+  N10 -> N2[label=right];
+  N10 -> N7[label=left];
+  N11 -> N10[label=right];
+  N11 -> N9[label=left];
+  N13 -> N12[label=left];
+  N13 -> N2[label=right];
+  N14 -> N13[label=right];
+  N14 -> N1[label=left];
+  N15 -> N14[label=operand];
+  N16 -> N15[label=probability];
+  N17 -> N16[label=operand];
+  N19 -> N17[label=left];
+  N19 -> N18[label=right];
+  N20 -> N11[label=left];
+  N20 -> N19[label=right];
+  N21 -> N20[label=operand];
+  N22 -> N21[label=probability];
+  N23 -> N22[label=operand];
+  N3 -> N0[label=left];
+  N3 -> N2[label=right];
+  N4 -> N1[label=left];
+  N4 -> N3[label=right];
+  N5 -> N4[label=operand];
+  N6 -> N5[label=probability];
+  N7 -> N6[label=operand];
+  N9 -> N7[label=left];
+  N9 -> N8[label=right];
+}
+"""
+
+
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
         """Tests for to_python_raw from bm_to_bmg.py"""
         self.maxDiff = None
         observed = to_python_raw(source1)
         self.assertEqual(observed.strip(), expected_raw_1.strip())
+        observed = to_python_raw(source2)
+        self.assertEqual(observed.strip(), expected_raw_2.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -237,6 +362,8 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_dot(source1)
         self.assertEqual(observed.strip(), expected_dot_1.strip())
+        observed = to_dot(source2)
+        self.assertEqual(observed.strip(), expected_dot_2.strip())
 
     def test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
