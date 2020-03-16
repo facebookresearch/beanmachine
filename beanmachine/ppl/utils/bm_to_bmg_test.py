@@ -328,6 +328,122 @@ digraph "graph" {
 }
 """
 
+# As mentioned in the comment above, we will need a way to represent indexed
+# samples, but until we have that, I've implemented a simple loop unroller
+# that we can use to experiment with these sorts of distributions:
+
+source3 = """
+import torch
+from torch import exp, log, tensor, neg
+
+@sample
+def x(n):
+  return Bernoulli(tensor(0.5) + log(exp(n * tensor(0.1))))
+
+@sample
+def z():
+  sum = 0.0
+  for n in [0, 1]:
+      sum = sum + log(tensor(0.01)) * x(n)
+  return Bernoulli(
+    1 - exp(log(tensor(0.99)) + sum)
+  )
+"""
+
+expected_raw_3 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+bmg = BMGraphBuilder()
+import torch
+from torch import exp, log, tensor, neg
+
+
+@memoize
+def x(n):
+    a9 = bmg.add_tensor(tensor(0.5))
+    a19 = bmg.add_tensor(tensor(0.1))
+    a17 = bmg.add_multiplication(n, a19)
+    a15 = bmg.add_exp(a17)
+    a13 = bmg.add_log(a15)
+    a5 = bmg.add_addition(a9, a13)
+    r1 = bmg.add_bernoulli(bmg.add_to_real(a5))
+    return bmg.add_sample(r1)
+
+
+@memoize
+def z():
+    sum = bmg.add_real(0.0)
+    n = bmg.add_real(0)
+    a6 = bmg.add_tensor(torch.tensor(-4.605170249938965))
+    a10 = x(n)
+    a2 = bmg.add_multiplication(a6, a10)
+    sum = bmg.add_addition(sum, a2)
+    n = bmg.add_real(1)
+    a7 = bmg.add_tensor(torch.tensor(-4.605170249938965))
+    a11 = x(n)
+    a3 = bmg.add_multiplication(a7, a11)
+    sum = bmg.add_addition(sum, a3)
+    a12 = bmg.add_real(1)
+    a20 = bmg.add_tensor(torch.tensor(-0.010050326585769653))
+    a18 = bmg.add_addition(a20, sum)
+    a16 = bmg.add_exp(a18)
+    a14 = bmg.add_negate(a16)
+    a8 = bmg.add_addition(a12, a14)
+    r4 = bmg.add_bernoulli(bmg.add_to_real(a8))
+    return bmg.add_sample(r4)
+
+
+roots = [z()]
+bmg.remove_orphans(roots)
+"""
+
+expected_dot_3 = """
+digraph "graph" {
+  N0[label=1];
+  N10[label=Bernoulli];
+  N11[label=Sample];
+  N12[label="*"];
+  N13[label="+"];
+  N14[label="+"];
+  N15[label=Exp];
+  N16[label="-"];
+  N17[label="+"];
+  N18[label=ToReal];
+  N19[label=Bernoulli];
+  N1[label=-0.010050326585769653];
+  N20[label=Sample];
+  N2[label=0.0];
+  N3[label=-4.605170249938965];
+  N4[label=0.5];
+  N5[label=Bernoulli];
+  N6[label=Sample];
+  N7[label="*"];
+  N8[label="+"];
+  N9[label=0.6000000238418579];
+  N10 -> N9[label=probability];
+  N11 -> N10[label=operand];
+  N12 -> N11[label=right];
+  N12 -> N3[label=left];
+  N13 -> N12[label=right];
+  N13 -> N8[label=left];
+  N14 -> N13[label=right];
+  N14 -> N1[label=left];
+  N15 -> N14[label=operand];
+  N16 -> N15[label=operand];
+  N17 -> N0[label=left];
+  N17 -> N16[label=right];
+  N18 -> N17[label=operand];
+  N19 -> N18[label=probability];
+  N20 -> N19[label=operand];
+  N5 -> N4[label=probability];
+  N6 -> N5[label=operand];
+  N7 -> N3[label=left];
+  N7 -> N6[label=right];
+  N8 -> N2[label=left];
+  N8 -> N7[label=right];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -337,6 +453,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_1.strip())
         observed = to_python_raw(source2)
         self.assertEqual(observed.strip(), expected_raw_2.strip())
+        observed = to_python_raw(source3)
+        self.assertEqual(observed.strip(), expected_raw_3.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -351,6 +469,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_1.strip())
         observed = to_dot(source2)
         self.assertEqual(observed.strip(), expected_dot_2.strip())
+        observed = to_dot(source3)
+        self.assertEqual(observed.strip(), expected_dot_3.strip())
 
     def test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""

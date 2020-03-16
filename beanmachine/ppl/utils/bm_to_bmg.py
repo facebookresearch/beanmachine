@@ -22,6 +22,7 @@ from beanmachine.ppl.utils.ast_patterns import (
 )
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.utils.fold_constants import _fold_unary_op, fold
+from beanmachine.ppl.utils.optimize import optimize
 from beanmachine.ppl.utils.patterns import ListAny
 from beanmachine.ppl.utils.rules import (
     AllListMembers,
@@ -252,11 +253,15 @@ _to_bmg = all_of([_math_to_bmg, _returns_to_bmg, _sample_to_memoize])
 def _bm_to_bmg_ast(source: str) -> ast.AST:
     a: ast.Module = ast.parse(source)
     a = _eliminate_all_assertions(a).expect_success()
+    # TODO: We might want to iterate the folder and optimizer until
+    # TODO: they reach a fixpoint; it's possible that the optimizer
+    # TODO: could someday produce a new opportunity for folding.
     f = fold(a)
-    assert isinstance(f, ast.Module)
+    o = optimize(f)
+    assert isinstance(o, ast.Module)
     # The AST has now had constants folded and associative
     # operators are nested to the left.
-    es = _fix_arithmetic(f).expect_success()
+    es = _fix_arithmetic(o).expect_success()
     assert isinstance(es, ast.Module)
     # The AST has now eliminated all subtractions; negative constants
     # are represented as constants, not as USubs
