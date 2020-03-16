@@ -176,3 +176,17 @@ digraph "graph" {
 """
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_3(self) -> None:
+        """Test 3"""
+        bmg = BMGraphBuilder()
+        self.assertTrue(bmg.add_real(1.0))
+        self.assertTrue(bmg.add_boolean(True))
+        self.assertTrue(bmg.add_tensor(tensor(True)))
+        self.assertTrue(bmg.add_tensor(tensor(1.0)))
+        self.assertTrue(bmg.add_tensor(tensor([1.0])))
+        self.assertFalse(bmg.add_real(0.0))
+        self.assertFalse(bmg.add_boolean(False))
+        self.assertFalse(bmg.add_tensor(tensor(False)))
+        self.assertFalse(bmg.add_tensor(tensor(0.0)))
+        self.assertFalse(bmg.add_tensor(tensor([0.0])))

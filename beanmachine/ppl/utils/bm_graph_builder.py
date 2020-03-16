@@ -90,6 +90,9 @@ class BooleanNode(ConstantNode):
     def _value_to_cpp(self) -> str:
         return str(bool(self.value)).lower()
 
+    def __bool__(self) -> bool:
+        return self.value
+
 
 class RealNode(ConstantNode):
     value: float
@@ -112,6 +115,9 @@ class RealNode(ConstantNode):
 
     def _value_to_cpp(self) -> str:
         return str(float(self.value))
+
+    def __bool__(self) -> bool:
+        return bool(self.value)
 
 
 class TensorNode(ConstantNode):
@@ -151,6 +157,9 @@ class TensorNode(ConstantNode):
         values = ",".join(str(element) for element in self.value.storage())
         dims = ",".join(str(dim) for dim in self.value.shape)
         return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
+
+    def __bool__(self) -> bool:
+        return bool(self.value)
 
 
 class DistributionNode(BMGNode, metaclass=ABCMeta):
