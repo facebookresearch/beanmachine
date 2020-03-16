@@ -227,7 +227,24 @@ _fold_log: Rule = ignore_value_error(
     )
 )
 
-_fold_pure: Rule = first([_fold_tensor_log, _fold_log], "fold_pure")
+_fold_tensor_exp: Rule = PatternRule(
+    call_to(id="exp", args=[constant_tensor_any]),
+    lambda c: constant_value_to_ast(torch.exp(ast_to_constant_value(c.args[0]))),
+    "fold_tensor_exp",
+)
+
+_fold_exp: Rule = ignore_value_error(
+    PatternRule(
+        call_to(id="exp", args=[constant_literal]),
+        lambda c: constant_value_to_ast(math.exp(ast_to_constant_value(c.args[0]))),
+        "fold_exp",
+    )
+)
+
+
+_fold_pure: Rule = first(
+    [_fold_tensor_log, _fold_log, _fold_tensor_exp, _fold_exp], "fold_pure"
+)
 
 _fold_constants = ignore_runtime_error(
     first(
