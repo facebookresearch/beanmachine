@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 # pyre-ignore-all-errors
 from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
+from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor
 
 
@@ -437,56 +438,67 @@ class BMGraphBuilder:
                 self.add_node(child)
             self.nodes[node] = len(self.nodes)
 
+    @memoize
     def add_real(self, value: float) -> RealNode:
         node = RealNode(value)
         self.add_node(node)
         return node
 
+    @memoize
     def add_boolean(self, value: bool) -> BooleanNode:
         node = BooleanNode(value)
         self.add_node(node)
         return node
 
+    @memoize
     def add_tensor(self, value: Tensor) -> TensorNode:
         node = TensorNode(value)
         self.add_node(node)
         return node
 
+    @memoize
     def add_bernoulli(self, probability: BMGNode) -> BernoulliNode:
         node = BernoulliNode(probability)
         self.add_node(node)
         return node
 
+    @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> AdditionNode:
         node = AdditionNode(left, right)
         self.add_node(node)
         return node
 
+    @memoize
     def add_multiplication(self, left: BMGNode, right: BMGNode) -> MultiplicationNode:
         node = MultiplicationNode(left, right)
         self.add_node(node)
         return node
 
+    @memoize
     def add_negate(self, operand: BMGNode) -> NegateNode:
         node = NegateNode(operand)
         self.add_node(node)
         return node
 
+    @memoize
     def add_to_real(self, operand: BMGNode) -> ToRealNode:
         node = ToRealNode(operand)
         self.add_node(node)
         return node
 
+    @memoize
     def add_to_tensor(self, operand: BMGNode) -> ToTensorNode:
         node = ToTensorNode(operand)
         self.add_node(node)
         return node
 
+    @memoize
     def add_exp(self, operand: BMGNode) -> ExpNode:
         node = ExpNode(operand)
         self.add_node(node)
         return node
 
+    # Do NOT memoize add_sample; each sample node must be unique
     def add_sample(self, operand: DistributionNode) -> SampleNode:
         node = SampleNode(operand)
         self.add_node(node)
