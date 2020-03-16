@@ -132,7 +132,8 @@ g.observe([n5], true);
     def test_2(self) -> None:
         """Test 2"""
 
-        # TODO: We haven't implemented DIVISION or POWER or LOG in BMG C++ code yet.
+        # TODO: We haven't implemented DIVISION or POWER or LOG or NOT in BMG
+        # TODO: C++ code yet.
         # TODO: When we do, update this test to show that we're representing
         # TODO: it correctly.
 
@@ -144,7 +145,8 @@ g.observe([n5], true);
         half = bmg.add_division(one, four)
         flip = bmg.add_bernoulli(half)
         samp = bmg.add_sample(flip)
-        real = bmg.add_to_real(samp)
+        inv = bmg.add_not(samp)
+        real = bmg.add_to_real(inv)
         div = bmg.add_division(real, two)
         pow = bmg.add_power(div, two)
         lg = bmg.add_log(pow)
@@ -155,19 +157,21 @@ digraph "graph" {
   N0[label=0.25];
   N1[label=Bernoulli];
   N2[label=Sample];
-  N3[label=ToReal];
-  N4[label=2];
-  N5[label="/"];
-  N6[label="**"];
-  N7[label=Log];
+  N3[label=not];
+  N4[label=ToReal];
+  N5[label=2];
+  N6[label="/"];
+  N7[label="**"];
+  N8[label=Log];
   N1 -> N0[label=probability];
   N2 -> N1[label=operand];
   N3 -> N2[label=operand];
-  N5 -> N3[label=left];
-  N5 -> N4[label=right];
-  N6 -> N4[label=right];
-  N6 -> N5[label=left];
-  N7 -> N6[label=operand];
+  N4 -> N3[label=operand];
+  N6 -> N4[label=left];
+  N6 -> N5[label=right];
+  N7 -> N5[label=right];
+  N7 -> N6[label=left];
+  N8 -> N7[label=operand];
 }
 """
         self.maxDiff = None

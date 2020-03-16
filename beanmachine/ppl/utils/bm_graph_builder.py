@@ -331,6 +331,20 @@ class NegateNode(UnaryOperatorNode):
         return "-" + str(self.operand())
 
 
+class NotNode(UnaryOperatorNode):
+    # TODO: We do not support NOT in BMG yet; when we do, update this.
+    operator_type = OperatorType.NEGATE  # TODO
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def label(self) -> str:
+        return "not"
+
+    def __str__(self) -> str:
+        return "not " + str(self.operand())
+
+
 class ToRealNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_REAL
 
@@ -562,6 +576,14 @@ class BMGraphBuilder:
         if isinstance(operand, ConstantNode):
             return self.add_constant(-operand.value)
         node = NegateNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_not(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(not operand.value)
+        node = NotNode(operand)
         self.add_node(node)
         return node
 
