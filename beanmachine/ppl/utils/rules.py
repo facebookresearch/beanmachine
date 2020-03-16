@@ -635,7 +635,7 @@ class AllListMembers(Rule):
 
     rule: Rule
 
-    def __init__(self, rule: Rule, name: str = "all_children") -> None:
+    def __init__(self, rule: Rule, name: str = "all_list_members") -> None:
         Rule.__init__(self, name)
         self.rule = rule
 
@@ -675,6 +675,39 @@ class AllListMembers(Rule):
 # TODO: always_succeeds will be wrong for the returned object.
 def list_member_children(rule: Rule) -> Rule:
     return if_then(is_list, AllListMembers(rule), rule)
+
+
+class AllListEditMembers(Rule):
+    """Rules which are intended to modify a parent list by adding or removing items
+    return a ListEdit([...]) object, but in cases where a rule then recursese
+    upon children -- like top_down -- we'll potentially need to rewrite the elements
+    in edit list. This combinator implements that."""
+
+    # The implementation strategy here is to just defer to AllListMembers for
+    # the heavy lifting.
+
+    rule: AllListMembers
+
+    def __init__(self, rule: Rule, name: str = "all_list_edit_members") -> None:
+        Rule.__init__(self, name)
+        self.rule = AllListMembers(rule)
+
+    def apply(self, test: Any) -> RuleResult:
+        if not isinstance(test, ListEdit):
+            return Fail(test)
+        result = self.rule(test.edits)
+        if result.is_fail():
+            return Fail(test)
+        new_values = result.expect_success()
+        if new_values is test.edits:
+            return Success(test, test)
+        return Success(test, ListEdit(new_values))
+
+    def __str__(self) -> str:
+        return f"all_list_edit_members( {str(self.rule)} )"
+
+    def always_succeeds(self) -> bool:
+        return False
 
 
 class AllTermChildren(Rule):
@@ -742,10 +775,12 @@ class AllChildren(Rule):
     ) -> None:
         Rule.__init__(self, name)
         self.rule = rule
-        self.combined_rule = if_then(
-            is_list,
-            AllListMembers(rule),
-            AllTermChildren(rule, get_children, construct),
+        self.combined_rule = FirstMatch(
+            [
+                AllListMembers(rule),
+                AllListEditMembers(rule),
+                AllTermChildren(rule, get_children, construct),
+            ]
         )
 
     def apply(self, test: Any) -> RuleResult:

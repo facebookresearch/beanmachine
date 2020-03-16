@@ -581,3 +581,19 @@ Finished specific_child
 Finished top_down
         """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_rules_9(self) -> None:
+        """Tests for rules.py"""
+
+        # This demonstrates that a rule that produces a list edit will
+        # recursively rewrite that list edit.
+
+        self.maxDiff = None
+
+        # Recursively replace any list of the form [True, [another list]] with
+        # the inner list.
+        r = top_down(once(PatternRule([True, list], lambda l: ListEdit(l[1]))))
+        s = [[True, [1]], [True, [[True, [2]], 3]]]
+        expected = "[1, 2, 3]"
+        observed = str(r(s).expect_success())
+        self.assertEqual(observed.strip(), expected.strip())
