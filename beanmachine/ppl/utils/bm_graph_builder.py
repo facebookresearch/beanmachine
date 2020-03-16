@@ -272,6 +272,21 @@ class DivisionNode(BinaryOperatorNode):
         return "(" + str(self.left()) + "/" + str(self.right()) + ")"
 
 
+class PowerNode(BinaryOperatorNode):
+    # TODO: We haven't added power to the C++ implementation of BMG yet.
+    # TODO: When we do, update this.
+    operator_type = OperatorType.MULTIPLY  # TODO
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def label(self) -> str:
+        return "**"
+
+    def __str__(self) -> str:
+        return "(" + str(self.left()) + "**" + str(self.right()) + ")"
+
+
 class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     edges = ["operand"]
     operator_type: OperatorType
@@ -517,6 +532,14 @@ class BMGraphBuilder:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value / right.value)
         node = DivisionNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_power(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value ** right.value)
+        node = PowerNode(left, right)
         self.add_node(node)
         return node
 

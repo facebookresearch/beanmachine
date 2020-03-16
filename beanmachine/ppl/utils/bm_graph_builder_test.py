@@ -132,7 +132,7 @@ g.observe([n5], true);
     def test_2(self) -> None:
         """Test 2"""
 
-        # TODO: We haven't implemented DIVISION in BMG C++ code yet.
+        # TODO: We haven't implemented DIVISION or POWER in BMG C++ code yet.
         # TODO: When we do, update this test to show that we're representing
         # TODO: it correctly.
 
@@ -140,26 +140,31 @@ g.observe([n5], true);
         one = bmg.add_real(1)
         two = bmg.add_real(2)
         # This should be folded:
-        half = bmg.add_division(one, two)
+        four = bmg.add_power(two, two)
+        half = bmg.add_division(one, four)
         flip = bmg.add_bernoulli(half)
         samp = bmg.add_sample(flip)
         real = bmg.add_to_real(samp)
         div = bmg.add_division(real, two)
-        bmg.remove_orphans([div])
+        pow = bmg.add_power(div, two)
+        bmg.remove_orphans([pow])
         observed = bmg.to_dot()
         expected = """
 digraph "graph" {
-  N0[label=0.5];
+  N0[label=0.25];
   N1[label=Bernoulli];
   N2[label=Sample];
   N3[label=ToReal];
   N4[label=2];
   N5[label="/"];
+  N6[label="**"];
   N1 -> N0[label=probability];
   N2 -> N1[label=operand];
   N3 -> N2[label=operand];
   N5 -> N3[label=left];
   N5 -> N4[label=right];
+  N6 -> N4[label=right];
+  N6 -> N5[label=left];
 }
 """
         self.maxDiff = None
