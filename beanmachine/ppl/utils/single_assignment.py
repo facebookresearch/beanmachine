@@ -12,12 +12,19 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_return,
     binop,
     call,
+    keyword,
     match,
     match_any,
     name,
     unaryop,
 )
-from beanmachine.ppl.utils.patterns import ListAny, Pattern, PatternBase, negate
+from beanmachine.ppl.utils.patterns import (
+    ListAll,
+    ListAny,
+    Pattern,
+    PatternBase,
+    negate,
+)
 from beanmachine.ppl.utils.rules import (
     FirstMatch as first,
     ListEdit,
@@ -31,6 +38,10 @@ from beanmachine.ppl.utils.rules import (
 _some_top_down = ast_domain.some_top_down
 _not_identifier: Pattern = negate(name())
 _list_not_identifier: PatternBase = ListAny(_not_identifier)
+_list_all_identifiers: PatternBase = ListAll(name())
+_not_identifier_keyword: Pattern = keyword(value=_not_identifier)
+_not_identifier_keywords: PatternBase = ListAny(_not_identifier_keyword)
+
 _binops: Pattern = match_any(
     ast.Add,
     ast.BitAnd,
@@ -98,6 +109,23 @@ class SingleAssignment:
         assignment = ast.Assign(targets=[ast.Name(id=id, ctx=ast.Store())], value=value)
         return assignment, rewritten
 
+    def _splice_non_identifier_keyword(
+        self, original: List[ast.keyword]
+    ) -> Tuple[ast.Assign, List[ast.keyword]]:
+        id = self._unique_id("a")
+        index, keyword = next(
+            (i, k) for i, k in enumerate(original) if match(_not_identifier_keyword, k)
+        )
+        rewritten = (
+            original[:index]
+            + [ast.keyword(arg=keyword.arg, value=ast.Name(id=id, ctx=ast.Load()))]
+            + original[index + 1 :]
+        )
+        assignment = ast.Assign(
+            targets=[ast.Name(id=id, ctx=ast.Store())], value=keyword.value
+        )
+        return assignment, rewritten
+
     def _fix_call(self) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
             c = a.value
@@ -109,6 +137,23 @@ class SingleAssignment:
                     ast.Assign(
                         targets=a.targets,
                         value=ast.Call(func=c.func, args=args_new, keywords=c.keywords),
+                    ),
+                ]
+            )
+
+        return _do_it
+
+    def _fix_call_keyword(self) -> Callable[[ast.Assign], ListEdit]:
+        def _do_it(a: ast.Assign) -> ListEdit:
+            c = a.value
+            assert isinstance(c, ast.Call)
+            assignment, keywords_new = self._splice_non_identifier_keyword(c.keywords)
+            return ListEdit(
+                [
+                    assignment,
+                    ast.Assign(
+                        targets=a.targets,
+                        value=ast.Call(func=c.func, args=c.args, keywords=keywords_new),
                     ),
                 ]
             )
@@ -199,12 +244,25 @@ class SingleAssignment:
                         ),
                     ),
                 ),
-                # TODO: Handle calls with named parameters.
                 # If we have t = foo(x + y, 2) rewrite that to
                 # t1 = x + y, t2 = 2, t = foo(t1, t2).
                 (
                     assign(value=call(func=name(), args=_list_not_identifier)),
                     self._fix_call(),
+                ),
+                # If we have t = foo(a, b, z=123) rewrite that to
+                # t1 = 123, t = foo(a, b, t1),
+                # but do it after we've rewriten the receiver and the
+                # positional arguments.
+                (
+                    assign(
+                        value=call(
+                            func=name(),
+                            args=_list_all_identifiers,
+                            keywords=_not_identifier_keywords,
+                        )
+                    ),
+                    self._fix_call_keyword(),
                 ),
                 (assign(value=ast_list(elts=_list_not_identifier)), self._fix_list()),
             ],

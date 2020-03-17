@@ -17,7 +17,7 @@ class SingleAssignmentTest(unittest.TestCase):
         source = """
 def f():
     if a and b:
-        return 1 + ~x + 2 + g(5, 6)
+        return 1 + ~x + 2 + g(5, y=6)
     z = torch.tensor([1.0 + 2.0, 4.0])
     for x in [[10, 20], [30, 40]]:
         for y in x:
@@ -34,7 +34,7 @@ def f():
         a5 = a9 + a15
         a16 = 5
         a20 = 6
-        a10 = g(a16, a20)
+        a10 = g(a16, y=a20)
         r1 = a5 + a10
         return r1
     a2 = torch.tensor

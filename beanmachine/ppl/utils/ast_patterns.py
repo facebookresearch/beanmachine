@@ -207,6 +207,10 @@ def if_statement(
     return type_and_attributes(ast.If, {"test": test, "body": body, "orelse": orelse})
 
 
+def keyword(arg: Pattern = _any, value: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.keyword, {"arg": arg, "value": value})
+
+
 def ast_list(elts: Pattern = _any, ctx: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.List, {"elts": elts, "ctx": ctx})
 
