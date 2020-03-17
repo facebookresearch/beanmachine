@@ -2,10 +2,11 @@
 # from beanmachine.graph import Graph
 """A builder for the BeanMachine Graph language"""
 
+import collections.abc
 import math
 import sys
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, Iterator, List
 
 import torch
 
@@ -16,7 +17,7 @@ import torch
 from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
-from torch import Tensor
+from torch import Tensor, tensor
 from torch.distributions import Bernoulli
 
 
@@ -54,6 +55,10 @@ class BMGNode(ABC):
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         pass
 
+    @abstractmethod
+    def support(self) -> Iterator[Any]:
+        pass
+
 
 known_tensor_instance_functions = [
     "add",
@@ -66,6 +71,30 @@ known_tensor_instance_functions = [
     "neg",
     "pow",
 ]
+
+
+class SetOfTensors(collections.abc.Set):
+    """Tensors cannot be put into a normal set because tensors that compare as
+     equal do not hash to equal hashes. This is a linear-time set implementation.
+     Most of the time the sets will be very small. """
+
+    elements: List[Tensor]
+
+    def __init__(self, iterable):
+        self.elements = []
+        for value in iterable:
+            t = value if isinstance(value, Tensor) else tensor(value)
+            if t not in self.elements:
+                self.elements.append(t)
+
+    def __iter__(self):
+        return iter(self.elements)
+
+    def __contains__(self, value):
+        return value in self.elements
+
+    def __len__(self):
+        return len(self.elements)
 
 
 class KnownFunction:
@@ -101,6 +130,9 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
         n = d[self]
         v = self._value_to_python()
         return f"n{n} = g.add_constant({v})"
+
+    def support(self) -> Iterator[Any]:
+        yield self.value
 
 
 class BooleanNode(ConstantNode):
@@ -196,6 +228,10 @@ class ListNode(BMGNode):
                 "BeanMachine list must be indexed with a known numeric value"
             )
         return self.children[int(key.value)]
+
+    def support(self) -> Iterator[Any]:
+        return []
+        # TODO: Do we need this?
 
 
 class TensorNode(ConstantNode):
@@ -294,6 +330,11 @@ class BernoulliNode(DistributionNode):
             + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
         )
 
+    def support(self) -> Iterator[Any]:
+        # TODO: This should be different for tensors of different dimensions.
+        yield tensor(0.0)
+        yield tensor(1.0)
+
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
     def __init__(self, children: List[BMGNode]):
@@ -351,6 +392,11 @@ class AdditionNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return "(" + str(self.left()) + "+" + str(self.right()) + ")"
 
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            l + r for l in self.left().support() for r in self.right().support()
+        )
+
 
 class MultiplicationNode(BinaryOperatorNode):
     operator_type = OperatorType.MULTIPLY
@@ -364,10 +410,15 @@ class MultiplicationNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return "(" + str(self.left()) + "*" + str(self.right()) + ")"
 
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            l * r for l in self.left().support() for r in self.right().support()
+        )
+
 
 class DivisionNode(BinaryOperatorNode):
-    # TODO: We haven't added division to the C++ implementation of BMG yet.
-    # TODO: When we do, update this.
+    # TODO: We're going to represent division as Mult(x, Power(y, -1)) so
+    # TODO: we can remove this class.
     operator_type = OperatorType.MULTIPLY  # TODO
 
     def __init__(self, left: BMGNode, right: BMGNode):
@@ -378,6 +429,12 @@ class DivisionNode(BinaryOperatorNode):
 
     def __str__(self) -> str:
         return "(" + str(self.left()) + "/" + str(self.right()) + ")"
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Filter out division by zero?
+        return SetOfTensors(
+            l / r for l in self.left().support() for r in self.right().support()
+        )
 
 
 class PowerNode(BinaryOperatorNode):
@@ -393,6 +450,11 @@ class PowerNode(BinaryOperatorNode):
 
     def __str__(self) -> str:
         return "(" + str(self.left()) + "**" + str(self.right()) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            l ** r for l in self.left().support() for r in self.right().support()
+        )
 
 
 class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
@@ -442,6 +504,9 @@ class NegateNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "-" + str(self.operand())
 
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(-o for o in self.operand().support())
+
 
 class NotNode(UnaryOperatorNode):
     # TODO: We do not support NOT in BMG yet; when we do, update this.
@@ -459,6 +524,9 @@ class NotNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "not " + str(self.operand())
 
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(not o for o in self.operand().support())
+
 
 class ToRealNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_REAL
@@ -475,6 +543,9 @@ class ToRealNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "ToReal(" + str(self.operand()) + ")"
 
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(float(o) for o in self.operand().support())
+
 
 class ToTensorNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_TENSOR
@@ -487,6 +558,9 @@ class ToTensorNode(UnaryOperatorNode):
 
     def __str__(self) -> str:
         return "ToTensor(" + str(self.operand()) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(torch.tensor(o) for o in self.operand().support())
 
 
 class ExpNode(UnaryOperatorNode):
@@ -501,6 +575,10 @@ class ExpNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "Exp(" + str(self.operand()) + ")"
 
+    def support(self) -> Iterator[Any]:
+        # TODO: Not always a tensor.
+        return SetOfTensors(torch.exp(o) for o in self.operand().support())
+
 
 class LogNode(UnaryOperatorNode):
     # TODO: We do not support LOG in BMG yet; when we do, update this:
@@ -514,6 +592,10 @@ class LogNode(UnaryOperatorNode):
 
     def __str__(self) -> str:
         return "Log(" + str(self.operand()) + ")"
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Not always a tensor.
+        return SetOfTensors(torch.log(o) for o in self.operand().support())
 
 
 class SampleNode(UnaryOperatorNode):
@@ -535,6 +617,9 @@ class SampleNode(UnaryOperatorNode):
 
     def __str__(self) -> str:
         return "Sample(" + str(self.operand()) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return self.operand().support()
 
 
 class Observation(BMGNode):
@@ -575,6 +660,9 @@ class Observation(BMGNode):
         v = self.value()._value_to_cpp()
         return f"g.observe([n{d[self.observed()]}], {v});"
 
+    def support(self) -> Iterator[Any]:
+        return []
+
 
 class Query(BMGNode):
     edges = ["operator"]
@@ -605,6 +693,9 @@ class Query(BMGNode):
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         return f"g.query(n{d[self.operator()]});"
+
+    def support(self) -> Iterator[Any]:
+        return []
 
 
 def is_from_lifted_module(f) -> bool:

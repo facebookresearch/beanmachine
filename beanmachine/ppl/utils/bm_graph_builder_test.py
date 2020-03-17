@@ -19,6 +19,7 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     PowerNode,
     RealNode,
     SampleNode,
+    SetOfTensors,
     TensorNode,
     ToRealNode,
 )
@@ -1196,3 +1197,19 @@ digraph "graph" {
         self.assertEqual(bmg.add_to_real(b).node_type(), float)
         self.assertEqual(bmg.add_to_real(s).node_type(), float)
         self.assertEqual(bmg.add_list([b]).node_type(), List[Any])
+
+    def test_supports(self) -> None:
+        bmg = BMGraphBuilder()
+        t5 = tensor(0.5)
+        t1 = tensor(1.0)
+        t2 = tensor(2.0)
+        t0 = tensor(0.0)
+        t = bmg.add_tensor(t5)
+        bern = bmg.add_bernoulli(t)
+        s = bmg.add_sample(bern)
+        a1 = bmg.add_addition(s, t)
+        a2 = bmg.add_addition(s, s)
+        self.assertEqual(SetOfTensors(t.support()), SetOfTensors([t5]))
+        self.assertEqual(SetOfTensors(s.support()), SetOfTensors([t0, t1]))
+        self.assertEqual(SetOfTensors(a1.support()), SetOfTensors([t0 + t5, t1 + t5]))
+        self.assertEqual(SetOfTensors(a2.support()), SetOfTensors([t0, t1, t2]))
