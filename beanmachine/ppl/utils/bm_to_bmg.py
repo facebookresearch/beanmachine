@@ -96,14 +96,26 @@ def _make_bmg_call(name: str, args: List[ast.AST]) -> ast.AST:
     )
 
 
-# TODO: Keywords
-_handle_call = PatternRule(
+def _args_to_list(args: List[ast.AST]) -> ast.List:
+    return ast.List(elts=args, ctx=ast.Load())
+
+
+def _kwargs_to_dict(args: List[ast.AST]) -> ast.Dict:
+    # TODO
+    return ast.Dict(keys=[], values=[])
+
+
+_handle_call: PatternRule = PatternRule(
     assign(value=call()),
     lambda a: ast.Assign(
         a.targets,
         _make_bmg_call(
             "handle_function",
-            [a.value.func, ast.List(elts=a.value.args, ctx=ast.Load())],
+            [
+                a.value.func,
+                _args_to_list(a.value.args),
+                _kwargs_to_dict(a.value.keywords),
+            ],
         ),
     ),
 )

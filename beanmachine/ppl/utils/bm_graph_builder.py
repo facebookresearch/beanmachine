@@ -1184,7 +1184,11 @@ class BMGraphBuilder:
     # starred parameters.
     # TODO: Add the other operators
     # TODO: Make this a table-driven function instead of a big if statement.
-    def handle_function(self, function: Any, arguments: List[Any]) -> Any:  # noqa
+    def handle_function(  # noqa
+        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
+    ) -> Any:
+        if kwargs is None:
+            kwargs = {}
         if isinstance(function, KnownFunction):
             f = function.function
             args = [function.receiver] + arguments
