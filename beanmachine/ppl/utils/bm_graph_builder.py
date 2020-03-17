@@ -338,8 +338,10 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
 
 class BernoulliNode(DistributionNode):
     edges = ["probability"]
+    is_logits: bool
 
-    def __init__(self, probability: BMGNode):
+    def __init__(self, probability: BMGNode, is_logits: bool = False):
+        self.is_logits = is_logits
         DistributionNode.__init__(self, [probability])
 
     def probability(self) -> BMGNode:
@@ -353,23 +355,26 @@ class BernoulliNode(DistributionNode):
         return self.probability().node_type()
 
     def label(self) -> str:
-        return "Bernoulli"
+        return "Bernoulli" + ("(logits)" if self.is_logits else "")
 
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability()) + ")"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        # TODO: Handle case where child is logits
         return g.add_distribution(
             DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability()]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
         return (
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
             + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
         return (
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
@@ -933,6 +938,7 @@ class BMGraphBuilder:
             torch.neg: self.handle_negate,
             torch.pow: self.handle_power,
             # Distribution constructors
+            Bernoulli: self.handle_bernoulli,
             Beta: self.handle_beta,
             Normal: self.handle_normal,
         }
@@ -983,15 +989,22 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_bernoulli(self, probability: BMGNode) -> BernoulliNode:
-        node = BernoulliNode(probability)
+    def add_bernoulli(
+        self, probability: BMGNode, is_logits: bool = False
+    ) -> BernoulliNode:
+        node = BernoulliNode(probability, is_logits)
         self.add_node(node)
         return node
 
-    def handle_bernoulli(self, probability: Any) -> BernoulliNode:
+    def handle_bernoulli(self, probs: Any = None, logits: Any = None) -> BernoulliNode:
+        if (probs is None and logits is None) or (
+            probs is not None and logits is not None
+        ):
+            raise ValueError("handle_bernoulli requires exactly one of probs or logits")
+        probability = logits if probs is None else probs
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
-        return self.add_bernoulli(probability)
+        return self.add_bernoulli(probability, logits is not None)
 
     @memoize
     def add_normal(self, mu: BMGNode, sigma: BMGNode) -> NormalNode:
@@ -1247,9 +1260,6 @@ class BMGraphBuilder:
         # TODO: a more informative error.
         if f in self.function_map:
             return self.function_map[f](*args, **kwargs)
-        # TODO: Bernoulli needs to handle both probs and logits as named arguments.
-        if (f is Bernoulli) and len(args) == 1:
-            return self.handle_bernoulli(args[0])
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the

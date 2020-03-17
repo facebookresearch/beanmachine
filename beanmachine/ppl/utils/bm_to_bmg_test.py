@@ -896,6 +896,22 @@ from torch.distributions import Bernoulli
 @sample
 def toss():
     return Bernoulli(probs=0.5)
+
+# Notice that logits Bernoulli with constant argument is folded to
+# probs Bernoulli...
+@sample
+def toss2():
+    return Bernoulli(logits=0.0)
+
+# ...but we must make a distinction between logits and probs if the
+# argument is a sample.
+@sample
+def toss3():
+    return Bernoulli(probs=toss())
+
+@sample
+def toss4():
+    return Bernoulli(logits=toss())
 """
 
 expected_raw_9 = """
@@ -910,13 +926,57 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def toss():
-    a2 = 0.5
-    r1 = bmg.handle_function(Bernoulli, [], {**{'probs': a2}})
+    a5 = 0.5
+    r1 = bmg.handle_function(Bernoulli, [], {**{'probs': a5}})
     return bmg.handle_sample(r1)
 
 
-roots = [toss()]
+@probabilistic(bmg)
+@memoize
+def toss2():
+    a6 = 0.0
+    r2 = bmg.handle_function(Bernoulli, [], {**{'logits': a6}})
+    return bmg.handle_sample(r2)
+
+
+@probabilistic(bmg)
+@memoize
+def toss3():
+    a7 = bmg.handle_function(toss, [], {})
+    r3 = bmg.handle_function(Bernoulli, [], {**{'probs': a7}})
+    return bmg.handle_sample(r3)
+
+
+@probabilistic(bmg)
+@memoize
+def toss4():
+    a8 = bmg.handle_function(toss, [], {})
+    r4 = bmg.handle_function(Bernoulli, [], {**{'logits': a8}})
+    return bmg.handle_sample(r4)
+
+
+roots = [toss(), toss2(), toss3(), toss4()]
 bmg.remove_orphans(roots)
+"""
+
+expected_dot_9 = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Sample];
+  N4[label=Bernoulli];
+  N5[label=Sample];
+  N6[label="Bernoulli(logits)"];
+  N7[label=Sample];
+  N1 -> N0[label=probability];
+  N2 -> N1[label=operand];
+  N3 -> N1[label=operand];
+  N4 -> N2[label=probability];
+  N5 -> N4[label=operand];
+  N6 -> N2[label=probability];
+  N7 -> N6[label=operand];
+}
 """
 
 
@@ -966,6 +1026,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_7.strip())
         observed = to_dot(source8)
         self.assertEqual(observed.strip(), expected_dot_8.strip())
+        observed = to_dot(source9)
+        self.assertEqual(observed.strip(), expected_dot_9.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
