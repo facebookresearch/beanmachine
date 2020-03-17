@@ -19,6 +19,9 @@ from torch import Tensor
 from torch.distributions import Bernoulli
 
 
+builtin_function_or_method = type(abs)
+
+
 class BMGNode(ABC):
     children: List["BMGNode"]
     edges: List[str]
@@ -51,7 +54,7 @@ class BMGNode(ABC):
         pass
 
 
-known_tensor_instance_functions = ["exp", "log", "logical_not", "neg"]
+known_tensor_instance_functions = ["add", "exp", "log", "logical_not", "neg"]
 
 
 class KnownFunction:
@@ -842,6 +845,13 @@ class BMGraphBuilder:
         if isinstance(function, KnownFunction):
             f = function.function
             args = [function.receiver] + arguments
+        elif (
+            isinstance(function, builtin_function_or_method)
+            and isinstance(function.__self__, Tensor)
+            and function.__name__ in known_tensor_instance_functions
+        ):
+            f = getattr(Tensor, function.__name__)
+            args = [function.__self__] + arguments
         elif isinstance(function, Callable):
             f = function
             args = arguments
