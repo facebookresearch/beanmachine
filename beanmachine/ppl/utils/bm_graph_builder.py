@@ -16,6 +16,7 @@ from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor
+from torch.distributions import Bernoulli
 
 
 class BMGNode(ABC):
@@ -769,6 +770,8 @@ class BMGraphBuilder:
             return self.handle_exp(args[0])
         if (function is math.exp) and len(args) == 1:
             return self.handle_exp(args[0])
+        if (function is Bernoulli) and len(args) == 1:
+            return self.handle_bernoulli(args[0])
         raise ValueError(
             f"Function {function.name} is not supported by Bean Machine Graph."
         )
@@ -785,6 +788,17 @@ class BMGraphBuilder:
         node = SampleNode(operand)
         self.add_node(node)
         return node
+
+    def handle_sample(self, operand: Any) -> SampleNode:
+        if isinstance(operand, DistributionNode):
+            return self.add_sample(operand)
+        if isinstance(operand, Bernoulli):
+            p = self.add_constant(operand.probs)
+            b = self.add_bernoulli(p)
+            return self.add_sample(b)
+        raise ValueError(
+            f"Operand {str(operand)} is not a valid target for a sample operation."
+        )
 
     def add_observation(self, observed: SampleNode, value: ConstantNode) -> Observation:
         node = Observation(observed, value)

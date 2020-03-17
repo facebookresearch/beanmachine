@@ -4,6 +4,7 @@ import math
 import unittest
 
 from beanmachine.ppl.utils.bm_graph_builder import (
+    BernoulliNode,
     BMGraphBuilder,
     DivisionNode,
     ExpNode,
@@ -12,9 +13,12 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     NegateNode,
     NotNode,
     PowerNode,
+    RealNode,
+    SampleNode,
     ToRealNode,
 )
 from torch import tensor
+from torch.distributions import Bernoulli
 
 
 def tidy(s: str) -> str:
@@ -220,14 +224,23 @@ digraph "graph" {
         # TODO: Test tensors also.
         bmg = BMGraphBuilder()
         one = bmg.add_real(1.0)
+        self.assertTrue(isinstance(one, RealNode))
+
         two = bmg.handle_addition(one, one)
-        three = bmg.handle_addition(one, two)
-        four = bmg.handle_addition(two, two)
-        b = bmg.handle_bernoulli(0.5)
-        s = bmg.add_sample(b)
         self.assertEqual(two, 2.0)
+        three = bmg.handle_addition(one, two)
         self.assertEqual(three, 3.0)
+        four = bmg.handle_addition(two, two)
         self.assertEqual(four, 4.0)
+        half = bmg.handle_division(one, two)
+        self.assertEqual(half, 0.5)
+        b = bmg.handle_bernoulli(0.5)
+        self.assertTrue(isinstance(b, BernoulliNode))
+        s = bmg.handle_sample(b)
+        self.assertTrue(isinstance(s, SampleNode))
+        s2 = bmg.handle_sample(Bernoulli(0.5))
+        # Samples are never memoized
+        self.assertFalse(s is s2)
         self.assertEqual(bmg.handle_division(one, one), 1.0)
         self.assertEqual(bmg.handle_division(two, one), 2.0)
         self.assertEqual(bmg.handle_division(two, two), 1.0)
@@ -268,3 +281,5 @@ digraph "graph" {
         self.assertEqual(bmg.handle_to_real(one), 1.0)
         self.assertEqual(bmg.handle_to_real(two), 2.0)
         self.assertTrue(isinstance(bmg.handle_to_real(s), ToRealNode))
+        self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [0.5]), Bernoulli))
+        self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [s]), BernoulliNode))
