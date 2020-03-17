@@ -1228,7 +1228,7 @@ digraph "graph" {
         s2 = bmg.add_sample(bern)
         s3 = bmg.add_sample(bern)
         a = bmg.add_addition(s2, t2)
-        m = bmg.add_map([t0, s1, t1, a])
+        m = bmg.add_map(t0, s1, t1, a)
         i = bmg.add_index(m, s3)
         self.assertEqual(
             SetOfTensors(i.support()),

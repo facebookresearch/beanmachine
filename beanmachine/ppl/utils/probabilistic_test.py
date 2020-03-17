@@ -15,26 +15,44 @@ class ProbabilisticTest(unittest.TestCase):
 
         bmg: BMGraphBuilder = BMGraphBuilder()
 
-        # x is 0 or 1
-        # We want a Bernoulli(0.25) or (0.75)
+        # x is 0 or 1, we use that to choose from two different distributions:
+        #
         # @sample
-        # def sample_function_1(x):
-        #   return Bernoulli((x + 0.5) * 0.5)
+        # def x():
+        #   return Bernoulli(0.5)
+        #
+        # @sample
+        # def sample_function_1(p):
+        #   return Bernoulli((p + 0.5) * 0.5)
+        #
+        # z = sample_function_1(x())
         # We would lower that to something like:
+
         @probabilistic(bmg)
         @memoize
-        def sample_function_1(x):
+        def x():
             n1 = 0.5
-            n2 = bmg.handle_addition(x, n1)
-            n3 = bmg.handle_multiplication(n2, n1)
-            n4 = bmg.handle_bernoulli(n3)
-            n5 = bmg.handle_sample(n4)
-            return n5
+            n2 = bmg.handle_bernoulli(n1)
+            n3 = bmg.handle_sample(n2)
+            return n3
 
-        t5 = bmg.add_tensor(tensor(0.5))
-        b = bmg.add_bernoulli(t5)
-        s = bmg.add_sample(b)
-        sample_function_1(s)
+        @probabilistic(bmg)
+        @memoize
+        def sample_function_1(p):
+            n4 = 0.5
+            n5 = bmg.handle_addition(p, n4)
+            n6 = bmg.handle_multiplication(n5, n4)
+            n7 = bmg.handle_bernoulli(n6)
+            n8 = bmg.handle_sample(n7)
+            return n8
+
+        n9 = x()
+        sample_function_1(n9)
+
+        # Calling the function again should be a no-op; the nodes should be memoized
+
+        sample_function_1(n9)
+
         observed = bmg.to_dot()
         expected = """
 digraph "graph" {

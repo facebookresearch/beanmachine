@@ -22,7 +22,7 @@ def probabilistic(bmg: BMGraphBuilder):
                         value = wrapper(*newargs)
                         key_value_pairs.append(bmg.add_constant(key))
                         key_value_pairs.append(value)
-                    map_node = bmg.add_map(key_value_pairs)
+                    map_node = bmg.add_map(*key_value_pairs)
                     index_node = bmg.add_index(map_node, arg)
                     return index_node
             # If we got here, there were no distribution arguments.

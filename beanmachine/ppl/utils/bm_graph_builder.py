@@ -1112,7 +1112,8 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def add_map(self, elements: List[BMGNode]) -> MapNode:
+    @memoize
+    def add_map(self, *elements) -> MapNode:
         # TODO: Verify that the list is well-formed.
         node = MapNode(elements)
         self.add_node(node)
