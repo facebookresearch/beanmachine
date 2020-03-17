@@ -8,6 +8,7 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     AdditionNode,
     BernoulliNode,
     BMGraphBuilder,
+    BooleanNode,
     DivisionNode,
     ExpNode,
     LogNode,
@@ -17,6 +18,7 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     PowerNode,
     RealNode,
     SampleNode,
+    TensorNode,
     ToRealNode,
 )
 from torch import tensor
@@ -217,104 +219,982 @@ digraph "graph" {
         lst = bmg.add_list([tru, fal])
         self.assertEqual(fal, lst[one])
 
-    def test_5(self) -> None:
-        """Test 5"""
-        # The "add" methods do exactly that: add a node to the graph if it is not
-        # already there.
-        # The "handle" methods try to keep everything in unwrapped values if possible;
-        # they are trying to keep values out of the graph when possible.
-        # TODO: Test tensors also.
-        bmg = BMGraphBuilder()
-        one = bmg.add_real(1.0)
-        self.assertTrue(isinstance(one, RealNode))
+    # The "add" methods do exactly that: add a node to the graph if it is not
+    # already there.
+    #
+    # The "handle" methods try to keep everything in unwrapped values if possible;
+    # they are trying to keep values out of the graph when possible.
+    #
+    # The next few tests verify that the handle functions are working as designed.
 
-        two = bmg.handle_addition(one, one)
-        self.assertEqual(two, 2.0)
-        three = bmg.handle_addition(one, two)
-        self.assertEqual(three, 3.0)
-        four = bmg.handle_addition(two, two)
-        self.assertEqual(four, 4.0)
-        half = bmg.handle_division(one, two)
-        self.assertEqual(half, 0.5)
+    def test_handle_bernoulli(self) -> None:
+        # This test verifies that various mechanisms for producing an addition node
+        # in the graph are working as designed.
+
+        # TODO: Test tensors also.
+
+        bmg = BMGraphBuilder()
+
+        # TODO: Should handle_bernoulli given constants just produce a Bernoulli object
+        # TODO: as a value?
+        # TODO: Do we actually need handle_bernoulli at all? It seems like we could
+        # TODO: simply delete it and use the logic that is in handle_sample.
         b = bmg.handle_bernoulli(0.5)
         self.assertTrue(isinstance(b, BernoulliNode))
-        s = bmg.handle_sample(b)
+
+        r = bmg.add_real(0.5)
+        b = bmg.handle_bernoulli(r)
+        self.assertTrue(isinstance(b, BernoulliNode))
+
+    def test_handle_sample(self) -> None:
+
+        bmg = BMGraphBuilder()
+
+        # Sample on a graph node.
+        b = bmg.add_bernoulli(bmg.add_real(0.5))
+        s1 = bmg.handle_sample(b)
+        self.assertTrue(isinstance(s1, SampleNode))
+
+        # Sample on a distribution object.
+        b = Bernoulli(0.5)
+        s2 = bmg.handle_sample(b)
+        self.assertTrue(isinstance(s2, SampleNode))
+
+        # Verify that they are not memoized; samples are always distinct.
+        self.assertFalse(s1 is s2)
+
+    def test_addition(self) -> None:
+        """Test addition"""
+
+        # This test verifies that various mechanisms for producing an addition node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t1 = tensor(1.0)
+        t2 = tensor(2.0)
+        t3 = tensor(3.0)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+
+        # torch defines a "static" add method that takes two values.
+        # Calling torch.add(x, y) should be logically the same as x + y
+
+        ta = torch.add
+        self.assertEqual(bmg.handle_dot_get(torch, "add"), ta)
+
+        # torch defines an "instance" add method that takes a value.
+        # Calling Tensor.add(x, y) or x.add(y) should be logically the same as x + y.
+
+        # TODO: In Tensor.add(x, y), x is required to be a tensor, not a double. We do
+        # TODO: not enforce this rule; handle_function(ta2, [1.0, 2.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = t1.add
+        self.assertEqual(bmg.handle_dot_get(t1, "add"), ta1)
+
+        # TODO: handle_function(ta1) is not implemented correctly if an operand
+        # TODO: is a graph node.
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "add".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "add")
+
+        ta2 = torch.Tensor.add
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "add"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
-        s2 = bmg.handle_sample(Bernoulli(0.5))
-        # Samples are never memoized
-        self.assertFalse(s is s2)
-        self.assertTrue(isinstance(bmg.handle_addition(s, one), AdditionNode))
-        self.assertTrue(isinstance(bmg.handle_addition(one, s), AdditionNode))
-        self.assertEqual(bmg.handle_division(one, one), 1.0)
-        self.assertEqual(bmg.handle_division(two, one), 2.0)
-        self.assertEqual(bmg.handle_division(two, two), 1.0)
-        self.assertTrue(isinstance(bmg.handle_division(s, one), DivisionNode))
-        self.assertTrue(isinstance(bmg.handle_division(one, s), DivisionNode))
-        self.assertEqual(bmg.handle_multiplication(one, one), 1.0)
-        self.assertEqual(bmg.handle_multiplication(two, one), 2.0)
-        self.assertEqual(bmg.handle_multiplication(two, two), 4.0)
-        self.assertTrue(
-            isinstance(bmg.handle_multiplication(s, one), MultiplicationNode)
-        )
-        self.assertTrue(
-            isinstance(bmg.handle_multiplication(one, s), MultiplicationNode)
-        )
-        self.assertEqual(bmg.handle_power(one, one), 1.0)
-        self.assertEqual(bmg.handle_power(two, one), 2.0)
-        self.assertEqual(bmg.handle_power(two, two), 4.0)
-        self.assertTrue(isinstance(bmg.handle_power(s, one), PowerNode))
-        self.assertTrue(isinstance(bmg.handle_power(one, s), PowerNode))
-        self.assertEqual(bmg.handle_exp(one), math.exp(1.0))
-        self.assertEqual(bmg.handle_exp(two), math.exp(2.0))
-        self.assertTrue(isinstance(bmg.handle_exp(s), ExpNode))
-        self.assertEqual(
-            bmg.handle_function(torch.add, [tensor(1.0), tensor(1.0)]), tensor(2.0)
-        )
-        # TODO: This is not yet supported:
-        # self.assertTrue(
-        # isinstance(bmg.handle_function(torch.add, [tensor(1.0), s]), AdditionNode)
-        # )
-        self.assertEqual(bmg.handle_function(math.exp, [one]), math.exp(1.0))
-        self.assertEqual(bmg.handle_function(math.exp, [two]), math.exp(2.0))
-        self.assertTrue(isinstance(bmg.handle_function(math.exp, [s]), ExpNode))
-        self.assertEqual(bmg.handle_log(one), math.log(1.0))
-        self.assertEqual(bmg.handle_log(two), math.log(2.0))
-        self.assertTrue(isinstance(bmg.handle_log(s), LogNode))
-        self.assertEqual(bmg.handle_function(math.log, [one]), math.log(1.0))
-        self.assertEqual(bmg.handle_function(math.log, [two]), math.log(2.0))
-        self.assertTrue(isinstance(bmg.handle_function(math.log, [s]), LogNode))
-        self.assertEqual(bmg.handle_not(one), False)
-        self.assertEqual(bmg.handle_not(two), False)
-        self.assertTrue(isinstance(bmg.handle_not(s), NotNode))
-        self.assertEqual(bmg.handle_negate(one), -1.0)
-        self.assertEqual(bmg.handle_negate(two), -2.0)
-        self.assertTrue(isinstance(bmg.handle_negate(s), NegateNode))
-        self.assertEqual(bmg.handle_to_real(one), 1.0)
-        self.assertEqual(bmg.handle_to_real(two), 2.0)
-        self.assertTrue(isinstance(bmg.handle_to_real(s), ToRealNode))
-        self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [0.5]), Bernoulli))
-        self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [s]), BernoulliNode))
-        # Tensors have log and exp and other functions as instance methods; we wish an
-        # invocation of one of those to add a node to the graph when the operand is
-        # a sample.  That is, if we have sample function x, then x().log() should be
-        # treated the same as log(x()); it should add a node to the graph.
-        # TODO: This is not yet supported:
-        # d = bmg.handle_dot_get(s, "add")
-        # r = bmg.handle_function(d, [one])
-        # self.assertTrue(isinstance(r, AdditionNode))
-        # And similarly for:
-        # r = bmg.handle_function(d, [two])
-        # and:
-        # r = bmg.handle_function(d, [s])
-        d = bmg.handle_dot_get(s, "exp")
-        r = bmg.handle_function(d, [])
-        self.assertTrue(isinstance(r, ExpNode))
-        d = bmg.handle_dot_get(s, "log")
-        r = bmg.handle_function(d, [])
-        self.assertTrue(isinstance(r, LogNode))
-        d = bmg.handle_dot_get(s, "logical_not")
-        r = bmg.handle_function(d, [])
-        self.assertTrue(isinstance(r, NotNode))
-        d = bmg.handle_dot_get(s, "neg")
-        r = bmg.handle_function(d, [])
-        self.assertTrue(isinstance(r, NegateNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "add".
+        # TODO: sa = bmg.handle_dot_get(s, "add")
+
+        # Adding two values produces a value
+        self.assertEqual(bmg.handle_addition(1.0, 2.0), 3.0)
+        self.assertEqual(bmg.handle_addition(1.0, t2), t3)
+        self.assertEqual(bmg.handle_addition(t1, 2.0), t3)
+        self.assertEqual(bmg.handle_addition(t1, t2), t3)
+        self.assertEqual(bmg.handle_function(ta, [1.0, 2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta, [1.0, t2]), t3)
+        self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta, [t1, t2]), t3)
+        self.assertEqual(bmg.handle_function(ta1, [2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta1, [t2]), t3)
+        self.assertEqual(bmg.handle_function(ta2, [t1, 2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta2, [t1, t2]), t3)
+
+        # Adding a graph constant and a value produces a value
+        self.assertEqual(bmg.handle_addition(gr1, 2.0), 3.0)
+        self.assertEqual(bmg.handle_addition(gr1, t2), t3)
+        self.assertEqual(bmg.handle_addition(gt1, 2.0), t3)
+        self.assertEqual(bmg.handle_addition(gt1, t2), t3)
+        self.assertEqual(bmg.handle_addition(2.0, gr1), 3.0)
+        self.assertEqual(bmg.handle_addition(2.0, gt1), t3)
+        self.assertEqual(bmg.handle_addition(t2, gr1), t3)
+        self.assertEqual(bmg.handle_addition(t2, gt1), t3)
+        self.assertEqual(bmg.handle_function(ta, [gr1, 2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta, [gr1, t2]), t3)
+        self.assertEqual(bmg.handle_function(ta, [gt1, 2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta, [gt1, t2]), t3)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [2.0]), t3)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [t2]), t3)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, 2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, t2]), t3)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gr1]), t3)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gt1]), t3)
+        self.assertEqual(bmg.handle_function(ta, [t2, gr1]), t3)
+        self.assertEqual(bmg.handle_function(ta, [t2, gt1]), t3)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gr1]), t2)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gr1]), t3)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gt1]), t3)
+
+        # Adding two graph constants produces a value
+        self.assertEqual(bmg.handle_addition(gr1, gr1), 2.0)
+        self.assertEqual(bmg.handle_addition(gr1, gt1), t2)
+        self.assertEqual(bmg.handle_addition(gt1, gr1), t2)
+        self.assertEqual(bmg.handle_addition(gt1, gt1), t2)
+        self.assertEqual(bmg.handle_function(ta, [gr1, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gr1, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1, gt1]), t2)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gr1]), t2)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, gt1]), t2)
+
+        # Sample plus value produces node
+        n = AdditionNode
+        self.assertTrue(isinstance(bmg.handle_addition(s, 2.0), n))
+        self.assertTrue(isinstance(bmg.handle_addition(s, t2), n))
+        self.assertTrue(isinstance(bmg.handle_addition(2.0, s), n))
+        self.assertTrue(isinstance(bmg.handle_addition(t2, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [2.0, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
+
+        # Sample plus graph node produces node
+        self.assertTrue(isinstance(bmg.handle_addition(s, gr1), n))
+        self.assertTrue(isinstance(bmg.handle_addition(s, gt1), n))
+        self.assertTrue(isinstance(bmg.handle_addition(gr1, s), n))
+        self.assertTrue(isinstance(bmg.handle_addition(gt1, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
+
+    def test_division(self) -> None:
+        """Test division"""
+
+        # This test verifies that various mechanisms for producing a division node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t1 = tensor(1.0)
+        t2 = tensor(2.0)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gr2 = bmg.add_real(2.0)
+        self.assertTrue(isinstance(gr2, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+        gt2 = bmg.add_tensor(t2)
+        self.assertTrue(isinstance(gt2, TensorNode))
+
+        # torch defines a "static" div method that takes two values.
+        # Calling torch.div(x, y) should be logically the same as x + y
+
+        ta = torch.div
+        self.assertEqual(bmg.handle_dot_get(torch, "div"), ta)
+
+        # torch defines an "instance" div method that takes a value.
+        # Calling Tensor.div(x, y) or x.div(y) should be logically the same as x + y.
+
+        # TODO: In Tensor.div(x, y), x is required to be a tensor, not a double. We do
+        # TODO: not enforce this rule; handle_function(ta2, [1.0, 2.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = t2.div
+        self.assertEqual(bmg.handle_dot_get(t2, "div"), ta1)
+
+        # TODO: handle_function(ta1) is not implemented correctly if an operand
+        # TODO: is a graph node.
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "div".
+        # TODO: gta1 = bmg.handle_dot_get(gt2, "div")
+
+        ta2 = torch.Tensor.div
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "div"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "div".
+        # TODO: sa = bmg.handle_dot_get(s, "div")
+
+        # Dividing two values produces a value
+        self.assertEqual(bmg.handle_division(2.0, 1.0), 2.0)
+        self.assertEqual(bmg.handle_division(2.0, t1), t2)
+        self.assertEqual(bmg.handle_division(t2, 1.0), t2)
+        self.assertEqual(bmg.handle_division(t2, t1), t2)
+        self.assertEqual(bmg.handle_function(ta, [2.0, 1.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [2.0, t1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t2, 1.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t2, t1]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [1.0]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [t1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t2, 1.0]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t2, t1]), t2)
+
+        # Dividing a graph constant and a value produces a value
+        self.assertEqual(bmg.handle_division(gr2, 2.0), 1.0)
+        self.assertEqual(bmg.handle_division(gr2, t2), t1)
+        self.assertEqual(bmg.handle_division(gt2, 2.0), t1)
+        self.assertEqual(bmg.handle_division(gt2, t2), t1)
+        self.assertEqual(bmg.handle_division(2.0, gr2), 1.0)
+        self.assertEqual(bmg.handle_division(2.0, gt2), t1)
+        self.assertEqual(bmg.handle_division(t2, gr2), t1)
+        self.assertEqual(bmg.handle_division(t2, gt2), t1)
+        self.assertEqual(bmg.handle_function(ta, [gr2, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gr2, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt2, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt2, t2]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [2.0]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [t2]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt2, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt2, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gr2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gt2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [t2, gr2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [t2, gt2]), t1)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gr2]), t1)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gt2]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gr2]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gt2]), t1)
+
+        # Dividing two graph constants produces a value
+        self.assertEqual(bmg.handle_division(gr2, gr1), 2.0)
+        self.assertEqual(bmg.handle_division(gr2, gt1), t2)
+        self.assertEqual(bmg.handle_division(gt2, gr1), t2)
+        self.assertEqual(bmg.handle_division(gt2, gt1), t2)
+        self.assertEqual(bmg.handle_function(ta, [gr2, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gr2, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt2, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt2, gt1]), t2)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gr1]), t2)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt2, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt2, gt1]), t2)
+
+        # Sample divided by value produces node
+        n = DivisionNode
+        self.assertTrue(isinstance(bmg.handle_division(s, 2.0), n))
+        self.assertTrue(isinstance(bmg.handle_division(s, t2), n))
+        self.assertTrue(isinstance(bmg.handle_division(2.0, s), n))
+        self.assertTrue(isinstance(bmg.handle_division(t2, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [2.0, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
+
+        # Sample divided by graph node produces node
+        self.assertTrue(isinstance(bmg.handle_division(s, gr1), n))
+        self.assertTrue(isinstance(bmg.handle_division(s, gt1), n))
+        self.assertTrue(isinstance(bmg.handle_division(gr1, s), n))
+        self.assertTrue(isinstance(bmg.handle_division(gt1, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
+
+    def test_exp(self) -> None:
+        """Test exp"""
+
+        # This test verifies that various mechanisms for producing an exp node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        e = math.exp(1.0)
+        t1 = tensor(1.0)
+        te = torch.exp(t1)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+
+        # torch defines a "static" exp method that takes one value.
+        # TODO: torch.exp(x) requires that x be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta = torch.exp
+        self.assertEqual(bmg.handle_dot_get(torch, "exp"), ta)
+
+        # torch defines an "instance" exp method that takes no arguments.
+        # Calling Tensor.exp(x) or x.exp() should produce an exp node.
+
+        # TODO: In Tensor.exp(x), x is required to be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = t1.exp
+        self.assertEqual(bmg.handle_dot_get(t1, "exp"), ta1)
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "exp".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "exp")
+
+        ta2 = torch.Tensor.exp
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "exp"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "exp".
+        # TODO: sa = bmg.handle_dot_get(s, "exp")
+
+        # Exp of a value produces a value
+        self.assertEqual(bmg.handle_exp(1.0), e)
+        self.assertEqual(bmg.handle_exp(t1), te)
+        # Not legal: self.assertEqual(bmg.handle_function(ta, [1.0]), e)
+        self.assertEqual(bmg.handle_function(ta, [t1]), te)
+        self.assertEqual(bmg.handle_function(ta1, []), te)
+        self.assertEqual(bmg.handle_function(ta2, [t1]), te)
+
+        # Exp of a graph constant produces a value
+        self.assertEqual(bmg.handle_exp(gr1), e)
+        self.assertEqual(bmg.handle_exp(gt1), te)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta, [gr1]), e)
+        self.assertEqual(bmg.handle_function(ta, [gt1]), te)
+        # TODO self.assertEqual(bmg.handle_function(gta1, []), te)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta2, [gr1]), e)
+        self.assertEqual(bmg.handle_function(ta2, [gt1]), te)
+
+        # Exp of sample produces node
+        n = ExpNode
+        self.assertTrue(isinstance(bmg.handle_exp(s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
+
+    def test_log(self) -> None:
+        """Test log"""
+
+        # This test verifies that various mechanisms for producing an exp node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t0 = tensor(0.0)
+        t1 = tensor(1.0)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+
+        # torch defines a "static" log method that takes one value.
+        # TODO: torch.log(x) requires that x be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta = torch.log
+        self.assertEqual(bmg.handle_dot_get(torch, "log"), ta)
+
+        # torch defines an "instance" log method that takes no arguments.
+        # Calling Tensor.log(x) or x.log() should produce a log node.
+
+        # TODO: In Tensor.log(x), x is required to be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = t1.log
+        self.assertEqual(bmg.handle_dot_get(t1, "log"), ta1)
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "log".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "log")
+
+        ta2 = torch.Tensor.log
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "log"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "log".
+        # TODO: sa = bmg.handle_dot_get(s, "log")
+
+        # Log of a value produces a value
+        self.assertEqual(bmg.handle_log(1.0), 0.0)
+        self.assertEqual(bmg.handle_log(t1), t0)
+        # Not legal: self.assertEqual(bmg.handle_function(ta, [1.0]), 0.0)
+        self.assertEqual(bmg.handle_function(ta, [t1]), t0)
+        self.assertEqual(bmg.handle_function(ta1, []), t0)
+        self.assertEqual(bmg.handle_function(ta2, [t1]), t0)
+
+        # Log of a graph constant produces a value
+        self.assertEqual(bmg.handle_log(gr1), 0.0)
+        self.assertEqual(bmg.handle_log(gt1), t0)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta, [gr1]), 0.0)
+        self.assertEqual(bmg.handle_function(ta, [gt1]), t0)
+        # TODO self.assertEqual(bmg.handle_function(gta1, []), t0)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta2, [gr1]), 0.0)
+        self.assertEqual(bmg.handle_function(ta2, [gt1]), t0)
+
+        # Log of sample produces node
+        n = LogNode
+        self.assertTrue(isinstance(bmg.handle_log(s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
+
+    def test_multiplication(self) -> None:
+        """Test multiplication"""
+
+        # This test verifies that various mechanisms for producing a multiplication node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t1 = tensor(1.0)
+        t2 = tensor(2.0)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+
+        # torch defines a "static" mul method that takes two values.
+        # Calling torch.mul(x, y) should be logically the same as x * y
+
+        ta = torch.mul
+        self.assertEqual(bmg.handle_dot_get(torch, "mul"), ta)
+
+        # torch defines an "instance" mul method that takes a value.
+        # Calling Tensor.mul(x, y) or x.mul(y) should be logically the same as x * y.
+
+        # TODO: In Tensor.mul(x, y), x is required to be a tensor, not a double. We do
+        # TODO: not enforce this rule; handle_function(ta2, [1.0, 2.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = t1.mul
+        self.assertEqual(bmg.handle_dot_get(t1, "mul"), ta1)
+
+        # TODO: handle_function(ta1) is not implemented correctly if an operand
+        # TODO: is a graph node.
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "mul".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "mul")
+
+        ta2 = torch.Tensor.mul
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mul"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "mul".
+        # TODO: sa = bmg.handle_dot_get(s, "mul")
+
+        # Multiplying two values produces a value
+        self.assertEqual(bmg.handle_multiplication(1.0, 2.0), 2.0)
+        self.assertEqual(bmg.handle_multiplication(1.0, t2), t2)
+        self.assertEqual(bmg.handle_multiplication(t1, 2.0), t2)
+        self.assertEqual(bmg.handle_multiplication(t1, t2), t2)
+        self.assertEqual(bmg.handle_function(ta, [1.0, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [1.0, t2]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t1, t2]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [t2]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t1, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t1, t2]), t2)
+
+        # Multiplying a graph constant and a value produces a value
+        self.assertEqual(bmg.handle_multiplication(gr1, 2.0), 2.0)
+        self.assertEqual(bmg.handle_multiplication(gr1, t2), t2)
+        self.assertEqual(bmg.handle_multiplication(gt1, 2.0), t2)
+        self.assertEqual(bmg.handle_multiplication(gt1, t2), t2)
+        self.assertEqual(bmg.handle_multiplication(2.0, gr1), 2.0)
+        self.assertEqual(bmg.handle_multiplication(2.0, gt1), t2)
+        self.assertEqual(bmg.handle_multiplication(t2, gr1), t2)
+        self.assertEqual(bmg.handle_multiplication(t2, gt1), t2)
+        self.assertEqual(bmg.handle_function(ta, [gr1, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gr1, t2]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1, t2]), t2)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [2.0]), t2)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [t2]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, t2]), t2)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t2, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t2, gt1]), t2)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gr2]), t2)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gt2]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gt1]), t2)
+
+        # Multiplying two graph constants produces a value
+        self.assertEqual(bmg.handle_multiplication(gr1, gr1), 1.0)
+        self.assertEqual(bmg.handle_multiplication(gr1, gt1), t1)
+        self.assertEqual(bmg.handle_multiplication(gt1, gr1), t1)
+        self.assertEqual(bmg.handle_multiplication(gt1, gt1), t1)
+        self.assertEqual(bmg.handle_function(ta, [gr1, gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gr1, gt1]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt1, gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt1, gt1]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gr1]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gt1]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, gt1]), t1)
+
+        # Sample times value produces node
+        n = MultiplicationNode
+        self.assertTrue(isinstance(bmg.handle_multiplication(s, 2.0), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(s, t2), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(2.0, s), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(t2, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [2.0, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
+
+        # Sample times graph node produces node
+        self.assertTrue(isinstance(bmg.handle_multiplication(s, gr1), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(s, gt1), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(gr1, s), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(gt1, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
+
+    def test_negation(self) -> None:
+        """Test negation"""
+
+        # This test verifies that various mechanisms for producing a negation node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t1 = tensor(1.0)
+        t2 = tensor(2.0)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+
+        # torch defines a "static" neg method that takes one value.
+        # Calling torch.neg(x) should be logically the same as -x
+        # TODO: torch.neg(x) requires that x be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta = torch.neg
+        self.assertEqual(bmg.handle_dot_get(torch, "neg"), ta)
+
+        # torch defines an "instance" neg method that takes no arguments.
+        # Calling Tensor.neg(x) or x.neg() should be logically the same as -x.
+
+        # TODO: In Tensor.neg(x), x is required to be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = t1.neg
+        self.assertEqual(bmg.handle_dot_get(t1, "neg"), ta1)
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "neg".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "neg")
+
+        ta2 = torch.Tensor.neg
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "neg"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "neg".
+        # TODO: sa = bmg.handle_dot_get(s, "neg")
+
+        # Negating a value produces a value
+        self.assertEqual(bmg.handle_negate(1.0), -1.0)
+        self.assertEqual(bmg.handle_negate(t2), -t2)
+        # Not legal: self.assertEqual(bmg.handle_function(ta, [1.0]), -1.0)
+        self.assertEqual(bmg.handle_function(ta, [t2]), -t2)
+        self.assertEqual(bmg.handle_function(ta1, []), -t1)
+        self.assertEqual(bmg.handle_function(ta2, [t2]), -t2)
+
+        # Negating a graph constant produces a value
+        self.assertEqual(bmg.handle_negate(gr1), -1.0)
+        self.assertEqual(bmg.handle_negate(gt1), -t1)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta, [gr1]), -1.0)
+        self.assertEqual(bmg.handle_function(ta, [gt1]), -t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, []), -t1)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta2, [gr1]), -1.0)
+        self.assertEqual(bmg.handle_function(ta2, [gt1]), -t1)
+
+        # Negating sample produces node
+        n = NegateNode
+        self.assertTrue(isinstance(bmg.handle_negate(s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
+
+    def test_not(self) -> None:
+        """Test not"""
+
+        # This test verifies that various mechanisms for producing a logical-not node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        tt = tensor(True)
+        tf = tensor(False)
+
+        # Graph nodes
+        gbt = bmg.add_boolean(True)
+        self.assertTrue(isinstance(gbt, BooleanNode))
+        gtt = bmg.add_tensor(tt)
+        self.assertTrue(isinstance(gtt, TensorNode))
+
+        # torch defines a "static" logical_not method that takes one value.
+        # Calling torch.logical_not(x) should be logically the same as "not x"
+        # TODO: torch.logical_not(x) requires that x be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta = torch.logical_not
+        self.assertEqual(bmg.handle_dot_get(torch, "logical_not"), ta)
+
+        # torch defines an "instance" add method that takes no arguments.
+        # Calling Tensor.logical_not(x) or x.logical_not() should be logically
+        # the same as "not x".
+
+        # TODO: In Tensor.logical_not(x), x is required to be a tensor, not a float.
+        # TODO: We do not enforce this rule; handle_function(ta2, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = tt.logical_not
+        self.assertEqual(bmg.handle_dot_get(tt, "logical_not"), ta1)
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph nodes
+        # TODO: with "logical_not".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "logical_not")
+
+        ta2 = torch.Tensor.logical_not
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "logical_not"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph nodes
+        # TODO: with "logical_not".
+        # TODO: sa = bmg.handle_dot_get(s, "logical_not")
+
+        # Negating a value produces a value
+        self.assertEqual(bmg.handle_not(True), False)
+        self.assertEqual(bmg.handle_not(tt), tf)
+        # Not legal: self.assertEqual(bmg.handle_function(ta, [True]), False)
+        self.assertEqual(bmg.handle_function(ta, [tt]), tf)
+        self.assertEqual(bmg.handle_function(ta1, []), tf)
+        self.assertEqual(bmg.handle_function(ta2, [tt]), tf)
+
+        # Negating a graph constant produces a value
+        self.assertEqual(bmg.handle_not(gbt), False)
+        self.assertEqual(bmg.handle_not(gtt), tf)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta, [gbt]), False)
+        self.assertEqual(bmg.handle_function(ta, [gtt]), tf)
+        # TODO self.assertEqual(bmg.handle_function(gta1, []), tf)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta2, [gbt]), False)
+        self.assertEqual(bmg.handle_function(ta2, [gtt]), tf)
+
+        # Negating sample produces node
+        n = NotNode
+        self.assertTrue(isinstance(bmg.handle_not(s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
+
+    def test_power(self) -> None:
+        """Test power"""
+
+        # This test verifies that various mechanisms for producing a power node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t1 = tensor(1.0)
+        t2 = tensor(2.0)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+
+        # torch defines a "static" pow method that takes two values.
+        # Calling torch.pow(x, y) should be logically the same as x ** y
+
+        ta = torch.pow
+        self.assertEqual(bmg.handle_dot_get(torch, "pow"), ta)
+
+        # torch defines an "instance" pow method that takes a value.
+        # Calling Tensor.pow(x, y) or x.pow(y) should be logically the same as x * y.
+
+        # Note that unlike add, div, mul, the pow function on tensors takes only:
+        # (tensor, tensor)
+        # (number, tensor)
+        # (tensor, number)
+        # whereas the others allow (number, number).
+        # TODO: Should we enforce this rule when the arguments are, say, samples?
+
+        ta1 = t1.pow
+        self.assertEqual(bmg.handle_dot_get(t1, "pow"), ta1)
+
+        # TODO: handle_function(ta1) is not implemented correctly if an operand
+        # TODO: is a graph node.
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "pow".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "mul")
+
+        ta2 = torch.Tensor.pow
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "pow"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "pow".
+        # TODO: sa = bmg.handle_dot_get(s, "mul")
+
+        # Power of two values produces a value
+        self.assertEqual(bmg.handle_power(1.0, 2.0), 1.0)
+        self.assertEqual(bmg.handle_power(1.0, t2), t1)
+        self.assertEqual(bmg.handle_power(t1, 2.0), t1)
+        self.assertEqual(bmg.handle_power(t1, t2), t1)
+        # Not legal: self.assertEqual(bmg.handle_function(ta, [1.0, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta, [1.0, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta, [t1, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [t2]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [t1, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [t1, t2]), t1)
+
+        # Power of a graph constant and a value produces a value
+        self.assertEqual(bmg.handle_power(gr1, 2.0), 1.0)
+        self.assertEqual(bmg.handle_power(gr1, t2), t1)
+        self.assertEqual(bmg.handle_power(gt1, 2.0), t1)
+        self.assertEqual(bmg.handle_power(gt1, t2), t1)
+        self.assertEqual(bmg.handle_power(2.0, gr1), 2.0)
+        self.assertEqual(bmg.handle_power(2.0, gt1), t2)
+        self.assertEqual(bmg.handle_power(t2, gr1), t2)
+        self.assertEqual(bmg.handle_power(t2, gt1), t2)
+        self.assertEqual(bmg.handle_function(ta, [gr1, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gr1, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt1, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt1, t2]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [2.0]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [t2]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, 2.0]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [2.0, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t2, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t2, gt1]), t2)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gr2]), t1)
+        # TODO self.assertEqual(bmg.handle_function(ta1, [gt2]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gr1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t2, gt1]), t2)
+
+        # Power of two graph constants produces a value
+        self.assertEqual(bmg.handle_power(gr1, gr1), 1.0)
+        self.assertEqual(bmg.handle_power(gr1, gt1), t1)
+        self.assertEqual(bmg.handle_power(gt1, gr1), t1)
+        self.assertEqual(bmg.handle_power(gt1, gt1), t1)
+        self.assertEqual(bmg.handle_function(ta, [gr1, gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gr1, gt1]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt1, gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta, [gt1, gt1]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gr1]), t1)
+        # TODO self.assertEqual(bmg.handle_function(gta1, [gt1]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, gt1]), t1)
+
+        # Power of sample and value produces node
+        n = PowerNode
+        self.assertTrue(isinstance(bmg.handle_power(s, 2.0), n))
+        self.assertTrue(isinstance(bmg.handle_power(s, t2), n))
+        self.assertTrue(isinstance(bmg.handle_power(2.0, s), n))
+        self.assertTrue(isinstance(bmg.handle_power(t2, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [2.0, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
+
+        # Power of sample and graph node produces node
+        self.assertTrue(isinstance(bmg.handle_power(s, gr1), n))
+        self.assertTrue(isinstance(bmg.handle_power(s, gt1), n))
+        self.assertTrue(isinstance(bmg.handle_power(gr1, s), n))
+        self.assertTrue(isinstance(bmg.handle_power(gt1, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
+
+    def test_to_real(self) -> None:
+        """Test to_real"""
+
+        # This test verifies that various mechanisms for producing a to_real node
+        # in the graph -- or avoiding producing such a node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t1 = tensor(1.0)
+
+        # Graph nodes
+        gr1 = bmg.add_real(1.0)
+        self.assertTrue(isinstance(gr1, RealNode))
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+
+        # torch.float is not a function, unlike torch.log, torch.add and so on.
+
+        # torch defines an "instance" float method that takes no arguments.
+        # Calling Tensor.float(x) or x.float() should produce a to_real node.
+
+        # TODO: In Tensor.float(x), x is required to be a tensor, not a float. We do
+        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
+        # TODO: Should it?
+
+        ta1 = t1.float
+        self.assertEqual(bmg.handle_dot_get(t1, "float"), ta1)
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "float".
+        # TODO: gta1 = bmg.handle_dot_get(gt1, "float")
+
+        ta2 = torch.Tensor.float
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "float"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        self.assertTrue(isinstance(s, SampleNode))
+
+        # TODO: handle_dot_get is not implemented for tensor-valued graph
+        # TODO: nodes with "float".
+        # TODO: sa = bmg.handle_dot_get(s, "float")
+
+        # Float of a value produces a value
+        self.assertEqual(bmg.handle_to_real(1.0), 1.0)
+        self.assertEqual(bmg.handle_to_real(t1), 1.0)
+        self.assertEqual(bmg.handle_function(ta1, []), 1.0)
+        self.assertEqual(bmg.handle_function(ta2, [t1]), 1.0)
+
+        # Float of a graph constant produces a value
+        self.assertEqual(bmg.handle_to_real(gr1), 1.0)
+        self.assertEqual(bmg.handle_to_real(gt1), 1.0)
+        # TODO self.assertEqual(bmg.handle_function(gta1, []), 1.0)
+        # TODO: Should this be illegal?
+        self.assertEqual(bmg.handle_function(ta2, [gr1]), 1.0)
+        self.assertEqual(bmg.handle_function(ta2, [gt1]), 1.0)
+
+        # Float of sample produces node
+        n = ToRealNode
+        self.assertTrue(isinstance(bmg.handle_to_real(s), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
+        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))

@@ -759,17 +759,46 @@ class BMGraphBuilder:
 
     # TODO: We will need to handle functions with named parameters and
     # starred parameters.
+    # TODO: Add the other operators
     def handle_function(self, function: Callable, args: List[Any]) -> Any:
         if not any(isinstance(arg, BMGNode) for arg in args):
             return function(*args)
         if (function is torch.add) and len(args) == 2:
             return self.handle_addition(args[0], args[1])
-        # TODO: Add div, mul, and so on.
+        if (function is torch.Tensor.add) and len(args) == 2:
+            return self.handle_addition(args[0], args[1])
+        if (function is torch.div) and len(args) == 2:
+            return self.handle_division(args[0], args[1])
+        if (function is torch.Tensor.div) and len(args) == 2:
+            return self.handle_division(args[0], args[1])
+        # Note that torch.float is not a function.
+        if (function is torch.Tensor.float) and len(args) == 1:
+            return self.handle_to_real(args[0])
+        if (function is torch.logical_not) and len(args) == 1:
+            return self.handle_not(args[0])
+        if (function is torch.Tensor.logical_not) and len(args) == 1:
+            return self.handle_not(args[0])
+        if (function is torch.mul) and len(args) == 2:
+            return self.handle_multiplication(args[0], args[1])
+        if (function is torch.Tensor.mul) and len(args) == 2:
+            return self.handle_multiplication(args[0], args[1])
+        if (function is torch.neg) and len(args) == 1:
+            return self.handle_negate(args[0])
+        if (function is torch.Tensor.neg) and len(args) == 1:
+            return self.handle_negate(args[0])
+        if (function is torch.pow) and len(args) == 2:
+            return self.handle_power(args[0], args[1])
+        if (function is torch.Tensor.pow) and len(args) == 2:
+            return self.handle_power(args[0], args[1])
         if (function is torch.log) and len(args) == 1:
+            return self.handle_log(args[0])
+        if (function is torch.Tensor.log) and len(args) == 1:
             return self.handle_log(args[0])
         if (function is math.log) and len(args) == 1:
             return self.handle_log(args[0])
         if (function is torch.exp) and len(args) == 1:
+            return self.handle_exp(args[0])
+        if (function is torch.Tensor.exp) and len(args) == 1:
             return self.handle_exp(args[0])
         if (function is math.exp) and len(args) == 1:
             return self.handle_exp(args[0])
@@ -844,7 +873,7 @@ class BMGraphBuilder:
         # representing the "set the value of an attribute" operation in BMG.
         if isinstance(operand, BMGNode):
             raise ValueError(
-                f"Fetching the value of attribute {name} is not "
+                f"Setting the value of attribute {name} is not "
                 + "supported in Bean Machine Graph."
             )
         setattr(operand, name, value)
