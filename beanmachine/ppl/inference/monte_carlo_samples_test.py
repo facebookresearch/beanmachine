@@ -105,3 +105,12 @@ class MonteCarloSamplesTest(unittest.TestCase):
         ):
             one_chain = mcs.get_chain()
             one_chain.get_chain()
+
+    def test_num_adapt_samples(self):
+        model = self.SampleModel()
+        mh = SingleSiteAncestralMetropolisHastings()
+        foo_key = model.foo()
+        mcs = mh.infer([foo_key], {}, 10, num_adapt_steps=3)
+
+        self.assertEqual(mcs[foo_key].shape, torch.zeros(4, 7).shape)
+        self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 7).shape)
