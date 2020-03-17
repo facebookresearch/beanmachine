@@ -18,7 +18,7 @@ from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli
+from torch.distributions import Bernoulli, Normal
 
 
 builtin_function_or_method = type(abs)
@@ -381,6 +381,65 @@ class BernoulliNode(DistributionNode):
         # TODO: This should be different for tensors of different dimensions.
         yield tensor(0.0)
         yield tensor(1.0)
+
+
+class NormalNode(DistributionNode):
+    edges = ["mu", "sigma"]
+
+    def __init__(self, mu: BMGNode, sigma: BMGNode):
+        DistributionNode.__init__(self, [mu, sigma])
+
+    def mu(self) -> BMGNode:
+        return self.children[0]
+
+    def sigma(self) -> BMGNode:
+        return self.children[1]
+
+    # TODO: Do we need a generic type for "distribution of X"?
+    def node_type(self) -> Any:
+        return Normal
+
+    def sample_type(self) -> Any:
+        return self.mu().node_type()
+
+    def label(self) -> str:
+        return "Normal"
+
+    def __str__(self) -> str:
+        return f"Normal({str(self.mu())},{str(self.sigma())})"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            # TODO: Fix this when we add the node type to BMG
+            DistributionType.BERNOULLI,
+            AtomicType.BOOLEAN,
+            [d[self.probability()]],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a normal.
+        raise ValueError(f"Normal distribution does not have finite support.")
 
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
@@ -836,6 +895,19 @@ class BMGraphBuilder:
         return self.add_bernoulli(probability)
 
     @memoize
+    def add_normal(self, mu: BMGNode, sigma: BMGNode) -> NormalNode:
+        node = NormalNode(mu, sigma)
+        self.add_node(node)
+        return node
+
+    def handle_normal(self, mu: Any, sigma: Any) -> NormalNode:
+        if not isinstance(mu, BMGNode):
+            mu = self.add_constant(mu)
+        if not isinstance(sigma, BMGNode):
+            sigma = self.add_constant(sigma)
+        return self.add_normal(mu, sigma)
+
+    @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value + right.value)
@@ -1102,6 +1174,8 @@ class BMGraphBuilder:
             return self.handle_exp(args[0])
         if (f is Bernoulli) and len(args) == 1:
             return self.handle_bernoulli(args[0])
+        if (f is Normal) and len(args) == 2:
+            return self.handle_normal(args[0], args[1])
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the
@@ -1130,6 +1204,9 @@ class BMGraphBuilder:
             return self.add_sample(operand)
         if isinstance(operand, Bernoulli):
             b = self.handle_bernoulli(operand.probs)
+            return self.add_sample(b)
+        if isinstance(operand, Normal):
+            b = self.handle_normal(operand.mean, operand.stddev)
             return self.add_sample(b)
         raise ValueError(
             f"Operand {str(operand)} is not a valid target for a sample operation."

@@ -747,6 +747,79 @@ digraph "graph" {
 }
 """
 
+# Neal's funnel
+source7 = """
+from torch.distributions import Normal
+from torch import exp
+
+@sample
+def X():
+  return Normal(0.0, 3.0)
+
+@sample
+def Y():
+    return Normal(0.0, exp(X() * 0.5))
+"""
+
+expected_raw_7 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+from torch.distributions import Normal
+from torch import exp
+
+
+@probabilistic(bmg)
+@memoize
+def X():
+    a3 = 0.0
+    a5 = 3.0
+    r1 = bmg.handle_function(Normal, [a3, a5])
+    return bmg.handle_sample(r1)
+
+
+@probabilistic(bmg)
+@memoize
+def Y():
+    a4 = 0.0
+    a8 = bmg.handle_function(X, [])
+    a9 = 0.5
+    a7 = bmg.handle_multiplication(a8, a9)
+    a6 = bmg.handle_function(exp, [a7])
+    r2 = bmg.handle_function(Normal, [a4, a6])
+    return bmg.handle_sample(r2)
+
+
+roots = [X(), Y()]
+bmg.remove_orphans(roots)
+"""
+
+expected_dot_7 = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=3.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=0.0];
+  N5[label=0.5];
+  N6[label="*"];
+  N7[label=Exp];
+  N8[label=Normal];
+  N9[label=Sample];
+  N2 -> N0[label=mu];
+  N2 -> N1[label=sigma];
+  N3 -> N2[label=operand];
+  N6 -> N3[label=left];
+  N6 -> N5[label=right];
+  N7 -> N6[label=operand];
+  N8 -> N4[label=mu];
+  N8 -> N7[label=sigma];
+  N9 -> N8[label=operand];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -764,6 +837,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_5.strip())
         observed = to_python_raw(source6)
         self.assertEqual(observed.strip(), expected_raw_6.strip())
+        observed = to_python_raw(source7)
+        self.assertEqual(observed.strip(), expected_raw_7.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -784,6 +859,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_5.strip())
         observed = to_dot(source6)
         self.assertEqual(observed.strip(), expected_dot_6.strip())
+        observed = to_dot(source7)
+        self.assertEqual(observed.strip(), expected_dot_7.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""

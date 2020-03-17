@@ -1263,3 +1263,23 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_normal(self) -> None:
+        bmg = BMGraphBuilder()
+        t0 = bmg.add_tensor(tensor(0.0))
+        t1 = bmg.add_tensor(tensor(1.0))
+        n = bmg.add_normal(t0, t1)
+        bmg.add_sample(n)
+        observed = bmg.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N2 -> N0[label=mu];
+  N2 -> N1[label=sigma];
+  N3 -> N2[label=operand];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
