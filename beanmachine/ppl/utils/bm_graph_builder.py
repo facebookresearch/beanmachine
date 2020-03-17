@@ -904,8 +904,11 @@ class BMGraphBuilder:
     # Note that Python 3.7 guarantees that dictionaries maintain insertion order.
     nodes: Dict[BMGNode, int]
 
+    function_map: Dict[Callable, Callable]
+
     def __init__(self):
         self.nodes = {}
+        self.function_map = {torch.exp: self.handle_exp, torch.log: self.handle_log}
 
     def remove_orphans(self, roots: List[BMGNode]) -> None:
         self.nodes = {}
@@ -1158,16 +1161,16 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_exp(self, operand: Any) -> Any:
-        if isinstance(operand, Tensor):
-            return torch.exp(operand)
-        if isinstance(operand, TensorNode):
-            return torch.exp(operand.value)
-        if not isinstance(operand, BMGNode):
-            return math.exp(operand)
-        if isinstance(operand, ConstantNode):
-            return math.exp(operand.value)
-        return self.add_exp(operand)
+    def handle_exp(self, input: Any) -> Any:
+        if isinstance(input, Tensor):
+            return torch.exp(input)
+        if isinstance(input, TensorNode):
+            return torch.exp(input.value)
+        if not isinstance(input, BMGNode):
+            return math.exp(input)
+        if isinstance(input, ConstantNode):
+            return math.exp(input.value)
+        return self.add_exp(input)
 
     @memoize
     def add_log(self, operand: BMGNode) -> ExpNode:
@@ -1179,18 +1182,17 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_log(self, operand: Any) -> Any:
-        if isinstance(operand, Tensor):
-            return torch.log(operand)
-        if isinstance(operand, TensorNode):
-            return torch.log(operand.value)
-        if not isinstance(operand, BMGNode):
-            return math.log(operand)
-        if isinstance(operand, ConstantNode):
-            return math.log(operand.value)
-        return self.add_log(operand)
+    def handle_log(self, input: Any) -> Any:
+        if isinstance(input, Tensor):
+            return torch.log(input)
+        if isinstance(input, TensorNode):
+            return torch.log(input.value)
+        if not isinstance(input, BMGNode):
+            return math.log(input)
+        if isinstance(input, ConstantNode):
+            return math.log(input.value)
+        return self.add_log(input)
 
-    # TODO: Make this a table-driven function instead of a big if statement.
     def handle_function(  # noqa
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
     ) -> Any:
@@ -1215,7 +1217,15 @@ class BMGraphBuilder:
             )
         if is_ordinary_call(f, args, kwargs):
             return f(*args, **kwargs)
-        # TODO: Support kwargs for these:
+        # TODO: Do a sanity check that the arguments match and give
+        # TODO: a good error if they do not. Alternatively, catch
+        # TODO: the exception if the call fails and replace it with
+        # TODO: a more informative error.
+
+        if f in self.function_map:
+            return self.function_map[f](*args, **kwargs)
+
+        # TODO: Add these to the table
         if (f is torch.add) and len(args) == 2:
             return self.handle_addition(args[0], args[1])
         if (f is torch.Tensor.add) and len(args) == 2:
@@ -1243,8 +1253,6 @@ class BMGraphBuilder:
             return self.handle_power(args[0], args[1])
         if (f is torch.Tensor.pow) and len(args) == 2:
             return self.handle_power(args[0], args[1])
-        if (f is torch.log) and len(args) == 1:
-            return self.handle_log(args[0])
         if (f is torch.Tensor.log) and len(args) == 1:
             return self.handle_log(args[0])
         if (f is math.log) and len(args) == 1:

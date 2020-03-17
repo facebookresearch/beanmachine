@@ -40,9 +40,14 @@ def Y():
 
 @sample
 def Z():
-  return Bernoulli(
-    1 - exp(log(tensor(0.99)) + X() * log(tensor(0.01)) + Y() * log(tensor(0.01)))
-  )
+    return Bernoulli(
+        1
+        - exp(
+            input=log(tensor(0.99))
+            + X() * log(tensor(0.01))
+            + Y() * log(input=tensor(0.01))
+        )
+    )
 """
 
 expected_raw_1 = """
@@ -89,12 +94,12 @@ def Z():
     a17 = bmg.handle_multiplication(a20, a22)
     a13 = bmg.handle_addition(a14, a17)
     a18 = bmg.handle_function(Y, [], {})
-    a23 = bmg.handle_dot_get(torch, 'tensor')
-    a25 = -4.605170249938965
-    a21 = bmg.handle_function(a23, [a25], {})
+    a25 = 0.01
+    a23 = bmg.handle_function(tensor, [a25], {})
+    a21 = bmg.handle_function(log, [], {**{'input': a23}})
     a15 = bmg.handle_multiplication(a18, a21)
     a12 = bmg.handle_addition(a13, a15)
-    a11 = bmg.handle_function(exp, [a12], {})
+    a11 = bmg.handle_function(exp, [], {**{'input': a12}})
     a10 = bmg.handle_negate(a11)
     a6 = bmg.handle_addition(a9, a10)
     r3 = bmg.handle_function(Bernoulli, [a6], {})
