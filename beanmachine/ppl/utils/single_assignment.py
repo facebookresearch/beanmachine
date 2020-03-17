@@ -13,10 +13,12 @@ from beanmachine.ppl.utils.ast_patterns import (
     attribute,
     binop,
     call,
+    index,
     keyword,
     match,
     match_any,
     name,
+    subscript,
     unaryop,
 )
 from beanmachine.ppl.utils.patterns import (
@@ -208,6 +210,37 @@ class SingleAssignment:
                         lambda a, v: ast.Assign(
                             targets=a.targets,
                             value=ast.UnaryOp(operand=v, op=a.value.op),
+                        ),
+                    ),
+                ),
+                # a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
+                (
+                    assign(value=subscript(value=_not_identifier)),
+                    self._fix_it(
+                        "a",
+                        lambda a: a.value.value,
+                        lambda a, v: ast.Assign(
+                            targets=a.targets,
+                            value=ast.Subscript(
+                                value=v, slice=a.value.slice, ctx=a.value.ctx
+                            ),
+                        ),
+                    ),
+                ),
+                # TODO: Handle slices other than Index
+                # a = b[d + e] becomes t = d + e, a = b[t]
+                (
+                    assign(value=subscript(slice=index(value=_not_identifier))),
+                    self._fix_it(
+                        "a",
+                        lambda a: a.value.slice.value,
+                        lambda a, v: ast.Assign(
+                            targets=a.targets,
+                            value=ast.Subscript(
+                                value=a.value.value,
+                                slice=ast.Index(value=v),
+                                ctx=a.value.ctx,
+                            ),
                         ),
                     ),
                 ),

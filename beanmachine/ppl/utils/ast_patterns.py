@@ -207,6 +207,10 @@ def if_statement(
     return type_and_attributes(ast.If, {"test": test, "body": body, "orelse": orelse})
 
 
+def index(value: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.Index, {"value": value})
+
+
 def keyword(arg: Pattern = _any, value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.keyword, {"arg": arg, "value": value})
 
@@ -233,6 +237,14 @@ def num(n: Pattern = _any) -> Pattern:
 
 def ast_str(s: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Str, {"s": s})
+
+
+def subscript(
+    value: Pattern = _any, slice: Pattern = _any, ctx: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.Subscript, {"value": value, "slice": slice, "ctx": ctx}
+    )
 
 
 def ast_return(value: Pattern = _any) -> Pattern:

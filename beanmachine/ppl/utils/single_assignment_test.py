@@ -75,3 +75,19 @@ a3 = g + h
 b = a1(a3)
 """
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_single_assignment_3(self) -> None:
+        """Tests for single_assignment.py"""
+
+        self.maxDiff = None
+
+        source = "a = (b+c)[f(d+e)]"
+        m = ast.parse(source)
+        result = single_assignment(m)
+        expected = """
+a1 = b + c
+a3 = d + e
+a2 = f(a3)
+a = a1[a2]
+"""
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
