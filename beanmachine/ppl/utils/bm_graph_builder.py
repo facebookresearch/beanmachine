@@ -54,7 +54,17 @@ class BMGNode(ABC):
         pass
 
 
-known_tensor_instance_functions = ["add", "exp", "log", "logical_not", "neg"]
+known_tensor_instance_functions = [
+    "add",
+    "div",
+    "exp",
+    "float",
+    "log",
+    "logical_not",
+    "mul",
+    "neg",
+    "pow",
+]
 
 
 class KnownFunction:

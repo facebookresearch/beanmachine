@@ -434,12 +434,7 @@ digraph "graph" {
         ta1 = t2.div
         self.assertEqual(bmg.handle_dot_get(t2, "div"), ta1)
 
-        # TODO: handle_function(ta1) is not implemented correctly if an operand
-        # TODO: is a graph node.
-
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "div".
-        # TODO: gta1 = bmg.handle_dot_get(gt2, "div")
+        gta1 = bmg.handle_dot_get(gt2, "div")
 
         ta2 = torch.Tensor.div
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "div"), ta2)
@@ -448,9 +443,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "div".
-        # TODO: sa = bmg.handle_dot_get(s, "div")
+        sa = bmg.handle_dot_get(s, "div")
 
         # Dividing two values produces a value
         self.assertEqual(bmg.handle_division(2.0, 1.0), 2.0)
@@ -479,16 +472,16 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [gr2, t2]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt2, 2.0]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt2, t2]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [2.0]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [t2]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [2.0]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [t2]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt2, 2.0]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt2, t2]), t1)
         self.assertEqual(bmg.handle_function(ta, [2.0, gr2]), t1)
         self.assertEqual(bmg.handle_function(ta, [2.0, gt2]), t1)
         self.assertEqual(bmg.handle_function(ta, [t2, gr2]), t1)
         self.assertEqual(bmg.handle_function(ta, [t2, gt2]), t1)
-        # TODO self.assertEqual(bmg.handle_function(ta1, [gr2]), t1)
-        # TODO self.assertEqual(bmg.handle_function(ta1, [gt2]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [gr2]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [gt2]), t1)
         self.assertEqual(bmg.handle_function(ta2, [t2, gr2]), t1)
         self.assertEqual(bmg.handle_function(ta2, [t2, gt2]), t1)
 
@@ -501,8 +494,8 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [gr2, gt1]), t2)
         self.assertEqual(bmg.handle_function(ta, [gt2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta, [gt2, gt1]), t2)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [gr1]), t2)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [gt1]), t2)
+        self.assertEqual(bmg.handle_function(gta1, [gr1]), t2)
+        self.assertEqual(bmg.handle_function(gta1, [gt1]), t2)
         self.assertEqual(bmg.handle_function(ta2, [gt2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta2, [gt2, gt1]), t2)
 
@@ -516,9 +509,9 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [2.0, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
@@ -532,9 +525,8 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
@@ -718,12 +710,7 @@ digraph "graph" {
         ta1 = t1.mul
         self.assertEqual(bmg.handle_dot_get(t1, "mul"), ta1)
 
-        # TODO: handle_function(ta1) is not implemented correctly if an operand
-        # TODO: is a graph node.
-
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "mul".
-        # TODO: gta1 = bmg.handle_dot_get(gt1, "mul")
+        gta1 = bmg.handle_dot_get(gt1, "mul")
 
         ta2 = torch.Tensor.mul
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mul"), ta2)
@@ -732,9 +719,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "mul".
-        # TODO: sa = bmg.handle_dot_get(s, "mul")
+        sa = bmg.handle_dot_get(s, "mul")
 
         # Multiplying two values produces a value
         self.assertEqual(bmg.handle_multiplication(1.0, 2.0), 2.0)
@@ -763,16 +748,16 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [gr1, t2]), t2)
         self.assertEqual(bmg.handle_function(ta, [gt1, 2.0]), t2)
         self.assertEqual(bmg.handle_function(ta, [gt1, t2]), t2)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [2.0]), t2)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [t2]), t2)
+        self.assertEqual(bmg.handle_function(gta1, [2.0]), t2)
+        self.assertEqual(bmg.handle_function(gta1, [t2]), t2)
         self.assertEqual(bmg.handle_function(ta2, [gt1, 2.0]), t2)
         self.assertEqual(bmg.handle_function(ta2, [gt1, t2]), t2)
         self.assertEqual(bmg.handle_function(ta, [2.0, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta, [2.0, gt1]), t2)
         self.assertEqual(bmg.handle_function(ta, [t2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta, [t2, gt1]), t2)
-        # TODO self.assertEqual(bmg.handle_function(ta1, [gr2]), t2)
-        # TODO self.assertEqual(bmg.handle_function(ta1, [gt2]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [gt1]), t1)
         self.assertEqual(bmg.handle_function(ta2, [t2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta2, [t2, gt1]), t2)
 
@@ -785,8 +770,8 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [gr1, gt1]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt1, gr1]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt1, gt1]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [gr1]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [gt1]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [gr1]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [gt1]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt1, gr1]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt1, gt1]), t1)
 
@@ -800,9 +785,9 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [2.0, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
@@ -816,9 +801,8 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
@@ -1006,12 +990,7 @@ digraph "graph" {
         ta1 = t1.pow
         self.assertEqual(bmg.handle_dot_get(t1, "pow"), ta1)
 
-        # TODO: handle_function(ta1) is not implemented correctly if an operand
-        # TODO: is a graph node.
-
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "pow".
-        # TODO: gta1 = bmg.handle_dot_get(gt1, "mul")
+        gta1 = bmg.handle_dot_get(gt1, "pow")
 
         ta2 = torch.Tensor.pow
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "pow"), ta2)
@@ -1020,9 +999,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "pow".
-        # TODO: sa = bmg.handle_dot_get(s, "mul")
+        sa = bmg.handle_dot_get(s, "pow")
 
         # Power of two values produces a value
         self.assertEqual(bmg.handle_power(1.0, 2.0), 1.0)
@@ -1051,16 +1028,16 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [gr1, t2]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt1, 2.0]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt1, t2]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [2.0]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [t2]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [2.0]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [t2]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt1, 2.0]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt1, t2]), t1)
         self.assertEqual(bmg.handle_function(ta, [2.0, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta, [2.0, gt1]), t2)
         self.assertEqual(bmg.handle_function(ta, [t2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta, [t2, gt1]), t2)
-        # TODO self.assertEqual(bmg.handle_function(ta1, [gr2]), t1)
-        # TODO self.assertEqual(bmg.handle_function(ta1, [gt2]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [gr1]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [gt1]), t1)
         self.assertEqual(bmg.handle_function(ta2, [t2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta2, [t2, gt1]), t2)
 
@@ -1073,8 +1050,8 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [gr1, gt1]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt1, gr1]), t1)
         self.assertEqual(bmg.handle_function(ta, [gt1, gt1]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [gr1]), t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, [gt1]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [gr1]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [gt1]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt1, gr1]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt1, gt1]), t1)
 
@@ -1088,9 +1065,9 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [2.0, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
@@ -1104,9 +1081,8 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
@@ -1139,9 +1115,7 @@ digraph "graph" {
         ta1 = t1.float
         self.assertEqual(bmg.handle_dot_get(t1, "float"), ta1)
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "float".
-        # TODO: gta1 = bmg.handle_dot_get(gt1, "float")
+        gta1 = bmg.handle_dot_get(gt1, "float")
 
         ta2 = torch.Tensor.float
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "float"), ta2)
@@ -1150,9 +1124,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "float".
-        # TODO: sa = bmg.handle_dot_get(s, "float")
+        sa = bmg.handle_dot_get(s, "float")
 
         # Float of a value produces a value
         self.assertEqual(bmg.handle_to_real(1.0), 1.0)
@@ -1163,7 +1135,7 @@ digraph "graph" {
         # Float of a graph constant produces a value
         self.assertEqual(bmg.handle_to_real(gr1), 1.0)
         self.assertEqual(bmg.handle_to_real(gt1), 1.0)
-        # TODO self.assertEqual(bmg.handle_function(gta1, []), 1.0)
+        self.assertEqual(bmg.handle_function(gta1, []), 1.0)
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), 1.0)
         self.assertEqual(bmg.handle_function(ta2, [gt1]), 1.0)
@@ -1171,8 +1143,7 @@ digraph "graph" {
         # Float of sample produces node
         n = ToRealNode
         self.assertTrue(isinstance(bmg.handle_to_real(s), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
     def test_types(self) -> None:
