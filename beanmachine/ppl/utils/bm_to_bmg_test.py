@@ -47,6 +47,7 @@ def Z():
 
 expected_raw_1 = """
 from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
@@ -56,6 +57,7 @@ from torch import exp, log, tensor
 from torch.distributions.bernoulli import Bernoulli
 
 
+@probabilistic(bmg)
 @memoize
 def X():
     a7 = 0.01
@@ -64,6 +66,7 @@ def X():
     return bmg.handle_sample(r1)
 
 
+@probabilistic(bmg)
 @memoize
 def Y():
     a8 = 0.01
@@ -72,6 +75,7 @@ def Y():
     return bmg.handle_sample(r2)
 
 
+@probabilistic(bmg)
 @memoize
 def Z():
     a9 = 1
@@ -250,6 +254,7 @@ def z():
 
 expected_raw_2 = """
 from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
@@ -258,6 +263,7 @@ from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
 
 
+@probabilistic(bmg)
 @memoize
 def x(n):
     a7 = 0.5
@@ -272,6 +278,7 @@ def x(n):
     return bmg.handle_sample(r1)
 
 
+@probabilistic(bmg)
 @memoize
 def z():
     a16 = 0.3
@@ -367,6 +374,7 @@ def z():
 
 expected_raw_3 = """
 from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
@@ -375,6 +383,7 @@ from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
 
 
+@probabilistic(bmg)
 @memoize
 def x(n):
     a15 = 0.5
@@ -389,6 +398,7 @@ def x(n):
     return bmg.handle_sample(r1)
 
 
+@probabilistic(bmg)
 @memoize
 def z():
     sum = 0.0
@@ -490,6 +500,7 @@ def z():
 
 expected_raw_4 = """
 from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
@@ -498,6 +509,7 @@ from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
 
 
+@probabilistic(bmg)
 @memoize
 def x(n):
     a11 = 0.5
@@ -512,6 +524,7 @@ def x(n):
     return bmg.handle_sample(r1)
 
 
+@probabilistic(bmg)
 @memoize
 def z():
     sum = 0.0
@@ -565,6 +578,7 @@ def z():
 
 expected_raw_5 = """
 from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
@@ -584,6 +598,7 @@ def r(p):
     return r2
 
 
+@probabilistic(bmg)
 @memoize
 def x(n):
     a6 = 0.5
@@ -591,6 +606,7 @@ def x(n):
     return bmg.handle_sample(r3)
 
 
+@probabilistic(bmg)
 @memoize
 def z():
     a10 = 0

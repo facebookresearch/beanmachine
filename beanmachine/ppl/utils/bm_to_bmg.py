@@ -30,6 +30,7 @@ from beanmachine.ppl.utils.rules import (
     AllListMembers,
     AllOf as all_of,
     FirstMatch as first,
+    ListEdit,
     PatternRule,
     Rule,
     SomeListMembers,
@@ -192,7 +193,18 @@ _sample_to_memoize: Rule = _descend_until(
         "decorator_list",
         SomeListMembers(
             PatternRule(
-                name(id="sample"), lambda n: ast.Name(id="memoize", ctx=ast.Load())
+                name(id="sample"),
+                lambda n: ListEdit(
+                    [
+                        ast.Call(
+                            func=ast.Name(id="probabilistic", ctx=ast.Load()),
+                            args=[ast.Name(id="bmg", ctx=ast.Load())],
+                            keywords=[],
+                            returns=None,
+                        ),
+                        ast.Name(id="memoize", ctx=ast.Load()),
+                    ]
+                ),
             )
         ),
     ),
@@ -201,6 +213,7 @@ _sample_to_memoize: Rule = _descend_until(
 _header: ast.Module = ast.parse(
     """
 from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg : bool = True
 bmg = BMGraphBuilder()"""
