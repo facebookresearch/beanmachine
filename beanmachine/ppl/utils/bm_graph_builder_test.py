@@ -1,8 +1,19 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """Tests for bm_graph_builder.py"""
+import math
 import unittest
 
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.utils.bm_graph_builder import (
+    BMGraphBuilder,
+    DivisionNode,
+    ExpNode,
+    LogNode,
+    MultiplicationNode,
+    NegateNode,
+    NotNode,
+    PowerNode,
+    ToRealNode,
+)
 from torch import tensor
 
 
@@ -199,3 +210,55 @@ digraph "graph" {
         fal = bmg.add_boolean(False)
         lst = bmg.add_list([tru, fal])
         self.assertEqual(fal, lst[one])
+
+    def test_5(self) -> None:
+        """Test 5"""
+        # The "add" methods do exactly that: add a node to the graph if it is not
+        # already there.
+        # The "handle" methods try to keep everything in unwrapped values if possible;
+        # they are trying to keep values out of the graph when possible.
+        # TODO: Test tensors also.
+        bmg = BMGraphBuilder()
+        one = bmg.add_real(1.0)
+        two = bmg.handle_addition(one, one)
+        three = bmg.handle_addition(one, two)
+        four = bmg.handle_addition(two, two)
+        b = bmg.handle_bernoulli(0.5)
+        s = bmg.add_sample(b)
+        self.assertEqual(two, 2.0)
+        self.assertEqual(three, 3.0)
+        self.assertEqual(four, 4.0)
+        self.assertEqual(bmg.handle_division(one, one), 1.0)
+        self.assertEqual(bmg.handle_division(two, one), 2.0)
+        self.assertEqual(bmg.handle_division(two, two), 1.0)
+        self.assertTrue(isinstance(bmg.handle_division(s, one), DivisionNode))
+        self.assertTrue(isinstance(bmg.handle_division(one, s), DivisionNode))
+        self.assertEqual(bmg.handle_multiplication(one, one), 1.0)
+        self.assertEqual(bmg.handle_multiplication(two, one), 2.0)
+        self.assertEqual(bmg.handle_multiplication(two, two), 4.0)
+        self.assertTrue(
+            isinstance(bmg.handle_multiplication(s, one), MultiplicationNode)
+        )
+        self.assertTrue(
+            isinstance(bmg.handle_multiplication(one, s), MultiplicationNode)
+        )
+        self.assertEqual(bmg.handle_power(one, one), 1.0)
+        self.assertEqual(bmg.handle_power(two, one), 2.0)
+        self.assertEqual(bmg.handle_power(two, two), 4.0)
+        self.assertTrue(isinstance(bmg.handle_power(s, one), PowerNode))
+        self.assertTrue(isinstance(bmg.handle_power(one, s), PowerNode))
+        self.assertEqual(bmg.handle_exp(one), math.exp(1.0))
+        self.assertEqual(bmg.handle_exp(two), math.exp(2.0))
+        self.assertTrue(isinstance(bmg.handle_exp(s), ExpNode))
+        self.assertEqual(bmg.handle_log(one), math.log(1.0))
+        self.assertEqual(bmg.handle_log(two), math.log(2.0))
+        self.assertTrue(isinstance(bmg.handle_log(s), LogNode))
+        self.assertEqual(bmg.handle_not(one), False)
+        self.assertEqual(bmg.handle_not(two), False)
+        self.assertTrue(isinstance(bmg.handle_not(s), NotNode))
+        self.assertEqual(bmg.handle_negate(one), -1.0)
+        self.assertEqual(bmg.handle_negate(two), -2.0)
+        self.assertTrue(isinstance(bmg.handle_negate(s), NegateNode))
+        self.assertEqual(bmg.handle_to_real(one), 1.0)
+        self.assertEqual(bmg.handle_to_real(two), 2.0)
+        self.assertTrue(isinstance(bmg.handle_to_real(s), ToRealNode))
