@@ -555,6 +555,8 @@ roots = [z()]
 bmg.remove_orphans(roots)
 """
 
+# Demonstrate that function calls work as expected when the
+# function called is NOT a sample function.
 source5 = """
 import torch
 from torch.distributions import Bernoulli
@@ -645,6 +647,106 @@ digraph "graph" {
 }
 """
 
+# Here is a simple model where the argument to a sample is itself a sample.
+# This illustrates how the graph must capture the possible control flows.
+# Flip a fair coin y; use that to choose which unfair coin to use.
+# Flip the unfair coin and use that to construct either a double-headed
+# or double-tailed coin.
+source6 = """
+import torch
+from torch.distributions import Bernoulli
+
+# x(0) is Bern(0.25)
+# x(1) is Bern(0.75)
+@sample
+def x(n):
+  return Bernoulli(n * 0.5 + 0.25)
+
+@sample
+def y():
+  return Bernoulli(0.5)
+
+@sample
+def z():
+  return Bernoulli(x(y()))
+"""
+
+expected_raw_6 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+import torch
+from torch.distributions import Bernoulli
+
+
+@probabilistic(bmg)
+@memoize
+def x(n):
+    a9 = 0.5
+    a7 = bmg.handle_multiplication(n, a9)
+    a10 = 0.25
+    a4 = bmg.handle_addition(a7, a10)
+    r1 = bmg.handle_function(Bernoulli, [a4])
+    return bmg.handle_sample(r1)
+
+
+@probabilistic(bmg)
+@memoize
+def y():
+    a5 = 0.5
+    r2 = bmg.handle_function(Bernoulli, [a5])
+    return bmg.handle_sample(r2)
+
+
+@probabilistic(bmg)
+@memoize
+def z():
+    a8 = bmg.handle_function(y, [])
+    a6 = bmg.handle_function(x, [a8])
+    r3 = bmg.handle_function(Bernoulli, [a6])
+    return bmg.handle_sample(r3)
+
+
+roots = [y(), z()]
+bmg.remove_orphans(roots)
+"""
+
+expected_dot_6 = """
+digraph "graph" {
+  N0[label=0.5];
+  N10[label=Sample];
+  N11[label=map];
+  N12[label=index];
+  N13[label=Bernoulli];
+  N14[label=Sample];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=0.0];
+  N4[label=0.25];
+  N5[label=Bernoulli];
+  N6[label=Sample];
+  N7[label=1.0];
+  N8[label=0.75];
+  N9[label=Bernoulli];
+  N1 -> N0[label=probability];
+  N10 -> N9[label=operand];
+  N11 -> N10[label=3];
+  N11 -> N3[label=0];
+  N11 -> N6[label=1];
+  N11 -> N7[label=2];
+  N12 -> N11[label=left];
+  N12 -> N2[label=right];
+  N13 -> N12[label=probability];
+  N14 -> N13[label=operand];
+  N2 -> N1[label=operand];
+  N5 -> N4[label=probability];
+  N6 -> N5[label=operand];
+  N9 -> N8[label=probability];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -660,6 +762,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_4.strip())
         observed = to_python_raw(source5)
         self.assertEqual(observed.strip(), expected_raw_5.strip())
+        observed = to_python_raw(source6)
+        self.assertEqual(observed.strip(), expected_raw_6.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -678,6 +782,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_3.strip())
         observed = to_dot(source5)
         self.assertEqual(observed.strip(), expected_dot_5.strip())
+        observed = to_dot(source6)
+        self.assertEqual(observed.strip(), expected_dot_6.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
