@@ -889,6 +889,16 @@ def is_from_lifted_module(f) -> bool:
     )
 
 
+def is_ordinary_call(f, args, kwargs) -> bool:
+    if is_from_lifted_module(f):
+        return True
+    if any(isinstance(arg, BMGNode) for arg in args):
+        return False
+    if any(isinstance(arg, BMGNode) for arg in kwargs.values()):
+        return False
+    return True
+
+
 class BMGraphBuilder:
 
     # Note that Python 3.7 guarantees that dictionaries maintain insertion order.
@@ -1180,9 +1190,6 @@ class BMGraphBuilder:
             return math.log(operand.value)
         return self.add_log(operand)
 
-    # TODO: We will need to handle functions with named parameters and
-    # starred parameters.
-    # TODO: Add the other operators
     # TODO: Make this a table-driven function instead of a big if statement.
     def handle_function(  # noqa
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
@@ -1206,10 +1213,9 @@ class BMGraphBuilder:
             raise ValueError(
                 f"Function {function} is not supported by Bean Machine Graph."
             )
-        if not any(isinstance(arg, BMGNode) for arg in args) or is_from_lifted_module(
-            f
-        ):
-            return f(*args)
+        if is_ordinary_call(f, args, kwargs):
+            return f(*args, **kwargs)
+        # TODO: Support kwargs for these:
         if (f is torch.add) and len(args) == 2:
             return self.handle_addition(args[0], args[1])
         if (f is torch.Tensor.add) and len(args) == 2:

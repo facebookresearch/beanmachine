@@ -231,13 +231,17 @@ import torch
 from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
 
+
 @sample
 def x(n):
-  return Bernoulli(tensor(0.5) + log(exp(n * tensor(0.1))))
+    return Bernoulli(probs=tensor(0.5) + log(input=exp(input=n * tensor(0.1))))
+
 
 @sample
 def z():
-  return Bernoulli(tensor(0.3) ** x(0) + x(0) / tensor(10.0) - neg(x(1) * tensor(0.4)))
+    return Bernoulli(
+        tensor(0.3) ** x(0) + x(0) / tensor(10.0) - neg(x(1) * tensor(0.4))
+    )
 """
 
 # In the medium term, we need to create a mechanism in BMG to represent
@@ -271,10 +275,10 @@ def x(n):
     a25 = 0.1
     a20 = bmg.handle_function(tensor, [a25], {})
     a15 = bmg.handle_multiplication(n, a20)
-    a11 = bmg.handle_function(exp, [a15], {})
-    a8 = bmg.handle_function(log, [a11], {})
+    a11 = bmg.handle_function(exp, [], {**{'input': a15}})
+    a8 = bmg.handle_function(log, [], {**{'input': a11}})
     a3 = bmg.handle_addition(a5, a8)
-    r1 = bmg.handle_function(Bernoulli, [a3], {})
+    r1 = bmg.handle_function(Bernoulli, [], {**{'probs': a3}})
     return bmg.handle_sample(r1)
 
 
