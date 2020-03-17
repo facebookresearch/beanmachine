@@ -24,7 +24,7 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     TensorNode,
     ToRealNode,
 )
-from torch import Tensor, tensor
+from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
 
 
@@ -1334,6 +1334,49 @@ digraph "graph" {
         self.assertEqual(bmg.add_to_real(b).node_type(), float)
         self.assertEqual(bmg.add_to_real(s).node_type(), float)
         self.assertEqual(bmg.add_list([b]).node_type(), List[Any])
+
+    def test_sizes(self) -> None:
+        bmg = BMGraphBuilder()
+        t = bmg.add_tensor(tensor([1.0, 2.0]))
+        z1 = bmg.add_tensor(torch.zeros(1, 2))
+        z2 = bmg.add_tensor(torch.zeros(2, 1))
+        r = bmg.add_real(1.0)
+        bern = bmg.add_bernoulli(t)
+        s = bmg.add_sample(bern)
+        self.assertEqual(t.size(), Size([2]))
+        self.assertEqual(r.size(), Size([]))
+        self.assertEqual(bern.size(), Size([2]))
+        self.assertEqual(s.size(), Size([2]))
+        self.assertEqual(bmg.add_matrix_multiplication(z1, z2).size(), Size([1, 1]))
+        self.assertEqual(bmg.add_addition(r, r).size(), Size([]))
+        self.assertEqual(bmg.add_addition(r, t).size(), Size([2]))
+        self.assertEqual(bmg.add_addition(t, r).size(), Size([2]))
+        self.assertEqual(bmg.add_addition(t, t).size(), Size([2]))
+        self.assertEqual(bmg.add_addition(s, r).size(), Size([2]))
+        self.assertEqual(bmg.add_division(r, r).size(), Size([]))
+        self.assertEqual(bmg.add_division(r, t).size(), Size([2]))
+        self.assertEqual(bmg.add_division(t, r).size(), Size([2]))
+        self.assertEqual(bmg.add_division(t, t).size(), Size([2]))
+        self.assertEqual(bmg.add_division(s, r).size(), Size([2]))
+        self.assertEqual(bmg.add_multiplication(r, r).size(), Size([]))
+        self.assertEqual(bmg.add_multiplication(r, t).size(), Size([2]))
+        self.assertEqual(bmg.add_multiplication(t, r).size(), Size([2]))
+        self.assertEqual(bmg.add_multiplication(t, t).size(), Size([2]))
+        self.assertEqual(bmg.add_multiplication(s, r).size(), Size([2]))
+        self.assertEqual(bmg.add_power(r, r).size(), Size([]))
+        self.assertEqual(bmg.add_power(r, t).size(), Size([2]))
+        self.assertEqual(bmg.add_power(t, r).size(), Size([2]))
+        self.assertEqual(bmg.add_power(t, t).size(), Size([2]))
+        self.assertEqual(bmg.add_power(s, r).size(), Size([2]))
+        self.assertEqual(bmg.add_negate(r).size(), Size([]))
+        self.assertEqual(bmg.add_negate(t).size(), Size([2]))
+        self.assertEqual(bmg.add_negate(s).size(), Size([2]))
+        self.assertEqual(bmg.add_exp(r).size(), Size([]))
+        self.assertEqual(bmg.add_exp(t).size(), Size([2]))
+        self.assertEqual(bmg.add_exp(s).size(), Size([2]))
+        self.assertEqual(bmg.add_log(r).size(), Size([]))
+        self.assertEqual(bmg.add_log(t).size(), Size([2]))
+        self.assertEqual(bmg.add_log(s).size(), Size([2]))
 
     def test_supports(self) -> None:
         bmg = BMGraphBuilder()

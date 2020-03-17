@@ -36,6 +36,10 @@ class BMGNode(ABC):
         pass
 
     @abstractmethod
+    def size(self) -> torch.Size:
+        pass
+
+    @abstractmethod
     def label(self) -> str:
         pass
 
@@ -149,6 +153,9 @@ class BooleanNode(ConstantNode):
     def node_type(self) -> Any:
         return bool
 
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
     def label(self) -> str:
         return str(self.value)
 
@@ -180,6 +187,9 @@ class RealNode(ConstantNode):
     def node_type(self) -> Any:
         return float
 
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
     def label(self) -> str:
         return str(self.value)
 
@@ -208,6 +218,9 @@ class ListNode(BMGNode):
     # TODO: Determine the list type by observing the types of the members.
     def node_type(self) -> Any:
         return List[Any]
+
+    def size(self) -> torch.Size:
+        raise NotImplementedError()
 
     def label(self) -> str:
         return "list"
@@ -246,11 +259,15 @@ class MapNode(BMGNode):
     def __init__(self, children: List[BMGNode]):
         # TODO: Check that keys are all constant nodes.
         # TODO: Check that there is one value for each key.
+        # TODO: Verify that there is at least one pair.
         BMGNode.__init__(self, children)
         self.edges = [str(x) for x in range(len(children))]
 
     def node_type(self) -> Any:
         return Dict
+
+    def size(self) -> torch.Size:
+        return self.children(1).size()
 
     def label(self) -> str:
         return "map"
@@ -305,9 +322,12 @@ class TensorNode(ConstantNode):
             return TensorNode._tensor_to_python(t)
         return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
 
-    # TODO: Do tensor types need to describe their shape and contents?
+    # TODO: Do tensor types need to describe their contents?
     def node_type(self) -> Any:
         return Tensor
+
+    def size(self) -> torch.Size:
+        return self.value.size()
 
     def label(self) -> str:
         return TensorNode._tensor_to_label(self.value)
@@ -351,6 +371,9 @@ class BernoulliNode(DistributionNode):
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Bernoulli
+
+    def size(self) -> torch.Size:
+        return self.probability().size()
 
     def sample_type(self) -> Any:
         return self.probability().node_type()
@@ -404,6 +427,9 @@ class NormalNode(DistributionNode):
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Normal
+
+    def size(self) -> torch.Size:
+        return self.mu().size()
 
     def sample_type(self) -> Any:
         return self.mu().node_type()
@@ -467,6 +493,9 @@ class UniformNode(DistributionNode):
     def sample_type(self) -> Any:
         return self.low().node_type()
 
+    def size(self) -> torch.Size:
+        return self.low().size()
+
     def label(self) -> str:
         return "Uniform"
 
@@ -525,6 +554,9 @@ class BetaNode(DistributionNode):
 
     def sample_type(self) -> Any:
         return self.alpha().node_type()
+
+    def size(self) -> torch.Size:
+        return self.alpha().size()
 
     def label(self) -> str:
         return "Beta"
@@ -616,6 +648,11 @@ class AdditionNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
+    def size(self) -> torch.Size:
+        return (
+            torch.zeros(self.left().size()) + torch.zeros(self.right().size())
+        ).size()
+
     def label(self) -> str:
         return "+"
 
@@ -637,6 +674,11 @@ class MultiplicationNode(BinaryOperatorNode):
     def label(self) -> str:
         return "*"
 
+    def size(self) -> torch.Size:
+        return (
+            torch.zeros(self.left().size()) * torch.zeros(self.right().size())
+        ).size()
+
     def __str__(self) -> str:
         return "(" + str(self.left()) + "*" + str(self.right()) + ")"
 
@@ -655,6 +697,11 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
 
     def label(self) -> str:
         return "*"
+
+    def size(self) -> torch.Size:
+        return (
+            torch.zeros(self.left().size()).mm(torch.zeros(self.right().size())).size()
+        )
 
     def __str__(self) -> str:
         return "(" + str(self.left()) + "*" + str(self.right()) + ")"
@@ -678,6 +725,11 @@ class DivisionNode(BinaryOperatorNode):
     def label(self) -> str:
         return "/"
 
+    def size(self) -> torch.Size:
+        return (
+            torch.zeros(self.left().size()) / torch.zeros(self.right().size())
+        ).size()
+
     def __str__(self) -> str:
         return "(" + str(self.left()) + "/" + str(self.right()) + ")"
 
@@ -696,6 +748,9 @@ class IndexNode(BinaryOperatorNode):
 
     def label(self) -> str:
         return "index"
+
+    def size(self) -> torch.Size:
+        return self.left().size()
 
     def __str__(self) -> str:
         return str(self.left()) + "[" + str(self.right()) + "]"
@@ -716,6 +771,11 @@ class PowerNode(BinaryOperatorNode):
 
     def label(self) -> str:
         return "**"
+
+    def size(self) -> torch.Size:
+        return (
+            torch.zeros(self.left().size()) ** torch.zeros(self.right().size())
+        ).size()
 
     def __str__(self) -> str:
         return "(" + str(self.left()) + "**" + str(self.right()) + ")"
@@ -770,6 +830,9 @@ class NegateNode(UnaryOperatorNode):
     def label(self) -> str:
         return "-"
 
+    def size(self) -> torch.Size:
+        return self.operand().size()
+
     def __str__(self) -> str:
         return "-" + str(self.operand())
 
@@ -786,6 +849,9 @@ class NotNode(UnaryOperatorNode):
 
     def node_type(self) -> Any:
         return bool
+
+    def size(self) -> torch.Size:
+        return self.operand().size()
 
     def label(self) -> str:
         return "not"
@@ -809,6 +875,9 @@ class ToRealNode(UnaryOperatorNode):
     def label(self) -> str:
         return "ToReal"
 
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
     def __str__(self) -> str:
         return "ToReal(" + str(self.operand()) + ")"
 
@@ -828,6 +897,13 @@ class ToTensorNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "ToTensor(" + str(self.operand()) + ")"
 
+    def size(self) -> torch.Size:
+        # TODO: Is this correct?
+        return torch.Size([1])
+
+    def node_type(self) -> Any:
+        return Tensor
+
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.tensor(o) for o in self.operand().support())
 
@@ -840,6 +916,9 @@ class ExpNode(UnaryOperatorNode):
 
     def label(self) -> str:
         return "Exp"
+
+    def size(self) -> torch.Size:
+        return self.operand().size()
 
     def __str__(self) -> str:
         return "Exp(" + str(self.operand()) + ")"
@@ -859,6 +938,9 @@ class LogNode(UnaryOperatorNode):
     def label(self) -> str:
         return "Log"
 
+    def size(self) -> torch.Size:
+        return self.operand().size()
+
     def __str__(self) -> str:
         return "Log(" + str(self.operand()) + ")"
 
@@ -875,6 +957,9 @@ class SampleNode(UnaryOperatorNode):
 
     def node_type(self) -> Any:
         return self.operand().sample_type()
+
+    def size(self) -> torch.Size:
+        return self.operand().size()
 
     def operand(self) -> DistributionNode:
         c = self.children[0]
@@ -909,6 +994,9 @@ class Observation(BMGNode):
 
     def node_type(self) -> Any:
         return type(self.value())
+
+    def size(self) -> torch.Size:
+        return self.value().size()
 
     def label(self) -> str:
         return "Observation"
@@ -946,6 +1034,9 @@ class Query(BMGNode):
 
     def node_type(self) -> Any:
         return self.operator().node_type()
+
+    def size(self) -> torch.Size:
+        return self.operator().size()
 
     def label(self) -> str:
         return "Query"
