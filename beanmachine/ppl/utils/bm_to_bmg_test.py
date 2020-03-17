@@ -1413,6 +1413,73 @@ digraph "graph" {
 }
 """
 
+# Gaussian mixture model.  Suppose we have a mixture of k normal distributions
+# each with standard deviation equal to 1, but different means. Our prior
+# on means is that mu(0), ... mu(k) are normally distributed.
+# To make samples y(0), ... from this distribution we first choose which
+# mean we want with z(0), ..., use that to sample mu(z(0)) to get the mean,
+# and then use that mean to sample from a normal distribution.
+source15 = """
+from torch import tensor
+from torch.distributions import Categorical, Normal
+
+@sample
+def mu(k):
+    # Means of the components are normally distributed
+    return Normal(0, 1)
+
+@sample
+def z(i):
+    # Choose a category, 0, 1 or 2 with ratio 1:3:4.
+    return Categorical(tensor([1., 3., 4.]))
+
+@sample
+def y(i):
+    return Normal(mu(z(i)), 1)
+
+y0 = y(0)
+"""
+
+expected_dot_15 = """
+digraph "graph" {
+  N0[label="[0.125,0.375,0.5]"];
+  N10[label=1];
+  N11[label=2];
+  N12[label=map];
+  N13[label=index];
+  N14[label=1];
+  N15[label=Normal];
+  N16[label=Sample];
+  N1[label=Categorical];
+  N2[label=Sample];
+  N3[label=0.0];
+  N4[label=1.0];
+  N5[label=Normal];
+  N6[label=Sample];
+  N7[label=Sample];
+  N8[label=Sample];
+  N9[label=0];
+  N1 -> N0[label=probability];
+  N12 -> N10[label=2];
+  N12 -> N11[label=4];
+  N12 -> N6[label=1];
+  N12 -> N7[label=3];
+  N12 -> N8[label=5];
+  N12 -> N9[label=0];
+  N13 -> N12[label=left];
+  N13 -> N2[label=right];
+  N15 -> N13[label=mu];
+  N15 -> N14[label=sigma];
+  N16 -> N15[label=operand];
+  N2 -> N1[label=operand];
+  N5 -> N3[label=mu];
+  N5 -> N4[label=sigma];
+  N6 -> N5[label=operand];
+  N7 -> N5[label=operand];
+  N8 -> N5[label=operand];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1476,6 +1543,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_13.strip())
         observed = to_dot(source14)
         self.assertEqual(observed.strip(), expected_dot_14.strip())
+        observed = to_dot(source15)
+        self.assertEqual(observed.strip(), expected_dot_15.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
