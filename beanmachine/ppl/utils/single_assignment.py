@@ -12,10 +12,8 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_return,
     binop,
     call,
-    constant_tensor_any,
     match,
     match_any,
-    match_every,
     name,
     unaryop,
 )
@@ -187,15 +185,25 @@ class SingleAssignment:
                         ),
                     ),
                 ),
-                # If we have foo(x + y, 2) rewrite that to foo(t1, t2). But
-                # if foo is "tensor" and we have a constant tensor, do not
-                # rewrite it; it is already in the correct form.
+                # If we have t = foo.bar(...) rewrite that as t1 = foo.bar, t = t1(...)
                 (
-                    assign(
-                        value=match_every(
-                            negate(constant_tensor_any), call(args=_list_not_identifier)
-                        )
+                    assign(value=call(func=_not_identifier)),
+                    self._fix_it(
+                        "a",
+                        lambda a: a.value.func,
+                        lambda a, v: ast.Assign(
+                            targets=a.targets,
+                            value=ast.Call(
+                                func=v, args=a.value.args, keywords=a.value.keywords
+                            ),
+                        ),
                     ),
+                ),
+                # TODO: Handle calls with named parameters.
+                # If we have t = foo(x + y, 2) rewrite that to
+                # t1 = x + y, t2 = 2, t = foo(t1, t2).
+                (
+                    assign(value=call(func=name(), args=_list_not_identifier)),
                     self._fix_call(),
                 ),
                 (assign(value=ast_list(elts=_list_not_identifier)), self._fix_list()),

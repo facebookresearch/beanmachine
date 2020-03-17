@@ -207,8 +207,8 @@ def if_statement(
     return type_and_attributes(ast.If, {"test": test, "body": body, "orelse": orelse})
 
 
-def ast_list(elts: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.List, {"elts": elts})
+def ast_list(elts: Pattern = _any, ctx: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.List, {"elts": elts, "ctx": ctx})
 
 
 def module(body: Pattern = _any) -> Pattern:

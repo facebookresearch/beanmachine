@@ -11,12 +11,12 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_assert,
     ast_domain,
     ast_return,
+    attribute,
     binop,
-    bool_constant,
-    call_to,
+    call,
     constant_numeric,
-    constant_tensor_any,
     function_def,
+    load,
     name,
     unaryop,
 )
@@ -29,6 +29,7 @@ from beanmachine.ppl.utils.rules import (
     AllOf as all_of,
     FirstMatch as first,
     PatternRule,
+    Rule,
     SomeListMembers,
     TryMany as many,
     TryOnce as once,
@@ -55,7 +56,7 @@ _specific_child = ast_domain.specific_child
 
 _eliminate_assertion = PatternRule(ast_assert(), lambda a: remove_from_list)
 
-_eliminate_all_assertions = _top_down(once(_eliminate_assertion))
+_eliminate_all_assertions: Rule = _top_down(once(_eliminate_assertion))
 
 _eliminate_subtraction = PatternRule(
     binop(op=ast.Sub),
@@ -92,107 +93,83 @@ def _make_bmg_call(name: str, args: List[ast.AST]) -> ast.AST:
     )
 
 
-_add_boolean = PatternRule(
-    assign(value=bool_constant),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_boolean", [a.value])),
-)
-
-_add_real = PatternRule(
-    assign(value=ast.Num),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_real", [a.value])),
-)
-
-_add_tensor = PatternRule(
-    assign(value=constant_tensor_any),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_tensor", [a.value])),
-)
-
-_add_not = PatternRule(
-    assign(value=unaryop(op=ast.Not)),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_not", [a.value.operand])),
-)
-
-_add_negate_usub = PatternRule(
-    assign(value=unaryop(op=ast.USub)),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_negate", [a.value.operand])),
-)
-
-_add_negate_tensor = PatternRule(
-    assign(value=call_to(id="neg")),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_negate", [a.value.args[0]])),
-)
-
-_add_addition = PatternRule(
-    assign(value=binop(op=ast.Add)),
-    lambda a: ast.Assign(
-        a.targets, _make_bmg_call("add_addition", [a.value.left, a.value.right])
-    ),
-)
-
-_add_multiplication = PatternRule(
-    assign(value=binop(op=ast.Mult)),
-    lambda a: ast.Assign(
-        a.targets, _make_bmg_call("add_multiplication", [a.value.left, a.value.right])
-    ),
-)
-
-_add_division = PatternRule(
-    assign(value=binop(op=ast.Div)),
-    lambda a: ast.Assign(
-        a.targets, _make_bmg_call("add_division", [a.value.left, a.value.right])
-    ),
-)
-
-_add_power = PatternRule(
-    assign(value=binop(op=ast.Pow)),
-    lambda a: ast.Assign(
-        a.targets, _make_bmg_call("add_power", [a.value.left, a.value.right])
-    ),
-)
-
-_add_exp = PatternRule(
-    assign(value=call_to(id="exp")),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_exp", [a.value.args[0]])),
-)
-
-_add_log = PatternRule(
-    assign(value=call_to(id="log")),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("add_log", [a.value.args[0]])),
-)
-
-_add_bernoulli = PatternRule(
-    assign(value=call_to(id="Bernoulli")),
+# TODO: Keywords
+_handle_call = PatternRule(
+    assign(value=call()),
     lambda a: ast.Assign(
         a.targets,
         _make_bmg_call(
-            "add_bernoulli", [_make_bmg_call("add_to_real", [a.value.args[0]])]
+            "handle_function",
+            [a.value.func, ast.List(elts=a.value.args, ctx=ast.Load())],
         ),
     ),
 )
 
-_add_sample = PatternRule(
-    ast_return(), lambda r: ast.Return(value=_make_bmg_call("add_sample", [r.value]))
+_handle_dot = PatternRule(
+    assign(value=attribute(ctx=load)),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call("handle_dot_get", [a.value.value, ast.Str(a.value.attr)]),
+    ),
+)
+
+_handle_not = PatternRule(
+    assign(value=unaryop(op=ast.Not)),
+    lambda a: ast.Assign(a.targets, _make_bmg_call("handle_not", [a.value.operand])),
+)
+
+_handle_negate_usub = PatternRule(
+    assign(value=unaryop(op=ast.USub)),
+    lambda a: ast.Assign(a.targets, _make_bmg_call("handle_negate", [a.value.operand])),
+)
+
+_handle_addition = PatternRule(
+    assign(value=binop(op=ast.Add)),
+    lambda a: ast.Assign(
+        a.targets, _make_bmg_call("handle_addition", [a.value.left, a.value.right])
+    ),
+)
+
+_handle_multiplication = PatternRule(
+    assign(value=binop(op=ast.Mult)),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call("handle_multiplication", [a.value.left, a.value.right]),
+    ),
+)
+
+_handle_division = PatternRule(
+    assign(value=binop(op=ast.Div)),
+    lambda a: ast.Assign(
+        a.targets, _make_bmg_call("handle_division", [a.value.left, a.value.right])
+    ),
+)
+
+_handle_power = PatternRule(
+    assign(value=binop(op=ast.Pow)),
+    lambda a: ast.Assign(
+        a.targets, _make_bmg_call("handle_power", [a.value.left, a.value.right])
+    ),
+)
+
+_handle_sample = PatternRule(
+    ast_return(), lambda r: ast.Return(value=_make_bmg_call("handle_sample", [r.value]))
 )
 
 # TODO: add_observation
 
-_math_to_bmg = _top_down(
+_math_to_bmg: Rule = _top_down(
     once(
         first(
             [
-                _add_boolean,
-                _add_real,
-                _add_tensor,
-                _add_not,
-                _add_negate_usub,
-                _add_negate_tensor,
-                _add_addition,
-                _add_multiplication,
-                _add_division,
-                _add_power,
-                _add_exp,
-                _add_log,
-                _add_bernoulli,
+                _handle_dot,
+                _handle_call,
+                _handle_not,
+                _handle_negate_usub,
+                _handle_addition,
+                _handle_multiplication,
+                _handle_division,
+                _handle_power,
             ]
         )
     )
@@ -205,9 +182,9 @@ _is_sample: PatternRule = PatternRule(
 
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
 
-_returns_to_bmg = _descend_until(_is_sample, _top_down(once(_add_sample)))
+_returns_to_bmg: Rule = _descend_until(_is_sample, _top_down(once(_handle_sample)))
 
-_sample_to_memoize = _descend_until(
+_sample_to_memoize: Rule = _descend_until(
     _is_sample,
     _specific_child(
         "decorator_list",
@@ -219,7 +196,7 @@ _sample_to_memoize = _descend_until(
     ),
 )
 
-_header = ast.parse(
+_header: ast.Module = ast.parse(
     """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder

@@ -265,9 +265,8 @@ class BernoulliNode(DistributionNode):
     def node_type(self) -> Any:
         return Bernoulli
 
-    # TODO: Is this correct?
     def sample_type(self) -> Any:
-        return Tensor
+        return self.probability().node_type()
 
     def label(self) -> str:
         return "Bernoulli"
@@ -931,8 +930,7 @@ class BMGraphBuilder:
         if isinstance(operand, DistributionNode):
             return self.add_sample(operand)
         if isinstance(operand, Bernoulli):
-            p = self.add_constant(operand.probs)
-            b = self.add_bernoulli(p)
+            b = self.handle_bernoulli(operand.probs)
             return self.add_sample(b)
         raise ValueError(
             f"Operand {str(operand)} is not a valid target for a sample operation."

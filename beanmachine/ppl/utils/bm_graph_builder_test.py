@@ -252,7 +252,7 @@ digraph "graph" {
         bmg = BMGraphBuilder()
 
         # Sample on a graph node.
-        b = bmg.add_bernoulli(bmg.add_real(0.5))
+        b = bmg.add_bernoulli(bmg.add_tensor(tensor(0.5)))
         s1 = bmg.handle_sample(b)
         self.assertTrue(isinstance(s1, SampleNode))
 
@@ -304,7 +304,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "add"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "add")
@@ -440,7 +440,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "div"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "div")
@@ -573,7 +573,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "exp"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "exp")
@@ -646,7 +646,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "log"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "log")
@@ -716,7 +716,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mul"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "mul")
@@ -849,7 +849,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "neg"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "neg")
@@ -923,7 +923,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "logical_not"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "logical_not")
@@ -996,7 +996,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "pow"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "pow")
@@ -1121,7 +1121,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "float"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "float")

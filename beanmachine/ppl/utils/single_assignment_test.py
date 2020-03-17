@@ -18,7 +18,7 @@ class SingleAssignmentTest(unittest.TestCase):
 def f():
     if a and b:
         return 1 + ~x + 2 + g(5, 6)
-    z = tensor([1.0 + 2.0, 4.0])
+    z = torch.tensor([1.0 + 2.0, 4.0])
     for x in [[10, 20], [30, 40]]:
         for y in x:
             print(x + y)
@@ -29,28 +29,32 @@ def f():
         expected = """
 def f():
     if a and b:
-        a7 = 3
-        a12 = ~x
-        a4 = a7 + a12
-        a13 = 5
-        a16 = 6
-        a8 = g(a13, a16)
-        r1 = a4 + a8
+        a9 = 3
+        a15 = ~x
+        a5 = a9 + a15
+        a16 = 5
+        a20 = 6
+        a10 = g(a16, a20)
+        r1 = a5 + a10
         return r1
-    z = tensor([3.0, 4.0])
-    a9 = 10
-    a14 = 20
-    a5 = [a9, a14]
-    a15 = 30
-    a17 = 40
-    a10 = [a15, a17]
-    f2 = [a5, a10]
-    for x in f2:
+    a2 = torch.tensor
+    a11 = 3.0
+    a17 = 4.0
+    a6 = [a11, a17]
+    z = a2(a6)
+    a12 = 10
+    a18 = 20
+    a7 = [a12, a18]
+    a19 = 30
+    a21 = 40
+    a13 = [a19, a21]
+    f3 = [a7, a13]
+    for x in f3:
         for y in x:
             print(x + y)
-    a11 = 2.0
-    a6 = a11 * y
-    r3 = a6 / z
-    return r3
+    a14 = 2.0
+    a8 = a14 * y
+    r4 = a8 / z
+    return r4
 """
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
