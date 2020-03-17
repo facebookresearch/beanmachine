@@ -581,9 +581,7 @@ digraph "graph" {
         ta1 = t1.exp
         self.assertEqual(bmg.handle_dot_get(t1, "exp"), ta1)
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "exp".
-        # TODO: gta1 = bmg.handle_dot_get(gt1, "exp")
+        gta1 = bmg.handle_dot_get(gt1, "exp")
 
         ta2 = torch.Tensor.exp
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "exp"), ta2)
@@ -592,9 +590,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "exp".
-        # TODO: sa = bmg.handle_dot_get(s, "exp")
+        sa = bmg.handle_dot_get(s, "exp")
 
         # Exp of a value produces a value
         self.assertEqual(bmg.handle_exp(1.0), e)
@@ -610,7 +606,8 @@ digraph "graph" {
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gr1]), e)
         self.assertEqual(bmg.handle_function(ta, [gt1]), te)
-        # TODO self.assertEqual(bmg.handle_function(gta1, []), te)
+        self.assertEqual(bmg.handle_function(gta1, []), te)
+
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), e)
         self.assertEqual(bmg.handle_function(ta2, [gt1]), te)
@@ -619,8 +616,7 @@ digraph "graph" {
         n = ExpNode
         self.assertTrue(isinstance(bmg.handle_exp(s), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
     def test_log(self) -> None:
@@ -658,9 +654,7 @@ digraph "graph" {
         ta1 = t1.log
         self.assertEqual(bmg.handle_dot_get(t1, "log"), ta1)
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "log".
-        # TODO: gta1 = bmg.handle_dot_get(gt1, "log")
+        gta1 = bmg.handle_dot_get(gt1, "log")
 
         ta2 = torch.Tensor.log
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "log"), ta2)
@@ -669,9 +663,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "log".
-        # TODO: sa = bmg.handle_dot_get(s, "log")
+        sa = bmg.handle_dot_get(s, "log")
 
         # Log of a value produces a value
         self.assertEqual(bmg.handle_log(1.0), 0.0)
@@ -687,7 +679,7 @@ digraph "graph" {
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gr1]), 0.0)
         self.assertEqual(bmg.handle_function(ta, [gt1]), t0)
-        # TODO self.assertEqual(bmg.handle_function(gta1, []), t0)
+        self.assertEqual(bmg.handle_function(gta1, []), t0)
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), 0.0)
         self.assertEqual(bmg.handle_function(ta2, [gt1]), t0)
@@ -696,8 +688,7 @@ digraph "graph" {
         n = LogNode
         self.assertTrue(isinstance(bmg.handle_log(s), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
     def test_multiplication(self) -> None:
@@ -874,9 +865,7 @@ digraph "graph" {
         ta1 = t1.neg
         self.assertEqual(bmg.handle_dot_get(t1, "neg"), ta1)
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "neg".
-        # TODO: gta1 = bmg.handle_dot_get(gt1, "neg")
+        gta1 = bmg.handle_dot_get(gt1, "neg")
 
         ta2 = torch.Tensor.neg
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "neg"), ta2)
@@ -885,9 +874,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph
-        # TODO: nodes with "neg".
-        # TODO: sa = bmg.handle_dot_get(s, "neg")
+        sa = bmg.handle_dot_get(s, "neg")
 
         # Negating a value produces a value
         self.assertEqual(bmg.handle_negate(1.0), -1.0)
@@ -903,7 +890,7 @@ digraph "graph" {
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gr1]), -1.0)
         self.assertEqual(bmg.handle_function(ta, [gt1]), -t1)
-        # TODO self.assertEqual(bmg.handle_function(gta1, []), -t1)
+        self.assertEqual(bmg.handle_function(gta1, []), -t1)
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), -1.0)
         self.assertEqual(bmg.handle_function(ta2, [gt1]), -t1)
@@ -912,8 +899,7 @@ digraph "graph" {
         n = NegateNode
         self.assertTrue(isinstance(bmg.handle_negate(s), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
     def test_not(self) -> None:
@@ -953,9 +939,7 @@ digraph "graph" {
         ta1 = tt.logical_not
         self.assertEqual(bmg.handle_dot_get(tt, "logical_not"), ta1)
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph nodes
-        # TODO: with "logical_not".
-        # TODO: gta1 = bmg.handle_dot_get(gt1, "logical_not")
+        gta1 = bmg.handle_dot_get(gtt, "logical_not")
 
         ta2 = torch.Tensor.logical_not
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "logical_not"), ta2)
@@ -964,9 +948,7 @@ digraph "graph" {
         s = bmg.add_sample(bmg.add_bernoulli(bmg.add_real(0.5)))
         self.assertTrue(isinstance(s, SampleNode))
 
-        # TODO: handle_dot_get is not implemented for tensor-valued graph nodes
-        # TODO: with "logical_not".
-        # TODO: sa = bmg.handle_dot_get(s, "logical_not")
+        sa = bmg.handle_dot_get(s, "logical_not")
 
         # Negating a value produces a value
         self.assertEqual(bmg.handle_not(True), False)
@@ -982,7 +964,7 @@ digraph "graph" {
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gbt]), False)
         self.assertEqual(bmg.handle_function(ta, [gtt]), tf)
-        # TODO self.assertEqual(bmg.handle_function(gta1, []), tf)
+        self.assertEqual(bmg.handle_function(gta1, []), tf)
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gbt]), False)
         self.assertEqual(bmg.handle_function(ta2, [gtt]), tf)
@@ -991,8 +973,7 @@ digraph "graph" {
         n = NotNode
         self.assertTrue(isinstance(bmg.handle_not(s), n))
         self.assertTrue(isinstance(bmg.handle_function(ta, [s]), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
-        # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
     def test_power(self) -> None:

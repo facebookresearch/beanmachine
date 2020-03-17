@@ -51,6 +51,18 @@ class BMGNode(ABC):
         pass
 
 
+known_tensor_instance_functions = ["exp", "log", "logical_not", "neg"]
+
+
+class KnownFunction:
+    receiver: BMGNode
+    function: Any
+
+    def __init__(self, receiver: BMGNode, function: Any) -> None:
+        self.receiver = receiver
+        self.function = function
+
+
 class ConstantNode(BMGNode, metaclass=ABCMeta):
     edges = []
     value: Any
@@ -826,51 +838,61 @@ class BMGraphBuilder:
     # TODO: We will need to handle functions with named parameters and
     # starred parameters.
     # TODO: Add the other operators
-    def handle_function(self, function: Callable, args: List[Any]) -> Any:
+    def handle_function(self, function: Any, arguments: List[Any]) -> Any:  # noqa
+        if isinstance(function, KnownFunction):
+            f = function.function
+            args = [function.receiver] + arguments
+        elif isinstance(function, Callable):
+            f = function
+            args = arguments
+        else:
+            raise ValueError(
+                f"Function {function} is not supported by Bean Machine Graph."
+            )
         if not any(isinstance(arg, BMGNode) for arg in args):
-            return function(*args)
-        if (function is torch.add) and len(args) == 2:
+            return f(*args)
+        if (f is torch.add) and len(args) == 2:
             return self.handle_addition(args[0], args[1])
-        if (function is torch.Tensor.add) and len(args) == 2:
+        if (f is torch.Tensor.add) and len(args) == 2:
             return self.handle_addition(args[0], args[1])
-        if (function is torch.div) and len(args) == 2:
+        if (f is torch.div) and len(args) == 2:
             return self.handle_division(args[0], args[1])
-        if (function is torch.Tensor.div) and len(args) == 2:
+        if (f is torch.Tensor.div) and len(args) == 2:
             return self.handle_division(args[0], args[1])
         # Note that torch.float is not a function.
-        if (function is torch.Tensor.float) and len(args) == 1:
+        if (f is torch.Tensor.float) and len(args) == 1:
             return self.handle_to_real(args[0])
-        if (function is torch.logical_not) and len(args) == 1:
+        if (f is torch.logical_not) and len(args) == 1:
             return self.handle_not(args[0])
-        if (function is torch.Tensor.logical_not) and len(args) == 1:
+        if (f is torch.Tensor.logical_not) and len(args) == 1:
             return self.handle_not(args[0])
-        if (function is torch.mul) and len(args) == 2:
+        if (f is torch.mul) and len(args) == 2:
             return self.handle_multiplication(args[0], args[1])
-        if (function is torch.Tensor.mul) and len(args) == 2:
+        if (f is torch.Tensor.mul) and len(args) == 2:
             return self.handle_multiplication(args[0], args[1])
-        if (function is torch.neg) and len(args) == 1:
+        if (f is torch.neg) and len(args) == 1:
             return self.handle_negate(args[0])
-        if (function is torch.Tensor.neg) and len(args) == 1:
+        if (f is torch.Tensor.neg) and len(args) == 1:
             return self.handle_negate(args[0])
-        if (function is torch.pow) and len(args) == 2:
+        if (f is torch.pow) and len(args) == 2:
             return self.handle_power(args[0], args[1])
-        if (function is torch.Tensor.pow) and len(args) == 2:
+        if (f is torch.Tensor.pow) and len(args) == 2:
             return self.handle_power(args[0], args[1])
-        if (function is torch.log) and len(args) == 1:
+        if (f is torch.log) and len(args) == 1:
             return self.handle_log(args[0])
-        if (function is torch.Tensor.log) and len(args) == 1:
+        if (f is torch.Tensor.log) and len(args) == 1:
             return self.handle_log(args[0])
-        if (function is math.log) and len(args) == 1:
+        if (f is math.log) and len(args) == 1:
             return self.handle_log(args[0])
-        if (function is torch.exp) and len(args) == 1:
+        if (f is torch.exp) and len(args) == 1:
             return self.handle_exp(args[0])
-        if (function is torch.Tensor.exp) and len(args) == 1:
+        if (f is torch.Tensor.exp) and len(args) == 1:
             return self.handle_exp(args[0])
-        if (function is math.exp) and len(args) == 1:
+        if (f is math.exp) and len(args) == 1:
             return self.handle_exp(args[0])
-        if (function is Bernoulli) and len(args) == 1:
+        if (f is Bernoulli) and len(args) == 1:
             return self.handle_bernoulli(args[0])
-        raise ValueError(f"Function {function} is not supported by Bean Machine Graph.")
+        raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the
     # TODO: underlying graph, revisit this decision.
@@ -906,28 +928,14 @@ class BMGraphBuilder:
         # and have y be a graph that applies an EXP node to the SAMPLE node for foo.
         # This will require some cooperation between handling dots and handling
         # functions.
-        # TODO: Detect if we are doing exp or log on a non-tensor; that should be
-        # TODO: illegal. Doing so will require tracking type information in the
-        # TODO: graph representation.
 
         # TODO: There are a great many more pure instance functions on tensors;
         # TODO: which do we wish to support?
 
-        # TODO: We will need special gear to handle something like
-        # TODO: x().add(x())
-        # TODO: because the object representing the ".add" will need to be able
-        # TODO: to handle samples on either the left or right argument.
-        # TODO: Obviously similar for div, mul, power, and so on.
-
         if isinstance(operand, BMGNode):
-            if name == "exp":
-                return lambda: self.handle_exp(operand)
-            if name == "log":
-                return lambda: self.handle_log(operand)
-            if name == "logical_not":
-                return lambda: self.handle_not(operand)
-            if name == "neg":
-                return lambda: self.handle_negate(operand)
+            if operand.node_type() == Tensor:
+                if name in known_tensor_instance_functions:
+                    return KnownFunction(operand, getattr(Tensor, name))
             raise ValueError(
                 f"Fetching the value of attribute {name} is not "
                 + "supported in Bean Machine Graph."
