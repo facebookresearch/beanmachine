@@ -169,7 +169,9 @@ class SingleAssignment:
             return ListEdit(
                 [
                     assignment,
-                    ast.Assign(targets=a.targets, value=ast.List(elts=elts_new)),
+                    ast.Assign(
+                        targets=a.targets, value=ast.List(elts=elts_new, ctx=c.ctx)
+                    ),
                 ]
             )
 

@@ -367,5 +367,5 @@ def constant_value_to_ast(x: Any) -> ast.AST:
             keywords=[],
         )
     if isinstance(x, list):
-        return ast.List(elts=[constant_value_to_ast(e) for e in x])
+        return ast.List(elts=[constant_value_to_ast(e) for e in x], ctx=ast.Load())
     raise TypeError(f"Unexpected constant of type {str(type(x))}")

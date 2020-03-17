@@ -979,6 +979,108 @@ digraph "graph" {
 }
 """
 
+# Bayesian regression
+source10 = """
+from torch import tensor, zeros
+from torch.distributions import Normal, Bernoulli
+N = 3
+K = 2
+X = tensor([[1.0, 10, 20], [1.0, -100, -190], [1.0, -101, -192]])
+intercept_scale = 0.9
+coef_scale = [1.2, 2.3]
+
+@sample
+def beta():
+    return Normal(
+        zeros((K + 1, 1)), tensor([intercept_scale] + coef_scale).view(K + 1, 1)
+    )
+
+@sample
+def y():
+    return Bernoulli(logits=X.mm(beta()))
+"""
+
+expected_raw_10 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+from torch import tensor, zeros
+from torch.distributions import Normal, Bernoulli
+N = 3
+K = 2
+a9 = 1.0
+a14 = 10
+a19 = 20
+a5 = [a9, a14, a19]
+a15 = 1.0
+a20 = -100
+a24 = -190
+a10 = [a15, a20, a24]
+a21 = 1.0
+a25 = -101
+a29 = -192
+a16 = [a21, a25, a29]
+a1 = [a5, a10, a16]
+X = bmg.handle_function(tensor, [a1], {})
+intercept_scale = 0.9
+a2 = 1.2
+a6 = 2.3
+coef_scale = [a2, a6]
+
+
+@probabilistic(bmg)
+@memoize
+def beta():
+    a11 = K + 1, 1
+    a7 = bmg.handle_function(zeros, [a11], {})
+    a30 = [intercept_scale]
+    a26 = bmg.handle_addition(a30, coef_scale)
+    a22 = bmg.handle_function(tensor, [a26], {})
+    a17 = bmg.handle_dot_get(a22, 'view')
+    a27 = 1
+    a23 = bmg.handle_addition(K, a27)
+    a28 = 1
+    a12 = bmg.handle_function(a17, [a23, a28], {})
+    r3 = bmg.handle_function(Normal, [a7, a12], {})
+    return bmg.handle_sample(r3)
+
+
+@probabilistic(bmg)
+@memoize
+def y():
+    a13 = bmg.handle_dot_get(X, 'mm')
+    a18 = bmg.handle_function(beta, [], {})
+    a8 = bmg.handle_function(a13, [a18], {})
+    r4 = bmg.handle_function(Bernoulli, [], {**{'logits': a8}})
+    return bmg.handle_sample(r4)
+
+
+roots = [beta(), y()]
+bmg.remove_orphans(roots)
+"""
+
+expected_dot_10 = """
+digraph "graph" {
+  N0[label="[[0.0],\\\\n[0.0],\\\\n[0.0]]"];
+  N1[label="[[0.8999999761581421],\\\\n[1.2000000476837158],\\\\n[2.299999952316284]]"];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label="[[1.0,10.0,20.0],\\\\n[1.0,-100.0,-190.0],\\\\n[1.0,-101.0,-192.0]]"];
+  N5[label="*"];
+  N6[label="Bernoulli(logits)"];
+  N7[label=Sample];
+  N2 -> N0[label=mu];
+  N2 -> N1[label=sigma];
+  N3 -> N2[label=operand];
+  N5 -> N3[label=right];
+  N5 -> N4[label=left];
+  N6 -> N5[label=probability];
+  N7 -> N6[label=operand];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1002,6 +1104,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_8.strip())
         observed = to_python_raw(source9)
         self.assertEqual(observed.strip(), expected_raw_9.strip())
+        observed = to_python_raw(source10)
+        self.assertEqual(observed.strip(), expected_raw_10.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -1028,6 +1132,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_8.strip())
         observed = to_dot(source9)
         self.assertEqual(observed.strip(), expected_dot_9.strip())
+        observed = to_dot(source10)
+        self.assertEqual(observed.strip(), expected_dot_10.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
