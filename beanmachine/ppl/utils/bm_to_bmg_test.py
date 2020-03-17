@@ -1195,6 +1195,89 @@ digraph "graph" {
 }
 """
 
+source12 = """
+from torch.distributions import Normal, Uniform
+@sample
+def theta_0():
+    return Normal(0,1)
+
+@sample
+def theta_1():
+    return Normal(0,1)
+
+@sample
+def error():
+    return Uniform(0,1)
+
+@sample
+def x(i):
+    return Normal(0,1)
+
+@sample
+def y(i):
+    return Normal(theta_0() + theta_1() * x(i), error())
+
+observations = [y(i) for i in range(3)] + [x(i) for i in range(3)]
+"""
+
+expected_dot_12 = """
+digraph "graph" {
+  N0[label=0.0];
+  N10[label=Normal];
+  N11[label=Sample];
+  N12[label=Sample];
+  N13[label="*"];
+  N14[label="+"];
+  N15[label=Normal];
+  N16[label=Sample];
+  N17[label=Sample];
+  N18[label="*"];
+  N19[label="+"];
+  N1[label=1.0];
+  N20[label=Normal];
+  N21[label=Sample];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=Sample];
+  N5[label=Uniform];
+  N6[label=Sample];
+  N7[label=Sample];
+  N8[label="*"];
+  N9[label="+"];
+  N10 -> N6[label=sigma];
+  N10 -> N9[label=mu];
+  N11 -> N10[label=operand];
+  N12 -> N2[label=operand];
+  N13 -> N12[label=right];
+  N13 -> N4[label=left];
+  N14 -> N13[label=right];
+  N14 -> N3[label=left];
+  N15 -> N14[label=mu];
+  N15 -> N6[label=sigma];
+  N16 -> N15[label=operand];
+  N17 -> N2[label=operand];
+  N18 -> N17[label=right];
+  N18 -> N4[label=left];
+  N19 -> N18[label=right];
+  N19 -> N3[label=left];
+  N2 -> N0[label=mu];
+  N2 -> N1[label=sigma];
+  N20 -> N19[label=mu];
+  N20 -> N6[label=sigma];
+  N21 -> N20[label=operand];
+  N3 -> N2[label=operand];
+  N4 -> N2[label=operand];
+  N5 -> N0[label=low];
+  N5 -> N1[label=high];
+  N6 -> N5[label=operand];
+  N7 -> N2[label=operand];
+  N8 -> N4[label=left];
+  N8 -> N7[label=right];
+  N9 -> N3[label=left];
+  N9 -> N8[label=right];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1252,6 +1335,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_10.strip())
         observed = to_dot(source11)
         self.assertEqual(observed.strip(), expected_dot_11.strip())
+        observed = to_dot(source12)
+        self.assertEqual(observed.strip(), expected_dot_12.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
