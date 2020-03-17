@@ -908,7 +908,21 @@ class BMGraphBuilder:
 
     def __init__(self):
         self.nodes = {}
-        self.function_map = {torch.exp: self.handle_exp, torch.log: self.handle_log}
+        self.function_map = {
+            math.exp: self.handle_exp,
+            math.log: self.handle_log,
+            torch.add: self.handle_addition,
+            torch.div: self.handle_division,
+            torch.exp: self.handle_exp,
+            # Note that torch.float is not a function.
+            torch.log: self.handle_log,
+            torch.logical_not: self.handle_not,
+            torch.mul: self.handle_multiplication,
+            torch.neg: self.handle_negate,
+            torch.pow: self.handle_power,
+            Beta: self.handle_beta,
+            Normal: self.handle_normal,
+        }
 
     def remove_orphans(self, roots: List[BMGNode]) -> None:
         self.nodes = {}
@@ -972,12 +986,12 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_normal(self, mu: Any, sigma: Any) -> NormalNode:
-        if not isinstance(mu, BMGNode):
-            mu = self.add_constant(mu)
-        if not isinstance(sigma, BMGNode):
-            sigma = self.add_constant(sigma)
-        return self.add_normal(mu, sigma)
+    def handle_normal(self, loc: Any, scale: Any, validate_args=None) -> NormalNode:
+        if not isinstance(loc, BMGNode):
+            loc = self.add_constant(loc)
+        if not isinstance(scale, BMGNode):
+            scale = self.add_constant(scale)
+        return self.add_normal(loc, scale)
 
     @memoize
     def add_beta(self, alpha: BMGNode, beta: BMGNode) -> BetaNode:
@@ -985,12 +999,14 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_beta(self, alpha: Any, beta: Any) -> BetaNode:
-        if not isinstance(alpha, BMGNode):
-            alpha = self.add_constant(alpha)
-        if not isinstance(beta, BMGNode):
-            beta = self.add_constant(beta)
-        return self.add_beta(alpha, beta)
+    def handle_beta(
+        self, concentration1: Any, concentration0: Any, validate_args=None
+    ) -> BetaNode:
+        if not isinstance(concentration1, BMGNode):
+            concentration1 = self.add_constant(concentration1)
+        if not isinstance(concentration0, BMGNode):
+            concentration0 = self.add_constant(concentration0)
+        return self.add_beta(concentration1, concentration0)
 
     @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
@@ -1000,16 +1016,16 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_addition(self, left: Any, right: Any) -> Any:
-        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
-            return left + right
-        if not isinstance(left, BMGNode):
-            left = self.add_constant(left)
-        if not isinstance(right, BMGNode):
-            right = self.add_constant(right)
-        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
-            return left.value + right.value
-        return self.add_addition(left, right)
+    def handle_addition(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input + other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value + other.value
+        return self.add_addition(input, other)
 
     @memoize
     def add_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
@@ -1019,16 +1035,16 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_multiplication(self, left: Any, right: Any) -> Any:
-        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
-            return left * right
-        if not isinstance(left, BMGNode):
-            left = self.add_constant(left)
-        if not isinstance(right, BMGNode):
-            right = self.add_constant(right)
-        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
-            return left.value * right.value
-        return self.add_multiplication(left, right)
+    def handle_multiplication(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input * other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value * other.value
+        return self.add_multiplication(input, other)
 
     @memoize
     def add_division(self, left: BMGNode, right: BMGNode) -> BMGNode:
@@ -1039,16 +1055,16 @@ class BMGraphBuilder:
         return node
 
     # TODO: Do we need to represent both integer and float division?
-    def handle_division(self, left: Any, right: Any) -> Any:
-        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
-            return left / right
-        if not isinstance(left, BMGNode):
-            left = self.add_constant(left)
-        if not isinstance(right, BMGNode):
-            right = self.add_constant(right)
-        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
-            return left.value / right.value
-        return self.add_division(left, right)
+    def handle_division(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input / other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value / other.value
+        return self.add_division(input, other)
 
     @memoize
     def add_power(self, left: BMGNode, right: BMGNode) -> BMGNode:
@@ -1058,16 +1074,16 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_power(self, left: Any, right: Any) -> Any:
-        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
-            return left ** right
-        if not isinstance(left, BMGNode):
-            left = self.add_constant(left)
-        if not isinstance(right, BMGNode):
-            right = self.add_constant(right)
-        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
-            return left.value ** right.value
-        return self.add_power(left, right)
+    def handle_power(self, input: Any, exponent: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(exponent, BMGNode)):
+            return input ** exponent
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(exponent, BMGNode):
+            exponent = self.add_constant(exponent)
+        if isinstance(input, ConstantNode) and isinstance(exponent, ConstantNode):
+            return input.value ** exponent.value
+        return self.add_power(input, exponent)
 
     @memoize
     def add_index(self, left: MapNode, right: BMGNode) -> BMGNode:
@@ -1082,17 +1098,6 @@ class BMGraphBuilder:
     # TODO: Create a handle_index that deals with normal values, and constructs an
     # TODO: index and map if there are non-normal values.
 
-    def handle_power(self, left: Any, right: Any) -> Any:
-        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
-            return left ** right
-        if not isinstance(left, BMGNode):
-            left = self.add_constant(left)
-        if not isinstance(right, BMGNode):
-            right = self.add_constant(right)
-        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
-            return left.value ** right.value
-        return self.add_power(left, right)
-
     @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
@@ -1101,12 +1106,12 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_negate(self, operand: Any) -> Any:
-        if not isinstance(operand, BMGNode):
-            return -operand
-        if isinstance(operand, ConstantNode):
-            return -operand.value
-        return self.add_negate(operand)
+    def handle_negate(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            return -input
+        if isinstance(input, ConstantNode):
+            return -input.value
+        return self.add_negate(input)
 
     # TODO: What should the result of NOT on a tensor be?
     # TODO: Should it be legal at all in the graph?
@@ -1121,12 +1126,12 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_not(self, operand: Any) -> Any:
-        if not isinstance(operand, BMGNode):
-            return not operand
-        if isinstance(operand, ConstantNode):
-            return not operand.value
-        return self.add_not(operand)
+    def handle_not(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            return not input
+        if isinstance(input, ConstantNode):
+            return not input.value
+        return self.add_not(input)
 
     @memoize
     def add_to_real(self, operand: BMGNode) -> ToRealNode:
@@ -1226,49 +1231,26 @@ class BMGraphBuilder:
             return self.function_map[f](*args, **kwargs)
 
         # TODO: Add these to the table
-        if (f is torch.add) and len(args) == 2:
-            return self.handle_addition(args[0], args[1])
         if (f is torch.Tensor.add) and len(args) == 2:
             return self.handle_addition(args[0], args[1])
-        if (f is torch.div) and len(args) == 2:
-            return self.handle_division(args[0], args[1])
         if (f is torch.Tensor.div) and len(args) == 2:
             return self.handle_division(args[0], args[1])
-        # Note that torch.float is not a function.
         if (f is torch.Tensor.float) and len(args) == 1:
             return self.handle_to_real(args[0])
-        if (f is torch.logical_not) and len(args) == 1:
-            return self.handle_not(args[0])
         if (f is torch.Tensor.logical_not) and len(args) == 1:
             return self.handle_not(args[0])
-        if (f is torch.mul) and len(args) == 2:
-            return self.handle_multiplication(args[0], args[1])
         if (f is torch.Tensor.mul) and len(args) == 2:
             return self.handle_multiplication(args[0], args[1])
-        if (f is torch.neg) and len(args) == 1:
-            return self.handle_negate(args[0])
         if (f is torch.Tensor.neg) and len(args) == 1:
             return self.handle_negate(args[0])
-        if (f is torch.pow) and len(args) == 2:
-            return self.handle_power(args[0], args[1])
         if (f is torch.Tensor.pow) and len(args) == 2:
             return self.handle_power(args[0], args[1])
         if (f is torch.Tensor.log) and len(args) == 1:
             return self.handle_log(args[0])
-        if (f is math.log) and len(args) == 1:
-            return self.handle_log(args[0])
-        if (f is torch.exp) and len(args) == 1:
-            return self.handle_exp(args[0])
         if (f is torch.Tensor.exp) and len(args) == 1:
-            return self.handle_exp(args[0])
-        if (f is math.exp) and len(args) == 1:
             return self.handle_exp(args[0])
         if (f is Bernoulli) and len(args) == 1:
             return self.handle_bernoulli(args[0])
-        if (f is Normal) and len(args) == 2:
-            return self.handle_normal(args[0], args[1])
-        if (f is Beta) and len(args) == 2:
-            return self.handle_beta(args[0], args[1])
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the

@@ -317,7 +317,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_addition(1.0, t2), t3)
         self.assertEqual(bmg.handle_addition(t1, 2.0), t3)
         self.assertEqual(bmg.handle_addition(t1, t2), t3)
-        self.assertEqual(bmg.handle_function(ta, [1.0, 2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta, [1.0], {"other": 2.0}), t3)
         self.assertEqual(bmg.handle_function(ta, [1.0, t2]), t3)
         self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t3)
         self.assertEqual(bmg.handle_function(ta, [t1, t2]), t3)
@@ -453,7 +453,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_division(2.0, t1), t2)
         self.assertEqual(bmg.handle_division(t2, 1.0), t2)
         self.assertEqual(bmg.handle_division(t2, t1), t2)
-        self.assertEqual(bmg.handle_function(ta, [2.0, 1.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [2.0], {"other": 1.0}), t2)
         self.assertEqual(bmg.handle_function(ta, [2.0, t1]), t2)
         self.assertEqual(bmg.handle_function(ta, [t2, 1.0]), t2)
         self.assertEqual(bmg.handle_function(ta, [t2, t1]), t2)
@@ -729,7 +729,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_multiplication(1.0, t2), t2)
         self.assertEqual(bmg.handle_multiplication(t1, 2.0), t2)
         self.assertEqual(bmg.handle_multiplication(t1, t2), t2)
-        self.assertEqual(bmg.handle_function(ta, [1.0, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta, [1.0], {"other": 2.0}), t2)
         self.assertEqual(bmg.handle_function(ta, [1.0, t2]), t2)
         self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t2)
         self.assertEqual(bmg.handle_function(ta, [t1, t2]), t2)
@@ -871,6 +871,7 @@ digraph "graph" {
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gr1]), -1.0)
         self.assertEqual(bmg.handle_function(ta, [gt1]), -t1)
+        self.assertEqual(bmg.handle_function(ta, [], {"input": gt1}), -t1)
         self.assertEqual(bmg.handle_function(gta1, []), -t1)
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), -1.0)
@@ -945,6 +946,7 @@ digraph "graph" {
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gbt]), False)
         self.assertEqual(bmg.handle_function(ta, [gtt]), tf)
+        self.assertEqual(bmg.handle_function(ta, [], {"input": gtt}), tf)
         self.assertEqual(bmg.handle_function(gta1, []), tf)
         # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gbt]), False)
@@ -1010,7 +1012,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_power(t1, 2.0), t1)
         self.assertEqual(bmg.handle_power(t1, t2), t1)
         # Not legal: self.assertEqual(bmg.handle_function(ta, [1.0, 2.0]), t1)
-        self.assertEqual(bmg.handle_function(ta, [1.0, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [1.0], {"exponent": t2}), t1)
         self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t1)
         self.assertEqual(bmg.handle_function(ta, [t1, t2]), t1)
         self.assertEqual(bmg.handle_function(ta1, [2.0]), t1)

@@ -767,7 +767,7 @@ def X():
 
 @sample
 def Y():
-    return Normal(0.0, exp(X() * 0.5))
+    return Normal(loc=0.0, scale=exp(X() * 0.5))
 """
 
 expected_raw_7 = """
@@ -797,7 +797,7 @@ def Y():
     a9 = 0.5
     a7 = bmg.handle_multiplication(a8, a9)
     a6 = bmg.handle_function(exp, [a7], {})
-    r2 = bmg.handle_function(Normal, [a4, a6], {})
+    r2 = bmg.handle_function(Normal, [], {**{'loc': a4}, **{'scale': a6}})
     return bmg.handle_sample(r2)
 
 
