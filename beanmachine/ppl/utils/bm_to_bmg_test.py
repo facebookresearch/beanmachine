@@ -820,6 +820,66 @@ digraph "graph" {
 }
 """
 
+# Mint an unfair coin, then flip it.
+source8 = """
+from torch.distributions import Beta, Bernoulli
+
+# What is the unfairness of the coins from this mint?
+@sample
+def mint():
+    return Beta(1.0, 1.0)
+
+# Mint a coin and then toss it.
+@sample
+def toss():
+    return Bernoulli(mint())
+"""
+
+expected_raw_8 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+from torch.distributions import Beta, Bernoulli
+
+
+@probabilistic(bmg)
+@memoize
+def mint():
+    a3 = 1.0
+    a5 = 1.0
+    r1 = bmg.handle_function(Beta, [a3, a5])
+    return bmg.handle_sample(r1)
+
+
+@probabilistic(bmg)
+@memoize
+def toss():
+    a4 = bmg.handle_function(mint, [])
+    r2 = bmg.handle_function(Bernoulli, [a4])
+    return bmg.handle_sample(r2)
+
+
+roots = [mint(), toss()]
+bmg.remove_orphans(roots)
+"""
+
+expected_dot_8 = """
+digraph "graph" {
+  N0[label=1.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=Bernoulli];
+  N4[label=Sample];
+  N1 -> N0[label=alpha];
+  N1 -> N0[label=beta];
+  N2 -> N1[label=operand];
+  N3 -> N2[label=probability];
+  N4 -> N3[label=operand];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -839,6 +899,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_6.strip())
         observed = to_python_raw(source7)
         self.assertEqual(observed.strip(), expected_raw_7.strip())
+        observed = to_python_raw(source8)
+        self.assertEqual(observed.strip(), expected_raw_8.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -861,6 +923,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_6.strip())
         observed = to_dot(source7)
         self.assertEqual(observed.strip(), expected_dot_7.strip())
+        observed = to_dot(source8)
+        self.assertEqual(observed.strip(), expected_dot_8.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""

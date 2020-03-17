@@ -18,7 +18,7 @@ from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli, Normal
+from torch.distributions import Bernoulli, Beta, Normal
 
 
 builtin_function_or_method = type(abs)
@@ -440,6 +440,65 @@ class NormalNode(DistributionNode):
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a normal.
         raise ValueError(f"Normal distribution does not have finite support.")
+
+
+class BetaNode(DistributionNode):
+    edges = ["alpha", "beta"]
+
+    def __init__(self, alpha: BMGNode, beta: BMGNode):
+        DistributionNode.__init__(self, [alpha, beta])
+
+    def alpha(self) -> BMGNode:
+        return self.children[0]
+
+    def beta(self) -> BMGNode:
+        return self.children[1]
+
+    # TODO: Do we need a generic type for "distribution of X"?
+    def node_type(self) -> Any:
+        return Beta
+
+    def sample_type(self) -> Any:
+        return self.alpha().node_type()
+
+    def label(self) -> str:
+        return "Beta"
+
+    def __str__(self) -> str:
+        return f"Beta({str(self.alpha())},{str(self.beta())})"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            # TODO: Fix this when we add the node type to BMG
+            DistributionType.BERNOULLI,
+            AtomicType.BOOLEAN,
+            [d[self.probability()]],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a beta.
+        raise ValueError(f"Beta distribution does not have finite support.")
 
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
@@ -908,6 +967,19 @@ class BMGraphBuilder:
         return self.add_normal(mu, sigma)
 
     @memoize
+    def add_beta(self, alpha: BMGNode, beta: BMGNode) -> BetaNode:
+        node = BetaNode(alpha, beta)
+        self.add_node(node)
+        return node
+
+    def handle_beta(self, alpha: Any, beta: Any) -> BetaNode:
+        if not isinstance(alpha, BMGNode):
+            alpha = self.add_constant(alpha)
+        if not isinstance(beta, BMGNode):
+            beta = self.add_constant(beta)
+        return self.add_beta(alpha, beta)
+
+    @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value + right.value)
@@ -1111,6 +1183,7 @@ class BMGraphBuilder:
     # TODO: We will need to handle functions with named parameters and
     # starred parameters.
     # TODO: Add the other operators
+    # TODO: Make this a table-driven function instead of a big if statement.
     def handle_function(self, function: Any, arguments: List[Any]) -> Any:  # noqa
         if isinstance(function, KnownFunction):
             f = function.function
@@ -1176,6 +1249,8 @@ class BMGraphBuilder:
             return self.handle_bernoulli(args[0])
         if (f is Normal) and len(args) == 2:
             return self.handle_normal(args[0], args[1])
+        if (f is Beta) and len(args) == 2:
+            return self.handle_beta(args[0], args[1])
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the
@@ -1207,6 +1282,9 @@ class BMGraphBuilder:
             return self.add_sample(b)
         if isinstance(operand, Normal):
             b = self.handle_normal(operand.mean, operand.stddev)
+            return self.add_sample(b)
+        if isinstance(operand, Beta):
+            b = self.handle_beta(operand.concentration1, operand.concentration0)
             return self.add_sample(b)
         raise ValueError(
             f"Operand {str(operand)} is not a valid target for a sample operation."
