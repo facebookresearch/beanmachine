@@ -880,6 +880,36 @@ digraph "graph" {
 }
 """
 
+# Testing support for calls with keyword args
+source9 = """
+from torch.distributions import Bernoulli
+
+@sample
+def toss():
+    return Bernoulli(probs=0.5)
+"""
+
+expected_raw_9 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+from torch.distributions import Bernoulli
+
+
+@probabilistic(bmg)
+@memoize
+def toss():
+    a2 = 0.5
+    r1 = bmg.handle_function(Bernoulli, [], {**{'probs': a2}})
+    return bmg.handle_sample(r1)
+
+
+roots = [toss()]
+bmg.remove_orphans(roots)
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -901,6 +931,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_7.strip())
         observed = to_python_raw(source8)
         self.assertEqual(observed.strip(), expected_raw_8.strip())
+        observed = to_python_raw(source9)
+        self.assertEqual(observed.strip(), expected_raw_9.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""

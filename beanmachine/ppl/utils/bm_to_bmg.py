@@ -97,12 +97,27 @@ def _make_bmg_call(name: str, args: List[ast.AST]) -> ast.AST:
 
 
 def _args_to_list(args: List[ast.AST]) -> ast.List:
+    # TODO: This needs to be fixed when we support *args
+    # TODO: An easy way to fix it will be to do the same
+    # TODO: trick used for kwargs, below. Instead of
+    # TODO: generating a single list [a, b, c], generate
+    # TODO: [a] + [b] + [c]
     return ast.List(elts=args, ctx=ast.Load())
 
 
-def _kwargs_to_dict(args: List[ast.AST]) -> ast.Dict:
-    # TODO
-    return ast.Dict(keys=[], values=[])
+def _kwargs_to_dict(keywords: List[ast.keyword]) -> ast.Dict:
+    # If we have a call
+    # f(a=b, c=d)
+    # then we generate the dictionary
+    # { **{'a'=b}, **{'c'=d} }
+    # It might seem easier to generate
+    # { 'a'=b, 'c'=d }
+    # directly but we would run into complications when supporting
+    # **kwargs scenarios (which are still TODO)
+
+    keys = [None] * len(keywords)
+    values = [ast.Dict(keys=[ast.Str(s=k.arg)], values=[k.value]) for k in keywords]
+    return ast.Dict(keys, values)
 
 
 _handle_call: PatternRule = PatternRule(
