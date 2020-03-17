@@ -4,7 +4,7 @@
 
 import math
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 import torch
 
@@ -755,6 +755,23 @@ class BMGraphBuilder:
         if isinstance(operand, ConstantNode):
             return math.log(operand.value)
         return self.add_log(operand)
+
+    # TODO: We will need to handle functions with named parameters and
+    # starred parameters.
+    def handle_function(self, function: Callable, args: List[Any]) -> Any:
+        if not any(isinstance(arg, BMGNode) for arg in args):
+            return function(*args)
+        if (function is torch.log) and len(args) == 1:
+            return self.handle_log(args[0])
+        if (function is math.log) and len(args) == 1:
+            return self.handle_log(args[0])
+        if (function is torch.exp) and len(args) == 1:
+            return self.handle_exp(args[0])
+        if (function is math.exp) and len(args) == 1:
+            return self.handle_exp(args[0])
+        raise ValueError(
+            f"Function {function.name} is not supported by Bean Machine Graph."
+        )
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the
     # TODO: underlying graph, revisit this decision.
