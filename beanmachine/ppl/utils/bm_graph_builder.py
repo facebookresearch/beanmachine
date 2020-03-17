@@ -909,8 +909,20 @@ class BMGraphBuilder:
     def __init__(self):
         self.nodes = {}
         self.function_map = {
+            # Math functions
             math.exp: self.handle_exp,
             math.log: self.handle_log,
+            # Tensor instance functions
+            torch.Tensor.add: self.handle_addition,
+            torch.Tensor.div: self.handle_division,
+            torch.Tensor.exp: self.handle_exp,
+            torch.Tensor.float: self.handle_to_real,
+            torch.Tensor.logical_not: self.handle_not,
+            torch.Tensor.log: self.handle_log,
+            torch.Tensor.mul: self.handle_multiplication,
+            torch.Tensor.neg: self.handle_negate,
+            torch.Tensor.pow: self.handle_power,
+            # Tensor static functions
             torch.add: self.handle_addition,
             torch.div: self.handle_division,
             torch.exp: self.handle_exp,
@@ -920,6 +932,7 @@ class BMGraphBuilder:
             torch.mul: self.handle_multiplication,
             torch.neg: self.handle_negate,
             torch.pow: self.handle_power,
+            # Distribution constructors
             Beta: self.handle_beta,
             Normal: self.handle_normal,
         }
@@ -1198,9 +1211,9 @@ class BMGraphBuilder:
             return math.log(input.value)
         return self.add_log(input)
 
-    def handle_function(  # noqa
-        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
-    ) -> Any:
+    def _canonicalize_function(
+        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+    ):
         if kwargs is None:
             kwargs = {}
         if isinstance(function, KnownFunction):
@@ -1220,35 +1233,21 @@ class BMGraphBuilder:
             raise ValueError(
                 f"Function {function} is not supported by Bean Machine Graph."
             )
+        return (f, args, kwargs)
+
+    def handle_function(
+        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
+    ) -> Any:
+        f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
         if is_ordinary_call(f, args, kwargs):
             return f(*args, **kwargs)
         # TODO: Do a sanity check that the arguments match and give
         # TODO: a good error if they do not. Alternatively, catch
         # TODO: the exception if the call fails and replace it with
         # TODO: a more informative error.
-
         if f in self.function_map:
             return self.function_map[f](*args, **kwargs)
-
-        # TODO: Add these to the table
-        if (f is torch.Tensor.add) and len(args) == 2:
-            return self.handle_addition(args[0], args[1])
-        if (f is torch.Tensor.div) and len(args) == 2:
-            return self.handle_division(args[0], args[1])
-        if (f is torch.Tensor.float) and len(args) == 1:
-            return self.handle_to_real(args[0])
-        if (f is torch.Tensor.logical_not) and len(args) == 1:
-            return self.handle_not(args[0])
-        if (f is torch.Tensor.mul) and len(args) == 2:
-            return self.handle_multiplication(args[0], args[1])
-        if (f is torch.Tensor.neg) and len(args) == 1:
-            return self.handle_negate(args[0])
-        if (f is torch.Tensor.pow) and len(args) == 2:
-            return self.handle_power(args[0], args[1])
-        if (f is torch.Tensor.log) and len(args) == 1:
-            return self.handle_log(args[0])
-        if (f is torch.Tensor.exp) and len(args) == 1:
-            return self.handle_exp(args[0])
+        # TODO: Bernoulli needs to handle both probs and logits as named arguments.
         if (f is Bernoulli) and len(args) == 1:
             return self.handle_bernoulli(args[0])
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")

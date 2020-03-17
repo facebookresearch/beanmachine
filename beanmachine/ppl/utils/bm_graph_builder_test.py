@@ -322,9 +322,11 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t3)
         self.assertEqual(bmg.handle_function(ta, [t1, t2]), t3)
         self.assertEqual(bmg.handle_function(ta1, [2.0]), t3)
+        self.assertEqual(bmg.handle_function(ta1, [], {"other": 2.0}), t3)
         self.assertEqual(bmg.handle_function(ta1, [t2]), t3)
         self.assertEqual(bmg.handle_function(ta2, [t1, 2.0]), t3)
         self.assertEqual(bmg.handle_function(ta2, [t1, t2]), t3)
+        self.assertEqual(bmg.handle_function(ta2, [t1], {"other": t2}), t3)
 
         # Adding a graph constant and a value produces a value
         self.assertEqual(bmg.handle_addition(gr1, 2.0), 3.0)
@@ -458,8 +460,10 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [t2, 1.0]), t2)
         self.assertEqual(bmg.handle_function(ta, [t2, t1]), t2)
         self.assertEqual(bmg.handle_function(ta1, [1.0]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [], {"other": 1.0}), t2)
         self.assertEqual(bmg.handle_function(ta1, [t1]), t2)
         self.assertEqual(bmg.handle_function(ta2, [t2, 1.0]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t2], {"other": 1.0}), t2)
         self.assertEqual(bmg.handle_function(ta2, [t2, t1]), t2)
 
         # Dividing a graph constant and a value produces a value
@@ -480,6 +484,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta2, [gt2, 2.0]), t1)
         self.assertEqual(bmg.handle_function(ta2, [gt2, t2]), t1)
         self.assertEqual(bmg.handle_function(ta, [2.0, gr2]), t1)
+        self.assertEqual(bmg.handle_function(ta, [2.0], {"other": gr2}), t1)
         self.assertEqual(bmg.handle_function(ta, [2.0, gt2]), t1)
         self.assertEqual(bmg.handle_function(ta, [t2, gr2]), t1)
         self.assertEqual(bmg.handle_function(ta, [t2, gt2]), t1)
@@ -497,6 +502,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [gr2, gt1]), t2)
         self.assertEqual(bmg.handle_function(ta, [gt2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta, [gt2, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt2], {"other": gt1}), t2)
         self.assertEqual(bmg.handle_function(gta1, [gr1]), t2)
         self.assertEqual(bmg.handle_function(gta1, [gt1]), t2)
         self.assertEqual(bmg.handle_function(ta2, [gt2, gr1]), t2)
@@ -515,6 +521,7 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
         self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(gta1, [], {"other": s}), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
@@ -734,8 +741,10 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [t1, 2.0]), t2)
         self.assertEqual(bmg.handle_function(ta, [t1, t2]), t2)
         self.assertEqual(bmg.handle_function(ta1, [2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [], {"other": 2.0}), t2)
         self.assertEqual(bmg.handle_function(ta1, [t2]), t2)
         self.assertEqual(bmg.handle_function(ta2, [t1, 2.0]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t1], {"other": 2.0}), t2)
         self.assertEqual(bmg.handle_function(ta2, [t1, t2]), t2)
 
         # Multiplying a graph constant and a value produces a value
@@ -761,6 +770,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [t2, gt1]), t2)
         self.assertEqual(bmg.handle_function(ta1, [gr1]), t1)
         self.assertEqual(bmg.handle_function(ta1, [gt1]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [], {"other": gt1}), t1)
         self.assertEqual(bmg.handle_function(ta2, [t2, gr1]), t2)
         self.assertEqual(bmg.handle_function(ta2, [t2, gt1]), t2)
 
@@ -809,6 +819,7 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1], {"other": s}), n))
 
     def test_negation(self) -> None:
         """Test negation"""
@@ -1017,8 +1028,10 @@ digraph "graph" {
         self.assertEqual(bmg.handle_function(ta, [t1, t2]), t1)
         self.assertEqual(bmg.handle_function(ta1, [2.0]), t1)
         self.assertEqual(bmg.handle_function(ta1, [t2]), t1)
+        self.assertEqual(bmg.handle_function(ta1, [], {"exponent": t2}), t1)
         self.assertEqual(bmg.handle_function(ta2, [t1, 2.0]), t1)
         self.assertEqual(bmg.handle_function(ta2, [t1, t2]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [t1], {"exponent": t2}), t1)
 
         # Power of a graph constant and a value produces a value
         self.assertEqual(bmg.handle_power(gr1, 2.0), 1.0)
