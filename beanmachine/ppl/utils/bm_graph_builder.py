@@ -195,6 +195,7 @@ class RealNode(ConstantNode):
         return bool(self.value)
 
 
+# TODO: Delete the list node; replace it with the map node.
 class ListNode(BMGNode):
     # TODO: A list node does not appear in the final graph at this time; it
     # TODO: is useful when constructing the final graph from a BM program that
@@ -232,6 +233,52 @@ class ListNode(BMGNode):
     def support(self) -> Iterator[Any]:
         return []
         # TODO: Do we need this?
+
+
+class MapNode(BMGNode):
+    # TODO: Add the map node to the C++ implementation of the graph.
+    # TODO: Do the values all have to be the same type?
+    """A map has an even number of children. Even number children are
+    keys, odd numbered children are values. The keys must be constants.
+    The values can be any node."""
+
+    def __init__(self, children: List[BMGNode]):
+        # TODO: Check that keys are all constant nodes.
+        # TODO: Check that there is one value for each key.
+        BMGNode.__init__(self, children)
+        self.edges = [str(x) for x in range(len(children))]
+
+    def node_type(self) -> Any:
+        return Dict
+
+    def label(self) -> str:
+        return "map"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        # TODO: map nodes are not currently part of the graph
+        return -1
+
+    def _to_python(self, d: Dict[BMGNode, int]) -> str:
+        # TODO: map nodes are not currently part of the graph
+        return ""
+
+    def _to_cpp(self, d: Dict[BMGNode, int]) -> str:
+        # TODO: map nodes are not currently part of the graph
+        return ""
+
+    def support(self) -> Iterator[Any]:
+        return []
+
+    def __getitem__(self, key) -> BMGNode:
+        if isinstance(key, BMGNode) and not isinstance(key, ConstantNode):
+            raise ValueError("BeanMachine map must be indexed with a constant value")
+        # Linear search is fine.  We're not going to do this a lot, and the
+        # maps will be small.
+        k = key.value if isinstance(key, ConstantNode) else key
+        for i in range(len(self.children) // 2):
+            if self.children[i * 2].value == k:
+                return self.children[i * 2 + 1]
+        raise ValueError("Key not found in map")
 
 
 class TensorNode(ConstantNode):
@@ -434,6 +481,24 @@ class DivisionNode(BinaryOperatorNode):
         # TODO: Filter out division by zero?
         return SetOfTensors(
             l / r for l in self.left().support() for r in self.right().support()
+        )
+
+
+class IndexNode(BinaryOperatorNode):
+    operator_type = OperatorType.MULTIPLY  # TODO
+
+    def __init__(self, left: MapNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def label(self) -> str:
+        return "index"
+
+    def __str__(self) -> str:
+        return str(self.left()) + "[" + str(self.right()) + "]"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            l for r in self.right().support() for l in self.left()[r].support()
         )
 
 
@@ -848,6 +913,30 @@ class BMGraphBuilder:
         return self.add_power(left, right)
 
     @memoize
+    def add_index(self, left: MapNode, right: BMGNode) -> BMGNode:
+        # TODO: Is there a better way to say "if list length is 1" that bails out
+        # TODO: if it is greater than 1?
+        if len(list(right.support())) == 1:
+            return left[right]
+        node = IndexNode(left, right)
+        self.add_node(node)
+        return node
+
+    # TODO: Create a handle_index that deals with normal values, and constructs an
+    # TODO: index and map if there are non-normal values.
+
+    def handle_power(self, left: Any, right: Any) -> Any:
+        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
+            return left ** right
+        if not isinstance(left, BMGNode):
+            left = self.add_constant(left)
+        if not isinstance(right, BMGNode):
+            right = self.add_constant(right)
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return left.value ** right.value
+        return self.add_power(left, right)
+
+    @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
             return self.add_constant(-operand.value)
@@ -1017,8 +1106,15 @@ class BMGraphBuilder:
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the
     # TODO: underlying graph, revisit this decision.
+    # TODO: Remove this; replace lists with maps
     def add_list(self, elements: List[BMGNode]) -> ExpNode:
         node = ListNode(elements)
+        self.add_node(node)
+        return node
+
+    def add_map(self, elements: List[BMGNode]) -> MapNode:
+        # TODO: Verify that the list is well-formed.
+        node = MapNode(elements)
         self.add_node(node)
         return node
 

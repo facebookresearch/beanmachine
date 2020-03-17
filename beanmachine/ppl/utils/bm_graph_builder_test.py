@@ -12,7 +12,9 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     BooleanNode,
     DivisionNode,
     ExpNode,
+    IndexNode,
     LogNode,
+    MapNode,
     MultiplicationNode,
     NegateNode,
     NotNode,
@@ -1213,3 +1215,51 @@ digraph "graph" {
         self.assertEqual(SetOfTensors(s.support()), SetOfTensors([t0, t1]))
         self.assertEqual(SetOfTensors(a1.support()), SetOfTensors([t0 + t5, t1 + t5]))
         self.assertEqual(SetOfTensors(a2.support()), SetOfTensors([t0, t1, t2]))
+
+    def test_maps(self) -> None:
+        bmg = BMGraphBuilder()
+
+        t0 = bmg.add_tensor(tensor(0.0))
+        t1 = bmg.add_tensor(tensor(1.0))
+        t2 = bmg.add_tensor(tensor(2.0))
+        t5 = bmg.add_tensor(tensor(0.5))
+        bern = bmg.add_bernoulli(t5)
+        s1 = bmg.add_sample(bern)
+        s2 = bmg.add_sample(bern)
+        s3 = bmg.add_sample(bern)
+        a = bmg.add_addition(s2, t2)
+        m = bmg.add_map([t0, s1, t1, a])
+        i = bmg.add_index(m, s3)
+        self.assertEqual(
+            SetOfTensors(i.support()),
+            SetOfTensors([tensor(0.0), tensor(1.0), tensor(2.0), tensor(3.0)]),
+        )
+        observed = bmg.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N10[label=index];
+  N1[label=1.0];
+  N2[label=2.0];
+  N3[label=0.5];
+  N4[label=Bernoulli];
+  N5[label=Sample];
+  N6[label=Sample];
+  N7[label=Sample];
+  N8[label="+"];
+  N9[label=map];
+  N10 -> N7[label=right];
+  N10 -> N9[label=left];
+  N4 -> N3[label=probability];
+  N5 -> N4[label=operand];
+  N6 -> N4[label=operand];
+  N7 -> N4[label=operand];
+  N8 -> N2[label=right];
+  N8 -> N6[label=left];
+  N9 -> N0[label=0];
+  N9 -> N1[label=2];
+  N9 -> N5[label=1];
+  N9 -> N8[label=3];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
