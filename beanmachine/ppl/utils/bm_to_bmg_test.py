@@ -48,6 +48,7 @@ def Z():
 expected_raw_1 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 from beanmachine.ppl.model.statistical_model import sample
 import torch
@@ -250,6 +251,7 @@ def z():
 expected_raw_2 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import torch
 from torch import exp, log, tensor, neg
@@ -366,6 +368,7 @@ def z():
 expected_raw_3 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import torch
 from torch import exp, log, tensor, neg
@@ -488,6 +491,7 @@ def z():
 expected_raw_4 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import torch
 from torch import exp, log, tensor, neg
@@ -538,6 +542,93 @@ roots = [z()]
 bmg.remove_orphans(roots)
 """
 
+source5 = """
+import torch
+from torch.distributions import Bernoulli
+
+# NOTE NO SAMPLE HERE
+def q(a, b):
+  return (a + b) * 0.5
+
+# NOTE NO SAMPLE HERE
+def r(p):
+  return Bernoulli(p)
+
+@sample
+def x(n):
+  return Bernoulli(0.5)
+
+@sample
+def z():
+  return r(q(x(0), x(1)))
+"""
+
+expected_raw_5 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+import torch
+from torch.distributions import Bernoulli
+
+
+def q(a, b):
+    a5 = bmg.handle_addition(a, b)
+    a8 = 0.5
+    r1 = bmg.handle_multiplication(a5, a8)
+    return r1
+
+
+def r(p):
+    r2 = bmg.handle_function(Bernoulli, [p])
+    return r2
+
+
+@memoize
+def x(n):
+    a6 = 0.5
+    r3 = bmg.handle_function(Bernoulli, [a6])
+    return bmg.handle_sample(r3)
+
+
+@memoize
+def z():
+    a10 = 0
+    a9 = bmg.handle_function(x, [a10])
+    a12 = 1
+    a11 = bmg.handle_function(x, [a12])
+    a7 = bmg.handle_function(q, [a9, a11])
+    r4 = bmg.handle_function(r, [a7])
+    return bmg.handle_sample(r4)
+
+
+roots = [z()]
+bmg.remove_orphans(roots)
+"""
+
+expected_dot_5 = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Sample];
+  N4[label="+"];
+  N5[label=0.5];
+  N6[label="*"];
+  N7[label=Bernoulli];
+  N8[label=Sample];
+  N1 -> N0[label=probability];
+  N2 -> N1[label=operand];
+  N3 -> N1[label=operand];
+  N4 -> N2[label=left];
+  N4 -> N3[label=right];
+  N6 -> N4[label=left];
+  N6 -> N5[label=right];
+  N7 -> N6[label=probability];
+  N8 -> N7[label=operand];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -551,6 +642,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_3.strip())
         observed = to_python_raw(source4)
         self.assertEqual(observed.strip(), expected_raw_4.strip())
+        observed = to_python_raw(source5)
+        self.assertEqual(observed.strip(), expected_raw_5.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -567,6 +660,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_2.strip())
         observed = to_dot(source3)
         self.assertEqual(observed.strip(), expected_dot_3.strip())
+        observed = to_dot(source5)
+        self.assertEqual(observed.strip(), expected_dot_5.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""

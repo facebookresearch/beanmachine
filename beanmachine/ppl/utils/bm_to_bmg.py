@@ -2,6 +2,8 @@
 """Tools to transform Bean Machine programs to Bean Machine Graph"""
 
 import ast
+import sys
+import types
 from typing import List
 
 import astor
@@ -200,6 +202,7 @@ _header: ast.Module = ast.parse(
     """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg : bool = True
 bmg = BMGraphBuilder()"""
 )
 
@@ -276,11 +279,16 @@ def to_python_raw(source: str) -> str:
 
 
 def to_graph_builder(source: str) -> BMGraphBuilder:
+    # TODO: Make the name unique so that if this happens more than
+    # TODO: once, we're not overwriting existing work.
+    filename = "<BMGAST>"
     a: ast.AST = _bm_to_bmg_ast(source)
-    c = compile(a, "<BMGAST>", "exec")
-    g = {}
-    exec(c, g)
-    bmg = g["bmg"]
+    compiled = compile(a, filename, "exec")
+    new_module = types.ModuleType(filename)
+    sys.modules[filename] = new_module
+    mod_globals = new_module.__dict__
+    exec(compiled, mod_globals)
+    bmg = mod_globals["bmg"]
     return bmg
 
 

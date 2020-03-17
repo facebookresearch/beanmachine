@@ -3,6 +3,7 @@
 """A builder for the BeanMachine Graph language"""
 
 import math
+import sys
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, List
 
@@ -606,6 +607,14 @@ class Query(BMGNode):
         return f"g.query(n{d[self.operator()]});"
 
 
+def is_from_lifted_module(f) -> bool:
+    return (
+        hasattr(f, "__module__")
+        and f.__module__ in sys.modules
+        and hasattr(sys.modules[f.__module__], "_lifted_to_bmg")
+    )
+
+
 class BMGraphBuilder:
 
     # Note that Python 3.7 guarantees that dictionaries maintain insertion order.
@@ -868,7 +877,9 @@ class BMGraphBuilder:
             raise ValueError(
                 f"Function {function} is not supported by Bean Machine Graph."
             )
-        if not any(isinstance(arg, BMGNode) for arg in args):
+        if not any(isinstance(arg, BMGNode) for arg in args) or is_from_lifted_module(
+            f
+        ):
             return f(*args)
         if (f is torch.add) and len(args) == 2:
             return self.handle_addition(args[0], args[1])
