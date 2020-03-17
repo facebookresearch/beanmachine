@@ -10,6 +10,7 @@ void multiply(graph::Node* node) {
   assert(node->in_nodes.size() > 1);
   const graph::AtomicValue& parent0 = node->in_nodes[0]->value;
   if (parent0.type == graph::AtomicType::REAL
+      or parent0.type == graph::AtomicType::POS_REAL
       or parent0.type == graph::AtomicType::PROBABILITY) {
     node->value._double = parent0._double;
 
@@ -35,7 +36,8 @@ void multiply(graph::Node* node) {
 void add(graph::Node* node) {
   assert(node->in_nodes.size() > 1);
   const graph::AtomicValue& parent0 = node->in_nodes[0]->value;
-  if (parent0.type == graph::AtomicType::REAL) {
+  if (parent0.type == graph::AtomicType::REAL
+      or parent0.type == graph::AtomicType::POS_REAL) {
     node->value._double = parent0._double;
 
     for (uint i = 1; i < node->in_nodes.size(); i++) {

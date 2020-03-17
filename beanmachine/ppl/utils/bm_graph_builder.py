@@ -306,6 +306,39 @@ class MapNode(BMGNode):
         raise ValueError("Key not found in map")
 
 
+class ProbabilityNode(ConstantNode):
+    value: float
+
+    def __init__(self, value: float):
+        ConstantNode.__init__(self)
+        self.value = value
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    def label(self) -> str:
+        return str(self.value)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_constant_probability(float(self.value))
+
+    def _value_to_python(self) -> str:
+        return str(float(self.value))
+
+    def _value_to_cpp(self) -> str:
+        return str(float(self.value))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_cpp()
+        return f"uint n{n} = g.add_constant_probability({v});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_python()
+        return f"n{n} = g.add_constant_probability({v})"
+
+
 class TensorNode(ConstantNode):
     value: Tensor
 
@@ -1223,6 +1256,12 @@ class BMGraphBuilder:
     @memoize
     def add_real(self, value: float) -> RealNode:
         node = RealNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_probability(self, value: float) -> ProbabilityNode:
+        node = ProbabilityNode(value)
         self.add_node(node)
         return node
 
