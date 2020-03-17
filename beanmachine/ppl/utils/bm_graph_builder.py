@@ -3,7 +3,10 @@
 """A builder for the BeanMachine Graph language"""
 
 import collections.abc
+import functools
+import itertools
 import math
+import operator
 import sys
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, Iterator, List
@@ -19,6 +22,10 @@ from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
 from torch.distributions import Bernoulli, Beta, Normal, Uniform
+
+
+def prod(x):
+    return functools.reduce(operator.mul, x, 1)
 
 
 builtin_function_or_method = type(abs)
@@ -407,9 +414,8 @@ class BernoulliNode(DistributionNode):
         )
 
     def support(self) -> Iterator[Any]:
-        # TODO: This should be different for tensors of different dimensions.
-        yield tensor(0.0)
-        yield tensor(1.0)
+        s = self.size()
+        return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
 
 
 class NormalNode(DistributionNode):

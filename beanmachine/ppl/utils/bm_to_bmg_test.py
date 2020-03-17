@@ -1278,6 +1278,74 @@ digraph "graph" {
 }
 """
 
+# Illustrate that we correctly generate the support for
+# multidimensional Bernoulli distributions. Flip two coins,
+# take their average, and use that to make a third coin:
+source13 = """
+import torch
+from torch import tensor
+from torch.distributions import Bernoulli
+
+@sample
+def x(n):
+  return Bernoulli(n.sum()*0.5)
+
+@sample
+def y():
+  return Bernoulli(tensor([0.5,0.5]))
+
+@sample
+def z():
+  return Bernoulli(x(y()))
+"""
+
+expected_dot_13 = """
+ digraph "graph" {
+  N0[label="[0.5,0.5]"];
+  N10[label=Sample];
+  N11[label="[1.0,0.0]"];
+  N12[label=Sample];
+  N13[label="[1.0,1.0]"];
+  N14[label=1.0];
+  N15[label=Bernoulli];
+  N16[label=Sample];
+  N17[label=map];
+  N18[label=index];
+  N19[label=Bernoulli];
+  N1[label=Bernoulli];
+  N20[label=Sample];
+  N2[label=Sample];
+  N3[label="[0.0,0.0]"];
+  N4[label=0.0];
+  N5[label=Bernoulli];
+  N6[label=Sample];
+  N7[label="[0.0,1.0]"];
+  N8[label=0.5];
+  N9[label=Bernoulli];
+  N1 -> N0[label=probability];
+  N10 -> N9[label=operand];
+  N12 -> N9[label=operand];
+  N15 -> N14[label=probability];
+  N16 -> N15[label=operand];
+  N17 -> N10[label=3];
+  N17 -> N11[label=4];
+  N17 -> N12[label=5];
+  N17 -> N13[label=6];
+  N17 -> N16[label=7];
+  N17 -> N3[label=0];
+  N17 -> N6[label=1];
+  N17 -> N7[label=2];
+  N18 -> N17[label=left];
+  N18 -> N2[label=right];
+  N19 -> N18[label=probability];
+  N2 -> N1[label=operand];
+  N20 -> N19[label=operand];
+  N5 -> N4[label=probability];
+  N6 -> N5[label=operand];
+  N9 -> N8[label=probability];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1337,6 +1405,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_11.strip())
         observed = to_dot(source12)
         self.assertEqual(observed.strip(), expected_dot_12.strip())
+        observed = to_dot(source13)
+        self.assertEqual(observed.strip(), expected_dot_13.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
