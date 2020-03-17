@@ -762,6 +762,9 @@ class BMGraphBuilder:
     def handle_function(self, function: Callable, args: List[Any]) -> Any:
         if not any(isinstance(arg, BMGNode) for arg in args):
             return function(*args)
+        if (function is torch.add) and len(args) == 2:
+            return self.handle_addition(args[0], args[1])
+        # TODO: Add div, mul, and so on.
         if (function is torch.log) and len(args) == 1:
             return self.handle_log(args[0])
         if (function is math.log) and len(args) == 1:
@@ -772,9 +775,7 @@ class BMGraphBuilder:
             return self.handle_exp(args[0])
         if (function is Bernoulli) and len(args) == 1:
             return self.handle_bernoulli(args[0])
-        raise ValueError(
-            f"Function {function.name} is not supported by Bean Machine Graph."
-        )
+        raise ValueError(f"Function {function} is not supported by Bean Machine Graph.")
 
     # TODO: Do NOT memoize add_list; if we eventually add a list node to the
     # TODO: underlying graph, revisit this decision.
@@ -814,11 +815,24 @@ class BMGraphBuilder:
         # TODO: illegal. Doing so will require tracking type information in the
         # TODO: graph representation.
 
+        # TODO: There are a great many more pure instance functions on tensors;
+        # TODO: which do we wish to support?
+
+        # TODO: We will need special gear to handle something like
+        # TODO: x().add(x())
+        # TODO: because the object representing the ".add" will need to be able
+        # TODO: to handle samples on either the left or right argument.
+        # TODO: Obviously similar for div, mul, power, and so on.
+
         if isinstance(operand, BMGNode):
             if name == "exp":
                 return lambda: self.handle_exp(operand)
             if name == "log":
                 return lambda: self.handle_log(operand)
+            if name == "logical_not":
+                return lambda: self.handle_not(operand)
+            if name == "neg":
+                return lambda: self.handle_negate(operand)
             raise ValueError(
                 f"Fetching the value of attribute {name} is not "
                 + "supported in Bean Machine Graph."

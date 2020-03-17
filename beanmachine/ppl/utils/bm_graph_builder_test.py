@@ -3,7 +3,9 @@
 import math
 import unittest
 
+import torch
 from beanmachine.ppl.utils.bm_graph_builder import (
+    AdditionNode,
     BernoulliNode,
     BMGraphBuilder,
     DivisionNode,
@@ -241,6 +243,8 @@ digraph "graph" {
         s2 = bmg.handle_sample(Bernoulli(0.5))
         # Samples are never memoized
         self.assertFalse(s is s2)
+        self.assertTrue(isinstance(bmg.handle_addition(s, one), AdditionNode))
+        self.assertTrue(isinstance(bmg.handle_addition(one, s), AdditionNode))
         self.assertEqual(bmg.handle_division(one, one), 1.0)
         self.assertEqual(bmg.handle_division(two, one), 2.0)
         self.assertEqual(bmg.handle_division(two, two), 1.0)
@@ -263,6 +267,13 @@ digraph "graph" {
         self.assertEqual(bmg.handle_exp(one), math.exp(1.0))
         self.assertEqual(bmg.handle_exp(two), math.exp(2.0))
         self.assertTrue(isinstance(bmg.handle_exp(s), ExpNode))
+        self.assertEqual(
+            bmg.handle_function(torch.add, [tensor(1.0), tensor(1.0)]), tensor(2.0)
+        )
+        # TODO: This is not yet supported:
+        # self.assertTrue(
+        # isinstance(bmg.handle_function(torch.add, [tensor(1.0), s]), AdditionNode)
+        # )
         self.assertEqual(bmg.handle_function(math.exp, [one]), math.exp(1.0))
         self.assertEqual(bmg.handle_function(math.exp, [two]), math.exp(2.0))
         self.assertTrue(isinstance(bmg.handle_function(math.exp, [s]), ExpNode))
@@ -283,13 +294,27 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_to_real(s), ToRealNode))
         self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [0.5]), Bernoulli))
         self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [s]), BernoulliNode))
-        # Tensors have log and exp functions as instance methods; we wish an invocation
-        # of one of those to add a LOG or EXP node to the graph when the operand is
+        # Tensors have log and exp and other functions as instance methods; we wish an
+        # invocation of one of those to add a node to the graph when the operand is
         # a sample.  That is, if we have sample function x, then x().log() should be
         # treated the same as log(x()); it should add a node to the graph.
-        d = bmg.handle_dot_get(s, "log")
-        r = bmg.handle_function(d, [])
-        self.assertTrue(isinstance(r, LogNode))
+        # TODO: This is not yet supported:
+        # d = bmg.handle_dot_get(s, "add")
+        # r = bmg.handle_function(d, [one])
+        # self.assertTrue(isinstance(r, AdditionNode))
+        # And similarly for:
+        # r = bmg.handle_function(d, [two])
+        # and:
+        # r = bmg.handle_function(d, [s])
         d = bmg.handle_dot_get(s, "exp")
         r = bmg.handle_function(d, [])
         self.assertTrue(isinstance(r, ExpNode))
+        d = bmg.handle_dot_get(s, "log")
+        r = bmg.handle_function(d, [])
+        self.assertTrue(isinstance(r, LogNode))
+        d = bmg.handle_dot_get(s, "logical_not")
+        r = bmg.handle_function(d, [])
+        self.assertTrue(isinstance(r, NotNode))
+        d = bmg.handle_dot_get(s, "neg")
+        r = bmg.handle_function(d, [])
+        self.assertTrue(isinstance(r, NegateNode))
