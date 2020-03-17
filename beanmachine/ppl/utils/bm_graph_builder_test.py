@@ -2,6 +2,7 @@
 """Tests for bm_graph_builder.py"""
 import math
 import unittest
+from typing import Any, List
 
 import torch
 from beanmachine.ppl.utils.bm_graph_builder import (
@@ -21,7 +22,7 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     TensorNode,
     ToRealNode,
 )
-from torch import tensor
+from torch import Tensor, tensor
 from torch.distributions import Bernoulli
 
 
@@ -1198,3 +1199,54 @@ digraph "graph" {
         # TODO self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         # TODO self.assertTrue(isinstance(bmg.handle_function(gta1, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
+
+    def test_types(self) -> None:
+        bmg = BMGraphBuilder()
+        t = bmg.add_tensor(tensor(1.0))
+        r = bmg.add_real(1.0)
+        b = bmg.add_boolean(True)
+        bern = bmg.add_bernoulli(t)
+        s = bmg.add_sample(bern)
+        # TODO: What should we do for things like bool plus real, and so on?
+        # TODO: Are these errors, or do we introduce to_real nodes?
+        self.assertEqual(t.node_type(), Tensor)
+        self.assertEqual(r.node_type(), float)
+        self.assertEqual(b.node_type(), bool)
+        self.assertEqual(bern.node_type(), Bernoulli)
+        self.assertEqual(s.node_type(), Tensor)
+        self.assertEqual(bmg.add_addition(r, r).node_type(), float)
+        self.assertEqual(bmg.add_addition(r, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_addition(t, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_addition(t, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_addition(s, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_division(r, r).node_type(), float)
+        self.assertEqual(bmg.add_division(r, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_division(t, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_division(t, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_division(s, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_multiplication(r, r).node_type(), float)
+        self.assertEqual(bmg.add_multiplication(r, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_multiplication(t, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_multiplication(t, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_multiplication(s, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_power(r, r).node_type(), float)
+        self.assertEqual(bmg.add_power(r, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_power(t, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_power(t, t).node_type(), Tensor)
+        self.assertEqual(bmg.add_power(s, r).node_type(), Tensor)
+        self.assertEqual(bmg.add_negate(r).node_type(), float)
+        self.assertEqual(bmg.add_negate(t).node_type(), Tensor)
+        self.assertEqual(bmg.add_negate(s).node_type(), Tensor)
+        self.assertEqual(bmg.add_not(b).node_type(), bool)
+        self.assertEqual(bmg.add_not(t).node_type(), bool)
+        self.assertEqual(bmg.add_not(s).node_type(), bool)
+        self.assertEqual(bmg.add_exp(r).node_type(), float)
+        self.assertEqual(bmg.add_exp(t).node_type(), Tensor)
+        self.assertEqual(bmg.add_exp(s).node_type(), Tensor)
+        self.assertEqual(bmg.add_log(r).node_type(), float)
+        self.assertEqual(bmg.add_log(t).node_type(), Tensor)
+        self.assertEqual(bmg.add_log(s).node_type(), Tensor)
+        self.assertEqual(bmg.add_to_real(t).node_type(), float)
+        self.assertEqual(bmg.add_to_real(b).node_type(), float)
+        self.assertEqual(bmg.add_to_real(s).node_type(), float)
+        self.assertEqual(bmg.add_list([b]).node_type(), List[Any])

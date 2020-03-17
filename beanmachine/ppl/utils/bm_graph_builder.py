@@ -27,6 +27,10 @@ class BMGNode(ABC):
         self.children = children
 
     @abstractmethod
+    def node_type(self) -> Any:
+        pass
+
+    @abstractmethod
     def label(self) -> str:
         pass
 
@@ -36,6 +40,10 @@ class BMGNode(ABC):
 
     @abstractmethod
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        pass
+
+    @abstractmethod
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         pass
 
     @abstractmethod
@@ -79,6 +87,9 @@ class BooleanNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
+    def node_type(self) -> Any:
+        return bool
+
     def label(self) -> str:
         return str(self.value)
 
@@ -105,6 +116,11 @@ class RealNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
+    # TODO: We may need to represent "positive real" and "real between 0 and 1"
+    # TODO: in the type system; how are we to do that?
+    def node_type(self) -> Any:
+        return float
+
     def label(self) -> str:
         return str(self.value)
 
@@ -128,6 +144,10 @@ class ListNode(BMGNode):
     def __init__(self, children: List[BMGNode]):
         BMGNode.__init__(self, children)
         self.edges = [str(x) for x in range(len(children))]
+
+    # TODO: Determine the list type by observing the types of the members.
+    def node_type(self) -> Any:
+        return List[Any]
 
     def label(self) -> str:
         return "list"
@@ -175,6 +195,10 @@ class TensorNode(ConstantNode):
             return TensorNode._tensor_to_python(t)
         return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
 
+    # TODO: Do tensor types need to describe their shape and contents?
+    def node_type(self) -> Any:
+        return Tensor
+
     def label(self) -> str:
         return TensorNode._tensor_to_label(self.value)
 
@@ -198,6 +222,10 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
     def __init__(self, children: List[BMGNode]):
         BMGNode.__init__(self, children)
 
+    @abstractmethod
+    def sample_type(self) -> Any:
+        pass
+
 
 class BernoulliNode(DistributionNode):
     edges = ["probability"]
@@ -207,6 +235,14 @@ class BernoulliNode(DistributionNode):
 
     def probability(self) -> BMGNode:
         return self.children[0]
+
+    # TODO: Do we need a generic type for "distribution of X"?
+    def node_type(self) -> Any:
+        return Bernoulli
+
+    # TODO: Is this correct?
+    def sample_type(self) -> Any:
+        return Tensor
 
     def label(self) -> str:
         return "Bernoulli"
@@ -245,6 +281,12 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         OperatorNode.__init__(self, [left, right])
+
+    # TODO: Improve this
+    def node_type(self) -> Any:
+        if self.left().node_type() == Tensor or self.right().node_type() == Tensor:
+            return Tensor
+        return float
 
     def left(self) -> BMGNode:
         return self.children[0]
@@ -335,6 +377,10 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     def __init__(self, operand: BMGNode):
         OperatorNode.__init__(self, [operand])
 
+    # TODO: Improve this
+    def node_type(self) -> Any:
+        return self.operand().node_type()
+
     def operand(self) -> BMGNode:
         return self.children[0]
 
@@ -379,6 +425,9 @@ class NotNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    def node_type(self) -> Any:
+        return bool
+
     def label(self) -> str:
         return "not"
 
@@ -391,6 +440,9 @@ class ToRealNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
+
+    def node_type(self) -> Any:
+        return float
 
     def label(self) -> str:
         return "ToReal"
@@ -445,6 +497,9 @@ class SampleNode(UnaryOperatorNode):
     def __init__(self, operand: DistributionNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    def node_type(self) -> Any:
+        return self.operand().sample_type()
+
     def operand(self) -> DistributionNode:
         c = self.children[0]
         assert isinstance(c, DistributionNode)
@@ -472,6 +527,9 @@ class Observation(BMGNode):
         c = self.children[1]
         assert isinstance(c, ConstantNode)
         return c
+
+    def node_type(self) -> Any:
+        return type(self.value())
 
     def label(self) -> str:
         return "Observation"
@@ -503,6 +561,9 @@ class Query(BMGNode):
         c = self.children[0]
         assert isinstance(c, OperatorNode)
         return c
+
+    def node_type(self) -> Any:
+        return self.operator().node_type()
 
     def label(self) -> str:
         return "Query"
@@ -677,6 +738,11 @@ class BMGraphBuilder:
             return -operand.value
         return self.add_negate(operand)
 
+    # TODO: What should the result of NOT on a tensor be?
+    # TODO: Should it be legal at all in the graph?
+    # TODO: In Python, (not tensor(x)) is equal to (not x).
+    # TODO: It is NOT equal to (tensor(not x)), which is what
+    # TODO: you might expect.
     @memoize
     def add_not(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
