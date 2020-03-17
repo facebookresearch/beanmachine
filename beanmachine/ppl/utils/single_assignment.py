@@ -10,6 +10,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_for,
     ast_list,
     ast_return,
+    attribute,
     binop,
     call,
     keyword,
@@ -263,6 +264,20 @@ class SingleAssignment:
                         )
                     ),
                     self._fix_call_keyword(),
+                ),
+                # If we have t = (x + y).z, rewrite that as t1 = x + y, t = t1.z
+                (
+                    assign(value=attribute(value=_not_identifier)),
+                    self._fix_it(
+                        "a",
+                        lambda a: a.value.value,
+                        lambda a, v: ast.Assign(
+                            targets=a.targets,
+                            value=ast.Attribute(
+                                value=v, attr=a.value.attr, ctx=a.value.ctx
+                            ),
+                        ),
+                    ),
                 ),
                 (assign(value=ast_list(elts=_list_not_identifier)), self._fix_list()),
             ],

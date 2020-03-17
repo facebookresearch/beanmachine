@@ -58,3 +58,20 @@ def f():
     return r4
 """
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_single_assignment_2(self) -> None:
+        """Tests for single_assignment.py"""
+
+        self.maxDiff = None
+
+        source = "b = c(d + e).f(g + h)"
+        m = ast.parse(source)
+        result = single_assignment(m)
+        expected = """
+a4 = d + e
+a2 = c(a4)
+a1 = a2.f
+a3 = g + h
+b = a1(a3)
+"""
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
