@@ -800,6 +800,41 @@ class BMGraphBuilder:
             f"Operand {str(operand)} is not a valid target for a sample operation."
         )
 
+    def handle_dot_get(self, operand: Any, name: str) -> Any:
+        # If we have x = foo.bar, foo must not be a sample; we have no way of
+        # representing the "get the value of an attribute" operation in BMG.
+        # However, suppose foo is a distribution of tensors; we do wish to support
+        # operations such as:
+        # x = foo.exp
+        # y = x()
+        # and have y be a graph that applies an EXP node to the SAMPLE node for foo.
+        # This will require some cooperation between handling dots and handling
+        # functions.
+        # TODO: Detect if we are doing exp or log on a non-tensor; that should be
+        # TODO: illegal. Doing so will require tracking type information in the
+        # TODO: graph representation.
+
+        if isinstance(operand, BMGNode):
+            if name == "exp":
+                return lambda: self.handle_exp(operand)
+            if name == "log":
+                return lambda: self.handle_log(operand)
+            raise ValueError(
+                f"Fetching the value of attribute {name} is not "
+                + "supported in Bean Machine Graph."
+            )
+        return getattr(operand, name)
+
+    def handle_dot_set(self, operand: Any, name: str, value: Any) -> None:
+        # If we have foo.bar = x, foo must not be a sample; we have no way of
+        # representing the "set the value of an attribute" operation in BMG.
+        if isinstance(operand, BMGNode):
+            raise ValueError(
+                f"Fetching the value of attribute {name} is not "
+                + "supported in Bean Machine Graph."
+            )
+        setattr(operand, name, value)
+
     def add_observation(self, observed: SampleNode, value: ConstantNode) -> Observation:
         node = Observation(observed, value)
         self.add_node(node)

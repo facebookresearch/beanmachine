@@ -283,3 +283,13 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_to_real(s), ToRealNode))
         self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [0.5]), Bernoulli))
         self.assertTrue(isinstance(bmg.handle_function(Bernoulli, [s]), BernoulliNode))
+        # Tensors have log and exp functions as instance methods; we wish an invocation
+        # of one of those to add a LOG or EXP node to the graph when the operand is
+        # a sample.  That is, if we have sample function x, then x().log() should be
+        # treated the same as log(x()); it should add a node to the graph.
+        d = bmg.handle_dot_get(s, "log")
+        r = bmg.handle_function(d, [])
+        self.assertTrue(isinstance(r, LogNode))
+        d = bmg.handle_dot_get(s, "exp")
+        r = bmg.handle_function(d, [])
+        self.assertTrue(isinstance(r, ExpNode))
