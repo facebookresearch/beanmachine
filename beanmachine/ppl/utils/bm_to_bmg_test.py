@@ -1081,6 +1081,120 @@ digraph "graph" {
 }
 """
 
+# A sketch of a model for predicting if a new account is fake based on
+# friend requests issued and accepted.
+source11 = """
+from torch import tensor
+from torch.distributions import Bernoulli
+FAKE_PRIOR = 0.001
+# One entry per user
+FAKE_REQ_PROB = tensor([0.01, 0.02, 0.03])
+REAL_REQ_PROB = tensor([0.04, 0.05, 0.06])
+REQ_PROB = [REAL_REQ_PROB, FAKE_REQ_PROB]
+REAL_ACC_PROB = tensor([0.99, 0.50, 0.07])
+@sample
+def is_fake(account):
+  return Bernoulli(FAKE_PRIOR)
+@sample
+def all_requests_sent(account):
+  return Bernoulli(REQ_PROB[is_fake(account)])
+@sample
+def all_requests_accepted(account):
+  return Bernoulli(REAL_ACC_PROB * all_requests_sent(account))
+all_requests_accepted(0)
+"""
+
+expected_raw_11 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+from torch import tensor
+from torch.distributions import Bernoulli
+FAKE_PRIOR = 0.001
+a7 = 0.01
+a12 = 0.02
+a17 = 0.03
+a1 = [a7, a12, a17]
+FAKE_REQ_PROB = bmg.handle_function(tensor, [a1], {})
+a8 = 0.04
+a13 = 0.05
+a18 = 0.06
+a2 = [a8, a13, a18]
+REAL_REQ_PROB = bmg.handle_function(tensor, [a2], {})
+REQ_PROB = [REAL_REQ_PROB, FAKE_REQ_PROB]
+a9 = 0.99
+a14 = 0.5
+a19 = 0.07
+a3 = [a9, a14, a19]
+REAL_ACC_PROB = bmg.handle_function(tensor, [a3], {})
+
+
+@probabilistic(bmg)
+@memoize
+def is_fake(account):
+    r4 = bmg.handle_function(Bernoulli, [FAKE_PRIOR], {})
+    return bmg.handle_sample(r4)
+
+
+@probabilistic(bmg)
+@memoize
+def all_requests_sent(account):
+    a15 = bmg.handle_function(is_fake, [account], {})
+    a10 = bmg.handle_index(REQ_PROB, a15)
+    r5 = bmg.handle_function(Bernoulli, [a10], {})
+    return bmg.handle_sample(r5)
+
+
+@probabilistic(bmg)
+@memoize
+def all_requests_accepted(account):
+    a16 = bmg.handle_function(all_requests_sent, [account], {})
+    a11 = bmg.handle_multiplication(REAL_ACC_PROB, a16)
+    r6 = bmg.handle_function(Bernoulli, [a11], {})
+    return bmg.handle_sample(r6)
+
+
+all_requests_accepted(0)
+roots = []
+bmg.remove_orphans(roots)
+"""
+
+expected_dot_11 = """
+digraph "graph" {
+  N0[label=0.0010000000474974513];
+  N10[label=Sample];
+  N11[label="[0.9900000095367432,0.5,0.07000000029802322]"];
+  N12[label="*"];
+  N13[label=Bernoulli];
+  N14[label=Sample];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=0];
+  N4[label="[0.03999999910593033,0.05000000074505806,0.05999999865889549]"];
+  N5[label=1];
+  N6[label="[0.009999999776482582,0.019999999552965164,0.029999999329447746]"];
+  N7[label=map];
+  N8[label=index];
+  N9[label=Bernoulli];
+  N1 -> N0[label=probability];
+  N10 -> N9[label=operand];
+  N12 -> N10[label=right];
+  N12 -> N11[label=left];
+  N13 -> N12[label=probability];
+  N14 -> N13[label=operand];
+  N2 -> N1[label=operand];
+  N7 -> N3[label=0];
+  N7 -> N4[label=1];
+  N7 -> N5[label=2];
+  N7 -> N6[label=3];
+  N8 -> N2[label=right];
+  N8 -> N7[label=left];
+  N9 -> N8[label=probability];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1106,6 +1220,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_raw_9.strip())
         observed = to_python_raw(source10)
         self.assertEqual(observed.strip(), expected_raw_10.strip())
+        observed = to_python_raw(source11)
+        self.assertEqual(observed.strip(), expected_raw_11.strip())
 
     def test_to_python(self) -> None:
         """Tests for to_python from bm_to_bmg.py"""
@@ -1134,6 +1250,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_9.strip())
         observed = to_dot(source10)
         self.assertEqual(observed.strip(), expected_dot_10.strip())
+        observed = to_dot(source11)
+        self.assertEqual(observed.strip(), expected_dot_11.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""

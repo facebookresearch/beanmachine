@@ -968,9 +968,13 @@ class BMGraphBuilder:
         }
 
     def remove_orphans(self, roots: List[BMGNode]) -> None:
+        nodes = self.nodes.keys()
         self.nodes = {}
         for root in roots:
             self.add_node(root)
+        for node in nodes:
+            if isinstance(node, SampleNode):
+                self.add_node(node)
 
     def add_node(self, node: BMGNode) -> None:
         # Maintain the invariant that children are always before parents
@@ -1164,8 +1168,18 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    # TODO: Create a handle_index that deals with normal values, and constructs an
-    # TODO: index and map if there are non-normal values.
+    def handle_index(self, left: Any, right: Any) -> Any:
+        if isinstance(left, BMGNode) and not isinstance(left, MapNode):
+            # TODO: Improve this error message
+            raise ValueError("handle_index requires a collection")
+        if isinstance(right, ConstantNode):
+            result = left[right.value]
+            return result.value if isinstance(result, ConstantNode) else result
+        if not isinstance(right, BMGNode):
+            result = left[right]
+            return result.value if isinstance(result, ConstantNode) else result
+        m = self.collection_to_map(left)
+        return self.add_index(m, right)
 
     @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
@@ -1319,6 +1333,20 @@ class BMGraphBuilder:
         node = MapNode(elements)
         self.add_node(node)
         return node
+
+    def collection_to_map(self, collection) -> MapNode:
+        if isinstance(collection, MapNode):
+            return collection
+        if isinstance(collection, list):
+            copy = []
+            for i in range(0, len(collection)):
+                copy.append(self.add_constant(i))
+                item = collection[i]
+                node = item if isinstance(item, BMGNode) else self.add_constant(item)
+                copy.append(node)
+            return self.add_map(*copy)
+        # TODO: Dictionaries? Tuples?
+        raise ValueError("collection_to_map requires a list")
 
     # Do NOT memoize add_sample; each sample node must be unique
     def add_sample(self, operand: DistributionNode) -> SampleNode:

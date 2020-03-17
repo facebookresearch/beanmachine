@@ -18,8 +18,10 @@ from beanmachine.ppl.utils.ast_patterns import (
     call,
     constant_numeric,
     function_def,
+    index,
     load,
     name,
+    subscript,
     unaryop,
 )
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
@@ -182,6 +184,15 @@ _handle_power = PatternRule(
     ),
 )
 
+
+_handle_index = PatternRule(
+    assign(value=subscript(slice=index())),
+    lambda a: ast.Assign(
+        a.targets, _make_bmg_call("handle_index", [a.value.value, a.value.slice.value])
+    ),
+)
+
+
 _handle_sample = PatternRule(
     ast_return(), lambda r: ast.Return(value=_make_bmg_call("handle_sample", [r.value]))
 )
@@ -200,6 +211,7 @@ _math_to_bmg: Rule = _top_down(
                 _handle_multiplication,
                 _handle_division,
                 _handle_power,
+                _handle_index,
             ]
         )
     )
