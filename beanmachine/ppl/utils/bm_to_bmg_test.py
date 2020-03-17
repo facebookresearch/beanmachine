@@ -1346,6 +1346,73 @@ expected_dot_13 = """
 }
 """
 
+# Simple example of categorical
+source14 = """
+import torch
+from torch.distributions import Bernoulli, Categorical
+from torch import tensor
+
+@sample
+def x(n):
+  if n == 0:
+    return Bernoulli(0.5)
+  if n == 1:
+    return Categorical(tensor([1.0, 3.0, 4.0]))
+  return Bernoulli(0.75)
+
+@sample
+def y():
+  return Categorical(tensor([2.0, 6.0, 8.0]))
+
+@sample
+def z():
+  p = x(y()) * 0.25
+  return Bernoulli(p)
+"""
+
+expected_dot_14 = """
+digraph "graph" {
+  N0[label="[0.125,0.375,0.5]"];
+  N10[label=0.75];
+  N11[label=Bernoulli];
+  N12[label=Sample];
+  N13[label=map];
+  N14[label=index];
+  N15[label=0.25];
+  N16[label="*"];
+  N17[label=Bernoulli];
+  N18[label=Sample];
+  N1[label=Categorical];
+  N2[label=Sample];
+  N3[label=0];
+  N4[label=0.5];
+  N5[label=Bernoulli];
+  N6[label=Sample];
+  N7[label=1];
+  N8[label=Sample];
+  N9[label=2];
+  N1 -> N0[label=probability];
+  N11 -> N10[label=probability];
+  N12 -> N11[label=operand];
+  N13 -> N12[label=5];
+  N13 -> N3[label=0];
+  N13 -> N6[label=1];
+  N13 -> N7[label=2];
+  N13 -> N8[label=3];
+  N13 -> N9[label=4];
+  N14 -> N13[label=left];
+  N14 -> N2[label=right];
+  N16 -> N14[label=left];
+  N16 -> N15[label=right];
+  N17 -> N16[label=probability];
+  N18 -> N17[label=operand];
+  N2 -> N1[label=operand];
+  N5 -> N4[label=probability];
+  N6 -> N5[label=operand];
+  N8 -> N1[label=operand];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1407,6 +1474,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_12.strip())
         observed = to_dot(source13)
         self.assertEqual(observed.strip(), expected_dot_13.strip())
+        observed = to_dot(source14)
+        self.assertEqual(observed.strip(), expected_dot_14.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""

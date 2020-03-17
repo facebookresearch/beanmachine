@@ -21,7 +21,7 @@ from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli, Beta, Normal, Uniform
+from torch.distributions import Bernoulli, Beta, Categorical, Normal, Uniform
 
 
 def prod(x):
@@ -416,6 +416,70 @@ class BernoulliNode(DistributionNode):
     def support(self) -> Iterator[Any]:
         s = self.size()
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
+
+
+class CategoricalNode(DistributionNode):
+    """ Graph generator for categorical distributions"""
+
+    edges = ["probability"]
+    is_logits: bool
+
+    def __init__(self, probability: BMGNode, is_logits: bool = False):
+        self.is_logits = is_logits
+        DistributionNode.__init__(self, [probability])
+
+    def probability(self) -> BMGNode:
+        return self.children[0]
+
+    # TODO: Do we need a generic type for "distribution of X"?
+    def node_type(self) -> Any:
+        return Categorical
+
+    def size(self) -> torch.Size:
+        return self.probability().size()[0:-1]
+
+    def sample_type(self) -> Any:
+        # TODO: When we support bounded integer types
+        # TODO: this should indicate that it is a tensor
+        # TODO: of bound integers.
+        return self.probability().node_type()
+
+    def label(self) -> str:
+        return "Categorical" + ("(logits)" if self.is_logits else "")
+
+    def __str__(self) -> str:
+        return "Categorical(" + str(self.probability()) + ")"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        # TODO: Handle case where child is logits
+        # TODO: This is incorrect.
+        return g.add_distribution(
+            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability()]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
+        # TODO: This is incorrect.
+        return (
+            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
+        # TODO: This is incorrect.
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        s = self.probability().size()
+        r = list(range(s[-1]))
+        sr = s[:-1]
+        return (tensor(i).view(sr) for i in itertools.product(*([r] * prod(sr))))
 
 
 class NormalNode(DistributionNode):
@@ -1120,6 +1184,7 @@ class BMGraphBuilder:
             # Distribution constructors
             Bernoulli: self.handle_bernoulli,
             Beta: self.handle_beta,
+            Categorical: self.handle_categorical,
             Normal: self.handle_normal,
             Uniform: self.handle_uniform,
         }
@@ -1190,6 +1255,28 @@ class BMGraphBuilder:
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
         return self.add_bernoulli(probability, logits is not None)
+
+    @memoize
+    def add_categorical(
+        self, probability: BMGNode, is_logits: bool = False
+    ) -> CategoricalNode:
+        node = CategoricalNode(probability, is_logits)
+        self.add_node(node)
+        return node
+
+    def handle_categorical(
+        self, probs: Any = None, logits: Any = None
+    ) -> CategoricalNode:
+        if (probs is None and logits is None) or (
+            probs is not None and logits is not None
+        ):
+            raise ValueError(
+                "handle_categorical requires exactly one of probs or logits"
+            )
+        probability = logits if probs is None else probs
+        if not isinstance(probability, BMGNode):
+            probability = self.add_constant(probability)
+        return self.add_categorical(probability, logits is not None)
 
     @memoize
     def add_normal(self, mu: BMGNode, sigma: BMGNode) -> NormalNode:
@@ -1529,6 +1616,9 @@ class BMGraphBuilder:
             return self.add_sample(operand)
         if isinstance(operand, Bernoulli):
             b = self.handle_bernoulli(operand.probs)
+            return self.add_sample(b)
+        if isinstance(operand, Categorical):
+            b = self.handle_categorical(operand.probs)
             return self.add_sample(b)
         if isinstance(operand, Normal):
             b = self.handle_normal(operand.mean, operand.stddev)
