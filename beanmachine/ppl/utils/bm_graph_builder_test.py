@@ -15,6 +15,7 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     IndexNode,
     LogNode,
     MapNode,
+    MatrixMultiplicationNode,
     MultiplicationNode,
     NegateNode,
     NotNode,
@@ -33,7 +34,19 @@ def tidy(s: str) -> str:
     return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
 
 
+def tensor_equality(x: Tensor, y: Tensor) -> bool:
+    # Tensor equality is weird.  Suppose x and y are both
+    # tensor([1.0, 2.0]). Then x.eq(y) is tensor([True, True]),
+    # and x.eq(y).all() is tensor(True).
+    return bool(x.eq(y).all())
+
+
 class BMGraphBuilderTest(unittest.TestCase):
+    def assertEqual(self, x: Any, y: Any) -> bool:
+        if isinstance(x, Tensor) and isinstance(y, Tensor):
+            return tensor_equality(x, y)
+        return super().assertEqual(x, y)
+
     def test_1(self) -> None:
         """Test 1"""
 
@@ -820,6 +833,115 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1], {"other": s}), n))
+
+    def test_matrix_multiplication(self) -> None:
+        """Test matrix_multiplication"""
+
+        # This test verifies that various mechanisms for producing a matrix
+        # multiplication node in the graph -- or avoiding producing such a
+        # node -- are working as designed.
+
+        bmg = BMGraphBuilder()
+
+        t1 = tensor([[3.0, 4.0], [5.0, 6.0]])
+        t2 = tensor([[29.0, 36.0], [45.0, 56.0]])
+
+        # Graph nodes
+        gt1 = bmg.add_tensor(t1)
+        self.assertTrue(isinstance(gt1, TensorNode))
+        gt2 = bmg.add_tensor(t2)
+        self.assertTrue(isinstance(gt2, TensorNode))
+
+        # torch defines a "static" mm method that takes two values.
+
+        ta = torch.mm
+        self.assertEqual(bmg.handle_dot_get(torch, "mm"), ta)
+
+        # torch defines an "instance" mm method that takes a value.
+
+        # TODO: In Tensor.mm(x, y), x and y are required to be a tensor, not a double.
+        # TODO: Consider enforcing this rule.
+
+        ta1 = t1.mm
+        self.assertEqual(bmg.handle_dot_get(t1, "mm"), ta1)
+
+        gta1 = bmg.handle_dot_get(gt1, "mm")
+
+        ta2 = torch.Tensor.mm
+        self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mm"), ta2)
+
+        # Make a sample node; this cannot be simplified away.
+        s = bmg.add_sample(
+            bmg.add_bernoulli(bmg.add_tensor(tensor([[0.5, 0.5], [0.5, 0.5]])))
+        )
+        self.assertTrue(isinstance(s, SampleNode))
+
+        sa = bmg.handle_dot_get(s, "mm")
+
+        # Multiplying two values produces a value
+        self.assertEqual(bmg.handle_matrix_multiplication(t1, t1), t2)
+        self.assertEqual(bmg.handle_function(ta, [t1, t1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t1], {"mat2": t1}), t2)
+        self.assertEqual(bmg.handle_function(ta1, [t1]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [], {"mat2": t1}), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t1, t1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t1], {"mat2": t1}), t2)
+
+        # Multiplying a graph constant and a value produces a value
+        self.assertEqual(bmg.handle_matrix_multiplication(gt1, t1), t2)
+        self.assertEqual(bmg.handle_matrix_multiplication(t1, gt1), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1, t1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1], {"mat2": t1}), t2)
+        self.assertEqual(bmg.handle_function(gta1, [t1]), t2)
+        self.assertEqual(bmg.handle_function(gta1, [], {"mat2": t1}), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, t1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [gt1], {"mat2": t1}), t2)
+        self.assertEqual(bmg.handle_function(ta, [t1, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [t1], {"mat2": gt1}), t2)
+        self.assertEqual(bmg.handle_function(ta1, [gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta1, [], {"mat2": gt1}), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t1, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta2, [t1], {"mat2": gt1}), t2)
+
+        # Multiplying two graph constants produces a value
+        self.assertEqual(bmg.handle_matrix_multiplication(gt1, gt1), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1, gt1]), t2)
+        self.assertEqual(bmg.handle_function(ta, [gt1], {"mat2": gt1}), t2)
+        self.assertEqual(bmg.handle_function(gta1, [gt1]), t1)
+        self.assertEqual(bmg.handle_function(gta1, [], {"mat2": gt1}), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1, gt1]), t1)
+        self.assertEqual(bmg.handle_function(ta2, [gt1], {"mat2": gt1}), t1)
+
+        # Sample times value produces node
+        n = MatrixMultiplicationNode
+        self.assertTrue(isinstance(bmg.handle_matrix_multiplication(s, t1), n))
+        self.assertTrue(isinstance(bmg.handle_matrix_multiplication(t1, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, t1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s], {"mat2": t1}), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [t1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [t1], {"mat2": s}), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [t1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [], {"mat2": t1}), n))
+        self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(gta1, [], {"mat2": s}), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s], {"mat2": t1}), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [t2], {"mat2": s}), n))
+
+        # Sample times graph node produces node
+        self.assertTrue(isinstance(bmg.handle_matrix_multiplication(s, gt1), n))
+        self.assertTrue(isinstance(bmg.handle_matrix_multiplication(gt1, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s], {"mat2": gt1}), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gt1], {"mat2": s}), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [], {"mat2": gt1}), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s], {"mat2": gt1}), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1], {"mat2": s}), n))
 
     def test_negation(self) -> None:
         """Test negation"""

@@ -67,6 +67,7 @@ known_tensor_instance_functions = [
     "float",
     "log",
     "logical_not",
+    "mm",
     "mul",
     "neg",
     "pow",
@@ -586,6 +587,27 @@ class MultiplicationNode(BinaryOperatorNode):
         )
 
 
+class MatrixMultiplicationNode(BinaryOperatorNode):
+    # TODO: Fix this.
+    operator_type = OperatorType.MULTIPLY
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def label(self) -> str:
+        return "*"
+
+    def __str__(self) -> str:
+        return "(" + str(self.left()) + "*" + str(self.right()) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            torch.mm(l, r)
+            for l in self.left().support()
+            for r in self.right().support()
+        )
+
+
 class DivisionNode(BinaryOperatorNode):
     # TODO: We're going to represent division as Mult(x, Power(y, -1)) so
     # TODO: we can remove this class.
@@ -924,6 +946,7 @@ class BMGraphBuilder:
             torch.Tensor.float: self.handle_to_real,
             torch.Tensor.logical_not: self.handle_not,
             torch.Tensor.log: self.handle_log,
+            torch.Tensor.mm: self.handle_matrix_multiplication,
             torch.Tensor.mul: self.handle_multiplication,
             torch.Tensor.neg: self.handle_negate,
             torch.Tensor.pow: self.handle_power,
@@ -934,6 +957,7 @@ class BMGraphBuilder:
             # Note that torch.float is not a function.
             torch.log: self.handle_log,
             torch.logical_not: self.handle_not,
+            torch.mm: self.handle_matrix_multiplication,
             torch.mul: self.handle_multiplication,
             torch.neg: self.handle_negate,
             torch.pow: self.handle_power,
@@ -1071,6 +1095,25 @@ class BMGraphBuilder:
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value * other.value
         return self.add_multiplication(input, other)
+
+    @memoize
+    def add_matrix_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(torch.mm(left.value, right.value))
+        node = MatrixMultiplicationNode(left, right)
+        self.add_node(node)
+        return node
+
+    def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(mat2, BMGNode)):
+            return torch.mm(input, mat2)
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(mat2, BMGNode):
+            mat2 = self.add_constant(mat2)
+        if isinstance(input, ConstantNode) and isinstance(mat2, ConstantNode):
+            return torch.mm(input.value, mat2.value)
+        return self.add_matrix_multiplication(input, mat2)
 
     @memoize
     def add_division(self, left: BMGNode, right: BMGNode) -> BMGNode:
