@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A pattern matching engine"""
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 
 # Logically, a pattern is just a predicate; it's a function from
