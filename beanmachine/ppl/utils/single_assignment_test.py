@@ -5,10 +5,21 @@ import unittest
 
 import astor
 from beanmachine.ppl.utils.fold_constants import fold
-from beanmachine.ppl.utils.single_assignment import single_assignment
+from beanmachine.ppl.utils.single_assignment import SingleAssignment, single_assignment
 
 
 class SingleAssignmentTest(unittest.TestCase):
+    def test_single_assignment_0(self) -> None:
+        """Really basic tests for single_assignment.py"""
+
+        # Sanity check. Check that  if you change one of the two numbers the test fails
+        self.assertEqual(3, 3)
+
+        s = SingleAssignment()
+        root = "root"
+        name = s._unique_id(root)
+        self.assertEqual(root, name[0 : len(root)])
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
