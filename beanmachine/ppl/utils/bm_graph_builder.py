@@ -63,10 +63,6 @@ class BMGNode(ABC):
         pass
 
     @abstractmethod
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        pass
-
-    @abstractmethod
     def support(self) -> Iterator[Any]:
         pass
 
