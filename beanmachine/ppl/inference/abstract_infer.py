@@ -106,7 +106,7 @@ class AbstractInference(object, metaclass=ABCMeta):
                     rv_dicts = self._infer(num_samples, num_adapt_steps)
                     chain_queries.append(rv_dicts)
 
-            monte_carlo_samples = MonteCarloSamples(chain_queries)
+            monte_carlo_samples = MonteCarloSamples(chain_queries, num_adapt_steps)
         except BaseException as x:
             raise x
         finally:
