@@ -13,6 +13,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     attribute,
     binop,
     call,
+    expr,
     index,
     keyword,
     match,
@@ -99,6 +100,17 @@ class SingleAssignment:
 
         return _do_it
 
+    def _fix_expr(
+        self, prefix: str, value: Callable[[ast.AST], ast.AST]
+    ) -> Callable[[ast.AST], ast.AST]:
+        def _do_it(r: ast.AST) -> ast.AST:
+            id = self._unique_id(prefix)
+            return ast.Assign(
+                targets=[ast.Name(id=id, ctx=ast.Store())], value=value(r)
+            )
+
+        return _do_it
+
     def _splice_non_identifier(
         self, original: List[ast.expr]
     ) -> Tuple[ast.Assign, List[ast.expr]]:
@@ -178,6 +190,11 @@ class SingleAssignment:
             )
 
         return _do_it
+
+    def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions
+        return PatternRule(
+            expr(), self._fix_expr("u", lambda u: u.value), "handle_unassigned"
+        )
 
     def _handle_return(self) -> Rule:
         return PatternRule(

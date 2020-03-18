@@ -4,8 +4,13 @@ import ast
 import unittest
 
 import astor
+from beanmachine.ppl.utils.ast_patterns import ast_domain
 from beanmachine.ppl.utils.fold_constants import fold
+from beanmachine.ppl.utils.rules import FirstMatch as first, TryMany as many
 from beanmachine.ppl.utils.single_assignment import SingleAssignment, single_assignment
+
+
+_some_top_down = ast_domain.some_top_down
 
 
 class SingleAssignmentTest(unittest.TestCase):
@@ -19,6 +24,69 @@ class SingleAssignmentTest(unittest.TestCase):
         root = "root"
         name = s._unique_id(root)
         self.assertEqual(root, name[0 : len(root)])
+
+        # Check to make sure that we need a new rule to handle unassigned expressions
+        s = SingleAssignment()
+        s._rules = many(  # Custom wire rewrites to rewrites existing before this diff
+            _some_top_down(
+                first([s._handle_return(), s._handle_for(), s._handle_assign()])
+            )
+        )
+        source = """
+def f(x):
+    g(x)+x
+"""
+        expected = """
+def f(x):
+    g(x) + x
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Check that the unassigned expressions rule (unExp) works alone
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = many(_some_top_down(first([s._handle_unassigned()])))
+        source = """
+def f(x):
+    g(x)+x
+"""
+        expected = """
+def f(x):
+    u1 = g(x) + x
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Check that the unassigned expressions rule (unExp) works in context
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = many(  # Custom wire some rewrites that include unExp
+            _some_top_down(
+                first(
+                    [
+                        s._handle_unassigned(),
+                        s._handle_return(),
+                        s._handle_for(),
+                        s._handle_assign(),
+                    ]
+                )
+            )
+        )
+        source = """
+def f(x):
+    g(x)+x
+"""
+        expected = """
+def f(x):
+    a2 = g(x)
+    u1 = a2 + x
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
