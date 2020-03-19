@@ -1461,3 +1461,20 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_dirichlet(self) -> None:
+        bmg = BMGraphBuilder()
+        t0 = bmg.add_tensor(tensor([1.0, 2.0, 3.0]))
+        d = bmg.add_dirichlet(t0)
+        bmg.add_sample(d)
+        observed = bmg.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label="[1.0,2.0,3.0]"];
+  N1[label=Dirichlet];
+  N2[label=Sample];
+  N1 -> N0[label=concentration];
+  N2 -> N1[label=operand];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())

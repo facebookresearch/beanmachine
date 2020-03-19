@@ -21,7 +21,7 @@ from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli, Beta, Categorical, Normal, Uniform
+from torch.distributions import Bernoulli, Beta, Categorical, Dirichlet, Normal, Uniform
 
 
 def prod(x):
@@ -478,6 +478,65 @@ class CategoricalNode(DistributionNode):
         return (tensor(i).view(sr) for i in itertools.product(*([r] * prod(sr))))
 
 
+class DirichletNode(DistributionNode):
+    edges = ["concentration"]
+
+    def __init__(self, concentration: BMGNode):
+        DistributionNode.__init__(self, [concentration])
+
+    def concentration(self) -> BMGNode:
+        return self.children[0]
+
+    # TODO: Do we need a generic type for "distribution of X"?
+    def node_type(self) -> Any:
+        return Dirichlet
+
+    def size(self) -> torch.Size:
+        return self.concentration().size()
+
+    def sample_type(self) -> Any:
+        return self.concentration().node_type()
+
+    def label(self) -> str:
+        return "Dirichlet"
+
+    def __str__(self) -> str:
+        return f"Dirichlet({str(self.concentration())})"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            # TODO: Fix this when we add the node type to BMG
+            DistributionType.BERNOULLI,
+            AtomicType.BOOLEAN,
+            [d[self.concentration()]],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.concentration()]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.concentration()]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a Dirichlet.
+        raise ValueError(f"Dirichlet distribution does not have finite support.")
+
+
 class NormalNode(DistributionNode):
     edges = ["mu", "sigma"]
 
@@ -598,7 +657,7 @@ class UniformNode(DistributionNode):
         # TODO: error message that diagnoses the problem more exactly for
         # TODO: the user.  This would happen if we did something like
         # TODO: x(n()) where x() is a sample that takes a finite index but
-        # TODO: n() is a sample that returns a normal.
+        # TODO: n() is a sample that returns a uniform.
         raise ValueError(f"Uniform distribution does not have finite support.")
 
 
@@ -1181,6 +1240,7 @@ class BMGraphBuilder:
             Bernoulli: self.handle_bernoulli,
             Beta: self.handle_beta,
             Categorical: self.handle_categorical,
+            Dirichlet: self.handle_dirichlet,
             Normal: self.handle_normal,
             Uniform: self.handle_uniform,
         }
@@ -1286,6 +1346,17 @@ class BMGraphBuilder:
         if not isinstance(scale, BMGNode):
             scale = self.add_constant(scale)
         return self.add_normal(loc, scale)
+
+    @memoize
+    def add_dirichlet(self, concentration: BMGNode) -> DirichletNode:
+        node = DirichletNode(concentration)
+        self.add_node(node)
+        return node
+
+    def handle_dirichlet(self, concentration: Any, validate_args=None) -> DirichletNode:
+        if not isinstance(concentration, BMGNode):
+            concentration = self.add_constant(concentration)
+        return self.add_dirichlet(concentration)
 
     @memoize
     def add_uniform(self, low: BMGNode, high: BMGNode) -> UniformNode:
@@ -1615,6 +1686,9 @@ class BMGraphBuilder:
             return self.add_sample(b)
         if isinstance(operand, Categorical):
             b = self.handle_categorical(operand.probs)
+            return self.add_sample(b)
+        if isinstance(operand, Dirichlet):
+            b = self.handle_dirichlet(operand.categorical)
             return self.add_sample(b)
         if isinstance(operand, Normal):
             b = self.handle_normal(operand.mean, operand.stddev)
