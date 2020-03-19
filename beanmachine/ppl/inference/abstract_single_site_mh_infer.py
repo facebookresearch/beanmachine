@@ -61,21 +61,20 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         :param children_log_updates: log_prob updates of the immediate children
         of the node that was resampled from.
         :param proposal_log_update: log_prob update of the proposal
-        :returns: bool indicating whether proposal was accepted
+        :returns: acceptance probability of proposal
         """
         log_update = children_log_updates + node_log_update + proposal_log_update
 
         if log_update >= tensor(0.0):
             self.world_.accept_diff()
-            return True
         else:
             alpha = dist.Uniform(tensor(0.0), tensor(1.0)).sample().log()
             if log_update > alpha:
                 self.world_.accept_diff()
-                return True
             else:
                 self.world_.reject_diff()
-                return False
+        acceptance_prob = torch.min(tensor(1.0), torch.exp(log_update))
+        return acceptance_prob
 
     def single_inference_run(self, node: RVIdentifier, proposer):
         """
@@ -88,7 +87,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
         :param num_samples: number of samples to collect for the query.
         :param proposer: the proposer with which propose a new value for node
-        :returns: samples for the query
+        :returns: acceptance probability for the query
         """
         proposed_value, negative_proposal_log_update, auxiliary_variables = proposer.propose(
             node, self.world_
@@ -103,10 +102,10 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         proposal_log_update = (
             positive_proposal_log_update + negative_proposal_log_update
         )
-        acceptance_indicator = self.accept_or_reject_update(
+        acceptance_probability = self.accept_or_reject_update(
             node_log_update, children_log_updates, proposal_log_update
         )
-        return acceptance_indicator
+        return acceptance_probability
 
     @abstractmethod
     def find_best_single_site_proposer(self, node: RVIdentifier):
@@ -122,17 +121,16 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
     def _infer(
         self, num_samples: int, num_adapt_steps: int = 0
-    ) -> Tuple[Dict[RVIdentifier, Tensor], Dict[RVIdentifier, Tensor]]:
+    ) -> Dict[RVIdentifier, Tensor]:
         """
         Run inference algorithms.
 
         :param num_samples: number of samples to collect for the query.
         :param num_adapt_steps: number of steps to adapt/tune the proposer.
-        :returns: samples, and accept/reject results, for the query
+        :returns: samples for the query
         """
         self.initialize_world()
         queries_sample = defaultdict()
-        acceptance_results = {}
 
         for iteration in tqdm(iterable=range(num_samples), desc="Samples collected"):
             for node in self.world_.get_all_world_vars().copy():
@@ -143,22 +141,14 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
                 proposer = self.find_best_single_site_proposer(node)
 
-                acceptance_indicator = tensor(
-                    [self.single_inference_run(node, proposer)]
-                )
-                if node not in acceptance_results:
-                    acceptance_results[node] = acceptance_indicator
-                else:
-                    acceptance_results[node] = torch.cat(
-                        [acceptance_results[node], acceptance_indicator.clone()], dim=0
-                    )
+                acceptance_probability = self.single_inference_run(node, proposer)
 
                 node_var = self.world_.get_node_in_world_raise_error(node, False)
                 if iteration < num_adapt_steps:
                     proposer.do_adaptation(
                         node,
                         node_var,
-                        acceptance_results[node],
+                        acceptance_probability,
                         iteration,
                         num_adapt_steps,
                     )
@@ -181,4 +171,4 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                         dim=0,
                     )
             self.world_.accept_diff()
-        return (queries_sample, acceptance_results)
+        return queries_sample

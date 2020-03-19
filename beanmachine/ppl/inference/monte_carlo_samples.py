@@ -17,11 +17,7 @@ class MonteCarloSamples(object):
     """
 
     def __init__(
-        self,
-        chain_results: List[
-            Tuple[Dict[RVIdentifier, Tensor], Dict[RVIdentifier, Tensor]]
-        ],
-        num_adapt_steps=0,
+        self, chain_results: List[Dict[RVIdentifier, Tensor]], num_adapt_steps=0
     ):
         self.data = MonteCarloSamplesData(chain_results)
         self.chain = None
@@ -85,15 +81,6 @@ class MonteCarloSamples(object):
             return self.data.rv_dict[rv][:, steps_start:]
         else:
             return self.data.rv_dict[rv][self.chain, steps_start:]
-
-    def get_acceptance_results(self) -> Dict[RVIdentifier, Tensor]:
-        """
-        :param rv: random variable to see samples
-        :returns: Dict pairing RV to Tensor. The tensor contains bools indicating
-        whether samples drawn during inference resulted from an accepted MH diff.
-        """
-
-        return self.data.acceptance_results_dict
 
     def get_rv_names(self) -> List[RVIdentifier]:
         """

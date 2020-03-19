@@ -27,16 +27,9 @@ class MonteCarloSamplesTest(unittest.TestCase):
 
         self.assertEqual(mcs[foo_key].shape, torch.zeros(4, 10).shape)
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 10).shape)
-        self.assertEqual(
-            mcs.get_acceptance_results()[foo_key].shape, torch.zeros(4, 10).shape
-        )
         self.assertEqual(mcs.get_chain(3)[foo_key].shape, torch.zeros(10).shape)
         self.assertEqual(mcs.get_num_chains(), 4)
         self.assertEqual(mcs.get_rv_names(), [foo_key])
-
-        self.assertTrue(
-            isinstance(mcs.get_acceptance_results()[foo_key][0][0].item(), bool)
-        )
 
         mcs.num_adapt_steps = 3
 
@@ -44,9 +37,6 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 7).shape)
         self.assertEqual(
             mcs.get_variable(foo_key, True).shape, torch.zeros(4, 10).shape
-        )
-        self.assertEqual(
-            mcs.get_acceptance_results()[foo_key].shape, torch.zeros(4, 10).shape
         )
         self.assertEqual(mcs.get_chain(3)[foo_key].shape, torch.zeros(7).shape)
         self.assertEqual(mcs.get_num_chains(), 4)
@@ -61,16 +51,9 @@ class MonteCarloSamplesTest(unittest.TestCase):
 
         self.assertEqual(mcs[foo_key].shape, torch.zeros(1, 10).shape)
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(1, 10).shape)
-        self.assertEqual(
-            mcs.get_acceptance_results()[foo_key].shape, torch.zeros(1, 10).shape
-        )
         self.assertEqual(mcs.get_chain()[foo_key].shape, torch.zeros(10).shape)
         self.assertEqual(mcs.get_num_chains(), 1)
         self.assertEqual(mcs.get_rv_names(), [foo_key, bar_key])
-
-        self.assertTrue(
-            isinstance(mcs.get_acceptance_results()[foo_key][0][0].item(), bool)
-        )
 
         mcs.num_adapt_steps = 3
 
@@ -78,9 +61,6 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(1, 7).shape)
         self.assertEqual(
             mcs.get_variable(foo_key, True).shape, torch.zeros(1, 10).shape
-        )
-        self.assertEqual(
-            mcs.get_acceptance_results()[foo_key].shape, torch.zeros(1, 10).shape
         )
         self.assertEqual(mcs.get_chain()[foo_key].shape, torch.zeros(7).shape)
         self.assertEqual(mcs.get_num_chains(), 1)

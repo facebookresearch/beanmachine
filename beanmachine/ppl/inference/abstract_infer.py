@@ -22,7 +22,7 @@ class AbstractInference(object, metaclass=ABCMeta):
     @abstractmethod
     def _infer(
         self, num_samples: int, num_adapt_steps: int = 0
-    ) -> Tuple[Dict[RVIdentifier, Tensor], Dict[RVIdentifier, Tensor]]:
+    ) -> Dict[RVIdentifier, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
         AbstractInference.
@@ -43,11 +43,8 @@ class AbstractInference(object, metaclass=ABCMeta):
     ):
         try:
             AbstractInference.set_seed_for_chain(random_seed, chain)
-            rv_dicts = self._infer(num_samples, num_adapt_steps)
-            string_dict = tuple(
-                {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
-                for rv_dict in rv_dicts
-            )
+            rv_dict = self._infer(num_samples, num_adapt_steps)
+            string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
         except BaseException as x:
             queue.put((x, chain, {}))
@@ -88,17 +85,13 @@ class AbstractInference(object, metaclass=ABCMeta):
                     )
                     p.start()
 
-                chain_queries_dict = {}
+                chain_queries = [{}] * num_chains
                 for _ in range(num_chains):
-                    (error, chain, string_dicts) = q.get()
+                    (error, chain, string_dict) = q.get()
                     if error is not None:
                         raise error
-                    rv_dicts = tuple(
-                        {rv: string_dict[str(rv)] for rv in queries}
-                        for string_dict in string_dicts
-                    )
-                    chain_queries_dict[chain] = rv_dicts
-                chain_queries = [chain_queries_dict[i] for i in range(num_chains)]
+                    rv_dict = {rv: string_dict[str(rv)] for rv in queries}
+                    chain_queries[chain] = rv_dict
             else:
                 chain_queries = []
                 for chain in range(num_chains):
