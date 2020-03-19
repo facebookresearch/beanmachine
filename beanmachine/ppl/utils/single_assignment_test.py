@@ -100,7 +100,8 @@ def f():
     z = torch.tensor([1.0 + 2.0, 4.0])
     for x in [[10, 20], [30, 40]]:
         for y in x:
-            print(x + y)
+            _1 = x+y
+            _2 = print(_1)
     return 8 * y / (4 * z)
 """
         m = ast.parse(source)
@@ -130,7 +131,8 @@ def f():
     f3 = [a7, a13]
     for x in f3:
         for y in x:
-            print(x + y)
+            _1 = x + y
+            _2 = print(_1)
     a14 = 2.0
     a8 = a14 * y
     r4 = a8 / z

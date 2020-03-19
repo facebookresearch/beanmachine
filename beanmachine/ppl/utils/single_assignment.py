@@ -72,7 +72,12 @@ class SingleAssignment:
         self._rules = many(
             _some_top_down(
                 first(
-                    [self._handle_return(), self._handle_for(), self._handle_assign()]
+                    [
+                        self._handle_unassigned(),
+                        self._handle_return(),
+                        self._handle_for(),
+                        self._handle_assign(),
+                    ]
                 )
             )
         )

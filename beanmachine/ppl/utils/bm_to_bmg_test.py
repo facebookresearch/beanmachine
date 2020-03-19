@@ -1101,7 +1101,8 @@ def all_requests_sent(account):
 @sample
 def all_requests_accepted(account):
   return Bernoulli(REAL_ACC_PROB * all_requests_sent(account))
-all_requests_accepted(0)
+_1 = 0
+_2 = all_requests_accepted(_1)
 """
 
 expected_raw_11 = """
@@ -1156,7 +1157,8 @@ def all_requests_accepted(account):
     return bmg.handle_sample(r6)
 
 
-all_requests_accepted(0)
+_1 = 0
+_2 = bmg.handle_function(all_requests_accepted, [_1], {})
 roots = []
 bmg.remove_orphans(roots)
 """
