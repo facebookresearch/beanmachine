@@ -1688,7 +1688,7 @@ class BMGraphBuilder:
             b = self.handle_categorical(operand.probs)
             return self.add_sample(b)
         if isinstance(operand, Dirichlet):
-            b = self.handle_dirichlet(operand.categorical)
+            b = self.handle_dirichlet(operand.concentration)
             return self.add_sample(b)
         if isinstance(operand, Normal):
             b = self.handle_normal(operand.mean, operand.stddev)

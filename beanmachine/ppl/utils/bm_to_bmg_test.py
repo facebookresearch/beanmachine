@@ -1482,6 +1482,153 @@ digraph "graph" {
 }
 """
 
+# Simplified CLARA model
+source16 = """
+from torch import tensor
+from torch.distributions import Categorical, Dirichlet
+# three categories
+sheep = 0
+goat = 1
+cat = 2
+# two classifiers
+alice = 10
+bob = 11
+# two photos
+foo_jpg = 20
+bar_jpg = 21
+
+# Prior on distribution of true distribution of categories
+# amongst documents; no distribution is more likely than
+# any other.
+
+beta = tensor([1., 1., 1.])
+
+@sample
+def pi():
+  return Dirichlet(beta)
+
+# Prior on confusion of classifiers; classifiers confuse sheep with
+# goats more easily than sheep with cats or goats with cats:
+alpha = [
+  # Given a sheep, we are unlikely to classify it as a cat
+  tensor([10., 5., 1.]),
+  # Given a goat, we are unlikely to classify it as a cat
+  tensor([5., 10., 1.]),
+  # Given a cat, we are likely to classify it as a cat
+  tensor([1., 1., 10.]),
+]
+
+# For each classifier j, and each category k, sample a categorical distribution
+# of likely classifications of an item truly of category k.
+@sample
+def theta(j: int, k: int):
+    return Dirichlet(alpha[k])
+
+# For each item i, sample it from a collection of items whose true
+# categories are distributed by pi. The output sample is a category.
+@sample
+def z(i: int):
+    return Categorical(pi())
+
+# We then simulate classification of item i by classifier j.
+# Given true category z(i) for the item i, the behaviour of
+# classifier j will be to sample from a categorical distribution
+# whose parameters are theta(j, z(i))
+# The output sample is again a category.
+@sample
+def y(i: int, j: int):
+    return Categorical(theta(j, z(i)))
+
+observations = {
+  y(foo_jpg, alice): sheep,
+  y(foo_jpg, bob): goat,
+  y(bar_jpg, alice): cat,
+  y(bar_jpg, bob): cat,
+}
+"""
+
+expected_dot_16 = """
+digraph "graph" {
+  N0[label="[1.0,1.0,1.0]"];
+  N10[label=Sample];
+  N11[label="[1.0,1.0,10.0]"];
+  N12[label=Dirichlet];
+  N13[label=Sample];
+  N14[label=0];
+  N15[label=1];
+  N16[label=2];
+  N17[label=map];
+  N18[label=index];
+  N19[label=Categorical];
+  N1[label=Dirichlet];
+  N20[label=Sample];
+  N21[label=Sample];
+  N22[label=Sample];
+  N23[label=Sample];
+  N24[label=map];
+  N25[label=index];
+  N26[label=Categorical];
+  N27[label=Sample];
+  N28[label=Sample];
+  N29[label=index];
+  N2[label=Sample];
+  N30[label=Categorical];
+  N31[label=Sample];
+  N32[label=index];
+  N33[label=Categorical];
+  N34[label=Sample];
+  N3[label=Categorical];
+  N4[label=Sample];
+  N5[label="[10.0,5.0,1.0]"];
+  N6[label=Dirichlet];
+  N7[label=Sample];
+  N8[label="[5.0,10.0,1.0]"];
+  N9[label=Dirichlet];
+  N1 -> N0[label=concentration];
+  N10 -> N9[label=operand];
+  N12 -> N11[label=concentration];
+  N13 -> N12[label=operand];
+  N17 -> N10[label=3];
+  N17 -> N13[label=5];
+  N17 -> N14[label=0];
+  N17 -> N15[label=2];
+  N17 -> N16[label=4];
+  N17 -> N7[label=1];
+  N18 -> N17[label=left];
+  N18 -> N4[label=right];
+  N19 -> N18[label=probability];
+  N2 -> N1[label=operand];
+  N20 -> N19[label=operand];
+  N21 -> N6[label=operand];
+  N22 -> N9[label=operand];
+  N23 -> N12[label=operand];
+  N24 -> N14[label=0];
+  N24 -> N15[label=2];
+  N24 -> N16[label=4];
+  N24 -> N21[label=1];
+  N24 -> N22[label=3];
+  N24 -> N23[label=5];
+  N25 -> N24[label=left];
+  N25 -> N4[label=right];
+  N26 -> N25[label=probability];
+  N27 -> N26[label=operand];
+  N28 -> N3[label=operand];
+  N29 -> N17[label=left];
+  N29 -> N28[label=right];
+  N3 -> N2[label=probability];
+  N30 -> N29[label=probability];
+  N31 -> N30[label=operand];
+  N32 -> N24[label=left];
+  N32 -> N28[label=right];
+  N33 -> N32[label=probability];
+  N34 -> N33[label=operand];
+  N4 -> N3[label=operand];
+  N6 -> N5[label=concentration];
+  N7 -> N6[label=operand];
+  N9 -> N8[label=concentration];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1547,6 +1694,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_14.strip())
         observed = to_dot(source15)
         self.assertEqual(observed.strip(), expected_dot_15.strip())
+        observed = to_dot(source16)
+        self.assertEqual(observed.strip(), expected_dot_16.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
