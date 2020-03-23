@@ -17,8 +17,14 @@
 namespace beanmachine {
 namespace graph {
 
-// note: NATURAL numbers include zero (ISO 80000-2)
-enum class AtomicType { UNKNOWN = 0, BOOLEAN = 1, PROBABILITY, REAL, NATURAL, TENSOR };
+enum class AtomicType {
+  UNKNOWN = 0,
+  BOOLEAN = 1,
+  PROBABILITY,
+  REAL,
+  POS_REAL, // Real numbers greater than *or* equal to zero
+  NATURAL, // note: NATURAL numbers include zero (ISO 80000-2)
+  TENSOR };
 
 typedef unsigned long long int natural_t;
 
@@ -42,6 +48,7 @@ class AtomicValue {
     return type == other.type and
         ((type == AtomicType::BOOLEAN and _bool == other._bool) or
          (type == AtomicType::REAL and _double == other._double) or
+         (type == AtomicType::POS_REAL and _double == other._double) or
          (type == AtomicType::PROBABILITY and _double == other._double) or
          (type == AtomicType::NATURAL and _natural == other._natural) or
          (type == AtomicType::TENSOR and
@@ -56,6 +63,7 @@ enum class OperatorType {
   UNKNOWN = 0,
   SAMPLE = 1, // This is the ~ operator in models
   TO_REAL,
+  TO_POS_REAL,
   TO_TENSOR,
   NEGATE,
   EXP,
@@ -128,6 +136,7 @@ struct Graph {
   uint add_constant(torch::Tensor value);
   uint add_constant(AtomicValue value);
   uint add_constant_probability(double value);
+  uint add_constant_pos_real(double value);
   uint add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,

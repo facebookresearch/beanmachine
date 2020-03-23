@@ -12,7 +12,7 @@ using namespace beanmachine;
 
 TEST(testgraph, infer_arithmetic) {
   graph::Graph g;
-  uint c1 = g.add_constant(0.1);
+  uint c1 = g.add_constant_probability(0.1);
   uint d1 = g.add_distribution(
       graph::DistributionType::BERNOULLI,
       graph::AtomicType::BOOLEAN,
@@ -20,20 +20,22 @@ TEST(testgraph, infer_arithmetic) {
   uint o1 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
   uint o2 =
-      g.add_operator(graph::OperatorType::TO_REAL, std::vector<uint>({o1}));
-  uint c2 = g.add_constant(0.8);
+      g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o1}));
+  uint c2 = g.add_constant_pos_real(0.8);
   uint o3 = g.add_operator(
       graph::OperatorType::MULTIPLY, std::vector<uint>({c2, o2}));
-  uint c3 = g.add_constant(0.1);
+  uint c3 = g.add_constant_pos_real(0.1);
   uint o4 =
       g.add_operator(graph::OperatorType::ADD, std::vector<uint>({c3, o3}));
   uint d2 = g.add_distribution(
-      graph::DistributionType::BERNOULLI,
+      graph::DistributionType::BERNOULLI_NOISY_OR,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>({o4}));
   uint o5 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
-  // P(o5|o1) = .9 when o1 is true and .1 when o1 is false
+  // P(o5|o1=T) = 1 - exp(-.9)=0.5934 and P(o5|o1=F) = 1-exp(-.1)=0.09516
+  // Since P(o1=T)=0.1 and P(o1=F)=0.9. Therefore P(o5=T,o1=T) = 0.05934, P(o5=T,o1=F) = 0.08564
+  // and P(o1=T | o5=T) = 0.4093
   g.observe(o5, true);
   g.query(o1);
   std::vector<std::vector<graph::AtomicValue>> samples =
@@ -45,8 +47,8 @@ TEST(testgraph, infer_arithmetic) {
     sum += s._bool ? 1 : 0;
   }
   // less than 1 in million odds of failing these tests with correct infer
-  EXPECT_LT(sum, 75);
-  EXPECT_GT(sum, 25);
+  EXPECT_LT(sum, 65);
+  EXPECT_GT(sum, 15);
   // infer_mean should give almost exactly the same answer
   std::vector<double> means = g.infer_mean(100, graph::InferenceType::GIBBS);
   EXPECT_TRUE(std::abs(sum - int(means[0]*100)) <= 1);
@@ -59,8 +61,8 @@ TEST(testgraph, infer_arithmetic) {
     ASSERT_EQ(s.type, graph::AtomicType::BOOLEAN);
     sum += s._bool ? 1 : 0;
   }
-  EXPECT_LT(sum, 75);
-  EXPECT_GT(sum, 25);
+  EXPECT_LT(sum, 65);
+  EXPECT_GT(sum, 15);
   // infer_mean should give the same answer
   std::vector<double> means2 = g.infer_mean(
     100, graph::InferenceType::REJECTION);

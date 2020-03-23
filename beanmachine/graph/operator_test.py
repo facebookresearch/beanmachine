@@ -117,7 +117,7 @@ class TestOperators(unittest.TestCase):
     def test_sample(self) -> None:
         # negative test we can't exponentiate the sample from a Bernoulli
         g = bmg.Graph()
-        c1 = g.add_constant(0.6)
+        c1 = g.add_constant_probability(0.6)
         d1 = g.add_distribution(
             bmg.DistributionType.BERNOULLI, bmg.AtomicType.BOOLEAN, [c1]
         )
@@ -128,7 +128,7 @@ class TestOperators(unittest.TestCase):
 
         # the proper way to do it is to convert to floating point first
         g = bmg.Graph()
-        c1 = g.add_constant(0.6)
+        c1 = g.add_constant_probability(0.6)
         d1 = g.add_distribution(
             bmg.DistributionType.BERNOULLI, bmg.AtomicType.BOOLEAN, [c1]
         )

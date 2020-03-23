@@ -92,8 +92,8 @@ class TestBayesNet(unittest.TestCase):
 
     def test_bernoulli(self):
         g = graph.Graph()
-        c1 = g.add_constant(1.0)
-        c2 = g.add_constant(0.8)
+        c1 = g.add_constant_probability(1.0)
+        c2 = g.add_constant_probability(0.8)
 
         # negative tests on number of parents
         # 0 parents not allowed
@@ -124,14 +124,11 @@ class TestBayesNet(unittest.TestCase):
             g.add_distribution(
                 graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c3]
             )
-        self.assertTrue("must be probability- or real-valued" in str(cm.exception))
+        self.assertTrue("must be a probability" in str(cm.exception))
 
         # negative test on value of parent
-        c4 = g.add_constant(1.1)
         with self.assertRaises(ValueError) as cm:
-            g.add_distribution(
-                graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c4]
-            )
+            g.add_constant_probability(1.1)
         self.assertTrue("must be between 0 and 1" in str(cm.exception))
 
         v1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
@@ -254,8 +251,8 @@ class TestBayesNet(unittest.TestCase):
         self.assertTrue("duplicate observe for node" in str(cm.exception))
 
         g = graph.Graph()
-        c1 = g.add_constant(1.0)
-        c2 = g.add_constant(0.5)
+        c1 = g.add_constant_probability(1.0)
+        c2 = g.add_constant_probability(0.5)
         o1 = g.add_operator(graph.OperatorType.MULTIPLY, [c1, c2])
         d1 = g.add_distribution(
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [o1]
@@ -282,8 +279,8 @@ class TestBayesNet(unittest.TestCase):
 
     def test_infer_mean(self):
         g = graph.Graph()
-        c1 = g.add_constant(0.5)
-        op1 = g.add_operator(graph.OperatorType.ADD, [c1, c1])
+        c1 = g.add_constant_probability(1.0)
+        op1 = g.add_operator(graph.OperatorType.MULTIPLY, [c1, c1])
         d1 = g.add_distribution(
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [op1]
         )

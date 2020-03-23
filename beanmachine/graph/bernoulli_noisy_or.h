@@ -7,7 +7,7 @@ namespace distribution {
 
 /*
 BernoulliNoisyOr -- similar to a Bernoulli distribution, but this
-is parameterized by a > 0, s.t. the probability of success = `1 - exp(-a)`.
+is parameterized by a >= 0, s.t. the probability of success = `1 - exp(-a)`.
 */
 class BernoulliNoisyOr : public Distribution {
  public:
