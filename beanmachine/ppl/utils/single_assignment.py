@@ -8,6 +8,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     assign,
     ast_domain,
     ast_for,
+    ast_if,
     ast_list,
     ast_return,
     attribute,
@@ -73,6 +74,7 @@ class SingleAssignment:
             _some_top_down(
                 first(
                     [
+                        self._handle_if(),
                         self._handle_unassigned(),
                         self._handle_return(),
                         self._handle_for(),
@@ -206,6 +208,17 @@ class SingleAssignment:
             ast_return(value=_not_identifier),
             self._fix_it("r", lambda r: r.value, lambda r, v: ast.Return(value=v)),
             "handle_return",
+        )
+
+    def _handle_if(self) -> Rule:
+        return PatternRule(
+            ast_if(test=_not_identifier),
+            self._fix_it(
+                "r",
+                lambda r: r.test,
+                lambda r, v: ast.If(test=v, body=r.body, orelse=r.orelse),
+            ),
+            "handle_if",
         )
 
     def _handle_for(self) -> Rule:

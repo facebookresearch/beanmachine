@@ -88,6 +88,118 @@ def f(x):
         result = s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
+        # Tests for if rewrite rule
+
+        # Check that rule will leave uninteresting expressions alone
+        s = SingleAssignment()
+        s._rules = many(  # Custom wire rewrites to rewrites existing before this diff
+            _some_top_down(first([s._handle_if()]))
+        )
+        source = """
+def f(x):
+    if x:
+        c=a+b+c
+    else:
+        b=c+a+b
+"""
+        expected = """
+def f(x):
+    if x:
+        c = a + b + c
+    else:
+        b = c + a + b
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Check that the if rule works (alone) on an elementary expression
+        s = SingleAssignment()
+        s._rules = _some_top_down(s._handle_if())
+        source = """
+def f(x):
+    if x+x>x:
+        c=a+b+c
+    else:
+        b=c+a+b
+"""
+        expected = """
+def f(x):
+    r1 = x + x > x
+    if r1:
+        c = a + b + c
+    else:
+        b = c + a + b
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Check that the if rule works (alone) with elif clauses
+        s = SingleAssignment()
+        s._rules = many(_some_top_down(s._handle_if()))
+        source = """
+def f(x):
+    if x+x>x:
+        c=a+b+c
+    elif y+y>y:
+        a=c+b+a
+    else:
+        b=c+a+b
+"""
+        expected = """
+def f(x):
+    r1 = x + x > x
+    if r1:
+        c = a + b + c
+    else:
+        r2 = y + y > y
+        if r2:
+            a = c + b + a
+        else:
+            b = c + a + b
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Check that the if rule works (with others) on an elementary expression
+        s = SingleAssignment()
+        s._rules = many(
+            _some_top_down(
+                first(
+                    [
+                        s._handle_if(),
+                        s._handle_unassigned(),
+                        s._handle_return(),
+                        s._handle_for(),
+                        s._handle_assign(),
+                    ]
+                )
+            )
+        )
+        source = """
+def f(x):
+    if gt(x+x,x):
+        c=a+b+c
+    else:
+        b=c+a+b
+"""
+        expected = """
+def f(x):
+    a2 = x + x
+    r1 = gt(a2, x)
+    if r1:
+        a3 = a + b
+        c = a3 + c
+    else:
+        a4 = c + a
+        b = a4 + b
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
@@ -95,7 +207,8 @@ def f(x):
 
         source = """
 def f():
-    if a and b:
+    aab = a and b
+    if aab:
         return 1 + ~x + 2 + g(5, y=6)
     z = torch.tensor([1.0 + 2.0, 4.0])
     for x in [[10, 20], [30, 40]]:
@@ -108,7 +221,8 @@ def f():
         result = single_assignment(fold(m))
         expected = """
 def f():
-    if a and b:
+    aab = a and b
+    if aab:
         a9 = 3
         a15 = ~x
         a5 = a9 + a15

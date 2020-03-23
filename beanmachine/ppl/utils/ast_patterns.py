@@ -251,6 +251,12 @@ def ast_return(value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Return, {"value": value})
 
 
+def ast_if(
+    test: Pattern = _any, body: Pattern = _any, orelse: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(ast.If, {"test": test, "body": body, "orelse": orelse})
+
+
 def unaryop(op: Pattern = _any, operand: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.UnaryOp, {"op": op, "operand": operand})
 
