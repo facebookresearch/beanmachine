@@ -13,6 +13,7 @@ class Operator : public graph::Node {
       const std::vector<graph::Node*>& in_nodes);
   ~Operator() override {}
   void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
   graph::OperatorType op_type;
 };
 
