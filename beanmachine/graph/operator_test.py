@@ -18,6 +18,7 @@ class TestOperators(unittest.TestCase):
         c4 = g.add_constant_probability(0.6)
         c5 = g.add_constant_probability(0.7)
         c6 = g.add_constant(23)  # NATURAL
+        c7 = g.add_constant(False)
         # test TO_REAL
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [])
@@ -48,6 +49,13 @@ class TestOperators(unittest.TestCase):
         g.add_operator(bmg.OperatorType.NEGATE, [c1])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.NEGATE, [c1, c2])
+        # test COMPLEMENT
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.COMPLEMENT, [])
+        g.add_operator(bmg.OperatorType.COMPLEMENT, [c4])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.COMPLEMENT, [c4, c4])
+        g.add_operator(bmg.OperatorType.COMPLEMENT, [c7])
         # test MULTIPLY
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.MULTIPLY, [])
@@ -107,7 +115,7 @@ class TestOperators(unittest.TestCase):
         g = bmg.Graph()
         c1 = g.add_constant_probability(0.8)
         c2 = g.add_constant_probability(0.7)
-        o1 = g.add_operator(bmg.OperatorType.NEGATE, [c1])
+        o1 = g.add_operator(bmg.OperatorType.COMPLEMENT, [c1])
         o2 = g.add_operator(bmg.OperatorType.MULTIPLY, [o1, c2])
         g.query(o2)
         samples = g.infer(2)

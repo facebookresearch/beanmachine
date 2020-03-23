@@ -65,6 +65,7 @@ enum class OperatorType {
   TO_REAL,
   TO_POS_REAL,
   TO_TENSOR,
+  COMPLEMENT,
   NEGATE,
   EXP,
   EXPM1,
