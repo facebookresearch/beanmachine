@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
-from typing import Dict, Tuple
+from typing import Dict
 
 import torch
 import torch.distributions as dist
@@ -73,7 +73,9 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                 self.world_.accept_diff()
             else:
                 self.world_.reject_diff()
-        acceptance_prob = torch.min(tensor(1.0), torch.exp(log_update))
+        acceptance_prob = torch.min(
+            tensor(1.0, dtype=log_update.dtype), torch.exp(log_update)
+        )
         return acceptance_prob
 
     def single_inference_run(self, node: RVIdentifier, proposer):

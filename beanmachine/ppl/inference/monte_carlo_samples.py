@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.abs
 
 import copy
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from beanmachine.ppl.inference.monte_carlo_samples_data import MonteCarloSamplesData
 from beanmachine.ppl.model.utils import RVIdentifier

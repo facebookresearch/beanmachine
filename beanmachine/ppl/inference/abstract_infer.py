@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import torch
 import torch.multiprocessing as mp
