@@ -34,6 +34,7 @@ PYBIND11_MODULE(graph, module) {
   py::enum_<OperatorType>(module, "OperatorType")
       .value("SAMPLE", OperatorType::SAMPLE)
       .value("TO_REAL", OperatorType::TO_REAL)
+      .value("TO_POS_REAL", OperatorType::TO_POS_REAL)
       .value("TO_TENSOR", OperatorType::TO_TENSOR)
       .value("NEGATE", OperatorType::NEGATE)
       .value("EXP", OperatorType::EXP)
@@ -91,6 +92,11 @@ PYBIND11_MODULE(graph, module) {
           "add_constant_probability",
           (uint(Graph::*)(double)) & Graph::add_constant_probability,
           "add a Node with a constant probability value",
+          py::arg("value"))
+      .def(
+          "add_constant_pos_real",
+          (uint(Graph::*)(double)) & Graph::add_constant_pos_real,
+          "add a Node with a constant positive real (>=0) value",
           py::arg("value"))
       .def(
           "add_distribution",

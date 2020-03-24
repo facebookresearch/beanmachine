@@ -9,7 +9,7 @@ from beanmachine import graph
 class TestCAVI(unittest.TestCase):
     def test_interface(self):
         g = graph.Graph()
-        c1 = g.add_constant(0.1)
+        c1 = g.add_constant_probability(0.1)
         d1 = g.add_distribution(
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c1]
         )
@@ -27,27 +27,27 @@ class TestCAVI(unittest.TestCase):
     def build_graph1(self):
         """
         o1 ~ Bernoulli( 0.1 )
-        o5 ~ Bernoulli( exp( - o1 ) )
-        infer P(o1 | o5 = True)
-        now, P(o1 = T, o5 = T) = 0.1 * exp(-1) = 0.036787944117144235
-        and, P(o1 = F, o5 = T) = 0.9 * exp(0) = 0.9
-        => P(o1 = True | o5 = True) = 0.03927030055005057
-        also P(o5 = True) = 0.9367879441171443 >= ELBO
+        o2 ~ Bernoulli( exp( - o1 ) )
+        infer P(o1 | o2 = True)
+        now, P(o1 = T, o2 = T) = 0.1 * exp(-1) = 0.036787944117144235
+        and, P(o1 = F, o2 = T) = 0.9 * exp(0) = 0.9
+        => P(o1 = True | o2 = True) = 0.03927030055005057
+        also P(o2 = True) = 0.9367879441171443 >= ELBO
         """
         g = graph.Graph()
-        c1 = g.add_constant(0.1)
+        c1 = g.add_constant_probability(0.1)
         d1 = g.add_distribution(
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c1]
         )
         o1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
-        o2 = g.add_operator(graph.OperatorType.TO_REAL, [o1])
-        o3 = g.add_operator(graph.OperatorType.NEGATE, [o2])
-        o4 = g.add_operator(graph.OperatorType.EXP, [o3])
-        d2 = g.add_distribution(
-            graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [o4]
+        c2 = g.add_constant(
+            torch.Tensor([[0.0, 1.0], [1 - math.exp(-1), math.exp(-1)]])
         )
-        o5 = g.add_operator(graph.OperatorType.SAMPLE, [d2])
-        g.observe(o5, True)
+        d2 = g.add_distribution(
+            graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c2, o1]
+        )
+        o2 = g.add_operator(graph.OperatorType.SAMPLE, [d2])
+        g.observe(o2, True)
         g.query(o1)
         return g
 
@@ -75,6 +75,8 @@ class TestCAVI(unittest.TestCase):
         Z ~ Bernoulli(1 - exp( log(0.99) + log(0.01)*X + log(0.01)*Y ))
         Note: the last line is equivalent to:
         Z ~ BernoulliNoisyOr( - ( log(0.99) + log(0.01)*X + log(0.01)*Y ) )
+        OR
+        Z ~ BernoulliNoisyOr( -log(0.99) + (-log(0.01))*X + (-log(0.01))*Y ) )
         query (X, Y) observe Z = True
 
         X  Y  P(X, Y, Z=T)  P(X, Y | Z=T)
@@ -95,28 +97,26 @@ class TestCAVI(unittest.TestCase):
         And max ELBO = log P(Z=T) - kl(.245) = -3.7867
         """
         g = graph.Graph()
-        c_prior = g.add_constant(0.01)
+        c_prior = g.add_constant_probability(0.01)
         d_prior = g.add_distribution(
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c_prior]
         )
         x = g.add_operator(graph.OperatorType.SAMPLE, [d_prior])
         y = g.add_operator(graph.OperatorType.SAMPLE, [d_prior])
-        real_x = g.add_operator(graph.OperatorType.TO_REAL, [x])
-        real_y = g.add_operator(graph.OperatorType.TO_REAL, [y])
-        c_log_pt01 = g.add_constant(math.log(0.01))
-        c_log_pt99 = g.add_constant(math.log(0.99))
+        pos_x = g.add_operator(graph.OperatorType.TO_POS_REAL, [x])
+        pos_y = g.add_operator(graph.OperatorType.TO_POS_REAL, [y])
+        c_m_log_pt01 = g.add_constant_pos_real(-math.log(0.01))
+        c_m_log_pt99 = g.add_constant_pos_real(-math.log(0.99))
         param = g.add_operator(
             graph.OperatorType.ADD,
             [
-                c_log_pt99,
-                g.add_operator(graph.OperatorType.MULTIPLY, [c_log_pt01, real_x]),
-                g.add_operator(graph.OperatorType.MULTIPLY, [c_log_pt01, real_y]),
+                c_m_log_pt99,
+                g.add_operator(graph.OperatorType.MULTIPLY, [c_m_log_pt01, pos_x]),
+                g.add_operator(graph.OperatorType.MULTIPLY, [c_m_log_pt01, pos_y]),
             ],
         )
         d_like = g.add_distribution(
-            graph.DistributionType.BERNOULLI_NOISY_OR,
-            graph.AtomicType.BOOLEAN,
-            [g.add_operator(graph.OperatorType.NEGATE, [param])],
+            graph.DistributionType.BERNOULLI_NOISY_OR, graph.AtomicType.BOOLEAN, [param]
         )
         z = g.add_operator(graph.OperatorType.SAMPLE, [d_like])
         g.observe(z, True)

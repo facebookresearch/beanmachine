@@ -12,25 +12,17 @@ BernoulliNoisyOr::BernoulliNoisyOr(
     : Distribution(graph::DistributionType::BERNOULLI, sample_type) {
   if (sample_type != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument(
-      "BernoulliNoisyOr produces boolean valued samples");
+        "BernoulliNoisyOr produces boolean valued samples");
   }
-  // a Bernoulli can only have one parent which must look like a probability
+  // a BernoulliNoisyOr can only have one parent which must be a POS_REAL (>=0)
   if (in_nodes.size() != 1) {
     throw std::invalid_argument(
         "BernoulliNoisyOr distribution must have exactly one parent");
   }
   const auto& parent0 = in_nodes[0]->value;
-  if (parent0.type != graph::AtomicType::REAL) {
+  if (parent0.type != graph::AtomicType::POS_REAL) {
     throw std::invalid_argument(
-        "BernoulliNoisyOr parent probability must be real-valued");
-  }
-  // if the parent is a constant then we can directly check the type
-  if (in_nodes[0]->node_type == graph::NodeType::CONSTANT) {
-    // the input parameter must be greater than 0
-    if (parent0._double < 0) {
-      throw std::invalid_argument(
-          "BernoulliNoisyOr parameter must be >= 0");
-    }
+        "BernoulliNoisyOr parent probability must be positive real-valued");
   }
 }
 

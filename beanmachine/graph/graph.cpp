@@ -134,7 +134,17 @@ uint Graph::add_constant(AtomicValue value) {
 }
 
 uint Graph::add_constant_probability(double value) {
+  if (value < 0 or value > 1) {
+    throw std::invalid_argument("probability must be between 0 and 1");
+  }
   return add_constant(AtomicValue(AtomicType::PROBABILITY, value));
+}
+
+uint Graph::add_constant_pos_real(double value) {
+  if (value < 0) {
+    throw std::invalid_argument("pos_real must be >=0");
+  }
+  return add_constant(AtomicValue(AtomicType::POS_REAL, value));
 }
 
 uint Graph::add_distribution(
@@ -161,7 +171,8 @@ void Graph::observe(uint node_id, bool val) {
 }
 
 void Graph::observe(uint node_id, double val) {
-  observe(node_id, AtomicValue(val));
+  Node* node = check_node(node_id, NodeType::OPERATOR);
+  observe(node_id, AtomicValue(node->value.type, val));
 }
 
 void Graph::observe(uint node_id, natural_t val) {
@@ -222,6 +233,7 @@ void Graph::collect_sample() {
         means[pos] += double(value._bool);
       }
       else if (value.type == AtomicType::REAL
+          or value.type == AtomicType::POS_REAL
           or value.type == AtomicType::PROBABILITY) {
         means[pos] += value._double;
       }

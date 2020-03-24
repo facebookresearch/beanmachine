@@ -18,16 +18,37 @@ using namespace beanmachine;
 #define LOG_ZERO_PT_1 ((double)-2.3025850929940455)
 
 TEST(testdistrib, bernoulli) {
-  auto p1 = graph::AtomicValue(0.1);
+  auto p1 = graph::AtomicValue(graph::AtomicType::PROBABILITY, 0.1);
   graph::ConstNode cnode1(p1);
+  // positive test
   distribution::Bernoulli dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
   dnode1.in_nodes.push_back(&cnode1);
   auto zero = graph::AtomicValue(false);
   auto one = graph::AtomicValue(true);
-
   EXPECT_NEAR(LOG_ZERO_PT_9, dnode1.log_prob(zero), 1e-3);
   EXPECT_NEAR(LOG_ZERO_PT_1, dnode1.log_prob(one), 1e-3);
+  // negative test for return type
+  EXPECT_THROW(distribution::Bernoulli(
+        graph::AtomicType::REAL,
+        std::vector<graph::Node*>{&cnode1}),
+      std::invalid_argument);
+  // negative tests for number of arguments
+  EXPECT_THROW(distribution::Bernoulli(
+        graph::AtomicType::BOOLEAN,
+        std::vector<graph::Node*>{}),
+      std::invalid_argument);
+  EXPECT_THROW(distribution::Bernoulli(
+        graph::AtomicType::BOOLEAN,
+        std::vector<graph::Node*>{&cnode1, &cnode1}),
+      std::invalid_argument);
+  // negative test on datatype of parents
+  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, 0.1);
+  graph::ConstNode cnode2(p2);
+  EXPECT_THROW(distribution::Bernoulli(
+        graph::AtomicType::BOOLEAN,
+        std::vector<graph::Node*>{&cnode2}),
+      std::invalid_argument);
 }
 
 TEST(testdistrib, bernoulli_noisy_or) {
@@ -37,7 +58,7 @@ TEST(testdistrib, bernoulli_noisy_or) {
   // We will use the above facts in this test
 
   // first distribution
-  auto p1 = graph::AtomicValue(1e-20);
+  auto p1 = graph::AtomicValue(graph::AtomicType::POS_REAL, 1e-20);
   graph::ConstNode cnode1(p1);
   distribution::BernoulliNoisyOr dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
@@ -49,7 +70,7 @@ TEST(testdistrib, bernoulli_noisy_or) {
   EXPECT_NEAR(-46.05, dnode1.log_prob(one), 0.01);
 
   // second disgribution
-  auto p2 = graph::AtomicValue(40.0);
+  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, 40.0);
   graph::ConstNode cnode2(p2);
   distribution::BernoulliNoisyOr dnode2(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
