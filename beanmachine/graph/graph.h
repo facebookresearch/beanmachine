@@ -104,15 +104,19 @@ class Node {
   std::vector<uint> det_anc; // deterministic (operator) ancestors
   std::vector<uint> sto_anc; // stochastic ancestors
   AtomicValue value;
+  double grad1;
+  double grad2;
   bool is_stochastic() const;
   double log_prob() const; // only valid for stochastic nodes
   Node() {}
-  explicit Node(NodeType node_type) : node_type(node_type) {}
+  explicit Node(NodeType node_type) : node_type(node_type), grad1(0), grad2(0) {}
   Node(NodeType node_type, AtomicValue value)
-      : node_type(node_type), value(value) {}
+      : node_type(node_type), value(value), grad1(0), grad2(0) {}
   // evaluate the node and store the result in `value` if appropriate
   // eval may involve sampling and that's why we need the random number engine
   virtual void eval(std::mt19937& gen) = 0;
+  // populate the grad1 and grad2 fields
+  virtual void compute_gradients() {}
   virtual ~Node() {}
 };
 
@@ -178,6 +182,19 @@ struct Graph {
       uint node_id, const std::set<uint> &support);
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
+
+  /*
+  Evaluate the `tgt_node` and compute its gradient w.r.t. source_node
+  (used for unit tests)
+  :param tgt_node: The index of the node to eval and compute grads.
+  :param src_node: The index of the node to compute the gradient w.r.t.
+  :param seed: Random number generator seed.
+  :param value: Output value of target node.
+  :param grad1: Output value of first gradient.
+  :param grad2: Output value of second gradient.
+  */
+  void eval_and_grad(
+    uint tgt_idx, uint src_idx, uint seed, AtomicValue& value, double& grad1, double& grad2);
 
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);

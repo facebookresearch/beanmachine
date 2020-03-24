@@ -51,6 +51,37 @@ std::string Graph::to_string() {
   return os.str();
 }
 
+void Graph::eval_and_grad(
+  uint tgt_idx, uint src_idx, uint seed, AtomicValue& value, double& grad1, double& grad2)
+{
+  if (src_idx >= nodes.size()) {
+    throw std::out_of_range("src_idx " + std::to_string(src_idx));
+  }
+  if (tgt_idx >= nodes.size() or tgt_idx <= src_idx) {
+    throw std::out_of_range("tgt_idx " + std::to_string(tgt_idx));
+  }
+  // initialize the gradients of the source node to get the computation started
+  Node* src_node = nodes[src_idx].get();
+  src_node->grad1 = 1;
+  src_node->grad2 = 0;
+  std::mt19937 generator(seed);
+  for (uint node_id = src_idx + 1; node_id <= tgt_idx; node_id ++) {
+    Node* node = nodes[node_id].get();
+    node->eval(generator);
+    node->compute_gradients();
+    if (node->index == tgt_idx) {
+      value = node->value;
+      grad1 = node->grad1;
+      grad2 = node->grad2;
+    }
+  }
+  // reset all the gradients including the source node
+  for (uint node_id = src_idx; node_id <= tgt_idx; node_id ++) {
+    Node* node = nodes[node_id].get();
+    node->grad1 = node->grad2 = 0;
+  }
+}
+
 std::vector<Node*> Graph::convert_parent_ids(
     const std::vector<uint>& parent_ids) const {
   // check that the parent ids are valid indices and convert them to
