@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import torch
 from beanmachine.ppl.model.utils import RVIdentifier
