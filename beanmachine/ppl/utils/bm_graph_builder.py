@@ -2,6 +2,7 @@
 # from beanmachine.graph import Graph
 """A builder for the BeanMachine Graph language"""
 
+import torch  # isort:skip  torch has to be imported before graph
 import collections.abc
 import functools
 import itertools
@@ -10,8 +11,6 @@ import operator
 import sys
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, Iterator, List
-
-import torch
 
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;

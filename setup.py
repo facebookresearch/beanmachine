@@ -90,6 +90,7 @@ setup(
         "scipy>=0.16",
         "statsmodels>=0.8.0",
         "tqdm>=4.40.2",
+        "astor>=0.7.1",
     ],
     packages=[
         "beanmachine.ppl.diagnostics",
