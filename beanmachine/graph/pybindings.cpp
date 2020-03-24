@@ -36,6 +36,7 @@ PYBIND11_MODULE(graph, module) {
       .value("TO_REAL", OperatorType::TO_REAL)
       .value("TO_POS_REAL", OperatorType::TO_POS_REAL)
       .value("TO_TENSOR", OperatorType::TO_TENSOR)
+      .value("COMPLEMENT", OperatorType::COMPLEMENT)
       .value("NEGATE", OperatorType::NEGATE)
       .value("EXP", OperatorType::EXP)
       .value("EXPM1", OperatorType::EXPM1)
