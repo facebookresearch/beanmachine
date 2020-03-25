@@ -47,7 +47,7 @@ def f(x):
         # Check that the unassigned expressions rule (unExp) works alone
         s = SingleAssignment()
         s.count = 0
-        s._rules = many(_some_top_down(first([s._handle_unassigned()])))
+        s._rules = _some_top_down(s._handle_unassigned())
         source = """
 def f(x):
     g(x)+x
