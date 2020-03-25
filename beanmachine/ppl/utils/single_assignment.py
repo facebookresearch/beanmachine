@@ -91,29 +91,30 @@ class SingleAssignment:
     def _transform_with_name(
         self,
         prefix: str,
-        value: Callable[[ast.AST], ast.AST],
-        replace: Callable[[ast.AST, ast.AST], ast.AST],
+        extract_expr: Callable[[ast.AST], ast.expr],
+        build_new_term: Callable[[ast.AST, ast.AST], ast.AST],
     ) -> Callable[[ast.AST], ListEdit]:
         def _do_it(r: ast.AST) -> ListEdit:
             id = self._unique_id(prefix)
             return ListEdit(
                 [
                     ast.Assign(
-                        targets=[ast.Name(id=id, ctx=ast.Store())], value=value(r)
+                        targets=[ast.Name(id=id, ctx=ast.Store())],
+                        value=extract_expr(r),
                     ),
-                    replace(r, ast.Name(id=id, ctx=ast.Load())),
+                    build_new_term(r, ast.Name(id=id, ctx=ast.Load())),
                 ]
             )
 
         return _do_it
 
     def _transform_expr(
-        self, prefix: str, value: Callable[[ast.AST], ast.AST]
+        self, prefix: str, extract_expr: Callable[[ast.AST], ast.expr]
     ) -> Callable[[ast.AST], ast.AST]:
         def _do_it(r: ast.AST) -> ast.AST:
             id = self._unique_id(prefix)
             return ast.Assign(
-                targets=[ast.Name(id=id, ctx=ast.Store())], value=value(r)
+                targets=[ast.Name(id=id, ctx=ast.Store())], value=extract_expr(r)
             )
 
         return _do_it
@@ -207,7 +208,9 @@ class SingleAssignment:
         return PatternRule(
             ast_return(value=_not_identifier),
             self._transform_with_name(
-                "r", lambda r: r.value, lambda r, v: ast.Return(value=v)
+                "r",
+                lambda lhs: lhs.value,
+                lambda _, new_name: ast.Return(value=new_name),
             ),
             "handle_return",
         )
@@ -217,8 +220,10 @@ class SingleAssignment:
             ast_if(test=_not_identifier),
             self._transform_with_name(
                 "r",
-                lambda r: r.test,
-                lambda r, v: ast.If(test=v, body=r.body, orelse=r.orelse),
+                lambda lhs: lhs.test,
+                lambda lhs, new_name: ast.If(
+                    test=new_name, body=lhs.body, orelse=lhs.orelse
+                ),
             ),
             "handle_if",
         )
@@ -228,9 +233,9 @@ class SingleAssignment:
             ast_for(iter=_not_identifier),
             self._transform_with_name(
                 "f",
-                lambda f: f.iter,
-                lambda f, v: ast.For(
-                    target=f.target, iter=v, body=f.body, orelse=f.orelse
+                lambda lhs: lhs.iter,
+                lambda lhs, new_name: ast.For(
+                    target=lhs.target, iter=new_name, body=lhs.body, orelse=lhs.orelse
                 ),
             ),
             "handle_for",
@@ -243,10 +248,10 @@ class SingleAssignment:
                     assign(value=unaryop(operand=_not_identifier, op=_unops)),
                     self._transform_with_name(
                         "a",
-                        lambda a: a.value.operand,
-                        lambda a, v: ast.Assign(
-                            targets=a.targets,
-                            value=ast.UnaryOp(operand=v, op=a.value.op),
+                        lambda lhs: lhs.value.operand,
+                        lambda lhs, new_name: ast.Assign(
+                            targets=lhs.targets,
+                            value=ast.UnaryOp(operand=new_name, op=lhs.value.op),
                         ),
                     ),
                 ),
@@ -255,11 +260,11 @@ class SingleAssignment:
                     assign(value=subscript(value=_not_identifier)),
                     self._transform_with_name(
                         "a",
-                        lambda a: a.value.value,
-                        lambda a, v: ast.Assign(
-                            targets=a.targets,
+                        lambda lhs: lhs.value.value,
+                        lambda lhs, new_name: ast.Assign(
+                            targets=lhs.targets,
                             value=ast.Subscript(
-                                value=v, slice=a.value.slice, ctx=a.value.ctx
+                                value=new_name, slice=lhs.value.slice, ctx=lhs.value.ctx
                             ),
                         ),
                     ),
@@ -270,13 +275,13 @@ class SingleAssignment:
                     assign(value=subscript(slice=index(value=_not_identifier))),
                     self._transform_with_name(
                         "a",
-                        lambda a: a.value.slice.value,
-                        lambda a, v: ast.Assign(
-                            targets=a.targets,
+                        lambda lhs: lhs.value.slice.value,
+                        lambda lhs, new_name: ast.Assign(
+                            targets=lhs.targets,
                             value=ast.Subscript(
-                                value=a.value.value,
-                                slice=ast.Index(value=v),
-                                ctx=a.value.ctx,
+                                value=lhs.value.value,
+                                slice=ast.Index(value=new_name),
+                                ctx=lhs.value.ctx,
                             ),
                         ),
                     ),
@@ -285,10 +290,12 @@ class SingleAssignment:
                     assign(value=binop(left=_not_identifier, op=_binops)),
                     self._transform_with_name(
                         "a",
-                        lambda a: a.value.left,
-                        lambda a, v: ast.Assign(
-                            targets=a.targets,
-                            value=ast.BinOp(left=v, op=a.value.op, right=a.value.right),
+                        lambda lhs: lhs.value.left,
+                        lambda lhs, new_name: ast.Assign(
+                            targets=lhs.targets,
+                            value=ast.BinOp(
+                                left=new_name, op=lhs.value.op, right=lhs.value.right
+                            ),
                         ),
                     ),
                 ),
@@ -296,10 +303,12 @@ class SingleAssignment:
                     assign(value=binop(right=_not_identifier, op=_binops)),
                     self._transform_with_name(
                         "a",
-                        lambda a: a.value.right,
-                        lambda a, v: ast.Assign(
-                            targets=a.targets,
-                            value=ast.BinOp(left=a.value.left, op=a.value.op, right=v),
+                        lambda lhs: lhs.value.right,
+                        lambda lhs, new_name: ast.Assign(
+                            targets=lhs.targets,
+                            value=ast.BinOp(
+                                left=lhs.value.left, op=lhs.value.op, right=new_name
+                            ),
                         ),
                     ),
                 ),
@@ -308,11 +317,13 @@ class SingleAssignment:
                     assign(value=call(func=_not_identifier)),
                     self._transform_with_name(
                         "a",
-                        lambda a: a.value.func,
-                        lambda a, v: ast.Assign(
-                            targets=a.targets,
+                        lambda lhs: lhs.value.func,
+                        lambda lhs, new_name: ast.Assign(
+                            targets=lhs.targets,
                             value=ast.Call(
-                                func=v, args=a.value.args, keywords=a.value.keywords
+                                func=new_name,
+                                args=lhs.value.args,
+                                keywords=lhs.value.keywords,
                             ),
                         ),
                     ),
@@ -342,11 +353,11 @@ class SingleAssignment:
                     assign(value=attribute(value=_not_identifier)),
                     self._transform_with_name(
                         "a",
-                        lambda a: a.value.value,
-                        lambda a, v: ast.Assign(
-                            targets=a.targets,
+                        lambda lhs: lhs.value.value,
+                        lambda lhs, new_name: ast.Assign(
+                            targets=lhs.targets,
                             value=ast.Attribute(
-                                value=v, attr=a.value.attr, ctx=a.value.ctx
+                                value=new_name, attr=lhs.value.attr, ctx=lhs.value.ctx
                             ),
                         ),
                     ),
