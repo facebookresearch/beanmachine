@@ -88,7 +88,7 @@ class SingleAssignment:
         self._count = self._count + 1
         return f"{prefix}{self._count}"
 
-    def _fix_it(
+    def _transform_with_name(
         self,
         prefix: str,
         value: Callable[[ast.AST], ast.AST],
@@ -107,7 +107,7 @@ class SingleAssignment:
 
         return _do_it
 
-    def _fix_expr(
+    def _transform_expr(
         self, prefix: str, value: Callable[[ast.AST], ast.AST]
     ) -> Callable[[ast.AST], ast.AST]:
         def _do_it(r: ast.AST) -> ast.AST:
@@ -148,7 +148,7 @@ class SingleAssignment:
         )
         return assignment, rewritten
 
-    def _fix_call(self) -> Callable[[ast.Assign], ListEdit]:
+    def _transform_call(self) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
             c = a.value
             assert isinstance(c, ast.Call)
@@ -165,7 +165,7 @@ class SingleAssignment:
 
         return _do_it
 
-    def _fix_call_keyword(self) -> Callable[[ast.Assign], ListEdit]:
+    def _transform_call_keyword(self) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
             c = a.value
             assert isinstance(c, ast.Call)
@@ -182,7 +182,7 @@ class SingleAssignment:
 
         return _do_it
 
-    def _fix_list(self) -> Callable[[ast.Assign], ListEdit]:
+    def _transform_list(self) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
             c = a.value
             assert isinstance(c, ast.List)
@@ -200,20 +200,22 @@ class SingleAssignment:
 
     def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions
         return PatternRule(
-            expr(), self._fix_expr("u", lambda u: u.value), "handle_unassigned"
+            expr(), self._transform_expr("u", lambda u: u.value), "handle_unassigned"
         )
 
     def _handle_return(self) -> Rule:
         return PatternRule(
             ast_return(value=_not_identifier),
-            self._fix_it("r", lambda r: r.value, lambda r, v: ast.Return(value=v)),
+            self._transform_with_name(
+                "r", lambda r: r.value, lambda r, v: ast.Return(value=v)
+            ),
             "handle_return",
         )
 
     def _handle_if(self) -> Rule:
         return PatternRule(
             ast_if(test=_not_identifier),
-            self._fix_it(
+            self._transform_with_name(
                 "r",
                 lambda r: r.test,
                 lambda r, v: ast.If(test=v, body=r.body, orelse=r.orelse),
@@ -224,7 +226,7 @@ class SingleAssignment:
     def _handle_for(self) -> Rule:
         return PatternRule(
             ast_for(iter=_not_identifier),
-            self._fix_it(
+            self._transform_with_name(
                 "f",
                 lambda f: f.iter,
                 lambda f, v: ast.For(
@@ -239,7 +241,7 @@ class SingleAssignment:
             [
                 (
                     assign(value=unaryop(operand=_not_identifier, op=_unops)),
-                    self._fix_it(
+                    self._transform_with_name(
                         "a",
                         lambda a: a.value.operand,
                         lambda a, v: ast.Assign(
@@ -251,7 +253,7 @@ class SingleAssignment:
                 # a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
                 (
                     assign(value=subscript(value=_not_identifier)),
-                    self._fix_it(
+                    self._transform_with_name(
                         "a",
                         lambda a: a.value.value,
                         lambda a, v: ast.Assign(
@@ -266,7 +268,7 @@ class SingleAssignment:
                 # a = b[d + e] becomes t = d + e, a = b[t]
                 (
                     assign(value=subscript(slice=index(value=_not_identifier))),
-                    self._fix_it(
+                    self._transform_with_name(
                         "a",
                         lambda a: a.value.slice.value,
                         lambda a, v: ast.Assign(
@@ -281,7 +283,7 @@ class SingleAssignment:
                 ),
                 (
                     assign(value=binop(left=_not_identifier, op=_binops)),
-                    self._fix_it(
+                    self._transform_with_name(
                         "a",
                         lambda a: a.value.left,
                         lambda a, v: ast.Assign(
@@ -292,7 +294,7 @@ class SingleAssignment:
                 ),
                 (
                     assign(value=binop(right=_not_identifier, op=_binops)),
-                    self._fix_it(
+                    self._transform_with_name(
                         "a",
                         lambda a: a.value.right,
                         lambda a, v: ast.Assign(
@@ -304,7 +306,7 @@ class SingleAssignment:
                 # If we have t = foo.bar(...) rewrite that as t1 = foo.bar, t = t1(...)
                 (
                     assign(value=call(func=_not_identifier)),
-                    self._fix_it(
+                    self._transform_with_name(
                         "a",
                         lambda a: a.value.func,
                         lambda a, v: ast.Assign(
@@ -319,7 +321,7 @@ class SingleAssignment:
                 # t1 = x + y, t2 = 2, t = foo(t1, t2).
                 (
                     assign(value=call(func=name(), args=_list_not_identifier)),
-                    self._fix_call(),
+                    self._transform_call(),
                 ),
                 # If we have t = foo(a, b, z=123) rewrite that to
                 # t1 = 123, t = foo(a, b, t1),
@@ -333,12 +335,12 @@ class SingleAssignment:
                             keywords=_not_identifier_keywords,
                         )
                     ),
-                    self._fix_call_keyword(),
+                    self._transform_call_keyword(),
                 ),
                 # If we have t = (x + y).z, rewrite that as t1 = x + y, t = t1.z
                 (
                     assign(value=attribute(value=_not_identifier)),
-                    self._fix_it(
+                    self._transform_with_name(
                         "a",
                         lambda a: a.value.value,
                         lambda a, v: ast.Assign(
@@ -349,7 +351,10 @@ class SingleAssignment:
                         ),
                     ),
                 ),
-                (assign(value=ast_list(elts=_list_not_identifier)), self._fix_list()),
+                (
+                    assign(value=ast_list(elts=_list_not_identifier)),
+                    self._transform_list(),
+                ),
             ],
             "handle_assign",
         )
