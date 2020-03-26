@@ -22,6 +22,16 @@ double Node::log_prob() const {
       ->log_prob(value);
 }
 
+void Node::gradient_log_prob(double& first_grad, double& second_grad) const {
+  assert(is_stochastic());
+  const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
+  if (grad1 != 0.0) {
+    dist->gradient_log_prob_value(value, first_grad, second_grad);
+  } else {
+    dist->gradient_log_prob_param(value, first_grad, second_grad);
+  }
+}
+
 std::string Graph::to_string() {
   std::ostringstream os;
   for (auto const& node : nodes) {
@@ -77,6 +87,36 @@ void Graph::eval_and_grad(
   }
   // reset all the gradients including the source node
   for (uint node_id = src_idx; node_id <= tgt_idx; node_id ++) {
+    Node* node = nodes[node_id].get();
+    node->grad1 = node->grad2 = 0;
+  }
+}
+
+void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
+  Node* src_node = check_node(src_idx, NodeType::OPERATOR);
+  if (not src_node->is_stochastic()) {
+    throw std::runtime_error("gradient_log_prob only supported on stochastic nodes");
+  }
+  // start gradient
+  src_node->grad1 = 1;
+  src_node->grad2 = 0;
+  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
+  auto supp = compute_support();
+  std::vector<uint> det_nodes;
+  std::vector<uint> sto_nodes;
+  std::tie(det_nodes, sto_nodes) = compute_descendants(src_idx, supp);
+  for (auto node_id : det_nodes) {
+    Node* node = nodes[node_id].get();
+    node->eval(generator);
+    node->compute_gradients();
+  }
+  grad1 = grad2 = 0;
+  for (auto node_id : sto_nodes) {
+    Node* node = nodes[node_id].get();
+    node->gradient_log_prob(grad1, grad2);
+  }
+  src_node->grad1 = 0; // end gradient computation reset grads
+  for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     node->grad1 = node->grad2 = 0;
   }

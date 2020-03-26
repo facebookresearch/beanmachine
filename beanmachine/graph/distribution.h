@@ -23,6 +23,11 @@ class Distribution : public graph::Node {
         "internal error: eval() is not implemented for distribution");
   }
   virtual double log_prob(const graph::AtomicValue& value) const = 0;
+  // these function add the gradients to the passed in gradients
+  virtual void gradient_log_prob_value(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const = 0;
+  virtual void gradient_log_prob_param(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const = 0;
   graph::DistributionType dist_type;
   graph::AtomicType sample_type;
 };
