@@ -145,11 +145,10 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
                 acceptance_probability = self.single_inference_run(node, proposer)
 
-                node_var = self.world_.get_node_in_world_raise_error(node, False)
                 if iteration < num_adapt_steps:
                     proposer.do_adaptation(
                         node,
-                        node_var,
+                        self.world_,
                         acceptance_probability,
                         iteration,
                         num_adapt_steps,
