@@ -110,6 +110,21 @@ class SingleAssignment:
 
         return _do_it
 
+    def _transform_with_assign(
+        self,
+        prefix: str,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        build_new_term: Callable[[ast.AST, ast.AST, ast.AST], ListEdit],
+    ) -> Callable[[ast.AST], ListEdit]:
+        def _do_it(r: ast.AST) -> ListEdit:
+            id = self._unique_id(prefix)
+            new_assign = ast.Assign(
+                targets=[ast.Name(id=id, ctx=ast.Store())], value=extract_expr(r)
+            )
+            return build_new_term(r, ast.Name(id=id, ctx=ast.Load()), new_assign)
+
+        return _do_it
+
     def _transform_expr(
         self, prefix: str, extract_expr: Callable[[ast.AST], ast.expr]
     ) -> Callable[[ast.AST], ast.AST]:
@@ -206,6 +221,34 @@ class SingleAssignment:
             ast_while(test=ast_true),
             lambda lhs: ListEdit([ast.While(test=lhs.test, body=lhs.body, orelse=[])]),
             "handle_while_True",
+        )
+
+    def _handle_while_not_True(self) -> Rule:
+        return PatternRule(
+            ast_while(test=negate(ast_true)),
+            self._transform_with_assign(
+                "w",
+                lambda lhs: lhs.test,
+                lambda lhs, new_name, new_assign: ListEdit(
+                    [
+                        ast.While(
+                            # TODO test=ast.Name(id="True", ctx=ast.Load()),
+                            test=ast.NameConstant(value=True),
+                            body=[
+                                new_assign,
+                                ast.If(test=new_name, body=lhs.body, orelse=[]),
+                            ],
+                            orelse=[],
+                        ),
+                        ast.If(
+                            test=ast.UnaryOp(op=ast.Not(), operand=new_name),
+                            body=lhs.orelse,
+                            orelse=[],
+                        ),
+                    ]
+                ),
+            ),
+            "handle_while_not_True",
         )
 
     def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions

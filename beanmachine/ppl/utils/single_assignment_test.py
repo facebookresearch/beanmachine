@@ -220,6 +220,37 @@ def f(x):
         result = s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
+        # Check that while_not_True rule works (alone) on simple cases
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = _some_top_down(s._handle_while_not_True())
+        source = """
+def f(x):
+    while not(True):
+        x=x+1
+    else:
+        x=x-1
+"""
+        expected = """
+def f(x):
+    while True:
+        w1 = False
+        if w1:
+            x = x + 1
+    if not w1:
+        x = x - 1
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Check that the while rewrite reaches normal form
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = many(_some_top_down(s._handle_while_not_True()))
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
