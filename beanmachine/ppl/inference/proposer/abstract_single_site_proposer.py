@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Tuple
 
 from beanmachine.ppl.model.utils import RVIdentifier
-from beanmachine.ppl.world import Variable, World
+from beanmachine.ppl.world import World
 from torch import Tensor
 
 
@@ -47,8 +47,8 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
     def do_adaptation(
         self,
         node: RVIdentifier,
-        node_var: Variable,
-        node_acceptance_results: Tensor,
+        world: World,
+        acceptance_probability: Tensor,
         iteration_number: int,
         num_adapt_steps: int,
     ) -> None:
@@ -57,9 +57,9 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         the beginning of the chain.
 
         :param node: the node for which we have already proposed a new value for.
-        :param node_var: the Variable object associated with node.
-        :param node_acceptance_results: the boolean values of acceptances for
-         values collected so far within _infer().
+        :param world: the world in which we have already proposed a new value
+        for node.
+        :param acceptance_probability: the acceptance probability of the previous move.
         :param iteration_number: The current iteration of inference
         :param num_adapt_steps: The number of inference iterations for adaptation.
         :returns: Nothing.
