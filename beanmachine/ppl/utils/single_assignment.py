@@ -11,6 +11,8 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_if,
     ast_list,
     ast_return,
+    ast_true,
+    ast_while,
     attribute,
     binop,
     call,
@@ -198,6 +200,13 @@ class SingleAssignment:
             )
 
         return _do_it
+
+    def _handle_while_True(self) -> Rule:
+        return PatternRule(
+            ast_while(test=ast_true),
+            lambda lhs: ListEdit([ast.While(test=lhs.test, body=lhs.body, orelse=[])]),
+            "handle_while_True",
+        )
 
     def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions
         return PatternRule(

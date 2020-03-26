@@ -163,6 +163,14 @@ def expr(value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Expr, {"value": value})
 
 
+def ast_while(
+    test: Pattern = _any, body: Pattern = _any, orelse: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.While, {"test": test, "body": body, "orelse": orelse}
+    )
+
+
 def ast_for(
     target: Pattern = _any,
     iter: Pattern = _any,
