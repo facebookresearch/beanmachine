@@ -26,7 +26,6 @@ from beanmachine.ppl.utils.ast_patterns import (
     unaryop,
 )
 from beanmachine.ppl.utils.patterns import (
-    AtomicPattern,
     ListAll,
     ListAny,
     Pattern,
