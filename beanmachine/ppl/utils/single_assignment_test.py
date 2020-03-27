@@ -200,26 +200,6 @@ def f(x):
         result = s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
-        # Check that while_True rule works (alone) on simple cases
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = _some_top_down(s._handle_while_True())
-        source = """
-def f(x):
-    while True:
-        x=x+1
-    else:
-        x=x-1
-"""
-        expected = """
-def f(x):
-    while True:
-        x = x + 1
-"""
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
-
         # Check that while_not_True rule works (alone) on simple cases
         s = SingleAssignment()
         s.count = 0
@@ -244,10 +224,35 @@ def f(x):
         result = s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
-        # Check that the while rewrite reaches normal form
+        # Check that the while_not_True rewrite reaches normal form
         s = SingleAssignment()
         s.count = 0
         s._rules = many(_some_top_down(s._handle_while_not_True()))
+
+        # Check that while_True rule works (alone) on simple cases
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = _some_top_down(s._handle_while_True())
+        source = """
+def f(x):
+    while True:
+        x=x+1
+    else:
+        x=x-1
+"""
+        expected = """
+def f(x):
+    while True:
+        x = x + 1
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Check that while_True rule, alone, on simple cases, reaches a normal form
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = many(_some_top_down(s._handle_while_True()))
         result = s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 

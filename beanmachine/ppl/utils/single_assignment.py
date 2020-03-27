@@ -26,6 +26,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     unaryop,
 )
 from beanmachine.ppl.utils.patterns import (
+    AtomicPattern,
     ListAll,
     ListAny,
     Pattern,
@@ -218,7 +219,7 @@ class SingleAssignment:
 
     def _handle_while_True(self) -> Rule:
         return PatternRule(
-            ast_while(test=ast_true),
+            ast_while(test=ast_true, orelse=negate([])),
             lambda lhs: ListEdit([ast.While(test=lhs.test, body=lhs.body, orelse=[])]),
             "handle_while_True",
         )
