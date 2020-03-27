@@ -251,6 +251,9 @@ class SingleAssignment:
             "handle_while_not_True",
         )
 
+    def _handle_while(self) -> Rule:
+        return first([self._handle_while_True(), self._handle_while_not_True()])
+
     def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions
         return PatternRule(
             expr(), self._transform_expr("u", lambda u: u.value), "handle_unassigned"

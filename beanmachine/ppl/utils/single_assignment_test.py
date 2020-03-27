@@ -255,6 +255,44 @@ def f(x):
         s._rules = many(_some_top_down(s._handle_while_True()))
         result = s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        # Check that (combined) while rule works (alone) on simple cases
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = _some_top_down(s._handle_while())
+        source = """
+def f(x):
+    while not(True):
+        x=x+1
+    else:
+        x=x-1
+    while True:
+        y=y+1
+    else:
+        y=y-1
+
+"""
+        expected = """
+def f(x):
+    while True:
+        w1 = False
+        if w1:
+            x = x + 1
+    if not w1:
+        x = x - 1
+    while True:
+        y = y + 1
+"""
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        # Extra check: Make sure they are idempotent
+        s = SingleAssignment()
+        s.count = 0
+        s._rules = many(_some_top_down(s._handle_while()))
+        m = ast.parse(source)
+        result = s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
