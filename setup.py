@@ -105,8 +105,8 @@ setup(
         CppExtension(
             name="beanmachine.graph",
             sources=list(
-                set(glob("beanmachine/graph/*.cpp"))
-                - set(glob("beanmachine/graph/*_test.cpp"))
+                set(glob("beanmachine/graph/**/*.cpp", recursive=True))
+                - set(glob("beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
             include_dirs=["."],
             extra_compile_args=EXTRA_COMPILE_ARGS,

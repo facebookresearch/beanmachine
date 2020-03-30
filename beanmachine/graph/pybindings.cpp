@@ -57,7 +57,8 @@ PYBIND11_MODULE(graph, module) {
 
   py::enum_<InferenceType>(module, "InferenceType")
       .value("REJECTION", InferenceType::REJECTION)
-      .value("GIBBS", InferenceType::GIBBS);
+      .value("GIBBS", InferenceType::GIBBS)
+      .value("NMC", InferenceType::NMC);
 
   py::class_<Node>(module, "Node");
 

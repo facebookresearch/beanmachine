@@ -53,12 +53,13 @@ TEST(testdistrib, bernoulli) {
 
 TEST(testdistrib, bernoulli_noisy_or) {
   // Define log1mexp(x) = log(1 - exp(-x))
-  // then log1mexp(1e-20) = -46.051701859880914
+  // then log1mexp(1e-10) = -23.02585084720009
   // and log1mexp(40) = -4.248354255291589e-18
   // We will use the above facts in this test
 
   // first distribution
-  auto p1 = graph::AtomicValue(graph::AtomicType::POS_REAL, 1e-20);
+  const double small_value = 1e-10;
+  auto p1 = graph::AtomicValue(graph::AtomicType::POS_REAL, small_value);
   graph::ConstNode cnode1(p1);
   distribution::BernoulliNoisyOr dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
@@ -66,17 +67,18 @@ TEST(testdistrib, bernoulli_noisy_or) {
   auto zero = graph::AtomicValue(false);
   auto one = graph::AtomicValue(true);
 
-  EXPECT_EQ(-1e-20, dnode1.log_prob(zero));
-  EXPECT_NEAR(-46.05, dnode1.log_prob(one), 0.01);
+  EXPECT_EQ(-small_value, dnode1.log_prob(zero));
+  EXPECT_NEAR(-23.02, dnode1.log_prob(one), 0.01);
 
-  // second disgribution
-  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, 40.0);
+  // second distribution
+  const double large_value = 40.0;
+  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, large_value);
   graph::ConstNode cnode2(p2);
   distribution::BernoulliNoisyOr dnode2(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
   dnode2.in_nodes.push_back(&cnode2);
 
-  EXPECT_EQ(-40, dnode2.log_prob(zero));
+  EXPECT_EQ(-large_value, dnode2.log_prob(zero));
   EXPECT_NEAR(-4.248e-18, dnode2.log_prob(one), 0.001e-18);
 }
 
@@ -105,8 +107,8 @@ TEST(testdistrib, tabular) {
 }
 
 TEST(testdistrib, beta) {
-  auto a = graph::AtomicValue(1.1);
-  auto b = graph::AtomicValue(5.0);
+  auto a = graph::AtomicValue(graph::AtomicType::POS_REAL, 1.1);
+  auto b = graph::AtomicValue(graph::AtomicType::POS_REAL, 5.0);
   graph::ConstNode cnode_a(a);
   graph::ConstNode cnode_b(b);
   distribution::Beta dnode1(

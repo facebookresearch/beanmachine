@@ -17,6 +17,8 @@
 namespace beanmachine {
 namespace graph {
 
+const double PRECISION = 1e-10; // minimum precision of values
+
 enum class AtomicType {
   UNKNOWN = 0,
   BOOLEAN = 1,
@@ -43,7 +45,7 @@ class AtomicValue {
   explicit AtomicValue(natural_t value) : type(AtomicType::NATURAL), _natural(value) {}
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
-  AtomicValue(AtomicType type, double value) : type(type), _double(value) {}
+  AtomicValue(AtomicType type, double value);
   bool operator==(const AtomicValue& other) const {
     return type == other.type and
         ((type == AtomicType::BOOLEAN and _bool == other._bool) or
@@ -90,7 +92,7 @@ enum class NodeType {
   MAX
 };
 
-enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS };
+enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
 
 enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN};
 
@@ -227,6 +229,7 @@ struct Graph {
   void collect_sample();
   void rejection(uint num_samples, std::mt19937& gen);
   void gibbs(uint num_samples, std::mt19937& gen);
+  void nmc(uint num_samples, std::mt19937& gen);
   void cavi(
     uint num_iters, uint steps_per_iter, std::mt19937& gen, uint elbo_samples);
 };
