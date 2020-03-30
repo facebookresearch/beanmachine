@@ -4,12 +4,12 @@
 #include <gtest/gtest.h>
 #include <torch/torch.h>
 
-#include "beanmachine/graph/bernoulli.h"
-#include "beanmachine/graph/bernoulli_noisy_or.h"
-#include "beanmachine/graph/beta.h"
-#include "beanmachine/graph/binomial.h"
+#include "beanmachine/graph/distribution/bernoulli.h"
+#include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
+#include "beanmachine/graph/distribution/beta.h"
+#include "beanmachine/graph/distribution/binomial.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/tabular.h"
+#include "beanmachine/graph/distribution/tabular.h"
 
 
 using namespace beanmachine;

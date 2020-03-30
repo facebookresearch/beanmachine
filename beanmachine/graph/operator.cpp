@@ -2,7 +2,7 @@
 #include <cmath>
 
 #include "beanmachine/graph/binaryop.h"
-#include "beanmachine/graph/distribution.h"
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/operator.h"
 #include "beanmachine/graph/unaryop.h"
 

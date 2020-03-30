@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include "beanmachine/graph/beta.h"
+#include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {

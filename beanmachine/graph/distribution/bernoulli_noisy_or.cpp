@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include "beanmachine/graph/bernoulli_noisy_or.h"
+#include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
 
 namespace beanmachine {
 namespace distribution {
