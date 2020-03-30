@@ -52,5 +52,33 @@ double Binomial::log_prob(const graph::AtomicValue& value) const {
   return ret_val;
 }
 
+// log_prob is k log(p) + (n-k) log(1-p) as a function of k
+// grad1 is  (log(p) - log(1-p))
+// grad2 is  0
+void Binomial::gradient_log_prob_value(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+  // nothing to do here since the value is a natural number and we can't
+  // compute gradients w.r.t. naturals
+  double p = in_nodes[1]->value._double;
+  grad1 += std::log(p) - std::log(1-p);
+  // grad2 += 0;
+}
+
+// log_prob is k log(p) + (n-k) log(1-p) as a function of p
+// grad1 is  (k/p) * p' - ((n-k) / (1-p)) * p'
+// grad2 is -(k/p^2) * p'^2 + (k/p) * p'' - ((n-k)/(1-p)^2) * p'^2 - ((n-k)/(1-p)) * p''
+void Binomial::gradient_log_prob_param(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+  double n = (double) in_nodes[0]->value._natural;
+  double p = in_nodes[1]->value._double;
+  double k = (double) value._natural;
+  // first compute gradients w.r.t. p
+  double grad_p = (k / p) - (n - k) / (1 - p);
+  double grad2_p2 = (-k / (p * p)) - (n - k) / ((1 - p) * (1 - p));
+  grad1 += grad_p * in_nodes[1]->grad1;
+  grad2 += grad2_p2 * in_nodes[1]->grad1 * in_nodes[1]->grad1
+    + grad_p * in_nodes[1]->grad2;
+}
+
 } // namespace distribution
 } // namespace beanmachine

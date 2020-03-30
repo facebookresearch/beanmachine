@@ -43,5 +43,44 @@ double Beta::log_prob(const graph::AtomicValue& value) const {
   return ret_val;
 }
 
+// Note log_prob(x | a, b) = (a-1) log(x) + (b-1) log(1-x) + log G(a+b) - log G(a) - log G(b)
+// grad1 w.r.t. x =  (a-1) / x - (b-1) / (1-x)
+// grad2 w.r.t. x = - (a-1) / x^2 - (b-1) / (1-x)^2
+// grad1 w.r.t. params = (log(x) + digamma(a+b) - digamma(a)) a'
+//                        + (log(1-x) + digamma(a+b) - digamma(b)) b'
+// grad2 w.r.t. params =
+//   (polygamma(1, a+b) - polygamma(1, a)) a'^2 + (log(x) + digamma(a+b) - digamma(a)) a''
+//   (polygamma(1, a+b) - polygamma(1, b)) b'^2 + (log(1-x) + digamma(a+b) - digamma(b)) b''
+
+void Beta::gradient_log_prob_value(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  grad1 += (param_a - 1) / value._double - (param_b - 1) / (1 - value._double);
+  grad2 += - (param_a - 1) / (value._double * value._double)
+    - (param_b - 1) / ((1 - value._double) * (1 - value._double));
+}
+
+void Beta::gradient_log_prob_param(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  // first compute gradients w.r.t. a and b
+  double grad_a = std::log(value._double)
+    + torch::scalar_tensor(param_a + param_b).digamma().item<double>()
+    - torch::scalar_tensor(param_a).digamma().item<double>();
+  double grad_b = std::log(1 - value._double)
+    + torch::scalar_tensor(param_a + param_b).digamma().item<double>()
+    - torch::scalar_tensor(param_b).digamma().item<double>();
+  double grad2_a2 = torch::scalar_tensor(param_a + param_b).polygamma(1).item<double>()
+    - torch::scalar_tensor(param_a).polygamma(1).item<double>();
+  double grad2_b2 = torch::scalar_tensor(param_a + param_b).polygamma(1).item<double>()
+    - torch::scalar_tensor(param_b).polygamma(1).item<double>();
+  grad1 += grad_a * in_nodes[0]->grad1 + grad_b * in_nodes[1]->grad1;
+  grad2 +=  grad_a * in_nodes[0]->grad2 + grad_b * in_nodes[1]->grad2
+    + grad2_a2 * in_nodes[0]->grad1 * in_nodes[0]->grad1
+    + grad2_b2 * in_nodes[1]->grad1 * in_nodes[1]->grad1;
+}
+
 } // namespace distribution
 } // namespace beanmachine
