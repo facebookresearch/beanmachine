@@ -20,7 +20,15 @@ from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli, Beta, Categorical, Dirichlet, Normal, Uniform
+from torch.distributions import (
+    Bernoulli,
+    Beta,
+    Categorical,
+    Dirichlet,
+    Normal,
+    StudentT,
+    Uniform,
+)
 
 
 def prod(x):
@@ -635,6 +643,71 @@ class NormalNode(DistributionNode):
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a normal.
         raise ValueError(f"Normal distribution does not have finite support.")
+
+
+class StudentTNode(DistributionNode):
+    edges = ["df", "loc", "scale"]
+
+    def __init__(self, df: BMGNode, loc: BMGNode, scale: BMGNode):
+        DistributionNode.__init__(self, [df, loc, scale])
+
+    def df(self) -> BMGNode:
+        return self.children[0]
+
+    def loc(self) -> BMGNode:
+        return self.children[1]
+
+    def scale(self) -> BMGNode:
+        return self.children[2]
+
+    # TODO: Do we need a generic type for "distribution of X"?
+    def node_type(self) -> Any:
+        return StudentT
+
+    def sample_type(self) -> Any:
+        return self.df().node_type()
+
+    def size(self) -> torch.Size:
+        return self.df().size()
+
+    def label(self) -> str:
+        return "StudentT"
+
+    def __str__(self) -> str:
+        return f"StudentT({str(self.df())},{str(self.loc())},{str(self.scale())})"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            # TODO: Fix this when we add the node type to BMG
+            DistributionType.BERNOULLI,
+            AtomicType.BOOLEAN,
+            [d[self.df()]],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.low()]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.low()]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a student t.
+        raise ValueError(f"StudentT distribution does not have finite support.")
 
 
 class UniformNode(DistributionNode):
@@ -1280,6 +1353,7 @@ class BMGraphBuilder:
             Categorical: self.handle_categorical,
             Dirichlet: self.handle_dirichlet,
             Normal: self.handle_normal,
+            StudentT: self.handle_studentt,
             Uniform: self.handle_uniform,
         }
 
@@ -1401,6 +1475,23 @@ class BMGraphBuilder:
         if not isinstance(concentration, BMGNode):
             concentration = self.add_constant(concentration)
         return self.add_dirichlet(concentration)
+
+    @memoize
+    def add_studentt(self, df: BMGNode, loc: BMGNode, scale: BMGNode) -> StudentTNode:
+        node = StudentTNode(df, loc, scale)
+        self.add_node(node)
+        return node
+
+    def handle_studentt(
+        self, df: Any, loc: Any = 0.0, scale: Any = 1.0, validate_args=None
+    ) -> StudentTNode:
+        if not isinstance(df, BMGNode):
+            df = self.add_constant(df)
+        if not isinstance(loc, BMGNode):
+            loc = self.add_constant(loc)
+        if not isinstance(scale, BMGNode):
+            scale = self.add_constant(scale)
+        return self.add_studentt(df, loc, scale)
 
     @memoize
     def add_uniform(self, low: BMGNode, high: BMGNode) -> UniformNode:
@@ -1736,6 +1827,9 @@ class BMGraphBuilder:
             return self.add_sample(b)
         if isinstance(operand, Normal):
             b = self.handle_normal(operand.mean, operand.stddev)
+            return self.add_sample(b)
+        if isinstance(operand, StudentT):
+            b = self.handle_studentt(operand.df, operand.loc, operand.scale)
             return self.add_sample(b)
         if isinstance(operand, Uniform):
             b = self.handle_uniform(operand.low, operand.high)

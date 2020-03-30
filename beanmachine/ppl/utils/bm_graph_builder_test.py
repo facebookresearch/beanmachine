@@ -1478,3 +1478,26 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_studentt(self) -> None:
+        bmg = BMGraphBuilder()
+        df = bmg.add_constant(3.0)
+        loc = bmg.add_constant(2.0)
+        scale = bmg.add_constant(1.0)
+        d = bmg.add_studentt(df, loc, scale)
+        bmg.add_sample(d)
+        observed = bmg.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label=3.0];
+  N1[label=2.0];
+  N2[label=1.0];
+  N3[label=StudentT];
+  N4[label=Sample];
+  N3 -> N0[label=df];
+  N3 -> N1[label=loc];
+  N3 -> N2[label=scale];
+  N4 -> N3[label=operand];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
