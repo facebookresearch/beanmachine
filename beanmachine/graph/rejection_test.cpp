@@ -10,8 +10,8 @@ using namespace beanmachine::graph;
 
 TEST(testrejection, beta_bernoulli) {
   Graph g;
-  uint a = g.add_constant(2.0);
-  uint b = g.add_constant(3.0);
+  uint a = g.add_constant_pos_real(2.0);
+  uint b = g.add_constant_pos_real(3.0);
   uint prior = g.add_distribution(
       DistributionType::BETA,
       AtomicType::PROBABILITY,
