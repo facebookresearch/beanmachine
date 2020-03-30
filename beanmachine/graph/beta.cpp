@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "beanmachine/graph/beta.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -18,20 +19,17 @@ Beta::Beta(
     throw std::invalid_argument(
         "Beta distribution must have exactly two parents");
   }
-  if (in_nodes[0]->value.type != graph::AtomicType::REAL
-      or in_nodes[1]->value.type != graph::AtomicType::REAL) {
-    throw std::invalid_argument("Beta parents must be real-valued");
+  if (in_nodes[0]->value.type != graph::AtomicType::POS_REAL
+      or in_nodes[1]->value.type != graph::AtomicType::POS_REAL) {
+    throw std::invalid_argument("Beta parents must be positive real-valued");
   }
 }
 
 graph::AtomicValue Beta::sample(std::mt19937& gen) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  std::gamma_distribution<double> distrib_a(param_a, 1);
-  std::gamma_distribution<double> distrib_b(param_b, 1);
-  double x = distrib_a(gen);
-  double y = distrib_b(gen);
-  return graph::AtomicValue(graph::AtomicType::PROBABILITY, x / (x + y));
+  return graph::AtomicValue(
+    graph::AtomicType::PROBABILITY, util::sample_beta(gen, param_a, param_b));
 }
 
 double Beta::log_prob(const graph::AtomicValue& value) const {

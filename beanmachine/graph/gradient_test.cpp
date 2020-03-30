@@ -43,8 +43,8 @@ TEST(testgradient, operators) {
 
 TEST(testgradient, beta_bernoulli) {
   Graph g;
-  uint a = g.add_constant(5.0);
-  uint b = g.add_constant(3.0);
+  uint a = g.add_constant_pos_real(5.0);
+  uint b = g.add_constant_pos_real(3.0);
   uint beta = g.add_distribution(
     DistributionType::BETA, AtomicType::PROBABILITY, std::vector<uint>({a, b}));
   uint prob = g.add_operator(OperatorType::SAMPLE, std::vector<uint>({beta}));
@@ -90,8 +90,8 @@ TEST(testgradient, beta_bernoulli) {
 
 TEST(testgradient, beta_bernoulli_noisy_or) {
   Graph g;
-  uint a = g.add_constant(5.0);
-  uint b = g.add_constant(3.0);
+  uint a = g.add_constant_pos_real(5.0);
+  uint b = g.add_constant_pos_real(3.0);
   uint beta = g.add_distribution(
     DistributionType::BETA, AtomicType::PROBABILITY, std::vector<uint>({a, b}));
   uint prob = g.add_operator(OperatorType::SAMPLE, std::vector<uint>({beta}));
@@ -122,8 +122,8 @@ TEST(testgradient, beta_bernoulli_noisy_or) {
 
 TEST(testgradient, beta_binomial) {
   Graph g;
-  uint a = g.add_constant(5.0);
-  uint b = g.add_constant(3.0);
+  uint a = g.add_constant_pos_real(5.0);
+  uint b = g.add_constant_pos_real(3.0);
   uint n = g.add_constant((natural_t) 3);
   uint beta = g.add_distribution(
     DistributionType::BETA, AtomicType::PROBABILITY, std::vector<uint>({a, b}));

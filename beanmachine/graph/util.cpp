@@ -48,6 +48,20 @@ bool sample_logodds(std::mt19937& gen, double logodds) {
   }
 }
 
+bool sample_logprob(std::mt19937& gen, double logprob) {
+  std::bernoulli_distribution dist(std::exp(logprob));
+  return dist(gen);
+}
+
+double sample_beta(std::mt19937& gen, double a, double b) {
+  std::gamma_distribution<double> distrib_a(a, 1);
+  std::gamma_distribution<double> distrib_b(b, 1);
+  double x = distrib_a(gen);
+  double y = distrib_b(gen);
+  double p =  x / (x + y);
+  return p;
+}
+
 double logistic(double logodds) {
   return 1.0 / (1.0 + exp(-logodds));
 }

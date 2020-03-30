@@ -141,8 +141,8 @@ class TestBayesNet(unittest.TestCase):
 
     def test_beta(self):
         g = graph.Graph()
-        c1 = g.add_constant(1.1)
-        c2 = g.add_constant(5.0)
+        c1 = g.add_constant_pos_real(1.1)
+        c2 = g.add_constant_pos_real(5.0)
         # negative tests on number of parents
         # 0 parents not allowed
         with self.assertRaises(ValueError) as cm:
@@ -166,7 +166,7 @@ class TestBayesNet(unittest.TestCase):
             g.add_distribution(
                 graph.DistributionType.BETA, graph.AtomicType.PROBABILITY, [c3, c3]
             )
-        self.assertTrue("must be real-valued" in str(cm.exception))
+        self.assertTrue("must be positive real-valued" in str(cm.exception))
         # negative test on sample type
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(

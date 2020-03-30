@@ -9,6 +9,21 @@
 namespace beanmachine {
 namespace graph {
 
+AtomicValue::AtomicValue(AtomicType type, double value) : type(type), _double(value) {
+  // don't allow constrained values to get too close to the boundary
+  if (type == AtomicType::POS_REAL) {
+    if (_double < PRECISION) {
+      _double = PRECISION;
+    }
+  } else if (type == AtomicType::PROBABILITY) {
+    if (_double < PRECISION) {
+      _double = PRECISION;
+    } else if (_double > (1 - PRECISION)) {
+      _double = 1 - PRECISION;
+    }
+  }
+}
+
 bool Node::is_stochastic() const {
   return (
       node_type == NodeType::OPERATOR and
@@ -335,6 +350,8 @@ void Graph::_infer(uint num_samples, InferenceType algorithm, uint seed) {
     rejection(num_samples, generator);
   } else if (algorithm == InferenceType::GIBBS) {
     gibbs(num_samples, generator);
+  } else if (algorithm == InferenceType::NMC) {
+    nmc(num_samples, generator);
   }
 }
 
