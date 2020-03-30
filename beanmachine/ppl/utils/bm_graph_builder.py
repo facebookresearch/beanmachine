@@ -25,6 +25,7 @@ from torch.distributions import (
     Beta,
     Categorical,
     Dirichlet,
+    HalfCauchy,
     Normal,
     StudentT,
     Uniform,
@@ -581,6 +582,65 @@ class DirichletNode(DistributionNode):
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a Dirichlet.
         raise ValueError(f"Dirichlet distribution does not have finite support.")
+
+
+class HalfCauchyNode(DistributionNode):
+    edges = ["scale"]
+
+    def __init__(self, scale: BMGNode):
+        DistributionNode.__init__(self, [scale])
+
+    def scale(self) -> BMGNode:
+        return self.children[0]
+
+    # TODO: Do we need a generic type for "distribution of X"?
+    def node_type(self) -> Any:
+        return HalfCauchy
+
+    def size(self) -> torch.Size:
+        return self.scale().size()
+
+    def sample_type(self) -> Any:
+        return self.scale().node_type()
+
+    def label(self) -> str:
+        return "HalfCauchy"
+
+    def __str__(self) -> str:
+        return f"HalfCauchy({str(self.scale())})"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            # TODO: Fix this when we add the node type to BMG
+            DistributionType.BERNOULLI,
+            AtomicType.BOOLEAN,
+            [d[self.scale()]],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.scale()]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            # TODO: Fix this when we add the node type to BMG
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.mu()]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a half Cauchy.
+        raise ValueError(f"HalfCauchy distribution does not have finite support.")
 
 
 class NormalNode(DistributionNode):
@@ -1352,6 +1412,7 @@ class BMGraphBuilder:
             Beta: self.handle_beta,
             Categorical: self.handle_categorical,
             Dirichlet: self.handle_dirichlet,
+            HalfCauchy: self.handle_halfcauchy,
             Normal: self.handle_normal,
             StudentT: self.handle_studentt,
             Uniform: self.handle_uniform,
@@ -1451,6 +1512,17 @@ class BMGraphBuilder:
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
         return self.add_categorical(probability, logits is not None)
+
+    @memoize
+    def add_halfcauchy(self, scale: BMGNode) -> HalfCauchyNode:
+        node = HalfCauchyNode(scale)
+        self.add_node(node)
+        return node
+
+    def handle_halfcauchy(self, scale: Any, validate_args=None) -> HalfCauchyNode:
+        if not isinstance(scale, BMGNode):
+            scale = self.add_constant(scale)
+        return self.add_halfcauchy(scale)
 
     @memoize
     def add_normal(self, mu: BMGNode, sigma: BMGNode) -> NormalNode:
@@ -1824,6 +1896,9 @@ class BMGraphBuilder:
             return self.add_sample(b)
         if isinstance(operand, Dirichlet):
             b = self.handle_dirichlet(operand.concentration)
+            return self.add_sample(b)
+        if isinstance(operand, HalfCauchy):
+            b = self.handle_halfcauchy(operand.scale)
             return self.add_sample(b)
         if isinstance(operand, Normal):
             b = self.handle_normal(operand.mean, operand.stddev)

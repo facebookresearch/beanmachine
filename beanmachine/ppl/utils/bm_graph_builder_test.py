@@ -1501,3 +1501,20 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_halfcauchy(self) -> None:
+        bmg = BMGraphBuilder()
+        scale = bmg.add_constant(1.0)
+        d = bmg.add_halfcauchy(scale)
+        bmg.add_sample(d)
+        observed = bmg.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label=1.0];
+  N1[label=HalfCauchy];
+  N2[label=Sample];
+  N1 -> N0[label=scale];
+  N2 -> N1[label=operand];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
