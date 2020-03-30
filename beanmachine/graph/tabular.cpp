@@ -102,5 +102,15 @@ double Tabular::log_prob(const graph::AtomicValue& value) const {
   return value._bool ? std::log(prob_true) : std::log(1 - prob_true);
 }
 
+void Tabular::gradient_log_prob_value(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+  throw std::runtime_error("gradient_log_prob_value not implemented for Tabular");
+}
+
+void Tabular::gradient_log_prob_param(
+    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+  throw std::runtime_error("gradient_log_prob_param not implemented for Tabular");
+}
+
 } // namespace distribution
 } // namespace beanmachine
