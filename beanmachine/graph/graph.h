@@ -108,6 +108,9 @@ class Node {
   double grad2;
   bool is_stochastic() const;
   double log_prob() const; // only valid for stochastic nodes
+  // gradient_log_prob is also only valid for stochastic nodes
+  // this function adds the gradients to the passed in gradients
+  void gradient_log_prob(double& grad1, double& grad2) const;
   Node() {}
   explicit Node(NodeType node_type) : node_type(node_type), grad1(0), grad2(0) {}
   Node(NodeType node_type, AtomicValue value)
@@ -182,12 +185,11 @@ struct Graph {
       uint node_id, const std::set<uint> &support);
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
-
   /*
-  Evaluate the `tgt_node` and compute its gradient w.r.t. source_node
+  Evaluate the target node and compute its gradient w.r.t. source_node
   (used for unit tests)
-  :param tgt_node: The index of the node to eval and compute grads.
-  :param src_node: The index of the node to compute the gradient w.r.t.
+  :param tgt_idx: The index of the node to eval and compute grads.
+  :param src_idx: The index of the node to compute the gradient w.r.t.
   :param seed: Random number generator seed.
   :param value: Output value of target node.
   :param grad1: Output value of first gradient.
@@ -195,6 +197,15 @@ struct Graph {
   */
   void eval_and_grad(
     uint tgt_idx, uint src_idx, uint seed, AtomicValue& value, double& grad1, double& grad2);
+  /*
+  Evaluate the deterministic descendants of the source node and compute
+  the logprob_gradient of all stochastic descendants in the support including
+  the source node.
+  :param src_idx: The index of the node to evaluate the gradients w.r.t.
+  :param grad1: Output value of first gradient.
+  :param grad2: Output value of second gradient.
+  */
+  void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
 
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
