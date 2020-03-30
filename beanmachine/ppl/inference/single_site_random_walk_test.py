@@ -220,6 +220,24 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
             inner_fnc(e)
 
     """
+    Adaptive
+    """
+
+    def test_single_site_adaptive_random_walk(self):
+        model = NormalNormalModel(
+            mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
+        )
+        mh = SingleSiteRandomWalk(step_size=4)
+        p_key = model.normal_p()
+        queries = [p_key]
+        observations = {model.normal(): torch.tensor(100.0)}
+        predictions = mh.infer(queries, observations, 100, 30)
+        predictions = predictions.get_chain()[p_key]
+        print(predictions.shape)
+        print(predictions)
+        self.assertIn(True, [45 < pred < 55 for pred in predictions])
+
+    """
     These tests test for quick approximate convergence in conjugate models.
     """
 

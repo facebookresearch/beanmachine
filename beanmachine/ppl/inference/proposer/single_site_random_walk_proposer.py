@@ -8,6 +8,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from torch import Tensor, tensor
 from torch.distributions.transforms import AffineTransform
 
 
@@ -21,7 +22,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
     proposal.
     """
 
-    def __init__(self, step_size: float = 1.0):
+    def __init__(self, step_size: float, num_adapt_windows: int):
         """
         Initialize object.
 
@@ -30,6 +31,42 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
 
         self.step_size = step_size
         super().__init__()
+        # Key is bool, indicates: is r.v. multidimensional?
+        self.target_acc_rate = {False: tensor(0.44), True: tensor(0.234)}
+
+    def do_adaptation(
+        self,
+        node: RVIdentifier,
+        world: World,
+        acceptance_probability: Tensor,
+        iteration_number: int,
+        num_adapt_steps: int,
+    ) -> None:
+        """
+        Adapted from Garthwaite, Fan, Sisson, 2016, to be done online.
+
+        :param node: the node for which we have already proposed a new value for.
+        :param node_var:
+        :param node_acceptance_results: the boolean values of acceptances for
+         values collected so far within _infer().
+        :param iteration_number: The current iteration of inference
+        :param num_adapt_steps: The number of inference iterations for adaptation.
+        :returns: Nothing.
+        """
+
+        node_var = world.get_node_in_world_raise_error(node, False)
+        if node_var.value.shape[0] == 1:
+            target_acc_rate = self.target_acc_rate[False]
+            c = torch.reciprocal(target_acc_rate)
+        else:
+            target_acc_rate = self.target_acc_rate[True]
+            c = torch.reciprocal(1.0 - target_acc_rate)
+
+        new_step_size = self.step_size * torch.exp(
+            (acceptance_probability - target_acc_rate) * c / (iteration_number + 1.0)
+        )
+
+        self.step_size = new_step_size.item()
 
     def get_proposal_distribution(
         self,
