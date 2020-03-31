@@ -183,8 +183,18 @@ class Variable(object):
             )
             self.value = constrained_sample
             self.unconstrained_value = unconstrained_sample
+            if isinstance(self.distribution, dist.Beta):
+                sample = torch.cat(
+                    (
+                        constrained_sample.unsqueeze(-1),
+                        (1 - constrained_sample).unsqueeze(-1),
+                    ),
+                    -1,
+                )
+            else:
+                sample = constrained_sample
             self.jacobian = transform.log_abs_det_jacobian(
-                unconstrained_sample, constrained_sample
+                unconstrained_sample, sample
             ).sum()
 
     def update_fields(
