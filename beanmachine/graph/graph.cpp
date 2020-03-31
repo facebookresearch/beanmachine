@@ -137,6 +137,28 @@ void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
   }
 }
 
+double Graph::log_prob(uint src_idx) {
+  Node* src_node = check_node(src_idx, NodeType::OPERATOR);
+  if (not src_node->is_stochastic()) {
+    throw std::runtime_error("gradient_log_prob only supported on stochastic nodes");
+  }
+  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
+  auto supp = compute_support();
+  std::vector<uint> det_nodes;
+  std::vector<uint> sto_nodes;
+  std::tie(det_nodes, sto_nodes) = compute_descendants(src_idx, supp);
+  for (auto node_id : det_nodes) {
+    Node* node = nodes[node_id].get();
+    node->eval(generator);
+  }
+  double log_prob = 0.0;
+  for (auto node_id : sto_nodes) {
+    Node* node = nodes[node_id].get();
+    log_prob += node->log_prob();
+  }
+  return log_prob;
+}
+
 std::vector<Node*> Graph::convert_parent_ids(
     const std::vector<uint>& parent_ids) const {
   // check that the parent ids are valid indices and convert them to
@@ -311,20 +333,22 @@ void Graph::collect_sample() {
     }
     samples.push_back(sample);
   }
+  // note: we divide each new value by agg_samples rather than directly add
+  // them to the total to avoid overflow
   else if (agg_type == AggregationType::MEAN) {
     uint pos = 0;
     for (uint node_id : queries) {
       AtomicValue value = nodes[node_id]->value;
       if (value.type == AtomicType::BOOLEAN) {
-        means[pos] += double(value._bool);
+        means[pos] += double(value._bool) / agg_samples;
       }
       else if (value.type == AtomicType::REAL
           or value.type == AtomicType::POS_REAL
           or value.type == AtomicType::PROBABILITY) {
-        means[pos] += value._double;
+        means[pos] += value._double / agg_samples;
       }
       else if (value.type == AtomicType::NATURAL) {
-        means[pos] += value._natural;
+        means[pos] += double(value._natural) / agg_samples;
       }
       else {
         throw std::runtime_error("Mean aggregation only supported for "
@@ -366,12 +390,10 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
 std::vector<double>&
 Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   agg_type = AggregationType::MEAN;
+  agg_samples = num_samples;
   means.clear();
   means.resize(queries.size(), 0.0);
   _infer(num_samples, algorithm, seed);
-  for (uint i=0; i<means.size(); i++) {
-    means[i] /= num_samples;
-  }
   return means;
 }
 
