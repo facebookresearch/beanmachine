@@ -1,10 +1,10 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include "beanmachine/graph/binaryop.h"
+#include "beanmachine/graph/operator/binaryop.h"
 #include "beanmachine/graph/distribution/distribution.h"
-#include "beanmachine/graph/operator.h"
-#include "beanmachine/graph/unaryop.h"
+#include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/operator/unaryop.h"
 
 namespace beanmachine {
 namespace oper {

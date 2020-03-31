@@ -3,7 +3,7 @@
 #include <torch/torch.h>
 
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/operator.h"
+#include "beanmachine/graph/operator/operator.h"
 
 using namespace beanmachine;
 

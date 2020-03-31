@@ -4,7 +4,7 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/operator.h"
+#include "beanmachine/graph/operator/operator.h"
 
 namespace beanmachine {
 namespace graph {
