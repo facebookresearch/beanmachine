@@ -13,7 +13,7 @@ class SingleSiteHamiltonianMonteCarloConjugateTest(
     unittest.TestCase, AbstractConjugateTests
 ):
     def test_beta_binomial_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(0.2, 20)
+        hmc = SingleSiteHamiltonianMonteCarlo(0.05, 10)
         self.beta_binomial_conjugate_run(hmc, num_samples=150, delta=0.15)
 
     def test_gamma_gamma_conjugate_run(self):
