@@ -1638,6 +1638,175 @@ digraph "graph" {
 }
 """
 
+# Bayesian Meta-analysis example
+source17 = """
+from torch.distributions import HalfCauchy, Normal, StudentT
+from torch import tensor
+from beanmachine.ppl.model.statistical_model import sample
+
+class Node:
+    def __init__(self, level=None, parent=None, result=None, stddev=None):
+      if level is None:
+        self.level = parent.level - 1
+      else:
+        self.level = level
+      self.parent = parent
+      self.result = result
+      self.stddev = stddev
+
+group1 = Node(level=2)
+team1 = Node(parent=group1)
+team2 = Node(parent=group1)
+group2 = Node(level=2)
+team3 = Node(parent=group2)
+team4 = Node(parent=group2)
+experiments = [
+    Node(result=19.8,  stddev=3.1, parent=team1),
+    Node(result=-12.5, stddev=3.4, parent=team1),
+    Node(result=52.7,  stddev=7.4, parent=team2),
+    Node(result=57.3,  stddev=4.2, parent=team2),
+    Node(result=-61.5, stddev=2.3, parent=team3),
+    Node(result=-16.9, stddev=3.1, parent=team3),
+    Node(result=15.3,  stddev=3.1, parent=team4),
+    Node(result=32.3,  stddev=3.2, parent=team4),
+]
+
+@sample
+def experiment_result(experiment):
+    mean = (
+        true_value() + 
+        # Omitted to make the graph easier to read
+        # node_bias(experiment) + 
+        node_bias(experiment.parent) + 
+        node_bias(experiment.parent.parent))
+    return Normal(mean, experiment.stddev)
+
+@sample
+def true_value():
+    return StudentT(3, 0, 10)
+
+@sample
+def node_bias(node):
+    return Normal(0, sigma(node.level))
+
+@sample
+def sigma(level):
+    return HalfCauchy(tensor(1.))
+
+for x in experiments:
+    experiment_result(x)
+"""
+
+expected_dot_17 = """
+digraph "graph" {
+  N0[label=3.0];
+  N10[label=Sample];
+  N11[label=Sample];
+  N12[label=Normal];
+  N13[label=Sample];
+  N14[label="+"];
+  N15[label="+"];
+  N16[label=3.1];
+  N17[label=Normal];
+  N18[label=Sample];
+  N19[label=3.4];
+  N1[label=0.0];
+  N20[label=Normal];
+  N21[label=Sample];
+  N22[label=Sample];
+  N23[label="+"];
+  N24[label="+"];
+  N25[label=7.4];
+  N26[label=Normal];
+  N27[label=Sample];
+  N28[label=4.2];
+  N29[label=Normal];
+  N2[label=10.0];
+  N30[label=Sample];
+  N31[label=Sample];
+  N32[label=Sample];
+  N33[label="+"];
+  N34[label="+"];
+  N35[label=2.3];
+  N36[label=Normal];
+  N37[label=Sample];
+  N38[label=Normal];
+  N39[label=Sample];
+  N3[label=StudentT];
+  N40[label=Sample];
+  N41[label="+"];
+  N42[label="+"];
+  N43[label=Normal];
+  N44[label=Sample];
+  N45[label=3.2];
+  N46[label=Normal];
+  N47[label=Sample];
+  N4[label=Sample];
+  N5[label=1.0];
+  N6[label=HalfCauchy];
+  N7[label=Sample];
+  N8[label=0];
+  N9[label=Normal];
+  N10 -> N9[label=operand];
+  N11 -> N6[label=operand];
+  N12 -> N11[label=sigma];
+  N12 -> N8[label=mu];
+  N13 -> N12[label=operand];
+  N14 -> N10[label=right];
+  N14 -> N4[label=left];
+  N15 -> N13[label=right];
+  N15 -> N14[label=left];
+  N17 -> N15[label=mu];
+  N17 -> N16[label=sigma];
+  N18 -> N17[label=operand];
+  N20 -> N15[label=mu];
+  N20 -> N19[label=sigma];
+  N21 -> N20[label=operand];
+  N22 -> N9[label=operand];
+  N23 -> N22[label=right];
+  N23 -> N4[label=left];
+  N24 -> N13[label=right];
+  N24 -> N23[label=left];
+  N26 -> N24[label=mu];
+  N26 -> N25[label=sigma];
+  N27 -> N26[label=operand];
+  N29 -> N24[label=mu];
+  N29 -> N28[label=sigma];
+  N3 -> N0[label=df];
+  N3 -> N1[label=loc];
+  N3 -> N2[label=scale];
+  N30 -> N29[label=operand];
+  N31 -> N9[label=operand];
+  N32 -> N12[label=operand];
+  N33 -> N31[label=right];
+  N33 -> N4[label=left];
+  N34 -> N32[label=right];
+  N34 -> N33[label=left];
+  N36 -> N34[label=mu];
+  N36 -> N35[label=sigma];
+  N37 -> N36[label=operand];
+  N38 -> N16[label=sigma];
+  N38 -> N34[label=mu];
+  N39 -> N38[label=operand];
+  N4 -> N3[label=operand];
+  N40 -> N9[label=operand];
+  N41 -> N40[label=right];
+  N41 -> N4[label=left];
+  N42 -> N32[label=right];
+  N42 -> N41[label=left];
+  N43 -> N16[label=sigma];
+  N43 -> N42[label=mu];
+  N44 -> N43[label=operand];
+  N46 -> N42[label=mu];
+  N46 -> N45[label=sigma];
+  N47 -> N46[label=operand];
+  N6 -> N5[label=scale];
+  N7 -> N6[label=operand];
+  N9 -> N7[label=sigma];
+  N9 -> N8[label=mu];
+}
+"""
+
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
@@ -1705,6 +1874,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_15.strip())
         observed = to_dot(source16)
         self.assertEqual(observed.strip(), expected_dot_16.strip())
+        observed = to_dot(source17)
+        self.assertEqual(observed.strip(), expected_dot_17.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
