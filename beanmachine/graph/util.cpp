@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include "beanmachine/graph/util.h"
+#include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
 namespace util {
@@ -58,6 +59,9 @@ double sample_beta(std::mt19937& gen, double a, double b) {
   std::gamma_distribution<double> distrib_b(b, 1);
   double x = distrib_a(gen);
   double y = distrib_b(gen);
+  if ((x + y) == 0.0) {
+    return graph::PRECISION;
+  }
   double p =  x / (x + y);
   return p;
 }
