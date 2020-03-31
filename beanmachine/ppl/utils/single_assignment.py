@@ -76,6 +76,7 @@ class SingleAssignment:
             _some_top_down(
                 first(
                     [
+                        self._handle_while(),
                         self._handle_if(),
                         self._handle_unassigned(),
                         self._handle_return(),

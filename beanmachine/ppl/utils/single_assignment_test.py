@@ -307,6 +307,43 @@ def f(x):
             source, expected, many(_some_top_down(self.s._handle_while()))
         )
 
+        # Check that the while rewrite works with everything else
+
+        self.maxDiff = None
+
+        source = """
+def f(x):
+    while not(True):
+        x=(x+1)-s
+    else:
+        x=(x-1)+s
+    while True:
+        y=(y+1)-s
+    else:
+        y=(y-1)+s
+
+"""
+        expected = """
+def f(x):
+    while True:
+        w1 = False
+        if w1:
+            a5 = 1
+            a2 = x + a5
+            x = a2 - s
+    r3 = not w1
+    if r3:
+        a8 = 1
+        a6 = x - a8
+        x = a6 + s
+    while True:
+        a7 = 1
+        a4 = y + a7
+        y = a4 - s
+"""
+
+        self.check_rewrite(source, expected)
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
