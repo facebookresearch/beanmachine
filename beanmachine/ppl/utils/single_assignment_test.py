@@ -7,31 +7,42 @@ import astor
 from beanmachine.ppl.utils.ast_patterns import ast_domain
 from beanmachine.ppl.utils.fold_constants import fold
 from beanmachine.ppl.utils.rules import FirstMatch as first, TryMany as many
-from beanmachine.ppl.utils.single_assignment import SingleAssignment, single_assignment
+from beanmachine.ppl.utils.single_assignment import SingleAssignment
 
 
 _some_top_down = ast_domain.some_top_down
 
 
 class SingleAssignmentTest(unittest.TestCase):
-    def test_single_assignment_0(self) -> None:
-        """Really basic tests for single_assignment.py"""
 
-        # Sanity check. Check that  if you change one of the two numbers the test fails
+    s = SingleAssignment()
+    default_rules = s._rules
+
+    def test_single_assignment_null_check(self) -> None:
+        """To check if you change one of the two numbers the test fails"""
+
         self.assertEqual(3, 3)
+
+    def test_single_assignment_unique_id(self) -> None:
+        """Tests unique_uses intended preserves name prefix"""
 
         s = SingleAssignment()
         root = "root"
         name = s._unique_id(root)
         self.assertEqual(root, name[0 : len(root)])
 
-        # Check to make sure that we need a new rule to handle unassigned expressions
-        s = SingleAssignment()
-        s._rules = many(  # Custom wire rewrites to rewrites existing before this diff
-            _some_top_down(
-                first([s._handle_return(), s._handle_for(), s._handle_assign()])
-            )
-        )
+    def check_rewrite(self, source, expected, rules=default_rules):
+        """Tests that starting from applying rules to source yields expected"""
+
+        self.s._count = 0
+        self.s._rules = rules
+        m = ast.parse(source)
+        result = self.s.single_assignment(fold(m))
+        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+    def test_single_assignment_pre_unassigned_expressions(self) -> None:
+        """Tests need for a new rule to handle unassigned expressions"""
+
         source = """
 def f(x):
     g(x)+x
@@ -40,14 +51,28 @@ def f(x):
 def f(x):
     g(x) + x
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(  # Custom wire rewrites to rewrites existing before this diff
+                _some_top_down(
+                    first(
+                        [
+                            self.s._handle_return(),
+                            self.s._handle_for(),
+                            self.s._handle_assign(),
+                        ]
+                    )
+                )
+            ),
+        )
+
+    def test_single_assignment_unassigned_expressions(self) -> None:
+        """Test unassiged expressions rewrite"""
 
         # Check that the unassigned expressions rule (unExp) works alone
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = _some_top_down(s._handle_unassigned())
+
         source = """
 def f(x):
     g(x)+x
@@ -56,25 +81,12 @@ def f(x):
 def f(x):
     u1 = g(x) + x
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_unassigned())
+        )
 
         # Check that the unassigned expressions rule (unExp) works in context
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = many(  # Custom wire some rewrites that include unExp
-            _some_top_down(
-                first(
-                    [
-                        s._handle_unassigned(),
-                        s._handle_return(),
-                        s._handle_for(),
-                        s._handle_assign(),
-                    ]
-                )
-            )
-        )
+
         source = """
 def f(x):
     g(x)+x
@@ -84,17 +96,29 @@ def f(x):
     a2 = g(x)
     u1 = a2 + x
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
-        # Tests for if rewrite rule
+        self.check_rewrite(
+            source,
+            expected,
+            many(
+                _some_top_down(
+                    first(
+                        [
+                            self.s._handle_unassigned(),
+                            self.s._handle_return(),
+                            self.s._handle_for(),
+                            self.s._handle_assign(),
+                        ]
+                    )
+                )
+            ),
+        )
+
+    def test_single_assignment_if(self) -> None:
+        """Test if rewrite"""
 
         # Check that rule will leave uninteresting expressions alone
-        s = SingleAssignment()
-        s._rules = many(  # Custom wire rewrites to rewrites existing before this diff
-            _some_top_down(first([s._handle_if()]))
-        )
+
         source = """
 def f(x):
     if x:
@@ -109,13 +133,13 @@ def f(x):
     else:
         b = c + a + b
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(first([self.s._handle_if()])))
+        )
 
         # Check that the if rule works (alone) on an elementary expression
-        s = SingleAssignment()
-        s._rules = _some_top_down(s._handle_if())
+
         source = """
 def f(x):
     if x+x>x:
@@ -131,13 +155,10 @@ def f(x):
     else:
         b = c + a + b
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(source, expected, _some_top_down(self.s._handle_if()))
 
         # Check that the if rule works (alone) with elif clauses
-        s = SingleAssignment()
-        s._rules = many(_some_top_down(s._handle_if()))
+
         source = """
 def f(x):
     if x+x>x:
@@ -159,25 +180,10 @@ def f(x):
         else:
             b = c + a + b
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(source, expected, many(_some_top_down(self.s._handle_if())))
 
         # Check that the if rule works (with others) on an elementary expression
-        s = SingleAssignment()
-        s._rules = many(
-            _some_top_down(
-                first(
-                    [
-                        s._handle_if(),
-                        s._handle_unassigned(),
-                        s._handle_return(),
-                        s._handle_for(),
-                        s._handle_assign(),
-                    ]
-                )
-            )
-        )
+
         source = """
 def f(x):
     if gt(x+x,x):
@@ -196,14 +202,29 @@ def f(x):
         a4 = c + a
         b = a4 + b
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(
+            source,
+            expected,
+            many(
+                _some_top_down(
+                    first(
+                        [
+                            self.s._handle_if(),
+                            self.s._handle_unassigned(),
+                            self.s._handle_return(),
+                            self.s._handle_for(),
+                            self.s._handle_assign(),
+                        ]
+                    )
+                )
+            ),
+        )
+
+    def test_single_assignment_while(self) -> None:
+        """Test while rewrite"""
 
         # Check that while_not_True rule works (alone) on simple cases
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = _some_top_down(s._handle_while_not_True())
+
         source = """
 def f(x):
     while not(True):
@@ -220,19 +241,17 @@ def f(x):
     if not w1:
         x = x - 1
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_while_not_True())
+        )
 
         # Check that the while_not_True rewrite reaches normal form
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = many(_some_top_down(s._handle_while_not_True()))
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_while_not_True()))
+        )
 
         # Check that while_True rule works (alone) on simple cases
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = _some_top_down(s._handle_while_True())
+
         source = """
 def f(x):
     while True:
@@ -245,20 +264,18 @@ def f(x):
     while True:
         x = x + 1
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_while_True())
+        )
 
         # Check that while_True rule, alone, on simple cases, reaches a normal form
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = many(_some_top_down(s._handle_while_True()))
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_while_True()))
+        )
+
         # Check that (combined) while rule works (alone) on simple cases
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = _some_top_down(s._handle_while())
+
         source = """
 def f(x):
     while not(True):
@@ -282,17 +299,13 @@ def f(x):
     while True:
         y = y + 1
 """
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+
+        self.check_rewrite(source, expected, _some_top_down(self.s._handle_while()))
 
         # Extra check: Make sure they are idempotent
-        s = SingleAssignment()
-        s.count = 0
-        s._rules = many(_some_top_down(s._handle_while()))
-        m = ast.parse(source)
-        result = s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_while()))
+        )
 
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
@@ -311,8 +324,7 @@ def f():
             _2 = print(_1)
     return 8 * y / (4 * z)
 """
-        m = ast.parse(source)
-        result = single_assignment(fold(m))
+
         expected = """
 def f():
     aab = a and b
@@ -346,7 +358,7 @@ def f():
     r4 = a8 / z
     return r4
 """
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(source, expected)
 
     def test_single_assignment_2(self) -> None:
         """Tests for single_assignment.py"""
@@ -354,8 +366,7 @@ def f():
         self.maxDiff = None
 
         source = "b = c(d + e).f(g + h)"
-        m = ast.parse(source)
-        result = single_assignment(m)
+
         expected = """
 a4 = d + e
 a2 = c(a4)
@@ -363,7 +374,7 @@ a1 = a2.f
 a3 = g + h
 b = a1(a3)
 """
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(source, expected)
 
     def test_single_assignment_3(self) -> None:
         """Tests for single_assignment.py"""
@@ -371,12 +382,11 @@ b = a1(a3)
         self.maxDiff = None
 
         source = "a = (b+c)[f(d+e)]"
-        m = ast.parse(source)
-        result = single_assignment(m)
+
         expected = """
 a1 = b + c
 a3 = d + e
 a2 = f(a3)
 a = a1[a2]
 """
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.check_rewrite(source, expected)
