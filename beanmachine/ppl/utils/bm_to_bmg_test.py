@@ -48,6 +48,11 @@ def Z():
             + Y() * log(input=tensor(0.01))
         )
     )
+
+# Verify this is removed
+@query
+def Q():
+  pass
 """
 
 expected_raw_1 = """
@@ -104,6 +109,10 @@ def Z():
     a6 = bmg.handle_addition(a9, a10)
     r3 = bmg.handle_function(Bernoulli, [a6], {})
     return bmg.handle_sample(r3)
+
+
+def Q():
+    pass
 
 
 roots = [X(), Y(), Z()]

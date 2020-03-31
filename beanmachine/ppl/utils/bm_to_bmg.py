@@ -222,9 +222,24 @@ _is_sample: PatternRule = PatternRule(
     function_def(decorator_list=ListAny(name(id="sample")))
 )
 
+_is_query: PatternRule = PatternRule(
+    function_def(decorator_list=ListAny(name(id="query")))
+)
+
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
 
+# TODO: We need to figure out how to modify the returns of
+# TODO: functions decorated with @query as well as @sample.
+# TODO: For now, we simply remove the query decorator in another rule.
 _returns_to_bmg: Rule = _descend_until(_is_sample, _top_down(once(_handle_sample)))
+
+_remove_query_decorator: Rule = _descend_until(
+    _is_query,
+    _specific_child(
+        "decorator_list",
+        SomeListMembers(PatternRule(name(id="query"), lambda n: remove_from_list)),
+    ),
+)
 
 _sample_to_memoize: Rule = _descend_until(
     _is_sample,
@@ -279,7 +294,9 @@ _samples_to_calls = AllListMembers(
     )
 )
 
-_to_bmg = all_of([_math_to_bmg, _returns_to_bmg, _sample_to_memoize])
+_to_bmg = all_of(
+    [_math_to_bmg, _returns_to_bmg, _sample_to_memoize, _remove_query_decorator]
+)
 
 
 def _bm_to_bmg_ast(source: str) -> ast.AST:
