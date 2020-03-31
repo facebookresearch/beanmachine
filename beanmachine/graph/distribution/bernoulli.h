@@ -1,6 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
-#include "beanmachine/graph/distribution.h"
+#include "beanmachine/graph/distribution/distribution.h"
 
 namespace beanmachine {
 namespace distribution {

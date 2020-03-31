@@ -2,7 +2,7 @@
 #include <random>
 #include <sstream>
 
-#include "beanmachine/graph/distribution.h"
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator.h"
 

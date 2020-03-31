@@ -4,12 +4,12 @@
 #include <gtest/gtest.h>
 #include <torch/torch.h>
 
-#include "beanmachine/graph/bernoulli.h"
-#include "beanmachine/graph/bernoulli_noisy_or.h"
-#include "beanmachine/graph/beta.h"
-#include "beanmachine/graph/binomial.h"
+#include "beanmachine/graph/distribution/bernoulli.h"
+#include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
+#include "beanmachine/graph/distribution/beta.h"
+#include "beanmachine/graph/distribution/binomial.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/tabular.h"
+#include "beanmachine/graph/distribution/tabular.h"
 
 
 using namespace beanmachine;
@@ -58,8 +58,7 @@ TEST(testdistrib, bernoulli_noisy_or) {
   // We will use the above facts in this test
 
   // first distribution
-  const double small_value = 1e-10;
-  auto p1 = graph::AtomicValue(graph::AtomicType::POS_REAL, small_value);
+  auto p1 = graph::AtomicValue(graph::AtomicType::POS_REAL, 1e-10);
   graph::ConstNode cnode1(p1);
   distribution::BernoulliNoisyOr dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
@@ -67,18 +66,17 @@ TEST(testdistrib, bernoulli_noisy_or) {
   auto zero = graph::AtomicValue(false);
   auto one = graph::AtomicValue(true);
 
-  EXPECT_EQ(-small_value, dnode1.log_prob(zero));
+  EXPECT_EQ(-1e-10, dnode1.log_prob(zero));
   EXPECT_NEAR(-23.02, dnode1.log_prob(one), 0.01);
 
   // second distribution
-  const double large_value = 40.0;
-  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, large_value);
+  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, 40.0);
   graph::ConstNode cnode2(p2);
   distribution::BernoulliNoisyOr dnode2(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
   dnode2.in_nodes.push_back(&cnode2);
 
-  EXPECT_EQ(-large_value, dnode2.log_prob(zero));
+  EXPECT_EQ(-40, dnode2.log_prob(zero));
   EXPECT_NEAR(-4.248e-18, dnode2.log_prob(one), 0.001e-18);
 }
 

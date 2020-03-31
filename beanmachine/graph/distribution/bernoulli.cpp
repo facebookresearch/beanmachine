@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include "beanmachine/graph/bernoulli.h"
+#include "beanmachine/graph/distribution/bernoulli.h"
 
 namespace beanmachine {
 namespace distribution {

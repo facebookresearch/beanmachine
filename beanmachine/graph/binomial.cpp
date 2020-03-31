@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include "beanmachine/graph/binomial.h"
+#include "beanmachine/graph/distribution/binomial.h"
 
 namespace beanmachine {
 namespace distribution {

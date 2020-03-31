@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-#include "beanmachine/graph/distribution.h"
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/util.h"
 #include "beanmachine/graph/proposer/proposer.h"

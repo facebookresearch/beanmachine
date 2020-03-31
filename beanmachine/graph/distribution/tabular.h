@@ -1,22 +1,25 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
-#include "beanmachine/graph/distribution.h"
+#include "beanmachine/graph/distribution/distribution.h"
 
 namespace beanmachine {
 namespace distribution {
 
-class Binomial : public Distribution {
+class Tabular : public Distribution {
  public:
-  Binomial(
+  Tabular(
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
-  ~Binomial() override {}
+  ~Tabular() override {}
   graph::AtomicValue sample(std::mt19937& gen) const override;
   double log_prob(const graph::AtomicValue& value) const override;
-  virtual void gradient_log_prob_value(
+  void gradient_log_prob_value(
     const graph::AtomicValue& value, double& grad1, double& grad2) const override;
-  virtual void gradient_log_prob_param(
+  void gradient_log_prob_param(
     const graph::AtomicValue& value, double& grad1, double& grad2) const override;
+
+ private:
+  double get_probability() const;
 };
 
 } // namespace distribution
