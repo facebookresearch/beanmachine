@@ -2,6 +2,7 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/proposer/beta.h"
+#include "beanmachine/graph/proposer/normal.h"
 
 namespace beanmachine {
 namespace proposer {
@@ -26,6 +27,23 @@ std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double gr
         b = 1 - a;
     }
     return std::make_unique<Beta>(a, b);
+  } if (value.type == graph::AtomicType::REAL) {
+    // we will approximate a real value with a Normal proposer
+    // f(x) = log_prob(x | Normal(mu, sigma))
+    // f(x) = -log(sigma) -0.5 (x - mu)^2 / sigma^2
+    // f'(x) = - (x - mu) / sigma^2
+    // f''(x) = - 1 / sigma^2
+    // Solving for mu and sigma^2
+    // sigma = sqrt(-1 / f''(x) )
+    // mu = x - f'(x) / f''(x)
+    // We will use a normal centered at the current value with std 1 if nothing else works
+    double mu = value._double;
+    double sigma = 1;
+    if (grad2 < 0) {
+      sigma = std::sqrt(-1 / grad2);
+      mu = value._double - grad1 / grad2;
+    }
+    return std::make_unique<Normal>(mu, sigma);
   }
   // inference shouldn't call this function for other types
   return nullptr;
