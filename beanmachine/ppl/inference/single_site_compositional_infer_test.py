@@ -45,7 +45,8 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
         c.world_ = World()
         distribution = dist.Bernoulli(0.1)
         val = distribution.sample()
-        c.world_.variables_[foo_key] = Variable(
+        world_vars = c.world_.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=distribution.log_prob(val),
@@ -67,7 +68,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
 
         distribution = dist.Normal(tensor(0.0), tensor(1.0))
         val = distribution.sample()
-        c.world_.variables_[foo_key] = Variable(
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=distribution.log_prob(val),
@@ -91,7 +92,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
 
         distribution = dist.Categorical(tensor([0.5, 0, 5]))
         val = distribution.sample()
-        c.world_.variables_[foo_key] = Variable(
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=distribution.log_prob(val),
@@ -114,7 +115,7 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
 
         distribution = dist.Poisson(tensor([4.0]))
         val = distribution.sample()
-        c.world_.variables_[foo_key] = Variable(
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=distribution.log_prob(val),
@@ -141,7 +142,9 @@ class SingleSiteCompositionalInferenceTest(unittest.TestCase):
         c.world_ = World()
         distribution = dist.Normal(0.1, 1)
         val = distribution.sample()
-        c.world_.variables_[foo_key] = Variable(
+
+        world_vars = c.world_.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=distribution.log_prob(val),

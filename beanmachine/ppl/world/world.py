@@ -5,7 +5,9 @@ from typing import Dict, List, Optional, Tuple
 import torch.distributions as dist
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
+from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.variable import Variable
+from beanmachine.ppl.world.world_vars import WorldVars
 from torch import Tensor, tensor
 
 
@@ -81,11 +83,8 @@ class World(object):
         #  used as `None`.
         init_world_dict: Dict[RVIdentifier, Variable] = None,
     ):
-        # pyre-fixme[6]: Expected `Optional[typing.Callable[[],
-        #  Variable[collections._VT]]]` for 1st param but got `Type[Variable]`.
-        self.variables_ = defaultdict(Variable)
+        self.variables_ = WorldVars()
         self.stack_ = []
-        self.log_prob_ = tensor(0.0)
         self.observations_ = defaultdict()
         self.reset_diff()
         self.should_transform_ = defaultdict(bool)
@@ -115,7 +114,10 @@ class World(object):
         return (
             "Variables:\n"
             + "\n".join(
-                [str(key) + "=" + str(value) for key, value in self.variables_.items()]
+                [
+                    str(key) + "=" + str(value)
+                    for key, value in self.variables_.vars().items()
+                ]
             )
             + "\n\nObservations:\n"
             + "\n".join(
@@ -129,11 +131,20 @@ class World(object):
 
     def to_dot(self) -> str:
         def get_children(rv: RVIdentifier) -> List[Tuple[str, RVIdentifier]]:
-            return [("", rv) for rv in self.variables_[rv].children]
+            # pyre-fixme
+            return [
+                ("", rv) for rv in self.variables_.get_node_raise_error(rv).children
+            ]
 
-        return print_graph(self.variables_.keys(), get_children, str, str)
+        # pyre-fixme
+        return print_graph(self.variables_.vars().keys(), get_children, str, str)
 
-    def set_observations(self, val: Variables) -> None:
+    def set_observations(self, val: Dict) -> None:
+        """
+        Sets the observations in the world
+
+        :param val: dict of observations
+        """
         self.observations_ = val
 
     def add_node_to_world(self, node: RVIdentifier, var: Variable) -> None:
@@ -144,7 +155,7 @@ class World(object):
         :param node: the node signature to be added to world
         :param var: the variable to be added to the world for node
         """
-        self.diff_[node] = var
+        self.diff_.add_node(node, var)
 
     def update_diff_log_prob(self, node: RVIdentifier) -> None:
         """
@@ -153,8 +164,10 @@ class World(object):
         :param node: updates the diff_log_update_ with the log_prob update of
         the node
         """
-        self.diff_log_update_ += self.diff_[node].log_prob - (
-            self.variables_[node].log_prob if node in self.variables_ else tensor(0.0)
+        node_var = self.variables_.get_node(node)
+        self.diff_.update_log_prob(
+            self.diff_.get_node_raise_error(node).log_prob
+            - (node_var.log_prob if node_var is not None else tensor(0.0))
         )
 
     def compute_score(self, node_var: Variable) -> Tensor:
@@ -181,17 +194,17 @@ class World(object):
         :param node: the node to look up
         :returns: old unconstrained value of the node.
         """
-        if node in self.variables_:
+        if self.variables_.contains_node(node):
+            node_var = self.variables_.get_node_raise_error(node)
             if (
-                isinstance(self.variables_[node].distribution, dist.Beta)
-                and self.variables_[node].proposal_distribution is not None
+                isinstance(node_var.distribution, dist.Beta)
+                and node_var.proposal_distribution is not None
                 and isinstance(
-                    self.variables_[node].proposal_distribution.proposal_distribution,
-                    dist.Dirichlet,
+                    node_var.proposal_distribution.proposal_distribution, dist.Dirichlet
                 )
             ):
-                return self.variables_[node].extended_val
-            return self.variables_[node].unconstrained_value
+                return node_var.extended_val
+            return node_var.unconstrained_value
         return None
 
     def get_node_in_world_raise_error(
@@ -229,19 +242,20 @@ class World(object):
         diff_ and start tracking its changes or not.
         :returns: the corresponding node from the world
         """
-        if node in self.diff_:
-            return self.diff_[node]
-        elif node in self.variables_:
+        if self.diff_.contains_node(node):
+            return self.diff_.get_node(node)
+        elif self.variables_.contains_node(node):
+            node_var = self.variables_.get_node_raise_error(node)
             if to_be_copied:
-                self.diff_[node] = self.variables_[node].copy()
-                return self.diff_[node]
+                node_var_copied = node_var.copy()
+                self.diff_.add_node(node, node_var_copied)
+                return node_var_copied
             else:
-                return self.variables_[node]
-
+                return node_var
         return None
 
     def get_number_of_variables(self) -> int:
-        return len(self.variables_) - len(self.observations_)
+        return self.variables_.len() - len(self.observations_)
 
     def contains_in_world(self, node: RVIdentifier) -> bool:
         """
@@ -251,39 +265,34 @@ class World(object):
         :param node: node to be looked up in the world
         :returns: true if found else false
         """
-        if node in self.diff_ or node in self.variables_:
-            return True
-        return False
+        return self.diff_.contains_node(node) or self.variables_.get_node(node)
 
     def get_all_world_vars(self) -> Variables:
         """
         :returns: all variables in the world
         """
-        return self.variables_
+        return self.variables_.vars()
 
     def accept_diff(self) -> None:
         """
         If changes in a diff is accepted, world's variables_ are updated with
         their corrseponding diff_ value.
         """
-        for node in self.diff_:
-            self.variables_[node] = self.diff_[node]
+        for node in self.diff_.vars():
+            node_var = self.diff_.get_node_raise_error(node)
+            self.variables_.add_node(node, node_var)
 
-        for node in self.is_delete_:
-            if self.is_delete_[node]:
-                del self.variables_[node]
-        self.log_prob_ += self.diff_log_update_
+        for node, to_be_deleted in self.diff_.to_be_deleted_vars().items():
+            if to_be_deleted:
+                self.variables_.delete(node)
+        self.variables_.update_log_prob(self.diff_.log_prob())
         self.reset_diff()
 
     def reset_diff(self) -> None:
         """
         Resets the diff
         """
-        # pyre-fixme[6]: Expected `Optional[typing.Callable[[],
-        #  Variable[collections._VT]]]` for 1st param but got `Type[Variable]`.
-        self.diff_ = defaultdict(Variable)
-        self.diff_log_update_ = tensor(0.0)
-        self.is_delete_ = defaultdict(bool)
+        self.diff_ = Diff()
 
     def start_diff_with_proposed_val(
         self, node: RVIdentifier, proposed_value: Tensor
@@ -296,16 +305,14 @@ class World(object):
         :returns: difference of old and new log probability of the node after
         updating the node value to the proposed value
         """
-        # pyre-fixme[6]: Expected `Optional[typing.Callable[[],
-        #  Variable[collections._VT]]]` for 1st param but got `Type[Variable]`.
-        self.diff_ = defaultdict(Variable)
-        var = self.variables_[node].copy()
+        self.reset_diff()
+        var = self.variables_.get_node_raise_error(node).copy()
         old_log_prob = var.log_prob
         var.update_fields(proposed_value, None, self.should_transform_[node])
         var.proposal_distribution = None
-        self.diff_[node] = var
+        self.diff_.add_node(node, var)
         node_log_update = var.log_prob - old_log_prob
-        self.diff_log_update_ += node_log_update
+        self.diff_.update_log_prob(node_log_update)
         return node_log_update
 
     def reject_diff(self) -> None:
@@ -320,25 +327,29 @@ class World(object):
 
         :param node: the node whose parents are being evaluated.
         """
-        for child in self.diff_[node].children.copy():
-            if child not in self.variables_:
+        for child in self.diff_.get_node_raise_error(node).children.copy():
+            if not self.variables_.contains_node(child):
                 continue
 
-            old_parents = (
-                self.variables_[child].parent if child in self.variables_ else set()
-            )
-            new_parents = self.diff_[child].parent
+            old_child_var = self.variables_.get_node(child)
+            old_parents = old_child_var.parent if old_child_var is not None else set()
+            new_child_var = self.diff_.get_node(child)
+            new_parents = new_child_var.parent
 
             dropped_parents = old_parents - new_parents
             for parent in dropped_parents:
                 parent_var = self.get_node_in_world(parent)
-                # pyre-fixme[16]: `Optional` has no attribute `children`.
+                # pyre-fixme
+                if child not in parent_var.children:
+                    continue
                 parent_var.children.remove(child)
                 if len(parent_var.children) != 0 or parent in self.observations_:
                     continue
 
-                self.is_delete_[parent] = True
-                self.diff_log_update_ -= self.variables_[parent].log_prob
+                self.diff_.mark_for_delete(parent)
+                self.diff_.update_log_prob(
+                    -1 * self.variables_.get_node_raise_error(parent).log_prob
+                )
 
                 # pyre-fixme[16]: `Optional` has no attribute `parent`.
                 ancestors = [(parent, x) for x in parent_var.parent]
@@ -350,8 +361,10 @@ class World(object):
                         len(ancestor_var.children) == 0
                         and ancestor not in self.observations_
                     ):
-                        self.is_delete_[ancestor] = True
-                        self.diff_log_update_ -= self.variables_[ancestor].log_prob
+                        self.diff_.mark_for_delete(ancestor)
+                        self.diff_.update_log_prob(
+                            -1 * self.variables_.get_node_raise_error(ancestor).log_prob
+                        )
                         ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
 
     def create_child_with_new_distributions(
@@ -369,10 +382,11 @@ class World(object):
         """
         old_log_probs = defaultdict()
         new_log_probs = defaultdict()
-        for child in self.variables_[node].children:
-            child_var = self.get_node_in_world(child)
-            if child_var is None:
+        node_var = self.get_node_in_world_raise_error(node)
+        for child in node_var.children.copy():
+            if child is None:
                 continue
+            child_var = self.get_node_in_world_raise_error(child)
             old_log_probs[child] = child_var.log_prob
             child_var.parent = set()
             self.stack_.append(child)
@@ -387,13 +401,15 @@ class World(object):
             new_log_probs[child] = child_var.log_prob
 
         self.update_children_parents(node)
-        graph_update = len(self.diff_) > len(self.variables_[node].children) + 1
-
+        graph_update = (
+            self.diff_.len()
+            > len(self.variables_.get_node_raise_error(node).children) + 1
+        )
         children_log_update = tensor(0.0)
         for node in old_log_probs:
-            if node in new_log_probs and not self.is_delete_[node]:
+            if node in new_log_probs and not self.diff_.is_marked_for_delete(node):
                 children_log_update += new_log_probs[node] - old_log_probs[node]
-        self.diff_log_update_ += children_log_update
+        self.diff_.update_log_prob(children_log_update)
         return children_log_update, graph_update
 
     def propose_change_unconstrained_value(
@@ -437,7 +453,7 @@ class World(object):
         )
         if not allow_graph_update and graph_update:
             raise RuntimeError(f"Computation graph changed after proposal for {node}")
-        world_log_update = self.diff_log_update_
+        world_log_update = self.diff_.log_prob()
         diff_node_var = self.get_node_in_world_raise_error(node, False)
         proposed_score = self.compute_score(diff_node_var)
         return (

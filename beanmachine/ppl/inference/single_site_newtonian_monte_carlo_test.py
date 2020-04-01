@@ -48,9 +48,10 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         nw.observations_ = {model.bar(): torch.tensor(0.0)}
         nw._infer(10)
 
+        world_vars = nw.world_.variables_.vars()
         # using _infer instead of infer, as world_ would be reset at the end
         # infer
-        self.assertEqual(foo_key in nw.world_.variables_, True)
-        self.assertEqual(bar_key in nw.world_.variables_, True)
-        self.assertEqual(foo_key in nw.world_.variables_[bar_key].parent, True)
-        self.assertEqual(bar_key in nw.world_.variables_[foo_key].children, True)
+        self.assertEqual(foo_key in world_vars, True)
+        self.assertEqual(bar_key in world_vars, True)
+        self.assertEqual(foo_key in world_vars[bar_key].parent, True)
+        self.assertEqual(bar_key in world_vars[foo_key].children, True)

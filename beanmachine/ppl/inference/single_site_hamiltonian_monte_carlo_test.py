@@ -45,10 +45,11 @@ class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):
         hmc.observations_ = {model.bar(): torch.tensor(0.0)}
         hmc._infer(10)
 
-        self.assertEqual(foo_key in hmc.world_.variables_, True)
-        self.assertEqual(bar_key in hmc.world_.variables_, True)
-        self.assertEqual(foo_key in hmc.world_.variables_[bar_key].parent, True)
-        self.assertEqual(bar_key in hmc.world_.variables_[foo_key].children, True)
+        world_vars = hmc.world_.variables_.vars()
+        self.assertEqual(foo_key in world_vars, True)
+        self.assertEqual(bar_key in world_vars, True)
+        self.assertEqual(foo_key in world_vars[bar_key].parent, True)
+        self.assertEqual(bar_key in world_vars[foo_key].children, True)
 
     def test_single_site_hamiltonian_monte_carlo_parents_changed(self):
         model = self.ChangingParentsModel()

@@ -57,7 +57,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             tensor([1.0, 1.0]), tensor([[1.0, 0.8], [0.8, 1]])
         )
         log = distribution.log_prob(val).sum()
-        nw.world_.variables_[foo_key] = Variable(
+        world_vars = nw.world_.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=log,
@@ -73,7 +74,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
 
         distribution = dist.MultivariateNormal(val, tensor([[1.0, 0.8], [0.8, 1.0]]))
         observed_val = tensor([2.0, 2.0])
-        nw.world_.variables_[bar_key] = Variable(
+        world_vars[bar_key] = Variable(
             distribution=distribution,
             value=observed_val,
             log_prob=distribution.log_prob(observed_val).sum(),
@@ -88,7 +89,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         prop_dist = nw_proposer.get_proposal_distribution(
-            foo_key, nw.world_.variables_[foo_key], nw.world_, {}
+            foo_key, world_vars[foo_key], nw.world_, {}
         )[0]
         mean, scale_tril = parse_arguments(prop_dist.arguments)
         expected_mean = tensor([1.5, 1.5])
@@ -114,7 +115,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             tensor([1.0, 1.0]), tensor([[1.0, 0.8], [0.8, 1]])
         )
         log = distribution.log_prob(val)
-        nw.world_.variables_[foo_key] = Variable(
+        world_vars = nw.world_.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=log,
@@ -129,7 +131,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         prop_dist = nw_proposer.get_proposal_distribution(
-            foo_key, nw.world_.variables_[foo_key], nw.world_, {}
+            foo_key, world_vars[foo_key], nw.world_, {}
         )[0]
         mean, scale_tril = parse_arguments(prop_dist.arguments)
 
@@ -152,7 +154,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             tensor([[1.0, 1.0], [1.0, 1.0]]), tensor([[1.0, 1.0], [1.0, 1.0]])
         )
         log = distribution.log_prob(val).sum()
-        nw.world_.variables_[foo_key] = Variable(
+        world_vars = nw.world_.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=distribution,
             value=val,
             log_prob=log,
@@ -167,7 +170,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         prop_dist = nw_proposer.get_proposal_distribution(
-            foo_key, nw.world_.variables_[foo_key], nw.world_, {}
+            foo_key, world_vars[foo_key], nw.world_, {}
         )[0]
         mean, scale_tril = parse_arguments(prop_dist.arguments)
 
@@ -198,7 +201,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         theta_1_value = tensor(-0.4459)
 
         theta_0_distribution = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
-        nw.world_.variables_[theta_0_key] = Variable(
+        world_vars = nw.world_.variables_.vars()
+        world_vars[theta_0_key] = Variable(
             distribution=theta_0_distribution,
             value=theta_0_value,
             log_prob=theta_0_distribution.log_prob(theta_0_value),
@@ -212,7 +216,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        nw.world_.variables_[theta_1_key] = Variable(
+        world_vars[theta_1_key] = Variable(
             distribution=theta_0_distribution,
             value=theta_1_value,
             log_prob=theta_0_distribution.log_prob(theta_1_value),
@@ -227,7 +231,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         x_distribution = dist.Normal(torch.tensor(0.0), torch.tensor(5.0))
-        nw.world_.variables_[x_0_key] = Variable(
+        world_vars[x_0_key] = Variable(
             distribution=x_distribution,
             value=x_0_value,
             log_prob=x_distribution.log_prob(x_0_value),
@@ -241,7 +245,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        nw.world_.variables_[x_1_key] = Variable(
+        world_vars[x_1_key] = Variable(
             distribution=x_distribution,
             value=x_1_value,
             log_prob=x_distribution.log_prob(x_1_value),
@@ -259,7 +263,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         probs_0 = 1 / (1 + (y * -1).exp())
         y_0_distribution = dist.Bernoulli(probs_0)
 
-        nw.world_.variables_[y_0_key] = Variable(
+        world_vars[y_0_key] = Variable(
             distribution=y_0_distribution,
             value=tensor(1.0),
             log_prob=y_0_distribution.log_prob(tensor(1.0)),
@@ -277,7 +281,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         probs_1 = 1 / (1 + (y * -1).exp())
         y_1_distribution = dist.Bernoulli(probs_1)
 
-        nw.world_.variables_[y_1_key] = Variable(
+        world_vars[y_1_key] = Variable(
             distribution=y_1_distribution,
             value=tensor(1.0),
             log_prob=y_1_distribution.log_prob(tensor(1.0)),
@@ -292,7 +296,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
 
         prop_dist = nw_proposer.get_proposal_distribution(
-            theta_0_key, nw.world_.variables_[theta_0_key], nw.world_, {}
+            theta_0_key, world_vars[theta_0_key], nw.world_, {}
         )[0]
         mean, scale_tril = parse_arguments(prop_dist.arguments)
 
@@ -330,26 +334,24 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             .reshape(theta_0_value.shape)
         )
         proposal_value.requires_grad_(True)
-        nw.world_.variables_[theta_0_key].value = proposal_value
-        nw.world_.variables_[theta_0_key].unconstrained_value = proposal_value
-        nw.world_.variables_[theta_0_key].log_prob = theta_0_distribution.log_prob(
-            proposal_value
-        )
+        world_vars[theta_0_key].value = proposal_value
+        world_vars[theta_0_key].unconstrained_value = proposal_value
+        world_vars[theta_0_key].log_prob = theta_0_distribution.log_prob(proposal_value)
 
         y = proposal_value + theta_1_value * x_0_value
         probs_0 = 1 / (1 + (y * -1).exp())
         y_0_distribution = dist.Bernoulli(probs_0)
-        nw.world_.variables_[y_0_key].distribution = y_0_distribution
-        nw.world_.variables_[y_0_key].log_prob = y_0_distribution.log_prob(tensor(1.0))
+        world_vars[y_0_key].distribution = y_0_distribution
+        world_vars[y_0_key].log_prob = y_0_distribution.log_prob(tensor(1.0))
 
         y = proposal_value + theta_1_value * x_1_value
         probs_1 = 1 / (1 + (y * -1).exp())
         y_1_distribution = dist.Bernoulli(probs_1)
-        nw.world_.variables_[y_1_key].distribution = y_1_distribution
-        nw.world_.variables_[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
+        world_vars[y_1_key].distribution = y_1_distribution
+        world_vars[y_1_key].log_prob = y_1_distribution.log_prob(tensor(1.0))
 
         prop_dist = nw_proposer.get_proposal_distribution(
-            theta_0_key, nw.world_.variables_[theta_0_key], nw.world_, {}
+            theta_0_key, world_vars[theta_0_key], nw.world_, {}
         )[0]
         mean, scale_tril = parse_arguments(prop_dist.arguments)
 

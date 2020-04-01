@@ -96,7 +96,8 @@ class WorldTest(unittest.TestCase):
         bar_key = model.bar()
         StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor(0.1)})
-        world.variables_[foo_key] = Variable(
+        world_vars = world.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
@@ -110,7 +111,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[bar_key] = Variable(
+        world_vars[bar_key] = Variable(
             distribution=dist.Normal(tensor(0.5), tensor(1.0)),
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
@@ -140,8 +141,8 @@ class WorldTest(unittest.TestCase):
             world_log_update.item(), expected_world_log_update.item(), places=3
         )
 
-        for node in world.is_delete_:
-            self.assertEqual(world.is_delete_[node], False)
+        for node in world.diff_.to_be_deleted_vars():
+            self.assertEqual(world.diff_.is_marked_for_delete(node), False)
 
     def test_world_change_with_parent_update_and_new_node(self):
         model = self.SampleModelWithParentUpdate()
@@ -152,7 +153,8 @@ class WorldTest(unittest.TestCase):
         StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor(0.1)})
 
-        world.variables_[foo_key] = Variable(
+        world_vars = world.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
@@ -166,7 +168,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[bar_key] = Variable(
+        world_vars[bar_key] = Variable(
             distribution=dist.Normal(tensor(0.5), tensor(1.0)),
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
@@ -185,7 +187,7 @@ class WorldTest(unittest.TestCase):
         )
 
         expected_children_log_update = (
-            dist.Normal(world.diff_[baz_key].value, tensor(1.0))
+            dist.Normal(world.diff_.get_node(baz_key).value, tensor(1.0))
             .log_prob(tensor(0.1))
             .sub(dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)))
         )
@@ -194,7 +196,9 @@ class WorldTest(unittest.TestCase):
         expected_world_update = expected_children_log_update.add(
             tensor(expected_node_update)
         ).add(
-            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(world.diff_[baz_key].value)
+            dist.Normal(tensor(0.0), tensor(1.0)).log_prob(
+                world.diff_.get_node(baz_key).value
+            )
         )
         self.assertAlmostEqual(
             children_log_update.item(), expected_children_log_update.item(), places=3
@@ -202,10 +206,10 @@ class WorldTest(unittest.TestCase):
         self.assertAlmostEqual(
             world_log_update.item(), expected_world_update.item(), places=3
         )
-        self.assertEqual((baz_key) in world.diff_[bar_key].parent, True)
+        self.assertEqual((baz_key) in world.diff_.get_node(bar_key).parent, True)
 
-        for node in world.is_delete_:
-            self.assertEqual(world.is_delete_[node], False)
+        for node in world.diff_.to_be_deleted_vars():
+            self.assertEqual(world.diff_.is_marked_for_delete(node), False)
 
     def test_world_change_with_multiple_parent_update(self):
         model = self.SampleLargeModelUpdate()
@@ -218,7 +222,8 @@ class WorldTest(unittest.TestCase):
         StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor(0.1)})
 
-        world.variables_[foo_key] = Variable(
+        world_vars = world.variables_.vars()
+        world_vars[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.2),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.2)),
@@ -232,7 +237,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[bar_key] = Variable(
+        world_vars[bar_key] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(1.0)),
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.1)),
@@ -257,7 +262,7 @@ class WorldTest(unittest.TestCase):
         )
 
         expected_children_log_update = (
-            dist.Normal(world.diff_[baz_key].value, tensor(1.0))
+            dist.Normal(world.diff_.get_node(baz_key).value, tensor(1.0))
             .log_prob(tensor(0.1))
             .sub(dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.1)))
         )
@@ -265,8 +270,8 @@ class WorldTest(unittest.TestCase):
         expected_world_update = expected_children_log_update.add(
             expected_node_update
         ).add(
-            dist.Normal(world.diff_[foo_key].value, tensor(1.0)).log_prob(
-                world.diff_[baz_key].value
+            dist.Normal(world.diff_.get_node(foo_key).value, tensor(1.0)).log_prob(
+                world.diff_.get_node(baz_key).value
             )
         )
 
@@ -276,10 +281,10 @@ class WorldTest(unittest.TestCase):
         self.assertAlmostEqual(
             world_log_update.item(), expected_world_update.item(), places=3
         )
-        self.assertEqual((baz_key) in world.diff_[bar_key].parent, True)
+        self.assertEqual((baz_key) in world.diff_.get_node(bar_key).parent, True)
 
-        for node in world.is_delete_:
-            self.assertEqual(world.is_delete_[node], False)
+        for node in world.diff_.to_be_deleted_vars():
+            self.assertEqual(world.diff_.is_marked_for_delete(node), False)
 
         world.accept_diff()
 
@@ -294,10 +299,10 @@ class WorldTest(unittest.TestCase):
         )
 
         expected_children_log_update = (
-            dist.Normal(world.diff_[foobar_key].value, tensor(1.0))
+            dist.Normal(world.diff_.get_node(foobar_key).value, tensor(1.0))
             .log_prob(tensor(0.1))
             .sub(
-                dist.Normal(world.diff_[baz_key].value, tensor(1.0)).log_prob(
+                dist.Normal(world.diff_.get_node(baz_key).value, tensor(1.0)).log_prob(
                     tensor(0.1)
                 )
             )
@@ -306,11 +311,11 @@ class WorldTest(unittest.TestCase):
         expected_world_update = (
             expected_children_log_update.add(expected_node_update)
             .add(
-                dist.Normal(world.diff_[foo_key].value, tensor(1.0)).log_prob(
-                    world.diff_[foobar_key].value
+                dist.Normal(world.diff_.get_node(foo_key).value, tensor(1.0)).log_prob(
+                    world.diff_.get_node(foobar_key).value
                 )
             )
-            .sub(world.variables_[baz_key].log_prob)
+            .sub(world.variables_.get_node(baz_key).log_prob)
         )
 
         self.assertEqual(node_log_update.item(), expected_node_update.item())
@@ -321,17 +326,17 @@ class WorldTest(unittest.TestCase):
         self.assertAlmostEqual(
             world_log_update.item(), expected_world_update.item(), places=3
         )
-        self.assertEqual((foobar_key) in world.diff_[bar_key].parent, True)
+        self.assertEqual((foobar_key) in world.diff_.get_node(bar_key).parent, True)
 
-        for node in world.is_delete_:
+        for node in world.diff_.to_be_deleted_vars():
             if node == baz_key:
-                self.assertEqual(world.is_delete_[node], True)
+                self.assertEqual(world.diff_.is_marked_for_delete(node), True)
             else:
-                self.assertEqual(world.is_delete_[node], False)
+                self.assertEqual(world.diff_.is_marked_for_delete(node), False)
 
         world.accept_diff()
-        self.assertEqual(baz_key in world.variables_, False)
-        self.assertEqual(baz_key in world.variables_[foo_key].children, False)
+        self.assertEqual(baz_key in world_vars, False)
+        self.assertEqual(baz_key in world_vars[foo_key].children, False)
 
         children_log_update, world_log_update, _, _ = world.propose_change(
             foo_key, tensor(0.75)
@@ -339,12 +344,12 @@ class WorldTest(unittest.TestCase):
 
         world.accept_diff()
 
-        self.assertEqual(baz_key in world.variables_, False)
-        self.assertEqual(foobar_key in world.variables_, True)
-        self.assertEqual(foobar_key in world.variables_[bar_key].parent, False)
-        self.assertEqual(bar_key in world.variables_[foobar_key].children, False)
-        self.assertEqual(foobar_key in world.variables_[foobaz_key].parent, True)
-        self.assertEqual(foobaz_key in world.variables_[foobar_key].children, True)
+        self.assertEqual(baz_key in world_vars, False)
+        self.assertEqual(foobar_key in world_vars, True)
+        self.assertEqual(foobar_key in world_vars[bar_key].parent, False)
+        self.assertEqual(bar_key in world_vars[foobar_key].children, False)
+        self.assertEqual(foobar_key in world_vars[foobaz_key].parent, True)
+        self.assertEqual(foobaz_key in world_vars[foobar_key].children, True)
 
         children_log_update, world_log_update, _, _ = world.propose_change(
             foo_key, tensor(1.05)
@@ -352,9 +357,9 @@ class WorldTest(unittest.TestCase):
 
         world.accept_diff()
 
-        self.assertEqual(foobar_key in world.variables_, False)
-        self.assertEqual(foobar_key in world.variables_[foo_key].children, False)
-        self.assertEqual(foobar_key in world.variables_[foobaz_key].parent, False)
+        self.assertEqual(foobar_key in world_vars, False)
+        self.assertEqual(foobar_key in world_vars[foo_key].children, False)
+        self.assertEqual(foobar_key in world_vars[foobaz_key].parent, False)
 
     def test_ancestor_change(self):
         model = self.SampleLargeModelWithAncesters()
@@ -371,7 +376,9 @@ class WorldTest(unittest.TestCase):
         Y_key = model.Y()
         StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({Y_key: tensor(0.1)})
-        world.variables_[X_key] = Variable(
+
+        world_vars = world.variables_.vars()
+        world_vars[X_key] = Variable(
             distribution=dist.Categorical(tensor([0.5, 0.5])),
             value=tensor(0.0),
             log_prob=dist.Categorical(tensor([0.5, 0.5])).log_prob(tensor(1.0)),
@@ -385,7 +392,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[A_key_0] = Variable(
+        world_vars[A_key_0] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.1)),
@@ -399,7 +406,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[B_key_0] = Variable(
+        world_vars[B_key_0] = Variable(
             distribution=dist.Normal(tensor(0.1), tensor(1.0)),
             value=tensor(0.2),
             log_prob=dist.Normal(tensor(0.1), tensor(1.0)).log_prob(tensor(0.2)),
@@ -413,7 +420,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[C_key_0] = Variable(
+        world_vars[C_key_0] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(1.0)),
             value=tensor(0.2),
             log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.2)),
@@ -427,7 +434,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[D_key_0] = Variable(
+        world_vars[D_key_0] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(0.2)),
             value=tensor(0.2),
             log_prob=dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2)),
@@ -441,7 +448,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
-        world.variables_[Y_key] = Variable(
+        world_vars[Y_key] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(1.0)),
             value=tensor(1.0),
             log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(1.0)),
@@ -464,15 +471,16 @@ class WorldTest(unittest.TestCase):
         c_value = tensor(0.0)
         d_value = tensor(0.0)
 
-        for key in world.diff_:
+        diff_vars = world.diff_.vars()
+        for key in diff_vars:
             if key == D_key_1:
-                d_value = world.diff_[key].value
+                d_value = diff_vars[key].value
             if key == C_key_1:
-                c_value = world.diff_[key].value
+                c_value = diff_vars[key].value
             if key == B_key_1:
-                b_value = world.diff_[key].value
+                b_value = diff_vars[key].value
             if key == A_key_1:
-                a_value = world.diff_[key].value
+                a_value = diff_vars[key].value
         expected_children_log_update = dist.Normal(d_value, tensor(1.0)).log_prob(
             tensor(1.0)
         ) - dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(1.0))
@@ -503,23 +511,23 @@ class WorldTest(unittest.TestCase):
             world_log_update.item(), expected_world_log_update.item(), places=3
         )
 
-        self.assertEqual(world.is_delete_[A_key_0], True)
-        self.assertEqual(world.is_delete_[B_key_0], True)
-        self.assertEqual(world.is_delete_[C_key_0], True)
-        self.assertEqual(world.is_delete_[D_key_0], True)
-        self.assertEqual(world.is_delete_[A_key_1], False)
-        self.assertEqual(world.is_delete_[B_key_1], False)
-        self.assertEqual(world.is_delete_[C_key_1], False)
+        self.assertEqual(world.diff_.is_marked_for_delete(A_key_0), True)
+        self.assertEqual(world.diff_.is_marked_for_delete(B_key_0), True)
+        self.assertEqual(world.diff_.is_marked_for_delete(C_key_0), True)
+        self.assertEqual(world.diff_.is_marked_for_delete(D_key_0), True)
+        self.assertEqual(world.diff_.is_marked_for_delete(A_key_1), False)
+        self.assertEqual(world.diff_.is_marked_for_delete(B_key_1), False)
+        self.assertEqual(world.diff_.is_marked_for_delete(C_key_1), False)
 
         world.accept_diff()
 
-        self.assertEqual(A_key_0 in world.variables_, False)
-        self.assertEqual(B_key_0 in world.variables_, False)
-        self.assertEqual(C_key_0 in world.variables_, False)
-        self.assertEqual(D_key_0 in world.variables_, False)
-        self.assertEqual(A_key_1 in world.variables_, True)
-        self.assertEqual(B_key_1 in world.variables_, True)
-        self.assertEqual(C_key_1 in world.variables_, True)
+        self.assertEqual(A_key_0 in world_vars, False)
+        self.assertEqual(B_key_0 in world_vars, False)
+        self.assertEqual(C_key_0 in world_vars, False)
+        self.assertEqual(D_key_0 in world_vars, False)
+        self.assertEqual(A_key_1 in world_vars, True)
+        self.assertEqual(B_key_1 in world_vars, True)
+        self.assertEqual(C_key_1 in world_vars, True)
 
     def test_get_world_node(self):
         world = World()
@@ -528,7 +536,8 @@ class WorldTest(unittest.TestCase):
 
     def test_compute_score(self):
         world = World()
-        world.variables_["tmp"] = Variable(
+        world_vars = world.variables_.vars()
+        world_vars["tmp"] = Variable(
             distribution=dist.Normal(tensor(0.2), tensor(0.2)),
             value=tensor(0.2),
             log_prob=dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2)),
@@ -542,7 +551,7 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
         with self.assertRaises(ValueError):
-            world.compute_score(world.variables_["tmp"])
+            world.compute_score(world_vars["tmp"])
 
     def test_update_graph_small_bar(self):
         model = self.SampleModel()
@@ -558,21 +567,27 @@ class WorldTest(unittest.TestCase):
         bar_expected_parent = set({foo_key})
         bar_expected_children = set()
 
-        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
-        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
-        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
-        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
+        self.assertEqual(foo_expected_children, world.diff_.get_node(foo_key).children)
+        self.assertEqual(foo_expected_parent, world.diff_.get_node(foo_key).parent)
+        self.assertEqual(bar_expected_children, world.diff_.get_node(bar_key).children)
+        self.assertEqual(bar_expected_parent, world.diff_.get_node(bar_key).parent)
 
         foo_expected_dist = dist.Normal(tensor(0.0), tensor(1.0))
-        bar_expected_dist = dist.Normal(world.diff_[foo_key].value, tensor(1.0))
-
-        self.assertEqual(foo_expected_dist.mean, world.diff_[foo_key].distribution.mean)
-        self.assertEqual(
-            foo_expected_dist.stddev, world.diff_[foo_key].distribution.stddev
+        bar_expected_dist = dist.Normal(
+            world.diff_.get_node(foo_key).value, tensor(1.0)
         )
-        self.assertEqual(bar_expected_dist.mean, world.diff_[bar_key].distribution.mean)
+
         self.assertEqual(
-            bar_expected_dist.stddev, world.diff_[bar_key].distribution.stddev
+            foo_expected_dist.mean, world.diff_.get_node(foo_key).distribution.mean
+        )
+        self.assertEqual(
+            foo_expected_dist.stddev, world.diff_.get_node(foo_key).distribution.stddev
+        )
+        self.assertEqual(
+            bar_expected_dist.mean, world.diff_.get_node(bar_key).distribution.mean
+        )
+        self.assertEqual(
+            bar_expected_dist.stddev, world.diff_.get_node(bar_key).distribution.stddev
         )
 
     def test_update_graph_small_foo(self):
@@ -586,8 +601,8 @@ class WorldTest(unittest.TestCase):
         foo_expected_parent = set()
         foo_expected_children = set()
 
-        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
-        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
+        self.assertEqual(foo_expected_children, world.diff_.get_node(foo_key).children)
+        self.assertEqual(foo_expected_parent, world.diff_.get_node(foo_key).parent)
 
     def test_update_graph_parent_update(self):
         model = self.SampleModelWithParentUpdate()
@@ -609,10 +624,10 @@ class WorldTest(unittest.TestCase):
         bar_expected_parent = set({foo_key})
         bar_expected_children = set()
 
-        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
-        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
-        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
-        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
+        self.assertEqual(foo_expected_children, world.diff_.get_node(foo_key).children)
+        self.assertEqual(foo_expected_parent, world.diff_.get_node(foo_key).parent)
+        self.assertEqual(bar_expected_children, world.diff_.get_node(bar_key).children)
+        self.assertEqual(bar_expected_parent, world.diff_.get_node(bar_key).parent)
 
         world.accept_diff()
 
@@ -625,12 +640,12 @@ class WorldTest(unittest.TestCase):
         bar_expected_parent = set({foo_key, baz_key})
         bar_expected_children = set()
 
-        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
-        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
-        self.assertEqual(baz_expected_children, world.diff_[baz_key].children)
-        self.assertEqual(baz_expected_parent, world.diff_[baz_key].parent)
-        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
-        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
+        self.assertEqual(foo_expected_children, world.diff_.get_node(foo_key).children)
+        self.assertEqual(foo_expected_parent, world.diff_.get_node(foo_key).parent)
+        self.assertEqual(baz_expected_children, world.diff_.get_node(baz_key).children)
+        self.assertEqual(baz_expected_parent, world.diff_.get_node(baz_key).parent)
+        self.assertEqual(bar_expected_children, world.diff_.get_node(bar_key).children)
+        self.assertEqual(bar_expected_parent, world.diff_.get_node(bar_key).parent)
 
     def test_world_propose_change_score(self):
         model = self.SampleModel()
@@ -639,8 +654,9 @@ class WorldTest(unittest.TestCase):
         bar_key = model.bar()
         StatisticalModel.set_mode(Mode.INFERENCE)
 
+        world_vars = world.variables_.vars()
         world.set_observations({bar_key: tensor(0.1)})
-        world.variables_[foo_key] = Variable(
+        world_vars[foo_key] = Variable(
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
@@ -653,7 +669,7 @@ class WorldTest(unittest.TestCase):
             unconstrained_value=tensor(0.5),
             jacobian=tensor(0.0),
         )
-        world.variables_[bar_key] = Variable(
+        world_vars[bar_key] = Variable(
             distribution=dist.Normal(tensor(0.5), tensor(1.0)),
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),

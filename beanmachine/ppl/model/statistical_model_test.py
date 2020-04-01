@@ -78,30 +78,31 @@ class StatisticalModelTest(unittest.TestCase):
         baz_expected_parent = set({foo_key, bar_key})
         baz_expected_children = set()
 
-        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
-        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
-        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
-        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
-        self.assertEqual(baz_expected_children, world.diff_[baz_key].children)
-        self.assertEqual(baz_expected_parent, world.diff_[baz_key].parent)
+        diff_vars = world.diff_.vars()
+        self.assertEqual(foo_expected_children, diff_vars[foo_key].children)
+        self.assertEqual(foo_expected_parent, diff_vars[foo_key].parent)
+        self.assertEqual(bar_expected_children, diff_vars[bar_key].children)
+        self.assertEqual(bar_expected_parent, diff_vars[bar_key].parent)
+        self.assertEqual(baz_expected_children, diff_vars[baz_key].children)
+        self.assertEqual(baz_expected_parent, diff_vars[baz_key].parent)
 
         foo_expected_dist = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
-        bar_expected_dist = dist.Normal(world.diff_[foo_key].value, torch.tensor(1.0))
+        bar_expected_dist = dist.Normal(diff_vars[foo_key].value, torch.tensor(1.0))
         baz_expected_dist = dist.Normal(
-            world.diff_[foo_key].value, world.diff_[bar_key].value
+            diff_vars[foo_key].value, diff_vars[bar_key].value
         )
 
-        self.assertEqual(foo_expected_dist.mean, world.diff_[foo_key].distribution.mean)
+        self.assertEqual(foo_expected_dist.mean, diff_vars[foo_key].distribution.mean)
         self.assertEqual(
-            foo_expected_dist.stddev, world.diff_[foo_key].distribution.stddev
+            foo_expected_dist.stddev, diff_vars[foo_key].distribution.stddev
         )
-        self.assertEqual(bar_expected_dist.mean, world.diff_[bar_key].distribution.mean)
+        self.assertEqual(bar_expected_dist.mean, diff_vars[bar_key].distribution.mean)
         self.assertEqual(
-            bar_expected_dist.stddev, world.diff_[bar_key].distribution.stddev
+            bar_expected_dist.stddev, diff_vars[bar_key].distribution.stddev
         )
-        self.assertEqual(baz_expected_dist.mean, world.diff_[baz_key].distribution.mean)
+        self.assertEqual(baz_expected_dist.mean, diff_vars[baz_key].distribution.mean)
         self.assertEqual(
-            baz_expected_dist.stddev, world.diff_[baz_key].distribution.stddev
+            baz_expected_dist.stddev, diff_vars[baz_key].distribution.stddev
         )
 
     def test_rv_sample_assignment_with_large_model_with_index(self):
@@ -136,62 +137,63 @@ class StatisticalModelTest(unittest.TestCase):
         foobaz_expected_parent = set({bazbar_key, foo_key})
         foobaz_expected_children = set()
 
-        self.assertEqual(foo_expected_children, world.diff_[foo_key].children)
-        self.assertEqual(foo_expected_parent, world.diff_[foo_key].parent)
-        self.assertEqual(bar_expected_children, world.diff_[bar_key].children)
-        self.assertEqual(bar_expected_parent, world.diff_[bar_key].parent)
-        self.assertEqual(baz_expected_children, world.diff_[baz_key].children)
-        self.assertEqual(baz_expected_parent, world.diff_[baz_key].parent)
-        self.assertEqual(foobar_expected_children, world.diff_[foobar_key].children)
-        self.assertEqual(foobar_expected_parent, world.diff_[foobar_key].parent)
-        self.assertEqual(bazbar_expected_children, world.diff_[bazbar_key].children)
-        self.assertEqual(bazbar_expected_parent, world.diff_[bazbar_key].parent)
-        self.assertEqual(foobaz_expected_children, world.diff_[foobaz_key].children)
-        self.assertEqual(foobaz_expected_parent, world.diff_[foobaz_key].parent)
+        diff_vars = world.diff_.vars()
+        self.assertEqual(foo_expected_children, diff_vars[foo_key].children)
+        self.assertEqual(foo_expected_parent, diff_vars[foo_key].parent)
+        self.assertEqual(bar_expected_children, diff_vars[bar_key].children)
+        self.assertEqual(bar_expected_parent, diff_vars[bar_key].parent)
+        self.assertEqual(baz_expected_children, diff_vars[baz_key].children)
+        self.assertEqual(baz_expected_parent, diff_vars[baz_key].parent)
+        self.assertEqual(foobar_expected_children, diff_vars[foobar_key].children)
+        self.assertEqual(foobar_expected_parent, diff_vars[foobar_key].parent)
+        self.assertEqual(bazbar_expected_children, diff_vars[bazbar_key].children)
+        self.assertEqual(bazbar_expected_parent, diff_vars[bazbar_key].parent)
+        self.assertEqual(foobaz_expected_children, diff_vars[foobaz_key].children)
+        self.assertEqual(foobaz_expected_parent, diff_vars[foobaz_key].parent)
         self.assertEqual(type(query_key), RVIdentifier)
 
         foo_expected_dist = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
-        bar_expected_dist = dist.Normal(world.diff_[foo_key].value, torch.tensor(1.0))
+        bar_expected_dist = dist.Normal(diff_vars[foo_key].value, torch.tensor(1.0))
         baz_expected_dist = dist.Normal(
-            world.diff_[foo_key].value, world.diff_[bar_key].value
+            diff_vars[foo_key].value, diff_vars[bar_key].value
         )
         foobar_expected_dist = dist.Normal(
-            world.diff_[baz_key].value, world.diff_[bar_key].value
+            diff_vars[baz_key].value, diff_vars[bar_key].value
         )
         bazbar_expected_dist = dist.Normal(
-            world.diff_[baz_key].value, world.diff_[foo_key].value
+            diff_vars[baz_key].value, diff_vars[foo_key].value
         )
         foobaz_expected_dist = dist.Normal(
-            world.diff_[bazbar_key].value, world.diff_[foo_key].value
+            diff_vars[bazbar_key].value, diff_vars[foo_key].value
         )
 
-        self.assertEqual(foo_expected_dist.mean, world.diff_[foo_key].distribution.mean)
+        self.assertEqual(foo_expected_dist.mean, diff_vars[foo_key].distribution.mean)
         self.assertEqual(
-            foo_expected_dist.stddev, world.diff_[foo_key].distribution.stddev
+            foo_expected_dist.stddev, diff_vars[foo_key].distribution.stddev
         )
-        self.assertEqual(bar_expected_dist.mean, world.diff_[bar_key].distribution.mean)
+        self.assertEqual(bar_expected_dist.mean, diff_vars[bar_key].distribution.mean)
         self.assertEqual(
-            bar_expected_dist.stddev, world.diff_[bar_key].distribution.stddev
+            bar_expected_dist.stddev, diff_vars[bar_key].distribution.stddev
         )
-        self.assertEqual(baz_expected_dist.mean, world.diff_[baz_key].distribution.mean)
+        self.assertEqual(baz_expected_dist.mean, diff_vars[baz_key].distribution.mean)
         self.assertEqual(
-            baz_expected_dist.stddev, world.diff_[baz_key].distribution.stddev
-        )
-        self.assertEqual(
-            foobar_expected_dist.mean, world.diff_[foobar_key].distribution.mean
+            baz_expected_dist.stddev, diff_vars[baz_key].distribution.stddev
         )
         self.assertEqual(
-            foobar_expected_dist.stddev, world.diff_[foobar_key].distribution.stddev
+            foobar_expected_dist.mean, diff_vars[foobar_key].distribution.mean
         )
         self.assertEqual(
-            bazbar_expected_dist.mean, world.diff_[bazbar_key].distribution.mean
+            foobar_expected_dist.stddev, diff_vars[foobar_key].distribution.stddev
         )
         self.assertEqual(
-            bazbar_expected_dist.stddev, world.diff_[bazbar_key].distribution.stddev
+            bazbar_expected_dist.mean, diff_vars[bazbar_key].distribution.mean
         )
         self.assertEqual(
-            foobaz_expected_dist.mean, world.diff_[foobaz_key].distribution.mean
+            bazbar_expected_dist.stddev, diff_vars[bazbar_key].distribution.stddev
         )
         self.assertEqual(
-            foobaz_expected_dist.stddev, world.diff_[foobaz_key].distribution.stddev
+            foobaz_expected_dist.mean, diff_vars[foobaz_key].distribution.mean
+        )
+        self.assertEqual(
+            foobaz_expected_dist.stddev, diff_vars[foobaz_key].distribution.stddev
         )

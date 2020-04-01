@@ -100,10 +100,11 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         mh._infer(10)
         # using _infer instead of infer, as world_ would be reset at the end
         # infer
-        self.assertIn(foo_key, mh.world_.variables_)
-        self.assertIn(bar_key, mh.world_.variables_)
-        self.assertIn(foo_key, mh.world_.variables_[bar_key].parent)
-        self.assertIn(bar_key, mh.world_.variables_[foo_key].children)
+        world_vars = mh.world_.variables_.vars()
+        self.assertIn(foo_key, world_vars)
+        self.assertIn(bar_key, world_vars)
+        self.assertIn(foo_key, world_vars[bar_key].parent)
+        self.assertIn(bar_key, world_vars[foo_key].children)
 
     """
     These tests test for the control flow which branches

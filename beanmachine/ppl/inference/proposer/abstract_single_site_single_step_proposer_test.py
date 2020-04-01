@@ -66,15 +66,14 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
         ci.queries_ = [model.foo()]
         ci.observations_ = {model.bar(): tensor(2.0)}
         ci._infer(2)
-        for key in ci.world_.variables_:
+        world_vars = ci.world_.variables_.vars()
+        for key in world_vars:
             if key.function.__name__ == "foo":
-                proposer = ci.world_.variables_[
-                    key
-                ].proposal_distribution.proposal_distribution
-                requires_transform = ci.world_.variables_[
+                proposer = world_vars[key].proposal_distribution.proposal_distribution
+                requires_transform = world_vars[
                     key
                 ].proposal_distribution.requires_transform
-                requires_reshape = ci.world_.variables_[
+                requires_reshape = world_vars[
                     key
                 ].proposal_distribution.requires_reshape
                 self.assertEqual(proposer.concentration.item(), 2.0)
