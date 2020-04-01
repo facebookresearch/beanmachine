@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import torch.distributions as dist
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
-from beanmachine.ppl.world.diff import Diff
+from beanmachine.ppl.world.diff_stack import DiffStack
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world_vars import WorldVars
 from torch import Tensor, tensor
@@ -155,7 +155,19 @@ class World(object):
         :param node: the node signature to be added to world
         :param var: the variable to be added to the world for node
         """
-        self.diff_.add_node(node, var)
+        self.diff_stack_.add_node(node, var)
+
+    def get_node_earlier_version(self, node: RVIdentifier) -> Optional[Variable]:
+        """
+        Get the earlier version of the node in the world.
+
+        :param node: the RVIdentifier of the node to be looked up in the world.
+        :returns: the earlier version of the node.
+        """
+        node_var = self.diff_stack_.get_node_earlier_version(node)
+        if node_var is None:
+            node_var = self.variables_.get_node(node)
+        return node_var
 
     def update_diff_log_prob(self, node: RVIdentifier) -> None:
         """
@@ -164,9 +176,9 @@ class World(object):
         :param node: updates the diff_log_update_ with the log_prob update of
         the node
         """
-        node_var = self.variables_.get_node(node)
-        self.diff_.update_log_prob(
-            self.diff_.get_node_raise_error(node).log_prob
+        node_var = self.get_node_earlier_version(node)
+        self.diff_stack_.update_log_prob(
+            self.diff_stack_.get_node_raise_error(node).log_prob
             - (node_var.log_prob if node_var is not None else tensor(0.0))
         )
 
@@ -181,6 +193,7 @@ class World(object):
         for child in node_var.children:
             if child is None:
                 raise ValueError(f"node {child} is not in the world")
+            # We just need to read the node in the latest diff.
             child_var = self.get_node_in_world_raise_error(child, False)
             score += child_var.log_prob.clone()
         score += node_var.jacobian
@@ -194,8 +207,8 @@ class World(object):
         :param node: the node to look up
         :returns: old unconstrained value of the node.
         """
-        if self.variables_.contains_node(node):
-            node_var = self.variables_.get_node_raise_error(node)
+        node_var = self.get_node_earlier_version(node)
+        if node_var is not None:
             if (
                 isinstance(node_var.distribution, dist.Beta)
                 and node_var.proposal_distribution is not None
@@ -208,7 +221,10 @@ class World(object):
         return None
 
     def get_node_in_world_raise_error(
-        self, node: RVIdentifier, to_be_copied: bool = True
+        self,
+        node: RVIdentifier,
+        to_be_copied: bool = True,
+        to_create_new_diff: bool = False,
     ) -> Variable:
         """
         Get the node in the world, by first looking up diff_, if not available,
@@ -222,14 +238,17 @@ class World(object):
         :returns: the corresponding node from the world and raises an error if
         node is not available
         """
-        node_var = self.get_node_in_world(node, to_be_copied)
+        node_var = self.get_node_in_world(node, to_be_copied, to_create_new_diff)
         if node_var is None:
             raise ValueError(f"Node {node} is not available in world")
 
         return node_var
 
     def get_node_in_world(
-        self, node: RVIdentifier, to_be_copied: bool = True
+        self,
+        node: RVIdentifier,
+        to_be_copied: bool = True,
+        to_create_new_diff: bool = False,
     ) -> Optional[Variable]:
         """
         Get the node in the world, by first looking up diff_, if not available,
@@ -242,19 +261,27 @@ class World(object):
         diff_ and start tracking its changes or not.
         :returns: the corresponding node from the world
         """
-        if self.diff_.contains_node(node):
-            return self.diff_.get_node(node)
+        node_var_from_diff = self.diff_stack_.get_node(node)
+        if node_var_from_diff:
+            if to_create_new_diff:
+                node_var_copied = node_var_from_diff.copy()
+                self.diff_stack_.add_node(node, node_var_copied)
+                return node_var_copied
+            return node_var_from_diff
         elif self.variables_.contains_node(node):
             node_var = self.variables_.get_node_raise_error(node)
             if to_be_copied:
                 node_var_copied = node_var.copy()
-                self.diff_.add_node(node, node_var_copied)
+                self.diff_stack_.add_node(node, node_var_copied)
                 return node_var_copied
             else:
                 return node_var
         return None
 
     def get_number_of_variables(self) -> int:
+        """
+        :returns: the number of random variables in the world.
+        """
         return self.variables_.len() - len(self.observations_)
 
     def contains_in_world(self, node: RVIdentifier) -> bool:
@@ -265,7 +292,7 @@ class World(object):
         :param node: node to be looked up in the world
         :returns: true if found else false
         """
-        return self.diff_.contains_node(node) or self.variables_.get_node(node)
+        return self.diff_stack_.contains_node(node) or self.variables_.get_node(node)
 
     def get_all_world_vars(self) -> Variables:
         """
@@ -278,21 +305,16 @@ class World(object):
         If changes in a diff is accepted, world's variables_ are updated with
         their corrseponding diff_ value.
         """
-        for node in self.diff_.vars():
-            node_var = self.diff_.get_node_raise_error(node)
-            self.variables_.add_node(node, node_var)
-
-        for node, to_be_deleted in self.diff_.to_be_deleted_vars().items():
-            if to_be_deleted:
-                self.variables_.delete(node)
-        self.variables_.update_log_prob(self.diff_.log_prob())
+        self.diff_stack_.push_changes(self.variables_)
+        self.variables_.update_log_prob(self.diff_stack_.diffs_log_prob())
         self.reset_diff()
 
     def reset_diff(self) -> None:
         """
-        Resets the diff
+        Resets the diff and diff stack.
         """
-        self.diff_ = Diff()
+        self.diff_stack_ = DiffStack()
+        self.diff_ = self.diff_stack_.diff_stack_[-1]
 
     def start_diff_with_proposed_val(
         self, node: RVIdentifier, proposed_value: Tensor
@@ -310,9 +332,9 @@ class World(object):
         old_log_prob = var.log_prob
         var.update_fields(proposed_value, None, self.should_transform_[node])
         var.proposal_distribution = None
-        self.diff_.add_node(node, var)
+        self.diff_stack_.add_node(node, var)
         node_log_update = var.log_prob - old_log_prob
-        self.diff_.update_log_prob(node_log_update)
+        self.diff_stack_.update_log_prob(node_log_update)
         return node_log_update
 
     def reject_diff(self) -> None:
@@ -327,27 +349,34 @@ class World(object):
 
         :param node: the node whose parents are being evaluated.
         """
-        for child in self.diff_.get_node_raise_error(node).children.copy():
+        for child in self.diff_stack_.get_node_raise_error(node).children.copy():
             if not self.variables_.contains_node(child):
                 continue
 
+            new_child_var = self.diff_stack_.get_node(child)
+            if not new_child_var:
+                continue
+            new_parents = new_child_var.parent
             old_child_var = self.variables_.get_node(child)
             old_parents = old_child_var.parent if old_child_var is not None else set()
-            new_child_var = self.diff_.get_node(child)
-            new_parents = new_child_var.parent
 
             dropped_parents = old_parents - new_parents
             for parent in dropped_parents:
-                parent_var = self.get_node_in_world(parent)
+                # parent node variable may need to be added to the latest
+                # diff, so we may need to call get_node_in_world with
+                # to_create_new_diff = True.
+                parent_var = self.get_node_in_world(
+                    parent, to_create_new_diff=not self.diff_.contains_node(parent)
+                )
                 # pyre-fixme
-                if child not in parent_var.children:
+                if not parent_var and child not in parent_var.children:
                     continue
                 parent_var.children.remove(child)
                 if len(parent_var.children) != 0 or parent in self.observations_:
                     continue
 
-                self.diff_.mark_for_delete(parent)
-                self.diff_.update_log_prob(
+                self.diff_stack_.mark_for_delete(parent)
+                self.diff_stack_.update_log_prob(
                     -1 * self.variables_.get_node_raise_error(parent).log_prob
                 )
 
@@ -355,14 +384,22 @@ class World(object):
                 ancestors = [(parent, x) for x in parent_var.parent]
                 while len(ancestors) > 0:
                     ancestor_child, ancestor = ancestors.pop(0)
-                    ancestor_var = self.get_node_in_world(ancestor)
+                    # ancestor node variable may need to be added to the latest
+                    # diff, so we may need to call get_node_in_world with
+                    # to_create_new_diff = True.
+                    ancestor_var = self.get_node_in_world(
+                        ancestor,
+                        to_create_new_diff=not self.diff_.contains_node(ancestor),
+                    )
+                    if ancestor_var is None:
+                        continue
                     ancestor_var.children.remove(ancestor_child)
                     if (
                         len(ancestor_var.children) == 0
                         and ancestor not in self.observations_
                     ):
-                        self.diff_.mark_for_delete(ancestor)
-                        self.diff_.update_log_prob(
+                        self.diff_stack_.mark_for_delete(ancestor)
+                        self.diff_stack_.update_log_prob(
                             -1 * self.variables_.get_node_raise_error(ancestor).log_prob
                         )
                         ancestors.extend([(ancestor, x) for x in ancestor_var.parent])
@@ -382,14 +419,21 @@ class World(object):
         """
         old_log_probs = defaultdict()
         new_log_probs = defaultdict()
+        # Upto this point, a new diff with node is started, so this will return
+        # the node in the latest diff.
         node_var = self.get_node_in_world_raise_error(node)
         for child in node_var.children.copy():
             if child is None:
                 continue
-            child_var = self.get_node_in_world_raise_error(child)
+            # Children are not yet available in the latest diff, here, we will
+            # add children to the latest diff and add them to the stack.
+            child_var = self.get_node_in_world_raise_error(
+                child, to_create_new_diff=True
+            )
             old_log_probs[child] = child_var.log_prob
             child_var.parent = set()
             self.stack_.append(child)
+            # in this call child is going to be copied over to the latest diff.
             child_var.distribution = child.function(*child.arguments)
             self.stack_.pop()
             obs_value = (
@@ -428,6 +472,8 @@ class World(object):
         difference of old and new log probability of world, difference of old
         and new log probability of node
         """
+        # diff to track the changes is not started yet, so we're just reading
+        # the node variable available in world_vars or diff.
         node_var = self.get_node_in_world_raise_error(node, False)
         proposed_value = node_var.transform_from_unconstrained_to_constrained(
             proposed_unconstrained_value
@@ -454,6 +500,9 @@ class World(object):
         if not allow_graph_update and graph_update:
             raise RuntimeError(f"Computation graph changed after proposal for {node}")
         world_log_update = self.diff_.log_prob()
+        # diff is already started and changes to world have already happened by
+        # the time we get here, so we'd just like to fetch the node from the
+        # latest diff.
         diff_node_var = self.get_node_in_world_raise_error(node, False)
         proposed_score = self.compute_score(diff_node_var)
         return (
@@ -470,8 +519,14 @@ class World(object):
         :param node: the node which was called from StatisticalModel.sample()
         """
         if len(self.stack_) > 0:
+            # We are making updates to the parent, so we need to call the
+            # get_node_in_world_raise_error, we don't need to add the variable
+            # to the latest diff because it's been already added there given
+            # that it's in the stack.
             self.get_node_in_world_raise_error(self.stack_[-1]).parent.add(node)
 
+        # We are adding the diff manually to the latest diff manually in line
+        # 509 and 527.
         node_var = self.get_node_in_world(node, False)
         if node_var is not None:
             if len(self.stack_) > 0 and self.stack_[-1] not in node_var.children:
