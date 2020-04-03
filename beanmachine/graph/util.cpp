@@ -1,9 +1,14 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#include <cmath>
+
 #include "beanmachine/graph/util.h"
 #include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
 namespace util {
+
+// see https://core.ac.uk/download/pdf/41787448.pdf
+const double PHI_APPROX_GAMMA = 1.702;
 
 bool is_boolean_scalar(const torch::Tensor& value) {
   if (value.dim() != 0 or
@@ -67,7 +72,19 @@ double sample_beta(std::mt19937& gen, double a, double b) {
 }
 
 double logistic(double logodds) {
-  return 1.0 / (1.0 + exp(-logodds));
+  return 1.0 / (1.0 + std::exp(-logodds));
+}
+
+double Phi(double x) {
+  return 0.5 *(1 + std::erf(x / M_SQRT2));
+}
+
+double Phi_approx(double x) {
+  return 1.0 / (1.0 + std::exp(- PHI_APPROX_GAMMA * x));
+}
+
+double Phi_approx_inv(double z) {
+  return (std::log(z) - std::log(1 - z)) / PHI_APPROX_GAMMA;
 }
 
 } // namespace util
