@@ -50,7 +50,8 @@ PYBIND11_MODULE(graph, module) {
       .value("BETA", DistributionType::BETA)
       .value("BINOMIAL", DistributionType::BINOMIAL)
       .value("FLAT", DistributionType::FLAT)
-      .value("NORMAL", DistributionType::NORMAL);
+      .value("NORMAL", DistributionType::NORMAL)
+      .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY);
 
   py::enum_<NodeType>(module, "NodeType")
       .value("CONSTANT", NodeType::CONSTANT)
