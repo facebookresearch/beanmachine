@@ -140,7 +140,7 @@ void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
 double Graph::log_prob(uint src_idx) {
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
-    throw std::runtime_error("gradient_log_prob only supported on stochastic nodes");
+    throw std::runtime_error("log_prob only supported on stochastic nodes");
   }
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
   auto supp = compute_support();

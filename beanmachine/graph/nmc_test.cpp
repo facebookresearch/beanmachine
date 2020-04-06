@@ -89,3 +89,22 @@ TEST(testnmc, net_norad) {
   // 2 is 100x of 1 because all paths involving 2 have high dropped packets
   EXPECT_LT(10 * means[1], means[2]);
 }
+
+TEST(testnmc, normal_normal) {
+  Graph g;
+  auto mean0 = g.add_constant(0.0);
+  auto sigma0 = g.add_constant_pos_real(5.0);
+  auto dist0 = g.add_distribution(DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{mean0, sigma0});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist0});
+  auto x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
+  auto sigma1 = g.add_constant_pos_real(10.0);
+  auto dist1 = g.add_distribution(DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{x, sigma1});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist1});
+  g.observe(y, 100.0);
+  g.query(x);
+  g.query(x_sq);
+  const std::vector<double>& means = g.infer_mean(100000, InferenceType::NMC);
+  // posterior of x is N(20, sqrt(20))
+  EXPECT_NEAR(means[0], 20, 0.1);
+  EXPECT_NEAR(means[1] - means[0]*means[0], 20, 0.1);
+}
