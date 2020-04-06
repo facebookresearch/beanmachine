@@ -1,4 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#include <random>
 #include <gtest/gtest.h>
 #include <torch/torch.h>
 
@@ -107,4 +108,33 @@ TEST(testnmc, normal_normal) {
   // posterior of x is N(20, sqrt(20))
   EXPECT_NEAR(means[0], 20, 0.1);
   EXPECT_NEAR(means[1] - means[0]*means[0], 20, 1.0);
+}
+
+TEST(testnmc, flat_normal) {
+  // This test learns both the mean and standard deviation
+  Graph g;
+  auto mean_prior = g.add_distribution(DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto mean = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{mean_prior});
+  auto sigma_prior = g.add_distribution(DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto sigma = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{sigma_prior});
+  auto likelihood = g.add_distribution(DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{mean, sigma});
+  // we will sample some values from the normal distribution and try to infer the empirical mean and std
+  int num_obs = 20;
+  std::normal_distribution<double> dist(4.3, 5.1);
+  std::mt19937 gen(314521);
+  double emp_mean = 0;
+  double emp_var = 0;
+  for (int i=0; i<num_obs; i++) {
+    double val = dist(gen);
+    auto n = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
+    g.observe(n, val);
+    emp_mean += val / num_obs;
+    emp_var += val * val / (num_obs-1);
+  }
+  emp_var -= emp_mean * emp_mean * num_obs / (num_obs - 1); // unbiased estimator of sample variance
+  g.query(mean);
+  g.query(sigma);
+  const std::vector<double>& post_means = g.infer_mean(10000, InferenceType::NMC);
+  EXPECT_NEAR(post_means[0], emp_mean, 0.1);
+  EXPECT_NEAR(post_means[1], std::sqrt(emp_var), 1.0);
 }
