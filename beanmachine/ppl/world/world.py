@@ -1,10 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import torch.distributions as dist
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
+from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world_vars import WorldVars
@@ -316,8 +317,41 @@ class World(object):
         self.diff_stack_ = DiffStack()
         self.diff_ = self.diff_stack_.diff_stack_[-1]
 
+    def get_markov_blanket(
+        self, node: RVIdentifier
+    ) -> Set[Optional[Union[Any, RVIdentifier]]]:
+        """
+        Extracts the markov block of a node in the world and we exclude the
+        observed random variables.
+
+        :param node: the node for which we'd like to extract the markov blanket
+        :returns: the markov blanket of a specific node passed in
+        """
+        markov_blanket = set()
+        node_var = self.get_node_in_world_raise_error(node, False)
+        for child in node_var.children:
+            if child is None:
+                raise ValueError("child is None")
+            if child not in self.observations_:
+                markov_blanket.add(child)
+            child_var = self.get_node_in_world_raise_error(child, False)
+            for parent in child_var.parent:
+                if parent not in self.observations_ and parent != node:
+                    markov_blanket.add(parent)
+
+        return markov_blanket
+
+    def get_all_nodes_from_func(self, node_func: str) -> Set[RVIdentifier]:
+        """
+        Fetches all nodes that have a given node function.
+
+        :param node_func: the node function
+        :returns: list of nodes with a given node function
+        """
+        return self.variables_.get_nodes_by_func(node_func)
+
     def start_diff_with_proposed_val(
-        self, node: RVIdentifier, proposed_value: Tensor
+        self, node: RVIdentifier, proposed_value: Tensor, start_new_diff: bool = False
     ) -> Tensor:
         """
         Starts a diff with new value for node.
@@ -327,8 +361,14 @@ class World(object):
         :returns: difference of old and new log probability of the node after
         updating the node value to the proposed value
         """
-        self.reset_diff()
-        var = self.variables_.get_node_raise_error(node).copy()
+        if not start_new_diff:
+            self.reset_diff()
+            var = self.variables_.get_node_raise_error(node).copy()
+        else:
+            self.diff_stack_.add_diff(Diff())
+            self.diff_ = self.diff_stack_.top()
+            var = self.get_node_in_world_raise_error(node).copy()
+
         old_log_prob = var.log_prob
         var.update_fields(proposed_value, None, self.should_transform_[node])
         var.proposal_distribution = None
@@ -354,10 +394,10 @@ class World(object):
                 continue
 
             new_child_var = self.diff_stack_.get_node(child)
-            if not new_child_var:
+            old_child_var = self.get_node_earlier_version(child)
+            if not new_child_var or not old_child_var:
                 continue
             new_parents = new_child_var.parent
-            old_child_var = self.variables_.get_node(child)
             old_parents = old_child_var.parent if old_child_var is not None else set()
 
             dropped_parents = old_parents - new_parents
@@ -445,7 +485,7 @@ class World(object):
             new_log_probs[child] = child_var.log_prob
 
         self.update_children_parents(node)
-        graph_update = (
+        graph_update = not self.variables_.contains_node(node) or (
             self.diff_.len()
             > len(self.variables_.get_node_raise_error(node).children) + 1
         )
@@ -481,7 +521,11 @@ class World(object):
         return self.propose_change(node, proposed_value, allow_graph_update)
 
     def propose_change(
-        self, node: RVIdentifier, proposed_value: Tensor, allow_graph_update=True
+        self,
+        node: RVIdentifier,
+        proposed_value: Tensor,
+        allow_graph_update: bool = True,
+        start_new_diff: bool = False,
     ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """
         Creates the diff for the proposed change
@@ -493,7 +537,9 @@ class World(object):
         difference of old and new log probability of world, difference of old
         and new log probability of node, new score of world
         """
-        node_log_update = self.start_diff_with_proposed_val(node, proposed_value)
+        node_log_update = self.start_diff_with_proposed_val(
+            node, proposed_value, start_new_diff=start_new_diff
+        )
         children_node_log_update, graph_update = self.create_child_with_new_distributions(
             node
         )

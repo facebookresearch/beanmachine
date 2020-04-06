@@ -2,9 +2,7 @@ import time
 from typing import Dict, List, Tuple
 
 import torch.tensor as tensor
-from beanmachine.ppl.inference.single_site_compositional_infer import (
-    SingleSiteCompositionalInference,
-)
+from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from benchmarks.pplbench.ppls.beanmachine.seismic_projection_model import (
     SeismicProjectionModel,
 )
@@ -36,7 +34,7 @@ def obtain_posterior(data_train: Dict, args_dict: Dict, model) -> Tuple[List, Di
 
     start_time = time.time()
     model = SeismicProjectionModel()
-    mh = SingleSiteCompositionalInference({model.event: SingleSiteSeismicProposer()})
+    mh = CompositionalInference({model.event: SingleSiteSeismicProposer()})
     elapsed_time_compile_beanmachine = time.time() - start_time
 
     obs = {

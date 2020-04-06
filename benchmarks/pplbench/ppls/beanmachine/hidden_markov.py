@@ -5,9 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.single_site_compositional_infer import (
-    SingleSiteCompositionalInference,
-)
+from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.model.statistical_model import sample
 from torch import Tensor, tensor
 
@@ -64,8 +62,7 @@ class HiddenMarkovModel(object):
         return dist.Normal(self.Mu(self.X(n).item()), self.Sigma(self.X(n).item()))
 
     def infer(self):
-        mh = SingleSiteCompositionalInference()
-
+        mh = CompositionalInference()
         queries = [self.X(self.N - 1)]
         if not self.model:
             queries += (

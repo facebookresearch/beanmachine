@@ -5,11 +5,9 @@ from typing import Dict, Tuple
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
+from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
-)
-from beanmachine.ppl.inference.single_site_compositional_infer import (
-    SingleSiteCompositionalInference,
 )
 from beanmachine.ppl.model.statistical_model import sample
 from beanmachine.ppl.model.utils import RVIdentifier
@@ -17,7 +15,7 @@ from beanmachine.ppl.world import ProposalDistribution, Variable, World
 
 
 class SingleSiteCustomProposerTest(unittest.TestCase):
-    class CustomeProposer(AbstractSingleSiteSingleStepProposer):
+    class CustomProposer(AbstractSingleSiteSingleStepProposer):
         def get_proposal_distribution(
             self,
             node: RVIdentifier,
@@ -62,7 +60,7 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
 
     def test_custom_proposer(self):
         model = self.SampleGammaModel()
-        ci = SingleSiteCompositionalInference({model.foo: self.CustomeProposer()})
+        ci = CompositionalInference({model.foo: self.CustomProposer()})
         ci.queries_ = [model.foo()]
         ci.observations_ = {model.bar(): tensor(2.0)}
         ci._infer(2)
