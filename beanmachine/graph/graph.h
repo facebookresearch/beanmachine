@@ -82,7 +82,8 @@ enum class DistributionType {
   BERNOULLI_NOISY_OR = 3,
   BETA = 4,
   BINOMIAL = 5,
-  FLAT = 6
+  FLAT = 6,
+  NORMAL = 7
 };
 
 enum class NodeType {
@@ -211,11 +212,10 @@ struct Graph {
   void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
   /*
   Evaluate the deterministic descendants of the source node and compute
-  the sum of logprob_gradient of all stochastic descendants in the support including
+  the sum of logprob of all stochastic descendants in the support including
   the source node.
-  :param src_idx: The index of the node to eval log_prob of
-  :param grad1: Output value of first gradient.
-  :param grad2: Output value of second gradient.
+  :param src_idx: source node
+  :returns: The sum of log_prob of source node and all stochastic descendants.
   */
   double log_prob(uint src_idx);
 

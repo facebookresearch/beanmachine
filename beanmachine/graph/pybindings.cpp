@@ -49,7 +49,8 @@ PYBIND11_MODULE(graph, module) {
       .value("BERNOULLI_NOISY_OR", DistributionType::BERNOULLI_NOISY_OR)
       .value("BETA", DistributionType::BETA)
       .value("BINOMIAL", DistributionType::BINOMIAL)
-      .value("FLAT", DistributionType::FLAT);
+      .value("FLAT", DistributionType::FLAT)
+      .value("NORMAL", DistributionType::NORMAL);
 
   py::enum_<NodeType>(module, "NodeType")
       .value("CONSTANT", NodeType::CONSTANT)
