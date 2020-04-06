@@ -51,6 +51,7 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         acceptance_probability: Tensor,
         iteration_number: int,
         num_adapt_steps: int,
+        is_accepted: bool,
     ) -> None:
         """
         To be implemented by proposers that are capable of adaptation at
@@ -62,6 +63,7 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         :param acceptance_probability: the acceptance probability of the previous move.
         :param iteration_number: The current iteration of inference
         :param num_adapt_steps: The number of inference iterations for adaptation.
+        :param is_accepted: bool representing whether the new value was accepted.
         :returns: Nothing.
         """
         return

@@ -390,6 +390,22 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             scale_tril.item(), expected_scale_tril.item(), delta=0.001
         )
 
+    def test_adaptive_alpha_beta_computation(self):
+        nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
+        nw_proposer.learning_rate_ = tensor(0.0416, dtype=torch.float64)
+        nw_proposer.running_mean_, nw_proposer.running_var_ = (
+            tensor(0.079658),
+            tensor(0.0039118),
+        )
+        nw_proposer.accepted_samples_ = 37
+        alpha, beta = nw_proposer.compute_beta_priors_from_accepted_lr()
+        self.assertAlmostEqual(nw_proposer.running_mean_.item(), 0.0786, delta=0.0001)
+        self.assertAlmostEqual(nw_proposer.running_var_.item(), 0.00384, delta=0.00001)
+        print(nw_proposer.running_mean_.item())
+        print(nw_proposer.running_var_.item())
+        self.assertAlmostEqual(alpha.item(), 1.4032, delta=0.001)
+        self.assertAlmostEqual(beta.item(), 16.4427, delta=0.001)
+
 
 # simple function to read the arguments from a proposal distribution object
 # and reconstruct the mean and scale_tril
