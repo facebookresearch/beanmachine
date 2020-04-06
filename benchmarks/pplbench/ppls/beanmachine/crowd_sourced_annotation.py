@@ -4,10 +4,8 @@ from typing import Dict, List, Tuple
 import numpy as np
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.inference.single_site_compositional_infer import (
-    SingleSiteCompositionalInference,
-)
 from beanmachine.ppl.model.statistical_model import sample
 from torch import tensor
 
@@ -108,7 +106,7 @@ class CrowdSourcedAnnotationModel(object):
                 observed_dict[self.y(i, self.J_ij[i][j])] = tensor(self.Y_ij[i][j])
 
         if self.inference_type == "mcmc":
-            mh = SingleSiteCompositionalInference()
+            mh = CompositionalInference()
             start_time = time.time()
             samples = mh.infer(
                 [self.pi()]

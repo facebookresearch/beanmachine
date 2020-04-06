@@ -125,6 +125,11 @@ class WorldTest(unittest.TestCase):
             jacobian=tensor(0.0),
         )
 
+        bar_markov_blanket = world.get_markov_blanket(bar_key)
+        self.assertListEqual(list(bar_markov_blanket), [])
+        foo_markov_blanket = world.get_markov_blanket(foo_key)
+        self.assertListEqual(list(foo_markov_blanket), [])
+
         children_log_update, world_log_update, node_log_update, _ = world.propose_change(
             foo_key, tensor(0.25)
         )
@@ -378,88 +383,108 @@ class WorldTest(unittest.TestCase):
         world.set_observations({Y_key: tensor(0.1)})
 
         world_vars = world.variables_.vars()
-        world_vars[X_key] = Variable(
-            distribution=dist.Categorical(tensor([0.5, 0.5])),
-            value=tensor(0.0),
-            log_prob=dist.Categorical(tensor([0.5, 0.5])).log_prob(tensor(1.0)),
-            parent=set(),
-            children=set({Y_key}),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=tensor(0.0),
-            jacobian=tensor(0.0),
+        world_variable = world.variables_
+
+        world_variable.add_node(
+            X_key,
+            Variable(
+                distribution=dist.Categorical(tensor([0.5, 0.5])),
+                value=tensor(0.0),
+                log_prob=dist.Categorical(tensor([0.5, 0.5])).log_prob(tensor(1.0)),
+                parent=set(),
+                children=set({Y_key}),
+                proposal_distribution=None,
+                extended_val=None,
+                is_discrete=False,
+                transforms=[],
+                unconstrained_value=tensor(0.0),
+                jacobian=tensor(0.0),
+            ),
         )
 
-        world_vars[A_key_0] = Variable(
-            distribution=dist.Normal(tensor(0.0), tensor(1.0)),
-            value=tensor(0.1),
-            log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.1)),
-            parent=set(),
-            children=set({B_key_0}),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=tensor(0.1),
-            jacobian=tensor(0.0),
+        world_variable.add_node(
+            A_key_0,
+            Variable(
+                distribution=dist.Normal(tensor(0.0), tensor(1.0)),
+                value=tensor(0.1),
+                log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.1)),
+                parent=set(),
+                children=set({B_key_0}),
+                proposal_distribution=None,
+                extended_val=None,
+                is_discrete=False,
+                transforms=[],
+                unconstrained_value=tensor(0.1),
+                jacobian=tensor(0.0),
+            ),
         )
 
-        world_vars[B_key_0] = Variable(
-            distribution=dist.Normal(tensor(0.1), tensor(1.0)),
-            value=tensor(0.2),
-            log_prob=dist.Normal(tensor(0.1), tensor(1.0)).log_prob(tensor(0.2)),
-            parent=set({A_key_0}),
-            children=set({C_key_0, D_key_0}),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=tensor(0.2),
-            jacobian=tensor(0.0),
+        world_variable.add_node(
+            B_key_0,
+            Variable(
+                distribution=dist.Normal(tensor(0.1), tensor(1.0)),
+                value=tensor(0.2),
+                log_prob=dist.Normal(tensor(0.1), tensor(1.0)).log_prob(tensor(0.2)),
+                parent=set({A_key_0}),
+                children=set({C_key_0, D_key_0}),
+                proposal_distribution=None,
+                extended_val=None,
+                is_discrete=False,
+                transforms=[],
+                unconstrained_value=tensor(0.2),
+                jacobian=tensor(0.0),
+            ),
         )
 
-        world_vars[C_key_0] = Variable(
-            distribution=dist.Normal(tensor(0.2), tensor(1.0)),
-            value=tensor(0.2),
-            log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.2)),
-            parent=set({B_key_0}),
-            children=set({D_key_0}),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=tensor(0.2),
-            jacobian=tensor(0.0),
+        world_variable.add_node(
+            C_key_0,
+            Variable(
+                distribution=dist.Normal(tensor(0.2), tensor(1.0)),
+                value=tensor(0.2),
+                log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(0.2)),
+                parent=set({B_key_0}),
+                children=set({D_key_0}),
+                proposal_distribution=None,
+                extended_val=None,
+                is_discrete=False,
+                transforms=[],
+                unconstrained_value=tensor(0.2),
+                jacobian=tensor(0.0),
+            ),
         )
 
-        world_vars[D_key_0] = Variable(
-            distribution=dist.Normal(tensor(0.2), tensor(0.2)),
-            value=tensor(0.2),
-            log_prob=dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2)),
-            parent=set({B_key_0, C_key_0}),
-            children=set({Y_key}),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=tensor(0.2),
-            jacobian=tensor(0.0),
+        world_variable.add_node(
+            D_key_0,
+            Variable(
+                distribution=dist.Normal(tensor(0.2), tensor(0.2)),
+                value=tensor(0.2),
+                log_prob=dist.Normal(tensor(0.2), tensor(0.2)).log_prob(tensor(0.2)),
+                parent=set({B_key_0, C_key_0}),
+                children=set({Y_key}),
+                proposal_distribution=None,
+                extended_val=None,
+                is_discrete=False,
+                transforms=[],
+                unconstrained_value=tensor(0.2),
+                jacobian=tensor(0.0),
+            ),
         )
 
-        world_vars[Y_key] = Variable(
-            distribution=dist.Normal(tensor(0.2), tensor(1.0)),
-            value=tensor(1.0),
-            log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(1.0)),
-            parent=set({D_key_0, X_key}),
-            children=set(),
-            proposal_distribution=None,
-            extended_val=None,
-            is_discrete=False,
-            transforms=[],
-            unconstrained_value=tensor(1.0),
-            jacobian=tensor(0.0),
+        world_variable.add_node(
+            Y_key,
+            Variable(
+                distribution=dist.Normal(tensor(0.2), tensor(1.0)),
+                value=tensor(1.0),
+                log_prob=dist.Normal(tensor(0.2), tensor(1.0)).log_prob(tensor(1.0)),
+                parent=set({D_key_0, X_key}),
+                children=set(),
+                proposal_distribution=None,
+                extended_val=None,
+                is_discrete=False,
+                transforms=[],
+                unconstrained_value=tensor(1.0),
+                jacobian=tensor(0.0),
+            ),
         )
 
         children_log_update, world_log_update, node_log_update, score = world.propose_change(

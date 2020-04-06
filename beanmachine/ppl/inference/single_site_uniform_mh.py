@@ -1,14 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from beanmachine.ppl.inference.abstract_single_site_mh_infer import (
-    AbstractSingleSiteMHInference,
-)
+from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 
 
-class SingleSiteUniformMetropolisHastings(AbstractSingleSiteMHInference):
+class SingleSiteUniformMetropolisHastings(AbstractMHInference):
     """
     Implementation for SingleSiteNewtonianMonteCarlo
     """

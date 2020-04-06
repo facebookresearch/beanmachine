@@ -1,19 +1,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from beanmachine.ppl.inference.single_site_compositional_infer import (
-    SingleSiteCompositionalInference,
-)
+from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
     AbstractConjugateTests,
 )
 
 
-class SingleSiteCompositionalInferenceConjugateTest(
-    unittest.TestCase, AbstractConjugateTests
-):
+class CompositionalInferenceConjugateTest(unittest.TestCase, AbstractConjugateTests):
     def setUp(self):
-        self.mh = SingleSiteCompositionalInference()
+        self.mh = CompositionalInference()
 
     def test_beta_binomial_conjugate_run(self):
         self.beta_binomial_conjugate_run(self.mh)
