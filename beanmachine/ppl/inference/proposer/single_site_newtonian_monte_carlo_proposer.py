@@ -16,6 +16,7 @@ from beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carl
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from torch import Tensor
 
 
 class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -88,4 +89,57 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             )
         return super().get_proposal_distribution(
             node, node_var, world, auxiliary_variables
+        )
+
+    def do_adaptation(
+        self,
+        node: RVIdentifier,
+        world: World,
+        acceptance_probability: Tensor,
+        iteration_number: int,
+        num_adapt_steps: int,
+        is_accepted: bool,
+    ) -> None:
+        """
+        Do adaption based on the learning rates.
+
+        :param node: the node for which we have already proposed a new value for.
+        :param node_var: the Variable object associated with node.
+        :param node_acceptance_results: the boolean values of acceptances for
+         values collected so far within _infer().
+        :param iteration_number: The current iteration of inference
+        :param num_adapt_steps: The number of inference iterations for adaptation.
+        :param is_accepted: bool representing whether the new value was accepted.
+        """
+        proposer = None
+        node_var = world.get_node_in_world_raise_error(node, False)
+        # pyre-fixme
+        node_distribution_support = node_var.distribution.support
+        if world.get_transform(node) or isinstance(
+            node_distribution_support, dist.constraints._Real
+        ):
+            proposer = self.real_space_proposer_
+        elif isinstance(node_distribution_support, dist.constraints._GreaterThan):
+            proposer = self.half_space_proposer_
+        elif isinstance(
+            node_distribution_support, dist.constraints._Simplex
+        ) or isinstance(node_var.distribution, dist.Beta):
+            proposer = self.simplex_proposer_
+
+        if proposer is not None:
+            return proposer.do_adaptation(
+                node,
+                world,
+                acceptance_probability,
+                iteration_number,
+                num_adapt_steps,
+                is_accepted,
+            )
+        return super().do_adaptation(
+            node,
+            world,
+            acceptance_probability,
+            iteration_number,
+            num_adapt_steps,
+            is_accepted,
         )

@@ -21,9 +21,9 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
     ):
         super().__init__()
         self.world_.set_all_nodes_transform(use_transform_)
-        self.proposer_ = SingleSiteNewtonianMonteCarloProposer(
-            real_space_alpha, real_space_beta
-        )
+        self.proposer_ = {}
+        self.real_space_alpha_ = real_space_alpha
+        self.real_space_beta_ = real_space_beta
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """
@@ -33,4 +33,8 @@ class SingleSiteNewtonianMonteCarlo(AbstractSingleSiteMHInference):
         :param node: the node for which to return a proposer
         :returns: a proposer for the node
         """
-        return self.proposer_
+        if node not in self.proposer_:
+            self.proposer_[node] = SingleSiteNewtonianMonteCarloProposer(
+                self.real_space_alpha_, self.real_space_beta_
+            )
+        return self.proposer_[node]

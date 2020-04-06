@@ -4,7 +4,6 @@ from typing import Dict, Tuple
 import numpy
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     is_valid,
     symmetric_inverse,
@@ -17,6 +16,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from torch import Tensor, tensor
 
 
 class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -27,6 +27,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
     def __init__(self, alpha: float = 10.0, beta: float = 1.0):
         self.alpha_ = alpha
         self.beta_ = beta
+        self.learning_rate_ = tensor(0.0)
+        self.running_mean_, self.running_var_ = tensor(0.0), tensor(0.0)
+        self.accepted_samples_ = 0
 
     def get_proposal_distribution(
         self,
@@ -55,11 +58,12 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # correct.
         aux_vars = {}
         if "frac_dist" not in auxiliary_variables:
-            beta_ = dist.Beta(tensor(self.alpha_), tensor(self.beta_))
+            beta_ = dist.Beta(self.alpha_, self.beta_)
             frac_dist = beta_.sample()
             aux_vars["frac_dist"] = frac_dist
         else:
             frac_dist = auxiliary_variables["frac_dist"]
+        self.learning_rate_ = frac_dist.detach()
         number_of_variables = world.get_number_of_variables()
         if node_var.proposal_distribution is not None and number_of_variables == 1:
             _arguments = node_var.proposal_distribution.arguments
@@ -115,7 +119,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             ).solution.t()
             distance = torch.cholesky_solve(first_gradient.unsqueeze(1), L).t()
             _arguments["distance"] = distance
-            mean = (node_val_reshaped + distance * frac_dist).squeeze(0)
+            mean = (
+                node_val_reshaped
+                + distance * frac_dist.to(dtype=node_val_reshaped.dtype)
+            ).squeeze(0)
             _proposer = dist.MultivariateNormal(mean, scale_tril=L_inv)
             _arguments["scale_tril"] = L_inv
         except numpy.linalg.LinAlgError:
@@ -146,3 +153,63 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             ),
             aux_vars,
         )
+
+    def compute_beta_priors_from_accepted_lr(
+        self, max_lr_num: int = 5
+    ) -> Tuple[Tensor, Tensor]:
+        """
+        Compute Alpha and Beta using Method of Moments.
+
+        :returns: the alpha and beta of the Beta prior to learning rate.
+        """
+        # Running mean and variance are computed following the link below:
+        # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        old_mu = self.running_mean_
+        old_var = self.running_var_
+
+        n = self.accepted_samples_
+        xn = self.learning_rate_
+
+        new_mu = old_mu + (xn - old_mu) / n
+        new_var = old_var + ((xn - old_mu) * (xn - new_mu) - old_var) / n
+        self.running_var_ = new_var
+        self.running_mean_ = new_mu
+        if n < max_lr_num:
+            return tensor(1.0), tensor(1.0)
+        # alpha and beta are calculated following the link below.
+        # https://stats.stackexchange.com/questions/12232/calculating-the-
+        # parameters-of-a-beta-distribution-using-the-mean-and-variance
+        alpha = ((1.0 - new_mu) / new_var - (1.0 / new_mu)) * (new_mu ** 2)
+        beta = alpha * (1.0 - new_mu) / new_mu
+        if alpha <= 0:
+            alpha = tensor(1.0)
+        if beta <= 0:
+            beta = tensor(1.0)
+        return alpha, beta
+
+    def do_adaptation(
+        self,
+        node: RVIdentifier,
+        world: World,
+        acceptance_probability: Tensor,
+        iteration_number: int,
+        num_adapt_steps: int,
+        is_accepted: bool,
+    ) -> None:
+        """
+        Do adaption based on the learning rates.
+
+        :param node: the node for which we have already proposed a new value for.
+        :param node_var: the Variable object associated with node.
+        :param node_acceptance_results: the boolean values of acceptances for
+         values collected so far within _infer().
+        :param iteration_number: The current iteration of inference
+        :param num_adapt_steps: The number of inference iterations for adaptation.
+        :param is_accepted: bool representing whether the new value was accepted.
+        """
+        if not is_accepted:
+            if self.accepted_samples_ == 0:
+                self.alpha_, self.beta_ = tensor(1.0), tensor(1.0)
+        else:
+            self.accepted_samples_ += 1
+            self.alpha_, self.beta_ = self.compute_beta_priors_from_accepted_lr()

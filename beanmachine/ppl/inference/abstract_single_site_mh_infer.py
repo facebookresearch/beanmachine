@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, Tuple
 
 import torch
 import torch.distributions as dist
@@ -49,7 +49,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         node_log_update: Tensor,
         children_log_updates: Tensor,
         proposal_log_update: Tensor,
-    ):
+    ) -> Tuple[bool, Tensor]:
         """
         Accepts or rejects the change in the diff by setting a stochastic
         threshold by drawing a sample from a Uniform distribution. It accepts
@@ -65,20 +65,24 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         """
         log_update = children_log_updates + node_log_update + proposal_log_update
 
+        is_accepted = False
         if log_update >= tensor(0.0):
             self.world_.accept_diff()
+            is_accepted = True
         else:
             alpha = dist.Uniform(tensor(0.0), tensor(1.0)).sample().log()
             if log_update > alpha:
                 self.world_.accept_diff()
+                is_accepted = True
             else:
                 self.world_.reject_diff()
+                is_accepted = False
         acceptance_prob = torch.min(
             tensor(1.0, dtype=log_update.dtype), torch.exp(log_update)
         )
-        return acceptance_prob
+        return is_accepted, acceptance_prob
 
-    def single_inference_run(self, node: RVIdentifier, proposer):
+    def single_inference_run(self, node: RVIdentifier, proposer) -> Tuple[bool, Tensor]:
         """
         Run one iteration of the inference algorithms for a given node which is
         to follow the steps below:
@@ -104,10 +108,10 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
         proposal_log_update = (
             positive_proposal_log_update + negative_proposal_log_update
         )
-        acceptance_probability = self.accept_or_reject_update(
+        is_accepted, acceptance_probability = self.accept_or_reject_update(
             node_log_update, children_log_updates, proposal_log_update
         )
-        return acceptance_probability
+        return is_accepted, acceptance_probability
 
     @abstractmethod
     def find_best_single_site_proposer(self, node: RVIdentifier):
@@ -143,7 +147,9 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
 
                 proposer = self.find_best_single_site_proposer(node)
 
-                acceptance_probability = self.single_inference_run(node, proposer)
+                is_accepted, acceptance_probability = self.single_inference_run(
+                    node, proposer
+                )
 
                 if iteration < num_adapt_steps:
                     proposer.do_adaptation(
@@ -152,6 +158,7 @@ class AbstractSingleSiteMHInference(AbstractInference, metaclass=ABCMeta):
                         acceptance_probability,
                         iteration,
                         num_adapt_steps,
+                        is_accepted,
                     )
 
             for query in self.queries_:
