@@ -1797,6 +1797,69 @@ digraph "graph" {
 """
 
 
+source18 = """
+from torch.distributions import HalfCauchy, Normal, StudentT
+from torch import tensor
+from beanmachine.ppl.model.statistical_model import query, sample
+
+@sample
+def result():
+    return Normal(mean(), 1.0)
+
+@query
+def mean():
+  return true_value() + bias()
+
+@sample
+def true_value():
+    return StudentT(3, 0, 10)
+
+@sample
+def bias():
+    return Normal(0, sigma())
+
+@sample
+def sigma():
+    return HalfCauchy(tensor(1.))
+"""
+
+expected_dot_18 = """
+digraph "graph" {
+  N0[label=3.0];
+  N10[label=Sample];
+  N11[label="+"];
+  N12[label=Query];
+  N13[label=1.0];
+  N14[label=Normal];
+  N15[label=Sample];
+  N1[label=0.0];
+  N2[label=10.0];
+  N3[label=StudentT];
+  N4[label=Sample];
+  N5[label=1.0];
+  N6[label=HalfCauchy];
+  N7[label=Sample];
+  N8[label=0];
+  N9[label=Normal];
+  N10 -> N9[label=operand];
+  N11 -> N10[label=right];
+  N11 -> N4[label=left];
+  N12 -> N11[label=operator];
+  N14 -> N11[label=mu];
+  N14 -> N13[label=sigma];
+  N15 -> N14[label=operand];
+  N3 -> N0[label=df];
+  N3 -> N1[label=loc];
+  N3 -> N2[label=scale];
+  N4 -> N3[label=operand];
+  N6 -> N5[label=scale];
+  N7 -> N6[label=operand];
+  N9 -> N7[label=sigma];
+  N9 -> N8[label=mu];
+}
+"""
+
+
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw(self) -> None:
         """Tests for to_python_raw from bm_to_bmg.py"""
@@ -1865,6 +1928,8 @@ class CompilerTest(unittest.TestCase):
         self.assertEqual(observed.strip(), expected_dot_16.strip())
         observed = to_dot(source17)
         self.assertEqual(observed.strip(), expected_dot_17.strip())
+        observed = to_dot(source18)
+        self.assertEqual(observed.strip(), expected_dot_18.strip())
 
     def disabled_test_to_cpp(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""

@@ -1946,6 +1946,29 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    def handle_query(self, value: Any) -> Any:
+        # When we have an @query function, we need to put a node
+        # in the graph indicating that the value returned is of
+        # interest to the user, and the inference engine should
+        # accumulate information about it.  Under what circumstances
+        # might that be useful? If the query function returns an
+        # ordinary value, there is nothing we can infer from it.
+        # But if it returns an operation in a probabilistic workflow,
+        # that node in the graph should be marked as being of interest.
+        #
+        # Adding a query to a node is idempotent; querying twice is the
+        # same as querying once, so the add_query method is memoized.
+        #
+        # Note that this function does not return the added query node.
+        # The query node is just a marker, not a value; we just keep
+        # using the value as it was before. We insert a node into the
+        # graph if necessary and then hand back the argument.
+
+        if isinstance(value, OperatorNode):
+            self.add_query(value)
+        return value
+
+    @memoize
     def add_query(self, operator: OperatorNode) -> Query:
         node = Query(operator)
         self.add_node(node)

@@ -197,6 +197,10 @@ _handle_sample = PatternRule(
     ast_return(), lambda r: ast.Return(value=_make_bmg_call("handle_sample", [r.value]))
 )
 
+_handle_query = PatternRule(
+    ast_return(), lambda r: ast.Return(value=_make_bmg_call("handle_query", [r.value]))
+)
+
 # TODO: add_observation
 
 _math_to_bmg: Rule = _top_down(
@@ -228,10 +232,9 @@ _is_query: PatternRule = PatternRule(
 
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
 
-# TODO: We need to figure out how to modify the returns of
-# TODO: functions decorated with @query as well as @sample.
-# TODO: For now, we simply remove the query decorator in another rule.
-_returns_to_bmg: Rule = _descend_until(_is_sample, _top_down(once(_handle_sample)))
+_sample_returns: Rule = _descend_until(_is_sample, _top_down(once(_handle_sample)))
+
+_query_returns: Rule = _descend_until(_is_query, _top_down(once(_handle_query)))
 
 _remove_query_decorator: Rule = _descend_until(
     _is_query,
@@ -295,7 +298,13 @@ _samples_to_calls = AllListMembers(
 )
 
 _to_bmg = all_of(
-    [_math_to_bmg, _returns_to_bmg, _sample_to_memoize, _remove_query_decorator]
+    [
+        _math_to_bmg,
+        _sample_returns,
+        _sample_to_memoize,
+        _query_returns,
+        _remove_query_decorator,
+    ]
 )
 
 
