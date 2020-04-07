@@ -7,6 +7,7 @@
 #include "beanmachine/graph/distribution/tabular.h"
 #include "beanmachine/graph/distribution/flat.h"
 #include "beanmachine/graph/distribution/normal.h"
+#include "beanmachine/graph/distribution/half_cauchy.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -36,6 +37,8 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     return std::make_unique<Flat>(sample_type, in_nodes);
   }  else if (dist_type == graph::DistributionType::NORMAL) {
     return std::make_unique<Normal>(sample_type, in_nodes);
+  } else if (dist_type == graph::DistributionType::HALF_CAUCHY) {
+    return std::make_unique<HalfCauchy>(sample_type, in_nodes);
   }
   throw std::invalid_argument(
       "Unknown distribution " + std::to_string(static_cast<int>(dist_type)));
