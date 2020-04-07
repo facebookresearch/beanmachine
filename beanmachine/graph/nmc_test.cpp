@@ -1,6 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <gtest/gtest.h>
-#include <torch/torch.h>
 
 #include "beanmachine/graph/graph.h"
 
