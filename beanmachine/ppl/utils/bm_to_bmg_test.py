@@ -116,7 +116,6 @@ def Q():
 
 
 roots = [X(), Y(), Z()]
-bmg.remove_orphans(roots)
 """
 
 expected_python_1 = """
@@ -127,16 +126,16 @@ n0 = g.add_constant(tensor(0.009999999776482582))
 n1 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n0])
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
-n4 = g.add_constant(1.0)
-n5 = g.add_constant(tensor(-0.010050326585769653))
-n6 = g.add_constant(tensor(-4.605170249938965))
-n7 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n6])
-n8 = g.add_operator(graph.OperatorType.ADD, [n5, n7])
-n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n6])
-n10 = g.add_operator(graph.OperatorType.ADD, [n8, n9])
-n11 = g.add_operator(graph.OperatorType.EXP, [n10])
-n12 = g.add_operator(graph.OperatorType.NEGATE, [n11])
-n13 = g.add_operator(graph.OperatorType.ADD, [n4, n12])
+n4 = g.add_constant(tensor(-4.605170249938965))
+n5 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n4])
+n6 = g.add_constant(tensor(-0.010050326585769653))
+n7 = g.add_operator(graph.OperatorType.ADD, [n6, n5])
+n8 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n4])
+n9 = g.add_operator(graph.OperatorType.ADD, [n7, n8])
+n10 = g.add_operator(graph.OperatorType.EXP, [n9])
+n11 = g.add_operator(graph.OperatorType.NEGATE, [n10])
+n12 = g.add_constant(1.0)
+n13 = g.add_operator(graph.OperatorType.ADD, [n12, n11])
 n14 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n13])
 n15 = g.add_operator(graph.OperatorType.SAMPLE, [n14])
 """
@@ -144,38 +143,38 @@ n15 = g.add_operator(graph.OperatorType.SAMPLE, [n14])
 expected_dot_1 = """
 digraph "graph" {
   N0[label=0.009999999776482582];
-  N10[label="+"];
-  N11[label=Exp];
-  N12[label="-"];
+  N10[label=Exp];
+  N11[label="-"];
+  N12[label=1];
   N13[label="+"];
   N14[label=Bernoulli];
   N15[label=Sample];
   N1[label=Bernoulli];
   N2[label=Sample];
   N3[label=Sample];
-  N4[label=1];
-  N5[label=-0.010050326585769653];
-  N6[label=-4.605170249938965];
-  N7[label="*"];
-  N8[label="+"];
-  N9[label="*"];
+  N4[label=-4.605170249938965];
+  N5[label="*"];
+  N6[label=-0.010050326585769653];
+  N7[label="+"];
+  N8[label="*"];
+  N9[label="+"];
   N1 -> N0[label=probability];
-  N10 -> N8[label=left];
-  N10 -> N9[label=right];
+  N10 -> N9[label=operand];
   N11 -> N10[label=operand];
-  N12 -> N11[label=operand];
-  N13 -> N12[label=right];
-  N13 -> N4[label=left];
+  N13 -> N11[label=right];
+  N13 -> N12[label=left];
   N14 -> N13[label=probability];
   N15 -> N14[label=operand];
   N2 -> N1[label=operand];
   N3 -> N1[label=operand];
-  N7 -> N2[label=left];
-  N7 -> N6[label=right];
-  N8 -> N5[label=left];
-  N8 -> N7[label=right];
-  N9 -> N3[label=left];
-  N9 -> N6[label=right];
+  N5 -> N2[label=left];
+  N5 -> N4[label=right];
+  N7 -> N5[label=right];
+  N7 -> N6[label=left];
+  N8 -> N3[label=left];
+  N8 -> N4[label=right];
+  N9 -> N7[label=left];
+  N9 -> N8[label=right];
 }
 """
 
@@ -323,12 +322,11 @@ def z():
 
 
 roots = [z()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_2 = """
 digraph "graph" {
-  N0[label=0.30000001192092896];
+  N0[label=0.5];
   N10[label=Sample];
   N11[label=0.4000000059604645];
   N12[label="*"];
@@ -337,15 +335,16 @@ digraph "graph" {
   N15[label="+"];
   N16[label=Bernoulli];
   N17[label=Sample];
-  N1[label=0.5];
-  N2[label=Bernoulli];
-  N3[label=Sample];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=0.30000001192092896];
   N4[label="**"];
   N5[label=10.0];
   N6[label="/"];
   N7[label="+"];
   N8[label=0.6000000238418579];
   N9[label=Bernoulli];
+  N1 -> N0[label=probability];
   N10 -> N9[label=operand];
   N12 -> N10[label=left];
   N12 -> N11[label=right];
@@ -355,11 +354,10 @@ digraph "graph" {
   N15 -> N7[label=left];
   N16 -> N15[label=probability];
   N17 -> N16[label=operand];
-  N2 -> N1[label=probability];
-  N3 -> N2[label=operand];
-  N4 -> N0[label=left];
-  N4 -> N3[label=right];
-  N6 -> N3[label=left];
+  N2 -> N1[label=operand];
+  N4 -> N2[label=right];
+  N4 -> N3[label=left];
+  N6 -> N2[label=left];
   N6 -> N5[label=right];
   N7 -> N4[label=left];
   N7 -> N6[label=right];
@@ -447,51 +445,50 @@ def z():
 
 
 roots = [z()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_3 = """
 digraph "graph" {
-  N0[label=1];
-  N10[label=Bernoulli];
-  N11[label=Sample];
-  N12[label="*"];
+  N0[label=0.5];
+  N10[label="*"];
+  N11[label="+"];
+  N12[label=-0.010050326585769653];
   N13[label="+"];
-  N14[label="+"];
-  N15[label=Exp];
-  N16[label="-"];
+  N14[label=Exp];
+  N15[label="-"];
+  N16[label=1];
   N17[label="+"];
   N18[label=Bernoulli];
   N19[label=Sample];
-  N1[label=-0.010050326585769653];
-  N2[label=0.0];
+  N1[label=Bernoulli];
+  N2[label=Sample];
   N3[label=-4.605170249938965];
-  N4[label=0.5];
-  N5[label=Bernoulli];
-  N6[label=Sample];
-  N7[label="*"];
-  N8[label="+"];
-  N9[label=0.6000000238418579];
-  N10 -> N9[label=probability];
-  N11 -> N10[label=operand];
-  N12 -> N11[label=right];
-  N12 -> N3[label=left];
-  N13 -> N12[label=right];
-  N13 -> N8[label=left];
-  N14 -> N13[label=right];
-  N14 -> N1[label=left];
+  N4[label="*"];
+  N5[label=0.0];
+  N6[label="+"];
+  N7[label=0.6000000238418579];
+  N8[label=Bernoulli];
+  N9[label=Sample];
+  N1 -> N0[label=probability];
+  N10 -> N3[label=left];
+  N10 -> N9[label=right];
+  N11 -> N10[label=right];
+  N11 -> N6[label=left];
+  N13 -> N11[label=right];
+  N13 -> N12[label=left];
+  N14 -> N13[label=operand];
   N15 -> N14[label=operand];
-  N16 -> N15[label=operand];
-  N17 -> N0[label=left];
-  N17 -> N16[label=right];
+  N17 -> N15[label=right];
+  N17 -> N16[label=left];
   N18 -> N17[label=probability];
   N19 -> N18[label=operand];
-  N5 -> N4[label=probability];
-  N6 -> N5[label=operand];
-  N7 -> N3[label=left];
-  N7 -> N6[label=right];
-  N8 -> N2[label=left];
-  N8 -> N7[label=right];
+  N2 -> N1[label=operand];
+  N4 -> N2[label=right];
+  N4 -> N3[label=left];
+  N6 -> N4[label=right];
+  N6 -> N5[label=left];
+  N8 -> N7[label=probability];
+  N9 -> N8[label=operand];
 }
 """
 
@@ -570,7 +567,6 @@ def z():
 
 
 roots = [z()]
-bmg.remove_orphans(roots)
 """
 
 # Demonstrate that function calls work as expected when the
@@ -639,7 +635,6 @@ def z():
 
 
 roots = [z()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_5 = """
@@ -728,40 +723,39 @@ def z():
 
 
 roots = [y(), z()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_6 = """
 digraph "graph" {
   N0[label=0.5];
-  N10[label=Sample];
+  N10[label=1.0];
   N11[label=map];
   N12[label=index];
   N13[label=Bernoulli];
   N14[label=Sample];
   N1[label=Bernoulli];
   N2[label=Sample];
-  N3[label=0.0];
-  N4[label=0.25];
-  N5[label=Bernoulli];
-  N6[label=Sample];
-  N7[label=1.0];
-  N8[label=0.75];
-  N9[label=Bernoulli];
+  N3[label=0.25];
+  N4[label=Bernoulli];
+  N5[label=Sample];
+  N6[label=0.0];
+  N7[label=0.75];
+  N8[label=Bernoulli];
+  N9[label=Sample];
   N1 -> N0[label=probability];
-  N10 -> N9[label=operand];
-  N11 -> N10[label=3];
-  N11 -> N3[label=0];
-  N11 -> N6[label=1];
-  N11 -> N7[label=2];
+  N11 -> N10[label=2];
+  N11 -> N5[label=1];
+  N11 -> N6[label=0];
+  N11 -> N9[label=3];
   N12 -> N11[label=left];
   N12 -> N2[label=right];
   N13 -> N12[label=probability];
   N14 -> N13[label=operand];
   N2 -> N1[label=operand];
-  N5 -> N4[label=probability];
-  N6 -> N5[label=operand];
-  N9 -> N8[label=probability];
+  N4 -> N3[label=probability];
+  N5 -> N4[label=operand];
+  N8 -> N7[label=probability];
+  N9 -> N8[label=operand];
 }
 """
 
@@ -811,7 +805,6 @@ def Y():
 
 
 roots = [X(), Y()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_7 = """
@@ -820,20 +813,20 @@ digraph "graph" {
   N1[label=3.0];
   N2[label=Normal];
   N3[label=Sample];
-  N4[label=0.0];
-  N5[label=0.5];
-  N6[label="*"];
-  N7[label=Exp];
+  N4[label=0.5];
+  N5[label="*"];
+  N6[label=Exp];
+  N7[label=0.0];
   N8[label=Normal];
   N9[label=Sample];
   N2 -> N0[label=mu];
   N2 -> N1[label=sigma];
   N3 -> N2[label=operand];
-  N6 -> N3[label=left];
-  N6 -> N5[label=right];
-  N7 -> N6[label=operand];
-  N8 -> N4[label=mu];
-  N8 -> N7[label=sigma];
+  N5 -> N3[label=left];
+  N5 -> N4[label=right];
+  N6 -> N5[label=operand];
+  N8 -> N6[label=sigma];
+  N8 -> N7[label=mu];
   N9 -> N8[label=operand];
 }
 """
@@ -880,7 +873,6 @@ def toss():
 
 
 roots = [mint(), toss()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_8 = """
@@ -965,7 +957,6 @@ def toss4():
 
 
 roots = [toss(), toss2(), toss3(), toss4()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_9 = """
@@ -1067,7 +1058,6 @@ def y():
 
 
 roots = [beta(), y()]
-bmg.remove_orphans(roots)
 """
 
 expected_dot_10 = """
@@ -1169,7 +1159,6 @@ def all_requests_accepted(account):
 _1 = 0
 _2 = bmg.handle_function(all_requests_accepted, [_1], {})
 roots = []
-bmg.remove_orphans(roots)
 """
 
 expected_dot_11 = """
@@ -1250,13 +1239,13 @@ digraph "graph" {
   N2[label=Normal];
   N3[label=Sample];
   N4[label=Sample];
-  N5[label=Uniform];
-  N6[label=Sample];
-  N7[label=Sample];
-  N8[label="*"];
-  N9[label="+"];
-  N10 -> N6[label=sigma];
-  N10 -> N9[label=mu];
+  N5[label=Sample];
+  N6[label="*"];
+  N7[label="+"];
+  N8[label=Uniform];
+  N9[label=Sample];
+  N10 -> N7[label=mu];
+  N10 -> N9[label=sigma];
   N11 -> N10[label=operand];
   N12 -> N2[label=operand];
   N13 -> N12[label=right];
@@ -1264,7 +1253,7 @@ digraph "graph" {
   N14 -> N13[label=right];
   N14 -> N3[label=left];
   N15 -> N14[label=mu];
-  N15 -> N6[label=sigma];
+  N15 -> N9[label=sigma];
   N16 -> N15[label=operand];
   N17 -> N2[label=operand];
   N18 -> N17[label=right];
@@ -1274,18 +1263,18 @@ digraph "graph" {
   N2 -> N0[label=mu];
   N2 -> N1[label=sigma];
   N20 -> N19[label=mu];
-  N20 -> N6[label=sigma];
+  N20 -> N9[label=sigma];
   N21 -> N20[label=operand];
   N3 -> N2[label=operand];
   N4 -> N2[label=operand];
-  N5 -> N0[label=low];
-  N5 -> N1[label=high];
-  N6 -> N5[label=operand];
-  N7 -> N2[label=operand];
-  N8 -> N4[label=left];
-  N8 -> N7[label=right];
-  N9 -> N3[label=left];
-  N9 -> N8[label=right];
+  N5 -> N2[label=operand];
+  N6 -> N4[label=left];
+  N6 -> N5[label=right];
+  N7 -> N3[label=left];
+  N7 -> N6[label=right];
+  N8 -> N0[label=low];
+  N8 -> N1[label=high];
+  N9 -> N8[label=operand];
 }
 """
 
@@ -1311,49 +1300,49 @@ def z():
 """
 
 expected_dot_13 = """
- digraph "graph" {
+digraph "graph" {
   N0[label="[0.5,0.5]"];
-  N10[label=Sample];
-  N11[label="[1.0,0.0]"];
-  N12[label=Sample];
-  N13[label="[1.0,1.0]"];
-  N14[label=1.0];
-  N15[label=Bernoulli];
-  N16[label=Sample];
+  N10[label="[0.0,1.0]"];
+  N11[label=Sample];
+  N12[label="[1.0,0.0]"];
+  N13[label=1.0];
+  N14[label=Bernoulli];
+  N15[label=Sample];
+  N16[label="[1.0,1.0]"];
   N17[label=map];
   N18[label=index];
   N19[label=Bernoulli];
   N1[label=Bernoulli];
   N20[label=Sample];
   N2[label=Sample];
-  N3[label="[0.0,0.0]"];
-  N4[label=0.0];
-  N5[label=Bernoulli];
-  N6[label=Sample];
-  N7[label="[0.0,1.0]"];
-  N8[label=0.5];
-  N9[label=Bernoulli];
+  N3[label=0.0];
+  N4[label=Bernoulli];
+  N5[label=Sample];
+  N6[label="[0.0,0.0]"];
+  N7[label=0.5];
+  N8[label=Bernoulli];
+  N9[label=Sample];
   N1 -> N0[label=probability];
-  N10 -> N9[label=operand];
-  N12 -> N9[label=operand];
-  N15 -> N14[label=probability];
-  N16 -> N15[label=operand];
-  N17 -> N10[label=3];
-  N17 -> N11[label=4];
-  N17 -> N12[label=5];
-  N17 -> N13[label=6];
-  N17 -> N16[label=7];
-  N17 -> N3[label=0];
-  N17 -> N6[label=1];
-  N17 -> N7[label=2];
+  N11 -> N8[label=operand];
+  N14 -> N13[label=probability];
+  N15 -> N14[label=operand];
+  N17 -> N10[label=2];
+  N17 -> N11[label=5];
+  N17 -> N12[label=4];
+  N17 -> N15[label=7];
+  N17 -> N16[label=6];
+  N17 -> N5[label=1];
+  N17 -> N6[label=0];
+  N17 -> N9[label=3];
   N18 -> N17[label=left];
   N18 -> N2[label=right];
   N19 -> N18[label=probability];
   N2 -> N1[label=operand];
   N20 -> N19[label=operand];
-  N5 -> N4[label=probability];
-  N6 -> N5[label=operand];
-  N9 -> N8[label=probability];
+  N4 -> N3[label=probability];
+  N5 -> N4[label=operand];
+  N8 -> N7[label=probability];
+  N9 -> N8[label=operand];
 }
 """
 
@@ -1384,9 +1373,9 @@ def z():
 expected_dot_14 = """
 digraph "graph" {
   N0[label="[0.125,0.375,0.5]"];
-  N10[label=0.75];
-  N11[label=Bernoulli];
-  N12[label=Sample];
+  N10[label=Bernoulli];
+  N11[label=Sample];
+  N12[label=2];
   N13[label=map];
   N14[label=index];
   N15[label=0.25];
@@ -1395,22 +1384,22 @@ digraph "graph" {
   N18[label=Sample];
   N1[label=Categorical];
   N2[label=Sample];
-  N3[label=0];
-  N4[label=0.5];
-  N5[label=Bernoulli];
-  N6[label=Sample];
-  N7[label=1];
-  N8[label=Sample];
-  N9[label=2];
+  N3[label=0.5];
+  N4[label=Bernoulli];
+  N5[label=Sample];
+  N6[label=0];
+  N7[label=Sample];
+  N8[label=1];
+  N9[label=0.75];
   N1 -> N0[label=probability];
-  N11 -> N10[label=probability];
-  N12 -> N11[label=operand];
-  N13 -> N12[label=5];
-  N13 -> N3[label=0];
-  N13 -> N6[label=1];
-  N13 -> N7[label=2];
-  N13 -> N8[label=3];
-  N13 -> N9[label=4];
+  N10 -> N9[label=probability];
+  N11 -> N10[label=operand];
+  N13 -> N11[label=5];
+  N13 -> N12[label=4];
+  N13 -> N5[label=1];
+  N13 -> N6[label=0];
+  N13 -> N7[label=3];
+  N13 -> N8[label=2];
   N14 -> N13[label=left];
   N14 -> N2[label=right];
   N16 -> N14[label=left];
@@ -1418,9 +1407,9 @@ digraph "graph" {
   N17 -> N16[label=probability];
   N18 -> N17[label=operand];
   N2 -> N1[label=operand];
-  N5 -> N4[label=probability];
-  N6 -> N5[label=operand];
-  N8 -> N1[label=operand];
+  N4 -> N3[label=probability];
+  N5 -> N4[label=operand];
+  N7 -> N1[label=operand];
 }
 """
 
@@ -1454,7 +1443,7 @@ y0 = y(0)
 expected_dot_15 = """
 digraph "graph" {
   N0[label="[0.125,0.375,0.5]"];
-  N10[label=1];
+  N10[label=Sample];
   N11[label=2];
   N12[label=map];
   N13[label=index];
@@ -1467,16 +1456,17 @@ digraph "graph" {
   N4[label=1.0];
   N5[label=Normal];
   N6[label=Sample];
-  N7[label=Sample];
+  N7[label=0];
   N8[label=Sample];
-  N9[label=0];
+  N9[label=1];
   N1 -> N0[label=probability];
-  N12 -> N10[label=2];
+  N10 -> N5[label=operand];
+  N12 -> N10[label=5];
   N12 -> N11[label=4];
   N12 -> N6[label=1];
-  N12 -> N7[label=3];
-  N12 -> N8[label=5];
-  N12 -> N9[label=0];
+  N12 -> N7[label=0];
+  N12 -> N8[label=3];
+  N12 -> N9[label=2];
   N13 -> N12[label=left];
   N13 -> N2[label=right];
   N15 -> N13[label=mu];
@@ -1486,7 +1476,6 @@ digraph "graph" {
   N5 -> N3[label=mu];
   N5 -> N4[label=sigma];
   N6 -> N5[label=operand];
-  N7 -> N5[label=operand];
   N8 -> N5[label=operand];
 }
 """
@@ -1559,12 +1548,12 @@ observations = {
 expected_dot_16 = """
 digraph "graph" {
   N0[label="[1.0,1.0,1.0]"];
-  N10[label=Sample];
-  N11[label="[1.0,1.0,10.0]"];
-  N12[label=Dirichlet];
-  N13[label=Sample];
-  N14[label=0];
-  N15[label=1];
+  N10[label=Dirichlet];
+  N11[label=Sample];
+  N12[label=1];
+  N13[label="[1.0,1.0,10.0]"];
+  N14[label=Dirichlet];
+  N15[label=Sample];
   N16[label=2];
   N17[label=map];
   N18[label=index];
@@ -1591,32 +1580,33 @@ digraph "graph" {
   N5[label="[10.0,5.0,1.0]"];
   N6[label=Dirichlet];
   N7[label=Sample];
-  N8[label="[5.0,10.0,1.0]"];
-  N9[label=Dirichlet];
+  N8[label=0];
+  N9[label="[5.0,10.0,1.0]"];
   N1 -> N0[label=concentration];
-  N10 -> N9[label=operand];
-  N12 -> N11[label=concentration];
-  N13 -> N12[label=operand];
-  N17 -> N10[label=3];
-  N17 -> N13[label=5];
-  N17 -> N14[label=0];
-  N17 -> N15[label=2];
+  N10 -> N9[label=concentration];
+  N11 -> N10[label=operand];
+  N14 -> N13[label=concentration];
+  N15 -> N14[label=operand];
+  N17 -> N11[label=3];
+  N17 -> N12[label=2];
+  N17 -> N15[label=5];
   N17 -> N16[label=4];
   N17 -> N7[label=1];
+  N17 -> N8[label=0];
   N18 -> N17[label=left];
   N18 -> N4[label=right];
   N19 -> N18[label=probability];
   N2 -> N1[label=operand];
   N20 -> N19[label=operand];
   N21 -> N6[label=operand];
-  N22 -> N9[label=operand];
-  N23 -> N12[label=operand];
-  N24 -> N14[label=0];
-  N24 -> N15[label=2];
+  N22 -> N10[label=operand];
+  N23 -> N14[label=operand];
+  N24 -> N12[label=2];
   N24 -> N16[label=4];
   N24 -> N21[label=1];
   N24 -> N22[label=3];
   N24 -> N23[label=5];
+  N24 -> N8[label=0];
   N25 -> N24[label=left];
   N25 -> N4[label=right];
   N26 -> N25[label=probability];
@@ -1634,7 +1624,6 @@ digraph "graph" {
   N4 -> N3[label=operand];
   N6 -> N5[label=concentration];
   N7 -> N6[label=operand];
-  N9 -> N8[label=concentration];
 }
 """
 
@@ -1701,10 +1690,10 @@ expected_dot_17 = """
 digraph "graph" {
   N0[label=3.0];
   N10[label=Sample];
-  N11[label=Sample];
-  N12[label=Normal];
-  N13[label=Sample];
-  N14[label="+"];
+  N11[label="+"];
+  N12[label=Sample];
+  N13[label=Normal];
+  N14[label=Sample];
   N15[label="+"];
   N16[label=3.1];
   N17[label=Normal];
@@ -1724,8 +1713,8 @@ digraph "graph" {
   N2[label=10.0];
   N30[label=Sample];
   N31[label=Sample];
-  N32[label=Sample];
-  N33[label="+"];
+  N32[label="+"];
+  N33[label=Sample];
   N34[label="+"];
   N35[label=2.3];
   N36[label=Normal];
@@ -1748,14 +1737,14 @@ digraph "graph" {
   N8[label=0];
   N9[label=Normal];
   N10 -> N9[label=operand];
-  N11 -> N6[label=operand];
-  N12 -> N11[label=sigma];
-  N12 -> N8[label=mu];
-  N13 -> N12[label=operand];
-  N14 -> N10[label=right];
-  N14 -> N4[label=left];
-  N15 -> N13[label=right];
-  N15 -> N14[label=left];
+  N11 -> N10[label=right];
+  N11 -> N4[label=left];
+  N12 -> N6[label=operand];
+  N13 -> N12[label=sigma];
+  N13 -> N8[label=mu];
+  N14 -> N13[label=operand];
+  N15 -> N11[label=left];
+  N15 -> N14[label=right];
   N17 -> N15[label=mu];
   N17 -> N16[label=sigma];
   N18 -> N17[label=operand];
@@ -1765,7 +1754,7 @@ digraph "graph" {
   N22 -> N9[label=operand];
   N23 -> N22[label=right];
   N23 -> N4[label=left];
-  N24 -> N13[label=right];
+  N24 -> N14[label=right];
   N24 -> N23[label=left];
   N26 -> N24[label=mu];
   N26 -> N25[label=sigma];
@@ -1777,11 +1766,11 @@ digraph "graph" {
   N3 -> N2[label=scale];
   N30 -> N29[label=operand];
   N31 -> N9[label=operand];
-  N32 -> N12[label=operand];
-  N33 -> N31[label=right];
-  N33 -> N4[label=left];
-  N34 -> N32[label=right];
-  N34 -> N33[label=left];
+  N32 -> N31[label=right];
+  N32 -> N4[label=left];
+  N33 -> N13[label=operand];
+  N34 -> N32[label=left];
+  N34 -> N33[label=right];
   N36 -> N34[label=mu];
   N36 -> N35[label=sigma];
   N37 -> N36[label=operand];
@@ -1792,7 +1781,7 @@ digraph "graph" {
   N40 -> N9[label=operand];
   N41 -> N40[label=right];
   N41 -> N4[label=left];
-  N42 -> N32[label=right];
+  N42 -> N33[label=right];
   N42 -> N41[label=left];
   N43 -> N16[label=sigma];
   N43 -> N42[label=mu];

@@ -1418,15 +1418,6 @@ class BMGraphBuilder:
             Uniform: self.handle_uniform,
         }
 
-    def remove_orphans(self, roots: List[BMGNode]) -> None:
-        nodes = self.nodes.keys()
-        self.nodes = {}
-        for root in roots:
-            self.add_node(root)
-        for node in nodes:
-            if isinstance(node, SampleNode):
-                self.add_node(node)
-
     def add_node(self, node: BMGNode) -> None:
         # Maintain the invariant that children are always before parents
         # in the list.

@@ -327,12 +327,7 @@ def _bm_to_bmg_ast(source: str) -> ast.AST:
             value=ast.List(
                 elts=_samples_to_calls(a.body).expect_success(), ctx=ast.Load()
             ),
-        ),
-        ast.Expr(
-            value=_make_bmg_call(
-                name="remove_orphans", args=[ast.Name(id="roots", ctx=ast.Load())]
-            )
-        ),
+        )
     ]
 
     bmg = _append_statements(bmg, footer)

@@ -172,6 +172,7 @@ g.observe([n5], true);
         # TODO: it correctly.
 
         bmg = BMGraphBuilder()
+        # Note that the orphan node "1" is not stripped out.
         one = bmg.add_real(1)
         two = bmg.add_real(2)
         # This should be folded:
@@ -183,29 +184,30 @@ g.observe([n5], true);
         real = bmg.add_to_real(inv)
         div = bmg.add_division(real, two)
         pow = bmg.add_power(div, two)
-        lg = bmg.add_log(pow)
-        bmg.remove_orphans([lg])
+        bmg.add_log(pow)
         observed = bmg.to_dot()
         expected = """
 digraph "graph" {
-  N0[label=0.25];
-  N1[label=Bernoulli];
-  N2[label=Sample];
-  N3[label=not];
-  N4[label=ToReal];
-  N5[label=2];
-  N6[label="/"];
-  N7[label="**"];
-  N8[label=Log];
-  N1 -> N0[label=probability];
-  N2 -> N1[label=operand];
-  N3 -> N2[label=operand];
-  N4 -> N3[label=operand];
-  N6 -> N4[label=left];
-  N6 -> N5[label=right];
-  N7 -> N5[label=right];
-  N7 -> N6[label=left];
-  N8 -> N7[label=operand];
+  N0[label=1];
+  N10[label=Log];
+  N1[label=2];
+  N2[label=4];
+  N3[label=0.25];
+  N4[label=Bernoulli];
+  N5[label=Sample];
+  N6[label=not];
+  N7[label=ToReal];
+  N8[label="/"];
+  N9[label="**"];
+  N10 -> N9[label=operand];
+  N4 -> N3[label=probability];
+  N5 -> N4[label=operand];
+  N6 -> N5[label=operand];
+  N7 -> N6[label=operand];
+  N8 -> N1[label=right];
+  N8 -> N7[label=left];
+  N9 -> N1[label=right];
+  N9 -> N8[label=left];
 }
 """
         self.maxDiff = None
