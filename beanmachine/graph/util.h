@@ -41,5 +41,28 @@ double sample_beta(std::mt19937& gen, double a, double b);
 // compute  1 / (1 + exp(-logodds))
 double logistic(double logodds);
 
+/*
+Compute the cumulative of the standard Normal upto x.
+:param: x
+:returns: N(0,1).cdf(x)
+*/
+double Phi(double x);
+
+
+/*
+Compute the cumulative of the standard Normal upto x.
+See https://core.ac.uk/download/pdf/41787448.pdf
+:param: x
+:returns: N(0,1).cdf(x)  (approximately)
+*/
+double Phi_approx(double x);
+
+/*
+Inverse of the approximate Phi function.
+:param z:
+:returns x: s.t. Phi_approx(x) == z
+*/
+double Phi_approx_inv(double z);
+
 } // namespace util
 } // namespace beanmachine
