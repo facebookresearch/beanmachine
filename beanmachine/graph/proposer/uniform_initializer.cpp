@@ -12,6 +12,9 @@ graph::AtomicValue uniform_initializer(std::mt19937& gen, graph::AtomicType type
   } else if (type == graph::AtomicType::REAL) {
     std::normal_distribution<double> dist(0, 1);
     return graph::AtomicValue(dist(gen));
+  } else if (type == graph::AtomicType::POS_REAL) {
+    std::exponential_distribution<double> dist(1.0);
+    return graph::AtomicValue(graph::AtomicType::POS_REAL, dist(gen));
   }
   // we shouldn't be called with other types, the following will invalidate the value
   return graph::AtomicValue();
