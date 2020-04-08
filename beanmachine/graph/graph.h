@@ -83,7 +83,8 @@ enum class DistributionType {
   BETA = 4,
   BINOMIAL = 5,
   FLAT = 6,
-  NORMAL = 7
+  NORMAL = 7,
+  HALF_CAUCHY = 8,
 };
 
 enum class NodeType {
