@@ -171,6 +171,10 @@ def ast_while(
     )
 
 
+def ast_boolop(op: Pattern = _any, values: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.BoolOp, {"op": op, "values": values})
+
+
 def ast_for(
     target: Pattern = _any,
     iter: Pattern = _any,

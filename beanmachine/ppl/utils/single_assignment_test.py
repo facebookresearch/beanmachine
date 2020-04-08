@@ -344,6 +344,35 @@ def f(x):
 
         self.check_rewrite(source, expected)
 
+    def test_single_assignment_boolop_binarize(self) -> None:
+        """Test the rule for converting boolean operators into binary operators"""
+
+        source = """
+def f(x):
+    x = a and b and c and d
+"""
+        expected = """
+def f(x):
+    x = ((a and b) and c) and d
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_boolop_binarize()))
+        )
+
+        source = """
+def f(x):
+    x = a and b and c or d or e
+"""
+        expected = """
+def f(x):
+    x = ((a and b) and c or d) or e
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_boolop_binarize()))
+        )
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 

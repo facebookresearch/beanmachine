@@ -6,6 +6,7 @@ from typing import Callable, List, Tuple
 
 from beanmachine.ppl.utils.ast_patterns import (
     assign,
+    ast_boolop,
     ast_domain,
     ast_for,
     ast_if,
@@ -31,6 +32,7 @@ from beanmachine.ppl.utils.patterns import (
     Pattern,
     PatternBase,
     negate,
+    twoPlusList,
 )
 from beanmachine.ppl.utils.rules import (
     FirstMatch as first,
@@ -76,6 +78,7 @@ class SingleAssignment:
             _some_top_down(
                 first(
                     [
+                        self._handle_boolop_binarize(),
                         self._handle_while(),
                         self._handle_if(),
                         self._handle_unassigned(),
@@ -254,6 +257,17 @@ class SingleAssignment:
 
     def _handle_while(self) -> Rule:
         return first([self._handle_while_True(), self._handle_while_not_True()])
+
+    def _handle_boolop_binarize(self) -> Rule:
+        return PatternRule(
+            ast_boolop(values=twoPlusList),
+            lambda lhs: ast.BoolOp(
+                op=lhs.op,
+                values=[ast.BoolOp(lhs.op, [lhs.values[0], lhs.values[1]])]
+                + lhs.values[2:],
+            ),
+            "handle_multi_boolop",
+        )
 
     def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions
         return PatternRule(
