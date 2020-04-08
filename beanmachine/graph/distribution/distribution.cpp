@@ -5,6 +5,7 @@
 #include "beanmachine/graph/distribution/binomial.h"
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/distribution/tabular.h"
+#include "beanmachine/graph/distribution/flat.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -30,6 +31,8 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     return std::make_unique<Beta>(sample_type, in_nodes);
   } else if (dist_type == graph::DistributionType::BINOMIAL) {
     return std::make_unique<Binomial>(sample_type, in_nodes);
+  } else if (dist_type == graph::DistributionType::FLAT) {
+    return std::make_unique<Flat>(sample_type, in_nodes);
   }
   throw std::invalid_argument(
       "Unknown distribution " + std::to_string(static_cast<int>(dist_type)));
