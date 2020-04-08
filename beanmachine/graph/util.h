@@ -64,5 +64,23 @@ Inverse of the approximate Phi function.
 */
 double Phi_approx_inv(double z);
 
+/*
+Compute the percentiles of a vector of values.
+:param values: the vector of values
+:param percs: the desired percentiles
+:returns: a vector of percentiles
+*/
+template<typename T>
+std::vector<T> percentiles(const std::vector<T>& values, const std::vector<double>& percs) {
+  // copy the values out before sorting them
+  std::vector<T> copy(values.begin(), values.end());
+  std::sort(copy.begin(), copy.end());
+  std::vector<double> result;
+  for (auto p: percs) {
+    result.push_back(copy[int(copy.size() * p)]);
+  }
+  return result;
+}
+
 } // namespace util
 } // namespace beanmachine
