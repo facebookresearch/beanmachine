@@ -506,6 +506,10 @@ emptyList = EmptyListPattern()
 
 nonEmptyList = match_every(list, negate(emptyList))
 
+twoPlusList = match_every(
+    list, negate(match_any([], [anyPattern], [anyPattern, anyPattern]))
+)
+
 
 class HeadTail(PatternBase):
     """This combinator takes a pattern to match the head of a list and

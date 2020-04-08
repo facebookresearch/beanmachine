@@ -13,7 +13,14 @@ from beanmachine.ppl.utils.ast_patterns import (
     name_constant,
     num,
 )
-from beanmachine.ppl.utils.patterns import HeadTail, ListAll, ListAny, negate
+from beanmachine.ppl.utils.patterns import (
+    HeadTail,
+    ListAll,
+    ListAny,
+    match,
+    negate,
+    twoPlusList,
+)
 
 
 def tidy(s: str) -> str:
@@ -21,6 +28,14 @@ def tidy(s: str) -> str:
 
 
 class PatternsTest(unittest.TestCase):
+    def test_twoPlus(self) -> None:
+        """Test the twoPlusList pattern"""
+
+        self.assertTrue(match(twoPlusList, [1, 2, 3]).is_success)
+        self.assertTrue(match(twoPlusList, [1, 2]).is_fail)
+        self.assertTrue(match(twoPlusList, [1]).is_fail)
+        self.assertTrue(match(twoPlusList, []).is_fail)
+
     def test_atomic(self) -> None:
         """Test atomic patterns"""
 
