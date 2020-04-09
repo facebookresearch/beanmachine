@@ -373,6 +373,38 @@ def f(x):
             source, expected, many(_some_top_down(self.s._handle_boolop_binarize()))
         )
 
+    def test_single_assignment_boolop_linearize(self) -> None:
+        """Test the assign rule for linearizing binary boolean ops"""
+
+        source = """
+def f(x):
+    x = (a and b) and c
+"""
+        expected = """
+def f(x):
+    a1 = a and b
+    x = a1 and c
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign()))
+        )
+
+        source = """
+def f(x):
+    x = ((a and b) and c) and d
+"""
+        expected = """
+def f(x):
+    a2 = a and b
+    a1 = a2 and c
+    x = a1 and d
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign()))
+        )
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
