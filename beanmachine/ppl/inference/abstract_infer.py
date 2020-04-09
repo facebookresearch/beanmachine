@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
+from enum import Enum
 from typing import Dict, List
 
 import torch
@@ -9,6 +10,16 @@ from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import RVIdentifier
 from torch import Tensor
 from torch.multiprocessing import Queue
+
+
+class VerboseLevel(Enum):
+    """
+    Enum class which is used to set how much output is printed during inference.
+    LOAD_BAR enables tqdm for full inference loop.
+    """
+
+    OFF = 0
+    LOAD_BAR = 1
 
 
 class AbstractInference(object, metaclass=ABCMeta):
@@ -21,7 +32,10 @@ class AbstractInference(object, metaclass=ABCMeta):
 
     @abstractmethod
     def _infer(
-        self, num_samples: int, num_adapt_steps: int = 0
+        self,
+        num_samples: int,
+        num_adapt_steps: int = 0,
+        verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
@@ -40,10 +54,11 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_samples: int,
         random_seed: int,
         num_adapt_steps: int,
+        verbose: VerboseLevel,
     ):
         try:
             AbstractInference.set_seed_for_chain(random_seed, chain)
-            rv_dict = self._infer(num_samples, num_adapt_steps)
+            rv_dict = self._infer(num_samples, num_adapt_steps, verbose)
             string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
         except BaseException as x:
@@ -57,6 +72,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_chains: int = 4,
         run_in_parallel: bool = False,
         num_adapt_steps: int = 0,
+        verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
     ) -> MonteCarloSamples:
         """
         Run inference algorithms and reset the world/mode at the end.
@@ -66,6 +82,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         :params num_samples: number of samples to collect for the query.
         :params num_chains: number of chains to run
         :params num_adapt_steps: number of steps to allow proposer adaptation.
+        :param verbose: Integer indicating how much output to print to stdio
         :returns: view of data for chains and samples for query
         """
         try:
@@ -96,7 +113,7 @@ class AbstractInference(object, metaclass=ABCMeta):
                 chain_queries = []
                 for chain in range(num_chains):
                     AbstractInference.set_seed_for_chain(random_seed, chain)
-                    rv_dicts = self._infer(num_samples, num_adapt_steps)
+                    rv_dicts = self._infer(num_samples, num_adapt_steps, verbose)
                     chain_queries.append(rv_dicts)
 
             monte_carlo_samples = MonteCarloSamples(chain_queries, num_adapt_steps)

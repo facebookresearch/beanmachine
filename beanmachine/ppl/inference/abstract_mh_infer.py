@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.abstract_infer import AbstractInference
+from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
 from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import Mode, RVIdentifier
@@ -234,19 +234,27 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         )
 
     def _infer(
-        self, num_samples: int, num_adapt_steps: int = 0
+        self,
+        num_samples: int,
+        num_adapt_steps: int = 0,
+        verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Run inference algorithms.
 
         :param num_samples: number of samples to collect for the query.
         :param num_adapt_steps: number of steps to adapt/tune the proposer.
+        :param verbose: Integer indicating how much output to print to stdio
         :returns: samples for the query
         """
         self.initialize_world()
         queries_sample = defaultdict()
 
-        for iteration in tqdm(iterable=range(num_samples), desc="Samples collected"):
+        for iteration in tqdm(
+            iterable=range(num_samples),
+            desc="Samples collected",
+            disable=not bool(verbose.value),
+        ):
             blocks = self.process_blocks()
             shuffle(blocks)
             for block in blocks:
