@@ -12,8 +12,12 @@
     "@docusaurus/core": "^2.0.0-alpha.50",
     "@docusaurus/preset-classic": "^2.0.0-alpha.50",
     "classnames": "^2.2.6",
+    "katex": "^0.11.1",
     "react": "^16.8.4",
-    "react-dom": "^16.8.4"
+    "react-dom": "^16.8.4",
+    "rehype-katex": "^3.0.0",
+    "remark-math": "^2.0.1",
+    "remarkable-katex": "^1.0.1"
   },
   "browserslist": {
     "production": [

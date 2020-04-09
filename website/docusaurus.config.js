@@ -1,9 +1,12 @@
+const remarkMath = require('remark-math');
+const rehypeKatex = require('rehype-katex');
+
 module.exports = {
   title: 'BeanMachine',
   tagline: 'A universal probabilistic programming language to enable ' +
             'fast and accurate Bayesian analysis',
-  url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
+  url: 'https://home.fburl.com/',
+  baseUrl: '/~brianjo/build/',
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
   projectName: 'beanmachine', // Usually your repo name.
@@ -16,8 +19,8 @@ module.exports = {
       },
       links: [
         {
-          to: '/docs/overview',
-          activeBasePath: '/docs',
+          to: 'docs/overview',
+          activeBasePath: 'docs',
           label: 'Docs',
           position: 'left',
         },
@@ -83,6 +86,8 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
             'https://github.com/facebook/docusaurus/edit/master/website/',
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -90,4 +95,7 @@ module.exports = {
       },
     ],
   ],
+  stylesheets: [
+      'https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css',
+    ],
 };

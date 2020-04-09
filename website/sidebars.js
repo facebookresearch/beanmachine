@@ -1,6 +1,6 @@
 module.exports = {
-  someSidebar: {
+  docs: {
     BeanMachine: ['overview'],
-    'Wiki Styles': ['doc1'],
+    'Wiki Styles': ['adding-content', 'styles'],
   },
 };
