@@ -415,36 +415,41 @@ class BernoulliNode(DistributionNode):
         self.is_logits = is_logits
         DistributionNode.__init__(self, [probability])
 
+    @property
     def probability(self) -> BMGNode:
         return self.children[0]
+
+    @probability.setter
+    def probability(self, p: BMGNode):
+        self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Bernoulli
 
     def size(self) -> torch.Size:
-        return self.probability().size()
+        return self.probability.size()
 
     def sample_type(self) -> Any:
-        return self.probability().node_type()
+        return self.probability.node_type()
 
     def label(self) -> str:
         return "Bernoulli" + ("(logits)" if self.is_logits else "")
 
     def __str__(self) -> str:
-        return "Bernoulli(" + str(self.probability()) + ")"
+        return "Bernoulli(" + str(self.probability) + ")"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         # TODO: Handle case where child is logits
         return g.add_distribution(
-            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability()]]
+            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
         return (
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -453,7 +458,7 @@ class BernoulliNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -471,33 +476,38 @@ class CategoricalNode(DistributionNode):
         self.is_logits = is_logits
         DistributionNode.__init__(self, [probability])
 
+    @property
     def probability(self) -> BMGNode:
         return self.children[0]
+
+    @probability.setter
+    def probability(self, p: BMGNode):
+        self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Categorical
 
     def size(self) -> torch.Size:
-        return self.probability().size()[0:-1]
+        return self.probability.size()[0:-1]
 
     def sample_type(self) -> Any:
         # TODO: When we support bounded integer types
         # TODO: this should indicate that it is a tensor
         # TODO: of bound integers.
-        return self.probability().node_type()
+        return self.probability.node_type()
 
     def label(self) -> str:
         return "Categorical" + ("(logits)" if self.is_logits else "")
 
     def __str__(self) -> str:
-        return "Categorical(" + str(self.probability()) + ")"
+        return "Categorical(" + str(self.probability) + ")"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         # TODO: Handle case where child is logits
         # TODO: This is incorrect.
         return g.add_distribution(
-            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability()]]
+            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
@@ -505,7 +515,7 @@ class CategoricalNode(DistributionNode):
         # TODO: This is incorrect.
         return (
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -515,11 +525,11 @@ class CategoricalNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
-        s = self.probability().size()
+        s = self.probability.size()
         r = list(range(s[-1]))
         sr = s[:-1]
         return (tensor(i).view(sr) for i in itertools.product(*([r] * prod(sr))))
@@ -531,38 +541,43 @@ class DirichletNode(DistributionNode):
     def __init__(self, concentration: BMGNode):
         DistributionNode.__init__(self, [concentration])
 
+    @property
     def concentration(self) -> BMGNode:
         return self.children[0]
+
+    @concentration.setter
+    def concentration(self, p: BMGNode):
+        self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Dirichlet
 
     def size(self) -> torch.Size:
-        return self.concentration().size()
+        return self.concentration.size()
 
     def sample_type(self) -> Any:
-        return self.concentration().node_type()
+        return self.concentration.node_type()
 
     def label(self) -> str:
         return "Dirichlet"
 
     def __str__(self) -> str:
-        return f"Dirichlet({str(self.concentration())})"
+        return f"Dirichlet({str(self.concentration)})"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
             DistributionType.BERNOULLI,
             AtomicType.BOOLEAN,
-            [d[self.concentration()]],
+            [d[self.concentration]],
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             # TODO: Fix this when we add the node type to BMG
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.concentration()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.concentration]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -571,7 +586,7 @@ class DirichletNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.concentration()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.concentration]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -590,38 +605,43 @@ class HalfCauchyNode(DistributionNode):
     def __init__(self, scale: BMGNode):
         DistributionNode.__init__(self, [scale])
 
+    @property
     def scale(self) -> BMGNode:
         return self.children[0]
+
+    @scale.setter
+    def scale(self, p: BMGNode):
+        self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return HalfCauchy
 
     def size(self) -> torch.Size:
-        return self.scale().size()
+        return self.scale.size()
 
     def sample_type(self) -> Any:
-        return self.scale().node_type()
+        return self.scale.node_type()
 
     def label(self) -> str:
         return "HalfCauchy"
 
     def __str__(self) -> str:
-        return f"HalfCauchy({str(self.scale())})"
+        return f"HalfCauchy({str(self.scale)})"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
             DistributionType.BERNOULLI,
             AtomicType.BOOLEAN,
-            [d[self.scale()]],
+            [d[self.scale]],
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             # TODO: Fix this when we add the node type to BMG
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.scale()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.scale]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -630,7 +650,7 @@ class HalfCauchyNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.mu()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.scale]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -649,41 +669,51 @@ class NormalNode(DistributionNode):
     def __init__(self, mu: BMGNode, sigma: BMGNode):
         DistributionNode.__init__(self, [mu, sigma])
 
+    @property
     def mu(self) -> BMGNode:
         return self.children[0]
 
+    @mu.setter
+    def mu(self, p: BMGNode):
+        self.children[0] = p
+
+    @property
     def sigma(self) -> BMGNode:
         return self.children[1]
+
+    @mu.setter
+    def sigma(self, p: BMGNode):
+        self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Normal
 
     def size(self) -> torch.Size:
-        return self.mu().size()
+        return self.mu.size()
 
     def sample_type(self) -> Any:
-        return self.mu().node_type()
+        return self.mu.node_type()
 
     def label(self) -> str:
         return "Normal"
 
     def __str__(self) -> str:
-        return f"Normal({str(self.mu())},{str(self.sigma())})"
+        return f"Normal({str(self.mu)},{str(self.sigma)})"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
             DistributionType.BERNOULLI,
             AtomicType.BOOLEAN,
-            [d[self.mu()]],
+            [d[self.mu]],
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             # TODO: Fix this when we add the node type to BMG
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.mu()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.mu]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -692,7 +722,7 @@ class NormalNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.mu()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.mu]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -711,44 +741,59 @@ class StudentTNode(DistributionNode):
     def __init__(self, df: BMGNode, loc: BMGNode, scale: BMGNode):
         DistributionNode.__init__(self, [df, loc, scale])
 
+    @property
     def df(self) -> BMGNode:
         return self.children[0]
 
+    @df.setter
+    def df(self, p: BMGNode):
+        self.children[0] = p
+
+    @property
     def loc(self) -> BMGNode:
         return self.children[1]
 
+    @loc.setter
+    def loc(self, p: BMGNode):
+        self.children[1] = p
+
+    @property
     def scale(self) -> BMGNode:
         return self.children[2]
+
+    @scale.setter
+    def scale(self, p: BMGNode):
+        self.children[2] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return StudentT
 
     def sample_type(self) -> Any:
-        return self.df().node_type()
+        return self.df.node_type()
 
     def size(self) -> torch.Size:
-        return self.df().size()
+        return self.df.size()
 
     def label(self) -> str:
         return "StudentT"
 
     def __str__(self) -> str:
-        return f"StudentT({str(self.df())},{str(self.loc())},{str(self.scale())})"
+        return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
             DistributionType.BERNOULLI,
             AtomicType.BOOLEAN,
-            [d[self.df()]],
+            [d[self.df]],
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             # TODO: Fix this when we add the node type to BMG
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.low()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.df]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -757,7 +802,7 @@ class StudentTNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.low()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.df]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -776,41 +821,51 @@ class UniformNode(DistributionNode):
     def __init__(self, low: BMGNode, high: BMGNode):
         DistributionNode.__init__(self, [low, high])
 
+    @property
     def low(self) -> BMGNode:
         return self.children[0]
 
+    @low.setter
+    def low(self, p: BMGNode):
+        self.children[0] = p
+
+    @property
     def high(self) -> BMGNode:
         return self.children[1]
+
+    @high.setter
+    def high(self, p: BMGNode):
+        self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Uniform
 
     def sample_type(self) -> Any:
-        return self.low().node_type()
+        return self.low.node_type()
 
     def size(self) -> torch.Size:
-        return self.low().size()
+        return self.low.size()
 
     def label(self) -> str:
         return "Uniform"
 
     def __str__(self) -> str:
-        return f"Uniform({str(self.low())},{str(self.high())})"
+        return f"Uniform({str(self.low)},{str(self.high)})"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
             DistributionType.BERNOULLI,
             AtomicType.BOOLEAN,
-            [d[self.low()]],
+            [d[self.low]],
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             # TODO: Fix this when we add the node type to BMG
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.low()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.low]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -819,7 +874,7 @@ class UniformNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.low()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.low]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -838,41 +893,51 @@ class BetaNode(DistributionNode):
     def __init__(self, alpha: BMGNode, beta: BMGNode):
         DistributionNode.__init__(self, [alpha, beta])
 
+    @property
     def alpha(self) -> BMGNode:
         return self.children[0]
 
+    @alpha.setter
+    def alpha(self, p: BMGNode):
+        self.children[0] = p
+
+    @property
     def beta(self) -> BMGNode:
         return self.children[1]
+
+    @beta.setter
+    def beta(self, p: BMGNode):
+        self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
     def node_type(self) -> Any:
         return Beta
 
     def sample_type(self) -> Any:
-        return self.alpha().node_type()
+        return self.alpha.node_type()
 
     def size(self) -> torch.Size:
-        return self.alpha().size()
+        return self.alpha.size()
 
     def label(self) -> str:
         return "Beta"
 
     def __str__(self) -> str:
-        return f"Beta({str(self.alpha())},{str(self.beta())})"
+        return f"Beta({str(self.alpha)},{str(self.beta)})"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
             DistributionType.BERNOULLI,
             AtomicType.BOOLEAN,
-            [d[self.probability()]],
+            [d[self.alpha]],
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             # TODO: Fix this when we add the node type to BMG
             f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability()]}])"
+            + f"graph.AtomicType.BOOLEAN, [n{d[self.alpha]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
@@ -881,7 +946,7 @@ class BetaNode(DistributionNode):
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BERNOULLI,\n"
             + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability()]}}}));"
+            + f"  std::vector<uint>({{n{d[self.alpha]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -908,30 +973,40 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
     # TODO: Improve this
     def node_type(self) -> Any:
-        if self.left().node_type() == Tensor or self.right().node_type() == Tensor:
+        if self.left.node_type() == Tensor or self.right.node_type() == Tensor:
             return Tensor
         return float
 
+    @property
     def left(self) -> BMGNode:
         return self.children[0]
 
+    @left.setter
+    def left(self, p: BMGNode):
+        self.children[0] = p
+
+    @property
     def right(self) -> BMGNode:
         return self.children[1]
 
+    @right.setter
+    def right(self, p: BMGNode):
+        self.children[1] = p
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_operator(self.operator_type, [d[self.left()], d[self.right()]])
+        return g.add_operator(self.operator_type, [d[self.left], d[self.right]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         ot = self.operator_type
-        left = d[self.left()]
-        right = d[self.right()]
+        left = d[self.left]
+        right = d[self.right]
         return f"n{n} = g.add_operator(graph.{ot}, [n{left}, n{right}])"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         ot = str(self.operator_type).replace(".", "::")
-        left = d[self.left()]
-        right = d[self.right()]
+        left = d[self.left]
+        right = d[self.right]
         return (
             f"uint n{d[self]} = g.add_operator(\n"
             + f"  graph::{ot}, std::vector<uint>({{n{left}, n{right}}}));"
@@ -945,19 +1020,17 @@ class AdditionNode(BinaryOperatorNode):
         BinaryOperatorNode.__init__(self, left, right)
 
     def size(self) -> torch.Size:
-        return (
-            torch.zeros(self.left().size()) + torch.zeros(self.right().size())
-        ).size()
+        return (torch.zeros(self.left.size()) + torch.zeros(self.right.size())).size()
 
     def label(self) -> str:
         return "+"
 
     def __str__(self) -> str:
-        return "(" + str(self.left()) + "+" + str(self.right()) + ")"
+        return "(" + str(self.left) + "+" + str(self.right) + ")"
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l + r for l in self.left().support() for r in self.right().support()
+            l + r for l in self.left.support() for r in self.right.support()
         )
 
 
@@ -971,16 +1044,14 @@ class MultiplicationNode(BinaryOperatorNode):
         return "*"
 
     def size(self) -> torch.Size:
-        return (
-            torch.zeros(self.left().size()) * torch.zeros(self.right().size())
-        ).size()
+        return (torch.zeros(self.left.size()) * torch.zeros(self.right.size())).size()
 
     def __str__(self) -> str:
-        return "(" + str(self.left()) + "*" + str(self.right()) + ")"
+        return "(" + str(self.left) + "*" + str(self.right) + ")"
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l * r for l in self.left().support() for r in self.right().support()
+            l * r for l in self.left.support() for r in self.right.support()
         )
 
 
@@ -995,18 +1066,14 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         return "*"
 
     def size(self) -> torch.Size:
-        return (
-            torch.zeros(self.left().size()).mm(torch.zeros(self.right().size())).size()
-        )
+        return torch.zeros(self.left.size()).mm(torch.zeros(self.right.size())).size()
 
     def __str__(self) -> str:
-        return "(" + str(self.left()) + "*" + str(self.right()) + ")"
+        return "(" + str(self.left) + "*" + str(self.right) + ")"
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            torch.mm(l, r)
-            for l in self.left().support()
-            for r in self.right().support()
+            torch.mm(l, r) for l in self.left.support() for r in self.right.support()
         )
 
 
@@ -1022,17 +1089,15 @@ class DivisionNode(BinaryOperatorNode):
         return "/"
 
     def size(self) -> torch.Size:
-        return (
-            torch.zeros(self.left().size()) / torch.zeros(self.right().size())
-        ).size()
+        return (torch.zeros(self.left.size()) / torch.zeros(self.right.size())).size()
 
     def __str__(self) -> str:
-        return "(" + str(self.left()) + "/" + str(self.right()) + ")"
+        return "(" + str(self.left) + "/" + str(self.right) + ")"
 
     def support(self) -> Iterator[Any]:
         # TODO: Filter out division by zero?
         return SetOfTensors(
-            l / r for l in self.left().support() for r in self.right().support()
+            l / r for l in self.left.support() for r in self.right.support()
         )
 
 
@@ -1046,14 +1111,14 @@ class IndexNode(BinaryOperatorNode):
         return "index"
 
     def size(self) -> torch.Size:
-        return self.left().size()
+        return self.left.size()
 
     def __str__(self) -> str:
-        return str(self.left()) + "[" + str(self.right()) + "]"
+        return str(self.left) + "[" + str(self.right) + "]"
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l for r in self.right().support() for l in self.left()[r].support()
+            l for r in self.right.support() for l in self.left[r].support()
         )
 
 
@@ -1069,16 +1134,14 @@ class PowerNode(BinaryOperatorNode):
         return "**"
 
     def size(self) -> torch.Size:
-        return (
-            torch.zeros(self.left().size()) ** torch.zeros(self.right().size())
-        ).size()
+        return (torch.zeros(self.left.size()) ** torch.zeros(self.right.size())).size()
 
     def __str__(self) -> str:
-        return "(" + str(self.left()) + "**" + str(self.right()) + ")"
+        return "(" + str(self.left) + "**" + str(self.right) + ")"
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l ** r for l in self.left().support() for r in self.right().support()
+            l ** r for l in self.left.support() for r in self.right.support()
         )
 
 
@@ -1091,23 +1154,28 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
     # TODO: Improve this
     def node_type(self) -> Any:
-        return self.operand().node_type()
+        return self.operand.node_type()
 
+    @property
     def operand(self) -> BMGNode:
         return self.children[0]
 
+    @operand.setter
+    def operand(self, p: BMGNode):
+        self.children[0] = p
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_operator(self.operator_type, [d[self.operand()]])
+        return g.add_operator(self.operator_type, [d[self.operand]])
 
     def _to_python(self, d: Dict[BMGNode, int]) -> str:
         n = d[self]
-        o = d[self.operand()]
+        o = d[self.operand]
         ot = str(self.operator_type)
         return f"n{n} = g.add_operator(graph.{ot}, [n{o}])"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
-        o = d[self.operand()]
+        o = d[self.operand]
         # Since OperatorType is not actually an enum, there is no
         # name attribute to use.
         ot = str(self.operator_type).replace(".", "::")
@@ -1127,13 +1195,13 @@ class NegateNode(UnaryOperatorNode):
         return "-"
 
     def size(self) -> torch.Size:
-        return self.operand().size()
+        return self.operand.size()
 
     def __str__(self) -> str:
-        return "-" + str(self.operand())
+        return "-" + str(self.operand)
 
     def support(self) -> Iterator[Any]:
-        return SetOfTensors(-o for o in self.operand().support())
+        return SetOfTensors(-o for o in self.operand.support())
 
 
 class NotNode(UnaryOperatorNode):
@@ -1147,16 +1215,16 @@ class NotNode(UnaryOperatorNode):
         return bool
 
     def size(self) -> torch.Size:
-        return self.operand().size()
+        return self.operand.size()
 
     def label(self) -> str:
         return "not"
 
     def __str__(self) -> str:
-        return "not " + str(self.operand())
+        return "not " + str(self.operand)
 
     def support(self) -> Iterator[Any]:
-        return SetOfTensors(not o for o in self.operand().support())
+        return SetOfTensors(not o for o in self.operand.support())
 
 
 class ToRealNode(UnaryOperatorNode):
@@ -1175,10 +1243,10 @@ class ToRealNode(UnaryOperatorNode):
         return torch.Size([])
 
     def __str__(self) -> str:
-        return "ToReal(" + str(self.operand()) + ")"
+        return "ToReal(" + str(self.operand) + ")"
 
     def support(self) -> Iterator[Any]:
-        return SetOfTensors(float(o) for o in self.operand().support())
+        return SetOfTensors(float(o) for o in self.operand.support())
 
 
 class ToTensorNode(UnaryOperatorNode):
@@ -1191,7 +1259,7 @@ class ToTensorNode(UnaryOperatorNode):
         return "ToTensor"
 
     def __str__(self) -> str:
-        return "ToTensor(" + str(self.operand()) + ")"
+        return "ToTensor(" + str(self.operand) + ")"
 
     def size(self) -> torch.Size:
         # TODO: Is this correct?
@@ -1201,7 +1269,7 @@ class ToTensorNode(UnaryOperatorNode):
         return Tensor
 
     def support(self) -> Iterator[Any]:
-        return SetOfTensors(torch.tensor(o) for o in self.operand().support())
+        return SetOfTensors(torch.tensor(o) for o in self.operand.support())
 
 
 class ExpNode(UnaryOperatorNode):
@@ -1214,14 +1282,14 @@ class ExpNode(UnaryOperatorNode):
         return "Exp"
 
     def size(self) -> torch.Size:
-        return self.operand().size()
+        return self.operand.size()
 
     def __str__(self) -> str:
-        return "Exp(" + str(self.operand()) + ")"
+        return "Exp(" + str(self.operand) + ")"
 
     def support(self) -> Iterator[Any]:
         # TODO: Not always a tensor.
-        return SetOfTensors(torch.exp(o) for o in self.operand().support())
+        return SetOfTensors(torch.exp(o) for o in self.operand.support())
 
 
 class LogNode(UnaryOperatorNode):
@@ -1235,14 +1303,14 @@ class LogNode(UnaryOperatorNode):
         return "Log"
 
     def size(self) -> torch.Size:
-        return self.operand().size()
+        return self.operand.size()
 
     def __str__(self) -> str:
-        return "Log(" + str(self.operand()) + ")"
+        return "Log(" + str(self.operand) + ")"
 
     def support(self) -> Iterator[Any]:
         # TODO: Not always a tensor.
-        return SetOfTensors(torch.log(o) for o in self.operand().support())
+        return SetOfTensors(torch.log(o) for o in self.operand.support())
 
 
 class SampleNode(UnaryOperatorNode):
@@ -1252,24 +1320,29 @@ class SampleNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     def node_type(self) -> Any:
-        return self.operand().sample_type()
+        return self.operand.sample_type()
 
     def size(self) -> torch.Size:
-        return self.operand().size()
+        return self.operand.size()
 
+    @property
     def operand(self) -> DistributionNode:
         c = self.children[0]
         assert isinstance(c, DistributionNode)
         return c
 
+    @operand.setter
+    def operand(self, p: DistributionNode):
+        self.children[0] = p
+
     def label(self) -> str:
         return "Sample"
 
     def __str__(self) -> str:
-        return "Sample(" + str(self.operand()) + ")"
+        return "Sample(" + str(self.operand) + ")"
 
     def support(self) -> Iterator[Any]:
-        return self.operand().support()
+        return self.operand.support()
 
 
 class Observation(BMGNode):
@@ -1278,40 +1351,50 @@ class Observation(BMGNode):
     def __init__(self, observed: SampleNode, value: ConstantNode):
         BMGNode.__init__(self, [observed, value])
 
+    @property
     def observed(self) -> SampleNode:
         c = self.children[0]
         assert isinstance(c, SampleNode)
         return c
 
+    @observed.setter
+    def operand(self, p: SampleNode):
+        self.children[0] = p
+
+    @property
     def value(self) -> ConstantNode:
         c = self.children[1]
         assert isinstance(c, ConstantNode)
         return c
 
+    @value.setter
+    def value(self, p: ConstantNode):
+        self.children[1] = p
+
     def node_type(self) -> Any:
-        return type(self.value())
+        return type(self.value)
 
     def size(self) -> torch.Size:
-        return self.value().size()
+        return self.value.size()
 
     def label(self) -> str:
         return "Observation"
 
     def __str__(self) -> str:
-        return str(self.observed()) + "=" + str(self.value())
+        return str(self.observed) + "=" + str(self.value)
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        v = self.value().value
-        g.observe(d[self.observed()], v)
+        v = self.value.value
+        g.observe(d[self.observed], v)
         return -1
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        v = self.value().value
-        return f"g.observe(n{d[self.observed()]}, {v})"
+        v = self.value.value
+        return f"g.observe(n{d[self.observed]}, {v})"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        v = self.value()._value_to_cpp()
-        return f"g.observe([n{d[self.observed()]}], {v});"
+        v = self.value._value_to_cpp()
+        return f"g.observe([n{d[self.observed]}], {v});"
 
     def support(self) -> Iterator[Any]:
         return []
@@ -1323,32 +1406,37 @@ class Query(BMGNode):
     def __init__(self, operator: OperatorNode):
         BMGNode.__init__(self, [operator])
 
+    @property
     def operator(self) -> OperatorNode:
         c = self.children[0]
         assert isinstance(c, OperatorNode)
         return c
 
+    @operator.setter
+    def operator(self, p: OperatorNode):
+        self.children[0] = p
+
     def node_type(self) -> Any:
-        return self.operator().node_type()
+        return self.operator.node_type()
 
     def size(self) -> torch.Size:
-        return self.operator().size()
+        return self.operator.size()
 
     def label(self) -> str:
         return "Query"
 
     def __str__(self) -> str:
-        return "Query(" + str(self.operator()) + ")"
+        return "Query(" + str(self.operator) + ")"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        g.query(d[self.operator()])
+        g.query(d[self.operator])
         return -1
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return f"g.query(n{d[self.operator()]})"
+        return f"g.query(n{d[self.operator]})"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return f"g.query(n{d[self.operator()]});"
+        return f"g.query(n{d[self.operator]});"
 
     def support(self) -> Iterator[Any]:
         return []
