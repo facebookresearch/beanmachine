@@ -405,6 +405,44 @@ def f(x):
             source, expected, many(_some_top_down(self.s._handle_assign()))
         )
 
+    def test_single_assignment_and2if(self) -> None:
+        """Test the assign rule for converting a binary and into an if statement"""
+
+        source = """
+def f(x):
+    x = a and b
+"""
+        expected = """
+def f(x):
+    if a:
+        x = b
+    else:
+        x = a
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign_and2if()))
+        )
+
+    def test_single_assignment_or2if(self) -> None:
+        """Test the assign rule for converting a binary or into an if statement"""
+
+        source = """
+def f(x):
+    x = a or b
+"""
+        expected = """
+def f(x):
+    if a:
+        x = a
+    else:
+        x = b
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign_or2if()))
+        )
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 

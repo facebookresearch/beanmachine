@@ -455,6 +455,28 @@ class SingleAssignment:
             "handle_assign",
         )
 
+    def _handle_assign_and2if(self) -> Rule:
+        return PatternRule(
+            assign(value=ast_boolop(op=ast.And, values=[name(), anyPattern])),
+            lambda lhs: ast.If(
+                test=lhs.value.values[0],
+                body=[ast.Assign(targets=lhs.targets, value=lhs.value.values[1])],
+                orelse=[ast.Assign(targets=lhs.targets, value=lhs.value.values[0])],
+            ),
+            "handle_and2if",
+        )
+
+    def _handle_assign_or2if(self) -> Rule:
+        return PatternRule(
+            assign(value=ast_boolop(op=ast.Or, values=[name(), anyPattern])),
+            lambda lhs: ast.If(
+                test=lhs.value.values[0],
+                body=[ast.Assign(targets=lhs.targets, value=lhs.value.values[0])],
+                orelse=[ast.Assign(targets=lhs.targets, value=lhs.value.values[1])],
+            ),
+            "handle_or2if",
+        )
+
     def single_assignment(self, node: ast.AST) -> ast.AST:
         return self._rules(node).expect_success()
 
