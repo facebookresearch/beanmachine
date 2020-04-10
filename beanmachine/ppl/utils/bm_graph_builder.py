@@ -217,49 +217,6 @@ class RealNode(ConstantNode):
         return bool(self.value)
 
 
-# TODO: Delete the list node; replace it with the map node.
-class ListNode(BMGNode):
-    # TODO: A list node does not appear in the final graph at this time; it
-    # TODO: is useful when constructing the final graph from a BM program that
-    # TODO: uses lists. Consider if we want a list type in the graph.
-    def __init__(self, children: List[BMGNode]):
-        BMGNode.__init__(self, children)
-        self.edges = [str(x) for x in range(len(children))]
-
-    # TODO: Determine the list type by observing the types of the members.
-    def node_type(self) -> Any:
-        return List[Any]
-
-    def size(self) -> torch.Size:
-        raise NotImplementedError()
-
-    def label(self) -> str:
-        return "list"
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: list nodes are not currently part of the graph
-        return -1
-
-    def _to_python(self, d: Dict[BMGNode, int]) -> str:
-        # TODO: list nodes are not currently part of the graph
-        return ""
-
-    def _to_cpp(self, d: Dict[BMGNode, int]) -> str:
-        # TODO: list nodes are not currently part of the graph
-        return ""
-
-    def __getitem__(self, key) -> BMGNode:
-        if not isinstance(key, RealNode):
-            raise ValueError(
-                "BeanMachine list must be indexed with a known numeric value"
-            )
-        return self.children[int(key.value)]
-
-    def support(self) -> Iterator[Any]:
-        return []
-        # TODO: Do we need this?
-
-
 class MapNode(BMGNode):
     # TODO: Add the map node to the C++ implementation of the graph.
     # TODO: Do the values all have to be the same type?
@@ -1928,14 +1885,6 @@ class BMGraphBuilder:
         if f in self.function_map:
             return self.function_map[f](*args, **kwargs)
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
-
-    # TODO: Do NOT memoize add_list; if we eventually add a list node to the
-    # TODO: underlying graph, revisit this decision.
-    # TODO: Remove this; replace lists with maps
-    def add_list(self, elements: List[BMGNode]) -> ExpNode:
-        node = ListNode(elements)
-        self.add_node(node)
-        return node
 
     @memoize
     def add_map(self, *elements) -> MapNode:

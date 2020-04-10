@@ -2,7 +2,7 @@
 """Tests for bm_graph_builder.py"""
 import math
 import unittest
-from typing import Any, List
+from typing import Any
 
 import torch
 from beanmachine.ppl.utils.bm_graph_builder import (
@@ -226,15 +226,6 @@ digraph "graph" {
         self.assertFalse(bmg.add_tensor(tensor(False)))
         self.assertFalse(bmg.add_tensor(tensor(0.0)))
         self.assertFalse(bmg.add_tensor(tensor([0.0])))
-
-    def test_4(self) -> None:
-        """Test 4"""
-        bmg = BMGraphBuilder()
-        one = bmg.add_real(1.0)
-        tru = bmg.add_boolean(True)
-        fal = bmg.add_boolean(False)
-        lst = bmg.add_list([tru, fal])
-        self.assertEqual(fal, lst[one])
 
     # The "add" methods do exactly that: add a node to the graph if it is not
     # already there.
@@ -1335,7 +1326,6 @@ digraph "graph" {
         self.assertEqual(bmg.add_to_real(t).node_type(), float)
         self.assertEqual(bmg.add_to_real(b).node_type(), float)
         self.assertEqual(bmg.add_to_real(s).node_type(), float)
-        self.assertEqual(bmg.add_list([b]).node_type(), List[Any])
 
     def test_sizes(self) -> None:
         bmg = BMGraphBuilder()
