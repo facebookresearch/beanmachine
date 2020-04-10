@@ -638,7 +638,7 @@ class NormalNode(DistributionNode):
     def sigma(self) -> BMGNode:
         return self.children[1]
 
-    @mu.setter
+    @sigma.setter
     def sigma(self, p: BMGNode):
         self.children[1] = p
 
