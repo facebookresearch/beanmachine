@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "beanmachine/graph/operator/unaryop.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace oper {
@@ -117,6 +118,17 @@ void expm1(graph::Node* node) {
       "invalid parent type " + std::to_string(static_cast<int>(parent.type))
       + " for EXPM1 operator at node_id " + std::to_string(node->index));
   }
+}
+
+void phi(graph::Node* node) {
+  assert(node->in_nodes.size() == 1);
+  const graph::AtomicValue& parent = node->in_nodes[0]->value;
+  assert(parent.type == graph::AtomicType::REAL);
+  // note: we have to cast it to an AtomicValue object rather than directly
+  // assigning to ensure that the usual boundary checks for probabilities
+  // are made
+  node->value = graph::AtomicValue(
+    graph::AtomicType::PROBABILITY, util::Phi(parent._double));
 }
 
 } // namespace oper

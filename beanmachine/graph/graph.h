@@ -73,6 +73,7 @@ enum class OperatorType {
   EXPM1,
   MULTIPLY,
   ADD,
+  PHI,
 };
 
 enum class DistributionType {

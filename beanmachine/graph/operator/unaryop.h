@@ -12,6 +12,7 @@ void to_tensor(graph::Node* node);
 void negate(graph::Node* node);
 void exp(graph::Node* node);
 void expm1(graph::Node* node);
+void phi(graph::Node* node);
 
 } // namespace oper
 } // namespace beanmachine
