@@ -87,5 +87,20 @@ double Phi_approx_inv(double z) {
   return (std::log(z) - std::log(1 - z)) / PHI_APPROX_GAMMA;
 }
 
+double log_sum_exp(const std::vector<double>& values) {
+  // find the max and subtract it out
+  double max = values[0];
+  for (std::vector<double>::size_type idx=1; idx < values.size(); idx++) {
+    if (values[idx] > max) {
+      max = values[idx];
+    }
+  }
+  double sum = 0;
+  for (auto value: values) {
+    sum += std::exp(value - max);
+  }
+  return std::log(sum) + max;
+}
+
 } // namespace util
 } // namespace beanmachine

@@ -62,3 +62,8 @@ TEST(testutil, Phi) {
   EXPECT_NEAR(util::Phi_approx_inv(0.025), -1.96, 0.2);
   EXPECT_NEAR(util::Phi_approx_inv(1 - 0.025), 1.96, 0.2);
 }
+
+TEST(testutil, log_sum_exp) {
+  std::vector<double> vals = {-3, -5, -7};
+  EXPECT_NEAR(util::log_sum_exp(vals), -2.8571, 0.001);
+}

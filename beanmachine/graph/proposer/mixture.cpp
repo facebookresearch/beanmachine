@@ -1,0 +1,37 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+#include <cmath>
+#include <random>
+
+#include "beanmachine/graph/proposer/mixture.h"
+#include "beanmachine/graph/util.h"
+
+namespace beanmachine {
+namespace proposer {
+
+graph::AtomicValue Mixture::sample(std::mt19937& gen) const {
+  std::uniform_real_distribution<double> dist(0, 1);
+  double target = weight_sum * dist(gen);
+  std::vector<double>::size_type index = 0;
+  double sum = 0;
+  for ( ; index < weights.size(); index++) {
+    sum += weights[index];
+    if (target < sum) {
+      break;
+    }
+  }
+  if (index == weights.size()) {
+    index --;
+  }
+  return proposers[index]->sample(gen);
+}
+
+double Mixture::log_prob(graph::AtomicValue& value) const {
+  std::vector<double> log_probs;
+  for (std::vector<double>::size_type index=0; index < weights.size(); index ++) {
+    log_probs.push_back(log(weights[index]) + proposers[index]->log_prob(value));
+  }
+  return util::log_sum_exp(log_probs) - std::log(weight_sum);
+}
+
+} // namespace proposer
+} // namespace beanmachine
