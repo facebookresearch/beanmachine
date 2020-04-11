@@ -14,8 +14,9 @@ PYBIND11_MODULE(graph, module) {
 
   py::enum_<AtomicType>(module, "AtomicType")
       .value("BOOLEAN", AtomicType::BOOLEAN)
-      .value("REAL", AtomicType::REAL)
       .value("PROBABILITY", AtomicType::PROBABILITY)
+      .value("REAL", AtomicType::REAL)
+      .value("POS_REAL", AtomicType::POS_REAL)
       .value("NATURAL", AtomicType::NATURAL)
       .value("TENSOR", AtomicType::TENSOR);
 
