@@ -32,6 +32,36 @@ from torch.distributions import (
 )
 
 
+# When we construct a graph we know all the "storage" types of
+# the nodes -- Boolean, integer, float, tensor, and so on.
+# But Bean Machine Graph requires that we ensure that "semantic"
+# type associations are made to each node in the graph. The
+# types in the BMG type system are:
+#
+# Unknown       -- we largely do not need to worry about this one,
+#                  and it is more "undefined" than "unknown"
+# Boolean       -- we can just use bool
+# Real          -- we can just use float
+# Tensor        -- we can just use Tensor
+# Probability   -- a real between 0.0 and 1.0
+# Positive Real -- what it says on the tin
+# Natural       -- a non-negative integer
+#
+# We'll make objects to represent those last three.
+
+
+class Probability:
+    pass
+
+
+class PositiveReal:
+    pass
+
+
+class Natural:
+    pass
+
+
 def prod(x):
     return functools.reduce(operator.mul, x, 1)
 
@@ -278,7 +308,7 @@ class ProbabilityNode(ConstantNode):
         return str(self.value)
 
     def node_type(self) -> Any:
-        return float
+        return Probability
 
     def size(self) -> torch.Size:
         return torch.Size([])
