@@ -387,7 +387,9 @@ def f(x):
 """
 
         self.check_rewrite(
-            source, expected, many(_some_top_down(self.s._handle_assign()))
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_boolop_linearize())),
         )
 
         source = """
@@ -402,7 +404,9 @@ def f(x):
 """
 
         self.check_rewrite(
-            source, expected, many(_some_top_down(self.s._handle_assign()))
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_boolop_linearize())),
         )
 
     def test_single_assignment_and2if(self) -> None:

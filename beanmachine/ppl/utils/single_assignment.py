@@ -437,22 +437,24 @@ class SingleAssignment:
                     assign(value=ast_list(elts=_list_not_identifier)),
                     self._transform_list(),
                 ),
-                # a = e1 and e2 rewrites into b = e1, a = b and e2
-                (
-                    assign(value=ast_boolop(values=[_not_identifier, anyPattern])),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.values[0],
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.BoolOp(
-                                op=lhs.value.op, values=[new_name, lhs.value.values[1]]
-                            ),
-                        ),
-                    ),
-                ),
             ],
             "handle_assign",
+        )
+
+    def _handle_assign_boolop_linearize(self) -> Rule:
+        return PatternRule(  # a = e1 and e2 rewrites into b = e1, a = b and e2
+            assign(value=ast_boolop(values=[_not_identifier, anyPattern])),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.values[0],
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.BoolOp(
+                        op=lhs.value.op, values=[new_name, lhs.value.values[1]]
+                    ),
+                ),
+            ),
+            "handle_assign_boolop_linearize",
         )
 
     def _handle_assign_and2if(self) -> Rule:
