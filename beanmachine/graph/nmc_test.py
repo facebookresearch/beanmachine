@@ -119,3 +119,37 @@ class TestNMC(unittest.TestCase):
         self.assertTrue(
             abs(post_cov - RHO) < 0.1, f"covariance should be {RHO} is {post_cov}"
         )
+
+    def test_probit_regression(self):
+        """
+        x ~ Normal(0, 1)
+        y ~ Bernoulli(Phi(x))
+        P(Phi(x) | y = true) ~ Beta(2, 1)
+        """
+        g = graph.Graph()
+        zero = g.add_constant(0.0)
+        one = g.add_constant_pos_real(1.0)
+        prior = g.add_distribution(
+            graph.DistributionType.NORMAL, graph.AtomicType.REAL, [zero, one]
+        )
+        x = g.add_operator(graph.OperatorType.SAMPLE, [prior])
+        phi_x = g.add_operator(graph.OperatorType.PHI, [x])
+        likelihood = g.add_distribution(
+            graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [phi_x]
+        )
+        y = g.add_operator(graph.OperatorType.SAMPLE, [likelihood])
+        g.observe(y, True)
+        phi_x_sq = g.add_operator(graph.OperatorType.MULTIPLY, [phi_x, phi_x])
+        g.query(phi_x)
+        g.query(phi_x_sq)
+        means = g.infer_mean(10000, graph.InferenceType.NMC)
+        post_var = means[1] - means[0] ** 2
+        self.assertAlmostEquals(
+            means[0], 2 / (2 + 1), 2, f"posterior mean {means[0]} is not accurate"
+        )
+        self.assertAlmostEquals(
+            post_var,
+            2 * 1 / (2 + 1) ** 2 / (2 + 1 + 1),
+            2,
+            f"posterior variance {post_var} is not accurate",
+        )
