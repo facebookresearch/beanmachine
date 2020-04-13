@@ -166,6 +166,21 @@ Operator::Operator(
   }
 }
 
+double Operator::log_prob() const {
+  assert (op_type == graph::OperatorType::SAMPLE);
+  return static_cast<const distribution::Distribution*>(in_nodes[0])->log_prob(value);
+}
+
+void Operator::gradient_log_prob(double& first_grad, double& second_grad) const {
+  assert (op_type == graph::OperatorType::SAMPLE);
+  const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
+  if (grad1 != 0.0) {
+    dist->gradient_log_prob_value(value, first_grad, second_grad);
+  } else {
+    dist->gradient_log_prob_param(value, first_grad, second_grad);
+  }
+}
+
 void Operator::eval(std::mt19937& gen) {
   if (op_type == graph::OperatorType::SAMPLE) {
     distribution::Distribution* dist =
