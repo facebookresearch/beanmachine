@@ -79,7 +79,7 @@ class SingleAssignment:
             _some_top_down(
                 first(
                     [
-                        self._handle_boolop_binarize(),
+                        self._handle_boolop_all(),
                         self._handle_while(),
                         self._handle_if(),
                         self._handle_unassigned(),
@@ -477,6 +477,16 @@ class SingleAssignment:
                 orelse=[ast.Assign(targets=lhs.targets, value=lhs.value.values[1])],
             ),
             "handle_or2if",
+        )
+
+    def _handle_boolop_all(self) -> Rule:
+        return first(
+            [
+                self._handle_boolop_binarize(),
+                self._handle_assign_boolop_linearize(),
+                self._handle_assign_and2if(),
+                self._handle_assign_or2if(),
+            ]
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:

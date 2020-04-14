@@ -447,6 +447,62 @@ def f(x):
             source, expected, many(_some_top_down(self.s._handle_assign_or2if()))
         )
 
+    def test_single_assignment_boolop_all(self) -> None:
+        """Test the combined rules for boolean operators"""
+
+        source = """
+def f(x):
+    x = a and b and c and d
+"""
+        expected = """
+def f(x):
+    if a:
+        a2 = b
+    else:
+        a2 = a
+    if a2:
+        a1 = c
+    else:
+        a1 = a2
+    if a1:
+        x = d
+    else:
+        x = a1
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_boolop_all()))
+        )
+
+        source = """
+def f(x):
+    x = a and b and c or d or e
+"""
+        expected = """
+
+def f(x):
+    if a:
+        a3 = b
+    else:
+        a3 = a
+    if a3:
+        a2 = c
+    else:
+        a2 = a3
+    if a2:
+        a1 = a2
+    else:
+        a1 = d
+    if a1:
+        x = a1
+    else:
+        x = e
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_boolop_all()))
+        )
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
@@ -454,7 +510,7 @@ def f(x):
 
         source = """
 def f():
-    aab = a and b
+    aab = a(b)
     if aab:
         return 1 + ~x + 2 + g(5, y=6)
     z = torch.tensor([1.0 + 2.0, 4.0])
@@ -467,7 +523,7 @@ def f():
 
         expected = """
 def f():
-    aab = a and b
+    aab = a(b)
     if aab:
         a9 = 3
         a15 = ~x
