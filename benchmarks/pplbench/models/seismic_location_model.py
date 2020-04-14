@@ -108,8 +108,6 @@ def generate_data(args_dict, model):
     """
     print("Generating data")
 
-    torch.manual_seed(args_dict["rng_seed"])
-
     mu = model["mu"]
     theta_k = model["theta_k"]
 

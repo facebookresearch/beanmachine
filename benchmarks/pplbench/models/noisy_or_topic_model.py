@@ -66,7 +66,6 @@ def generate_model(args_dict):
     model graph (ndarray, KxK) : graph strucutre as a weighted adjecency matrix.
                                  graph[x,y] denotes weight of parent x to child y
     """
-    np.random.seed(args_dict["rng_seed"])
     K = int(args_dict["k"])
     # parameters for distributions to sample parameters from
     rate_fanout, avg_leak_weight, avg_weight, word_fraction = args_dict["model_args"]
@@ -97,7 +96,6 @@ def generate_data(args_dict, model):
     Returns:
     - generated_data(dict) = data_train (train sentence), data test (test sentence)
     """
-    np.random.seed(args_dict["rng_seed"])
     print("Generating data")
     graph = model
     K = int(args_dict["k"])

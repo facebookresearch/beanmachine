@@ -64,8 +64,6 @@ def generate_data(args_dict, model=None):
     """
     print("Generating data")
 
-    np.random.seed(args_dict["rng_seed"])
-
     N = int(args_dict["n"])
     K = int(args_dict["k"])
     train_test_ratio = float(args_dict["train_test_ratio"])

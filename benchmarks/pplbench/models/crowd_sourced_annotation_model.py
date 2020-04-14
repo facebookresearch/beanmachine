@@ -129,7 +129,6 @@ def generate_data(args_dict, model=None):
     """
     # load args
     print("Generating data")
-    np.random.seed(args_dict["rng_seed"])
     J = int(args_dict["k"])
     n_items = int(args_dict["n"])
     K, labeler_rate, expected_correctness, concentration = args_dict["model_args"]

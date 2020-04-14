@@ -95,8 +95,6 @@ def generate_model(args_dict):
     - theta : Transition matrix for hidden states
     - mu_j , sigma_j : Parameters of emission distribution for hidden state X_j
     """
-    torch.manual_seed(args_dict["rng_seed"])
-
     K = int(args_dict["k"])
     N = int(args_dict["n"])
     concentration, mu_loc, mu_scale, sigma_shape, sigma_scale, observe_model = list(

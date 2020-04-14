@@ -380,6 +380,10 @@ def main():
         print(args.model, "model not supported, exiting")
         exit(1)
 
+    # set seed
+    np.random.seed(args_dict["rng_seed"])
+    torch.manual_seed(args_dict["rng_seed"])
+
     # generate model
     model_instance = model.generate_model(args_dict)
 
