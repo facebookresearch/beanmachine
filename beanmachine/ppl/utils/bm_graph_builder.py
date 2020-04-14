@@ -76,6 +76,7 @@ class BMGNode(ABC):
     def __init__(self, children: List["BMGNode"]):
         self.children = children
 
+    @property
     @abstractmethod
     def node_type(self) -> Any:
         pass
@@ -192,6 +193,7 @@ class BooleanNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
+    @property
     def node_type(self) -> Any:
         return bool
 
@@ -225,8 +227,7 @@ class RealNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
-    # TODO: We may need to represent "positive real" and "real between 0 and 1"
-    # TODO: in the type system; how are we to do that?
+    @property
     def node_type(self) -> Any:
         return float
 
@@ -264,6 +265,7 @@ class MapNode(BMGNode):
         BMGNode.__init__(self, children)
         self.edges = [str(x) for x in range(len(children))]
 
+    @property
     def node_type(self) -> Any:
         return Dict
 
@@ -311,6 +313,7 @@ class ProbabilityNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
+    @property
     def node_type(self) -> Any:
         return Probability
 
@@ -365,6 +368,7 @@ class TensorNode(ConstantNode):
         return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
 
     # TODO: Do tensor types need to describe their contents?
+    @property
     def node_type(self) -> Any:
         return Tensor
 
@@ -417,6 +421,7 @@ class BernoulliNode(DistributionNode):
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return Bernoulli
 
@@ -425,7 +430,7 @@ class BernoulliNode(DistributionNode):
         return self.probability.size
 
     def sample_type(self) -> Any:
-        return self.probability.node_type()
+        return self.probability.node_type
 
     def label(self) -> str:
         return "Bernoulli" + ("(logits)" if self.is_logits else "")
@@ -479,6 +484,7 @@ class CategoricalNode(DistributionNode):
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return Categorical
 
@@ -490,7 +496,7 @@ class CategoricalNode(DistributionNode):
         # TODO: When we support bounded integer types
         # TODO: this should indicate that it is a tensor
         # TODO: of bound integers.
-        return self.probability.node_type()
+        return self.probability.node_type
 
     def label(self) -> str:
         return "Categorical" + ("(logits)" if self.is_logits else "")
@@ -545,6 +551,7 @@ class DirichletNode(DistributionNode):
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return Dirichlet
 
@@ -553,7 +560,7 @@ class DirichletNode(DistributionNode):
         return self.concentration.size
 
     def sample_type(self) -> Any:
-        return self.concentration.node_type()
+        return self.concentration.node_type
 
     def label(self) -> str:
         return "Dirichlet"
@@ -610,6 +617,7 @@ class HalfCauchyNode(DistributionNode):
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return HalfCauchy
 
@@ -618,7 +626,7 @@ class HalfCauchyNode(DistributionNode):
         return self.scale.size
 
     def sample_type(self) -> Any:
-        return self.scale.node_type()
+        return self.scale.node_type
 
     def label(self) -> str:
         return "HalfCauchy"
@@ -683,6 +691,7 @@ class NormalNode(DistributionNode):
         self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return Normal
 
@@ -691,7 +700,7 @@ class NormalNode(DistributionNode):
         return self.mu.size
 
     def sample_type(self) -> Any:
-        return self.mu.node_type()
+        return self.mu.node_type
 
     def label(self) -> str:
         return "Normal"
@@ -764,11 +773,12 @@ class StudentTNode(DistributionNode):
         self.children[2] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return StudentT
 
     def sample_type(self) -> Any:
-        return self.df.node_type()
+        return self.df.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -837,11 +847,12 @@ class UniformNode(DistributionNode):
         self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return Uniform
 
     def sample_type(self) -> Any:
-        return self.low.node_type()
+        return self.low.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -910,11 +921,12 @@ class BetaNode(DistributionNode):
         self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
+    @property
     def node_type(self) -> Any:
         return Beta
 
     def sample_type(self) -> Any:
-        return self.alpha.node_type()
+        return self.alpha.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -973,8 +985,9 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         OperatorNode.__init__(self, [left, right])
 
     # TODO: Improve this
+    @property
     def node_type(self) -> Any:
-        if self.left.node_type() == Tensor or self.right.node_type() == Tensor:
+        if self.left.node_type == Tensor or self.right.node_type == Tensor:
             return Tensor
         return float
 
@@ -1160,8 +1173,9 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         OperatorNode.__init__(self, [operand])
 
     # TODO: Improve this
+    @property
     def node_type(self) -> Any:
-        return self.operand.node_type()
+        return self.operand.node_type
 
     @property
     def operand(self) -> BMGNode:
@@ -1219,6 +1233,7 @@ class NotNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    @property
     def node_type(self) -> Any:
         return bool
 
@@ -1242,6 +1257,7 @@ class ToRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    @property
     def node_type(self) -> Any:
         return float
 
@@ -1276,6 +1292,7 @@ class ToTensorNode(UnaryOperatorNode):
         # TODO: Is this correct?
         return torch.Size([1])
 
+    @property
     def node_type(self) -> Any:
         return Tensor
 
@@ -1332,6 +1349,7 @@ class SampleNode(UnaryOperatorNode):
     def __init__(self, operand: DistributionNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    @property
     def node_type(self) -> Any:
         return self.operand.sample_type()
 
@@ -1385,6 +1403,7 @@ class Observation(BMGNode):
     def value(self, p: ConstantNode):
         self.children[1] = p
 
+    @property
     def node_type(self) -> Any:
         return type(self.value)
 
@@ -1431,8 +1450,9 @@ class Query(BMGNode):
     def operator(self, p: OperatorNode):
         self.children[0] = p
 
+    @property
     def node_type(self) -> Any:
-        return self.operator.node_type()
+        return self.operator.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -2018,7 +2038,7 @@ class BMGraphBuilder:
         # TODO: which do we wish to support?
 
         if isinstance(operand, BMGNode):
-            if operand.node_type() == Tensor:
+            if operand.node_type == Tensor:
                 if name in known_tensor_instance_functions:
                     return KnownFunction(operand, getattr(Tensor, name))
             raise ValueError(
