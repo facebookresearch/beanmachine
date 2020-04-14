@@ -242,7 +242,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         """
         Run inference algorithms.
 
-        :param num_samples: number of samples to collect for the query.
+        :param num_samples: number of samples excluding adaptation.
         :param num_adapt_steps: number of steps to adapt/tune the proposer.
         :param verbose: Integer indicating how much output to print to stdio
         :returns: samples for the query
@@ -251,7 +251,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         queries_sample = defaultdict()
 
         for iteration in tqdm(
-            iterable=range(num_samples),
+            iterable=range(num_samples + num_adapt_steps),
             desc="Samples collected",
             disable=not bool(verbose.value),
         ):
