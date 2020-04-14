@@ -2,6 +2,7 @@
 
 import functools
 import math
+import warnings
 from typing import Callable, Dict, List, Optional, Tuple
 
 import beanmachine.ppl.diagnostics.common_plots as common_plots
@@ -59,23 +60,25 @@ class BaseDiagnostics:
         this function turns output of each summary stat function to a dataframe
         """
         out_pd = pd.DataFrame()
-        single_result_set = results[0]
-        for flattened_index in range(single_result_set[0].numel()):
-            index = np.unravel_index(
-                flattened_index, tuple(single_result_set[0].size())
-            )
-            row_data = []
-            rowname = f"{self._stringify_query(query)}{list(index)}"
+        if len(results) > 0:
+            single_result_set = results[0]
+            if single_result_set is not None and len(single_result_set) > 0:
+                for flattened_index in range(single_result_set[0].numel()):
+                    index = np.unravel_index(
+                        flattened_index, tuple(single_result_set[0].size())
+                    )
+                    row_data = []
+                    rowname = f"{self._stringify_query(query)}{list(index)}"
 
-            for result in results:
-                num_of_sets = result.size()[0]
-                for set_num in range(num_of_sets):
-                    row_data.append(result[set_num][index].item())
-            cur = pd.DataFrame([row_data], columns=func_list, index=[rowname])
-            if out_pd.empty:
-                out_pd = cur
-            else:
-                out_pd = pd.concat([out_pd, cur])
+                    for result in results:
+                        num_of_sets = result.size()[0]
+                        for set_num in range(num_of_sets):
+                            row_data.append(result[set_num][index].item())
+                    cur = pd.DataFrame([row_data], columns=func_list, index=[rowname])
+                    if out_pd.empty:
+                        out_pd = cur
+                    else:
+                        out_pd = pd.concat([out_pd, cur])
         return out_pd
 
     def _stringify_query(self, query: RVIdentifier) -> str:
@@ -86,6 +89,7 @@ class BaseDiagnostics:
         query: RVIdentifier,
         func_dict: Dict[str, Tuple[Callable, str]],
         chain: Optional[int] = None,
+        raise_warning: bool = False,
     ):
         frames = pd.DataFrame()
         query_results = []
@@ -94,6 +98,10 @@ class BaseDiagnostics:
         for _k, (func, display_names) in func_dict.items():
             result = func(queried_samples)
             if result is None:
+                if raise_warning:
+                    warnings.warn(
+                        f"{display_names} cannot be calculated for the provided samples"
+                    )
                 continue
             # the first dimension is equivalant to the size of the display_names
             if len(display_names) <= 1:
@@ -249,7 +257,7 @@ class BaseDiagnostics:
             query_list = self._prepare_query_list(query_list)
             for query in query_list:
                 out_df = self._execute_summary_stat_funcs(
-                    query, {func_name: self.statistics_dict[func_name]}, chain
+                    query, {func_name: self.statistics_dict[func_name]}, chain, True
                 )
                 frames = pd.concat([frames, out_df])
             return frames
