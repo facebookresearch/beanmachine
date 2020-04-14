@@ -92,5 +92,9 @@ class MonteCarloSamplesTest(unittest.TestCase):
         foo_key = model.foo()
         mcs = mh.infer([foo_key], {}, 10, num_adapt_steps=3)
 
-        self.assertEqual(mcs[foo_key].shape, torch.zeros(4, 7).shape)
-        self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 7).shape)
+        self.assertEqual(mcs[foo_key].shape, torch.zeros(4, 10).shape)
+        self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 10).shape)
+        self.assertEqual(
+            mcs.get_variable(foo_key, include_adapt_steps=True).shape,
+            torch.zeros(4, 13).shape,
+        )

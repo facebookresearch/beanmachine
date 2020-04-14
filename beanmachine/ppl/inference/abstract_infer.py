@@ -79,7 +79,7 @@ class AbstractInference(object, metaclass=ABCMeta):
 
         :param queries: random variables to query
         :param observations: observed random variables with their values
-        :params num_samples: number of samples to collect for the query.
+        :params num_samples: number of samples excluding adaptation to collect.
         :params num_chains: number of chains to run
         :params num_adapt_steps: number of steps to allow proposer adaptation.
         :param verbose: Integer indicating how much output to print to stdio
