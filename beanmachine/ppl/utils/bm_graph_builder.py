@@ -86,6 +86,7 @@ class BMGNode(ABC):
     def size(self) -> torch.Size:
         pass
 
+    @property
     @abstractmethod
     def label(self) -> str:
         pass
@@ -201,6 +202,7 @@ class BooleanNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
+    @property
     def label(self) -> str:
         return str(self.value)
 
@@ -235,6 +237,7 @@ class RealNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
+    @property
     def label(self) -> str:
         return str(self.value)
 
@@ -273,6 +276,7 @@ class MapNode(BMGNode):
     def size(self) -> torch.Size:
         return self.children[1].size
 
+    @property
     def label(self) -> str:
         return "map"
 
@@ -321,6 +325,7 @@ class ProbabilityNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
+    @property
     def label(self) -> str:
         return str(self.value)
 
@@ -376,6 +381,7 @@ class TensorNode(ConstantNode):
     def size(self) -> torch.Size:
         return self.value.size()
 
+    @property
     def label(self) -> str:
         return TensorNode._tensor_to_label(self.value)
 
@@ -432,6 +438,7 @@ class BernoulliNode(DistributionNode):
     def sample_type(self) -> Any:
         return self.probability.node_type
 
+    @property
     def label(self) -> str:
         return "Bernoulli" + ("(logits)" if self.is_logits else "")
 
@@ -498,6 +505,7 @@ class CategoricalNode(DistributionNode):
         # TODO: of bound integers.
         return self.probability.node_type
 
+    @property
     def label(self) -> str:
         return "Categorical" + ("(logits)" if self.is_logits else "")
 
@@ -562,6 +570,7 @@ class DirichletNode(DistributionNode):
     def sample_type(self) -> Any:
         return self.concentration.node_type
 
+    @property
     def label(self) -> str:
         return "Dirichlet"
 
@@ -628,6 +637,7 @@ class HalfCauchyNode(DistributionNode):
     def sample_type(self) -> Any:
         return self.scale.node_type
 
+    @property
     def label(self) -> str:
         return "HalfCauchy"
 
@@ -702,6 +712,7 @@ class NormalNode(DistributionNode):
     def sample_type(self) -> Any:
         return self.mu.node_type
 
+    @property
     def label(self) -> str:
         return "Normal"
 
@@ -784,6 +795,7 @@ class StudentTNode(DistributionNode):
     def size(self) -> torch.Size:
         return self.df.size
 
+    @property
     def label(self) -> str:
         return "StudentT"
 
@@ -858,6 +870,7 @@ class UniformNode(DistributionNode):
     def size(self) -> torch.Size:
         return self.low.size
 
+    @property
     def label(self) -> str:
         return "Uniform"
 
@@ -932,6 +945,7 @@ class BetaNode(DistributionNode):
     def size(self) -> torch.Size:
         return self.alpha.size
 
+    @property
     def label(self) -> str:
         return "Beta"
 
@@ -1037,6 +1051,7 @@ class AdditionNode(BinaryOperatorNode):
     def size(self) -> torch.Size:
         return (torch.zeros(self.left.size) + torch.zeros(self.right.size)).size()
 
+    @property
     def label(self) -> str:
         return "+"
 
@@ -1055,6 +1070,7 @@ class MultiplicationNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
+    @property
     def label(self) -> str:
         return "*"
 
@@ -1078,6 +1094,7 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
+    @property
     def label(self) -> str:
         return "*"
 
@@ -1102,6 +1119,7 @@ class DivisionNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
+    @property
     def label(self) -> str:
         return "/"
 
@@ -1125,6 +1143,7 @@ class IndexNode(BinaryOperatorNode):
     def __init__(self, left: MapNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
+    @property
     def label(self) -> str:
         return "index"
 
@@ -1149,6 +1168,7 @@ class PowerNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
+    @property
     def label(self) -> str:
         return "**"
 
@@ -1212,6 +1232,7 @@ class NegateNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    @property
     def label(self) -> str:
         return "-"
 
@@ -1241,6 +1262,7 @@ class NotNode(UnaryOperatorNode):
     def size(self) -> torch.Size:
         return self.operand.size
 
+    @property
     def label(self) -> str:
         return "not"
 
@@ -1261,6 +1283,7 @@ class ToRealNode(UnaryOperatorNode):
     def node_type(self) -> Any:
         return float
 
+    @property
     def label(self) -> str:
         return "ToReal"
 
@@ -1281,6 +1304,7 @@ class ToTensorNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    @property
     def label(self) -> str:
         return "ToTensor"
 
@@ -1306,6 +1330,7 @@ class ExpNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    @property
     def label(self) -> str:
         return "Exp"
 
@@ -1328,6 +1353,7 @@ class LogNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    @property
     def label(self) -> str:
         return "Log"
 
@@ -1367,6 +1393,7 @@ class SampleNode(UnaryOperatorNode):
     def operand(self, p: DistributionNode):
         self.children[0] = p
 
+    @property
     def label(self) -> str:
         return "Sample"
 
@@ -1411,6 +1438,7 @@ class Observation(BMGNode):
     def size(self) -> torch.Size:
         return self.value.size
 
+    @property
     def label(self) -> str:
         return "Observation"
 
@@ -1458,6 +1486,7 @@ class Query(BMGNode):
     def size(self) -> torch.Size:
         return self.operator.size
 
+    @property
     def label(self) -> str:
         return "Query"
 
@@ -2094,7 +2123,7 @@ class BMGraphBuilder:
         db = DotBuilder()
         for node, index in self.nodes.items():
             n = "N" + str(index)
-            db.with_node(n, node.label())
+            db.with_node(n, node.label)
             for (child, label) in zip(node.children, node.edges):
                 db.with_edge(n, "N" + str(self.nodes[child]), label)
         return str(db)
