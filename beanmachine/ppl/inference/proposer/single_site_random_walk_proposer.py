@@ -197,7 +197,9 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         """
         Returns a Dirichlet distribution. The variances of a Dirichlet
         distribution are inversely proportional to the norm of the concentration
-        vector
+        vector. However, variance is only set as a scalar, not as a vector.
+        So the individual variances of the Dirichlet are not tuned, only the
+        magnitude of the entire vector.
 
         :param mu: mu value
         :param sigma: sigma value
