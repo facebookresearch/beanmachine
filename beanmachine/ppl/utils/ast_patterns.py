@@ -235,8 +235,8 @@ def keyword(arg: Pattern = _any, value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.keyword, {"arg": arg, "value": value})
 
 
-def ast_list(elts: Pattern = _any, ctx: Pattern = _any) -> Pattern:
-    return type_and_attributes(ast.List, {"elts": elts, "ctx": ctx})
+def ast_list(elts: Pattern = _any, ctx: Pattern = _any, ast_op=ast.List) -> Pattern:
+    return type_and_attributes(ast_op, {"elts": elts, "ctx": ctx})
 
 
 def module(body: Pattern = _any) -> Pattern:

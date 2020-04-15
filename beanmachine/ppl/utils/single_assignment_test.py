@@ -658,6 +658,42 @@ def f(x):
 
         self.check_rewrite(source, expected)
 
+    def test_single_assignment_lists(self) -> None:
+        """Test the assign rule for lists"""
+
+        source = """
+def f(x):
+    x = [1+a,a+b,c+d]
+"""
+        expected = """
+def f(x):
+    a2 = 1
+    a1 = a2 + a
+    a3 = a + b
+    a4 = c + d
+    x = [a1, a3, a4]
+"""
+
+        self.check_rewrite(source, expected)
+
+    def test_single_assignment_tuple(self) -> None:
+        """Test the assign rule for tuples"""
+
+        source = """
+def f(x):
+    x = 1+a,a+b,c+d
+"""
+        expected = """
+def f(x):
+    a2 = 1
+    a1 = a2 + a
+    a3 = a + b
+    a4 = c + d
+    x = a1, a3, a4
+"""
+
+        self.check_rewrite(source, expected)
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
