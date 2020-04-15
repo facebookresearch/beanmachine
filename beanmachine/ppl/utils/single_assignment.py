@@ -7,6 +7,7 @@ from typing import Callable, List, Tuple
 from beanmachine.ppl.utils.ast_patterns import (
     assign,
     ast_boolop,
+    ast_compare,
     ast_domain,
     ast_for,
     ast_if,
@@ -27,6 +28,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     unaryop,
 )
 from beanmachine.ppl.utils.patterns import (
+    HeadTail,
     ListAll,
     ListAny,
     Pattern,
@@ -259,17 +261,6 @@ class SingleAssignment:
     def _handle_while(self) -> Rule:
         return first([self._handle_while_True(), self._handle_while_not_True()])
 
-    def _handle_boolop_binarize(self) -> Rule:
-        return PatternRule(
-            ast_boolop(values=twoPlusList),
-            lambda lhs: ast.BoolOp(
-                op=lhs.op,
-                values=[ast.BoolOp(lhs.op, [lhs.values[0], lhs.values[1]])]
-                + lhs.values[2:],
-            ),
-            "handle_boolop_binarize",
-        )
-
     def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions
         return PatternRule(
             expr(), self._transform_expr("u", lambda u: u.value), "handle_unassigned"
@@ -439,6 +430,41 @@ class SingleAssignment:
                 ),
             ],
             "handle_assign",
+        )
+
+    def _handle_boolop_binarize(self) -> Rule:
+        return PatternRule(
+            ast_boolop(values=twoPlusList),
+            lambda lhs: ast.BoolOp(
+                op=lhs.op,
+                values=[ast.BoolOp(lhs.op, [lhs.values[0], lhs.values[1]])]
+                + lhs.values[2:],
+            ),
+            "handle_boolop_binarize",
+        )
+
+    def _handle_compare_binarize(self) -> Rule:
+        return PatternRule(
+            ast_compare(
+                ops=HeadTail(anyPattern, HeadTail(anyPattern, anyPattern)),
+                comparators=HeadTail(name(), anyPattern),
+            ),
+            lambda lhs: ast.BoolOp(
+                op=ast.And(),
+                values=[
+                    ast.Compare(
+                        left=lhs.left,
+                        ops=[lhs.ops[0]],
+                        comparators=[lhs.comparators[0]],
+                    ),
+                    ast.Compare(
+                        left=lhs.comparators[0],
+                        ops=lhs.ops[1:],
+                        comparators=lhs.comparators[1:],
+                    ),
+                ],
+            ),
+            "handle_compare_binarize",
         )
 
     def _handle_assign_boolop_linearize(self) -> Rule:

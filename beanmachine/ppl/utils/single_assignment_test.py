@@ -503,6 +503,48 @@ def f(x):
             source, expected, many(_some_top_down(self.s._handle_boolop_all()))
         )
 
+    def test_single_assignment_handle_compare_binarize(self) -> None:
+        """Test the rule for converting n-way comparisons into binary ones"""
+
+        source = """
+def f(x):
+    x = a < b > c == d
+"""
+        expected = """
+def f(x):
+    x = a < b and (b > c and c == d)
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_compare_binarize()))
+        )
+
+        source = """
+def f(x):
+    x = a < 1 + b > c == d
+"""
+        expected = """
+def f(x):
+    x = a < 1 + b > c == d
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_compare_binarize()))
+        )
+
+        source = """
+def f(x):
+    x = a + 1 < b > c + 1 == d
+"""
+        expected = """
+def f(x):
+    x = a + 1 < b and b > c + 1 == d
+"""  # Note that the term after the "and" is not reduced
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_compare_binarize()))
+        )
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 

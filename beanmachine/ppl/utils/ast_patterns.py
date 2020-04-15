@@ -175,6 +175,14 @@ def ast_boolop(op: Pattern = _any, values: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.BoolOp, {"op": op, "values": values})
 
 
+def ast_compare(
+    left: Pattern = _any, ops: Pattern = _any, comparators: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.Compare, {"left": left, "ops": ops, "comparators": comparators}
+    )
+
+
 def ast_for(
     target: Pattern = _any,
     iter: Pattern = _any,
