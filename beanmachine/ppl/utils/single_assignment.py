@@ -81,6 +81,7 @@ class SingleAssignment:
             _some_top_down(
                 first(
                     [
+                        self._handle_compare_all(),
                         self._handle_boolop_all(),
                         self._handle_while(),
                         self._handle_if(),
@@ -443,30 +444,6 @@ class SingleAssignment:
             "handle_boolop_binarize",
         )
 
-    def _handle_compare_binarize(self) -> Rule:
-        return PatternRule(
-            ast_compare(
-                ops=HeadTail(anyPattern, HeadTail(anyPattern, anyPattern)),
-                comparators=HeadTail(name(), anyPattern),
-            ),
-            lambda lhs: ast.BoolOp(
-                op=ast.And(),
-                values=[
-                    ast.Compare(
-                        left=lhs.left,
-                        ops=[lhs.ops[0]],
-                        comparators=[lhs.comparators[0]],
-                    ),
-                    ast.Compare(
-                        left=lhs.comparators[0],
-                        ops=lhs.ops[1:],
-                        comparators=lhs.comparators[1:],
-                    ),
-                ],
-            ),
-            "handle_compare_binarize",
-        )
-
     def _handle_assign_boolop_linearize(self) -> Rule:
         return PatternRule(  # a = e1 and e2 rewrites into b = e1, a = b and e2
             assign(value=ast_boolop(values=[_not_identifier, anyPattern])),
@@ -512,6 +489,82 @@ class SingleAssignment:
                 self._handle_assign_boolop_linearize(),
                 self._handle_assign_and2if(),
                 self._handle_assign_or2if(),
+            ]
+        )
+
+    def _handle_compare_binarize(self) -> Rule:
+        # Rewrite things like x = a < b > c ... to x = a < b and b > c ...
+        return PatternRule(
+            ast_compare(
+                ops=HeadTail(anyPattern, HeadTail(anyPattern, anyPattern)),
+                comparators=HeadTail(name(), anyPattern),
+            ),
+            lambda lhs: ast.BoolOp(
+                op=ast.And(),
+                values=[
+                    ast.Compare(
+                        left=lhs.left,
+                        ops=[lhs.ops[0]],
+                        comparators=[lhs.comparators[0]],
+                    ),
+                    ast.Compare(
+                        left=lhs.comparators[0],
+                        ops=lhs.ops[1:],
+                        comparators=lhs.comparators[1:],
+                    ),
+                ],
+            ),
+            "handle_compare_binarize",
+        )
+
+    def _handle_assign_compare_lefthandside(self) -> Rule:
+        # Rewrite things like x = 1 + a < b ... to y = 1 + a; x = y < b ...
+        return PatternRule(
+            assign(value=ast_compare(left=_not_identifier)),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.left,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.Compare(
+                        left=new_name,
+                        ops=lhs.value.ops,
+                        comparators=lhs.value.comparators,
+                    ),
+                ),
+            ),
+            "handle_assign_compare_lefthandside",
+        )
+
+    def _handle_assign_compare_righthandside(self) -> Rule:
+        # Rewrite things like x = a < 1 + b ... to y = 1 + b; x = a < y ...
+        return PatternRule(
+            assign(
+                value=ast_compare(
+                    left=name(), comparators=HeadTail(_not_identifier, anyPattern)
+                )
+            ),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.comparators[0],
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.Compare(
+                        left=lhs.value.left,
+                        ops=lhs.value.ops,
+                        comparators=[new_name] + lhs.value.comparators[1:],
+                    ),
+                ),
+            ),
+            "handle_assign_compare_righthandside",
+        )
+
+    def _handle_compare_all(self) -> Rule:
+        return first(
+            [
+                self._handle_compare_binarize(),
+                self._handle_assign_compare_righthandside(),
+                self._handle_assign_compare_lefthandside(),
             ]
         )
 

@@ -545,6 +545,119 @@ def f(x):
             source, expected, many(_some_top_down(self.s._handle_compare_binarize()))
         )
 
+    def test_single_assignment_handle_assign_compare_lefthandside(self) -> None:
+        """Test the rule for lifting first argument of n-way comparison"""
+
+        source = """
+def f(x):
+    x = 1 + a < 1 + b > c == d
+"""
+        expected = """
+def f(x):
+    a1 = 1 + a
+    x = a1 < 1 + b > c == d
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_compare_lefthandside())),
+        )
+
+    def test_single_assignment_handle_assign_compare_righthandside(self) -> None:
+        """Test the rule for lifting second argument of n-way comparison"""
+
+        source = """
+def f(x):
+    z = 1 + a
+    x = z < 1 + b > c == d
+"""
+        expected = """
+def f(x):
+    z = 1 + a
+    a1 = 1 + b
+    x = z < a1 > c == d
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_compare_righthandside())),
+        )
+
+    def test_single_assignment_handle_assign_compare_bothhandsides(self) -> None:
+        """Test the rules for lifting first and second args of n-way comparison"""
+
+        source = """
+def f(x):
+    x = 1 + a < 1 + b > c == d
+"""
+        expected = """
+def f(x):
+    a1 = 1 + a
+    a2 = 1 + b
+    x = a1 < a2 > c == d
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(
+                _some_top_down(
+                    first(
+                        [
+                            self.s._handle_assign_compare_lefthandside(),
+                            self.s._handle_assign_compare_righthandside(),
+                        ]
+                    )
+                )
+            ),
+        )
+
+    def test_single_assignment_handle_assign_compare_all(self) -> None:
+        """Test alls rules for n-way comparisons"""
+
+        source = """
+def f(x):
+    x = 1 + a < 1 + b > c == d
+"""
+        expected = """
+def f(x):
+    a1 = 1 + a
+    a2 = 1 + b
+    x = a1 < a2 and (a2 > c and c == d)
+"""
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_compare_all()))
+        )
+
+    def test_single_assignment_handle_assign_compare_all_combined(self) -> None:
+        """Test alls rules for n-way comparisons combined with rest"""
+
+        source = """
+def f(x):
+    x = 1 + a < 1 + b > c == d
+"""
+        expected = """
+def f(x):
+    a2 = 1
+    a1 = a2 + a
+    a4 = 1
+    a3 = a4 + b
+    a5 = a1 < a3
+    if a5:
+        a6 = a3 > c
+        if a6:
+            x = c == d
+        else:
+            x = a6
+    else:
+        x = a5
+"""
+
+        self.check_rewrite(source, expected)
+
     def test_single_assignment(self) -> None:
         """Tests for single_assignment.py"""
 
