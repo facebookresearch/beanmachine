@@ -155,6 +155,14 @@ class DiagnosticsTest(unittest.TestCase):
         _test_plot_object(Diagnostics(samples), query, query_samples)
         _test_autocorr_object(Diagnostics(samples), query, query_samples)
 
+    def test_r_hat_one_chain(self):
+        mh = SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([normal()], {}, 50, 1)
+        diagnostics = Diagnostics(samples)
+        with self.assertWarns(UserWarning):
+            results = diagnostics.split_r_hat([normal()])
+        self.assertTrue(results.empty)
+
     def test_r_hat_column(self):
         mh = SingleSiteAncestralMetropolisHastings()
         samples = mh.infer([normal()], {}, 100, 2)
@@ -193,11 +201,6 @@ class DiagnosticsTest(unittest.TestCase):
         dim1, dim2 = common_statistics.split_r_hat(samples)
         self.assertAlmostEqual(dim1, 5.3385, delta=0.001)
         self.assertAlmostEqual(dim2, 1.0687, delta=0.001)
-
-    def test_r_hat_error(self):
-        samples = torch.tensor([0.0, 1.0, 2.0, 3.0])
-        self.assertRaises(ValueError, common_statistics.r_hat, samples)
-        self.assertRaises(ValueError, common_statistics.split_r_hat, samples)
 
     def test_effective_sample_size(self):
         samples = torch.tensor(
