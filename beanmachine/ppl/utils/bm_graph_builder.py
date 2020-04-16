@@ -155,6 +155,15 @@ class KnownFunction:
         self.function = function
 
 
+def _value_to_cpp(value: Any) -> str:
+    if isinstance(value, Tensor):
+        # TODO: What if the tensor is not made of floats?
+        values = ",".join(str(element) for element in value.storage())
+        dims = ",".join(str(dim) for dim in value.shape)
+        return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
+    return str(value).lower()
+
+
 class ConstantNode(BMGNode, metaclass=ABCMeta):
     edges = []
     value: Any
@@ -163,16 +172,12 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
         BMGNode.__init__(self, [])
 
     @abstractmethod
-    def _value_to_cpp(self) -> str:
-        pass
-
-    @abstractmethod
     def _value_to_python(self) -> str:
         pass
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
-        v = self._value_to_cpp()
+        v = _value_to_cpp(self.value)
         return f"uint n{n} = g.add_constant({v});"
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
@@ -212,9 +217,6 @@ class BooleanNode(ConstantNode):
     def _value_to_python(self) -> str:
         return str(bool(self.value))
 
-    def _value_to_cpp(self) -> str:
-        return str(bool(self.value)).lower()
-
     def __bool__(self) -> bool:
         return self.value
 
@@ -245,9 +247,6 @@ class RealNode(ConstantNode):
         return g.add_constant(float(self.value))
 
     def _value_to_python(self) -> str:
-        return str(float(self.value))
-
-    def _value_to_cpp(self) -> str:
         return str(float(self.value))
 
     def __bool__(self) -> bool:
@@ -335,12 +334,9 @@ class ProbabilityNode(ConstantNode):
     def _value_to_python(self) -> str:
         return str(float(self.value))
 
-    def _value_to_cpp(self) -> str:
-        return str(float(self.value))
-
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
-        v = self._value_to_cpp()
+        v = _value_to_cpp(self.value)
         return f"uint n{n} = g.add_constant_probability({v});"
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
@@ -392,11 +388,6 @@ class TensorNode(ConstantNode):
         t = TensorNode._tensor_to_python(self.value)
         return f"tensor({t})"
 
-    def _value_to_cpp(self) -> str:
-        values = ",".join(str(element) for element in self.value.storage())
-        dims = ",".join(str(dim) for dim in self.value.shape)
-        return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
-
     def __bool__(self) -> bool:
         return bool(self.value)
 
@@ -423,7 +414,7 @@ class BernoulliNode(DistributionNode):
         return self.children[0]
 
     @probability.setter
-    def probability(self, p: BMGNode):
+    def probability(self, p: BMGNode) -> None:
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -487,7 +478,7 @@ class CategoricalNode(DistributionNode):
         return self.children[0]
 
     @probability.setter
-    def probability(self, p: BMGNode):
+    def probability(self, p: BMGNode) -> None:
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -555,7 +546,7 @@ class DirichletNode(DistributionNode):
         return self.children[0]
 
     @concentration.setter
-    def concentration(self, p: BMGNode):
+    def concentration(self, p: BMGNode) -> None:
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -622,7 +613,7 @@ class HalfCauchyNode(DistributionNode):
         return self.children[0]
 
     @scale.setter
-    def scale(self, p: BMGNode):
+    def scale(self, p: BMGNode) -> None:
         self.children[0] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -689,7 +680,7 @@ class NormalNode(DistributionNode):
         return self.children[0]
 
     @mu.setter
-    def mu(self, p: BMGNode):
+    def mu(self, p: BMGNode) -> None:
         self.children[0] = p
 
     @property
@@ -697,7 +688,7 @@ class NormalNode(DistributionNode):
         return self.children[1]
 
     @sigma.setter
-    def sigma(self, p: BMGNode):
+    def sigma(self, p: BMGNode) -> None:
         self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -764,7 +755,7 @@ class StudentTNode(DistributionNode):
         return self.children[0]
 
     @df.setter
-    def df(self, p: BMGNode):
+    def df(self, p: BMGNode) -> None:
         self.children[0] = p
 
     @property
@@ -772,7 +763,7 @@ class StudentTNode(DistributionNode):
         return self.children[1]
 
     @loc.setter
-    def loc(self, p: BMGNode):
+    def loc(self, p: BMGNode) -> None:
         self.children[1] = p
 
     @property
@@ -780,7 +771,7 @@ class StudentTNode(DistributionNode):
         return self.children[2]
 
     @scale.setter
-    def scale(self, p: BMGNode):
+    def scale(self, p: BMGNode) -> None:
         self.children[2] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -847,7 +838,7 @@ class UniformNode(DistributionNode):
         return self.children[0]
 
     @low.setter
-    def low(self, p: BMGNode):
+    def low(self, p: BMGNode) -> None:
         self.children[0] = p
 
     @property
@@ -855,7 +846,7 @@ class UniformNode(DistributionNode):
         return self.children[1]
 
     @high.setter
-    def high(self, p: BMGNode):
+    def high(self, p: BMGNode) -> None:
         self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -922,7 +913,7 @@ class BetaNode(DistributionNode):
         return self.children[0]
 
     @alpha.setter
-    def alpha(self, p: BMGNode):
+    def alpha(self, p: BMGNode) -> None:
         self.children[0] = p
 
     @property
@@ -930,7 +921,7 @@ class BetaNode(DistributionNode):
         return self.children[1]
 
     @beta.setter
-    def beta(self, p: BMGNode):
+    def beta(self, p: BMGNode) -> None:
         self.children[1] = p
 
     # TODO: Do we need a generic type for "distribution of X"?
@@ -1010,7 +1001,7 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         return self.children[0]
 
     @left.setter
-    def left(self, p: BMGNode):
+    def left(self, p: BMGNode) -> None:
         self.children[0] = p
 
     @property
@@ -1018,7 +1009,7 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         return self.children[1]
 
     @right.setter
-    def right(self, p: BMGNode):
+    def right(self, p: BMGNode) -> None:
         self.children[1] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
@@ -1202,7 +1193,7 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         return self.children[0]
 
     @operand.setter
-    def operand(self, p: BMGNode):
+    def operand(self, p: BMGNode) -> None:
         self.children[0] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
@@ -1390,7 +1381,7 @@ class SampleNode(UnaryOperatorNode):
         return c
 
     @operand.setter
-    def operand(self, p: DistributionNode):
+    def operand(self, p: DistributionNode) -> None:
         self.children[0] = p
 
     @property
@@ -1405,10 +1396,12 @@ class SampleNode(UnaryOperatorNode):
 
 
 class Observation(BMGNode):
-    edges = ["operand", "value"]
+    value: Any
+    edges = ["operand"]
 
-    def __init__(self, observed: SampleNode, value: ConstantNode):
-        BMGNode.__init__(self, [observed, value])
+    def __init__(self, observed: SampleNode, value: Any):
+        self.value = value
+        BMGNode.__init__(self, [observed])
 
     @property
     def observed(self) -> SampleNode:
@@ -1417,18 +1410,8 @@ class Observation(BMGNode):
         return c
 
     @observed.setter
-    def operand(self, p: SampleNode):
+    def operand(self, p: SampleNode) -> None:
         self.children[0] = p
-
-    @property
-    def value(self) -> ConstantNode:
-        c = self.children[1]
-        assert isinstance(c, ConstantNode)
-        return c
-
-    @value.setter
-    def value(self, p: ConstantNode):
-        self.children[1] = p
 
     @property
     def node_type(self) -> Any:
@@ -1436,26 +1419,26 @@ class Observation(BMGNode):
 
     @property
     def size(self) -> torch.Size:
-        return self.value.size
+        if isinstance(self.value, Tensor):
+            return self.value.size()
+        return torch.Size([])
 
     @property
     def label(self) -> str:
-        return "Observation"
+        return "Observation " + str(self.value)
 
     def __str__(self) -> str:
         return str(self.observed) + "=" + str(self.value)
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        v = self.value.value
-        g.observe(d[self.observed], v)
+        g.observe(d[self.observed], self.value)
         return -1
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        v = self.value.value
-        return f"g.observe(n{d[self.observed]}, {v})"
+        return f"g.observe(n{d[self.observed]}, {self.value})"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        v = self.value._value_to_cpp()
+        v = _value_to_cpp(self.value)
         return f"g.observe([n{d[self.observed]}], {v});"
 
     def support(self) -> Iterator[Any]:
@@ -1475,7 +1458,7 @@ class Query(BMGNode):
         return c
 
     @operator.setter
-    def operator(self, p: OperatorNode):
+    def operator(self, p: OperatorNode) -> None:
         self.children[0] = p
 
     @property
@@ -2086,7 +2069,7 @@ class BMGraphBuilder:
             )
         setattr(operand, name, value)
 
-    def add_observation(self, observed: SampleNode, value: ConstantNode) -> Observation:
+    def add_observation(self, observed: SampleNode, value: Any) -> Observation:
         node = Observation(observed, value)
         self.add_node(node)
         return node

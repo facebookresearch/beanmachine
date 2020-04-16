@@ -53,42 +53,40 @@ class BMGraphBuilderTest(unittest.TestCase):
         half = bmg.add_probability(0.5)
         two = bmg.add_real(2)
         tens = bmg.add_tensor(t)
-        tr = bmg.add_boolean(True)
         flip = bmg.add_bernoulli(half)
         samp = bmg.add_sample(flip)
         real = bmg.add_to_real(samp)
         neg = bmg.add_negate(real)
         add = bmg.add_addition(two, neg)
         add_t = bmg.add_to_tensor(add)
+
         bmg.add_multiplication(tens, add_t)
-        bmg.add_observation(samp, tr)
+        bmg.add_observation(samp, True)
 
         observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.5];
-  N10[label="*"];
-  N11[label=Observation];
+  N10[label="Observation True"];
   N1[label=2];
   N2[label="[[10,20],\\\\n[40,50]]"];
-  N3[label=True];
-  N4[label=Bernoulli];
-  N5[label=Sample];
-  N6[label=ToReal];
-  N7[label="-"];
-  N8[label="+"];
-  N9[label=ToTensor];
-  N10 -> N2[label=left];
-  N10 -> N9[label=right];
-  N11 -> N3[label=value];
-  N11 -> N5[label=operand];
-  N4 -> N0[label=probability];
+  N3[label=Bernoulli];
+  N4[label=Sample];
+  N5[label=ToReal];
+  N6[label="-"];
+  N7[label="+"];
+  N8[label=ToTensor];
+  N9[label="*"];
+  N10 -> N4[label=operand];
+  N3 -> N0[label=probability];
+  N4 -> N3[label=operand];
   N5 -> N4[label=operand];
   N6 -> N5[label=operand];
-  N7 -> N6[label=operand];
-  N8 -> N1[label=left];
-  N8 -> N7[label=right];
-  N9 -> N8[label=operand];
+  N7 -> N1[label=left];
+  N7 -> N6[label=right];
+  N8 -> N7[label=operand];
+  N9 -> N2[label=left];
+  N9 -> N8[label=right];
 }
 """
         self.maxDiff = None
@@ -116,23 +114,25 @@ Node 10 type 3 parents [ 2 9 ] children [ ] unknown value
 
         observed = bmg.to_python()
 
-        expected = """
+        expected = (
+            """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_probability(0.5)
 n1 = g.add_constant(2.0)
 n2 = g.add_constant(tensor([[10,20],[40,50]]))
-n3 = g.add_constant(True)
-n4 = g.add_distribution(graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [n0])
-n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
-n6 = g.add_operator(graph.OperatorType.TO_REAL, [n5])
-n7 = g.add_operator(graph.OperatorType.NEGATE, [n6])
-n8 = g.add_operator(graph.OperatorType.ADD, [n1, n7])
-n9 = g.add_operator(graph.OperatorType.TO_TENSOR, [n8])
-n10 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n9])
-g.observe(n5, True)
+n3 = g.add_distribution(graph.DistributionType.BERNOULLI,"""
+            + """ graph.AtomicType.BOOLEAN, [n0])
+n4 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+n5 = g.add_operator(graph.OperatorType.TO_REAL, [n4])
+n6 = g.add_operator(graph.OperatorType.NEGATE, [n5])
+n7 = g.add_operator(graph.OperatorType.ADD, [n1, n6])
+n8 = g.add_operator(graph.OperatorType.TO_TENSOR, [n7])
+n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n8])
+g.observe(n4, True)
 """
+        )
         self.assertEqual(observed.strip(), expected.strip())
 
         observed = bmg.to_cpp()
@@ -140,26 +140,25 @@ g.observe(n5, True)
         expected = """
 graph::Graph g;
 uint n0 = g.add_constant_probability(0.5);
-uint n1 = g.add_constant(2.0);
+uint n1 = g.add_constant(2);
 uint n2 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
-uint n3 = g.add_constant(true);
-uint n4 = g.add_distribution(
+uint n3 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
   std::vector<uint>({n0}));
+uint n4 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 uint n5 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
+  graph::OperatorType::TO_REAL, std::vector<uint>({n4}));
 uint n6 = g.add_operator(
-  graph::OperatorType::TO_REAL, std::vector<uint>({n5}));
+  graph::OperatorType::NEGATE, std::vector<uint>({n5}));
 uint n7 = g.add_operator(
-  graph::OperatorType::NEGATE, std::vector<uint>({n6}));
+  graph::OperatorType::ADD, std::vector<uint>({n1, n6}));
 uint n8 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n1, n7}));
+  graph::OperatorType::TO_TENSOR, std::vector<uint>({n7}));
 uint n9 = g.add_operator(
-  graph::OperatorType::TO_TENSOR, std::vector<uint>({n8}));
-uint n10 = g.add_operator(
-  graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n9}));
-g.observe([n5], true);
+  graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n8}));
+g.observe([n4], true);
 """
         self.assertEqual(observed.strip(), expected.strip())
 
