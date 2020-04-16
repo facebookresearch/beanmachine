@@ -5,6 +5,7 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/factor/factor.h"
 
 namespace beanmachine {
 namespace graph {
@@ -21,29 +22,6 @@ AtomicValue::AtomicValue(AtomicType type, double value) : type(type), _double(va
     } else if (_double > (1 - PRECISION)) {
       _double = 1 - PRECISION;
     }
-  }
-}
-
-bool Node::is_stochastic() const {
-  return (
-      node_type == NodeType::OPERATOR and
-      static_cast<const oper::Operator*>(this)->op_type ==
-          OperatorType::SAMPLE);
-}
-
-double Node::log_prob() const {
-  assert(is_stochastic());
-  return static_cast<const distribution::Distribution*>(in_nodes[0])
-      ->log_prob(value);
-}
-
-void Node::gradient_log_prob(double& first_grad, double& second_grad) const {
-  assert(is_stochastic());
-  const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
-  if (grad1 != 0.0) {
-    dist->gradient_log_prob_value(value, first_grad, second_grad);
-  } else {
-    dist->gradient_log_prob_param(value, first_grad, second_grad);
   }
 }
 
@@ -272,6 +250,18 @@ uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
   std::unique_ptr<Node> node =
       std::make_unique<oper::Operator>(op_type, parent_nodes);
   return add_node(std::move(node), parent_ids);
+}
+
+uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
+  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  std::unique_ptr<Node> node = factor::Factor::new_factor(
+      fac_type, parent_nodes);
+  uint node_id = add_node(std::move(node), parent_ids);
+  // factors are both stochastic nodes and observed nodes
+  Node* node2 = check_node(node_id, NodeType::FACTOR);
+  node2->is_observed = true;
+  observed.insert(node_id);
+  return node_id;
 }
 
 void Graph::observe(uint node_id, bool val) {

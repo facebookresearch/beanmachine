@@ -54,10 +54,14 @@ PYBIND11_MODULE(graph, module) {
       .value("NORMAL", DistributionType::NORMAL)
       .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY);
 
+  py::enum_<FactorType>(module, "FactorType")
+      .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
+
   py::enum_<NodeType>(module, "NodeType")
       .value("CONSTANT", NodeType::CONSTANT)
       .value("DISTRIBUTION", NodeType::DISTRIBUTION)
-      .value("OPERATOR", NodeType::OPERATOR);
+      .value("OPERATOR", NodeType::OPERATOR)
+      .value("FACTOR", NodeType::FACTOR);
 
   py::enum_<InferenceType>(module, "InferenceType")
       .value("REJECTION", InferenceType::REJECTION)
@@ -116,6 +120,12 @@ PYBIND11_MODULE(graph, module) {
           &Graph::add_operator,
           "add an operator Node",
           py::arg("op"),
+          py::arg("parents"))
+      .def(
+          "add_factor",
+          &Graph::add_factor,
+          "add a factor Node",
+          py::arg("fac_type"),
           py::arg("parents"))
       .def(
           "observe",
