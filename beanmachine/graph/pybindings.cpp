@@ -44,7 +44,8 @@ PYBIND11_MODULE(graph, module) {
       .value("MULTIPLY", OperatorType::MULTIPLY)
       .value("ADD", OperatorType::ADD)
       .value("PHI", OperatorType::PHI)
-      .value("LOGISTIC", OperatorType::LOGISTIC);
+      .value("LOGISTIC", OperatorType::LOGISTIC)
+      .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)
