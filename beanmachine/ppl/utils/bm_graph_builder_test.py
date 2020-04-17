@@ -45,7 +45,7 @@ class BMGraphBuilderTest(unittest.TestCase):
             return tensor_equality(x, y)
         return super().assertEqual(x, y)
 
-    def test_1(self) -> None:
+    def test_graph_builder_1(self) -> None:
         """Test 1"""
 
         t = tensor([[10, 20], [40, 50]])
@@ -59,15 +59,16 @@ class BMGraphBuilderTest(unittest.TestCase):
         neg = bmg.add_negate(real)
         add = bmg.add_addition(two, neg)
         add_t = bmg.add_to_tensor(add)
-
-        bmg.add_multiplication(tens, add_t)
+        mult = bmg.add_multiplication(tens, add_t)
         bmg.add_observation(samp, True)
+        bmg.add_query(mult)
 
         observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.5];
   N10[label="Observation True"];
+  N11[label=Query];
   N1[label=2];
   N2[label="[[10,20],\\\\n[40,50]]"];
   N3[label=Bernoulli];
@@ -78,6 +79,7 @@ digraph "graph" {
   N8[label=ToTensor];
   N9[label="*"];
   N10 -> N4[label=operand];
+  N11 -> N9[label=operator];
   N3 -> N0[label=probability];
   N4 -> N3[label=operand];
   N5 -> N4[label=operand];
@@ -131,6 +133,7 @@ n7 = g.add_operator(graph.OperatorType.ADD, [n1, n6])
 n8 = g.add_operator(graph.OperatorType.TO_TENSOR, [n7])
 n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n8])
 g.observe(n4, True)
+g.query(n9)
 """
         )
         self.assertEqual(observed.strip(), expected.strip())
@@ -159,10 +162,11 @@ uint n8 = g.add_operator(
 uint n9 = g.add_operator(
   graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n8}));
 g.observe([n4], true);
+g.query(n9);
 """
         self.assertEqual(observed.strip(), expected.strip())
 
-    def test_2(self) -> None:
+    def test_graph_builder_2(self) -> None:
         """Test 2"""
 
         # TODO: We haven't implemented DIVISION or POWER or LOG or NOT in BMG
@@ -212,7 +216,7 @@ digraph "graph" {
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
 
-    def test_3(self) -> None:
+    def test_graph_builder_3(self) -> None:
         """Test 3"""
         bmg = BMGraphBuilder()
         self.assertTrue(bmg.add_real(1.0))
