@@ -6,7 +6,10 @@ namespace beanmachine {
 namespace proposer {
 
 graph::AtomicValue uniform_initializer(std::mt19937& gen, graph::AtomicType type) {
-  if (type == graph::AtomicType::PROBABILITY) {
+  if (type == graph::AtomicType::BOOLEAN) {
+    bool val = std::bernoulli_distribution(0.5)(gen);
+    return graph::AtomicValue(val);
+  } else if (type == graph::AtomicType::PROBABILITY) {
     double prob = util::sample_beta(gen, 1.0, 1.0);
     return graph::AtomicValue(graph::AtomicType::PROBABILITY, prob);
   } else if (type == graph::AtomicType::REAL) {

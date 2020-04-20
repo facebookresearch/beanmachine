@@ -45,6 +45,15 @@ class AtomicValue {
   explicit AtomicValue(natural_t value) : type(AtomicType::NATURAL), _natural(value) {}
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
+  AtomicValue(AtomicType type, bool value) : type(type), _bool(value) {
+    assert(type == AtomicType::BOOLEAN);
+  }
+  AtomicValue(AtomicType type, natural_t value) : type(type), _natural(value) {
+    assert(type == AtomicType::NATURAL);
+  }
+  AtomicValue(AtomicType type, torch::Tensor value) : type(type), _tensor(value) {
+    assert(type == AtomicType::TENSOR);
+  }
   AtomicValue(AtomicType type, double value);
   bool operator==(const AtomicValue& other) const {
     return type == other.type and
@@ -59,6 +68,7 @@ class AtomicValue {
   bool operator!=(const AtomicValue& other) const {
     return not(*this == other);
   }
+  std::string to_string() const;
 };
 
 enum class OperatorType {
@@ -152,7 +162,7 @@ class ConstNode : public Node {
 struct Graph {
   Graph() {}
   ~Graph() {}
-  std::string to_string();
+  std::string to_string() const;
   // Graph builder APIs -> return the node number
   uint add_constant(bool value);
   uint add_constant(double value);

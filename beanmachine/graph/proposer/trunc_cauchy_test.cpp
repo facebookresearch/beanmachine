@@ -27,7 +27,7 @@ TEST(testproposer, trunc_cauchy) {
   double atan_0 = std::atan((0-LOC)/SCALE);
   EXPECT_NEAR(double(below_loc)/num_samples, (atan_loc - atan_0)/(atan_infty - atan_0), 0.01);
   // log_prob at LOC should be higher than log_prob at zero
-  AtomicValue val_0(AtomicType::POS_REAL, 0);
+  AtomicValue val_0(AtomicType::POS_REAL, 0.0);
   AtomicValue val_loc(AtomicType::POS_REAL, LOC);
   EXPECT_GT(dist.log_prob(val_loc), dist.log_prob(val_0));
 }
