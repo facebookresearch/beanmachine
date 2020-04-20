@@ -126,6 +126,14 @@ Operator::Operator(
       value.type = type0;
       break;
     }
+    case graph::OperatorType::PHI: {
+      check_unary_op(op_type, in_nodes);
+      if (type0 != graph::AtomicType::REAL) {
+        throw std::invalid_argument("Phi requires real parent");
+      }
+      value.type = graph::AtomicType::PROBABILITY;
+      break;
+    }
     case graph::OperatorType::EXPM1:
     case graph::OperatorType::EXP: {
       check_unary_op(op_type, in_nodes);
@@ -208,6 +216,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::NEGATE: {
       negate(this);
+      break;
+    }
+    case graph::OperatorType::PHI: {
+      phi(this);
       break;
     }
     case graph::OperatorType::EXP: {
