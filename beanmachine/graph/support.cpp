@@ -32,7 +32,8 @@ std::set<uint> Graph::compute_support() {
     }
     visited.insert(node_id);
     const Node* node = nodes[node_id].get();
-    if (node->node_type == NodeType::OPERATOR) {
+    if (node->node_type == NodeType::OPERATOR
+        or node->node_type == NodeType::FACTOR) {
       support.insert(node_id);
     }
     for (const auto& parent : node->in_nodes) {
