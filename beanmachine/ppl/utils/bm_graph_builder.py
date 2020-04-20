@@ -2114,7 +2114,7 @@ class BMGraphBuilder:
     def to_bmg(self) -> Graph:
         g = Graph()
         d: Dict[BMGNode, int] = {}
-        for node in self.nodes:
+        for node in self._traverse_from_roots():
             d[node] = node._add_to_graph(g, d)
         return g
 
@@ -2123,9 +2123,38 @@ class BMGraphBuilder:
 from torch import tensor
 g = graph.Graph()
 """
-        return header + "\n".join(n._to_python(self.nodes) for n in self.nodes)
+        return header + "\n".join(
+            n._to_python(self.nodes) for n in self._traverse_from_roots()
+        )
 
     def to_cpp(self) -> str:
         return "graph::Graph g;\n" + "\n".join(
-            n._to_cpp(self.nodes) for n in self.nodes
+            n._to_cpp(self.nodes) for n in self._traverse_from_roots()
         )
+
+    def _traverse_from_roots(self) -> List[BMGNode]:
+        result = []
+        seen = set()
+
+        def is_root(n: BMGNode) -> bool:
+            return (
+                isinstance(n, SampleNode)
+                or isinstance(n, Observation)
+                or isinstance(n, Query)
+            )
+
+        def key(n: BMGNode) -> int:
+            return self.nodes[n]
+
+        def visit(n: BMGNode) -> None:
+            if n in seen:
+                return
+            for c in n.children:
+                visit(c)
+            seen.add(n)
+            result.append(n)
+
+        roots = sorted((n for n in self.nodes if is_root(n)), key=key, reverse=False)
+        for r in roots:
+            visit(r)
+        return result

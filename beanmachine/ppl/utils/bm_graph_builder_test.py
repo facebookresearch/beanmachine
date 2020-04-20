@@ -122,17 +122,17 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_probability(0.5)
-n1 = g.add_constant(2.0)
-n2 = g.add_constant(tensor([[10,20],[40,50]]))
 n3 = g.add_distribution(graph.DistributionType.BERNOULLI,"""
             + """ graph.AtomicType.BOOLEAN, [n0])
 n4 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+g.observe(n4, True)
+n2 = g.add_constant(tensor([[10,20],[40,50]]))
+n1 = g.add_constant(2.0)
 n5 = g.add_operator(graph.OperatorType.TO_REAL, [n4])
 n6 = g.add_operator(graph.OperatorType.NEGATE, [n5])
 n7 = g.add_operator(graph.OperatorType.ADD, [n1, n6])
 n8 = g.add_operator(graph.OperatorType.TO_TENSOR, [n7])
 n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n8])
-g.observe(n4, True)
 g.query(n9)
 """
         )
@@ -143,14 +143,15 @@ g.query(n9)
         expected = """
 graph::Graph g;
 uint n0 = g.add_constant_probability(0.5);
-uint n1 = g.add_constant(2);
-uint n2 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
 uint n3 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
   std::vector<uint>({n0}));
 uint n4 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
+g.observe([n4], true);
+uint n2 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
+uint n1 = g.add_constant(2);
 uint n5 = g.add_operator(
   graph::OperatorType::TO_REAL, std::vector<uint>({n4}));
 uint n6 = g.add_operator(
@@ -161,7 +162,6 @@ uint n8 = g.add_operator(
   graph::OperatorType::TO_TENSOR, std::vector<uint>({n7}));
 uint n9 = g.add_operator(
   graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n8}));
-g.observe([n4], true);
 g.query(n9);
 """
         self.assertEqual(observed.strip(), expected.strip())
