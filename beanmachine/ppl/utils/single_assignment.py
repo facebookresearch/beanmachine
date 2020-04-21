@@ -209,18 +209,18 @@ class SingleAssignment:
         return _do_it
 
     def _transform_list(
-        self, ast_op: type = ast.List
+        self, ast_op: Callable[[ast.Assign], type] = lambda a: ast.List
     ) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
             c = a.value
-            assert isinstance(c, ast_op)  # TODO: ast_op needs type
-            assignment, elts_new = self._splice_non_identifier(c.elts)  # TODO: ditto
+            ast_op_a = ast_op(a)
+            assert isinstance(c, ast_op_a)
+            assignment, elts_new = self._splice_non_identifier(c.elts)
             return ListEdit(
                 [
                     assignment,
                     ast.Assign(
-                        targets=a.targets,
-                        value=ast_op(elts=elts_new, ctx=c.ctx),  # TODO: ditto
+                        targets=a.targets, value=ast_op_a(elts=elts_new, ctx=c.ctx)
                     ),
                 ]
             )
@@ -434,7 +434,7 @@ class SingleAssignment:
                 ),
                 (
                     assign(value=ast_list(elts=_list_not_identifier, ast_op=ast.Tuple)),
-                    self._transform_list(ast_op=ast.Tuple),
+                    self._transform_list(ast_op=lambda a: ast.Tuple),
                 ),
             ],
             "handle_assign",
