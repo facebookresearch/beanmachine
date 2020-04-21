@@ -34,7 +34,7 @@ class AbstractInference(object, metaclass=ABCMeta):
     def _infer(
         self,
         num_samples: int,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
     ) -> Dict[RVIdentifier, Tensor]:
         """
@@ -53,12 +53,12 @@ class AbstractInference(object, metaclass=ABCMeta):
         chain: int,
         num_samples: int,
         random_seed: int,
-        num_adapt_steps: int,
+        num_adaptive_samples: int,
         verbose: VerboseLevel,
     ):
         try:
             AbstractInference.set_seed_for_chain(random_seed, chain)
-            rv_dict = self._infer(num_samples, num_adapt_steps, verbose)
+            rv_dict = self._infer(num_samples, num_adaptive_samples, verbose)
             string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
         except BaseException as x:
@@ -71,7 +71,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_samples: int,
         num_chains: int = 4,
         run_in_parallel: bool = False,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
     ) -> MonteCarloSamples:
         """
@@ -81,7 +81,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         :param observations: observed random variables with their values
         :params num_samples: number of samples excluding adaptation to collect.
         :params num_chains: number of chains to run
-        :params num_adapt_steps: number of steps to allow proposer adaptation.
+        :params num_adaptive_samples: number of steps to allow proposer adaptation.
         :param verbose: Integer indicating how much output to print to stdio
         :returns: view of data for chains and samples for query
         """
@@ -113,10 +113,10 @@ class AbstractInference(object, metaclass=ABCMeta):
                 chain_queries = []
                 for chain in range(num_chains):
                     AbstractInference.set_seed_for_chain(random_seed, chain)
-                    rv_dicts = self._infer(num_samples, num_adapt_steps, verbose)
+                    rv_dicts = self._infer(num_samples, num_adaptive_samples, verbose)
                     chain_queries.append(rv_dicts)
 
-            monte_carlo_samples = MonteCarloSamples(chain_queries, num_adapt_steps)
+            monte_carlo_samples = MonteCarloSamples(chain_queries, num_adaptive_samples)
         except BaseException as x:
             raise x
         finally:

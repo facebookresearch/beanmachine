@@ -17,11 +17,11 @@ class MonteCarloSamples(object):
     """
 
     def __init__(
-        self, chain_results: List[Dict[RVIdentifier, Tensor]], num_adapt_steps=0
+        self, chain_results: List[Dict[RVIdentifier, Tensor]], num_adaptive_samples=0
     ):
         self.data = MonteCarloSamplesData(chain_results)
         self.chain = None
-        self.num_adapt_steps = num_adapt_steps
+        self.num_adaptive_samples = num_adaptive_samples
 
     def __getitem__(self, rv: RVIdentifier) -> Tensor:
         """
@@ -60,7 +60,7 @@ class MonteCarloSamples(object):
         S be the number of samples
 
         If include_adapt_steps, S' = S.
-        Else, S' = S - num_adapt_steps.
+        Else, S' = S - num_adaptive_samples.
 
         if no chain specified:
             samples[var] returns a Tensor of (C, S', (shape of Var))
@@ -73,7 +73,7 @@ class MonteCarloSamples(object):
         :returns: samples drawn during inference for the specified variable
         """
 
-        steps_start = self.num_adapt_steps
+        steps_start = self.num_adaptive_samples
         if include_adapt_steps:
             steps_start = 0
 

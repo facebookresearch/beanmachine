@@ -50,7 +50,7 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         world: World,
         acceptance_probability: Tensor,
         iteration_number: int,
-        num_adapt_steps: int,
+        num_adaptive_samples: int,
         is_accepted: bool,
     ) -> None:
         """
@@ -62,7 +62,7 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         for node.
         :param acceptance_probability: the acceptance probability of the previous move.
         :param iteration_number: The current iteration of inference
-        :param num_adapt_steps: The number of inference iterations for adaptation.
+        :param num_adaptive_samples: The number of inference iterations for adaptation.
         :param is_accepted: bool representing whether the new value was accepted.
         :returns: Nothing.
         """

@@ -31,7 +31,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertEqual(mcs.get_num_chains(), 4)
         self.assertEqual(mcs.get_rv_names(), [foo_key])
 
-        mcs.num_adapt_steps = 3
+        mcs.num_adaptive_samples = 3
 
         self.assertEqual(mcs[foo_key].shape, torch.zeros(4, 7).shape)
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 7).shape)
@@ -55,7 +55,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertEqual(mcs.get_num_chains(), 1)
         self.assertEqual(mcs.get_rv_names(), [foo_key, bar_key])
 
-        mcs.num_adapt_steps = 3
+        mcs.num_adaptive_samples = 3
 
         self.assertEqual(mcs[foo_key].shape, torch.zeros(1, 7).shape)
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(1, 7).shape)
@@ -86,11 +86,11 @@ class MonteCarloSamplesTest(unittest.TestCase):
             one_chain = mcs.get_chain()
             one_chain.get_chain()
 
-    def test_num_adapt_samples(self):
+    def test_num_adaptive_samples(self):
         model = self.SampleModel()
         mh = SingleSiteAncestralMetropolisHastings()
         foo_key = model.foo()
-        mcs = mh.infer([foo_key], {}, 10, num_adapt_steps=3)
+        mcs = mh.infer([foo_key], {}, 10, num_adaptive_samples=3)
 
         self.assertEqual(mcs[foo_key].shape, torch.zeros(4, 10).shape)
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 10).shape)

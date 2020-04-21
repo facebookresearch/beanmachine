@@ -236,7 +236,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
     def _infer(
         self,
         num_samples: int,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
     ) -> Dict[RVIdentifier, Tensor]:
         """
@@ -251,7 +251,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         queries_sample = defaultdict()
 
         for iteration in tqdm(
-            iterable=range(num_samples + num_adapt_steps),
+            iterable=range(num_samples + num_adaptive_samples),
             desc="Samples collected",
             disable=not bool(verbose.value),
         ):
@@ -269,17 +269,20 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                     is_accepted, acceptance_probability = self.single_inference_run(
                         node, proposer
                     )
-                    if iteration < num_adapt_steps:
+                    if iteration < num_adaptive_samples:
                         proposer.do_adaptation(
                             node,
                             self.world_,
                             acceptance_probability,
                             iteration,
-                            num_adapt_steps,
+                            num_adaptive_samples,
                             is_accepted,
                         )
 
-                if block.type == BlockType.SEQUENTIAL and iteration >= num_adapt_steps:
+                if (
+                    block.type == BlockType.SEQUENTIAL
+                    and iteration >= num_adaptive_samples
+                ):
                     self.single_inference_run_with_sequential_block_update(block)
 
             for query in self.queries_:

@@ -172,7 +172,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_samples: int,
         delta: float,
         random_seed: Optional[int],
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
     ):
         expected_mean, expected_std, queries, observations = moments
 
@@ -184,7 +184,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             observations,
             num_samples,
             num_chains=num_chains,
-            num_adapt_steps=num_adapt_steps,
+            num_adaptive_samples=num_adaptive_samples,
         )
         for i in range(predictions.get_num_chains()):
             mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
@@ -201,7 +201,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_samples: int = 1000,
         delta: float = 0.05,
         random_seed: Optional[int] = 17,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
     ):
         """
         Tests the inference run for a small beta binomial model.
@@ -214,7 +214,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_beta_binomial_moments()
         self._compare_run(
-            moments, mh, num_chains, num_samples, delta, random_seed, num_adapt_steps
+            moments,
+            mh,
+            num_chains,
+            num_samples,
+            delta,
+            random_seed,
+            num_adaptive_samples,
         )
 
     def gamma_gamma_conjugate_run(
@@ -224,7 +230,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_samples: int = 1000,
         delta: float = 0.05,
         random_seed: Optional[int] = 17,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
     ):
         """
         Tests the inference run for a small gamma gamma model.
@@ -237,7 +243,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_gamma_gamma_moments()
         self._compare_run(
-            moments, mh, num_chains, num_samples, delta, random_seed, num_adapt_steps
+            moments,
+            mh,
+            num_chains,
+            num_samples,
+            delta,
+            random_seed,
+            num_adaptive_samples,
         )
 
     def gamma_normal_conjugate_run(
@@ -247,7 +259,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_samples: int = 1000,
         delta: float = 0.05,
         random_seed: Optional[int] = 17,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
     ):
         """
         Tests the inference run for a small gamma normal model.
@@ -260,7 +272,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_gamma_normal_moments()
         self._compare_run(
-            moments, mh, num_chains, num_samples, delta, random_seed, num_adapt_steps
+            moments,
+            mh,
+            num_chains,
+            num_samples,
+            delta,
+            random_seed,
+            num_adaptive_samples,
         )
 
     def normal_normal_conjugate_run(
@@ -270,7 +288,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_samples: int = 1000,
         delta: float = 0.05,
         random_seed: Optional[int] = 17,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
     ):
         """
         Tests the inference run for a small normal normal model.
@@ -283,7 +301,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_normal_normal_moments()
         self._compare_run(
-            moments, mh, num_chains, num_samples, delta, random_seed, num_adapt_steps
+            moments,
+            mh,
+            num_chains,
+            num_samples,
+            delta,
+            random_seed,
+            num_adaptive_samples,
         )
 
     def distant_normal_normal_conjugate_run(
@@ -293,7 +317,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_samples: int = 1000,
         delta: float = 0.05,
         random_seed: Optional[int] = 17,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
     ):
         """
         Tests the inference run for a small normal normal model
@@ -307,7 +331,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_distant_normal_normal_moments()
         self._compare_run(
-            moments, mh, num_chains, num_samples, delta, random_seed, num_adapt_steps
+            moments,
+            mh,
+            num_chains,
+            num_samples,
+            delta,
+            random_seed,
+            num_adaptive_samples,
         )
 
     def dirichlet_categorical_conjugate_run(
@@ -317,7 +347,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         num_samples: int = 1000,
         delta: float = 0.05,
         random_seed: Optional[int] = 17,
-        num_adapt_steps: int = 0,
+        num_adaptive_samples: int = 0,
     ):
         """
         Tests the inference run for a small dirichlet categorical model.
@@ -330,7 +360,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_dirichlet_categorical_moments()
         self._compare_run(
-            moments, mh, num_chains, num_samples, delta, random_seed, num_adapt_steps
+            moments,
+            mh,
+            num_chains,
+            num_samples,
+            delta,
+            random_seed,
+            num_adaptive_samples,
         )
 
     @abstractmethod

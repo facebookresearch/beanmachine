@@ -193,7 +193,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         world: World,
         acceptance_probability: Tensor,
         iteration_number: int,
-        num_adapt_steps: int,
+        num_adaptive_samples: int,
         is_accepted: bool,
     ) -> None:
         """
@@ -204,7 +204,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         :param node_acceptance_results: the boolean values of acceptances for
          values collected so far within _infer().
         :param iteration_number: The current iteration of inference
-        :param num_adapt_steps: The number of inference iterations for adaptation.
+        :param num_adaptive_samples: The number of inference iterations for adaptation.
         :param is_accepted: bool representing whether the new value was accepted.
         """
         if not is_accepted:
