@@ -2114,11 +2114,13 @@ class BMGraphBuilder:
     def to_bmg(self) -> Graph:
         g = Graph()
         d: Dict[BMGNode, int] = {}
+        self._fix_types()
         for node in self._traverse_from_roots():
             d[node] = node._add_to_graph(g, d)
         return g
 
     def to_python(self) -> str:
+        self._fix_types()
         header = """from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
@@ -2128,6 +2130,7 @@ g = graph.Graph()
         )
 
     def to_cpp(self) -> str:
+        self._fix_types()
         return "graph::Graph g;\n" + "\n".join(
             n._to_cpp(self.nodes) for n in self._traverse_from_roots()
         )
@@ -2158,3 +2161,32 @@ g = graph.Graph()
         for r in roots:
             visit(r)
         return result
+
+    def _fix_types(self) -> None:
+        # This can add more nodes but so far, none of them need rewriting.
+        # When this logic gets more complex we may need to iterate until we
+        # reach a fixpoint.
+        for node in self._traverse_from_roots():
+            self._fix_bernoulli(node)
+
+    def _fix_bernoulli(self, node: BMGNode) -> None:
+        # TODO: Logits
+        if isinstance(node, BernoulliNode) and not node.is_logits:
+            node.probability = self._ensure_probability(node.probability)
+
+    def _ensure_probability(self, node: BMGNode) -> BMGNode:
+        # TODO: Better error handling
+        if node.node_type == Probability:
+            return node
+        if isinstance(node, ConstantNode):
+            if isinstance(node, TensorNode):
+                if node.value.shape.numel() != 1:
+                    raise ValueError(
+                        "To use a tensor as a probability it must "
+                        + "have exactly one element."
+                    )
+            v = float(node.value)
+            if v < 0.0 or v > 1.0:
+                raise ValueError("A probability must be between 0.0 and 1.0.")
+            return self.add_probability(v)
+        raise ValueError("Conversion to probability node not yet implemented.")
