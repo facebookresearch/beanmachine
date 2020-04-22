@@ -116,14 +116,15 @@ Node 10 type 3 parents [ 2 9 ] children [ ] unknown value
 
         observed = bmg.to_python()
 
-        expected = (
-            """
+        expected = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_probability(0.5)
-n3 = g.add_distribution(graph.DistributionType.BERNOULLI,"""
-            + """ graph.AtomicType.BOOLEAN, [n0])
+n3 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n0])
 n4 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
 g.observe(n4, True)
 n2 = g.add_constant(tensor([[10,20],[40,50]]))
@@ -135,7 +136,6 @@ n8 = g.add_operator(graph.OperatorType.TO_TENSOR, [n7])
 n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n8])
 g.query(n9)
 """
-        )
         self.assertEqual(observed.strip(), expected.strip())
 
         observed = bmg.to_cpp()

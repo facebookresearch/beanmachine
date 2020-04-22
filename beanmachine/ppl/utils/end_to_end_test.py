@@ -33,17 +33,17 @@ uint n2 = g.add_operator(
 
 expected_bmg_1 = """TODO"""
 
-expected_python_1 = (
-    """
+expected_python_1 = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n3 = g.add_constant_probability(0.5)
-n1 = g.add_distribution(graph.DistributionType.BERNOULLI,"""
-    + """ graph.AtomicType.BOOLEAN, [n3])
+n1 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n3])
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 """
-)
 
 
 class EndToEndTest(unittest.TestCase):

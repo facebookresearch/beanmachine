@@ -445,8 +445,10 @@ class BernoulliNode(DistributionNode):
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
         return (
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability]}])"
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.BERNOULLI,\n"
+            + "  graph.AtomicType.BOOLEAN,\n"
+            + f"  [n{d[self.probability]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
