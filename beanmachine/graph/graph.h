@@ -75,6 +75,7 @@ enum class OperatorType {
   ADD,
   PHI,
   LOGISTIC,
+  IF_THEN_ELSE,
 };
 
 enum class DistributionType {

@@ -101,6 +101,16 @@ void Operator::compute_gradients() {
       }
       break;
     }
+    case graph::OperatorType::IF_THEN_ELSE: {
+      if (in_nodes[0]->value._bool) {
+        grad1 = in_nodes[1]->grad1;
+        grad2 = in_nodes[1]->grad2;
+      } else {
+        grad1 = in_nodes[2]->grad1;
+        grad2 = in_nodes[2]->grad2;
+      }
+      break;
+    }
     default: {
       throw std::runtime_error(
         "internal error: unexpected operator type "
