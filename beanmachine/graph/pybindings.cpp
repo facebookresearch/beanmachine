@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 #define TORCH_API_INCLUDE_EXTENSION_H 1
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/pybindings.h"
 
 namespace beanmachine {
 namespace graph {
@@ -24,13 +25,7 @@ PYBIND11_MODULE(graph, module) {
       .def(py::init<bool>())
       .def(py::init<double>())
       .def(py::init<graph::natural_t>())
-      .def(py::init<torch::Tensor>())
-      .def_readonly("type", &AtomicValue::type)
-      .def_readonly("bool", &AtomicValue::_bool)
-      .def_readonly("real", &AtomicValue::_double)
-      .def_readonly("probability", &AtomicValue::_double)
-      .def_readonly("natural", &AtomicValue::_natural)
-      .def_readonly("tensor", &AtomicValue::_tensor);
+      .def(py::init<torch::Tensor>());
 
   py::enum_<OperatorType>(module, "OperatorType")
       .value("SAMPLE", OperatorType::SAMPLE)
