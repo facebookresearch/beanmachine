@@ -22,10 +22,37 @@ AtomicValue::AtomicValue(AtomicType type, double value) : type(type), _double(va
     } else if (_double > (1 - PRECISION)) {
       _double = 1 - PRECISION;
     }
+  } else {
+    // this API is only meant for POS_REAL, REAL and PROBABILITY values
+    if (type != AtomicType::REAL) {
+      throw std::invalid_argument("expect probability, pos_real, or real type with floating point value");
+    }
   }
 }
 
-std::string Graph::to_string() {
+std::string AtomicValue::to_string() const {
+  std::ostringstream os;
+  if (type == AtomicType::UNKNOWN) {
+    os << "unknown value "; // this is not an error, e.g. distribution node
+  } else if (type == AtomicType::BOOLEAN) {
+    os << "boolean value " << _bool;
+  } else if (type == AtomicType::PROBABILITY) {
+    os << "probability value " << _double;
+  } else if (type == AtomicType::REAL) {
+    os << "real value " << _double;
+  } else if (type == AtomicType::POS_REAL) {
+    os << "pos real value " << _double;
+  } else if (type == AtomicType::NATURAL) {
+    os << "natural value " << _natural;
+  } else if (type == AtomicType::TENSOR) {
+    os << "tensor value " << _tensor;
+  } else {
+    os << "BAD value";
+  }
+  return os.str();
+}
+
+std::string Graph::to_string() const {
   std::ostringstream os;
   for (auto const& node : nodes) {
     os << "Node " << node->index << " type "
@@ -37,19 +64,7 @@ std::string Graph::to_string() {
     for (Node* child : node->out_nodes) {
       os << child->index << " ";
     }
-    os << "]";
-    if (node->value.type == AtomicType::UNKNOWN) {
-      os << " unknown value "; // this is not an error, e.g. distribution node
-    } else if (node->value.type == AtomicType::BOOLEAN) {
-      os << " boolean value " << node->value._bool;
-    } else if (node->value.type == AtomicType::REAL) {
-      os << " real value " << node->value._double;
-    } else if (node->value.type == AtomicType::TENSOR) {
-      os << " tensor value " << node->value._tensor;
-    } else {
-      os << " BAD value";
-    }
-    os << std::endl;
+    os << "] " << node->value.to_string() << std::endl;
   }
   return os.str();
 }
