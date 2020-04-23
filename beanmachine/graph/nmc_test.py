@@ -2,6 +2,7 @@
 import math
 import unittest
 
+import torch
 from beanmachine import graph
 
 
@@ -153,3 +154,98 @@ class TestNMC(unittest.TestCase):
             2,
             f"posterior variance {post_var} is not accurate",
         )
+
+    def test_clara_gp(self):
+        """
+        CLARA-GP model
+        f() ~ GP(0, squared_exp_covar)
+        for each labeler l:
+            spec_l ~ Beta(SPEC_ALPHA, SPEC_BETA)
+            sens_l ~ Beta(SENS_ALPHA, SENS_BETA)
+        for each item i
+            violating_i ~ Bernoulli(Phi(f(i)))
+            for each labeler l
+                if violating_i
+                    prob_i_l = sens_l
+                else
+                    prob_i_l = 1 - spec_l
+                label_i_l ~ Bernoulli(prob_i_l)
+        """
+        ALPHA = 1.0
+        RHO = 0.1
+        SENS_ALPHA = 9.0
+        SENS_BETA = 1.0
+        SPEC_ALPHA = 9.5
+        SPEC_BETA = 0.5
+        NUM_LABELERS = 2
+        SCORES = torch.tensor([0.1, 0.2, 0.3])
+        ITEM_LABELS = [[False, False], [False, True], [True, True]]
+        # see https://mc-stan.org/docs/2_19/functions-reference/covariance.html for
+        # a reference on this covariance function
+        covar = ALPHA ** 2 * (-(SCORES.unsqueeze(1) - SCORES) ** 2 / 2 / RHO ** 2).exp()
+        tau = covar.inverse()  # the precision matrix
+        g = graph.Graph()
+        # first we will create f ~ GP
+        flat = g.add_distribution(
+            graph.DistributionType.FLAT, graph.AtomicType.REAL, []
+        )
+        f = [g.add_operator(graph.OperatorType.SAMPLE, [flat]) for _ in SCORES]
+        for i in range(len(SCORES)):
+            tau_i_i = g.add_constant(-0.5 * tau[i, i].item())
+            g.add_factor(graph.FactorType.EXP_PRODUCT, [tau_i_i, f[i], f[i]])
+            for j in range(i + 1, len(SCORES)):
+                tau_i_j = g.add_constant(-1.0 * tau[i, j].item())
+                g.add_factor(graph.FactorType.EXP_PRODUCT, [tau_i_j, f[i], f[j]])
+        # for each labeler l:
+        #     spec_l ~ Beta(SPEC_ALPHA, SPEC_BETA)
+        #     sens_l ~ Beta(SENS_ALPHA, SENS_BETA)
+        spec_alpha = g.add_constant_pos_real(SPEC_ALPHA)
+        spec_beta = g.add_constant_pos_real(SPEC_BETA)
+        spec_prior = g.add_distribution(
+            graph.DistributionType.BETA,
+            graph.AtomicType.PROBABILITY,
+            [spec_alpha, spec_beta],
+        )
+        sens_alpha = g.add_constant_pos_real(SENS_ALPHA)
+        sens_beta = g.add_constant_pos_real(SENS_BETA)
+        sens_prior = g.add_distribution(
+            graph.DistributionType.BETA,
+            graph.AtomicType.PROBABILITY,
+            [sens_alpha, sens_beta],
+        )
+        spec, comp_spec, sens = [], [], []
+        for l in range(NUM_LABELERS):
+            spec.append(g.add_operator(graph.OperatorType.SAMPLE, [spec_prior]))
+            comp_spec.append(g.add_operator(graph.OperatorType.COMPLEMENT, [spec[l]]))
+            sens.append(g.add_operator(graph.OperatorType.SAMPLE, [sens_prior]))
+        # for each item i
+        for i, labels in enumerate(ITEM_LABELS):
+            # violating_i ~ Bernoulli(Phi(f(i)))
+            dist_i = g.add_distribution(
+                graph.DistributionType.BERNOULLI,
+                graph.AtomicType.BOOLEAN,
+                [g.add_operator(graph.OperatorType.PHI, [f[i]])],
+            )
+            violating_i = g.add_operator(graph.OperatorType.SAMPLE, [dist_i])
+            # for each labeler l
+            for l, label_val in enumerate(labels):
+                # if violating_i
+                #     prob_i_l = sens_l
+                # else
+                #     prob_i_l = 1 - spec_l
+                prob_i_l = g.add_operator(
+                    graph.OperatorType.IF_THEN_ELSE,
+                    [violating_i, sens[l], comp_spec[l]],
+                )
+                # label_i_l ~ Bernoulli(prob_i_l)
+                dist_i_l = g.add_distribution(
+                    graph.DistributionType.BERNOULLI,
+                    graph.AtomicType.BOOLEAN,
+                    [prob_i_l],
+                )
+                label_i_l = g.add_operator(graph.OperatorType.SAMPLE, [dist_i_l])
+                g.observe(label_i_l, label_val)
+            g.query(violating_i)
+        means = g.infer_mean(1000, graph.InferenceType.NMC)
+        self.assertLess(means[0], means[1])
+        self.assertLess(means[1], means[2])
