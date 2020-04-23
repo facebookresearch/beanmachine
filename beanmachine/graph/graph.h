@@ -74,6 +74,7 @@ enum class OperatorType {
   MULTIPLY,
   ADD,
   PHI,
+  LOGISTIC,
 };
 
 enum class DistributionType {

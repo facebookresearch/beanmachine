@@ -45,6 +45,18 @@ void Operator::compute_gradients() {
         + grad1_x * in_nodes[0]->grad2;
       break;
     }
+    case graph::OperatorType::LOGISTIC: {
+      // f(x) = 1 / (1 + exp(-x))
+      // f'(x) = exp(-x) / (1 + exp(-x))^2 = f(x) * (1 - f(x))
+      // f''(x) = f'(x) - 2 f(x) f'(x) = f'(x) (1 - 2 f(x))
+      double f_x = value._double;
+      double f_grad = f_x * (1 - f_x);
+      double f_grad2 = f_grad * (1 - 2 * f_x);
+      grad1 = f_grad * in_nodes[0]->grad1;
+      grad2 = f_grad2 * in_nodes[0]->grad1 * in_nodes[0]->grad1
+        + f_grad * in_nodes[0]->grad2;
+      break;
+    }
     // for f(y) = exp(y) or f(y) = exp(y)-1 we have f'(y) = exp(y) and f''(y) = exp(y)
     case graph::OperatorType::EXP:
     case graph::OperatorType::EXPM1: {
