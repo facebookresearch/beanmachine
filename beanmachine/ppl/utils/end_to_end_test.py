@@ -23,12 +23,12 @@ def flip():
 expected_cpp_1 = """
 graph::Graph g;
 uint n3 = g.add_constant_probability(0.5);
-uint n1 = g.add_distribution(
+uint n4 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
   std::vector<uint>({n3}));
 uint n2 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
 """
 
 expected_bmg_1 = """TODO"""
@@ -38,11 +38,11 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n3 = g.add_constant_probability(0.5)
-n1 = g.add_distribution(
+n4 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
   [n3])
-n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
 """
 
 

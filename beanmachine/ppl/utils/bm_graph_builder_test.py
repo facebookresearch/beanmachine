@@ -121,11 +121,11 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_probability(0.5)
-n3 = g.add_distribution(
+n12 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
   [n0])
-n4 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+n4 = g.add_operator(graph.OperatorType.SAMPLE, [n12])
 g.observe(n4, True)
 n2 = g.add_constant(tensor([[10,20],[40,50]]))
 n1 = g.add_constant(2.0)
@@ -143,12 +143,12 @@ g.query(n9)
         expected = """
 graph::Graph g;
 uint n0 = g.add_constant_probability(0.5);
-uint n3 = g.add_distribution(
+uint n12 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
   std::vector<uint>({n0}));
 uint n4 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
+  graph::OperatorType::SAMPLE, std::vector<uint>({n12}));
 g.observe([n4], true);
 uint n2 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
 uint n1 = g.add_constant(2);

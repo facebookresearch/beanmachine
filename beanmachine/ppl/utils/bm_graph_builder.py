@@ -401,6 +401,69 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
         pass
 
 
+# This is the Bernoulli node that we actually turn into a BMG node;
+# it matches the type constraints on that node in the graph:
+# * The child must be a single value of type probability.
+# * The sample type is Boolean.
+
+
+class SimpleBernoulliNode(DistributionNode):
+    edges = ["probability"]
+
+    def __init__(self, probability: BMGNode):
+        DistributionNode.__init__(self, [probability])
+
+    @property
+    def probability(self) -> BMGNode:
+        return self.children[0]
+
+    @probability.setter
+    def probability(self, p: BMGNode) -> None:
+        self.children[0] = p
+
+    @property
+    def node_type(self) -> Any:
+        return Bernoulli
+
+    @property
+    def size(self) -> torch.Size:
+        return self.probability.size
+
+    def sample_type(self) -> Any:
+        return bool
+
+    @property
+    def label(self) -> str:
+        return "Bernoulli"
+
+    def __str__(self) -> str:
+        return "Bernoulli(" + str(self.probability) + ")"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.BERNOULLI,\n"
+            + "  graph.AtomicType.BOOLEAN,\n"
+            + f"  [n{d[self.probability]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        return [False, True]
+
+
 class BernoulliNode(DistributionNode):
     edges = ["probability"]
     is_logits: bool
@@ -1603,6 +1666,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_simple_bernoulli(self, probability: BMGNode) -> SimpleBernoulliNode:
+        node = SimpleBernoulliNode(probability)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_bernoulli(
         self, probability: BMGNode, is_logits: bool = False
     ) -> BernoulliNode:
@@ -2168,13 +2237,24 @@ g = graph.Graph()
         # This can add more nodes but so far, none of them need rewriting.
         # When this logic gets more complex we may need to iterate until we
         # reach a fixpoint.
+        #
+        # Start by ensuring that every sample that samples a Bernoulli
+        # can be converted to sample a simple Bernoulli.
         for node in self._traverse_from_roots():
             self._fix_bernoulli(node)
 
     def _fix_bernoulli(self, node: BMGNode) -> None:
-        # TODO: Logits
-        if isinstance(node, BernoulliNode) and not node.is_logits:
-            node.probability = self._ensure_probability(node.probability)
+        if not isinstance(node, SampleNode):
+            return
+        dist = node.operand
+        if not isinstance(dist, BernoulliNode):
+            return
+        if dist.is_logits:
+            raise ValueError(
+                "BMG does not yet support Bernoulli distributions with log odds."
+            )
+        prob = self._ensure_probability(dist.probability)
+        node.operand = self.add_simple_bernoulli(prob)
 
     def _ensure_probability(self, node: BMGNode) -> BMGNode:
         # TODO: Better error handling
