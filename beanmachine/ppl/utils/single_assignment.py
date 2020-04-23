@@ -8,6 +8,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     assign,
     ast_boolop,
     ast_compare,
+    ast_dict,
     ast_domain,
     ast_for,
     ast_if,
@@ -157,6 +158,40 @@ class SingleAssignment:
         assignment = ast.Assign(targets=[ast.Name(id=id, ctx=ast.Store())], value=value)
         return assignment, rewritten
 
+    def _splice_non_entry(
+        self, keys: List[ast.expr], values: List[ast.expr]
+    ) -> Tuple[ast.Assign, List[ast.expr], List[ast.expr]]:
+        id = self._unique_id("a")
+        keyword_index, keyword = next(
+            ((i, k) for i, k in enumerate(keys) if match(_not_identifier, k)),
+            (len(keys), None),
+        )
+        value_index, value = next(
+            ((i, v) for i, v in enumerate(values) if match(_not_identifier, v)),
+            (len(values), None),
+        )
+
+        if keyword_index <= value_index:
+            keys_new = (
+                keys[:keyword_index]
+                + [ast.Name(id=id, ctx=ast.Load())]
+                + keys[keyword_index + 1 :]
+            )
+            assignment = ast.Assign(
+                targets=[ast.Name(id=id, ctx=ast.Store())], value=keyword
+            )
+            return assignment, keys_new, values
+        else:
+            values_new = (
+                values[:value_index]
+                + [ast.Name(id=id, ctx=ast.Load())]
+                + values[value_index + 1 :]
+            )
+            assignment = ast.Assign(
+                targets=[ast.Name(id=id, ctx=ast.Store())], value=value
+            )
+            return assignment, keys, values_new
+
     def _splice_non_identifier_keyword(
         self, original: List[ast.keyword]
     ) -> Tuple[ast.Assign, List[ast.keyword]]:
@@ -208,7 +243,7 @@ class SingleAssignment:
 
         return _do_it
 
-    def _transform_list(
+    def _transform_list(  # TODO: Generalization of ast_op to Callable is tentative
         self, ast_op: Callable[[ast.Assign], type] = lambda a: ast.List
     ) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
@@ -219,9 +254,23 @@ class SingleAssignment:
             return ListEdit(
                 [
                     assignment,
-                    ast.Assign(
-                        targets=a.targets, value=ast_op_a(elts=elts_new, ctx=c.ctx)
-                    ),
+                    ast.Assign(targets=a.targets, value=ast_op_a(elts_new, c.ctx)),
+                ]
+            )
+
+        return _do_it
+
+    def _transform_lists(  # For things like ast_op = ast.Dict
+        self, ast_op: type = ast.Dict
+    ) -> Callable[[ast.Assign], ListEdit]:
+        def _do_it(a: ast.Assign) -> ListEdit:
+            c = a.value
+            assert isinstance(c, ast_op)
+            assignment, keys_new, values_new = self._splice_non_entry(c.keys, c.values)
+            return ListEdit(
+                [
+                    assignment,
+                    ast.Assign(targets=a.targets, value=ast_op(keys_new, values_new)),
                 ]
             )
 
@@ -435,6 +484,14 @@ class SingleAssignment:
                 (
                     assign(value=ast_list(elts=_list_not_identifier, ast_op=ast.Tuple)),
                     self._transform_list(ast_op=lambda a: ast.Tuple),
+                ),
+                (
+                    assign(value=ast_dict(keys=_list_not_identifier)),
+                    self._transform_lists(),
+                ),
+                (
+                    assign(value=ast_dict(values=_list_not_identifier)),
+                    self._transform_lists(),
                 ),
             ],
             "handle_assign",

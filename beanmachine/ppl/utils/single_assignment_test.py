@@ -676,6 +676,42 @@ def f(x):
 
         self.check_rewrite(source, expected)
 
+    def test_single_assignment_dict(self) -> None:
+        """Test the assign rule for dictionaries"""
+
+        source = """
+def f(x):
+    x = {"a"+"b":x+x}
+"""
+        expected = """
+def f(x):
+    a2 = 'a'
+    a4 = 'b'
+    a1 = a2 + a4
+    a3 = x + x
+    x = {a1: a3}
+"""
+
+        self.check_rewrite(source, expected)
+
+        source = """
+def f(x):
+    x = {"a"+"b":x+x, "c"+"d":x-x}
+"""
+        expected = """
+def f(x):
+    a2 = 'a'
+    a4 = 'b'
+    a1 = a2 + a4
+    a3 = x + x
+    a6 = 'c'
+    a8 = 'd'
+    a5 = a6 + a8
+    a7 = x - x
+    x = {a1: a3, a5: a7}"""
+
+        self.check_rewrite(source, expected)
+
     def test_single_assignment_tuple(self) -> None:
         """Test the assign rule for tuples"""
 
