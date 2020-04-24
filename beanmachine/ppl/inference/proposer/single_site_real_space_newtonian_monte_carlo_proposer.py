@@ -105,7 +105,6 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # pyre-fixme
         first_gradient, hessian = tensorops.gradients(score, node_val)
         zero_grad(node_val)
-        node_val.detach()
         if not is_valid(first_gradient) or not is_valid(hessian):
             return super().get_proposal_distribution(node, node_var, world, {})
         # node value may of any arbitrary shape, so here, we transform it into a

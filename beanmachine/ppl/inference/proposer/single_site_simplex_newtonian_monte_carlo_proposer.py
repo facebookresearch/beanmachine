@@ -47,7 +47,6 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         zero_grad(node_val)
         if not is_valid(first_gradient) or not is_valid(hessian_diag_minus_max):
             return False, tensor(0.0)
-        node_val.detach()
         node_val_reshaped = node_val.clone().reshape(-1)
         predicted_alpha = (
             1 - ((node_val_reshaped * node_val_reshaped) * (hessian_diag_minus_max))

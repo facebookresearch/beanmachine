@@ -73,11 +73,6 @@ class AbstractSingleSiteSingleStepProposer(
         from propose.
         :returns: the log probability of proposing the old value from this new world.
         """
-        old_unconstrained_value = world.get_old_unconstrained_value(node)
-
-        if old_unconstrained_value is None:
-            raise ValueError("old unconstrained value is not available in world")
-
         node_var = world.get_node_in_world_raise_error(node, False)
         proposal_distribution_struct, _ = self.get_proposal_distribution(
             node, node_var, world, auxiliary_variables
@@ -89,6 +84,14 @@ class AbstractSingleSiteSingleStepProposer(
         requires_transform = proposal_distribution_struct.requires_transform
         requires_reshape = proposal_distribution_struct.requires_reshape
 
+        if proposal_distribution == node_var.proposal_distribution:
+            old_value = world.get_old_value(node)
+        else:
+            old_value = world.get_old_unconstrained_value(node)
+
+        if old_value is None:
+            raise ValueError("old value is not available in world")
+
         if (
             requires_reshape
             and not (
@@ -97,11 +100,9 @@ class AbstractSingleSiteSingleStepProposer(
             )
             and not isinstance(node_var.distribution, dist.Gamma)
         ):
-            old_unconstrained_value = old_unconstrained_value.reshape(-1)
+            old_value = old_value.reshape(-1)
 
-        positive_log_update = proposal_distribution.log_prob(
-            old_unconstrained_value
-        ).sum()
+        positive_log_update = proposal_distribution.log_prob(old_value).sum()
 
         if requires_transform:
             positive_log_update = positive_log_update - node_var.jacobian

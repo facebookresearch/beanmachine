@@ -249,7 +249,11 @@ class CompositionalInferenceTest(unittest.TestCase):
             - ci.world_.variables_.get_node(foobar_0_key).log_prob
         )
 
-        self.assertEqual(expected_node_log_updates.item(), nodes_log_updates.item())
-        self.assertEqual(
-            expected_children_log_updates.item(), children_log_updates.item()
+        self.assertAlmostEqual(
+            expected_node_log_updates.item(), nodes_log_updates.item(), delta=0.001
+        )
+        self.assertAlmostEqual(
+            expected_children_log_updates.item(),
+            children_log_updates.item(),
+            delta=0.001,
         )

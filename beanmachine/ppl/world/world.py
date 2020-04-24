@@ -221,6 +221,18 @@ class World(object):
             return node_var.unconstrained_value
         return None
 
+    def get_old_value(self, node: RVIdentifier) -> Optional[Tensor]:
+        """
+        Looks up the node in the world and returns the old value of the node.
+
+        :param node: the node to look up
+        :returns: old value of the node.
+        """
+        node_var = self.get_node_earlier_version(node)
+        if node_var is not None:
+            node_var.value
+        return None
+
     def get_node_in_world_raise_error(
         self,
         node: RVIdentifier,
