@@ -102,8 +102,8 @@ TEST(testnmc, normal_normal) {
   g.observe(y, 100.0);
   g.query(x);
   g.query(x_sq);
-  const std::vector<double>& means = g.infer_mean(100000, InferenceType::NMC);
+  const std::vector<double>& means = g.infer_mean(10000, InferenceType::NMC);
   // posterior of x is N(20, sqrt(20))
   EXPECT_NEAR(means[0], 20, 0.1);
-  EXPECT_NEAR(means[1] - means[0]*means[0], 20, 0.1);
+  EXPECT_NEAR(means[1] - means[0]*means[0], 20, 1.0);
 }
