@@ -131,5 +131,16 @@ void phi(graph::Node* node) {
     graph::AtomicType::PROBABILITY, util::Phi(parent._double));
 }
 
+void logistic(graph::Node* node) {
+  assert(node->in_nodes.size() == 1);
+  const graph::AtomicValue& parent = node->in_nodes[0]->value;
+  assert(parent.type == graph::AtomicType::REAL);
+  // note: we have to cast it to an AtomicValue object rather than directly
+  // assigning to ensure that the usual boundary checks for probabilities
+  // are made
+  node->value = graph::AtomicValue(
+    graph::AtomicType::PROBABILITY, util::logistic(parent._double));
+}
+
 } // namespace oper
 } // namespace beanmachine
