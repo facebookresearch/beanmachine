@@ -84,12 +84,12 @@ class TestOperators(unittest.TestCase):
         samples = g.infer(2)
         # both samples should have exactly the same value since we are doing
         # deterministic operators only
-        self.assertEqual(samples[0][0].type, bmg.AtomicType.REAL)
-        self.assertEqual(samples[0][0].real, samples[1][0].real)
+        self.assertEqual(type(samples[0][0]), float)
+        self.assertEqual(samples[0][0], samples[1][0])
         # the result should be identical to doing this math directly on tensors
         const1 = 3.0
         result = const1 + math.exp(-const1) * const1 + math.expm1(const1)
-        self.assertAlmostEqual(samples[0][0].real, result, 3)
+        self.assertAlmostEqual(samples[0][0], result, 3)
 
     def test_tensor_arithmetic(self) -> None:
         g = bmg.Graph()
@@ -105,11 +105,11 @@ class TestOperators(unittest.TestCase):
         samples = g.infer(2)
         # both samples should have exactly the same value since we are doing
         # deterministic operators only
-        self.assertEqual(samples[0][0].type, bmg.AtomicType.TENSOR)
-        self.assertTrue((samples[0][0].tensor == samples[1][0].tensor).all().item())
+        self.assertEqual(type(samples[0][0]), torch.Tensor)
+        self.assertTrue((samples[0][0] == samples[1][0]).all().item())
         # the result should be identical to doing this math directly on tensors
         result = const1 + torch.exp(-const1) * const1 + torch.expm1(const1)
-        self.assertTrue((samples[0][0].tensor == result).all().item())
+        self.assertTrue((samples[0][0] == result).all().item())
 
     def test_probability(self) -> None:
         g = bmg.Graph()
@@ -119,8 +119,8 @@ class TestOperators(unittest.TestCase):
         o2 = g.add_operator(bmg.OperatorType.MULTIPLY, [o1, c2])
         g.query(o2)
         samples = g.infer(2)
-        self.assertEqual(samples[0][0].type, bmg.AtomicType.PROBABILITY)
-        self.assertAlmostEquals(samples[0][0].probability, 0.14, 3)
+        self.assertTrue(type(samples[0][0]), float)
+        self.assertAlmostEquals(samples[0][0], 0.14, 3)
 
     def test_sample(self) -> None:
         # negative test we can't exponentiate the sample from a Bernoulli
@@ -150,7 +150,7 @@ class TestOperators(unittest.TestCase):
         # o5 should be 0 in all possible worlds
         g.query(o5)
         samples = g.infer(10)
-        self.assertEqual(samples[0][0].type, bmg.AtomicType.REAL)
+        self.assertEqual(type(samples[0][0]), float)
         self.assertEqual(
-            [s[0].real for s in samples], [0.0] * 10, "all samples should be zero"
+            [s[0] for s in samples], [0.0] * 10, "all samples should be zero"
         )
