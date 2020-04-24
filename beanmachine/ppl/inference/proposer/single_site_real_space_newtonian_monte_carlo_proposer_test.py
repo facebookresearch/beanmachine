@@ -401,10 +401,32 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         alpha, beta = nw_proposer.compute_beta_priors_from_accepted_lr()
         self.assertAlmostEqual(nw_proposer.running_mean_.item(), 0.0786, delta=0.0001)
         self.assertAlmostEqual(nw_proposer.running_var_.item(), 0.00384, delta=0.00001)
-        print(nw_proposer.running_mean_.item())
-        print(nw_proposer.running_var_.item())
         self.assertAlmostEqual(alpha.item(), 1.4032, delta=0.001)
         self.assertAlmostEqual(beta.item(), 16.4427, delta=0.001)
+
+    def test_adaptive_vectorized_alpha_beta_computation(self):
+        nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
+        nw_proposer.learning_rate_ = tensor([0.0416, 0.0583], dtype=torch.float64)
+        nw_proposer.running_mean_, nw_proposer.running_var_ = (
+            tensor([0.079658, 0.089861]),
+            tensor([0.0039118, 0.0041231]),
+        )
+        nw_proposer.accepted_samples_ = 37
+        alpha, beta = nw_proposer.compute_beta_priors_from_accepted_lr()
+        self.assertListEqual(
+            [round(x.item(), 4) for x in list(nw_proposer.running_mean_)],
+            [0.0786, 0.089],
+        )
+        self.assertListEqual(
+            [round(x.item(), 4) for x in list(nw_proposer.running_var_)],
+            [0.0038, 0.004],
+        )
+        self.assertListEqual(
+            [round(x.item(), 4) for x in list(alpha)], [1.4032, 1.6984]
+        )
+        self.assertListEqual(
+            [round(x.item(), 4) for x in list(beta)], [16.4427, 17.3829]
+        )
 
 
 # simple function to read the arguments from a proposal distribution object

@@ -16,7 +16,7 @@ class SingleSiteAdaptiveRandomWalkConjugateTest(
     def test_beta_binomial_conjugate_run(self):
         self.mh = SingleSiteRandomWalk(step_size=1.0)
         self.beta_binomial_conjugate_run(
-            self.mh, num_samples=3000, num_adaptive_samples=1500, delta=0.2
+            self.mh, num_samples=3000, num_adaptive_samples=1600, delta=0.2
         )
         # self.assertTrue(False)
 

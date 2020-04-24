@@ -14,7 +14,7 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
 ):
     def test_beta_binomial_conjugate_run(self):
         nw = SingleSiteNewtonianMonteCarlo()
-        self.beta_binomial_conjugate_run(nw, num_samples=150, delta=0.15)
+        self.beta_binomial_conjugate_run(nw, num_samples=350, delta=0.15)
         # failing for transform proposer because hessian is extremely close to 0
         # NMC has a covariance that is too large to produce good samples
 
