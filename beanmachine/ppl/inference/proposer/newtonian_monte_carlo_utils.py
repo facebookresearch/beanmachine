@@ -1,10 +1,16 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import torch
-import torch.tensor as tensor
 from beanmachine.ppl.utils import tensorops
-from torch import Tensor
+from torch import Tensor, tensor
 from torch.autograd import grad
+
+
+def is_scalar(val: Union[float, Tensor]) -> bool:
+    """
+    :returns: whether val is a scalar
+    """
+    return isinstance(val, float) or (isinstance(val, Tensor) and not val.shape)
 
 
 def is_valid(vec: Tensor) -> bool:

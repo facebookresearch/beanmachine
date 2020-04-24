@@ -5,6 +5,7 @@ import numpy
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
+    is_scalar,
     is_valid,
     symmetric_inverse,
     zero_grad,
@@ -58,6 +59,17 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # correct.
         aux_vars = {}
         if "frac_dist" not in auxiliary_variables:
+            # If any of alpha or beta are scalar, we have to reshape them
+            # random variable shape to allow for per-index learning rate.
+            if is_scalar(self.alpha_) or is_scalar(self.beta_):
+                self.alpha_ = self.alpha_ * torch.ones_like(
+                    node_var.unconstrained_value
+                ).reshape(-1)
+
+                self.beta_ = self.beta_ * torch.ones_like(
+                    node_var.unconstrained_value
+                ).reshape(-1)
+
             beta_ = dist.Beta(self.alpha_, self.beta_)
             frac_dist = beta_.sample()
             aux_vars["frac_dist"] = frac_dist
@@ -175,16 +187,17 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         self.running_var_ = new_var
         self.running_mean_ = new_mu
         if n < max_lr_num:
-            return tensor(1.0), tensor(1.0)
+            return (
+                tensor(1.0, dtype=self.learning_rate_.dtype),
+                tensor(1.0, dtype=self.learning_rate_.dtype),
+            )
         # alpha and beta are calculated following the link below.
         # https://stats.stackexchange.com/questions/12232/calculating-the-
         # parameters-of-a-beta-distribution-using-the-mean-and-variance
         alpha = ((1.0 - new_mu) / new_var - (1.0 / new_mu)) * (new_mu ** 2)
         beta = alpha * (1.0 - new_mu) / new_mu
-        if alpha <= 0:
-            alpha = tensor(1.0)
-        if beta <= 0:
-            beta = tensor(1.0)
+        alpha = torch.where(alpha <= 0, torch.ones_like(alpha), alpha)
+        beta = torch.where(beta <= 0, torch.ones_like(beta), beta)
         return alpha, beta
 
     def do_adaptation(
@@ -209,7 +222,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         """
         if not is_accepted:
             if self.accepted_samples_ == 0:
-                self.alpha_, self.beta_ = tensor(1.0), tensor(1.0)
+                self.alpha_, self.beta_ = (
+                    tensor(1.0, dtype=self.learning_rate_.dtype),
+                    tensor(1.0, dtype=self.learning_rate_.dtype),
+                )
         else:
             self.accepted_samples_ += 1
             self.alpha_, self.beta_ = self.compute_beta_priors_from_accepted_lr()
