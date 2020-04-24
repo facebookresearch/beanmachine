@@ -37,8 +37,9 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
     }
     if (node->is_stochastic() and node_is_not_observed) {
       if (node->value.type != AtomicType::PROBABILITY
-          and node->value.type != AtomicType::REAL) {
-        throw std::runtime_error("NMC only supported on probability/real -- failing on node "
+          and node->value.type != AtomicType::REAL
+          and node->value.type != AtomicType::POS_REAL) {
+        throw std::runtime_error("NMC only supported on probability/real/positive -- failing on node "
             + std::to_string(node_id));
       }
       node->value = proposer::uniform_initializer(gen, node->value.type);
