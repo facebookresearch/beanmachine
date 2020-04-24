@@ -102,5 +102,9 @@ double log_sum_exp(const std::vector<double>& values) {
   return std::log(sum) + max;
 }
 
+double polygamma(int n, double x) {
+  return torch::scalar_tensor(x).polygamma(n).item<double>();
+}
+
 } // namespace util
 } // namespace beanmachine

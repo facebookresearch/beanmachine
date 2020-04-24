@@ -50,7 +50,8 @@ PYBIND11_MODULE(graph, module) {
       .value("BINOMIAL", DistributionType::BINOMIAL)
       .value("FLAT", DistributionType::FLAT)
       .value("NORMAL", DistributionType::NORMAL)
-      .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY);
+      .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
+      .value("STUDENT_T", DistributionType::STUDENT_T);
 
   py::enum_<FactorType>(module, "FactorType")
       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);
