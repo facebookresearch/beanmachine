@@ -127,6 +127,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             proposer = self.simplex_proposer_
 
         if proposer is not None:
+            # pyre-fixme[16]: `None` has no attribute `do_adaptation`.
             return proposer.do_adaptation(
                 node,
                 world,

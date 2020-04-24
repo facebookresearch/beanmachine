@@ -171,10 +171,14 @@ class SingleAssignment:
             (len(values), None),
         )
 
+        # pyre-fixme[16]: `None` has no attribute `__gt__`.
+        # pyre-fixme[16]: `None` has no attribute `__le__`.
         if keyword_index <= value_index:
             keys_new = (
                 keys[:keyword_index]
                 + [ast.Name(id=id, ctx=ast.Load())]
+                # pyre-fixme[6]: Expected `int` for 1st param but got `Union[None,
+                #  _ast.expr, int]`.
                 + keys[keyword_index + 1 :]
             )
             assignment = ast.Assign(
@@ -185,6 +189,8 @@ class SingleAssignment:
             values_new = (
                 values[:value_index]
                 + [ast.Name(id=id, ctx=ast.Load())]
+                # pyre-fixme[6]: Expected `int` for 1st param but got `Union[None,
+                #  _ast.expr, int]`.
                 + values[value_index + 1 :]
             )
             assignment = ast.Assign(

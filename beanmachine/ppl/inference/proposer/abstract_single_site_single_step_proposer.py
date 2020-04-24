@@ -39,12 +39,9 @@ class AbstractSingleSiteSingleStepProposer(
         requires_transform = proposal_distribution_struct.requires_transform
         requires_reshape = proposal_distribution_struct.requires_reshape
 
-        # pyre-fixme
         new_value = proposal_distribution.sample()
         negative_proposal_log_update = (
-            -1
-            # pyre-fixme
-            * proposal_distribution.log_prob(new_value).sum()
+            -1 * proposal_distribution.log_prob(new_value).sum()
         )
         if requires_reshape:
             if isinstance(node_var.distribution, dist.Beta) and isinstance(
@@ -102,7 +99,6 @@ class AbstractSingleSiteSingleStepProposer(
         ):
             old_unconstrained_value = old_unconstrained_value.reshape(-1)
 
-        # pyre-fixme
         positive_log_update = proposal_distribution.log_prob(
             old_unconstrained_value
         ).sum()
