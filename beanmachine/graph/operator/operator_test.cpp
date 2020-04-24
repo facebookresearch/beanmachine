@@ -131,3 +131,53 @@ TEST(testoperator, logistic) {
   EXPECT_NEAR(grad1, 0.4378, 1e-3);
   EXPECT_NEAR(grad2, 0.6295, 1e-3);
 }
+
+TEST(testoperator, if_then_else) {
+  Graph g;
+  auto bool1 = g.add_constant(true);
+  auto real1 = g.add_constant(10.0);
+  auto real2 = g.add_constant(100.0);
+  // negative tests: arg1.type==bool, arg2.type == arg3.type
+  EXPECT_THROW(
+    g.add_operator(OperatorType::IF_THEN_ELSE, std::vector<uint>{}),
+    std::invalid_argument);
+  EXPECT_THROW(
+    g.add_operator(OperatorType::IF_THEN_ELSE, std::vector<uint>{bool1, real1, bool1}),
+    std::invalid_argument);
+  EXPECT_THROW(
+    g.add_operator(OperatorType::IF_THEN_ELSE, std::vector<uint>{real1, real1, real2}),
+    std::invalid_argument);
+  // check eval
+  auto prob1 = g.add_constant_probability(0.3);
+  auto dist1 = g.add_distribution(
+    DistributionType::BERNOULLI, AtomicType::BOOLEAN, std::vector<uint>{prob1});
+  auto bool2 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist1});
+  auto real3 = g.add_operator(
+    OperatorType::IF_THEN_ELSE, std::vector<uint>{bool2, real1, real2});
+  g.query(real3);
+  const auto& means = g.infer_mean(10000, InferenceType::REJECTION);
+  EXPECT_NEAR(means[0], 0.3 * 10 + 0.7 * 100, 1);
+  // check gradient
+  // logprob(x) = f(x) = real1 * y + real2 * z
+  // Now y = if_then_else(bool1, x^2, x^3) and z = if_then_else(bool3, x^2, x^3)
+  // since real1=10, real2=100, bool1 = true and bool3 = false we have
+  // f(x) = 10 x^2 + 100 x^3
+  // f'(x) = 20 x + 300 x^2 ; f'(2) = 1240
+  // f''(x) = 20 + 600 x ; f''(2) = 1220
+  auto prior = g.add_distribution(
+    DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  g.observe(x, 2.0);
+  auto x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
+  auto x_cube = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x, x});
+  auto y = g.add_operator(OperatorType::IF_THEN_ELSE, std::vector<uint>{bool1, x_sq, x_cube});
+  auto bool3 = g.add_constant(false);
+  auto z = g.add_operator(OperatorType::IF_THEN_ELSE, std::vector<uint>{bool3, x_sq, x_cube});
+  g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{real1, y});
+  g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{real2, z});
+  double grad1 = 0;
+  double grad2 = 0;
+  g.gradient_log_prob(x, grad1, grad2);
+  EXPECT_NEAR(grad1, 1240, 1e-3);
+  EXPECT_NEAR(grad2, 1220, 1e-3);
+}

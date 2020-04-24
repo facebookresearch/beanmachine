@@ -5,6 +5,7 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/unaryop.h"
+#include "beanmachine/graph/operator/controlop.h"
 
 namespace beanmachine {
 namespace oper {
@@ -29,7 +30,7 @@ static void check_unary_op(
   }
 }
 
-// a multiary op has 2 or more operands
+// a multiary op has 2 or more operands that have the same type
 static void check_multiary_op(
     graph::OperatorType op_type,
     const std::vector<graph::Node*>& in_nodes) {
@@ -38,15 +39,14 @@ static void check_multiary_op(
       "expecting at least two parents for operator "
       + std::to_string(static_cast<int>(op_type)));
   }
-  // all parent nodes should have a defined value type
+  // all parent nodes should have the same value type
+  graph::AtomicType type0 = in_nodes[0]->value.type;
   for (const graph::Node* node : in_nodes) {
-    if (node->value.type == graph::AtomicType::UNKNOWN) {
+    if (node->value.type != type0) {
       throw std::invalid_argument(
-        "unexpected parent node of type "
-        + std::to_string(static_cast<int>(node->node_type))
-        + " for operator type "
+        "all parents of operator "
         + std::to_string(static_cast<int>(op_type))
-      );
+        + " should have same type");
     }
   }
 }
@@ -61,11 +61,6 @@ Operator::Operator(
     throw std::invalid_argument("operator requires a parent");
   }
   graph::AtomicType type0 = in_nodes[0]->value.type;
-  for (const graph::Node* node : in_nodes) {
-    if (node->value.type != type0) {
-      throw std::invalid_argument("all parents of operator should have same type");
-    }
-  }
   // now perform operator-specific checks and set the value type
   switch (op_type) {
     case graph::OperatorType::SAMPLE: {
@@ -168,6 +163,19 @@ Operator::Operator(
       value.type = type0;
       break;
     }
+    case graph::OperatorType::IF_THEN_ELSE: {
+      if (type0 != graph::AtomicType::BOOLEAN) {
+        throw std::invalid_argument(
+          "operator IF_THEN_ELSE requires boolean first argument");
+      }
+      if (in_nodes.size() != 3 or in_nodes[1]->value.type != in_nodes[2]->value.type) {
+        throw std::invalid_argument(
+          "operator IF_THEN_ELSE requires 3 args and arg2.type == arg3.type"
+        );
+      }
+      value.type = in_nodes[1]->value.type;
+      break;
+    }
     default: {
       throw std::invalid_argument(
         "Unknown operator " + std::to_string(static_cast<int>(op_type)));
@@ -241,6 +249,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::ADD: {
       add(this);
+      break;
+    }
+    case graph::OperatorType::IF_THEN_ELSE: {
+      if_then_else(this);
       break;
     }
     default: {
