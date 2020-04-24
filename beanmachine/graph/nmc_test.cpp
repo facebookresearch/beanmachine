@@ -137,3 +137,48 @@ TEST(testnmc, flat_normal) {
   EXPECT_NEAR(post_means[0], emp_mean, 0.1);
   EXPECT_NEAR(post_means[1], std::sqrt(emp_var), 1.0);
 }
+
+TEST(testnmc, gmm_two_components) {
+  // Test two component Gaussian Mixture Model
+  // tau ~ Beta(1, 1)
+  // mu_{false|true} ~ Normal(0, 100)
+  // c_i ~ Bernoulli(tau)
+  // X_i ~ Normal(mu_{c_i}, 1) are observed with values [1.0, 8.0, 11.0]
+  // and observe c_0 = false (to break symmetry)
+  // posterior of mu_false will be close to 1 and
+  // posterior of mu_true will be close to 9.5
+  // posterior of tau is Beta (3, 2) which has a mean of 0.6
+  Graph g;
+  auto zero = g.add_constant(0.0);
+  auto one = g.add_constant_pos_real(1.0);
+  auto hundred = g.add_constant_pos_real(100.0);
+  auto tau_prior = g.add_distribution(
+    DistributionType::BETA, AtomicType::PROBABILITY, std::vector<uint>{one, one});
+  auto tau = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{tau_prior});
+  auto c_prior = g.add_distribution(
+    DistributionType::BERNOULLI, AtomicType::BOOLEAN, std::vector<uint>{tau});
+  auto mu_prior = g.add_distribution(
+    DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{zero, hundred});
+  auto mu_false = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{mu_prior});
+  auto mu_true = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{mu_prior});
+  const std::vector<double> X_DATA = {1.0, 8.0, 11.0};
+  for (const auto x_val: X_DATA) {
+    auto c_i = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{c_prior});
+    if (x_val == 1.0) {
+      g.observe(c_i, false);
+    }
+    auto mu = g.add_operator(
+      OperatorType::IF_THEN_ELSE, std::vector<uint>{c_i, mu_true, mu_false});
+    auto x_prior = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{mu, one});
+    auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{x_prior});
+    g.observe(x, x_val);
+  }
+  g.query(tau);
+  g.query(mu_false);
+  g.query(mu_true);
+  const std::vector<double>& post_means = g.infer_mean(1000, InferenceType::NMC);
+  EXPECT_NEAR(post_means[0], 0.6, 0.01);
+  EXPECT_NEAR(post_means[1], 1.0, 0.1);
+  EXPECT_NEAR(post_means[2], 9.5, 0.1);
+}
