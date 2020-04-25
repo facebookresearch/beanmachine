@@ -31,6 +31,12 @@ def confidence_interval(query_samples: Tensor) -> Tensor:
 
 def _compute_var(query_samples: Tensor) -> Tuple[Tensor, Tensor]:
     n_chains, n_samples = query_samples.shape[:2]
+    if query_samples.dtype not in [torch.float32, torch.float64]:
+        """ TODO have separate diagnostics for discrete variables.
+        This would require passing supprt-type information to Diagnostics.
+        """
+        query_samples = query_samples.float()
+
     if n_chains > 1:
         per_chain_avg = query_samples.mean(1)
         b = n_samples * torch.var(per_chain_avg, dim=0)
@@ -62,6 +68,12 @@ def split_r_hat(query_samples: Tensor) -> Optional[Tensor]:
 
 def effective_sample_size(query_samples: Tensor) -> Tensor:
     n_chains, n_samples, *query_dim = query_samples.shape
+
+    if query_samples.dtype not in [torch.float32, torch.float64]:
+        """ TODO have separate diagnostics for discrete variables.
+        This would require passing supprt-type information to Diagnostics.
+        """
+        query_samples = query_samples.float()
 
     samples = query_samples - query_samples.mean(dim=1, keepdim=True)
     samples = samples.transpose(1, -1)
