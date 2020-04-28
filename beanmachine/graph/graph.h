@@ -40,6 +40,7 @@ class AtomicValue {
   };
   torch::Tensor _tensor;
   AtomicValue() : type(AtomicType::UNKNOWN) {}
+  explicit AtomicValue(AtomicType type);
   explicit AtomicValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
   explicit AtomicValue(natural_t value) : type(AtomicType::NATURAL), _natural(value) {}

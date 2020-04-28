@@ -78,7 +78,7 @@ Operator::Operator(
         static_cast<distribution::Distribution*>(in_nodes[0]);
       // the type of value of a SAMPLE node is obviously the sample type
       // of the distribution parent
-      value.type = dist->sample_type;
+      value = graph::AtomicValue(dist->sample_type);
       break;
     }
     case graph::OperatorType::COMPLEMENT: {
@@ -89,7 +89,7 @@ Operator::Operator(
           "operator COMPLEMENT only supports boolean/probability parent"
         );
       }
-      value.type = type0;
+      value = graph::AtomicValue(type0);
       break;
     }
     case graph::OperatorType::TO_REAL: {
@@ -98,7 +98,7 @@ Operator::Operator(
         throw std::invalid_argument(
             "operator TO_REAL doesn't support tensor parent");
       }
-      value.type = graph::AtomicType::REAL;
+      value = graph::AtomicValue(graph::AtomicType::REAL);
       break;
     }
     case graph::OperatorType::TO_POS_REAL: {
@@ -108,12 +108,12 @@ Operator::Operator(
         throw std::invalid_argument(
             "operator TO_POS_REAL doesn't support real or tensor parent");
       }
-      value.type = graph::AtomicType::POS_REAL;
+      value = graph::AtomicValue(graph::AtomicType::POS_REAL);
       break;
     }
     case graph::OperatorType::TO_TENSOR: {
       check_unary_op(op_type, in_nodes);
-      value.type = graph::AtomicType::TENSOR;
+      value = graph::AtomicValue(graph::AtomicType::TENSOR);
       break;
     }
     case graph::OperatorType::NEGATE: {
@@ -123,7 +123,7 @@ Operator::Operator(
         throw std::invalid_argument(
             "operator NEGATE only supports real/tensor parent");
       }
-      value.type = type0;
+      value = graph::AtomicValue(type0);
       break;
     }
     case graph::OperatorType::EXPM1:
@@ -135,7 +135,7 @@ Operator::Operator(
           and type0 != graph::AtomicType::TENSOR) {
         throw std::invalid_argument("operator requires real/tensor parent");
       }
-      value.type = type0;
+      value = graph::AtomicValue(type0);
       break;
     }
     case graph::OperatorType::MULTIPLY: {
@@ -146,7 +146,7 @@ Operator::Operator(
           and type0 != graph::AtomicType::PROBABILITY) {
         throw std::invalid_argument("operator MUTIPLY requires real/tensor/probability parent");
       }
-      value.type = type0;
+      value = graph::AtomicValue(type0);
       break;
     }
     case graph::OperatorType::ADD: {
@@ -156,7 +156,7 @@ Operator::Operator(
           and type0 != graph::AtomicType::TENSOR) {
         throw std::invalid_argument("operator ADD requires real/tensor parent");
       }
-      value.type = type0;
+      value = graph::AtomicValue(type0);
       break;
     }
     default: {

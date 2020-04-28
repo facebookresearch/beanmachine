@@ -24,6 +24,27 @@ AtomicValue::AtomicValue(AtomicType type, double value) : type(type), _double(va
   }
 }
 
+AtomicValue::AtomicValue(AtomicType type) : type(type) {
+  switch (type) {
+    case AtomicType::UNKNOWN:
+      break;
+    case AtomicType::BOOLEAN:
+      _bool = false;
+      break;
+    case AtomicType::PROBABILITY:
+    case AtomicType::REAL:
+    case AtomicType::POS_REAL:
+      _double = 0.0;
+      break;
+    case AtomicType::NATURAL:
+      _natural = 0;
+      break;
+    case AtomicType::TENSOR:
+      _tensor = torch::Tensor();
+      break;
+  }
+}
+
 bool Node::is_stochastic() const {
   return (
       node_type == NodeType::OPERATOR and
