@@ -27,9 +27,6 @@ class CompositionalInference(AbstractMHInference):
             for key in proposers:
                 self.proposers_[key.__func__] = proposers[key]
         self.should_transform_ = should_transform
-        self.newtonian_monte_carlo_proposer_ = SingleSiteNewtonianMonteCarloProposer()
-        self.uniform_proposer_ = SingleSiteUniformProposer()
-        self.ancestral_proposer_ = SingleSiteAncestralProposer()
         super().__init__()
 
     def add_sequential_proposer(self, block: List) -> None:
@@ -63,13 +60,17 @@ class CompositionalInference(AbstractMHInference):
             or isinstance(support, dist.constraints._Simplex)
             or isinstance(support, dist.constraints._GreaterThan)
         ):
-            return self.newtonian_monte_carlo_proposer_
-        if isinstance(support, dist.constraints._IntegerInterval) and isinstance(
+            self.proposers_[
+                node.function._wrapper
+            ] = SingleSiteNewtonianMonteCarloProposer()
+        elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
             distribution, dist.Categorical
         ):
-            return self.uniform_proposer_
-        if isinstance(support, dist.constraints._Boolean) and isinstance(
+            self.proposers_[node.function._wrapper] = SingleSiteUniformProposer()
+        elif isinstance(support, dist.constraints._Boolean) and isinstance(
             distribution, dist.Bernoulli
         ):
-            return self.uniform_proposer_
-        return self.ancestral_proposer_
+            self.proposers_[node.function._wrapper] = SingleSiteUniformProposer()
+        else:
+            self.proposers_[node.function._wrapper] = SingleSiteAncestralProposer()
+        return self.proposers_[node.function._wrapper]

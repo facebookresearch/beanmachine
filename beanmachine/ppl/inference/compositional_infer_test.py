@@ -78,6 +78,7 @@ class CompositionalInferenceTest(unittest.TestCase):
             True,
         )
 
+        c.proposers_ = {}
         distribution = dist.Normal(tensor(0.0), tensor(1.0))
         val = distribution.sample()
         world_vars[foo_key] = Variable(
@@ -102,6 +103,7 @@ class CompositionalInferenceTest(unittest.TestCase):
             True,
         )
 
+        c.proposers_ = {}
         distribution = dist.Categorical(tensor([0.5, 0, 5]))
         val = distribution.sample()
         world_vars[foo_key] = Variable(
@@ -125,6 +127,7 @@ class CompositionalInferenceTest(unittest.TestCase):
             True,
         )
 
+        c.proposers_ = {}
         distribution = dist.Poisson(tensor([4.0]))
         val = distribution.sample()
         world_vars[foo_key] = Variable(
