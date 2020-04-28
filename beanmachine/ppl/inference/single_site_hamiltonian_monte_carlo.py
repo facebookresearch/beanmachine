@@ -11,10 +11,12 @@ class SingleSiteHamiltonianMonteCarlo(AbstractMHInference):
     Implementation for SingleSiteHamiltonianMonteCarlo
     """
 
-    def __init__(self, step_size: float, num_steps: int, use_transform_: bool = True):
+    def __init__(self, path_length: float, step_size: float = 0.1):
         super().__init__()
-        self.world_.set_all_nodes_transform(use_transform_)
-        self.proposer_ = SingleSiteHamiltonianMonteCarloProposer(step_size, num_steps)
+        self.world_.set_all_nodes_transform(True)
+        self.proposer_ = {}
+        self.path_length_ = path_length
+        self.step_size_ = step_size
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """
@@ -24,4 +26,8 @@ class SingleSiteHamiltonianMonteCarlo(AbstractMHInference):
         :param node: the node for which to return a proposer
         :returns: a proposer for the node
         """
-        return self.proposer_
+        if node not in self.proposer_:
+            self.proposer_[node] = SingleSiteHamiltonianMonteCarloProposer(
+                self.path_length_, self.step_size_
+            )
+        return self.proposer_[node]

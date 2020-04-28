@@ -25,7 +25,7 @@ def zero_grad(node_val: Tensor) -> None:
     Zeros the gradient.
     """
     # pyre-fixme
-    if hasattr(node_val, "grad") and node_val.grad is not None:
+    if node_val.is_leaf and hasattr(node_val, "grad") and node_val.grad is not None:
         node_val.grad.zero_()
 
 
