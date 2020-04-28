@@ -2195,15 +2195,21 @@ class BMGraphBuilder:
             d[node] = node._add_to_graph(g, d)
         return g
 
+    def _resort_nodes(self) -> Dict[BMGNode, int]:
+        # Renumber the nodes so that the ids are in numerical order.
+        sorted_nodes = {}
+        for index, node in enumerate(self._traverse_from_roots()):
+            sorted_nodes[node] = index
+        return sorted_nodes
+
     def to_python(self) -> str:
         self._fix_types()
         header = """from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 """
-        return header + "\n".join(
-            n._to_python(self.nodes) for n in self._traverse_from_roots()
-        )
+        sorted_nodes = self._resort_nodes()
+        return header + "\n".join(n._to_python(sorted_nodes) for n in sorted_nodes)
 
     def to_cpp(self) -> str:
         self._fix_types()

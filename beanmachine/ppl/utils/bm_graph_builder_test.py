@@ -121,20 +121,20 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_probability(0.5)
-n12 = g.add_distribution(
+n1 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
   [n0])
-n4 = g.add_operator(graph.OperatorType.SAMPLE, [n12])
-g.observe(n4, True)
-n2 = g.add_constant(tensor([[10,20],[40,50]]))
-n1 = g.add_constant(2.0)
-n5 = g.add_operator(graph.OperatorType.TO_REAL, [n4])
-n6 = g.add_operator(graph.OperatorType.NEGATE, [n5])
-n7 = g.add_operator(graph.OperatorType.ADD, [n1, n6])
-n8 = g.add_operator(graph.OperatorType.TO_TENSOR, [n7])
-n9 = g.add_operator(graph.OperatorType.MULTIPLY, [n2, n8])
-g.query(n9)
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+g.observe(n2, True)
+n4 = g.add_constant(tensor([[10,20],[40,50]]))
+n5 = g.add_constant(2.0)
+n6 = g.add_operator(graph.OperatorType.TO_REAL, [n2])
+n7 = g.add_operator(graph.OperatorType.NEGATE, [n6])
+n8 = g.add_operator(graph.OperatorType.ADD, [n5, n7])
+n9 = g.add_operator(graph.OperatorType.TO_TENSOR, [n8])
+n10 = g.add_operator(graph.OperatorType.MULTIPLY, [n4, n9])
+g.query(n10)
 """
         self.assertEqual(observed.strip(), expected.strip())
 

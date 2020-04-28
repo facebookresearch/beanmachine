@@ -37,12 +37,12 @@ expected_python_1 = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n3 = g.add_constant_probability(0.5)
-n4 = g.add_distribution(
+n0 = g.add_constant_probability(0.5)
+n1 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n3])
-n2 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+  [n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 """
 
 
