@@ -2175,11 +2175,16 @@ class BMGraphBuilder:
 
     def to_dot(self) -> str:
         db = DotBuilder()
+        max_length = len(str(len(self.nodes) - 1))
+
+        def to_id(index):
+            return "N" + str(index).zfill(max_length)
+
         for node, index in self.nodes.items():
-            n = "N" + str(index)
+            n = to_id(index)
             db.with_node(n, node.label)
             for (child, label) in zip(node.children, node.edges):
-                db.with_edge(n, "N" + str(self.nodes[child]), label)
+                db.with_edge(n, to_id(self.nodes[child]), label)
         return str(db)
 
     def to_bmg(self) -> Graph:
