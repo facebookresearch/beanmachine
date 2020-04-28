@@ -2213,8 +2213,9 @@ g = graph.Graph()
 
     def to_cpp(self) -> str:
         self._fix_types()
+        sorted_nodes = self._resort_nodes()
         return "graph::Graph g;\n" + "\n".join(
-            n._to_cpp(self.nodes) for n in self._traverse_from_roots()
+            n._to_cpp(sorted_nodes) for n in sorted_nodes
         )
 
     def _traverse_from_roots(self) -> List[BMGNode]:

@@ -22,13 +22,13 @@ def flip():
 
 expected_cpp_1 = """
 graph::Graph g;
-uint n3 = g.add_constant_probability(0.5);
-uint n4 = g.add_distribution(
+uint n0 = g.add_constant_probability(0.5);
+uint n1 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
-  std::vector<uint>({n3}));
+  std::vector<uint>({n0}));
 uint n2 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 """
 
 expected_bmg_1 = """TODO"""

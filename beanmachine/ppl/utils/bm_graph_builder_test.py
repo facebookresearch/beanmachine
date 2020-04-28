@@ -143,26 +143,26 @@ g.query(n10)
         expected = """
 graph::Graph g;
 uint n0 = g.add_constant_probability(0.5);
-uint n12 = g.add_distribution(
+uint n1 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
   std::vector<uint>({n0}));
-uint n4 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n12}));
-g.observe([n4], true);
-uint n2 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
-uint n1 = g.add_constant(2);
-uint n5 = g.add_operator(
-  graph::OperatorType::TO_REAL, std::vector<uint>({n4}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+g.observe([n2], true);
+uint n4 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
+uint n5 = g.add_constant(2);
 uint n6 = g.add_operator(
-  graph::OperatorType::NEGATE, std::vector<uint>({n5}));
+  graph::OperatorType::TO_REAL, std::vector<uint>({n2}));
 uint n7 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n1, n6}));
+  graph::OperatorType::NEGATE, std::vector<uint>({n6}));
 uint n8 = g.add_operator(
-  graph::OperatorType::TO_TENSOR, std::vector<uint>({n7}));
+  graph::OperatorType::ADD, std::vector<uint>({n5, n7}));
 uint n9 = g.add_operator(
-  graph::OperatorType::MULTIPLY, std::vector<uint>({n2, n8}));
-g.query(n9);
+  graph::OperatorType::TO_TENSOR, std::vector<uint>({n8}));
+uint n10 = g.add_operator(
+  graph::OperatorType::MULTIPLY, std::vector<uint>({n4, n9}));
+g.query(n10);
 """
         self.assertEqual(observed.strip(), expected.strip())
 
