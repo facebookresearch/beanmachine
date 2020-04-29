@@ -47,6 +47,7 @@ class AtomicValue {
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
   AtomicValue(AtomicType type, double value);
+  std::string to_string() const;
   bool operator==(const AtomicValue& other) const {
     return type == other.type and
         ((type == AtomicType::BOOLEAN and _bool == other._bool) or
@@ -88,11 +89,17 @@ enum class DistributionType {
   HALF_CAUCHY = 8,
 };
 
+enum class FactorType {
+  UNKNOWN = 0,
+  EXP_PRODUCT = 1,
+};
+
 enum class NodeType {
   UNKNOWN = 0,
   CONSTANT = 1,
   DISTRIBUTION = 2,
   OPERATOR = 3,
+  FACTOR = 4,
   MAX
 };
 
@@ -112,11 +119,12 @@ class Node {
   AtomicValue value;
   double grad1;
   double grad2;
-  bool is_stochastic() const;
-  double log_prob() const; // only valid for stochastic nodes
+  virtual bool is_stochastic() const {return false;}
+  // only valid for stochastic nodes
+  virtual double log_prob() const {return 0;}
   // gradient_log_prob is also only valid for stochastic nodes
   // this function adds the gradients to the passed in gradients
-  void gradient_log_prob(double& grad1, double& grad2) const;
+  virtual void gradient_log_prob(double& /* grad1 */, double& /* grad2 */) const {}
   Node() {}
   explicit Node(NodeType node_type) : node_type(node_type), grad1(0), grad2(0) {}
   Node(NodeType node_type, AtomicValue value)
@@ -138,11 +146,12 @@ class ConstNode : public Node {
 
 // NOTE: the second kind of node -- Distribution is defined in distribution.h
 // NOTE: the third kind of node -- Operator is defined in operator.h
+// NOTE: the fourth kind of node -- Factor is defined in factor.h
 
 struct Graph {
   Graph() {}
   ~Graph() {}
-  std::string to_string();
+  std::string to_string() const;
   // Graph builder APIs -> return the node number
   uint add_constant(bool value);
   uint add_constant(double value);
@@ -156,6 +165,7 @@ struct Graph {
       AtomicType sample_type,
       std::vector<uint> parents);
   uint add_operator(OperatorType op, std::vector<uint> parents);
+  uint add_factor(FactorType fac_type, std::vector<uint> parents);
   // inference related
   void observe(uint var, bool val);
   void observe(uint var, double val);
