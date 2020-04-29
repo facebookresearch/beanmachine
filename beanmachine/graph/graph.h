@@ -91,15 +91,16 @@ enum class OperatorType {
 
 enum class DistributionType {
   UNKNOWN = 0,
-  TABULAR = 1,
-  BERNOULLI = 2,
-  BERNOULLI_NOISY_OR = 3,
-  BETA = 4,
-  BINOMIAL = 5,
-  FLAT = 6,
-  NORMAL = 7,
-  HALF_CAUCHY = 8,
-  STUDENT_T = 9,
+  TABULAR,
+  BERNOULLI,
+  BERNOULLI_NOISY_OR,
+  BETA,
+  BINOMIAL,
+  FLAT,
+  NORMAL,
+  HALF_CAUCHY,
+  STUDENT_T,
+  BERNOULLI_LOGIT,
 };
 
 enum class FactorType {

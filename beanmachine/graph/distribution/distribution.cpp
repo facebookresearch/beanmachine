@@ -9,6 +9,7 @@
 #include "beanmachine/graph/distribution/normal.h"
 #include "beanmachine/graph/distribution/half_cauchy.h"
 #include "beanmachine/graph/distribution/student_t.h"
+#include "beanmachine/graph/distribution/bernoulli_logit.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -51,6 +52,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     }
     case graph::DistributionType::STUDENT_T: {
       return std::make_unique<StudentT>(sample_type, in_nodes);
+    }
+    case graph::DistributionType::BERNOULLI_LOGIT: {
+      return std::make_unique<BernoulliLogit>(sample_type, in_nodes);
     }
     default: {
       throw std::invalid_argument(

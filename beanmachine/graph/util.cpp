@@ -106,5 +106,17 @@ double polygamma(int n, double x) {
   return torch::scalar_tensor(x).polygamma(n).item<double>();
 }
 
+double log1pexp(double x) {
+  if (x <= -37) {
+    return std::exp(x);
+  } else if (x <= 18) {
+    return std::log1p(std::exp(x));
+  } else if (x <= 33.3) {
+    return x + std::exp(-x);
+  } else {
+    return x;
+  }
+}
+
 } // namespace util
 } // namespace beanmachine
