@@ -63,17 +63,13 @@ void Beta::gradient_log_prob_param(
     const graph::AtomicValue& value, double& grad1, double& grad2) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
+  double digamma_a_p_b = util::polygamma(0, param_a + param_b); // digamma(a+b)
+  double poly1_a_p_b = util::polygamma(1, param_a + param_b); // polygamma(1, a+b)
   // first compute gradients w.r.t. a and b
-  double grad_a = std::log(value._double)
-    + torch::scalar_tensor(param_a + param_b).digamma().item<double>()
-    - torch::scalar_tensor(param_a).digamma().item<double>();
-  double grad_b = std::log(1 - value._double)
-    + torch::scalar_tensor(param_a + param_b).digamma().item<double>()
-    - torch::scalar_tensor(param_b).digamma().item<double>();
-  double grad2_a2 = torch::scalar_tensor(param_a + param_b).polygamma(1).item<double>()
-    - torch::scalar_tensor(param_a).polygamma(1).item<double>();
-  double grad2_b2 = torch::scalar_tensor(param_a + param_b).polygamma(1).item<double>()
-    - torch::scalar_tensor(param_b).polygamma(1).item<double>();
+  double grad_a = std::log(value._double) + digamma_a_p_b - util::polygamma(0, param_a);
+  double grad_b = std::log(1 - value._double) + digamma_a_p_b - util::polygamma(0, param_b);
+  double grad2_a2 = poly1_a_p_b - util::polygamma(1, param_a);
+  double grad2_b2 = poly1_a_p_b - util::polygamma(1, param_b);
   grad1 += grad_a * in_nodes[0]->grad1 + grad_b * in_nodes[1]->grad1;
   grad2 +=  grad_a * in_nodes[0]->grad2 + grad_b * in_nodes[1]->grad2
     + grad2_a2 * in_nodes[0]->grad1 * in_nodes[0]->grad1
