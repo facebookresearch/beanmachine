@@ -31,7 +31,11 @@ uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 """
 
-expected_bmg_1 = """TODO"""
+expected_bmg_1 = """
+Node 0 type 1 parents [ ] children [ 1 ] BAD value
+Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
+Node 2 type 3 parents [ 1 ] children [ ] boolean value 0
+"""
 
 expected_python_1 = """
 from beanmachine import graph
@@ -53,10 +57,8 @@ class EndToEndTest(unittest.TestCase):
         observed = to_cpp(source_1)
         self.assertEqual(observed.strip(), expected_cpp_1.strip())
 
-    def disabled_test_to_bmg(self) -> None:
+    def test_to_bmg(self) -> None:
         """test_to_bmg from end_to_end_test.py"""
-        # TODO: This test is disabled because of an undiagnosed crash in
-        # TODO: to_string.
         self.maxDiff = None
         observed = to_bmg(source_1).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_1))
