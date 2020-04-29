@@ -32,7 +32,7 @@ uint n2 = g.add_operator(
 """
 
 expected_bmg_1 = """
-Node 0 type 1 parents [ ] children [ 1 ] BAD value
+Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
 Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
 Node 2 type 3 parents [ 1 ] children [ ] boolean value 0
 """
