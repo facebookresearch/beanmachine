@@ -82,5 +82,12 @@ std::vector<T> percentiles(const std::vector<T>& values, const std::vector<doubl
   return result;
 }
 
+/*
+Compute log of the sum of the exponentiation of all the values in the vector
+:param values: vector of log values
+:returns: log sum exp of values
+*/
+double log_sum_exp(const std::vector<double>& values);
+
 } // namespace util
 } // namespace beanmachine
