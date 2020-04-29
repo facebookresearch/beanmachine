@@ -61,9 +61,7 @@ class TestCAVI(unittest.TestCase):
     def test_gibbs1(self):
         g = self.build_graph1()
         samples = g.infer(1000, graph.InferenceType.GIBBS)
-        means = torch.tensor(
-            [[x.bool for x in sample] for sample in samples], dtype=float
-        ).mean(axis=0)
+        means = torch.tensor(samples, dtype=float).mean(axis=0)
         self.assertGreater(means[0].item(), 0.03)
         self.assertLess(means[0].item(), 0.05)
 
@@ -126,13 +124,7 @@ class TestCAVI(unittest.TestCase):
 
     def test_gibbs2(self):
         g = self.build_graph2()
-        samples = torch.tensor(
-            [
-                [x.bool for x in sample]
-                for sample in g.infer(10000, graph.InferenceType.GIBBS)
-            ],
-            dtype=float,
-        )
+        samples = torch.tensor(g.infer(10000, graph.InferenceType.GIBBS), dtype=float)
         x_marginal = samples.mean(axis=0)[0].item()
         y_marginal = samples.mean(axis=0)[1].item()
         x_y_joint = (samples[:, 0] * samples[:, 1]).mean().item()
