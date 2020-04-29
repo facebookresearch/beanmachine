@@ -99,6 +99,7 @@ enum class DistributionType {
   FLAT = 6,
   NORMAL = 7,
   HALF_CAUCHY = 8,
+  STUDENT_T = 9,
 };
 
 enum class FactorType {

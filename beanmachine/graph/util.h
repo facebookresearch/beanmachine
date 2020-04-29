@@ -89,5 +89,11 @@ Compute log of the sum of the exponentiation of all the values in the vector
 */
 double log_sum_exp(const std::vector<double>& values);
 
+/*
+Compute the polygamma function. Note n=0 is the digamma function.
+:param n:
+:returns: polygamma(n, x)
+*/
+double polygamma(int n, double x);
 } // namespace util
 } // namespace beanmachine
