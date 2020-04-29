@@ -126,10 +126,11 @@ Operator::Operator(
       value = graph::AtomicValue(type0);
       break;
     }
-    case graph::OperatorType::PHI: {
+    case graph::OperatorType::PHI:
+    case graph::OperatorType::LOGISTIC: {
       check_unary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL) {
-        throw std::invalid_argument("Phi requires real parent");
+        throw std::invalid_argument("Phi/logistic require a real-valued parent");
       }
       value.type = graph::AtomicType::PROBABILITY;
       break;
@@ -220,6 +221,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::PHI: {
       phi(this);
+      break;
+    }
+    case graph::OperatorType::LOGISTIC: {
+      logistic(this);
       break;
     }
     case graph::OperatorType::EXP: {
