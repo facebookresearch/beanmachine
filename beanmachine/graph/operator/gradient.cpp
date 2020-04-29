@@ -31,6 +31,20 @@ void Operator::compute_gradients() {
       grad2 = -1 * in_nodes[0]->grad2;
       break;
     }
+    case graph::OperatorType::PHI: {
+      // gradient of the cumulative of the normal density is simply
+      // the normal density pdf:
+      // 1/sqrt(2 pi) exp(-0.5 x^2)
+      // second gradient = 1/sqrt(2 pi) exp(-0.5 x^2) * (-x)
+      double x = in_nodes[0]->value._double;
+      // compute gradient w.r.t. x and then include the gradient of x w.r.t. src idx
+      double grad1_x = M_SQRT1_2 * (M_2_SQRTPI / 2) * std::exp(-0.5 * x * x);
+      double grad2_x = grad1_x * (-x);
+      grad1 = grad1_x * in_nodes[0]->grad1;
+      grad2 = grad2_x * in_nodes[0]->grad1 * in_nodes[0]->grad1
+        + grad1_x * in_nodes[0]->grad2;
+      break;
+    }
     // for f(y) = exp(y) or f(y) = exp(y)-1 we have f'(y) = exp(y) and f''(y) = exp(y)
     case graph::OperatorType::EXP:
     case graph::OperatorType::EXPM1: {
