@@ -95,5 +95,14 @@ Compute the polygamma function. Note n=0 is the digamma function.
 :returns: polygamma(n, x)
 */
 double polygamma(int n, double x);
+
+/*
+Compute `log(1 + exp(x))` with numerical stability.
+See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+:param x:
+:returns: log(1 + exp(x))
+*/
+double log1pexp(double x);
+
 } // namespace util
 } // namespace beanmachine
