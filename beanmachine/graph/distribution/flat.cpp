@@ -49,7 +49,7 @@ AtomicValue Flat::sample(std::mt19937& gen) const {
     }
     case AtomicType::NATURAL: {
       std::uniform_int_distribution<natural_t> dist(0, std::numeric_limits<natural_t>::max());
-      value = AtomicValue(AtomicType::NATURAL, dist(gen));
+      value = AtomicValue((natural_t) dist(gen));
       break;
     }
     default: {

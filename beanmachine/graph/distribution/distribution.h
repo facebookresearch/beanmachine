@@ -22,6 +22,9 @@ class Distribution : public graph::Node {
     throw std::runtime_error(
         "internal error: eval() is not implemented for distribution");
   }
+  // tell the compiler that we want the base class log_prob method
+  // as well as the new one in this class
+  using graph::Node::log_prob;
   virtual double log_prob(const graph::AtomicValue& value) const = 0;
   // these function add the gradients to the passed in gradients
   virtual void gradient_log_prob_value(

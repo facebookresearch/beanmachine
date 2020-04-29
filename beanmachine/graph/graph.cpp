@@ -3,13 +3,15 @@
 #include <sstream>
 
 #include "beanmachine/graph/distribution/distribution.h"
+#include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
 
 namespace beanmachine {
 namespace graph {
 
-AtomicValue::AtomicValue(AtomicType type, double value) : type(type), _double(value) {
+AtomicValue::AtomicValue(AtomicType type, double value)
+    : type(type), _double(value) {
   // don't allow constrained values to get too close to the boundary
   if (type == AtomicType::POS_REAL) {
     if (_double < PRECISION) {
@@ -20,6 +22,12 @@ AtomicValue::AtomicValue(AtomicType type, double value) : type(type), _double(va
       _double = PRECISION;
     } else if (_double > (1 - PRECISION)) {
       _double = 1 - PRECISION;
+    }
+  } else {
+    // this API is only meant for POS_REAL, REAL and PROBABILITY values
+    if (type != AtomicType::REAL) {
+      throw std::invalid_argument(
+          "expect probability, pos_real, or real type with floating point value");
     }
   }
 }
@@ -45,30 +53,29 @@ AtomicValue::AtomicValue(AtomicType type) : type(type) {
   }
 }
 
-bool Node::is_stochastic() const {
-  return (
-      node_type == NodeType::OPERATOR and
-      static_cast<const oper::Operator*>(this)->op_type ==
-          OperatorType::SAMPLE);
-}
-
-double Node::log_prob() const {
-  assert(is_stochastic());
-  return static_cast<const distribution::Distribution*>(in_nodes[0])
-      ->log_prob(value);
-}
-
-void Node::gradient_log_prob(double& first_grad, double& second_grad) const {
-  assert(is_stochastic());
-  const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
-  if (grad1 != 0.0) {
-    dist->gradient_log_prob_value(value, first_grad, second_grad);
+std::string AtomicValue::to_string() const {
+  std::ostringstream os;
+  if (type == AtomicType::UNKNOWN) {
+    os << "unknown value "; // this is not an error, e.g. distribution node
+  } else if (type == AtomicType::BOOLEAN) {
+    os << "boolean value " << _bool;
+  } else if (type == AtomicType::PROBABILITY) {
+    os << "probability value " << _double;
+  } else if (type == AtomicType::REAL) {
+    os << "real value " << _double;
+  } else if (type == AtomicType::POS_REAL) {
+    os << "pos real value " << _double;
+  } else if (type == AtomicType::NATURAL) {
+    os << "natural value " << _natural;
+  } else if (type == AtomicType::TENSOR) {
+    os << "tensor value " << _tensor;
   } else {
-    dist->gradient_log_prob_param(value, first_grad, second_grad);
+    os << "BAD value";
   }
+  return os.str();
 }
 
-std::string Graph::to_string() {
+std::string Graph::to_string() const {
   std::ostringstream os;
   for (auto const& node : nodes) {
     os << "Node " << node->index << " type "
@@ -80,26 +87,18 @@ std::string Graph::to_string() {
     for (Node* child : node->out_nodes) {
       os << child->index << " ";
     }
-    os << "]";
-    if (node->value.type == AtomicType::UNKNOWN) {
-      os << " unknown value "; // this is not an error, e.g. distribution node
-    } else if (node->value.type == AtomicType::BOOLEAN) {
-      os << " boolean value " << node->value._bool;
-    } else if (node->value.type == AtomicType::REAL) {
-      os << " real value " << node->value._double;
-    } else if (node->value.type == AtomicType::TENSOR) {
-      os << " tensor value " << node->value._tensor;
-    } else {
-      os << " BAD value";
-    }
-    os << std::endl;
+    os << "] " << node->value.to_string() << std::endl;
   }
   return os.str();
 }
 
 void Graph::eval_and_grad(
-  uint tgt_idx, uint src_idx, uint seed, AtomicValue& value, double& grad1, double& grad2)
-{
+    uint tgt_idx,
+    uint src_idx,
+    uint seed,
+    AtomicValue& value,
+    double& grad1,
+    double& grad2) {
   if (src_idx >= nodes.size()) {
     throw std::out_of_range("src_idx " + std::to_string(src_idx));
   }
@@ -111,7 +110,7 @@ void Graph::eval_and_grad(
   src_node->grad1 = 1;
   src_node->grad2 = 0;
   std::mt19937 generator(seed);
-  for (uint node_id = src_idx + 1; node_id <= tgt_idx; node_id ++) {
+  for (uint node_id = src_idx + 1; node_id <= tgt_idx; node_id++) {
     Node* node = nodes[node_id].get();
     node->eval(generator);
     node->compute_gradients();
@@ -122,7 +121,7 @@ void Graph::eval_and_grad(
     }
   }
   // reset all the gradients including the source node
-  for (uint node_id = src_idx; node_id <= tgt_idx; node_id ++) {
+  for (uint node_id = src_idx; node_id <= tgt_idx; node_id++) {
     Node* node = nodes[node_id].get();
     node->grad1 = node->grad2 = 0;
   }
@@ -131,7 +130,8 @@ void Graph::eval_and_grad(
 void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
-    throw std::runtime_error("gradient_log_prob only supported on stochastic nodes");
+    throw std::runtime_error(
+        "gradient_log_prob only supported on stochastic nodes");
   }
   // start gradient
   src_node->grad1 = 1;
@@ -188,8 +188,8 @@ std::vector<Node*> Graph::convert_parent_ids(
   for (uint paridx : parent_ids) {
     if (paridx >= nodes.size()) {
       throw std::out_of_range(
-          "parent node_id " + std::to_string(paridx)
-          + "must be less than " + std::to_string(nodes.size()));
+          "parent node_id " + std::to_string(paridx) + "must be less than " +
+          std::to_string(nodes.size()));
     }
     parent_nodes.push_back(nodes[paridx].get());
   }
@@ -207,8 +207,7 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
     node->in_nodes.push_back(parent);
     if (parent->is_stochastic()) {
       sto_set.insert(parent->index);
-    }
-    else {
+    } else {
       det_set.insert(parent->det_anc.begin(), parent->det_anc.end());
       if (parent->node_type == NodeType::OPERATOR) {
         det_set.insert(parent->index);
@@ -226,16 +225,15 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
 Node* Graph::check_node(uint node_id, NodeType node_type) {
   if (node_id >= nodes.size()) {
     throw std::out_of_range(
-        "node_id (" + std::to_string(node_id) + ") must be less than "
-        + std::to_string(nodes.size()));
+        "node_id (" + std::to_string(node_id) + ") must be less than " +
+        std::to_string(nodes.size()));
   }
   Node* node = nodes[node_id].get();
   if (node->node_type != node_type) {
     throw std::invalid_argument(
-      "node_id " + std::to_string(node_id) + "expected type "
-      + std::to_string(static_cast<int>(node_type))
-      + " but actual type "
-      + std::to_string(static_cast<int>(node->node_type)));
+        "node_id " + std::to_string(node_id) + "expected type " +
+        std::to_string(static_cast<int>(node_type)) + " but actual type " +
+        std::to_string(static_cast<int>(node->node_type)));
   }
   return node;
 }
@@ -295,6 +293,18 @@ uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
   return add_node(std::move(node), parent_ids);
 }
 
+uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
+  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  std::unique_ptr<Node> node =
+      factor::Factor::new_factor(fac_type, parent_nodes);
+  uint node_id = add_node(std::move(node), parent_ids);
+  // factors are both stochastic nodes and observed nodes
+  Node* node2 = check_node(node_id, NodeType::FACTOR);
+  node2->is_observed = true;
+  observed.insert(node_id);
+  return node_id;
+}
+
 void Graph::observe(uint node_id, bool val) {
   observe(node_id, AtomicValue(val));
 }
@@ -320,14 +330,13 @@ void Graph::observe(uint node_id, AtomicValue value) {
   }
   if (observed.find(node_id) != observed.end()) {
     throw std::invalid_argument(
-      "duplicate observe for node_id " + std::to_string(node_id));
+        "duplicate observe for node_id " + std::to_string(node_id));
   }
   if (node->value.type != value.type) {
     throw std::invalid_argument(
-      "observe expected type "
-      + std::to_string(static_cast<int>(node->value.type))
-      + " instead got "
-      + std::to_string(static_cast<int>(value.type)));
+        "observe expected type " +
+        std::to_string(static_cast<int>(node->value.type)) + " instead got " +
+        std::to_string(static_cast<int>(value.type)));
   }
   node->value = value;
   node->is_observed = true;
@@ -338,7 +347,7 @@ uint Graph::query(uint node_id) {
   check_node(node_id, NodeType::OPERATOR);
   if (queried.find(node_id) != queried.end()) {
     throw std::invalid_argument(
-      "duplicate query for node_id " + std::to_string(node_id));
+        "duplicate query for node_id " + std::to_string(node_id));
   }
   queries.push_back(node_id);
   queried.insert(node_id);
@@ -362,23 +371,21 @@ void Graph::collect_sample() {
       AtomicValue value = nodes[node_id]->value;
       if (value.type == AtomicType::BOOLEAN) {
         means[pos] += double(value._bool) / agg_samples;
-      }
-      else if (value.type == AtomicType::REAL
-          or value.type == AtomicType::POS_REAL
-          or value.type == AtomicType::PROBABILITY) {
+      } else if (
+          value.type == AtomicType::REAL or
+          value.type == AtomicType::POS_REAL or
+          value.type == AtomicType::PROBABILITY) {
         means[pos] += value._double / agg_samples;
-      }
-      else if (value.type == AtomicType::NATURAL) {
+      } else if (value.type == AtomicType::NATURAL) {
         means[pos] += double(value._natural) / agg_samples;
-      }
-      else {
-        throw std::runtime_error("Mean aggregation only supported for "
-          "boolean/real/probability/natural-valued nodes");
+      } else {
+        throw std::runtime_error(
+            "Mean aggregation only supported for "
+            "boolean/real/probability/natural-valued nodes");
       }
       pos++;
     }
-  }
-  else {
+  } else {
     assert(false);
   }
 }
@@ -418,17 +425,20 @@ Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   return means;
 }
 
-std::vector<std::vector<double>>&
-Graph::variational(
-    uint num_iters, uint steps_per_iter, uint seed, uint elbo_samples) {
+std::vector<std::vector<double>>& Graph::variational(
+    uint num_iters,
+    uint steps_per_iter,
+    uint seed,
+    uint elbo_samples) {
   if (queries.size() == 0) {
     throw std::runtime_error("no nodes queried for inference");
   }
   for (uint node_id : queries) {
-    Node * node = nodes[node_id].get();
+    Node* node = nodes[node_id].get();
     if (not node->is_stochastic()) {
-      throw std::invalid_argument("only sample nodes may be queried in "
-        "variational inference");
+      throw std::invalid_argument(
+          "only sample nodes may be queried in "
+          "variational inference");
     }
   }
   elbo_vals.clear();
