@@ -230,7 +230,7 @@ class World(object):
         """
         node_var = self.get_node_earlier_version(node)
         if node_var is not None:
-            node_var.value
+            return node_var.value
         return None
 
     def get_node_in_world_raise_error(

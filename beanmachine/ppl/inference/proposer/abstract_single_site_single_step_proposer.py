@@ -84,7 +84,7 @@ class AbstractSingleSiteSingleStepProposer(
         requires_transform = proposal_distribution_struct.requires_transform
         requires_reshape = proposal_distribution_struct.requires_reshape
 
-        if proposal_distribution == node_var.proposal_distribution:
+        if proposal_distribution == node_var.distribution:
             old_value = world.get_old_value(node)
         else:
             old_value = world.get_old_unconstrained_value(node)
