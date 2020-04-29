@@ -134,8 +134,8 @@ class TestBayesNet(unittest.TestCase):
         v1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
         g.query(v1)
         samples = g.infer(1)
-        self.assertTrue(samples[0][0].type == graph.AtomicType.BOOLEAN)
-        self.assertTrue(samples[0][0].bool)
+        self.assertEqual(type(samples[0][0]), bool)
+        self.assertTrue(samples[0][0])
         means = g.infer_mean(1)
         self.assertEqual(len(means), 1, "exactly one node queried")
 
@@ -181,8 +181,8 @@ class TestBayesNet(unittest.TestCase):
         v1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
         g.query(v1)
         samples = g.infer(1, graph.InferenceType.REJECTION)
-        self.assertTrue(samples[0][0].type == graph.AtomicType.PROBABILITY)
-        self.assertTrue(samples[0][0].probability > 0 and samples[0][0].probability < 1)
+        self.assertEqual(type(samples[0][0]), float)
+        self.assertTrue(samples[0][0] > 0 and samples[0][0] < 1)
         means = g.infer_mean(10000, graph.InferenceType.REJECTION)
         self.assertAlmostEqual(means[0], 1.1 / (1.1 + 5.0), 2, "beta mean")
 
@@ -196,8 +196,8 @@ class TestBayesNet(unittest.TestCase):
         v1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
         g.query(v1)
         samples = g.infer(1, graph.InferenceType.REJECTION)
-        self.assertTrue(samples[0][0].type == graph.AtomicType.NATURAL)
-        self.assertTrue(samples[0][0].natural <= 10)
+        self.assertEqual(type(samples[0][0]), int)
+        self.assertTrue(samples[0][0] <= 10)
         means = g.infer_mean(10000, graph.InferenceType.REJECTION)
         self.assertTrue(means[0] > 5 and means[0] < 6)
 
@@ -274,8 +274,8 @@ class TestBayesNet(unittest.TestCase):
         samples = g.infer(1)
         self.assertTrue(len(samples) == 1)
         # since we have observed grass wet is true the query should be true
-        self.assertTrue(samples[0][1].type == graph.AtomicType.BOOLEAN)
-        self.assertTrue(samples[0][1].bool)
+        self.assertEqual(type(samples[0][1]), bool)
+        self.assertTrue(samples[0][1])
 
     def test_infer_mean(self):
         g = graph.Graph()
