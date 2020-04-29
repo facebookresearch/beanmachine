@@ -42,7 +42,8 @@ PYBIND11_MODULE(graph, module) {
       .value("EXP", OperatorType::EXP)
       .value("EXPM1", OperatorType::EXPM1)
       .value("MULTIPLY", OperatorType::MULTIPLY)
-      .value("ADD", OperatorType::ADD);
+      .value("ADD", OperatorType::ADD)
+      .value("PHI", OperatorType::PHI);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)
