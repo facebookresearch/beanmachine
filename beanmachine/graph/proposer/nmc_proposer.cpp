@@ -3,6 +3,7 @@
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/proposer/beta.h"
 #include "beanmachine/graph/proposer/normal.h"
+#include "beanmachine/graph/proposer/mixture.h"
 
 namespace beanmachine {
 namespace proposer {
@@ -43,7 +44,11 @@ std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double gr
       sigma = std::sqrt(-1 / grad2);
       mu = value._double - grad1 / grad2;
     }
-    return std::make_unique<Normal>(mu, sigma);
+    // we will mix multiple proposers with increasing variance and lower probability
+    std::vector<std::unique_ptr<Proposer>> props;
+    props.push_back(std::make_unique<Normal>(mu, sigma));
+    props.push_back(std::make_unique<Normal>(mu, sigma*10));
+    return std::make_unique<Mixture>(std::vector<double>{1, 0.1}, std::move(props));
   }
   // inference shouldn't call this function for other types
   return nullptr;
