@@ -345,6 +345,45 @@ class ProbabilityNode(ConstantNode):
         return f"n{n} = g.add_constant_probability({v})"
 
 
+class PositiveRealNode(ConstantNode):
+    value: float
+
+    def __init__(self, value: float):
+        ConstantNode.__init__(self)
+        self.value = value
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    @property
+    def node_type(self) -> Any:
+        return PositiveReal
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    @property
+    def label(self) -> str:
+        return str(self.value)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_constant_pos_real(float(self.value))
+
+    def _value_to_python(self) -> str:
+        return str(float(self.value))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp(self.value)
+        return f"uint n{n} = g.add_constant_pos_real({v});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_python()
+        return f"n{n} = g.add_constant_pos_real({v})"
+
+
 class TensorNode(ConstantNode):
     value: Tensor
 
@@ -393,7 +432,10 @@ class TensorNode(ConstantNode):
 
 
 class DistributionNode(BMGNode, metaclass=ABCMeta):
+    types_fixed: bool
+
     def __init__(self, children: List[BMGNode]):
+        self.types_fixed = False
         BMGNode.__init__(self, children)
 
     @abstractmethod
@@ -404,11 +446,9 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
 class BernoulliNode(DistributionNode):
     edges = ["probability"]
     is_logits: bool
-    types_fixed: bool
 
     def __init__(self, probability: BMGNode, is_logits: bool = False):
         self.is_logits = is_logits
-        self.types_fixed = False
         DistributionNode.__init__(self, [probability])
 
     @property
@@ -447,18 +487,19 @@ class BernoulliNode(DistributionNode):
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
+        logit = "_LOGIT" if self.is_logits else ""
         return (
             f"n{d[self]} = g.add_distribution(\n"
-            + "  graph.DistributionType.BERNOULLI,\n"
+            + f"  graph.DistributionType.BERNOULLI{logit},\n"
             + "  graph.AtomicType.BOOLEAN,\n"
             + f"  [n{d[self.probability]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
+        logit = "_LOGIT" if self.is_logits else ""
         return (
             f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
+            + f"  graph::DistributionType::BERNOULLI{logit},\n"
             + "  graph::AtomicType::BOOLEAN,\n"
             + f"  std::vector<uint>({{n{d[self.probability]}}}));"
         )
@@ -698,7 +739,6 @@ class NormalNode(DistributionNode):
     def sigma(self, p: BMGNode) -> None:
         self.children[1] = p
 
-    # TODO: Do we need a generic type for "distribution of X"?
     @property
     def node_type(self) -> Any:
         return Normal
@@ -719,26 +759,23 @@ class NormalNode(DistributionNode):
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
-            # TODO: Fix this when we add the node type to BMG
-            dt.BERNOULLI,
-            AtomicType.BOOLEAN,
-            [d[self.mu]],
+            dt.NORMAL, AtomicType.REAL, [d[self.mu], d[self.sigma]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
-            # TODO: Fix this when we add the node type to BMG
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.mu]}])"
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.NORMAL,\n"
+            + "  graph.AtomicType.REAL,\n"
+            + f"  [n{d[self.mu]}, n{d[self.sigma]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         return (
-            # TODO: Fix this when we add the node type to BMG
             f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.mu]}}}));"
+            + "  graph::DistributionType::NORMAL,\n"
+            + "  graph::AtomicType::REAL,\n"
+            + f"  std::vector<uint>({{n{d[self.mu]}, n{d[self.sigma]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -1596,6 +1633,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_pos_real(self, value: float) -> PositiveRealNode:
+        node = PositiveRealNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_boolean(self, value: bool) -> BooleanNode:
         node = BooleanNode(value)
         self.add_node(node)
@@ -2196,14 +2239,25 @@ g = graph.Graph()
         # instead of a tensor.
 
         for node in self._traverse_from_roots():
+            self._fix_type(node)
+
+    def _fix_type(self, node: BMGNode) -> None:
+        if isinstance(node, BernoulliNode):
             self._fix_bernoulli(node)
+        elif isinstance(node, NormalNode):
+            self._fix_normal(node)
+
+    def _fix_normal(self, node: NormalNode) -> None:
+        if node.types_fixed:
+            return
+        node.mu = self._ensure_real(node.mu)
+        node.sigma = self._ensure_pos_real(node.sigma)
+        node.types_fixed = True
 
     # Ensures that Bernoulli nodes take the appropriate
     # input type; once they do, they are updated to automatically
     # mark samples as being bools.
-    def _fix_bernoulli(self, node: BMGNode) -> None:
-        if not isinstance(node, BernoulliNode):
-            return
+    def _fix_bernoulli(self, node: BernoulliNode) -> None:
         if node.types_fixed:
             return
         if node.is_logits:
@@ -2244,3 +2298,20 @@ g = graph.Graph()
             v = float(node.value)
             return self.add_real(v)
         raise ValueError("Conversion to real node not yet implemented.")
+
+    def _ensure_pos_real(self, node: BMGNode) -> BMGNode:
+        # TODO: Better error handling
+        if node.node_type == PositiveReal:
+            return node
+        if isinstance(node, ConstantNode):
+            if isinstance(node, TensorNode):
+                if node.value.shape.numel() != 1:
+                    raise ValueError(
+                        "To use a tensor as a positive real number it must "
+                        + "have exactly one element."
+                    )
+            v = float(node.value)
+            if v < 0.0:
+                raise ValueError("A positive real must be greater than 0.0.")
+            return self.add_pos_real(v)
+        raise ValueError("Conversion to positive real node not yet implemented.")
