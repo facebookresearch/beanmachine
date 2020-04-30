@@ -10,15 +10,15 @@ ExpProduct::ExpProduct(const std::vector<graph::Node*>& in_nodes)
     : Factor(graph::FactorType::EXP_PRODUCT) {
   // an ExpProduct factor must have at least one parent
   if (in_nodes.size() < 1) {
-    throw std::invalid_argument(
-        "ExpProduct factor needs at least one parent");
+    throw std::invalid_argument("ExpProduct factor needs at least one parent");
   }
   // the parent should be real, positive, or probability
-  for (const graph::Node* parent: in_nodes) {
+  for (const graph::Node* parent : in_nodes) {
     if (parent->value.type != graph::AtomicType::REAL and
         parent->value.type != graph::AtomicType::POS_REAL and
         parent->value.type != graph::AtomicType::PROBABILITY) {
-      throw std::invalid_argument("ExpProduct parents must be real, positive, or a probability");
+      throw std::invalid_argument(
+          "ExpProduct parents must be real, positive, or a probability");
     }
   }
 }
@@ -31,7 +31,7 @@ ExpProduct::ExpProduct(const std::vector<graph::Node*>& in_nodes)
 
 double ExpProduct::log_prob() const {
   double product = 1.0;
-  for (const Node* node: in_nodes) {
+  for (const Node* node : in_nodes) {
     product *= node->value._double;
   }
   return product;
@@ -45,9 +45,10 @@ void ExpProduct::gradient_log_prob(double& grad1, double& grad2) const {
   double running_prod_1grad = 0;
   // product of previous terms and exactly two gradients
   double running_prod_2grad = 0;
-  for (const Node* node: in_nodes) {
+  for (const Node* node : in_nodes) {
     running_prod_2grad *= node->value._double;
-    running_prod_2grad += 2 * running_prod_1grad * node->grad1 + running_prod * node->grad2;
+    running_prod_2grad +=
+        2 * running_prod_1grad * node->grad1 + running_prod * node->grad2;
     running_prod_1grad *= node->value._double;
     running_prod_1grad += running_prod * node->grad1;
     running_prod *= node->value._double;

@@ -9,9 +9,9 @@ namespace oper {
 void multiply(graph::Node* node) {
   assert(node->in_nodes.size() > 1);
   const graph::AtomicValue& parent0 = node->in_nodes[0]->value;
-  if (parent0.type == graph::AtomicType::REAL
-      or parent0.type == graph::AtomicType::POS_REAL
-      or parent0.type == graph::AtomicType::PROBABILITY) {
+  if (parent0.type == graph::AtomicType::REAL or
+      parent0.type == graph::AtomicType::POS_REAL or
+      parent0.type == graph::AtomicType::PROBABILITY) {
     node->value._double = parent0._double;
 
     for (uint i = 1; i < node->in_nodes.size(); i++) {
@@ -27,17 +27,16 @@ void multiply(graph::Node* node) {
     }
   } else {
     throw std::runtime_error(
-      "invalid type " + std::to_string(static_cast<int>(parent0.type))
-      + " for MULTIPLY operator at node_id "
-      + std::to_string(node->index));
+        "invalid type " + std::to_string(static_cast<int>(parent0.type)) +
+        " for MULTIPLY operator at node_id " + std::to_string(node->index));
   }
 }
 
 void add(graph::Node* node) {
   assert(node->in_nodes.size() > 1);
   const graph::AtomicValue& parent0 = node->in_nodes[0]->value;
-  if (parent0.type == graph::AtomicType::REAL
-      or parent0.type == graph::AtomicType::POS_REAL) {
+  if (parent0.type == graph::AtomicType::REAL or
+      parent0.type == graph::AtomicType::POS_REAL) {
     node->value._double = parent0._double;
 
     for (uint i = 1; i < node->in_nodes.size(); i++) {
@@ -53,9 +52,8 @@ void add(graph::Node* node) {
     }
   } else {
     throw std::runtime_error(
-      "invalid type " + std::to_string(static_cast<int>(parent0.type))
-      + " for ADD operator at node_id "
-      + std::to_string(node->index));
+        "invalid type " + std::to_string(static_cast<int>(parent0.type)) +
+        " for ADD operator at node_id " + std::to_string(node->index));
   }
 }
 

@@ -6,7 +6,6 @@
 
 #include "beanmachine/graph/util.h"
 
-
 using namespace beanmachine;
 
 #define LOG_90 ((double)4.49980967033)
@@ -19,7 +18,7 @@ TEST(testutil, sample_logodds) {
   std::mt19937 gen(seed);
   // check the basic functionality with large weights
   int cnt_pos = 0;
-  for (int i=0; i<10000; i++) {
+  for (int i = 0; i < 10000; i++) {
     if (util::sample_logodds(gen, LOG_90 - LOG_10)) {
       cnt_pos += 1;
     }
@@ -29,7 +28,7 @@ TEST(testutil, sample_logodds) {
   EXPECT_GT(cnt_pos, 8800);
   EXPECT_LT(cnt_pos, 9200);
   cnt_pos = 0;
-  for (int i=0; i<10000; i++) {
+  for (int i = 0; i < 10000; i++) {
     if (util::sample_logodds(gen, LOG_10 - LOG_90)) {
       cnt_pos += 1;
     }
@@ -40,7 +39,7 @@ TEST(testutil, sample_logodds) {
   EXPECT_LT(cnt_pos, 1200);
   // now check with some disparity in weights
   cnt_pos = 0;
-  for (int i=0; i<100000; i++) {
+  for (int i = 0; i < 100000; i++) {
     if (util::sample_logodds(gen, LOG_PT_01 - LOG_90)) {
       cnt_pos += 1;
     }

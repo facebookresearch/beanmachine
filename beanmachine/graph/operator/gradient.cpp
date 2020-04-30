@@ -37,12 +37,13 @@ void Operator::compute_gradients() {
       // 1/sqrt(2 pi) exp(-0.5 x^2)
       // second gradient = 1/sqrt(2 pi) exp(-0.5 x^2) * (-x)
       double x = in_nodes[0]->value._double;
-      // compute gradient w.r.t. x and then include the gradient of x w.r.t. src idx
+      // compute gradient w.r.t. x and then include the gradient of x w.r.t. src
+      // idx
       double grad1_x = M_SQRT1_2 * (M_2_SQRTPI / 2) * std::exp(-0.5 * x * x);
       double grad2_x = grad1_x * (-x);
       grad1 = grad1_x * in_nodes[0]->grad1;
-      grad2 = grad2_x * in_nodes[0]->grad1 * in_nodes[0]->grad1
-        + grad1_x * in_nodes[0]->grad2;
+      grad2 = grad2_x * in_nodes[0]->grad1 * in_nodes[0]->grad1 +
+          grad1_x * in_nodes[0]->grad2;
       break;
     }
     case graph::OperatorType::LOGISTIC: {
@@ -53,11 +54,12 @@ void Operator::compute_gradients() {
       double f_grad = f_x * (1 - f_x);
       double f_grad2 = f_grad * (1 - 2 * f_x);
       grad1 = f_grad * in_nodes[0]->grad1;
-      grad2 = f_grad2 * in_nodes[0]->grad1 * in_nodes[0]->grad1
-        + f_grad * in_nodes[0]->grad2;
+      grad2 = f_grad2 * in_nodes[0]->grad1 * in_nodes[0]->grad1 +
+          f_grad * in_nodes[0]->grad2;
       break;
     }
-    // for f(y) = exp(y) or f(y) = exp(y)-1 we have f'(y) = exp(y) and f''(y) = exp(y)
+    // for f(y) = exp(y) or f(y) = exp(y)-1 we have f'(y) = exp(y) and f''(y) =
+    // exp(y)
     case graph::OperatorType::EXP:
     case graph::OperatorType::EXPM1: {
       double exp_parent = std::exp(in_nodes[0]->value._double);
@@ -78,9 +80,10 @@ void Operator::compute_gradients() {
       // the sum of all products with exactly two distinct variables
       // replaced with their second grad
       double sum_product_two_grad1 = 0.0;
-      // the sum of all products with exactly one variable replaced with its second grad
+      // the sum of all products with exactly one variable replaced with its
+      // second grad
       double sum_product_one_grad2 = 0.0;
-      for (const auto node: in_nodes) {
+      for (const auto node : in_nodes) {
         sum_product_one_grad2 *= node->value._double;
         sum_product_one_grad2 += product * node->grad2;
         sum_product_two_grad1 *= node->value._double;
@@ -95,7 +98,7 @@ void Operator::compute_gradients() {
     }
     case graph::OperatorType::ADD: {
       grad1 = grad2 = 0;
-      for (const auto node: in_nodes) {
+      for (const auto node : in_nodes) {
         grad1 += node->grad1;
         grad2 += node->grad2;
       }
@@ -113,9 +116,9 @@ void Operator::compute_gradients() {
     }
     default: {
       throw std::runtime_error(
-        "internal error: unexpected operator type "
-        + std::to_string(static_cast<int>(op_type))
-        + " at node_id " + std::to_string(index));
+          "internal error: unexpected operator type " +
+          std::to_string(static_cast<int>(op_type)) + " at node_id " +
+          std::to_string(index));
     }
   }
 }

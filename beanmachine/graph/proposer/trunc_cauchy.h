@@ -26,6 +26,7 @@ class TruncatedCauchy : public Proposer {
   :returns: log probability of value.
   */
   double log_prob(graph::AtomicValue& value) const override;
+
  private:
   double loc;
   double scale;
@@ -34,5 +35,5 @@ class TruncatedCauchy : public Proposer {
   double log_pdf_constant;
 };
 
-} // namespace distribution
+} // namespace proposer
 } // namespace beanmachine

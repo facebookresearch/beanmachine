@@ -13,8 +13,8 @@ graph::AtomicValue Normal::sample(std::mt19937& gen) const {
 }
 
 double Normal::log_prob(graph::AtomicValue& value) const {
-  return -std::log(sigma) - 0.5 * std::log(2 * M_PI)
-    - 0.5 * (value._double - mu) * (value._double - mu) / (sigma * sigma);
+  return -std::log(sigma) - 0.5 * std::log(2 * M_PI) -
+      0.5 * (value._double - mu) * (value._double - mu) / (sigma * sigma);
 }
 
 } // namespace proposer

@@ -9,11 +9,10 @@ class Gamma : public Proposer {
  public:
   /*
   Constructor for Gamma class.
-  pdf(x) = x^(alpha - 1) e^{-beta * x}  * beta^alpha / Gamma-func(alpha)  for x >= 0
-  :param alpha: shape
-  :param beta: rate
+  pdf(x) = x^(alpha - 1) e^{-beta * x}  * beta^alpha / Gamma-func(alpha)  for x
+  >= 0 :param alpha: shape :param beta: rate
   */
-  Gamma(double alpha, double beta):  Proposer(), alpha(alpha), beta(beta) {}
+  Gamma(double alpha, double beta) : Proposer(), alpha(alpha), beta(beta) {}
   /*
   Sample a value from the proposer.
   :param gen: Random number generator.
@@ -26,10 +25,11 @@ class Gamma : public Proposer {
   :returns: log probability of value.
   */
   double log_prob(graph::AtomicValue& value) const override;
+
  private:
   double alpha;
   double beta;
 };
 
-} // namespace distribution
+} // namespace proposer
 } // namespace beanmachine

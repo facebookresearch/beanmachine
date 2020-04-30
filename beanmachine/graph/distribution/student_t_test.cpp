@@ -3,9 +3,7 @@
 
 #include "beanmachine/graph/graph.h"
 
-
 using namespace beanmachine::graph;
-
 
 TEST(testdistrib, student_t) {
   Graph g;
@@ -17,17 +15,27 @@ TEST(testdistrib, student_t) {
   auto scale = g.add_constant_pos_real(SCALE);
   // negative tests: student-t has three parents
   EXPECT_THROW(
-      g.add_distribution(DistributionType::STUDENT_T, AtomicType::REAL, std::vector<uint>{}),
+      g.add_distribution(
+          DistributionType::STUDENT_T, AtomicType::REAL, std::vector<uint>{}),
       std::invalid_argument);
   EXPECT_THROW(
-      g.add_distribution(DistributionType::STUDENT_T, AtomicType::REAL, std::vector<uint>{dof}),
+      g.add_distribution(
+          DistributionType::STUDENT_T,
+          AtomicType::REAL,
+          std::vector<uint>{dof}),
       std::invalid_argument);
   EXPECT_THROW(
-      g.add_distribution(DistributionType::STUDENT_T, AtomicType::REAL, std::vector<uint>{dof, loc}),
+      g.add_distribution(
+          DistributionType::STUDENT_T,
+          AtomicType::REAL,
+          std::vector<uint>{dof, loc}),
       std::invalid_argument);
   // negative test the parents must be a positive, real and a positive
   EXPECT_THROW(
-      g.add_distribution(DistributionType::STUDENT_T, AtomicType::REAL, std::vector<uint>{loc, dof, scale}),
+      g.add_distribution(
+          DistributionType::STUDENT_T,
+          AtomicType::REAL,
+          std::vector<uint>{loc, dof, scale}),
       std::invalid_argument);
   // negative test: the sample type must be REAL
   EXPECT_THROW(
@@ -35,18 +43,24 @@ TEST(testdistrib, student_t) {
           DistributionType::STUDENT_T,
           AtomicType::POS_REAL,
           std::vector<uint>{dof, loc, scale}),
-          std::invalid_argument);
+      std::invalid_argument);
   // test creation of a distribution
   auto student_t_dist = g.add_distribution(
-      DistributionType::STUDENT_T, AtomicType::REAL, std::vector<uint>{dof, loc, scale});
+      DistributionType::STUDENT_T,
+      AtomicType::REAL,
+      std::vector<uint>{dof, loc, scale});
   // test distribution of mean and variance
-  auto real_val = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{student_t_dist});
-  auto real_sq_val = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{real_val, real_val});
+  auto real_val =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{student_t_dist});
+  auto real_sq_val = g.add_operator(
+      OperatorType::MULTIPLY, std::vector<uint>{real_val, real_val});
   g.query(real_val);
   g.query(real_sq_val);
-  const std::vector<double>& means = g.infer_mean(100000, InferenceType::REJECTION);
+  const std::vector<double>& means =
+      g.infer_mean(100000, InferenceType::REJECTION);
   EXPECT_NEAR(means[0], LOC, 0.1);
-  EXPECT_NEAR(means[1] - means[0]*means[0], (DOF / (DOF - 2)) * SCALE * SCALE, 1.0);
+  EXPECT_NEAR(
+      means[1] - means[0] * means[0], (DOF / (DOF - 2)) * SCALE * SCALE, 1.0);
   // test log_prob
   // torch.distributions.StudentT(3, -11, 4).log_prob(-5) -> -3.5064
   g.observe(real_val, -5.0);
@@ -68,18 +82,30 @@ TEST(testdistrib, student_t) {
   // loc ~ FLAT
   // scale ~ FLAT
   // x ~ StudentT(dof^2, loc^2, scale^2)
-  dof = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{
-      g.add_distribution(DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{})});
-  loc = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{
-      g.add_distribution(DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{})});
-  scale = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{
-      g.add_distribution(DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{})});
-  auto dof_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{dof, dof});
-  auto loc_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{loc, loc});
-  auto scale_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{scale, scale});
-  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{
-      g.add_distribution(DistributionType::STUDENT_T, AtomicType::REAL,
-      std::vector<uint>{dof_sq, loc_sq, scale_sq})});
+  dof = g.add_operator(
+      OperatorType::SAMPLE,
+      std::vector<uint>{g.add_distribution(
+          DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{})});
+  loc = g.add_operator(
+      OperatorType::SAMPLE,
+      std::vector<uint>{g.add_distribution(
+          DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{})});
+  scale = g.add_operator(
+      OperatorType::SAMPLE,
+      std::vector<uint>{g.add_distribution(
+          DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{})});
+  auto dof_sq =
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{dof, dof});
+  auto loc_sq =
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{loc, loc});
+  auto scale_sq =
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{scale, scale});
+  auto x = g.add_operator(
+      OperatorType::SAMPLE,
+      std::vector<uint>{g.add_distribution(
+          DistributionType::STUDENT_T,
+          AtomicType::REAL,
+          std::vector<uint>{dof_sq, loc_sq, scale_sq})});
   g.observe(dof, 5.0);
   g.observe(loc, 2.5);
   g.observe(scale, 1.5);

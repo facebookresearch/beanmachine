@@ -5,7 +5,9 @@
 namespace beanmachine {
 namespace proposer {
 
-graph::AtomicValue uniform_initializer(std::mt19937& gen, graph::AtomicType type) {
+graph::AtomicValue uniform_initializer(
+    std::mt19937& gen,
+    graph::AtomicType type) {
   if (type == graph::AtomicType::BOOLEAN) {
     bool val = std::bernoulli_distribution(0.5)(gen);
     return graph::AtomicValue(val);
@@ -19,7 +21,8 @@ graph::AtomicValue uniform_initializer(std::mt19937& gen, graph::AtomicType type
     std::exponential_distribution<double> dist(1.0);
     return graph::AtomicValue(graph::AtomicType::POS_REAL, dist(gen));
   }
-  // we shouldn't be called with other types, the following will invalidate the value
+  // we shouldn't be called with other types, the following will invalidate the
+  // value
   return graph::AtomicValue();
 }
 

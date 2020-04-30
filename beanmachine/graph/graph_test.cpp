@@ -7,7 +7,6 @@
 
 #include "beanmachine/graph/graph.h"
 
-
 using namespace beanmachine;
 
 TEST(testgraph, infer_arithmetic) {
@@ -34,8 +33,8 @@ TEST(testgraph, infer_arithmetic) {
   uint o5 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
   // P(o5|o1=T) = 1 - exp(-.9)=0.5934 and P(o5|o1=F) = 1-exp(-.1)=0.09516
-  // Since P(o1=T)=0.1 and P(o1=F)=0.9. Therefore P(o5=T,o1=T) = 0.05934, P(o5=T,o1=F) = 0.08564
-  // and P(o1=T | o5=T) = 0.4093
+  // Since P(o1=T)=0.1 and P(o1=F)=0.9. Therefore P(o5=T,o1=T) = 0.05934,
+  // P(o5=T,o1=F) = 0.08564 and P(o1=T | o5=T) = 0.4093
   g.observe(o5, true);
   g.query(o1);
   std::vector<std::vector<graph::AtomicValue>> samples =
@@ -51,7 +50,7 @@ TEST(testgraph, infer_arithmetic) {
   EXPECT_GT(sum, 15);
   // infer_mean should give almost exactly the same answer
   std::vector<double> means = g.infer_mean(100, graph::InferenceType::GIBBS);
-  EXPECT_TRUE(std::abs(sum - int(means[0]*100)) <= 1);
+  EXPECT_TRUE(std::abs(sum - int(means[0] * 100)) <= 1);
   // repeat the test with rejection sampling
   std::vector<std::vector<graph::AtomicValue>> samples2 =
       g.infer(100, graph::InferenceType::REJECTION);
@@ -64,9 +63,9 @@ TEST(testgraph, infer_arithmetic) {
   EXPECT_LT(sum, 65);
   EXPECT_GT(sum, 15);
   // infer_mean should give the same answer
-  std::vector<double> means2 = g.infer_mean(
-    100, graph::InferenceType::REJECTION);
-  EXPECT_TRUE(std::abs(sum - int(means2[0]*100)) <= 1);
+  std::vector<double> means2 =
+      g.infer_mean(100, graph::InferenceType::REJECTION);
+  EXPECT_TRUE(std::abs(sum - int(means2[0] * 100)) <= 1);
 }
 
 TEST(testgraph, infer_bn) {

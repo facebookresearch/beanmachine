@@ -12,11 +12,13 @@ class Mixture : public Proposer {
   :param probabilities:
   :param proposers:
   */
-  Mixture(std::vector<double> in_weights, std::vector<std::unique_ptr<Proposer>> in_proposers):
-      Proposer(), weights(in_weights), proposers(std::move(in_proposers)) {
+  Mixture(
+      std::vector<double> in_weights,
+      std::vector<std::unique_ptr<Proposer>> in_proposers)
+      : Proposer(), weights(in_weights), proposers(std::move(in_proposers)) {
     assert(weights.size() == proposers.size());
     weight_sum = 0;
-    for (auto weight: weights) {
+    for (auto weight : weights) {
       weight_sum += weight;
     }
   }
@@ -32,11 +34,12 @@ class Mixture : public Proposer {
   :returns: log probability of value.
   */
   double log_prob(graph::AtomicValue& value) const override;
+
  private:
   double weight_sum;
   std::vector<double> weights;
   std::vector<std::unique_ptr<Proposer>> proposers;
 };
 
-} // namespace distribution
+} // namespace proposer
 } // namespace beanmachine

@@ -31,7 +31,8 @@ Return a unique pointer to a Proposer object.
 :param grad2: Second gradient.
 :returns: A proposer object pointer.
 */
-std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double grad1, double grad2);
+std::unique_ptr<Proposer>
+nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2);
 
 /*
 Returns a value for the specified type uniformly at random.
@@ -39,7 +40,9 @@ Returns a value for the specified type uniformly at random.
 :param type: The desired type
 :returns: A value of this type
 */
-graph::AtomicValue uniform_initializer(std::mt19937& gen, graph::AtomicType type);
+graph::AtomicValue uniform_initializer(
+    std::mt19937& gen,
+    graph::AtomicType type);
 
-} // namespace distribution
+} // namespace proposer
 } // namespace beanmachine

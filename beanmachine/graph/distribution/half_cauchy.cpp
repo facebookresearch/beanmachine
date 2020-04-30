@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <string>
-#include <random>
 #include <cmath>
+#include <random>
+#include <string>
 
 #include "beanmachine/graph/distribution/half_cauchy.h"
 
@@ -25,7 +25,8 @@ HalfCauchy::HalfCauchy(
   }
   // only positive real-valued samples are possible
   if (sample_type != AtomicType::POS_REAL) {
-    throw std::invalid_argument("HalfCauchy distribution produces positive real number samples");
+    throw std::invalid_argument(
+        "HalfCauchy distribution produces positive real number samples");
   }
 }
 
@@ -48,20 +49,24 @@ AtomicValue HalfCauchy::sample(std::mt19937& gen) const {
 double HalfCauchy::log_prob(const AtomicValue& value) const {
   double x = value._double;
   double s = in_nodes[0]->value._double;
-  return -std::log(M_PI_2) -std::log(s) - std::log1p(std::pow(x/s, 2));
+  return -std::log(M_PI_2) - std::log(s) - std::log1p(std::pow(x / s, 2));
 }
 
 void HalfCauchy::gradient_log_prob_value(
-    const AtomicValue& value, double& grad1, double& grad2) const {
+    const AtomicValue& value,
+    double& grad1,
+    double& grad2) const {
   double x = value._double;
   double s = in_nodes[0]->value._double;
   double s2_p_x2 = s * s + x * x;
-  grad1 += - 2 * x / s2_p_x2;
-  grad2 += - 2 / s2_p_x2 + 4 * x * x / (s2_p_x2 * s2_p_x2);
+  grad1 += -2 * x / s2_p_x2;
+  grad2 += -2 / s2_p_x2 + 4 * x * x / (s2_p_x2 * s2_p_x2);
 }
 
 void HalfCauchy::gradient_log_prob_param(
-    const AtomicValue& value, double& grad1, double& grad2) const {
+    const AtomicValue& value,
+    double& grad1,
+    double& grad2) const {
   // gradients of s should be non-zero before computing gradients w.r.t. s
   double s_grad = in_nodes[0]->grad1;
   double s_grad2 = in_nodes[0]->grad2;
@@ -69,8 +74,9 @@ void HalfCauchy::gradient_log_prob_param(
     double x = value._double;
     double s = in_nodes[0]->value._double;
     double s2_p_x2 = s * s + x * x;
-    double grad_s = 1/s - 2 * s / s2_p_x2;
-    double grad2_s2 = -1 / (s * s) - 2 / s2_p_x2 + 4 * s * s / (s2_p_x2 * s2_p_x2);
+    double grad_s = 1 / s - 2 * s / s2_p_x2;
+    double grad2_s2 =
+        -1 / (s * s) - 2 / s2_p_x2 + 4 * s * s / (s2_p_x2 * s2_p_x2);
     grad1 += grad_s * s_grad;
     grad2 += grad2_s2 * s_grad * s_grad + grad_s * s_grad2;
   }

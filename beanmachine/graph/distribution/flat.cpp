@@ -8,14 +8,11 @@ namespace distribution {
 
 using namespace graph;
 
-Flat::Flat(
-    AtomicType sample_type,
-    const std::vector<Node*>& in_nodes)
+Flat::Flat(AtomicType sample_type, const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::FLAT, sample_type) {
   // a Flat distribution has no parents
   if (in_nodes.size() != 0) {
-    throw std::invalid_argument(
-        "Flat distribution has no parents");
+    throw std::invalid_argument("Flat distribution has no parents");
   }
   // almost all types are supported
   if (sample_type == AtomicType::TENSOR) {
@@ -25,7 +22,7 @@ Flat::Flat(
 
 AtomicValue Flat::sample(std::mt19937& gen) const {
   AtomicValue value;
-  switch(sample_type) {
+  switch (sample_type) {
     case AtomicType::BOOLEAN: {
       std::bernoulli_distribution dist(0.5);
       value = AtomicValue(dist(gen));
@@ -38,18 +35,21 @@ AtomicValue Flat::sample(std::mt19937& gen) const {
     }
     case AtomicType::REAL: {
       std::uniform_real_distribution<double> dist(
-          std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
+          std::numeric_limits<double>::lowest(),
+          std::numeric_limits<double>::max());
       value = AtomicValue(dist(gen));
       break;
     }
     case AtomicType::POS_REAL: {
-      std::uniform_real_distribution<double> dist(0, std::numeric_limits<double>::max());
+      std::uniform_real_distribution<double> dist(
+          0, std::numeric_limits<double>::max());
       value = AtomicValue(AtomicType::POS_REAL, dist(gen));
       break;
     }
     case AtomicType::NATURAL: {
-      std::uniform_int_distribution<natural_t> dist(0, std::numeric_limits<natural_t>::max());
-      value = AtomicValue((natural_t) dist(gen));
+      std::uniform_int_distribution<natural_t> dist(
+          0, std::numeric_limits<natural_t>::max());
+      value = AtomicValue((natural_t)dist(gen));
       break;
     }
     default: {
@@ -67,12 +67,14 @@ double Flat::log_prob(const AtomicValue& /* value */) const {
 }
 
 void Flat::gradient_log_prob_value(
-    const AtomicValue& /* value */, double& /* grad1 */, double& /* grad2 */) const {
-}
+    const AtomicValue& /* value */,
+    double& /* grad1 */,
+    double& /* grad2 */) const {}
 
 void Flat::gradient_log_prob_param(
-    const AtomicValue& /* value */, double& /* grad1 */, double& /* grad2 */) const {
-}
+    const AtomicValue& /* value */,
+    double& /* grad1 */,
+    double& /* grad2 */) const {}
 
 } // namespace distribution
 } // namespace beanmachine

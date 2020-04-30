@@ -1,7 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <string>
-#include <random>
 #include <cmath>
+#include <random>
+#include <string>
 
 #include "beanmachine/graph/distribution/normal.h"
 
@@ -10,9 +10,7 @@ namespace distribution {
 
 using namespace graph;
 
-Normal::Normal(
-    AtomicType sample_type,
-    const std::vector<Node*>& in_nodes)
+Normal::Normal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
     : Distribution(DistributionType::NORMAL, sample_type) {
   // a Normal distribution has two parents
   // mean -> real, sigma -> positive real
@@ -20,20 +18,21 @@ Normal::Normal(
     throw std::invalid_argument(
         "Normal distribution must have exactly two parents");
   }
-  if (in_nodes[0]->value.type != graph::AtomicType::REAL
-      or in_nodes[1]->value.type != graph::AtomicType::POS_REAL) {
+  if (in_nodes[0]->value.type != graph::AtomicType::REAL or
+      in_nodes[1]->value.type != graph::AtomicType::POS_REAL) {
     throw std::invalid_argument(
         "Normal parents must be a real number and a positive real number");
   }
   // only real-valued samples are possible
   if (sample_type != AtomicType::REAL) {
-    throw std::invalid_argument("Normal distribution produces real number samples");
+    throw std::invalid_argument(
+        "Normal distribution produces real number samples");
   }
 }
 
 AtomicValue Normal::sample(std::mt19937& gen) const {
   std::normal_distribution<double> dist(
-    in_nodes[0]->value._double, in_nodes[1]->value._double);
+      in_nodes[0]->value._double, in_nodes[1]->value._double);
   return AtomicValue(dist(gen));
 }
 
@@ -48,21 +47,26 @@ double Normal::log_prob(const AtomicValue& value) const {
   double x = value._double;
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
-  return -std::log(s) - 0.5 * std::log(2 * M_PI) - 0.5 * (x - m) * (x - m) / (s * s);
+  return -std::log(s) - 0.5 * std::log(2 * M_PI) -
+      0.5 * (x - m) * (x - m) / (s * s);
 }
 
 void Normal::gradient_log_prob_value(
-    const AtomicValue& value, double& grad1, double& grad2) const {
+    const AtomicValue& value,
+    double& grad1,
+    double& grad2) const {
   double x = value._double;
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  grad1 += - (x - m) / s_sq;
-  grad2 += - 1 / s_sq;
+  grad1 += -(x - m) / s_sq;
+  grad2 += -1 / s_sq;
 }
 
 void Normal::gradient_log_prob_param(
-    const AtomicValue& value, double& grad1, double& grad2) const {
+    const AtomicValue& value,
+    double& grad1,
+    double& grad2) const {
   double x = value._double;
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
@@ -79,8 +83,8 @@ void Normal::gradient_log_prob_param(
   double s_grad = in_nodes[1]->grad1;
   double s_grad2 = in_nodes[1]->grad2;
   if (s_grad != 0 or s_grad2 != 0) {
-    double grad_s = -1 / s + (x-m) * (x-m) / (s * s * s);
-    double grad2_s2 = 1 / s_sq - 3 * (x-m)*(x-m) / (s_sq * s_sq);
+    double grad_s = -1 / s + (x - m) * (x - m) / (s * s * s);
+    double grad2_s2 = 1 / s_sq - 3 * (x - m) * (x - m) / (s_sq * s_sq);
     grad1 += grad_s * s_grad;
     grad2 += grad2_s2 * s_grad * s_grad + grad_s * s_grad2;
   }

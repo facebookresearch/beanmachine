@@ -48,7 +48,6 @@ Compute the cumulative of the standard Normal upto x.
 */
 double Phi(double x);
 
-
 /*
 Compute the cumulative of the standard Normal upto x.
 See https://core.ac.uk/download/pdf/41787448.pdf
@@ -70,13 +69,15 @@ Compute the percentiles of a vector of values.
 :param percs: the desired percentiles
 :returns: a vector of percentiles
 */
-template<typename T>
-std::vector<T> percentiles(const std::vector<T>& values, const std::vector<double>& percs) {
+template <typename T>
+std::vector<T> percentiles(
+    const std::vector<T>& values,
+    const std::vector<double>& percs) {
   // copy the values out before sorting them
   std::vector<T> copy(values.begin(), values.end());
   std::sort(copy.begin(), copy.end());
   std::vector<double> result;
-  for (auto p: percs) {
+  for (auto p : percs) {
     result.push_back(copy[int(copy.size() * p)]);
   }
   return result;

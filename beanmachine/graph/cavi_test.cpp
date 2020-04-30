@@ -7,7 +7,6 @@
 
 #include <beanmachine/graph/graph.h>
 
-
 using namespace beanmachine;
 
 TEST(testcavi, noisy_or) {
@@ -15,17 +14,17 @@ TEST(testcavi, noisy_or) {
   graph::Graph g;
   uint c_prior = g.add_constant_probability(0.01);
   uint d_prior = g.add_distribution(
-    graph::DistributionType::BERNOULLI,
-    graph::AtomicType::BOOLEAN,
-    std::vector<uint>({c_prior}));
-  uint x = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>({d_prior}));
-  uint y = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>({d_prior}));
-  uint pos_x = g.add_operator(
-    graph::OperatorType::TO_POS_REAL, std::vector<uint>({x}));
-  uint pos_y = g.add_operator(
-    graph::OperatorType::TO_POS_REAL, std::vector<uint>({y}));
+      graph::DistributionType::BERNOULLI,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>({c_prior}));
+  uint x =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d_prior}));
+  uint y =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d_prior}));
+  uint pos_x =
+      g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({x}));
+  uint pos_y =
+      g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({y}));
   uint c_m_log_pt01 = g.add_constant_pos_real(-log(0.01));
   uint c_m_log_pt99 = g.add_constant_pos_real(-log(0.99));
   uint param = g.add_operator(
@@ -33,19 +32,18 @@ TEST(testcavi, noisy_or) {
       std::vector<uint>({
           c_m_log_pt99,
           g.add_operator(
-            graph::OperatorType::MULTIPLY,
-            std::vector<uint>({c_m_log_pt01, pos_x})),
+              graph::OperatorType::MULTIPLY,
+              std::vector<uint>({c_m_log_pt01, pos_x})),
           g.add_operator(
-            graph::OperatorType::MULTIPLY,
-            std::vector<uint>({c_m_log_pt01, pos_y})),
+              graph::OperatorType::MULTIPLY,
+              std::vector<uint>({c_m_log_pt01, pos_y})),
       }));
   uint d_like = g.add_distribution(
       graph::DistributionType::BERNOULLI_NOISY_OR,
       graph::AtomicType::BOOLEAN,
-      std::vector<uint>({param})
-  );
-  uint z = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>({d_like}));
+      std::vector<uint>({param}));
+  uint z =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d_like}));
   g.observe(z, true);
   g.query(x);
   g.query(y);

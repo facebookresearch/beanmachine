@@ -34,9 +34,9 @@ Tabular::Tabular(
   // and one for the output
   if (sizes.size() != in_nodes.size()) {
     throw std::invalid_argument(
-      "Tabular distribution's tensor argument expected "
-      + std::to_string(in_nodes.size())
-      + " dims got " + std::to_string(sizes.size()));
+        "Tabular distribution's tensor argument expected " +
+        std::to_string(in_nodes.size()) + " dims got " +
+        std::to_string(sizes.size()));
   }
   // since only boolean sample types are currently supported the last dimension
   // of the matrix must be 2
@@ -68,19 +68,19 @@ double Tabular::get_probability() const {
     const auto& parenti = in_nodes[i]->value;
     if (parenti.type != graph::AtomicType::BOOLEAN) {
       throw std::runtime_error(
-        "Tabular distribution at node_id " + std::to_string(index) +
-        " expects boolean parents");
+          "Tabular distribution at node_id " + std::to_string(index) +
+          " expects boolean parents");
     }
-    parents.push_back(torch::scalar_tensor(
-      (int64_t)parenti._bool, torch::kLong));
+    parents.push_back(
+        torch::scalar_tensor((int64_t)parenti._bool, torch::kLong));
   }
   parents.push_back(torch::scalar_tensor((int64_t)1, torch::kLong));
   assert(in_nodes[0]->value.type == graph::AtomicType::TENSOR);
   double prob = in_nodes[0]->value._tensor.index(parents).item<double>();
   if (prob < 0 or prob > 1) {
     throw std::runtime_error(
-      "unexpected probability " + std::to_string(prob)
-      + " in Tabular node_id " + std::to_string(index));
+        "unexpected probability " + std::to_string(prob) +
+        " in Tabular node_id " + std::to_string(index));
   }
   return prob;
 }
@@ -95,21 +95,27 @@ double Tabular::log_prob(const graph::AtomicValue& value) const {
   double prob_true = get_probability();
   if (value.type != graph::AtomicType::BOOLEAN) {
     throw std::runtime_error(
-      "expecting boolean value in child of Tabular node_id "
-      + std::to_string(index)
-      + " got type " + std::to_string(static_cast<int>(value.type)));
+        "expecting boolean value in child of Tabular node_id " +
+        std::to_string(index) + " got type " +
+        std::to_string(static_cast<int>(value.type)));
   }
   return value._bool ? std::log(prob_true) : std::log(1 - prob_true);
 }
 
 void Tabular::gradient_log_prob_value(
-    const graph::AtomicValue& value, double& grad1, double& grad2) const {
-  throw std::runtime_error("gradient_log_prob_value not implemented for Tabular");
+    const graph::AtomicValue& value,
+    double& grad1,
+    double& grad2) const {
+  throw std::runtime_error(
+      "gradient_log_prob_value not implemented for Tabular");
 }
 
 void Tabular::gradient_log_prob_param(
-    const graph::AtomicValue& value, double& grad1, double& grad2) const {
-  throw std::runtime_error("gradient_log_prob_param not implemented for Tabular");
+    const graph::AtomicValue& value,
+    double& grad1,
+    double& grad2) const {
+  throw std::runtime_error(
+      "gradient_log_prob_param not implemented for Tabular");
 }
 
 } // namespace distribution
