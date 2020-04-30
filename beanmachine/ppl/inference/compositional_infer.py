@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import copy
 from typing import Dict, List
 
 import torch.distributions as dist
@@ -22,10 +23,15 @@ class CompositionalInference(AbstractMHInference):
 
     # pyre-fixme[9]: proposers has type `Dict[typing.Any, typing.Any]`; used as `None`.
     def __init__(self, proposers: Dict = None, should_transform: bool = False):
-        self.proposers_ = {}
+        self.proposers_per_family_ = {}
+        self.proposers_per_rv_ = {}
         if proposers is not None:
             for key in proposers:
-                self.proposers_[key.__func__] = proposers[key]
+                if hasattr(key, "__func__"):
+                    self.proposers_per_family_[key.__func__] = proposers[key]
+                else:
+                    self.proposers_per_family_[key] = proposers[key]
+
         self.should_transform_ = should_transform
         super().__init__()
 
@@ -49,8 +55,13 @@ class CompositionalInference(AbstractMHInference):
         :param node: the node for which to return a proposer
         :returns: a proposer for the node
         """
-        if node.function._wrapper in self.proposers_:
-            return self.proposers_[node.function._wrapper]
+        if node in self.proposers_per_rv_:
+            return self.proposers_per_rv_[node]
+
+        if node.function._wrapper in self.proposers_per_family_:
+            proposer_inst = self.proposers_per_family_[node.function._wrapper]
+            self.proposers_per_rv_[node] = copy.deepcopy(proposer_inst)
+            return self.proposers_per_rv_[node]
 
         node_var = self.world_.get_node_in_world(node, False)
         distribution = node_var.distribution
@@ -60,17 +71,15 @@ class CompositionalInference(AbstractMHInference):
             or isinstance(support, dist.constraints._Simplex)
             or isinstance(support, dist.constraints._GreaterThan)
         ):
-            self.proposers_[
-                node.function._wrapper
-            ] = SingleSiteNewtonianMonteCarloProposer()
+            self.proposers_per_rv_[node] = SingleSiteNewtonianMonteCarloProposer()
         elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
             distribution, dist.Categorical
         ):
-            self.proposers_[node.function._wrapper] = SingleSiteUniformProposer()
+            self.proposers_per_rv_[node] = SingleSiteUniformProposer()
         elif isinstance(support, dist.constraints._Boolean) and isinstance(
             distribution, dist.Bernoulli
         ):
-            self.proposers_[node.function._wrapper] = SingleSiteUniformProposer()
+            self.proposers_per_rv_[node] = SingleSiteUniformProposer()
         else:
-            self.proposers_[node.function._wrapper] = SingleSiteAncestralProposer()
-        return self.proposers_[node.function._wrapper]
+            self.proposers_per_rv_[node] = SingleSiteAncestralProposer()
+        return self.proposers_per_rv_[node]

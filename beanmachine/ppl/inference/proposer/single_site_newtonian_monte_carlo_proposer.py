@@ -44,11 +44,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
     """
 
     def __init__(self, nmc_alpha: float = 10.0, nmc_beta: float = 1.0):
-        self.real_space_proposer_ = SingleSiteRealSpaceNewtonianMonteCarloProposer(
-            nmc_alpha, nmc_beta
-        )
-        self.half_space_proposer_ = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
-        self.simplex_proposer_ = SingleSiteSimplexNewtonianMonteCarloProposer()
+        self.proposers_ = {}
+        self.alpha_ = nmc_alpha
+        self.beta_ = nmc_beta
         super().__init__()
 
     def get_proposal_distribution(
@@ -69,25 +67,28 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :returns: the tuple of proposal distribution of the node and arguments
         that was used or needs to be used to find the proposal distribution
         """
-        # pyre-fixme
-        node_distribution_support = node_var.distribution.support
-        if world.get_transform(node) or isinstance(
-            node_distribution_support, dist.constraints._Real
-        ):
-            return self.real_space_proposer_.get_proposal_distribution(
-                node, node_var, world, auxiliary_variables
-            )
-        elif isinstance(node_distribution_support, dist.constraints._GreaterThan):
-            return self.half_space_proposer_.get_proposal_distribution(
-                node, node_var, world, {}
-            )
-        elif isinstance(
-            node_distribution_support, dist.constraints._Simplex
-        ) or isinstance(node_var.distribution, dist.Beta):
-            return self.simplex_proposer_.get_proposal_distribution(
-                node, node_var, world, {}
-            )
-        return super().get_proposal_distribution(
+        if node not in self.proposers_:
+            # pyre-fixme
+            node_distribution_support = node_var.distribution.support
+            if world.get_transform(node) or isinstance(
+                node_distribution_support, dist.constraints._Real
+            ):
+                self.proposers_[node] = SingleSiteRealSpaceNewtonianMonteCarloProposer(
+                    self.alpha_, self.beta_
+                )
+
+            elif isinstance(node_distribution_support, dist.constraints._GreaterThan):
+                self.proposers_[node] = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
+
+            elif isinstance(
+                node_distribution_support, dist.constraints._Simplex
+            ) or isinstance(node_var.distribution, dist.Beta):
+                self.proposers_[node] = SingleSiteSimplexNewtonianMonteCarloProposer()
+            else:
+                return super().get_proposal_distribution(
+                    node, node_var, world, auxiliary_variables
+                )
+        return self.proposers_[node].get_proposal_distribution(
             node, node_var, world, auxiliary_variables
         )
 
@@ -111,24 +112,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param num_adaptive_samples: The number of inference iterations for adaptation.
         :param is_accepted: bool representing whether the new value was accepted.
         """
-        proposer = None
-        node_var = world.get_node_in_world_raise_error(node, False)
-        # pyre-fixme
-        node_distribution_support = node_var.distribution.support
-        if world.get_transform(node) or isinstance(
-            node_distribution_support, dist.constraints._Real
-        ):
-            proposer = self.real_space_proposer_
-        elif isinstance(node_distribution_support, dist.constraints._GreaterThan):
-            proposer = self.half_space_proposer_
-        elif isinstance(
-            node_distribution_support, dist.constraints._Simplex
-        ) or isinstance(node_var.distribution, dist.Beta):
-            proposer = self.simplex_proposer_
-
-        if proposer is not None:
-            # pyre-fixme[16]: `None` has no attribute `do_adaptation`.
-            return proposer.do_adaptation(
+        if node not in self.proposers_:
+            return super().do_adaptation(
                 node,
                 world,
                 acceptance_probability,
@@ -136,7 +121,8 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
                 num_adaptive_samples,
                 is_accepted,
             )
-        return super().do_adaptation(
+
+        return self.proposers_[node].do_adaptation(
             node,
             world,
             acceptance_probability,
