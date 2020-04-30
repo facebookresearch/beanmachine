@@ -16,8 +16,12 @@ from torch import tensor
 from torch.distributions.bernoulli import Bernoulli
 
 @sample
-def flip():
+def flip_straight_constant():
   return Bernoulli(tensor(0.5))
+
+@sample
+def flip_logit_constant():
+  return Bernoulli(logits=tensor(-2.0))
 """
 
 expected_cpp_1 = """
@@ -29,12 +33,22 @@ uint n1 = g.add_distribution(
   std::vector<uint>({n0}));
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n3 = g.add_constant_probability(0.11920291930437088);
+uint n4 = g.add_distribution(
+  graph::DistributionType::BERNOULLI,
+  graph::AtomicType::BOOLEAN,
+  std::vector<uint>({n3}));
+uint n5 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
 """
 
 expected_bmg_1 = """
 Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
 Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
 Node 2 type 3 parents [ 1 ] children [ ] boolean value 0
+Node 3 type 1 parents [ ] children [ 4 ] probability value 0.119203
+Node 4 type 2 parents [ 3 ] children [ 5 ] unknown value
+Node 5 type 3 parents [ 4 ] children [ ] boolean value 0
 """
 
 expected_python_1 = """
@@ -47,6 +61,12 @@ n1 = g.add_distribution(
   graph.AtomicType.BOOLEAN,
   [n0])
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_constant_probability(0.11920291930437088)
+n4 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n3])
+n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
 """
 
 

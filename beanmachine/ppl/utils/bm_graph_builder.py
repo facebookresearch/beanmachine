@@ -16,7 +16,7 @@ from typing import Any, Callable, Dict, Iterator, List
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
 # TODO: for now, we'll just turn off error checking in this mModuleNotFoundError
 # pyre-ignore-all-errors
-from beanmachine.graph import AtomicType, DistributionType, Graph, OperatorType
+from beanmachine.graph import AtomicType, DistributionType as dt, Graph, OperatorType
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
@@ -401,75 +401,14 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
         pass
 
 
-# This is the Bernoulli node that we actually turn into a BMG node;
-# it matches the type constraints on that node in the graph:
-# * The child must be a single value of type probability.
-# * The sample type is Boolean.
-
-
-class SimpleBernoulliNode(DistributionNode):
-    edges = ["probability"]
-
-    def __init__(self, probability: BMGNode):
-        DistributionNode.__init__(self, [probability])
-
-    @property
-    def probability(self) -> BMGNode:
-        return self.children[0]
-
-    @probability.setter
-    def probability(self, p: BMGNode) -> None:
-        self.children[0] = p
-
-    @property
-    def node_type(self) -> Any:
-        return Bernoulli
-
-    @property
-    def size(self) -> torch.Size:
-        return self.probability.size
-
-    def sample_type(self) -> Any:
-        return bool
-
-    @property
-    def label(self) -> str:
-        return "Bernoulli"
-
-    def __str__(self) -> str:
-        return "Bernoulli(" + str(self.probability) + ")"
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"n{d[self]} = g.add_distribution(\n"
-            + "  graph.DistributionType.BERNOULLI,\n"
-            + "  graph.AtomicType.BOOLEAN,\n"
-            + f"  [n{d[self.probability]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
-        )
-
-    def support(self) -> Iterator[Any]:
-        return [False, True]
-
-
 class BernoulliNode(DistributionNode):
     edges = ["probability"]
     is_logits: bool
+    types_fixed: bool
 
     def __init__(self, probability: BMGNode, is_logits: bool = False):
         self.is_logits = is_logits
+        self.types_fixed = False
         DistributionNode.__init__(self, [probability])
 
     @property
@@ -480,16 +419,19 @@ class BernoulliNode(DistributionNode):
     def probability(self, p: BMGNode) -> None:
         self.children[0] = p
 
-    # TODO: Do we need a generic type for "distribution of X"?
     @property
     def node_type(self) -> Any:
         return Bernoulli
 
     @property
     def size(self) -> torch.Size:
+        if self.types_fixed:
+            return torch.Size([])
         return self.probability.size
 
     def sample_type(self) -> Any:
+        if self.types_fixed:
+            return bool
         return self.probability.node_type
 
     @property
@@ -500,10 +442,8 @@ class BernoulliNode(DistributionNode):
         return "Bernoulli(" + str(self.probability) + ")"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: Handle case where child is logits
-        return g.add_distribution(
-            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
-        )
+        dist_type = dt.BERNOULLI_LOGIT if self.is_logits else dt.BERNOULLI
+        return g.add_distribution(dist_type, AtomicType.BOOLEAN, [d[self.probability]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
@@ -524,6 +464,8 @@ class BernoulliNode(DistributionNode):
         )
 
     def support(self) -> Iterator[Any]:
+        if self.types_fixed:
+            return [False, True]
         s = self.size
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
 
@@ -572,7 +514,7 @@ class CategoricalNode(DistributionNode):
         # TODO: Handle case where child is logits
         # TODO: This is incorrect.
         return g.add_distribution(
-            DistributionType.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
+            dt.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
@@ -636,7 +578,7 @@ class DirichletNode(DistributionNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
-            DistributionType.BERNOULLI,
+            dt.BERNOULLI,
             AtomicType.BOOLEAN,
             [d[self.concentration]],
         )
@@ -703,7 +645,7 @@ class HalfCauchyNode(DistributionNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
-            DistributionType.BERNOULLI,
+            dt.BERNOULLI,
             AtomicType.BOOLEAN,
             [d[self.scale]],
         )
@@ -778,7 +720,7 @@ class NormalNode(DistributionNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
-            DistributionType.BERNOULLI,
+            dt.BERNOULLI,
             AtomicType.BOOLEAN,
             [d[self.mu]],
         )
@@ -861,7 +803,7 @@ class StudentTNode(DistributionNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
-            DistributionType.BERNOULLI,
+            dt.BERNOULLI,
             AtomicType.BOOLEAN,
             [d[self.df]],
         )
@@ -936,7 +878,7 @@ class UniformNode(DistributionNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
-            DistributionType.BERNOULLI,
+            dt.BERNOULLI,
             AtomicType.BOOLEAN,
             [d[self.low]],
         )
@@ -1011,7 +953,7 @@ class BetaNode(DistributionNode):
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             # TODO: Fix this when we add the node type to BMG
-            DistributionType.BERNOULLI,
+            dt.BERNOULLI,
             AtomicType.BOOLEAN,
             [d[self.alpha]],
         )
@@ -1666,12 +1608,6 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_simple_bernoulli(self, probability: BMGNode) -> SimpleBernoulliNode:
-        node = SimpleBernoulliNode(probability)
-        self.add_node(node)
-        return node
-
-    @memoize
     def add_bernoulli(
         self, probability: BMGNode, is_logits: bool = False
     ) -> BernoulliNode:
@@ -2251,22 +2187,31 @@ g = graph.Graph()
         # reach a fixpoint.
         #
         # Start by ensuring that every sample that samples a Bernoulli
-        # can be converted to sample a simple Bernoulli.
+        # can be converted to sample a "simple" Bernoulli -- that is,
+        # the tensor that is the probability can be converted to a
+        # single real value, in the case of "logits", or a single
+        # probability value otherwise.
+        #
+        # Note that this forces the sample to become of type "bool"
+        # instead of a tensor.
+
         for node in self._traverse_from_roots():
             self._fix_bernoulli(node)
 
+    # Ensures that Bernoulli nodes take the appropriate
+    # input type; once they do, they are updated to automatically
+    # mark samples as being bools.
     def _fix_bernoulli(self, node: BMGNode) -> None:
-        if not isinstance(node, SampleNode):
+        if not isinstance(node, BernoulliNode):
             return
-        dist = node.operand
-        if not isinstance(dist, BernoulliNode):
+        if node.types_fixed:
             return
-        if dist.is_logits:
-            raise ValueError(
-                "BMG does not yet support Bernoulli distributions with log odds."
-            )
-        prob = self._ensure_probability(dist.probability)
-        node.operand = self.add_simple_bernoulli(prob)
+        if node.is_logits:
+            prob = self._ensure_real(node.probability)
+        else:
+            prob = self._ensure_probability(node.probability)
+        node.probability = prob
+        node.types_fixed = True
 
     def _ensure_probability(self, node: BMGNode) -> BMGNode:
         # TODO: Better error handling
@@ -2284,3 +2229,18 @@ g = graph.Graph()
                 raise ValueError("A probability must be between 0.0 and 1.0.")
             return self.add_probability(v)
         raise ValueError("Conversion to probability node not yet implemented.")
+
+    def _ensure_real(self, node: BMGNode) -> BMGNode:
+        # TODO: Better error handling
+        if node.node_type == float:
+            return node
+        if isinstance(node, ConstantNode):
+            if isinstance(node, TensorNode):
+                if node.value.shape.numel() != 1:
+                    raise ValueError(
+                        "To use a tensor as a real number it must "
+                        + "have exactly one element."
+                    )
+            v = float(node.value)
+            return self.add_real(v)
+        raise ValueError("Conversion to real node not yet implemented.")
