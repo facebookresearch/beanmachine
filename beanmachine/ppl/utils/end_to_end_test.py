@@ -13,7 +13,7 @@ source_1 = """
 from beanmachine.ppl.model.statistical_model import sample
 import torch
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal
+from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal, StudentT
 
 @sample
 def flip_straight_constant():
@@ -42,6 +42,10 @@ def hc(i):
 @sample
 def beta_hc():
   return Beta(hc(1), hc(2))
+
+@sample
+def student_t():
+  return StudentT(hc(1), standard_normal(), hc(2))
 
 """
 
@@ -95,6 +99,12 @@ uint n17 = g.add_distribution(
   std::vector<uint>({n15, n16}));
 uint n18 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n17}));
+uint n19 = g.add_distribution(
+  graph::DistributionType::STUDENT_T,
+  graph::AtomicType::REAL,
+  std::vector<uint>({n15, n9, n16}));
+uint n20 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n19}));
 """
 
 expected_bmg_1 = """
@@ -107,16 +117,18 @@ Node 5 type 3 parents [ 4 ] children [ ] boolean value 0
 Node 6 type 1 parents [ ] children [ 8 ] real value 0
 Node 7 type 1 parents [ ] children [ 8 12 12 14 ] pos real value 1
 Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown value
-Node 9 type 3 parents [ 8 ] children [ 10 ] real value 0
+Node 9 type 3 parents [ 8 ] children [ 10 19 ] real value 0
 Node 10 type 2 parents [ 9 ] children [ 11 ] unknown value
 Node 11 type 3 parents [ 10 ] children [ ] boolean value 0
 Node 12 type 2 parents [ 7 7 ] children [ 13 ] unknown value
 Node 13 type 3 parents [ 12 ] children [ ] probability value 0
 Node 14 type 2 parents [ 7 ] children [ 15 16 ] unknown value
-Node 15 type 3 parents [ 14 ] children [ 17 ] pos real value 0
-Node 16 type 3 parents [ 14 ] children [ 17 ] pos real value 0
+Node 15 type 3 parents [ 14 ] children [ 17 19 ] pos real value 0
+Node 16 type 3 parents [ 14 ] children [ 17 19 ] pos real value 0
 Node 17 type 2 parents [ 15 16 ] children [ 18 ] unknown value
 Node 18 type 3 parents [ 17 ] children [ ] probability value 0
+Node 19 type 2 parents [ 15 9 16 ] children [ 20 ] unknown value
+Node 20 type 3 parents [ 19 ] children [ ] real value 0
 """
 
 expected_python_1 = """
@@ -163,6 +175,11 @@ n17 = g.add_distribution(
   graph.AtomicType.PROBABILITY,
   [n15, n16])
 n18 = g.add_operator(graph.OperatorType.SAMPLE, [n17])
+n19 = g.add_distribution(
+  graph.DistributionType.STUDENT_T,
+  graph.AtomicType.REAL,
+  [n15, n9, n16])
+n20 = g.add_operator(graph.OperatorType.SAMPLE, [n19])
 """
 
 

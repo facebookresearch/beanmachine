@@ -813,12 +813,13 @@ class StudentTNode(DistributionNode):
     def scale(self, p: BMGNode) -> None:
         self.children[2] = p
 
-    # TODO: Do we need a generic type for "distribution of X"?
     @property
     def node_type(self) -> Any:
         return StudentT
 
     def sample_type(self) -> Any:
+        if self.fixed_types:
+            return float
         return self.df.node_type
 
     @property
@@ -834,26 +835,24 @@ class StudentTNode(DistributionNode):
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
-            # TODO: Fix this when we add the node type to BMG
-            dt.BERNOULLI,
-            AtomicType.BOOLEAN,
-            [d[self.df]],
+            dt.STUDENT_T, AtomicType.REAL, [d[self.df], d[self.loc], d[self.scale]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
-            # TODO: Fix this when we add the node type to BMG
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.df]}])"
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.STUDENT_T,\n"
+            + "  graph.AtomicType.REAL,\n"
+            + f"  [n{d[self.df]}, n{d[self.loc]}, n{d[self.scale]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         return (
-            # TODO: Fix this when we add the node type to BMG
             f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.df]}}}));"
+            + "  graph::DistributionType::STUDENT_T,\n"
+            + "  graph::AtomicType::REAL,\n"
+            + "  std::vector<uint>("
+            + f"{{n{d[self.df]}, n{d[self.loc]}, n{d[self.scale]}}}));"
         )
 
     def support(self) -> Iterator[Any]:
@@ -2243,13 +2242,8 @@ g = graph.Graph()
             self._fix_half_cauchy(node)
         elif isinstance(node, NormalNode):
             self._fix_normal(node)
-
-    def _fix_normal(self, node: NormalNode) -> None:
-        if node.types_fixed:
-            return
-        node.mu = self._ensure_real(node.mu)
-        node.sigma = self._ensure_pos_real(node.sigma)
-        node.types_fixed = True
+        elif isinstance(node, StudentTNode):
+            self._fix_studentt(node)
 
     # Ensures that Bernoulli nodes take the appropriate
     # input type; once they do, they are updated to automatically
@@ -2274,6 +2268,21 @@ g = graph.Graph()
     def _fix_half_cauchy(self, node: HalfCauchyNode) -> None:
         if node.types_fixed:
             return
+        node.scale = self._ensure_pos_real(node.scale)
+        node.types_fixed = True
+
+    def _fix_normal(self, node: NormalNode) -> None:
+        if node.types_fixed:
+            return
+        node.mu = self._ensure_real(node.mu)
+        node.sigma = self._ensure_pos_real(node.sigma)
+        node.types_fixed = True
+
+    def _fix_studentt(self, node: StudentTNode) -> None:
+        if node.types_fixed:
+            return
+        node.df = self._ensure_pos_real(node.df)
+        node.loc = self._ensure_real(node.loc)
         node.scale = self._ensure_pos_real(node.scale)
         node.types_fixed = True
 
