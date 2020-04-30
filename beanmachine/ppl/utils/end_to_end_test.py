@@ -13,7 +13,7 @@ source_1 = """
 from beanmachine.ppl.model.statistical_model import sample
 import torch
 from torch import tensor
-from torch.distributions import Bernoulli, Normal
+from torch.distributions import Bernoulli, Beta, Normal
 
 @sample
 def flip_straight_constant():
@@ -30,6 +30,10 @@ def standard_normal():
 @sample
 def flip_logit_normal():
   return Bernoulli(logits=standard_normal())
+
+@sample
+def beta_constant():
+  return Beta(1.0, 1.0)
 
 """
 
@@ -63,6 +67,12 @@ uint n10 = g.add_distribution(
   std::vector<uint>({n9}));
 uint n11 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n10}));
+uint n12 = g.add_distribution(
+  graph::DistributionType::BETA,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({n7, n7}));
+uint n13 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n12}));
 """
 
 expected_bmg_1 = """
@@ -73,11 +83,13 @@ Node 3 type 1 parents [ ] children [ 4 ] probability value 0.119203
 Node 4 type 2 parents [ 3 ] children [ 5 ] unknown value
 Node 5 type 3 parents [ 4 ] children [ ] boolean value 0
 Node 6 type 1 parents [ ] children [ 8 ] real value 0
-Node 7 type 1 parents [ ] children [ 8 ] pos real value 1
+Node 7 type 1 parents [ ] children [ 8 12 12 ] pos real value 1
 Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown value
 Node 9 type 3 parents [ 8 ] children [ 10 ] real value 0
 Node 10 type 2 parents [ 9 ] children [ 11 ] unknown value
 Node 11 type 3 parents [ 10 ] children [ ] boolean value 0
+Node 12 type 2 parents [ 7 7 ] children [ 13 ] unknown value
+Node 13 type 3 parents [ 12 ] children [ ] probability value 0
 """
 
 expected_python_1 = """
@@ -108,6 +120,11 @@ n10 = g.add_distribution(
   graph.AtomicType.BOOLEAN,
   [n9])
 n11 = g.add_operator(graph.OperatorType.SAMPLE, [n10])
+n12 = g.add_distribution(
+  graph.DistributionType.BETA,
+  graph.AtomicType.PROBABILITY,
+  [n7, n7])
+n13 = g.add_operator(graph.OperatorType.SAMPLE, [n12])
 """
 
 
