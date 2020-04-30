@@ -13,7 +13,7 @@ source_1 = """
 from beanmachine.ppl.model.statistical_model import sample
 import torch
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, Normal
+from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal
 
 @sample
 def flip_straight_constant():
@@ -34,6 +34,14 @@ def flip_logit_normal():
 @sample
 def beta_constant():
   return Beta(1.0, 1.0)
+
+@sample
+def hc(i):
+  return HalfCauchy(1.0)
+
+@sample
+def beta_hc():
+  return Beta(hc(1), hc(2))
 
 """
 
@@ -73,6 +81,20 @@ uint n12 = g.add_distribution(
   std::vector<uint>({n7, n7}));
 uint n13 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n12}));
+uint n14 = g.add_distribution(
+  graph::DistributionType::HALF_CAUCHY,
+  graph::AtomicType::POS_REAL,
+  std::vector<uint>({n7}));
+uint n15 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n14}));
+uint n16 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n14}));
+uint n17 = g.add_distribution(
+  graph::DistributionType::BETA,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({n15, n16}));
+uint n18 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n17}));
 """
 
 expected_bmg_1 = """
@@ -83,13 +105,18 @@ Node 3 type 1 parents [ ] children [ 4 ] probability value 0.119203
 Node 4 type 2 parents [ 3 ] children [ 5 ] unknown value
 Node 5 type 3 parents [ 4 ] children [ ] boolean value 0
 Node 6 type 1 parents [ ] children [ 8 ] real value 0
-Node 7 type 1 parents [ ] children [ 8 12 12 ] pos real value 1
+Node 7 type 1 parents [ ] children [ 8 12 12 14 ] pos real value 1
 Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown value
 Node 9 type 3 parents [ 8 ] children [ 10 ] real value 0
 Node 10 type 2 parents [ 9 ] children [ 11 ] unknown value
 Node 11 type 3 parents [ 10 ] children [ ] boolean value 0
 Node 12 type 2 parents [ 7 7 ] children [ 13 ] unknown value
 Node 13 type 3 parents [ 12 ] children [ ] probability value 0
+Node 14 type 2 parents [ 7 ] children [ 15 16 ] unknown value
+Node 15 type 3 parents [ 14 ] children [ 17 ] pos real value 0
+Node 16 type 3 parents [ 14 ] children [ 17 ] pos real value 0
+Node 17 type 2 parents [ 15 16 ] children [ 18 ] unknown value
+Node 18 type 3 parents [ 17 ] children [ ] probability value 0
 """
 
 expected_python_1 = """
@@ -125,6 +152,17 @@ n12 = g.add_distribution(
   graph.AtomicType.PROBABILITY,
   [n7, n7])
 n13 = g.add_operator(graph.OperatorType.SAMPLE, [n12])
+n14 = g.add_distribution(
+  graph.DistributionType.HALF_CAUCHY,
+  graph.AtomicType.POS_REAL,
+  [n7])
+n15 = g.add_operator(graph.OperatorType.SAMPLE, [n14])
+n16 = g.add_operator(graph.OperatorType.SAMPLE, [n14])
+n17 = g.add_distribution(
+  graph.DistributionType.BETA,
+  graph.AtomicType.PROBABILITY,
+  [n15, n16])
+n18 = g.add_operator(graph.OperatorType.SAMPLE, [n17])
 """
 
 

@@ -664,7 +664,6 @@ class HalfCauchyNode(DistributionNode):
     def scale(self, p: BMGNode) -> None:
         self.children[0] = p
 
-    # TODO: Do we need a generic type for "distribution of X"?
     @property
     def node_type(self) -> Any:
         return HalfCauchy
@@ -684,26 +683,22 @@ class HalfCauchyNode(DistributionNode):
         return f"HalfCauchy({str(self.scale)})"
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            # TODO: Fix this when we add the node type to BMG
-            dt.BERNOULLI,
-            AtomicType.BOOLEAN,
-            [d[self.scale]],
-        )
+        return g.add_distribution(dt.HALF_CAUCHY, AtomicType.POS_REAL, [d[self.scale]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
-            # TODO: Fix this when we add the node type to BMG
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.scale]}])"
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.HALF_CAUCHY,\n"
+            + "  graph.AtomicType.POS_REAL,\n"
+            + f"  [n{d[self.scale]}])"
         )
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         return (
             # TODO: Fix this when we add the node type to BMG
             f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
+            + "  graph::DistributionType::HALF_CAUCHY,\n"
+            + "  graph::AtomicType::POS_REAL,\n"
             + f"  std::vector<uint>({{n{d[self.scale]}}}));"
         )
 
@@ -2242,10 +2237,12 @@ g = graph.Graph()
     def _fix_type(self, node: BMGNode) -> None:
         if isinstance(node, BernoulliNode):
             self._fix_bernoulli(node)
-        elif isinstance(node, NormalNode):
-            self._fix_normal(node)
         elif isinstance(node, BetaNode):
             self._fix_beta(node)
+        elif isinstance(node, HalfCauchyNode):
+            self._fix_half_cauchy(node)
+        elif isinstance(node, NormalNode):
+            self._fix_normal(node)
 
     def _fix_normal(self, node: NormalNode) -> None:
         if node.types_fixed:
@@ -2272,6 +2269,12 @@ g = graph.Graph()
             return
         node.alpha = self._ensure_pos_real(node.alpha)
         node.beta = self._ensure_pos_real(node.beta)
+        node.types_fixed = True
+
+    def _fix_half_cauchy(self, node: HalfCauchyNode) -> None:
+        if node.types_fixed:
+            return
+        node.scale = self._ensure_pos_real(node.scale)
         node.types_fixed = True
 
     def _ensure_probability(self, node: BMGNode) -> BMGNode:
