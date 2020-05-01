@@ -44,7 +44,6 @@ from beanmachine.ppl.utils.rules import (
     PatternRule,
     Rule,
     TryMany as many,
-    pattern_rules,
 )
 
 
@@ -363,9 +362,9 @@ class SingleAssignment:
         )
 
     def _handle_assign(self) -> Rule:
-        return pattern_rules(
+        return first(
             [
-                (
+                PatternRule(
                     assign(value=unaryop(operand=_not_identifier, op=_unops)),
                     self._transform_with_name(
                         "a",
@@ -375,9 +374,10 @@ class SingleAssignment:
                             value=ast.UnaryOp(operand=new_name, op=lhs.value.op),
                         ),
                     ),
+                    "handle_assign_unaryop",
                 ),
                 # a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
-                (
+                PatternRule(
                     assign(value=subscript(value=_not_identifier)),
                     self._transform_with_name(
                         "a",
@@ -389,10 +389,11 @@ class SingleAssignment:
                             ),
                         ),
                     ),
+                    "handle_assign_subscript",
                 ),
                 # TODO: Handle slices other than Index
                 # a = b[d + e] becomes t = d + e, a = b[t]
-                (
+                PatternRule(
                     assign(value=subscript(slice=index(value=_not_identifier))),
                     self._transform_with_name(
                         "a",
@@ -406,8 +407,9 @@ class SingleAssignment:
                             ),
                         ),
                     ),
+                    "handle_assign_subscript_slice",
                 ),
-                (
+                PatternRule(
                     assign(value=binop(left=_not_identifier, op=_binops)),
                     self._transform_with_name(
                         "a",
@@ -419,8 +421,9 @@ class SingleAssignment:
                             ),
                         ),
                     ),
+                    "handle_assign_binop_left",
                 ),
-                (
+                PatternRule(
                     assign(value=binop(right=_not_identifier, op=_binops)),
                     self._transform_with_name(
                         "a",
@@ -432,9 +435,10 @@ class SingleAssignment:
                             ),
                         ),
                     ),
+                    "handle_assign_binop_right",
                 ),
                 # If we have t = foo.bar(...) rewrite that as t1 = foo.bar, t = t1(...)
-                (
+                PatternRule(
                     assign(value=call(func=_not_identifier)),
                     self._transform_with_name(
                         "a",
@@ -448,18 +452,20 @@ class SingleAssignment:
                             ),
                         ),
                     ),
+                    "handle_assign_call_function_expression",
                 ),
                 # If we have t = foo(x + y, 2) rewrite that to
                 # t1 = x + y, t2 = 2, t = foo(t1, t2).
-                (
+                PatternRule(
                     assign(value=call(func=name(), args=_list_not_identifier)),
                     self._transform_call(),
+                    "handle_assign_call_args",
                 ),
                 # If we have t = foo(a, b, z=123) rewrite that to
                 # t1 = 123, t = foo(a, b, t1),
                 # but do it after we've rewriten the receiver and the
                 # positional arguments.
-                (
+                PatternRule(
                     assign(
                         value=call(
                             func=name(),
@@ -468,9 +474,10 @@ class SingleAssignment:
                         )
                     ),
                     self._transform_call_keyword(),
+                    "handle_asign_call_keyword",
                 ),
                 # If we have t = (x + y).z, rewrite that as t1 = x + y, t = t1.z
-                (
+                PatternRule(
                     assign(value=attribute(value=_not_identifier)),
                     self._transform_with_name(
                         "a",
@@ -482,25 +489,29 @@ class SingleAssignment:
                             ),
                         ),
                     ),
+                    "handle_assign_attribute",
                 ),
-                (
+                PatternRule(
                     assign(value=ast_list(elts=_list_not_identifier)),
                     self._transform_list(),
+                    "handle_assign_list",
                 ),
-                (
+                PatternRule(
                     assign(value=ast_list(elts=_list_not_identifier, ast_op=ast.Tuple)),
                     self._transform_list(ast_op=lambda a: ast.Tuple),
+                    "handle_assign_tuple",
                 ),
-                (
+                PatternRule(
                     assign(value=ast_dict(keys=_list_not_identifier)),
                     self._transform_lists(),
+                    "handle_assign_dictionary_keys",
                 ),
-                (
+                PatternRule(
                     assign(value=ast_dict(values=_list_not_identifier)),
                     self._transform_lists(),
+                    "handle_assign_dictionary_values",
                 ),
-            ],
-            "handle_assign",
+            ]
         )
 
     def _handle_boolop_binarize(self) -> Rule:
