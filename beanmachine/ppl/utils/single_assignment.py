@@ -361,156 +361,194 @@ class SingleAssignment:
             "handle_for",
         )
 
+    # Start of a series of rules that will define handle_assign
+    def _handlle_assign_unaryop(self) -> Rule:
+        return PatternRule(
+            assign(value=unaryop(operand=_not_identifier, op=_unops)),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.operand,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.UnaryOp(operand=new_name, op=lhs.value.op),
+                ),
+            ),
+            "handle_assign_unaryop",
+        )
+
+    def _handle_assign_subscript(self) -> Rule:
+        # a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
+        return PatternRule(
+            assign(value=subscript(value=_not_identifier)),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.value,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.Subscript(
+                        value=new_name, slice=lhs.value.slice, ctx=lhs.value.ctx
+                    ),
+                ),
+            ),
+            "handle_assign_subscript",
+        )
+
+    def _handle_assign_subscript_slice(self) -> Rule:
+        # TODO: Handle slices other than Index
+        # a = b[d + e] becomes t = d + e, a = b[t]
+        return PatternRule(
+            assign(value=subscript(slice=index(value=_not_identifier))),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.slice.value,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.Subscript(
+                        value=lhs.value.value,
+                        slice=ast.Index(value=new_name),
+                        ctx=lhs.value.ctx,
+                    ),
+                ),
+            ),
+            "handle_assign_subscript_slice",
+        )
+
+    def _handle_assign_binop_left(self) -> Rule:
+        return PatternRule(
+            assign(value=binop(left=_not_identifier, op=_binops)),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.left,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.BinOp(
+                        left=new_name, op=lhs.value.op, right=lhs.value.right
+                    ),
+                ),
+            ),
+            "handle_assign_binop_left",
+        )
+
+    def _handle_assign_binop_right(self) -> Rule:
+        return PatternRule(
+            assign(value=binop(right=_not_identifier, op=_binops)),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.right,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.BinOp(
+                        left=lhs.value.left, op=lhs.value.op, right=new_name
+                    ),
+                ),
+            ),
+            "handle_assign_binop_right",
+        )
+
+    def _handle_assign_call_function_expression(self) -> Rule:
+        # If we have t = foo.bar(...) rewrite that as t1 = foo.bar, t = t1(...)
+        return PatternRule(
+            assign(value=call(func=_not_identifier)),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.func,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.Call(
+                        func=new_name, args=lhs.value.args, keywords=lhs.value.keywords
+                    ),
+                ),
+            ),
+            "handle_assign_call_function_expression",
+        )
+
+    def _handle_assign_call_args(self) -> Rule:
+        # If we have t = foo(x + y, 2) rewrite that to
+        # t1 = x + y, t2 = 2, t = foo(t1, t2).
+        return PatternRule(
+            assign(value=call(func=name(), args=_list_not_identifier)),
+            self._transform_call(),
+            "handle_assign_call_args",
+        )
+
+    def _handle_asign_call_keyword(self) -> Rule:
+        # If we have t = foo(a, b, z=123) rewrite that to
+        # t1 = 123, t = foo(a, b, t1),
+        # but do it after we've rewriten the receiver and the
+        # positional arguments.
+        return PatternRule(
+            assign(
+                value=call(
+                    func=name(),
+                    args=_list_all_identifiers,
+                    keywords=_not_identifier_keywords,
+                )
+            ),
+            self._transform_call_keyword(),
+            "handle_asign_call_keyword",
+        )
+
+    def _handle_handle_assign_attribute(self) -> Rule:
+        # If we have t = (x + y).z, rewrite that as t1 = x + y, t = t1.z
+        return PatternRule(
+            assign(value=attribute(value=_not_identifier)),
+            self._transform_with_name(
+                "a",
+                lambda lhs: lhs.value.value,
+                lambda lhs, new_name: ast.Assign(
+                    targets=lhs.targets,
+                    value=ast.Attribute(
+                        value=new_name, attr=lhs.value.attr, ctx=lhs.value.ctx
+                    ),
+                ),
+            ),
+            "handle_assign_attribute",
+        )
+
+    def _handle_assign_list(self) -> Rule:
+        return PatternRule(
+            assign(value=ast_list(elts=_list_not_identifier)),
+            self._transform_list(),
+            "handle_assign_list",
+        )
+
+    def _handle_assign_tuple(self) -> Rule:
+        return PatternRule(
+            assign(value=ast_list(elts=_list_not_identifier, ast_op=ast.Tuple)),
+            self._transform_list(ast_op=lambda a: ast.Tuple),
+            "handle_assign_tuple",
+        )
+
+    def _handle_assign_dictionary_keys(self) -> Rule:
+        return PatternRule(
+            assign(value=ast_dict(keys=_list_not_identifier)),
+            self._transform_lists(),
+            "handle_assign_dictionary_keys",
+        )
+
+    def _handle_assign_dictionary_values(self) -> Rule:
+        return PatternRule(
+            assign(value=ast_dict(values=_list_not_identifier)),
+            self._transform_lists(),
+            "handle_assign_dictionary_values",
+        )
+
     def _handle_assign(self) -> Rule:
         return first(
             [
-                PatternRule(
-                    assign(value=unaryop(operand=_not_identifier, op=_unops)),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.operand,
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.UnaryOp(operand=new_name, op=lhs.value.op),
-                        ),
-                    ),
-                    "handle_assign_unaryop",
-                ),
-                # a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
-                PatternRule(
-                    assign(value=subscript(value=_not_identifier)),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.value,
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.Subscript(
-                                value=new_name, slice=lhs.value.slice, ctx=lhs.value.ctx
-                            ),
-                        ),
-                    ),
-                    "handle_assign_subscript",
-                ),
-                # TODO: Handle slices other than Index
-                # a = b[d + e] becomes t = d + e, a = b[t]
-                PatternRule(
-                    assign(value=subscript(slice=index(value=_not_identifier))),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.slice.value,
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.Subscript(
-                                value=lhs.value.value,
-                                slice=ast.Index(value=new_name),
-                                ctx=lhs.value.ctx,
-                            ),
-                        ),
-                    ),
-                    "handle_assign_subscript_slice",
-                ),
-                PatternRule(
-                    assign(value=binop(left=_not_identifier, op=_binops)),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.left,
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.BinOp(
-                                left=new_name, op=lhs.value.op, right=lhs.value.right
-                            ),
-                        ),
-                    ),
-                    "handle_assign_binop_left",
-                ),
-                PatternRule(
-                    assign(value=binop(right=_not_identifier, op=_binops)),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.right,
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.BinOp(
-                                left=lhs.value.left, op=lhs.value.op, right=new_name
-                            ),
-                        ),
-                    ),
-                    "handle_assign_binop_right",
-                ),
-                # If we have t = foo.bar(...) rewrite that as t1 = foo.bar, t = t1(...)
-                PatternRule(
-                    assign(value=call(func=_not_identifier)),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.func,
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.Call(
-                                func=new_name,
-                                args=lhs.value.args,
-                                keywords=lhs.value.keywords,
-                            ),
-                        ),
-                    ),
-                    "handle_assign_call_function_expression",
-                ),
-                # If we have t = foo(x + y, 2) rewrite that to
-                # t1 = x + y, t2 = 2, t = foo(t1, t2).
-                PatternRule(
-                    assign(value=call(func=name(), args=_list_not_identifier)),
-                    self._transform_call(),
-                    "handle_assign_call_args",
-                ),
-                # If we have t = foo(a, b, z=123) rewrite that to
-                # t1 = 123, t = foo(a, b, t1),
-                # but do it after we've rewriten the receiver and the
-                # positional arguments.
-                PatternRule(
-                    assign(
-                        value=call(
-                            func=name(),
-                            args=_list_all_identifiers,
-                            keywords=_not_identifier_keywords,
-                        )
-                    ),
-                    self._transform_call_keyword(),
-                    "handle_asign_call_keyword",
-                ),
-                # If we have t = (x + y).z, rewrite that as t1 = x + y, t = t1.z
-                PatternRule(
-                    assign(value=attribute(value=_not_identifier)),
-                    self._transform_with_name(
-                        "a",
-                        lambda lhs: lhs.value.value,
-                        lambda lhs, new_name: ast.Assign(
-                            targets=lhs.targets,
-                            value=ast.Attribute(
-                                value=new_name, attr=lhs.value.attr, ctx=lhs.value.ctx
-                            ),
-                        ),
-                    ),
-                    "handle_assign_attribute",
-                ),
-                PatternRule(
-                    assign(value=ast_list(elts=_list_not_identifier)),
-                    self._transform_list(),
-                    "handle_assign_list",
-                ),
-                PatternRule(
-                    assign(value=ast_list(elts=_list_not_identifier, ast_op=ast.Tuple)),
-                    self._transform_list(ast_op=lambda a: ast.Tuple),
-                    "handle_assign_tuple",
-                ),
-                PatternRule(
-                    assign(value=ast_dict(keys=_list_not_identifier)),
-                    self._transform_lists(),
-                    "handle_assign_dictionary_keys",
-                ),
-                PatternRule(
-                    assign(value=ast_dict(values=_list_not_identifier)),
-                    self._transform_lists(),
-                    "handle_assign_dictionary_values",
-                ),
+                self._handlle_assign_unaryop(),
+                self._handle_assign_subscript(),
+                self._handle_assign_subscript_slice(),
+                self._handle_assign_binop_left(),
+                self._handle_assign_binop_right(),
+                self._handle_assign_call_function_expression(),
+                self._handle_assign_call_args(),
+                self._handle_asign_call_keyword(),
+                self._handle_handle_assign_attribute(),
+                self._handle_assign_list(),
+                self._handle_assign_tuple(),
+                self._handle_assign_dictionary_keys(),
+                self._handle_assign_dictionary_values(),
             ]
         )
 
