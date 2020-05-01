@@ -284,7 +284,9 @@ class SingleAssignment:
     def _handle_while_True(self) -> Rule:
         return PatternRule(
             ast_while(test=ast_true, orelse=negate([])),
-            lambda lhs: ListEdit([ast.While(test=lhs.test, body=lhs.body, orelse=[])]),
+            lambda source_term: ListEdit(
+                [ast.While(test=source_term.test, body=source_term.body, orelse=[])]
+            ),
             "handle_while_True",
         )
 
@@ -293,21 +295,21 @@ class SingleAssignment:
             ast_while(test=negate(ast_true)),
             self._transform_with_assign(
                 "w",
-                lambda lhs: lhs.test,
-                lambda lhs, new_name, new_assign: ListEdit(
+                lambda source_term: source_term.test,
+                lambda source_term, new_name, new_assign: ListEdit(
                     [
                         ast.While(
                             # TODO test=ast.Name(id="True", ctx=ast.Load()),
                             test=ast.NameConstant(value=True),
                             body=[
                                 new_assign,
-                                ast.If(test=new_name, body=lhs.body, orelse=[]),
+                                ast.If(test=new_name, body=source_term.body, orelse=[]),
                             ],
                             orelse=[],
                         ),
                         ast.If(
                             test=ast.UnaryOp(op=ast.Not(), operand=new_name),
-                            body=lhs.orelse,
+                            body=source_term.orelse,
                             orelse=[],
                         ),
                     ]
@@ -329,7 +331,7 @@ class SingleAssignment:
             ast_return(value=_not_identifier),
             self._transform_with_name(
                 "r",
-                lambda lhs: lhs.value,
+                lambda source_term: source_term.value,
                 lambda _, new_name: ast.Return(value=new_name),
             ),
             "handle_return",
@@ -340,9 +342,9 @@ class SingleAssignment:
             ast_if(test=_not_identifier),
             self._transform_with_name(
                 "r",
-                lambda lhs: lhs.test,
-                lambda lhs, new_name: ast.If(
-                    test=new_name, body=lhs.body, orelse=lhs.orelse
+                lambda source_term: source_term.test,
+                lambda source_term, new_name: ast.If(
+                    test=new_name, body=source_term.body, orelse=source_term.orelse
                 ),
             ),
             "handle_if",
@@ -353,9 +355,12 @@ class SingleAssignment:
             ast_for(iter=_not_identifier),
             self._transform_with_name(
                 "f",
-                lambda lhs: lhs.iter,
-                lambda lhs, new_name: ast.For(
-                    target=lhs.target, iter=new_name, body=lhs.body, orelse=lhs.orelse
+                lambda source_term: source_term.iter,
+                lambda source_term, new_name: ast.For(
+                    target=source_term.target,
+                    iter=new_name,
+                    body=source_term.body,
+                    orelse=source_term.orelse,
                 ),
             ),
             "handle_for",
@@ -367,10 +372,10 @@ class SingleAssignment:
             assign(value=unaryop(operand=_not_identifier, op=_unops)),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.operand,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
-                    value=ast.UnaryOp(operand=new_name, op=lhs.value.op),
+                lambda source_term: source_term.value.operand,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=ast.UnaryOp(operand=new_name, op=source_term.value.op),
                 ),
             ),
             "handle_assign_unaryop",
@@ -382,11 +387,13 @@ class SingleAssignment:
             assign(value=subscript(value=_not_identifier)),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.value,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.Subscript(
-                        value=new_name, slice=lhs.value.slice, ctx=lhs.value.ctx
+                        value=new_name,
+                        slice=source_term.value.slice,
+                        ctx=source_term.value.ctx,
                     ),
                 ),
             ),
@@ -400,13 +407,13 @@ class SingleAssignment:
             assign(value=subscript(slice=index(value=_not_identifier))),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.slice.value,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.slice.value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.Subscript(
-                        value=lhs.value.value,
+                        value=source_term.value.value,
                         slice=ast.Index(value=new_name),
-                        ctx=lhs.value.ctx,
+                        ctx=source_term.value.ctx,
                     ),
                 ),
             ),
@@ -418,11 +425,13 @@ class SingleAssignment:
             assign(value=binop(left=_not_identifier, op=_binops)),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.left,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.left,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.BinOp(
-                        left=new_name, op=lhs.value.op, right=lhs.value.right
+                        left=new_name,
+                        op=source_term.value.op,
+                        right=source_term.value.right,
                     ),
                 ),
             ),
@@ -434,11 +443,13 @@ class SingleAssignment:
             assign(value=binop(right=_not_identifier, op=_binops)),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.right,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.right,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.BinOp(
-                        left=lhs.value.left, op=lhs.value.op, right=new_name
+                        left=source_term.value.left,
+                        op=source_term.value.op,
+                        right=new_name,
                     ),
                 ),
             ),
@@ -451,11 +462,13 @@ class SingleAssignment:
             assign(value=call(func=_not_identifier)),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.func,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.func,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.Call(
-                        func=new_name, args=lhs.value.args, keywords=lhs.value.keywords
+                        func=new_name,
+                        args=source_term.value.args,
+                        keywords=source_term.value.keywords,
                     ),
                 ),
             ),
@@ -494,11 +507,13 @@ class SingleAssignment:
             assign(value=attribute(value=_not_identifier)),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.value,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.Attribute(
-                        value=new_name, attr=lhs.value.attr, ctx=lhs.value.ctx
+                        value=new_name,
+                        attr=source_term.value.attr,
+                        ctx=source_term.value.ctx,
                     ),
                 ),
             ),
@@ -555,10 +570,14 @@ class SingleAssignment:
     def _handle_boolop_binarize(self) -> Rule:
         return PatternRule(
             ast_boolop(values=twoPlusList),
-            lambda lhs: ast.BoolOp(
-                op=lhs.op,
-                values=[ast.BoolOp(lhs.op, [lhs.values[0], lhs.values[1]])]
-                + lhs.values[2:],
+            lambda source_term: ast.BoolOp(
+                op=source_term.op,
+                values=[
+                    ast.BoolOp(
+                        source_term.op, [source_term.values[0], source_term.values[1]]
+                    )
+                ]
+                + source_term.values[2:],
             ),
             "handle_boolop_binarize",
         )
@@ -568,11 +587,12 @@ class SingleAssignment:
             assign(value=ast_boolop(values=[_not_identifier, anyPattern])),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.values[0],
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.values[0],
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.BoolOp(
-                        op=lhs.value.op, values=[new_name, lhs.value.values[1]]
+                        op=source_term.value.op,
+                        values=[new_name, source_term.value.values[1]],
                     ),
                 ),
             ),
@@ -582,10 +602,18 @@ class SingleAssignment:
     def _handle_assign_and2if(self) -> Rule:
         return PatternRule(
             assign(value=ast_boolop(op=ast.And, values=[name(), anyPattern])),
-            lambda lhs: ast.If(
-                test=lhs.value.values[0],
-                body=[ast.Assign(targets=lhs.targets, value=lhs.value.values[1])],
-                orelse=[ast.Assign(targets=lhs.targets, value=lhs.value.values[0])],
+            lambda source_term: ast.If(
+                test=source_term.value.values[0],
+                body=[
+                    ast.Assign(
+                        targets=source_term.targets, value=source_term.value.values[1]
+                    )
+                ],
+                orelse=[
+                    ast.Assign(
+                        targets=source_term.targets, value=source_term.value.values[0]
+                    )
+                ],
             ),
             "handle_and2if",
         )
@@ -593,10 +621,18 @@ class SingleAssignment:
     def _handle_assign_or2if(self) -> Rule:
         return PatternRule(
             assign(value=ast_boolop(op=ast.Or, values=[name(), anyPattern])),
-            lambda lhs: ast.If(
-                test=lhs.value.values[0],
-                body=[ast.Assign(targets=lhs.targets, value=lhs.value.values[0])],
-                orelse=[ast.Assign(targets=lhs.targets, value=lhs.value.values[1])],
+            lambda source_term: ast.If(
+                test=source_term.value.values[0],
+                body=[
+                    ast.Assign(
+                        targets=source_term.targets, value=source_term.value.values[0]
+                    )
+                ],
+                orelse=[
+                    ast.Assign(
+                        targets=source_term.targets, value=source_term.value.values[1]
+                    )
+                ],
             ),
             "handle_or2if",
         )
@@ -618,18 +654,18 @@ class SingleAssignment:
                 ops=HeadTail(anyPattern, HeadTail(anyPattern, anyPattern)),
                 comparators=HeadTail(name(), anyPattern),
             ),
-            lambda lhs: ast.BoolOp(
+            lambda source_term: ast.BoolOp(
                 op=ast.And(),
                 values=[
                     ast.Compare(
-                        left=lhs.left,
-                        ops=[lhs.ops[0]],
-                        comparators=[lhs.comparators[0]],
+                        left=source_term.left,
+                        ops=[source_term.ops[0]],
+                        comparators=[source_term.comparators[0]],
                     ),
                     ast.Compare(
-                        left=lhs.comparators[0],
-                        ops=lhs.ops[1:],
-                        comparators=lhs.comparators[1:],
+                        left=source_term.comparators[0],
+                        ops=source_term.ops[1:],
+                        comparators=source_term.comparators[1:],
                     ),
                 ],
             ),
@@ -642,13 +678,13 @@ class SingleAssignment:
             assign(value=ast_compare(left=_not_identifier)),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.left,
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.left,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.Compare(
                         left=new_name,
-                        ops=lhs.value.ops,
-                        comparators=lhs.value.comparators,
+                        ops=source_term.value.ops,
+                        comparators=source_term.value.comparators,
                     ),
                 ),
             ),
@@ -665,13 +701,13 @@ class SingleAssignment:
             ),
             self._transform_with_name(
                 "a",
-                lambda lhs: lhs.value.comparators[0],
-                lambda lhs, new_name: ast.Assign(
-                    targets=lhs.targets,
+                lambda source_term: source_term.value.comparators[0],
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
                     value=ast.Compare(
-                        left=lhs.value.left,
-                        ops=lhs.value.ops,
-                        comparators=[new_name] + lhs.value.comparators[1:],
+                        left=source_term.value.left,
+                        ops=source_term.value.ops,
+                        comparators=[new_name] + source_term.value.comparators[1:],
                     ),
                 ),
             ),
