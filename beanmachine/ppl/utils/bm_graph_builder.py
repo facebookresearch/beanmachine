@@ -23,6 +23,7 @@ from torch import Tensor, tensor
 from torch.distributions import (
     Bernoulli,
     Beta,
+    Binomial,
     Categorical,
     Dirichlet,
     HalfCauchy,
@@ -30,6 +31,7 @@ from torch.distributions import (
     StudentT,
     Uniform,
 )
+from torch.distributions.utils import broadcast_all
 
 
 # When we construct a graph we know all the "storage" types of
@@ -384,6 +386,45 @@ class PositiveRealNode(ConstantNode):
         return f"n{n} = g.add_constant_pos_real({v})"
 
 
+class NaturalNode(ConstantNode):
+    value: int
+
+    def __init__(self, value: int):
+        ConstantNode.__init__(self)
+        self.value = value
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    @property
+    def node_type(self) -> Any:
+        return Natural
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    @property
+    def label(self) -> str:
+        return str(self.value)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_constant(self.value)
+
+    def _value_to_python(self) -> str:
+        return str(self.value)
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp(self.value)
+        return f"uint n{n} = g.add_constant({v});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_python()
+        return f"n{n} = g.add_constant({v})"
+
+
 class TensorNode(ConstantNode):
     value: Tensor
 
@@ -486,7 +527,6 @@ class BernoulliNode(DistributionNode):
         return g.add_distribution(dist_type, AtomicType.BOOLEAN, [d[self.probability]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
         logit = "_LOGIT" if self.is_logits else ""
         return (
             f"n{d[self]} = g.add_distribution(\n"
@@ -509,6 +549,83 @@ class BernoulliNode(DistributionNode):
             return [False, True]
         s = self.size
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
+
+
+class BinomialNode(DistributionNode):
+    edges = ["count", "probability"]
+    is_logits: bool
+
+    def __init__(self, count: BMGNode, probability: BMGNode, is_logits: bool = False):
+        self.is_logits = is_logits
+        DistributionNode.__init__(self, [count, probability])
+
+    @property
+    def count(self) -> BMGNode:
+        return self.children[0]
+
+    @count.setter
+    def count(self, p: BMGNode) -> None:
+        self.children[0] = p
+
+    @property
+    def probability(self) -> BMGNode:
+        return self.children[1]
+
+    @probability.setter
+    def probability(self, p: BMGNode) -> None:
+        self.children[1] = p
+
+    @property
+    def node_type(self) -> Any:
+        return Binomial
+
+    @property
+    def size(self) -> torch.Size:
+        if self.types_fixed:
+            return torch.Size([])
+        return broadcast_all(
+            torch.zeros(self.count.size), torch.zeros(self.probability.size)
+        ).size()
+
+    def sample_type(self) -> Any:
+        if self.types_fixed:
+            return Natural
+        return Tensor
+
+    @property
+    def label(self) -> str:
+        return "Binomial" + ("(logits)" if self.is_logits else "")
+
+    def __str__(self) -> str:
+        return f"Binomial({self.count}, {self.probability})"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        # TODO: Fix this when we support binomial logits.
+        return g.add_distribution(
+            dt.BINOMIAL, AtomicType.NATURAL, [d[self.count], d[self.probability]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.BINOMIAL,\n"
+            + "  graph.AtomicType.NATURAL,\n"
+            + f"  [n{d[self.count]}, n{d[self.probability]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BINOMIAL,\n"
+            + "  graph::AtomicType::NATURAL,\n"
+            + f"  std::vector<uint>({{n{d[self.count]}, "
+            + f"n{d[self.probability]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        raise ValueError("Support of binomial is not yet implemented.")
 
 
 class CategoricalNode(DistributionNode):
@@ -1631,6 +1748,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_natural(self, value: int) -> NaturalNode:
+        node = NaturalNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_boolean(self, value: bool) -> BooleanNode:
         node = BooleanNode(value)
         self.add_node(node)
@@ -1659,6 +1782,28 @@ class BMGraphBuilder:
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
         return self.add_bernoulli(probability, logits is not None)
+
+    @memoize
+    def add_binomial(
+        self, count: BMGNode, probability: BMGNode, is_logits: bool = False
+    ) -> BinomialNode:
+        node = BinomialNode(count, probability, is_logits)
+        self.add_node(node)
+        return node
+
+    def handle_binomial(
+        self, total_count: Any, probs: Any = None, logits: Any = None
+    ) -> BinomialNode:
+        if (probs is None and logits is None) or (
+            probs is not None and logits is not None
+        ):
+            raise ValueError("handle_binomial requires exactly one of probs or logits")
+        probability = logits if probs is None else probs
+        if not isinstance(total_count, BMGNode):
+            total_count = self.add_constant(total_count)
+        if not isinstance(probability, BMGNode):
+            probability = self.add_constant(probability)
+        return self.add_binomial(total_count, probability, logits is not None)
 
     @memoize
     def add_categorical(
@@ -2052,6 +2197,9 @@ class BMGraphBuilder:
         if isinstance(operand, Bernoulli):
             b = self.handle_bernoulli(operand.probs)
             return self.add_sample(b)
+        if isinstance(operand, Binomial):
+            b = self.handle_binomial(operand.total_count, operand.probs)
+            return self.add_sample(b)
         if isinstance(operand, Categorical):
             b = self.handle_categorical(operand.probs)
             return self.add_sample(b)
@@ -2217,19 +2365,9 @@ g = graph.Graph()
         return result
 
     def _fix_types(self) -> None:
-        # This can add more nodes but so far, none of them need rewriting.
-        # When this logic gets more complex we may need to iterate until we
-        # reach a fixpoint.
-        #
-        # Start by ensuring that every sample that samples a Bernoulli
-        # can be converted to sample a "simple" Bernoulli -- that is,
-        # the tensor that is the probability can be converted to a
-        # single real value, in the case of "logits", or a single
-        # probability value otherwise.
-        #
-        # Note that this forces the sample to become of type "bool"
-        # instead of a tensor.
-
+        # So far these rewrites can add nodes but none of them need further
+        # rewriting. If this changes, we might need to iterate until
+        # we reach a fixpoint.
         for node in self._traverse_from_roots():
             self._fix_type(node)
 
@@ -2238,6 +2376,8 @@ g = graph.Graph()
             self._fix_bernoulli(node)
         elif isinstance(node, BetaNode):
             self._fix_beta(node)
+        if isinstance(node, BinomialNode):
+            self._fix_binomial(node)
         elif isinstance(node, HalfCauchyNode):
             self._fix_half_cauchy(node)
         elif isinstance(node, NormalNode):
@@ -2255,6 +2395,21 @@ g = graph.Graph()
             prob = self._ensure_real(node.probability)
         else:
             prob = self._ensure_probability(node.probability)
+        node.probability = prob
+        node.types_fixed = True
+
+    # Ensures that binomial nodes take the appropriate
+    # input types; once they do, they are updated to automatically
+    # mark samples as being naturals.
+    def _fix_binomial(self, node: BinomialNode) -> None:
+        if node.types_fixed:
+            return
+        if node.is_logits:
+            raise ValueError("Logits binomial is not yet implemented.")
+            # prob = self._ensure_real(node.probability)
+        else:
+            prob = self._ensure_probability(node.probability)
+        node.count = self._ensure_natural(node.count)
         node.probability = prob
         node.types_fixed = True
 
@@ -2334,3 +2489,22 @@ g = graph.Graph()
                 raise ValueError("A positive real must be greater than 0.0.")
             return self.add_pos_real(v)
         raise ValueError("Conversion to positive real node not yet implemented.")
+
+    def _ensure_natural(self, node: BMGNode) -> BMGNode:
+        # TODO: Better error handling
+        if node.node_type == Natural:
+            return node
+        if isinstance(node, ConstantNode):
+            if isinstance(node, TensorNode):
+                if node.value.shape.numel() != 1:
+                    raise ValueError(
+                        "To use a tensor as a natural number it must "
+                        + "have exactly one element."
+                    )
+            v = float(node.value)
+            if v < 0.0:
+                raise ValueError("A natural must be positive.")
+            if not v.is_integer():
+                raise ValueError("A natural must be an integer.")
+            return self.add_natural(int(v))
+        raise ValueError("Conversion to natural node not yet implemented.")

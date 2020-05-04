@@ -13,7 +13,7 @@ source_1 = """
 from beanmachine.ppl.model.statistical_model import sample
 import torch
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal, StudentT
+from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal, StudentT
 
 @sample
 def flip_straight_constant():
@@ -46,6 +46,10 @@ def beta_hc():
 @sample
 def student_t():
   return StudentT(hc(1), standard_normal(), hc(2))
+
+@sample
+def bin_constant():
+  return Binomial(3, 0.5)
 
 """
 
@@ -105,10 +109,17 @@ uint n19 = g.add_distribution(
   std::vector<uint>({n15, n9, n16}));
 uint n20 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n19}));
+uint n21 = g.add_constant(3);
+uint n22 = g.add_distribution(
+  graph::DistributionType::BINOMIAL,
+  graph::AtomicType::NATURAL,
+  std::vector<uint>({n21, n0}));
+uint n23 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n22}));
 """
 
 expected_bmg_1 = """
-Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
+Node 0 type 1 parents [ ] children [ 1 22 ] probability value 0.5
 Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
 Node 2 type 3 parents [ 1 ] children [ ] boolean value 0
 Node 3 type 1 parents [ ] children [ 4 ] probability value 0.119203
@@ -129,6 +140,9 @@ Node 17 type 2 parents [ 15 16 ] children [ 18 ] unknown value
 Node 18 type 3 parents [ 17 ] children [ ] probability value 0
 Node 19 type 2 parents [ 15 9 16 ] children [ 20 ] unknown value
 Node 20 type 3 parents [ 19 ] children [ ] real value 0
+Node 21 type 1 parents [ ] children [ 22 ] natural value 3
+Node 22 type 2 parents [ 21 0 ] children [ 23 ] unknown value
+Node 23 type 3 parents [ 22 ] children [ ] natural value 0
 """
 
 expected_python_1 = """
@@ -180,6 +194,12 @@ n19 = g.add_distribution(
   graph.AtomicType.REAL,
   [n15, n9, n16])
 n20 = g.add_operator(graph.OperatorType.SAMPLE, [n19])
+n21 = g.add_constant(3)
+n22 = g.add_distribution(
+  graph.DistributionType.BINOMIAL,
+  graph.AtomicType.NATURAL,
+  [n21, n0])
+n23 = g.add_operator(graph.OperatorType.SAMPLE, [n22])
 """
 
 
