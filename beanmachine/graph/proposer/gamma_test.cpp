@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
-#include <torch/torch.h>
 #include <random>
 
 #include "beanmachine/graph/proposer/gamma.h"
 
-using namespace beanmachine::graph;
 using namespace beanmachine::proposer;
 
 TEST(testproposer, gamma) {

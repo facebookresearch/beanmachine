@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <torch/torch.h>
 #include <random>
 
 #include "beanmachine/graph/proposer/normal.h"
