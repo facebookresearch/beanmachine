@@ -813,3 +813,20 @@ a2 = f(a3)
 a = a1[a2]
 """
         self.check_rewrite(source, expected)
+
+    def test_single_assignment_call_single_regular_arg(self) -> None:
+        """Test the assign rule for tuples"""
+
+        source = """
+x = f(*([1]+[2]))
+"""
+        expected = """
+r1 = [1] + [2]
+x = f(*r1)
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assigned_call_single_regular_arg())),
+        )

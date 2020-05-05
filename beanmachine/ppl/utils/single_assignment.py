@@ -25,6 +25,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     match,
     match_any,
     name,
+    starred,
     subscript,
     unaryop,
 )
@@ -478,10 +479,31 @@ class SingleAssignment:
     def _handle_assign_call_args(self) -> Rule:
         # If we have t = foo(x + y, 2) rewrite that to
         # t1 = x + y, t2 = 2, t = foo(t1, t2).
+        # TODO: This will eventually be phased out with new strategy
+        # TODO: Will require changing at least 4 test cases
         return PatternRule(
             assign(value=call(func=name(), args=_list_not_identifier)),
             self._transform_call(),
             "handle_assign_call_args",
+        )
+
+    def _handle_assigned_call_single_regular_arg(self) -> Rule:
+        # Rewrite x = f(*([1]+[2]) into d=[1]+[2]; x = f(*d)
+        return PatternRule(
+            assign(value=call(func=name(), args=[starred(value=_not_identifier)])),
+            self._transform_with_name(
+                "r",
+                lambda source_term: source_term.value.args[0].value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=ast.Call(
+                        func=source_term.value.func,
+                        args=[ast.Starred(new_name, source_term.value.args[0].ctx)],
+                        keywords=source_term.value.keywords,
+                    ),
+                ),
+            ),
+            "handle_assign_call_single_regular_arg",
         )
 
     def _handle_asign_call_keyword(self) -> Rule:
@@ -489,6 +511,8 @@ class SingleAssignment:
         # t1 = 123, t = foo(a, b, t1),
         # but do it after we've rewriten the receiver and the
         # positional arguments.
+        # TODO: This will eventually be phased out with new strategy
+        # TODO: Will require changing at least 2 test case
         return PatternRule(
             assign(
                 value=call(
@@ -498,7 +522,7 @@ class SingleAssignment:
                 )
             ),
             self._transform_call_keyword(),
-            "handle_asign_call_keyword",
+            "handle_assign_call_keyword",
         )
 
     def _handle_handle_assign_attribute(self) -> Rule:
@@ -564,6 +588,7 @@ class SingleAssignment:
                 self._handle_assign_tuple(),
                 self._handle_assign_dictionary_keys(),
                 self._handle_assign_dictionary_values(),
+                self._handle_assigned_call_single_regular_arg(),
             ]
         )
 

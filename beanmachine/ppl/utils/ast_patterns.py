@@ -116,6 +116,10 @@ def assign(targets: Pattern = _any, value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Assign, {"targets": targets, "value": value})
 
 
+def starred(value: Pattern = _any, ctx: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.Starred, {"value": value, "ctx": ctx})
+
+
 def attribute(
     value: Pattern = _any, attr: Pattern = _any, ctx: Pattern = _any
 ) -> Pattern:
