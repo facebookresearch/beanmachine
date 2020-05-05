@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Dict, List
@@ -7,7 +8,7 @@ import torch
 import torch.multiprocessing as mp
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
 from torch import Tensor
 from torch.multiprocessing import Queue
 
@@ -20,6 +21,9 @@ class VerboseLevel(Enum):
 
     OFF = 0
     LOAD_BAR = 1
+
+
+LOGGER_ERROR = logging.getLogger("beanmachine.error")
 
 
 class AbstractInference(object, metaclass=ABCMeta):
@@ -62,6 +66,9 @@ class AbstractInference(object, metaclass=ABCMeta):
             string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
         except BaseException as x:
+            LOGGER_ERROR.log(
+                LogLevel.ERROR.value, "Error: Parallel infererence chain failed."
+            )
             queue.put((x, chain, {}))
 
     def infer(

@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import logging
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from random import shuffle
@@ -10,9 +11,12 @@ import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
 from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode, RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
 from torch import Tensor
 from tqdm import tqdm
+
+
+LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
 
 
 class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
@@ -83,6 +87,14 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         acceptance_prob = torch.min(
             tensor(1.0, dtype=log_update.dtype), torch.exp(log_update)
         )
+
+        LOGGER_UPDATES.log(
+            LogLevel.DEBUG_UPDATES.value,
+            "- Proposal log update: {pl}\n".format(pl=proposal_log_update)
+            + "- Node log update: {nl}\n".format(nl=node_log_update)
+            + "- Children log updates: {cl}\n".format(cl=children_log_updates)
+            + "- Is accepted: {ia}\n".format(ia=is_accepted),
+        )
         return is_accepted, acceptance_prob
 
     def single_inference_run(self, node: RVIdentifier, proposer) -> Tuple[bool, Tensor]:
@@ -102,6 +114,17 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             node, self.world_
         )
 
+        LOGGER_UPDATES.log(
+            LogLevel.DEBUG_UPDATES.value,
+            "=" * 30
+            + "\n"
+            + "Node: {n}\n".format(n=node)
+            + "- Node value: {nv}\n".format(
+                nv=self.world_.get_node_in_world(node, False, False).value
+            )
+            + "- Proposed value: {pv}\n".format(pv=proposed_value),
+        )
+
         children_log_updates, _, node_log_update, _ = self.world_.propose_change(
             node, proposed_value
         )
@@ -114,6 +137,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         is_accepted, acceptance_probability = self.accept_or_reject_update(
             node_log_update, children_log_updates, proposal_log_update
         )
+
         return is_accepted, acceptance_probability
 
     def block_propose_change(self, block: Block) -> Tuple[Tensor, Tensor, Tensor]:
@@ -154,6 +178,15 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                 )
                 neg_proposal_log_updates += negative_proposal_log_update
 
+                LOGGER_UPDATES.log(
+                    LogLevel.DEBUG_UPDATES.value,
+                    "Node: {n}\n".format(n=node)
+                    + "- Node value: {nv}\n".format(
+                        nv=self.world_.get_node_in_world(node, False, False).value
+                    )
+                    + "- Proposed value: {pv}\n".format(pv=proposed_value),
+                )
+
                 # We update the world (through a new diff in the diff stack).
                 children_log_update, _, node_log_update, _ = self.world_.propose_change(
                     node, proposed_value, start_new_diff=True
@@ -192,6 +225,10 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         :param block: the block of random variables to be resampled sequentially
         in this inference run
         """
+        LOGGER_UPDATES.debug(
+            "=" * 30 + "\n" + "Block: {b}\n".format(b=block.first_node)
+        )
+
         nodes_log_updates, children_log_updates, proposal_log_updates = self.block_propose_change(
             block
         )

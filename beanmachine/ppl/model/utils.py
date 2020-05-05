@@ -24,4 +24,17 @@ class Mode(Enum):
     INFERENCE = 2
 
 
+class LogLevel(Enum):
+    """
+    Enum class mapping the logging levels to numeric values.
+    """
+
+    ERROR = 40
+    WARNING = 30
+    INFO = 20
+    DEBUG_UPDATES = 16
+    DEBUG_PROPOSER = 14
+    DEBUG_GRAPH = 12
+
+
 float_types = (torch.FloatTensor, torch.DoubleTensor, torch.HalfTensor)
