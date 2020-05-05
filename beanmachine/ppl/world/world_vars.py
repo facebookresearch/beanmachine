@@ -116,4 +116,4 @@ class WorldVars(object):
 
         :params value: the value to update the log_prob with.
         """
-        self.log_prob_ += value
+        self.log_prob_ += value.detach()

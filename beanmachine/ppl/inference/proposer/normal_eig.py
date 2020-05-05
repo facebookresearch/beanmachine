@@ -38,6 +38,7 @@ class NormalEig(object):
     def sample(self):
         with torch.no_grad():
             z = torch.normal(mean=0.0, std=1.0, size=(self.n, 1))
+            z = z.to(dtype=self.mean.dtype)
             return self.mean + (self.sqrt_covar @ z).squeeze(1)
 
     def log_prob(self, value):

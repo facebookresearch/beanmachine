@@ -133,7 +133,7 @@ class DiffStack(object):
         :param value: add value to the log prob of the latest diff in the diff
         stack.
         """
-        self.diff_.update_log_prob(value)
+        self.diff_.update_log_prob(value.detach())
 
     def mark_for_delete(self, node: RVIdentifier) -> None:
         """
@@ -149,7 +149,7 @@ class DiffStack(object):
         """
         full_log_prob = tensor(0.0)
         for x in self.diff_stack_:
-            full_log_prob += x.log_prob()
+            full_log_prob += x.log_prob().detach()
         return full_log_prob
 
     def push_changes(self, world_vars: WorldVars) -> None:

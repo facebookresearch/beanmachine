@@ -111,11 +111,13 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         zero_grad(node_val)
         if not is_valid(first_gradient) or not is_valid(hessian):
             return super().get_proposal_distribution(node, node_var, world, {})
+        first_gradient = first_gradient.detach()
+        hessian = hessian.detach()
         # node value may of any arbitrary shape, so here, we transform it into a
         # 1D vector using reshape(-1) and with unsqueeze(0), we change 1D vector
         # of size (N) to (1 x N) matrix.
-        node_val_reshaped = node_val.reshape(-1).unsqueeze(0)
-        neg_hessian = -1 * hessian.detach()
+        node_val_reshaped = node_val.reshape(-1).unsqueeze(0).detach()
+        neg_hessian = -1 * hessian
         _arguments = {"node_val_reshaped": node_val_reshaped}
         # we will first attempt a covariance-inverse-based proposer
         try:
