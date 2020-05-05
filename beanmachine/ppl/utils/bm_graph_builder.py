@@ -1135,6 +1135,99 @@ class OperatorNode(BMGNode, metaclass=ABCMeta):
         BMGNode.__init__(self, children)
 
 
+# This node will only be generated when tranforming the Python version of
+# the graph into the BMG format; for instance, if we have a multiplication
+# of a Bernoulli sample node by 2.0, in the Python form we'll have a scalar
+# multiplied by a sample of type tensor. In the BMG form the sample will be
+# of type Boolean and we cannot multiply a Boolean by a Real. Instead we'll
+# generate "if_then_else(sample, 0.0, 1.0) * 2.0" which typechecks in the
+# BMG type system.
+#
+# Eventually we will probably use this node to represent Python's
+# "consequence if condition else alternative" syntax, and possibly
+# other conditional stochastic control flows.
+
+
+class IfThenElseNode(OperatorNode):
+    edges = ["condition", "consequence", "alternative"]
+
+    def __init__(self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode):
+        OperatorNode.__init__(self, [condition, consequence, alternative])
+
+    @property
+    def node_type(self) -> Any:
+        return self.consequence.node_type
+
+    @property
+    def condition(self) -> BMGNode:
+        return self.children[0]
+
+    @condition.setter
+    def condition(self, p: BMGNode) -> None:
+        self.children[0] = p
+
+    @property
+    def consequence(self) -> BMGNode:
+        return self.children[1]
+
+    @consequence.setter
+    def consequence(self, p: BMGNode) -> None:
+        self.children[1] = p
+
+    @property
+    def alternative(self) -> BMGNode:
+        return self.children[1]
+
+    @alternative.setter
+    def alternative(self, p: BMGNode) -> None:
+        self.children[1] = p
+
+    @property
+    def label(self) -> str:
+        return "if"
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        i = str(self.condition)
+        t = str(self.consequence)
+        e = str(self.alternative)
+        return f"(if {i} then {t} else {e})"
+
+    def support(self) -> Iterator[Any]:
+        raise ValueError("support of IfThenElseNode not yet implemented")
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_operator(
+            OperatorType.IF_THEN_ELSE,
+            [d[self.condition], d[self.consequence], d[self.alternative]],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        i = d[self.condition]
+        t = d[self.consequence]
+        e = d[self.alternative]
+        return (
+            f"n{n} = g.add_operator(\n"
+            + "  graph.OperatorType.IF_THEN_ELSE,\n"
+            + f"  [n{i}, n{t}, n{e}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        i = d[self.condition]
+        t = d[self.consequence]
+        e = d[self.alternative]
+        return (
+            f"n{n} = g.add_operator(\n"
+            + "  graph::OperatorType::IF_THEN_ELSE,\n"
+            + f"  std::vector<uint>({{n{i}, n{t}, n{e}}}));"
+        )
+
+
 class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     edges = ["left", "right"]
     operator_type: OperatorType
@@ -1944,6 +2037,16 @@ class BMGraphBuilder:
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value * other.value
         return self.add_multiplication(input, other)
+
+    @memoize
+    def add_if_then_else(
+        self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode
+    ) -> BMGNode:
+        if isinstance(condition, BooleanNode):
+            return consequence if condition.value else alternative
+        node = IfThenElseNode(condition, consequence, alternative)
+        self.add_node(node)
+        return node
 
     @memoize
     def add_matrix_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:

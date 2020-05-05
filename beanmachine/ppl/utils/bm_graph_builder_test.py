@@ -1513,3 +1513,29 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_if_then_else(self) -> None:
+        bmg = BMGraphBuilder()
+        p = bmg.add_constant(0.5)
+        z = bmg.add_constant(0.0)
+        o = bmg.add_constant(1.0)
+        b = bmg.add_bernoulli(p)
+        s = bmg.add_sample(b)
+        bmg.add_if_then_else(s, o, z)
+        observed = bmg.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=0.0];
+  N2[label=1.0];
+  N3[label=Bernoulli];
+  N4[label=Sample];
+  N5[label=if];
+  N3 -> N0[label=probability];
+  N4 -> N3[label=operand];
+  N5 -> N1[label=alternative];
+  N5 -> N2[label=consequence];
+  N5 -> N4[label=condition];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
