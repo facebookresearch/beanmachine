@@ -108,13 +108,13 @@ setup(
                 set(glob("beanmachine/graph/**/*.cpp", recursive=True))
                 - set(glob("beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
-            include_dirs=["."],
+            include_dirs=[os.getcwd()],
             extra_compile_args=EXTRA_COMPILE_ARGS,
         ),
         CppExtension(
             name="beanmachine.ppl.utils.tensorops",
             sources=["beanmachine/ppl/utils/tensorops.cpp"],
-            include_dirs=["."],
+            include_dirs=[os.getcwd()],
             extra_compile_args=EXTRA_COMPILE_ARGS,
         ),
     ],
