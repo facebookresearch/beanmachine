@@ -2549,65 +2549,81 @@ g = graph.Graph()
         if node.node_type == Probability:
             return node
         if isinstance(node, ConstantNode):
-            if isinstance(node, TensorNode):
-                if node.value.shape.numel() != 1:
-                    raise ValueError(
-                        "To use a tensor as a probability it must "
-                        + "have exactly one element."
-                    )
-            v = float(node.value)
-            if v < 0.0 or v > 1.0:
-                raise ValueError("A probability must be between 0.0 and 1.0.")
-            return self.add_probability(v)
+            return self._constant_to_probability(node)
         raise ValueError("Conversion to probability node not yet implemented.")
+
+    def _constant_to_probability(self, node: ConstantNode) -> ProbabilityNode:
+        # TODO: Better error handling
+        if isinstance(node, TensorNode):
+            if node.value.shape.numel() != 1:
+                raise ValueError(
+                    "To use a tensor as a probability it must "
+                    + "have exactly one element."
+                )
+        v = float(node.value)
+        if v < 0.0 or v > 1.0:
+            raise ValueError("A probability must be between 0.0 and 1.0.")
+        return self.add_probability(v)
 
     def _ensure_real(self, node: BMGNode) -> BMGNode:
         # TODO: Better error handling
         if node.node_type == float:
             return node
         if isinstance(node, ConstantNode):
-            if isinstance(node, TensorNode):
-                if node.value.shape.numel() != 1:
-                    raise ValueError(
-                        "To use a tensor as a real number it must "
-                        + "have exactly one element."
-                    )
-            v = float(node.value)
-            return self.add_real(v)
+            return self._constant_to_real(node)
         raise ValueError("Conversion to real node not yet implemented.")
+
+    def _constant_to_real(self, node: ConstantNode) -> RealNode:
+        # TODO: Better error handling
+        if isinstance(node, TensorNode):
+            if node.value.shape.numel() != 1:
+                raise ValueError(
+                    "To use a tensor as a real number it must "
+                    + "have exactly one element."
+                )
+        v = float(node.value)
+        return self.add_real(v)
 
     def _ensure_pos_real(self, node: BMGNode) -> BMGNode:
         # TODO: Better error handling
         if node.node_type == PositiveReal:
             return node
         if isinstance(node, ConstantNode):
-            if isinstance(node, TensorNode):
-                if node.value.shape.numel() != 1:
-                    raise ValueError(
-                        "To use a tensor as a positive real number it must "
-                        + "have exactly one element."
-                    )
-            v = float(node.value)
-            if v < 0.0:
-                raise ValueError("A positive real must be greater than 0.0.")
-            return self.add_pos_real(v)
+            return self._constant_to_pos_real(node)
         raise ValueError("Conversion to positive real node not yet implemented.")
+
+    def _constant_to_pos_real(self, node: ConstantNode) -> PositiveRealNode:
+        # TODO: Better error handling
+        if isinstance(node, TensorNode):
+            if node.value.shape.numel() != 1:
+                raise ValueError(
+                    "To use a tensor as a positive real number it must "
+                    + "have exactly one element."
+                )
+        v = float(node.value)
+        if v < 0.0:
+            raise ValueError("A positive real must be greater than 0.0.")
+        return self.add_pos_real(v)
 
     def _ensure_natural(self, node: BMGNode) -> BMGNode:
         # TODO: Better error handling
         if node.node_type == Natural:
             return node
         if isinstance(node, ConstantNode):
-            if isinstance(node, TensorNode):
-                if node.value.shape.numel() != 1:
-                    raise ValueError(
-                        "To use a tensor as a natural number it must "
-                        + "have exactly one element."
-                    )
-            v = float(node.value)
-            if v < 0.0:
-                raise ValueError("A natural must be positive.")
-            if not v.is_integer():
-                raise ValueError("A natural must be an integer.")
-            return self.add_natural(int(v))
+            return self._constant_to_natural(node)
         raise ValueError("Conversion to natural node not yet implemented.")
+
+    def _constant_to_natural(self, node: ConstantNode) -> NaturalNode:
+        # TODO: Better error handling
+        if isinstance(node, TensorNode):
+            if node.value.shape.numel() != 1:
+                raise ValueError(
+                    "To use a tensor as a natural number it must "
+                    + "have exactly one element."
+                )
+        v = float(node.value)
+        if v < 0.0:
+            raise ValueError("A natural must be positive.")
+        if not v.is_integer():
+            raise ValueError("A natural must be an integer.")
+        return self.add_natural(int(v))
