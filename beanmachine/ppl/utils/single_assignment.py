@@ -506,6 +506,33 @@ class SingleAssignment:
             "handle_assign_call_single_regular_arg",
         )
 
+    def _handle_assigned_call_two_star_args(self) -> Rule:
+        # Rewrite x= f(*[1],*[2]) into x = f(*([1]+[2]))
+        # TODO: Ideally, would like to merge [1].ctx with the [0].ctx below
+        return PatternRule(
+            assign(
+                value=call(args=HeadTail(starred(), HeadTail(starred(), anyPattern)))
+            ),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=[
+                        ast.Starred(
+                            ast.BinOp(
+                                left=source_term.value.args[0].value,
+                                op=ast.Add(),
+                                right=source_term.value.args[1].value,
+                            ),
+                            source_term.value.args[0].ctx,
+                        )
+                    ],
+                    keywords=source_term.value.keywords,
+                ),
+            ),
+            "handle_assign_call_two_star_args",
+        )
+
     def _handle_asign_call_keyword(self) -> Rule:
         # If we have t = foo(a, b, z=123) rewrite that to
         # t1 = 123, t = foo(a, b, t1),
@@ -580,15 +607,18 @@ class SingleAssignment:
                 self._handle_assign_subscript_slice(),
                 self._handle_assign_binop_left(),
                 self._handle_assign_binop_right(),
-                self._handle_assign_call_function_expression(),
-                self._handle_assign_call_args(),
-                self._handle_asign_call_keyword(),
                 self._handle_handle_assign_attribute(),
                 self._handle_assign_list(),
                 self._handle_assign_tuple(),
                 self._handle_assign_dictionary_keys(),
                 self._handle_assign_dictionary_values(),
+                # TODO: We plan to remove the following rules
+                self._handle_assign_call_args(),
+                self._handle_asign_call_keyword(),
+                # Acceptable rules
+                self._handle_assign_call_function_expression(),
                 self._handle_assigned_call_single_regular_arg(),
+                self._handle_assigned_call_two_star_args(),
             ]
         )
 

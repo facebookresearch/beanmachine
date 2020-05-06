@@ -815,7 +815,7 @@ a = a1[a2]
         self.check_rewrite(source, expected)
 
     def test_single_assignment_call_single_regular_arg(self) -> None:
-        """Test the assign rule for tuples"""
+        """Test the assign rule final step in rewriting regular call arguments"""
 
         source = """
 x = f(*([1]+[2]))
@@ -828,5 +828,43 @@ x = f(*r1)
         self.check_rewrite(
             source,
             expected,
+            _some_top_down(self.s._handle_assigned_call_single_regular_arg()),
+        )
+
+        self.check_rewrite(
+            source,
+            expected,
             many(_some_top_down(self.s._handle_assigned_call_single_regular_arg())),
         )
+
+        # TODO: The following test should work broken call rewrites are removed
+        # self.check_rewrite(source, expected)
+
+    def test_single_assignment_call_two_star_args(self) -> None:
+        """Test the assign rule for merging starred call arguments"""
+
+        source = """
+x = f(*[1],*[2])
+"""
+        expected = """
+x = f(*([1] + [2]))
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            _some_top_down(self.s._handle_assigned_call_two_star_args()),
+        )
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assigned_call_two_star_args())),
+        )
+
+        expected = """
+r1 = [1] + [2]
+x = f(*r1)
+"""
+        # TODO: The following test should work broken call rewrites are removed
+        # self.check_rewrite(source, expected)
