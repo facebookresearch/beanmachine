@@ -1,6 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/factor/exp_product.h"
+#include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
 namespace factor {
@@ -9,10 +9,11 @@ std::unique_ptr<Factor> Factor::new_factor(
     graph::FactorType fac_type,
     const std::vector<graph::Node*>& in_nodes) {
   // check parent nodes are of the correct type
-  for (graph::Node* parent: in_nodes) {
-    if (parent->node_type != graph::NodeType::CONSTANT
-        and parent->node_type != graph::NodeType::OPERATOR) {
-      throw std::invalid_argument("factor parents must be constant or operator");
+  for (graph::Node* parent : in_nodes) {
+    if (parent->node_type != graph::NodeType::CONSTANT and
+        parent->node_type != graph::NodeType::OPERATOR) {
+      throw std::invalid_argument(
+          "factor parents must be constant or operator");
     }
   }
   // now simply call the appropriate factor constructor

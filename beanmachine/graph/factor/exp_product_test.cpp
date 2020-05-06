@@ -3,7 +3,6 @@
 
 #include "beanmachine/graph/graph.h"
 
-
 using namespace beanmachine::graph;
 
 TEST(testfactor, exp_product) {
@@ -23,7 +22,9 @@ TEST(testfactor, exp_product) {
   uint prob1 = g.add_constant_probability(0.4);
   g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{pos1, real1, prob1});
   uint dist1 = g.add_distribution(
-    DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{real1, pos1});
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{real1, pos1});
   uint x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist1});
   uint x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
   g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{x, prob1, x_sq});

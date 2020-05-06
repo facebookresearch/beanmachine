@@ -12,9 +12,10 @@ class Factor : public graph::Node {
       graph::FactorType fac_type,
       const std::vector<graph::Node*>& in_nodes);
   explicit Factor(graph::FactorType fac_type)
-      : graph::Node(graph::NodeType::FACTOR),
-        fac_type(fac_type) {}
-  bool is_stochastic() const override {return true;}
+      : graph::Node(graph::NodeType::FACTOR), fac_type(fac_type) {}
+  bool is_stochastic() const override {
+    return true;
+  }
   void eval(std::mt19937& /* gen */) override {}
   void compute_gradients() override {}
   graph::FactorType fac_type;

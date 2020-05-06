@@ -32,8 +32,8 @@ std::set<uint> Graph::compute_support() {
     }
     visited.insert(node_id);
     const Node* node = nodes[node_id].get();
-    if (node->node_type == NodeType::OPERATOR
-        or node->node_type == NodeType::FACTOR) {
+    if (node->node_type == NodeType::OPERATOR or
+        node->node_type == NodeType::FACTOR) {
       support.insert(node_id);
     }
     for (const auto& parent : node->in_nodes) {
@@ -49,12 +49,13 @@ std::set<uint> Graph::compute_support() {
 // NOTE: we don't return descendants of stochastic descendants
 // NOTE: current node is returned if applicable
 std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
-    uint root_id, const std::set<uint> &support) {
+    uint root_id,
+    const std::set<uint>& support) {
   // check for the validity of root_id since this method is not private
   if (root_id >= nodes.size()) {
     throw std::out_of_range(
-      "node_id (" + std::to_string(root_id)
-      + ") must be less than " + std::to_string(nodes.size()));
+        "node_id (" + std::to_string(root_id) + ") must be less than " +
+        std::to_string(nodes.size()));
   }
   std::vector<uint> det_desc;
   std::vector<uint> sto_desc;
@@ -74,15 +75,15 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
     // we stop looking at descendants when we hit a stochastic node
     // other than the root of this subgraph
     if (node->is_stochastic()) {
-      if  (support.find(node_id) != support.end()) {
+      if (support.find(node_id) != support.end()) {
         sto_desc.push_back(node_id); // stochastic nodes are operators
       }
       if (node_id != root_id) {
         continue;
       }
-    }
-    else if (node->node_type == NodeType::OPERATOR and
-      support.find(node_id) != support.end()) {
+    } else if (
+        node->node_type == NodeType::OPERATOR and
+        support.find(node_id) != support.end()) {
       det_desc.push_back(node_id);
     }
     for (const auto& child : node->out_nodes) {
@@ -104,8 +105,8 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_ancestors(
   // check for the validity of root_id since this method is not private
   if (root_id >= nodes.size()) {
     throw std::out_of_range(
-        "node_id (" + std::to_string(root_id) + ") must be less than "
-        + std::to_string(nodes.size()));
+        "node_id (" + std::to_string(root_id) + ") must be less than " +
+        std::to_string(nodes.size()));
   }
   const Node* root = nodes[root_id].get();
   return std::make_tuple(root->det_anc, root->sto_anc);

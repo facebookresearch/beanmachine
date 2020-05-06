@@ -1,36 +1,41 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <cmath>
 #include <beanmachine/graph/distribution/distribution.h>
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/util.h>
+#include <cmath>
 
 namespace beanmachine {
 namespace graph {
 
 void Graph::cavi(
-    uint num_iters, uint steps_per_iter, std::mt19937& gen, uint elbo_samples) {
+    uint num_iters,
+    uint steps_per_iter,
+    std::mt19937& gen,
+    uint elbo_samples) {
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
-  std::vector<Node *> node_ptrs;
+  std::vector<Node*> node_ptrs;
   // store all the sampled values for each node
   std::vector<std::vector<AtomicValue>> var_samples;
   for (uint node_id = 0; node_id < nodes.size(); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
     var_samples.push_back(std::vector<AtomicValue>());
   }
-  assert(node_ptrs.size() > 0);  // keep linter happy
+  assert(node_ptrs.size() > 0); // keep linter happy
   std::set<uint> supp = compute_support();
   // the variational parameter probability for each node (initially 0.5)
-  std::vector<double> param_probability
-    = std::vector<double>(nodes.size(), 0.5);
-  assert(param_probability.size() > 0);  // keep linter happy
+  std::vector<double> param_probability =
+      std::vector<double>(nodes.size(), 0.5);
+  assert(param_probability.size() > 0); // keep linter happy
   // compute pool : nodes that we will infer over
   //    -> nodes to sample, nodes to eval, nodes to log_prob
   // NOTE: we want the list of nodes in the pool to be sorted to ensure
   // that we update the nodes in topological order. This helps in some models
   // where some of the ancestor nodes have deterministic probabilities.
-  std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>,
-    std::vector<uint>>> pool;
+  std::map<
+      uint,
+      std::tuple<std::vector<uint>, std::vector<uint>, std::vector<uint>>>
+      pool;
   for (uint node_id : supp) {
     Node* node = node_ptrs[node_id];
     if (not node->is_observed) {
@@ -76,7 +81,7 @@ void Graph::cavi(
       eval_nodes.insert(eval_nodes.end(), det_set.begin(), det_set.end());
       std::vector<uint> sample_nodes;
       sample_nodes.insert(
-        sample_nodes.end(), sample_set.begin(), sample_set.end());
+          sample_nodes.end(), sample_set.begin(), sample_set.end());
       pool[node_id] = std::make_tuple(sample_nodes, eval_nodes, logprob_nodes);
     }
   }
@@ -87,8 +92,11 @@ void Graph::cavi(
       Node* tgt_node = node_ptrs[tgt_node_id];
       // the following dance of getting into a tuple is needed because this
       // version of C++ doesn't have structured bindings
-      std::tuple<const std::vector<uint>&, const std::vector<uint>&,
-        const std::vector<uint>&> tmp_tuple = it->second;
+      std::tuple<
+          const std::vector<uint>&,
+          const std::vector<uint>&,
+          const std::vector<uint>&>
+          tmp_tuple = it->second;
       const std::vector<uint>& sample_nodes = std::get<0>(tmp_tuple);
       const std::vector<uint>& eval_nodes = std::get<1>(tmp_tuple);
       const std::vector<uint>& logprob_nodes = std::get<2>(tmp_tuple);
@@ -141,12 +149,11 @@ void Graph::cavi(
               std::bernoulli_distribution distrib(prob);
               node->value = AtomicValue(bool(distrib(gen)));
               // subtract the log_prob of the variational distribution
-              elbo -= node->value._bool ? log(prob) : log(1-prob);
+              elbo -= node->value._bool ? log(prob) : log(1 - prob);
             }
             // add the log_prob of the joint distribution
             elbo += node->log_prob();
-          }
-          else if (node->node_type == NodeType::OPERATOR) {
+          } else if (node->node_type == NodeType::OPERATOR) {
             node->eval(gen);
           }
         }

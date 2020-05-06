@@ -22,7 +22,7 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
   std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
   // cache_logodds : nodes that we will infer over -> log odds of not changing
   std::vector<double> cache_logodds = std::vector<double>(nodes.size());
-  assert(cache_logodds.size() > 0);  // keep linter happy
+  assert(cache_logodds.size() > 0); // keep linter happy
   // inv_sto : stochastic node -> parent nodes in pool
   // x in sto_desc[y] => y in inv_sto[x]
   // this is a temp object which is needed to construct markov_blanket (below)
@@ -70,14 +70,14 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
     }
   }
   std::vector<AtomicValue> old_values = std::vector<AtomicValue>(nodes.size());
-  assert(old_values.size() > 0);  // keep linter happy
+  assert(old_values.size() > 0); // keep linter happy
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
-  std::vector<Node *> node_ptrs;
+  std::vector<Node*> node_ptrs;
   for (uint node_id = 0; node_id < nodes.size(); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
   }
-  assert(node_ptrs.size() > 0);  // keep linter happy
+  assert(node_ptrs.size() > 0); // keep linter happy
   // sampling outer loop
   for (uint snum = 0; snum < num_samples; snum++) {
     for (auto it = pool.begin(); it != pool.end(); ++it) {

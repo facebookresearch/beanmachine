@@ -2,13 +2,13 @@
 #include <random>
 
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/proposer/beta.h"
-#include "beanmachine/graph/proposer/normal.h"
-#include "beanmachine/graph/proposer/mixture.h"
-#include "beanmachine/graph/proposer/gamma.h"
-#include "beanmachine/graph/proposer/trunc_cauchy.h"
 #include "beanmachine/graph/proposer/delta.h"
+#include "beanmachine/graph/proposer/gamma.h"
+#include "beanmachine/graph/proposer/mixture.h"
+#include "beanmachine/graph/proposer/normal.h"
+#include "beanmachine/graph/proposer/proposer.h"
+#include "beanmachine/graph/proposer/trunc_cauchy.h"
 
 namespace beanmachine {
 namespace proposer {
@@ -16,13 +16,14 @@ namespace proposer {
 const double MAIN_PROPOSER_WEIGHT = 1.0;
 const double RANDOM_WALK_WEIGHT = 0.01;
 
-std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double grad1, double grad2) {
+std::unique_ptr<Proposer>
+nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
   // For boolean variables we will put a point mass on the complementary value.
   if (value.type == graph::AtomicType::BOOLEAN) {
     return std::make_unique<Delta>(graph::AtomicValue(not value._bool));
   }
-  // For continuous-valued variables we will mix multiple proposers with various weights
-  // with a small probability always given to a random walk proposer.
+  // For continuous-valued variables we will mix multiple proposers with various
+  // weights with a small probability always given to a random walk proposer.
   std::vector<double> weights;
   std::vector<std::unique_ptr<Proposer>> proposers;
   if (value.type == graph::AtomicType::PROBABILITY) {
@@ -30,7 +31,7 @@ std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double gr
     assert(x > 0 and x < 1);
     // a random walk for a probability is a Beta proposer with strength one
     weights.push_back(RANDOM_WALK_WEIGHT);
-    proposers.push_back(std::make_unique<Beta>(x, 1-x));
+    proposers.push_back(std::make_unique<Beta>(x, 1 - x));
     // we will approximate a probability variable with a Beta proposer
     // f(x)   = log_prob(x | Beta(a, b))
     // f(x)   = (a-1) log(x) + (b-1) log(1-x) +.. terms in a and b..
@@ -39,8 +40,8 @@ std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double gr
     // Solving for a and b.
     // a = 1 - x^2 [-f'(x) + (1-x) f''(x)]
     // b = 1 - (1-x)^2 [f'(x) + x f''(x)]
-    double a = 1 - x * x * (-grad1 + (1-x) * grad2);
-    double b = 1 - (1-x) * (1-x) * (grad1 + x * grad2);
+    double a = 1 - x * x * (-grad1 + (1 - x) * grad2);
+    double b = 1 - (1 - x) * (1 - x) * (grad1 + x * grad2);
     if (a > 0 and b > 0) {
       weights.push_back(MAIN_PROPOSER_WEIGHT);
       proposers.push_back(std::make_unique<Beta>(a, b));
@@ -61,11 +62,12 @@ std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double gr
     if (grad2 < 0) {
       double sigma = std::sqrt(-1 / grad2);
       double mu = value._double - grad1 / grad2;
-      // we will mix multiple proposers with increasing variance and lower probability
+      // we will mix multiple proposers with increasing variance and lower
+      // probability
       weights.push_back(MAIN_PROPOSER_WEIGHT);
       proposers.push_back(std::make_unique<Normal>(mu, sigma));
       weights.push_back(MAIN_PROPOSER_WEIGHT / 10);
-      proposers.push_back(std::make_unique<Normal>(mu, sigma*10));
+      proposers.push_back(std::make_unique<Normal>(mu, sigma * 10));
     }
   } else if (value.type == graph::AtomicType::POS_REAL) {
     double x = value._double;
@@ -88,15 +90,17 @@ std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double gr
       if (grad1 > 0) {
         scaled_x = -scaled_x;
       }
-      double scale = (-2/grad1) * scaled_x / (1 + scaled_x_sq);
+      double scale = (-2 / grad1) * scaled_x / (1 + scaled_x_sq);
       double loc = x - scaled_x * scale;
-      // we will mix multiple proposers with increasing variance and lower probability
+      // we will mix multiple proposers with increasing variance and lower
+      // probability
       weights.push_back(MAIN_PROPOSER_WEIGHT);
       proposers.push_back(std::make_unique<TruncatedCauchy>(loc, scale));
       weights.push_back(MAIN_PROPOSER_WEIGHT / 10.0);
-      proposers.push_back(std::make_unique<TruncatedCauchy>(loc, scale*10));
+      proposers.push_back(std::make_unique<TruncatedCauchy>(loc, scale * 10));
     }
-    // Another random walk is an Exponential distribution centered at the current value
+    // Another random walk is an Exponential distribution centered at the
+    // current value
     weights.push_back(RANDOM_WALK_WEIGHT);
     proposers.push_back(std::make_unique<Gamma>(1.0, 1.0 / x));
     // we can also approximate a positive value with a Gamma proposer
@@ -108,7 +112,7 @@ std::unique_ptr<Proposer> nmc_proposer(const graph::AtomicValue&value, double gr
     // alpha = 1 - x^2 f''(x)
     // beta = - x f''(x) - f'(x)
     double alpha = 1 - x * x * grad2;
-    double beta = - x * grad2 - grad1;
+    double beta = -x * grad2 - grad1;
     if (alpha > 0 and beta > 0) {
       weights.push_back(MAIN_PROPOSER_WEIGHT);
       proposers.push_back(std::make_unique<Gamma>(alpha, beta));

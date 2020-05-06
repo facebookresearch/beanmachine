@@ -2,13 +2,13 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/util.h"
 #include "beanmachine/graph/proposer/proposer.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace graph {
@@ -16,11 +16,11 @@ namespace graph {
 void Graph::nmc(uint num_samples, std::mt19937& gen) {
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
-  std::vector<Node *> node_ptrs;
+  std::vector<Node*> node_ptrs;
   for (uint node_id = 0; node_id < nodes.size(); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
   }
-  assert(node_ptrs.size() > 0);  // keep linter happy
+  assert(node_ptrs.size() > 0); // keep linter happy
   // eval each node so that we have a starting value and verify that these
   // values are all continuous-valued scalars
   // also compute the pool of variables that we will infer over and
@@ -36,12 +36,13 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
       node->eval(gen); // evaluate the value of non-observed operator nodes
     }
     if (node->is_stochastic() and node_is_not_observed) {
-      if (node->value.type != AtomicType::PROBABILITY
-          and node->value.type != AtomicType::REAL
-          and node->value.type != AtomicType::POS_REAL
-          and node->value.type != AtomicType::BOOLEAN) {
-        throw std::runtime_error("NMC only supported on bool/probability/real/positive -- failing on node "
-            + std::to_string(node_id));
+      if (node->value.type != AtomicType::PROBABILITY and
+          node->value.type != AtomicType::REAL and
+          node->value.type != AtomicType::POS_REAL and
+          node->value.type != AtomicType::BOOLEAN) {
+        throw std::runtime_error(
+            "NMC only supported on bool/probability/real/positive -- failing on node " +
+            std::to_string(node_id));
       }
       node->value = proposer::uniform_initializer(gen, node->value.type);
       std::vector<uint> det_nodes;
@@ -51,7 +52,7 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
     }
   }
   std::vector<AtomicValue> old_values = std::vector<AtomicValue>(nodes.size());
-  assert(old_values.size() > 0);  // keep linter happy
+  assert(old_values.size() > 0); // keep linter happy
   // sampling outer loop
   for (uint snum = 0; snum < num_samples; snum++) {
     for (auto it = pool.begin(); it != pool.end(); ++it) {
@@ -86,9 +87,10 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
         old_logweight += node->log_prob();
         node->gradient_log_prob(old_grad1, old_grad2);
       }
-      // now create a proposer object, save the value of tgt_node and propose a new value
-      std::unique_ptr<proposer::Proposer> old_prop = proposer::nmc_proposer(
-          tgt_node->value, old_grad1, old_grad2);
+      // now create a proposer object, save the value of tgt_node and propose a
+      // new value
+      std::unique_ptr<proposer::Proposer> old_prop =
+          proposer::nmc_proposer(tgt_node->value, old_grad1, old_grad2);
       graph::AtomicValue old_value = tgt_node->value;
       tgt_node->value = old_prop->sample(gen);
       // similar to the above process we will go through all the children and
@@ -111,14 +113,14 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
       }
       // construct the reverse proposer and use it to compute the
       // log acceptance probability of the move
-      std::unique_ptr<proposer::Proposer> new_prop = proposer::nmc_proposer(
-          tgt_node->value, new_grad1, new_grad2);
-      double logacc = new_logweight - old_logweight
-        + new_prop->log_prob(old_value) - old_prop->log_prob(tgt_node->value);
-      // The move is accepted if the probability is > 1 or if we sample and get a true
-      // Otherwise we reject the move and restore all the deterministic children and
-      // the value of the target node.
-      // In either case we need to restore the gradients.
+      std::unique_ptr<proposer::Proposer> new_prop =
+          proposer::nmc_proposer(tgt_node->value, new_grad1, new_grad2);
+      double logacc = new_logweight - old_logweight +
+          new_prop->log_prob(old_value) - old_prop->log_prob(tgt_node->value);
+      // The move is accepted if the probability is > 1 or if we sample and get
+      // a true Otherwise we reject the move and restore all the deterministic
+      // children and the value of the target node. In either case we need to
+      // restore the gradients.
       if (logacc > 0 or util::sample_logprob(gen, logacc)) {
         for (uint node_id : det_nodes) {
           Node* node = node_ptrs[node_id];

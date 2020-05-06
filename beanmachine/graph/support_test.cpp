@@ -5,7 +5,6 @@
 
 #include <beanmachine/graph/graph.h>
 
-
 using namespace beanmachine;
 
 TEST(testgraph, support) {
@@ -32,8 +31,10 @@ TEST(testgraph, support) {
       std::vector<uint>{o3});
   uint o4 =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
-  uint ro2 = g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o2}));
-  uint ro4 = g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o4}));
+  uint ro2 =
+      g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o2}));
+  uint ro4 =
+      g.add_operator(graph::OperatorType::TO_POS_REAL, std::vector<uint>({o4}));
   // o2 and o4 -> o5
   uint o5 = g.add_operator(
       graph::OperatorType::MULTIPLY, std::vector<uint>({ro2, ro4}));

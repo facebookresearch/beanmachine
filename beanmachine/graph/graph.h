@@ -26,7 +26,8 @@ enum class AtomicType {
   REAL,
   POS_REAL, // Real numbers greater than *or* equal to zero
   NATURAL, // note: NATURAL numbers include zero (ISO 80000-2)
-  TENSOR };
+  TENSOR
+};
 
 typedef unsigned long long int natural_t;
 
@@ -43,7 +44,8 @@ class AtomicValue {
   explicit AtomicValue(AtomicType type);
   explicit AtomicValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
-  explicit AtomicValue(natural_t value) : type(AtomicType::NATURAL), _natural(value) {}
+  explicit AtomicValue(natural_t value)
+      : type(AtomicType::NATURAL), _natural(value) {}
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
   AtomicValue(AtomicType type, bool value) : type(type), _bool(value) {
@@ -52,7 +54,8 @@ class AtomicValue {
   AtomicValue(AtomicType type, natural_t value) : type(type), _natural(value) {
     assert(type == AtomicType::NATURAL);
   }
-  AtomicValue(AtomicType type, torch::Tensor value) : type(type), _tensor(value) {
+  AtomicValue(AtomicType type, torch::Tensor value)
+      : type(type), _tensor(value) {
     assert(type == AtomicType::TENSOR);
   }
   AtomicValue(AtomicType type, double value);
@@ -119,7 +122,7 @@ enum class NodeType {
 
 enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
 
-enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN};
+enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
 class Node {
  public:
@@ -133,14 +136,20 @@ class Node {
   AtomicValue value;
   double grad1;
   double grad2;
-  virtual bool is_stochastic() const {return false;}
+  virtual bool is_stochastic() const {
+    return false;
+  }
   // only valid for stochastic nodes
-  virtual double log_prob() const {return 0;}
+  virtual double log_prob() const {
+    return 0;
+  }
   // gradient_log_prob is also only valid for stochastic nodes
   // this function adds the gradients to the passed in gradients
-  virtual void gradient_log_prob(double& /* grad1 */, double& /* grad2 */) const {}
+  virtual void gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
+      const {}
   Node() {}
-  explicit Node(NodeType node_type) : node_type(node_type), grad1(0), grad2(0) {}
+  explicit Node(NodeType node_type)
+      : node_type(node_type), grad1(0), grad2(0) {}
   Node(NodeType node_type, AtomicValue value)
       : node_type(node_type), value(value), grad1(0), grad2(0) {}
   // evaluate the node and store the result in `value` if appropriate
@@ -206,13 +215,18 @@ struct Graph {
             on the type of the queried node
   :raises: std::runtime_error, std::invalid_argument
   */
-  std::vector<std::vector<double>>&
-  variational(uint num_iters, uint steps_per_iter, uint seed = 5123401,
-    uint elbo_samples=0);
-  std::vector<double>& get_elbo() {return elbo_vals;}
+  std::vector<std::vector<double>>& variational(
+      uint num_iters,
+      uint steps_per_iter,
+      uint seed = 5123401,
+      uint elbo_samples = 0);
+  std::vector<double>& get_elbo() {
+    return elbo_vals;
+  }
   std::set<uint> compute_support();
   std::tuple<std::vector<uint>, std::vector<uint>> compute_descendants(
-      uint node_id, const std::set<uint> &support);
+      uint node_id,
+      const std::set<uint>& support);
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
   /*
@@ -226,7 +240,12 @@ struct Graph {
   :param grad2: Output value of second gradient.
   */
   void eval_and_grad(
-    uint tgt_idx, uint src_idx, uint seed, AtomicValue& value, double& grad1, double& grad2);
+      uint tgt_idx,
+      uint src_idx,
+      uint seed,
+      AtomicValue& value,
+      double& grad1,
+      double& grad2);
   /*
   Evaluate the deterministic descendants of the source node and compute
   the logprob_gradient of all stochastic descendants in the support including
@@ -268,7 +287,10 @@ struct Graph {
   void gibbs(uint num_samples, std::mt19937& gen);
   void nmc(uint num_samples, std::mt19937& gen);
   void cavi(
-    uint num_iters, uint steps_per_iter, std::mt19937& gen, uint elbo_samples);
+      uint num_iters,
+      uint steps_per_iter,
+      std::mt19937& gen,
+      uint elbo_samples);
 };
 
 } // namespace graph

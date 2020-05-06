@@ -1,15 +1,15 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/distribution/bernoulli.h"
+#include "beanmachine/graph/distribution/bernoulli_logit.h"
 #include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/distribution/binomial.h"
-#include "beanmachine/graph/distribution/distribution.h"
-#include "beanmachine/graph/distribution/tabular.h"
 #include "beanmachine/graph/distribution/flat.h"
-#include "beanmachine/graph/distribution/normal.h"
 #include "beanmachine/graph/distribution/half_cauchy.h"
+#include "beanmachine/graph/distribution/normal.h"
 #include "beanmachine/graph/distribution/student_t.h"
-#include "beanmachine/graph/distribution/bernoulli_logit.h"
+#include "beanmachine/graph/distribution/tabular.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -25,7 +25,7 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     }
   }
   // now simply call the appropriate distribution constructor
-  switch(dist_type) {
+  switch (dist_type) {
     case graph::DistributionType::TABULAR: {
       return std::make_unique<Tabular>(sample_type, in_nodes);
     }
@@ -58,7 +58,8 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     }
     default: {
       throw std::invalid_argument(
-        "Unknown distribution " + std::to_string(static_cast<int>(dist_type)));
+          "Unknown distribution " +
+          std::to_string(static_cast<int>(dist_type)));
     }
   }
 }

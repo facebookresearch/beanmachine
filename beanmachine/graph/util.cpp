@@ -1,8 +1,8 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include "beanmachine/graph/util.h"
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace util {
@@ -67,7 +67,7 @@ double sample_beta(std::mt19937& gen, double a, double b) {
   if ((x + y) == 0.0) {
     return graph::PRECISION;
   }
-  double p =  x / (x + y);
+  double p = x / (x + y);
   return p;
 }
 
@@ -76,11 +76,11 @@ double logistic(double logodds) {
 }
 
 double Phi(double x) {
-  return 0.5 *(1 + std::erf(x / M_SQRT2));
+  return 0.5 * (1 + std::erf(x / M_SQRT2));
 }
 
 double Phi_approx(double x) {
-  return 1.0 / (1.0 + std::exp(- PHI_APPROX_GAMMA * x));
+  return 1.0 / (1.0 + std::exp(-PHI_APPROX_GAMMA * x));
 }
 
 double Phi_approx_inv(double z) {
@@ -90,13 +90,13 @@ double Phi_approx_inv(double z) {
 double log_sum_exp(const std::vector<double>& values) {
   // find the max and subtract it out
   double max = values[0];
-  for (std::vector<double>::size_type idx=1; idx < values.size(); idx++) {
+  for (std::vector<double>::size_type idx = 1; idx < values.size(); idx++) {
     if (values[idx] > max) {
       max = values[idx];
     }
   }
   double sum = 0;
-  for (auto value: values) {
+  for (auto value : values) {
     sum += std::exp(value - max);
   }
   return std::log(sum) + max;

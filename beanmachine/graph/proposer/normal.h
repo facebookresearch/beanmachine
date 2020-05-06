@@ -12,7 +12,7 @@ class Normal : public Proposer {
   :param mu: mean of Normal
   :param sigma: std. dev of Normal
   */
-  Normal(double mu, double sigma):  Proposer(), mu(mu), sigma(sigma) {}
+  Normal(double mu, double sigma) : Proposer(), mu(mu), sigma(sigma) {}
   /*
   Sample a value from the proposer.
   :param gen: Random number generator.
@@ -25,10 +25,11 @@ class Normal : public Proposer {
   :returns: log probability of value.
   */
   double log_prob(graph::AtomicValue& value) const override;
+
  private:
   double mu;
   double sigma;
 };
 
-} // namespace distribution
+} // namespace proposer
 } // namespace beanmachine

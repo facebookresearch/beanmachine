@@ -12,7 +12,7 @@ class Beta : public Proposer {
   :param a: shape param for Beta
   :param b: shape param for Beta
   */
-  Beta(double a, double b):  Proposer(), a(a), b(b) {}
+  Beta(double a, double b) : Proposer(), a(a), b(b) {}
   /*
   Sample a value from the proposer.
   :param gen: Random number generator.
@@ -25,10 +25,11 @@ class Beta : public Proposer {
   :returns: log probability of value.
   */
   double log_prob(graph::AtomicValue& value) const override;
+
  private:
   double a;
   double b;
 };
 
-} // namespace distribution
+} // namespace proposer
 } // namespace beanmachine

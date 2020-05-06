@@ -16,8 +16,7 @@ static inline double log1mexpm(double x) {
   //   log1mexp(40) -> -4.248354255291589e-18
   if (x < 0.69315) {
     return std::log(-std::expm1(-x));
-  }
-  else {
+  } else {
     return std::log1p(-std::exp(-x));
   }
 }
@@ -61,25 +60,31 @@ double BernoulliNoisyOr::log_prob(const graph::AtomicValue& value) const {
 // x ~ BernoulliNoisyOr(y) = Bernoulli(1 - exp(-y))
 // f(x, y) = x log(1 - exp(-y)) + (1-x)(-y)
 // w.r.t. x:   f' = log(1 - exp(-y)) + y     f'' = 0
-// w.r.t. y:   f' =  [x exp(-y) / (1 - exp(-y)) - (1-x)] y' = [x / (1 - exp(-y)) - 1] y'
-//             f'' = [- x exp(-y) /(1 - exp(-y))^2] y'^2 + [x / (1 - exp(-y)) - 1] y''
+// w.r.t. y:   f' =  [x exp(-y) / (1 - exp(-y)) - (1-x)] y' = [x / (1 - exp(-y))
+// - 1] y'
+//             f'' = [- x exp(-y) /(1 - exp(-y))^2] y'^2 + [x / (1 - exp(-y)) -
+//             1] y''
 void BernoulliNoisyOr::gradient_log_prob_value(
-    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+    const graph::AtomicValue& /* value */,
+    double& grad1,
+    double& /* grad2 */) const {
   double param = in_nodes[0]->value._double;
   grad1 += log1mexpm(param) + param;
   // grad2 += 0
 }
 
 void BernoulliNoisyOr::gradient_log_prob_param(
-    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+    const graph::AtomicValue& value,
+    double& grad1,
+    double& grad2) const {
   double param = in_nodes[0]->value._double;
   double mexpm1m = -std::expm1(-param); // 1 - exp(-param)
-  double val = (double) value._bool;
-  double grad_param= val / mexpm1m - 1;
-  double grad2_param = - val * std::exp(-param) / (mexpm1m * mexpm1m);
+  double val = (double)value._bool;
+  double grad_param = val / mexpm1m - 1;
+  double grad2_param = -val * std::exp(-param) / (mexpm1m * mexpm1m);
   grad1 += grad_param * in_nodes[0]->grad1;
-  grad2 += grad2_param * in_nodes[0]->grad1 * in_nodes[0]->grad1
-    + grad_param * in_nodes[0]->grad2;
+  grad2 += grad2_param * in_nodes[0]->grad1 * in_nodes[0]->grad1 +
+      grad_param * in_nodes[0]->grad2;
 }
 
 } // namespace distribution
