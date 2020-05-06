@@ -2467,6 +2467,11 @@ g = graph.Graph()
             visit(r)
         return result
 
+    # TODO: All the type fixing code which follows uses exceptions as the
+    # TODO: error reporting mechanism. This is fine for now but eventually
+    # TODO: we'll need to design a proper user-centric error reporting
+    # TODO: mechanism.
+
     def _fix_types(self) -> None:
         # So far these rewrites can add nodes but none of them need further
         # rewriting. If this changes, we might need to iterate until
@@ -2475,6 +2480,10 @@ g = graph.Graph()
             self._fix_type(node)
 
     def _fix_type(self, node: BMGNode) -> None:
+        # A sample's type depends entirely on its distribution's
+        # node_type, so just fix the distribution.
+        if isinstance(node, SampleNode):
+            self._fix_type(node.operand)
         if isinstance(node, BernoulliNode):
             self._fix_bernoulli(node)
         elif isinstance(node, BetaNode):
@@ -2545,7 +2554,8 @@ g = graph.Graph()
         node.types_fixed = True
 
     def _ensure_probability(self, node: BMGNode) -> BMGNode:
-        # TODO: Better error handling
+        # The fixed type might already be correct.
+        self._fix_type(node)
         if node.node_type == Probability:
             return node
         if isinstance(node, ConstantNode):
@@ -2553,7 +2563,6 @@ g = graph.Graph()
         raise ValueError("Conversion to probability node not yet implemented.")
 
     def _constant_to_probability(self, node: ConstantNode) -> ProbabilityNode:
-        # TODO: Better error handling
         if isinstance(node, TensorNode):
             if node.value.shape.numel() != 1:
                 raise ValueError(
@@ -2566,15 +2575,22 @@ g = graph.Graph()
         return self.add_probability(v)
 
     def _ensure_real(self, node: BMGNode) -> BMGNode:
-        # TODO: Better error handling
+        # The fixed type might already be correct.
+        self._fix_type(node)
         if node.node_type == float:
             return node
         if isinstance(node, ConstantNode):
             return self._constant_to_real(node)
+        if node.node_type == bool:
+            return self._bool_to_real(node)
         raise ValueError("Conversion to real node not yet implemented.")
 
+    def _bool_to_real(self, node: BMGNode) -> BMGNode:
+        one = self.add_real(1.0)
+        zero = self.add_real(0.0)
+        return self.add_if_then_else(node, one, zero)
+
     def _constant_to_real(self, node: ConstantNode) -> RealNode:
-        # TODO: Better error handling
         if isinstance(node, TensorNode):
             if node.value.shape.numel() != 1:
                 raise ValueError(
@@ -2585,7 +2601,8 @@ g = graph.Graph()
         return self.add_real(v)
 
     def _ensure_pos_real(self, node: BMGNode) -> BMGNode:
-        # TODO: Better error handling
+        # The fixed type might already be correct.
+        self._fix_type(node)
         if node.node_type == PositiveReal:
             return node
         if isinstance(node, ConstantNode):
@@ -2593,7 +2610,6 @@ g = graph.Graph()
         raise ValueError("Conversion to positive real node not yet implemented.")
 
     def _constant_to_pos_real(self, node: ConstantNode) -> PositiveRealNode:
-        # TODO: Better error handling
         if isinstance(node, TensorNode):
             if node.value.shape.numel() != 1:
                 raise ValueError(
@@ -2606,7 +2622,8 @@ g = graph.Graph()
         return self.add_pos_real(v)
 
     def _ensure_natural(self, node: BMGNode) -> BMGNode:
-        # TODO: Better error handling
+        # The fixed type might already be correct.
+        self._fix_type(node)
         if node.node_type == Natural:
             return node
         if isinstance(node, ConstantNode):
@@ -2614,7 +2631,8 @@ g = graph.Graph()
         raise ValueError("Conversion to natural node not yet implemented.")
 
     def _constant_to_natural(self, node: ConstantNode) -> NaturalNode:
-        # TODO: Better error handling
+        # The fixed type might already be correct.
+        self._fix_type(node)
         if isinstance(node, TensorNode):
             if node.value.shape.numel() != 1:
                 raise ValueError(

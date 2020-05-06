@@ -227,7 +227,40 @@ def normal():
   return Normal(flip(), 1.0)
 """
 
-expected_bmg_2 = """"""
+expected_cpp_2 = """
+graph::Graph g;
+uint n0 = g.add_constant_probability(0.5);
+uint n1 = g.add_distribution(
+  graph::DistributionType::BERNOULLI,
+  graph::AtomicType::BOOLEAN,
+  std::vector<uint>({n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n3 = g.add_constant(1.0);
+uint n4 = g.add_constant(0.0);
+n5 = g.add_operator(
+  graph::OperatorType::IF_THEN_ELSE,
+  std::vector<uint>({n2, n3, n4}));
+uint n6 = g.add_constant_pos_real(1.0);
+uint n7 = g.add_distribution(
+  graph::DistributionType::NORMAL,
+  graph::AtomicType::REAL,
+  std::vector<uint>({n5, n6}));
+uint n8 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n7}));
+"""
+
+expected_bmg_2 = """
+Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
+Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
+Node 2 type 3 parents [ 1 ] children [ 5 ] boolean value 0
+Node 3 type 1 parents [ ] children [ 5 ] real value 1
+Node 4 type 1 parents [ ] children [ 5 ] real value 0
+Node 5 type 3 parents [ 2 3 4 ] children [ 7 ] real value 0
+Node 6 type 1 parents [ ] children [ 7 ] pos real value 1
+Node 7 type 2 parents [ 5 6 ] children [ 8 ] unknown value
+Node 8 type 3 parents [ 7 ] children [ ] real value 0
+"""
 
 
 class EndToEndTest(unittest.TestCase):
@@ -249,7 +282,13 @@ class EndToEndTest(unittest.TestCase):
         observed = to_python(source_1)
         self.assertEqual(observed.strip(), expected_python_1.strip())
 
-    def disabled_test_to_bmg_2(self) -> None:
+    def test_to_cpp_2(self) -> None:
+        """test_to_cpp_2 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_cpp(source_2)
+        self.assertEqual(observed.strip(), expected_cpp_2.strip())
+
+    def test_to_bmg_2(self) -> None:
         """test_to_bmg_2 from end_to_end_test.py"""
         self.maxDiff = None
         observed = to_bmg(source_2).to_string()
