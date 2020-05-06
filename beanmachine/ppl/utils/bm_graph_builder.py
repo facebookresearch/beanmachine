@@ -1176,11 +1176,11 @@ class IfThenElseNode(OperatorNode):
 
     @property
     def alternative(self) -> BMGNode:
-        return self.children[1]
+        return self.children[2]
 
     @alternative.setter
     def alternative(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.children[2] = p
 
     @property
     def label(self) -> str:
