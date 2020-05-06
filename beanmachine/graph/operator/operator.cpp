@@ -173,7 +173,7 @@ Operator::Operator(
           "operator IF_THEN_ELSE requires 3 args and arg2.type == arg3.type"
         );
       }
-      value.type = in_nodes[1]->value.type;
+      value = graph::AtomicValue(in_nodes[1]->value.type);
       break;
     }
     default: {
