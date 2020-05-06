@@ -9,6 +9,14 @@ def tidy(s: str) -> str:
     return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
 
 
+# These are cases where we just have either a straightforward sample from
+# a distribution parameterized with constants, or a distribution parameterized
+# with a sample from another distribution.
+#
+# * No arithmetic
+# * No interesting type conversions
+# * No use of a sample as an index.
+#
 source_1 = """
 from beanmachine.ppl.model.statistical_model import sample
 import torch
@@ -202,22 +210,47 @@ n22 = g.add_distribution(
 n23 = g.add_operator(graph.OperatorType.SAMPLE, [n22])
 """
 
+# These are cases where we have a type conversion on a sample.
+
+source_2 = """
+from beanmachine.ppl.model.statistical_model import sample
+import torch
+from torch import tensor
+from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal, StudentT
+
+@sample
+def flip():
+  return Bernoulli(tensor(0.5))
+
+@sample
+def normal():
+  return Normal(flip(), 1.0)
+"""
+
+expected_bmg_2 = """"""
+
 
 class EndToEndTest(unittest.TestCase):
-    def test_to_cpp(self) -> None:
-        """test_to_cpp from end_to_end_test.py"""
+    def test_to_cpp_1(self) -> None:
+        """test_to_cpp_1 from end_to_end_test.py"""
         self.maxDiff = None
         observed = to_cpp(source_1)
         self.assertEqual(observed.strip(), expected_cpp_1.strip())
 
-    def test_to_bmg(self) -> None:
-        """test_to_bmg from end_to_end_test.py"""
+    def test_to_bmg_1(self) -> None:
+        """test_to_bmg_1 from end_to_end_test.py"""
         self.maxDiff = None
         observed = to_bmg(source_1).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_1))
 
-    def test_to_python(self) -> None:
-        """test_to_python from end_to_end_test.py"""
+    def test_to_python_1(self) -> None:
+        """test_to_python_1 from end_to_end_test.py"""
         self.maxDiff = None
         observed = to_python(source_1)
         self.assertEqual(observed.strip(), expected_python_1.strip())
+
+    def disabled_test_to_bmg_2(self) -> None:
+        """test_to_bmg_2 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_bmg(source_2).to_string()
+        self.assertEqual(tidy(observed), tidy(expected_bmg_2))
