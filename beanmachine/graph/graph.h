@@ -104,6 +104,7 @@ enum class DistributionType {
   HALF_CAUCHY,
   STUDENT_T,
   BERNOULLI_LOGIT,
+  GAMMA,
 };
 
 enum class FactorType {
