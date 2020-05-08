@@ -5,10 +5,9 @@ import unittest
 from typing import Any
 
 import torch
-from beanmachine.ppl.utils.bm_graph_builder import (
+from beanmachine.ppl.compiler.bmg_nodes import (
     AdditionNode,
     BernoulliNode,
-    BMGraphBuilder,
     BooleanNode,
     DivisionNode,
     ExpNode,
@@ -24,6 +23,7 @@ from beanmachine.ppl.utils.bm_graph_builder import (
     TensorNode,
     ToRealNode,
 )
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
 
