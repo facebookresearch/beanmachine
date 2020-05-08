@@ -60,6 +60,7 @@ from typing import Any, Callable, Dict, Iterator, List
 # TODO: for now, we'll just turn off error checking in this mModuleNotFoundError
 # pyre-ignore-all-errors
 from beanmachine.graph import AtomicType, DistributionType as dt, Graph, OperatorType
+from beanmachine.ppl.compiler.bmg_types import Natural, PositiveReal, Probability
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
@@ -75,52 +76,6 @@ from torch.distributions import (
     Uniform,
 )
 from torch.distributions.utils import broadcast_all
-
-
-#####
-##### The BMG type system
-#####
-
-# TODO: These could go in their own module.
-
-# When we construct a graph we know all the "storage" types of
-# the nodes -- Boolean, integer, float, tensor, and so on.
-# But Bean Machine Graph requires that we ensure that "semantic"
-# type associations are made to each node in the graph. The
-# types in the BMG type system are:
-#
-# Unknown       -- we largely do not need to worry about this one,
-#                  and it is more "undefined" than "unknown"
-# Boolean       -- we can just use bool
-# Real          -- we can just use float
-# Tensor        -- we can just use Tensor
-# Probability   -- a real between 0.0 and 1.0
-# Positive Real -- what it says on the tin
-# Natural       -- a non-negative integer
-#
-# We'll make objects to represent those last three.
-#
-# TODO: We might need to eventually have a bounded natural
-# type in addition to the unbounded one, for things like
-# categorical distributions.  Similarly we might need
-# types for simplexes.
-
-
-class Probability:
-    pass
-
-
-class PositiveReal:
-    pass
-
-
-class Natural:
-    pass
-
-
-#####
-##### End of type system
-#####
 
 
 def prod(x):
