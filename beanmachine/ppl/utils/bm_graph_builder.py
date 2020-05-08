@@ -1,6 +1,49 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # from beanmachine.graph import Graph
-"""A builder for the BeanMachine Graph language"""
+"""A builder for the BeanMachine Graph language
+
+The Beanstalk compiler has, at a high level, five phases.
+
+* First, it transforms a Python model into a semantically
+  equivalent program "single assignment" (SA) form that uses
+  only a small subset of Python features.
+
+* Second, it transforms that program into a "lifted" form.
+  Portions of the program which do not involve samples are
+  executed normally, but any computation that involves a
+  stochastic node in any way is instead turned into a graph node.
+
+  Jargon note:
+
+  Every graph of a model will have some nodes that represent
+  random samples and some which do not. For instance,
+  we might have a simple coin flip model with three
+  nodes: a sample, a distribution, and a constant probability:
+
+  def flip():
+    return Bernoulli(0.5)
+
+  sample --> Bernoulli --> 0.5
+
+  We'll refer to the nodes which somehow involve a sample,
+  either directly or indirectly, as "stochastic" nodes.
+
+* Third, we actually execute the lifted program and
+  accumulate the graph.
+
+* Fourth, the accumulated graph tracks the type information
+  of the original Python program. We mutate the accumulated
+  graph into a form where it obeys the rules of the BMG
+  type system.
+
+* Fifth, we either create actual BMG nodes in memory via
+  native code interop, or we emit a program in Python or
+  C++ which does so.
+
+This module implements the graph builder that is called during
+execution of the lifted program; it implements phases
+three, four and five.
+"""
 
 import torch  # isort:skip  torch has to be imported before graph
 import collections.abc
@@ -34,6 +77,12 @@ from torch.distributions import (
 from torch.distributions.utils import broadcast_all
 
 
+#####
+##### The BMG type system
+#####
+
+# TODO: These could go in their own module.
+
 # When we construct a graph we know all the "storage" types of
 # the nodes -- Boolean, integer, float, tensor, and so on.
 # But Bean Machine Graph requires that we ensure that "semantic"
@@ -50,6 +99,11 @@ from torch.distributions.utils import broadcast_all
 # Natural       -- a non-negative integer
 #
 # We'll make objects to represent those last three.
+#
+# TODO: We might need to eventually have a bounded natural
+# type in addition to the unbounded one, for things like
+# categorical distributions.  Similarly we might need
+# types for simplexes.
 
 
 class Probability:
@@ -64,14 +118,43 @@ class Natural:
     pass
 
 
+#####
+##### End of type system
+#####
+
+
 def prod(x):
+    """Compute the product of a sequence of values of arbitrary length"""
     return functools.reduce(operator.mul, x, 1)
 
 
 builtin_function_or_method = type(abs)
 
+#####
+##### The following classes define the various graph node types.
+#####
+
+# TODO: This section is over two thousand lines of code, none of which
+# makes use of the actual graph builder; the node types could be
+# moved into a module of their own.
+
 
 class BMGNode(ABC):
+    """The base class for all graph nodes."""
+
+    # A node has a list of its child nodes,
+    # each of which has an associated edge label.
+    #
+    # TODO: "children" is misleading, as the graph is not a tree
+    # and the edges are not logically representing a parent-child
+    # relationship. Rather, each "child" would better be thought
+    # of as an "input" or a "dependency". A distribution is not
+    # the *child* of a sample; rather, the sample depends on the
+    # distribution to determine its semantics. Similarly, addends
+    # are not children of a sum; they are the inputs to the sum.
+    # Consider refactoring "children" throughout to "inputs" or
+    # "dependencies".
+
     children: List["BMGNode"]
     edges: List[str]
 
@@ -81,34 +164,64 @@ class BMGNode(ABC):
     @property
     @abstractmethod
     def node_type(self) -> Any:
+        """The type information associated with this node.
+Every node has an associated type; before the type fixing phase
+the type is the data type as it would be in the original
+Python model. After type fixing it is the type in the BMG type
+system."""
         pass
 
     @property
     @abstractmethod
     def size(self) -> torch.Size:
+        """The tensor size associated with this node.
+If the node represents a scalar value then produce Size([])."""
         pass
 
     @property
     @abstractmethod
     def label(self) -> str:
+        """This gives the label of the node When generating a DOT file
+for graph visualization and debugging."""
         pass
 
     @abstractmethod
     def _add_to_graph(self, g: Graph, d: Dict["BMGNode", int]) -> int:
+        """This adds a node to an in-memory BMG instance. Each node
+in BMG is associated with an integer handle; this returns
+the handle for this node assigned by BMG."""
         pass
 
     @abstractmethod
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        """We can emit the graph as a Python program which, when executed,
+builds a BMG instance. This method returns a string of Python
+code to construct this node. The dictionary associates a unique
+integer with each node that can be used to construct an identifier."""
         pass
 
     @abstractmethod
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        """We can emit the graph as a C++ program which, when executed,
+builds a BMG instance. This method returns a string of C++
+code to construct this node. The dictionary associates a unique
+integer with each node that can be used to construct an identifier."""
         pass
 
     @abstractmethod
     def support(self) -> Iterator[Any]:
+        """To build the graph of all possible control flows through
+the model we need to know for any given node what are
+all the possible values it could attain; we require that
+the set be finite and will throw an exception if it is not."""
         pass
 
+
+# If we encounter a function call on a stochastic node during
+# graph accumulation we will attempt to build a node in the graph
+# for that invocation. These are the instance methods on tensors
+# that we recognize and can build a graph node for.  See
+# KnownFunction below for more details.
 
 known_tensor_instance_functions = [
     "add",
@@ -122,6 +235,14 @@ known_tensor_instance_functions = [
     "neg",
     "pow",
 ]
+
+
+# When constructing the support of various nodes we are often
+# having to remove duplicates from a set of possible values.
+# Unfortunately, it is not easy to do so with torch tensors.
+# This helper class implements a set of tensors.
+
+# TODO: Move this to its own module.
 
 
 class SetOfTensors(collections.abc.Set):
@@ -148,6 +269,29 @@ class SetOfTensors(collections.abc.Set):
         return len(self.elements)
 
 
+# This helper class is to solve a problem in the simulated
+# execution of the model during graph accumulation. Consider
+# a model fragment like:
+#
+#   n = normal()
+#   y = n.exp()
+#
+# During graph construction, n will be a SampleNode whose
+# operand is a NormalNode, but SampleNode does not have a
+# method "exp".
+#
+# The lifted program we execute will be something like:
+#
+#   n = bmg.handle_function(normal, [])
+#   func = bmg.handle_dot(n, "exp")
+#   y = bmg.handle_function(func, [])
+#
+# The "func" that is returned is one of these KnownFunction
+# objects, which captures the notion "I am an invocation
+# of known function Tensor.exp on a receiver that is a BMG
+# node".  We then turn that into a exp node in handle_function.
+
+
 class KnownFunction:
     receiver: BMGNode
     function: Any
@@ -157,7 +301,17 @@ class KnownFunction:
         self.function = function
 
 
+# TODO: There is a bunch of replicated code in the various
+# _value_to_python code below; consider refactoring to match
+# the C++ technique here of just having a helper method like
+# the one above that deals with displaying constants as Python.
+
+
 def _value_to_cpp(value: Any) -> str:
+
+    """Generate the program text of an expression
+representing a constant value in the C++ output."""
+
     if isinstance(value, Tensor):
         # TODO: What if the tensor is not made of floats?
         values = ",".join(str(element) for element in value.storage())
@@ -167,6 +321,12 @@ def _value_to_cpp(value: Any) -> str:
 
 
 class ConstantNode(BMGNode, metaclass=ABCMeta):
+    """This is the base type for all nodes representing constants.
+Note that every constant node has an associated type in the
+BMG type system; nodes that represent the "real" 1.0,
+the "positive real" 1.0, the "probability" 1.0 and the
+"natural" 1 are all different nodes and are NOT deduplicated."""
+
     edges = []
     value: Any
 
@@ -187,11 +347,14 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
         v = self._value_to_python()
         return f"n{n} = g.add_constant({v})"
 
+    # The support of a constant is just the value.
     def support(self) -> Iterator[Any]:
         yield self.value
 
 
 class BooleanNode(ConstantNode):
+    """A Boolean constant"""
+
     value: bool
 
     def __init__(self, value: bool):
@@ -224,6 +387,8 @@ class BooleanNode(ConstantNode):
 
 
 class RealNode(ConstantNode):
+    """An unrestricted real constant"""
+
     value: float
 
     def __init__(self, value: float):
@@ -255,12 +420,73 @@ class RealNode(ConstantNode):
         return bool(self.value)
 
 
+# TODO: This code is mis-placed, as it is right in the middle
+# of all the constants classes.  Move it to be near IndexNode
+# and IfThenElse node, as it is closely related to both.
+
+
 class MapNode(BMGNode):
-    # TODO: Add the map node to the C++ implementation of the graph.
-    # TODO: Do the values all have to be the same type?
-    """A map has an even number of children. Even number children are
-    keys, odd numbered children are values. The keys must be constants.
-    The values can be any node."""
+
+    """This class represents a point in a program where there are
+multiple control flows based on the value of a stochastic node."""
+
+    # For example, suppose we have this contrived model:
+    #
+    #   @sample def weird(i):
+    #     if i == 0:
+    #       return Normal(0.0, 1.0)
+    #     return Normal(1.0, 1.0)
+    #
+    #   @sample def flips():
+    #     return Binomial(2, 0.5)
+    #
+    #   @sample def really_weird():
+    #     return Normal(weird(flips()), 1.0)
+    #
+    # There are three possibilities for weird(flips()) on the last line;
+    # what we need to represent in the graph is:
+    #
+    # * sample once from Normal(0.0, 1.0), call this weird(0)
+    # * sample twice from Normal(1.0, 1.0), call these weird(1) and weird(2)
+    # * sample once from flips()
+    # * choose one of weird(i) based on the sample from flips().
+    #
+    # We represent this with two nodes: a map and an index:
+    #
+    # sample --- Normal(_, 1.0)        ---0--- sample --- Normal(0.0, 1.0)
+    #                    \           /
+    #                   index ---> map----1--- sample --- Normal(1.0, 1.0)
+    #                        \       \                   /
+    #                         \        ---2--- sample --
+    #                          \
+    #                            --- sample -- Binomial(2, 0.5)
+    #
+    # As an implementation detail, we represent the key-value pairs in the
+    # map by a convention:
+    #
+    # * Even numbered children are keys
+    # * All keys are constant nodes
+    # * Odd numbered children are values associated with the previous
+    #   sibling as the key.
+
+    # TODO: We do not yet have this choice node in BMG, and the design
+    # is not yet settled.
+    #
+    # The accumulator creates the map based on the actual values seen
+    # as indices in the execution of the model; in the contrived example
+    # above the indices are 0, 1, 2 but there is no reason why they could
+    # not have been 1, 10, 100 instead; all that matters is that there
+    # were three of them and so three code paths were explored.
+    #
+    # That's why this is implemented as (and named) "map"; it is an arbitrary
+    # collection of key-value pairs where the keys are drawn from the support
+    # of a distribution.
+    #
+    # The design decision to be made here is whether we need an arbitrary map
+    # node in BMG, as we accumulate here, or if we need the more restricted
+    # case of an "array" or "list", where we are mapping 0, 1, 2, ... n-1
+    # to n graph nodes, and the indexed sample is drawn from a distribution
+    # whose support is exactly 0 to n-1.
 
     def __init__(self, children: List[BMGNode]):
         # TODO: Check that keys are all constant nodes.
@@ -296,6 +522,13 @@ class MapNode(BMGNode):
     def support(self) -> Iterator[Any]:
         return []
 
+    # TODO: The original plan was to represent Python values such as
+    # lists, tuples and dictionaries as one of these map nodes,
+    # and it was convenient during prototyping that a map node
+    # have an indexer that behaved like the Python indexer it was
+    # emulating. This idea has been abandoned, so this code can
+    # be deleted in a cleanup pass.
+
     def __getitem__(self, key) -> BMGNode:
         if isinstance(key, BMGNode) and not isinstance(key, ConstantNode):
             raise ValueError("BeanMachine map must be indexed with a constant value")
@@ -309,6 +542,8 @@ class MapNode(BMGNode):
 
 
 class ProbabilityNode(ConstantNode):
+    """A real constant restricted to values from 0.0 to 1.0"""
+
     value: float
 
     def __init__(self, value: float):
@@ -348,6 +583,8 @@ class ProbabilityNode(ConstantNode):
 
 
 class PositiveRealNode(ConstantNode):
+    """A real constant restricted to non-negative values"""
+
     value: float
 
     def __init__(self, value: float):
@@ -387,6 +624,8 @@ class PositiveRealNode(ConstantNode):
 
 
 class NaturalNode(ConstantNode):
+    """An integer constant restricted to non-negative values"""
+
     value: int
 
     def __init__(self, value: int):
@@ -426,6 +665,8 @@ class NaturalNode(ConstantNode):
 
 
 class TensorNode(ConstantNode):
+    """A tensor constant"""
+
     value: Tensor
 
     def __init__(self, value: Tensor):
@@ -473,11 +714,25 @@ class TensorNode(ConstantNode):
 
 
 class DistributionNode(BMGNode, metaclass=ABCMeta):
+    """This is the base class for all nodes that represent
+probability distributions."""
+
     types_fixed: bool
 
     def __init__(self, children: List[BMGNode]):
         self.types_fixed = False
         BMGNode.__init__(self, children)
+
+    # Distribution nodes do not have a type themselves.
+    # (In BMG they have type "unknown", but "no type" would be
+    # a more accurate way to characterize it.)
+    # However, we do know the type that will be produced when
+    # sampling this distribution, and we need that information to
+    # correctly assign a type to SampleNodes.
+    #
+    # The node_type property of a distribution will return the
+    # Python type that was used to construct the distribution in
+    # the original model.
 
     @abstractmethod
     def sample_type(self) -> Any:
@@ -485,6 +740,20 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
 
 
 class BernoulliNode(DistributionNode):
+    """The Bernoulli distribution is a coin flip; it takes
+a probability and each sample is either 0.0 or 1.0.
+
+The probability can be expressed either as a normal
+probability between 0.0 and 1.0, or as log-odds, which
+is any real number. That is, to represent, say,
+13 heads for every 17 tails, the logits would be log(13/17).
+
+If the model gave the probability as a value when executing
+the program then torch will automatically translate
+logits to normal probabilities. If however the model gives
+a stochastic node as the argument and uses logits, then
+we generate a different node in BMG."""
+
     edges = ["probability"]
     is_logits: bool
 
@@ -552,6 +821,27 @@ class BernoulliNode(DistributionNode):
 
 
 class BinomialNode(DistributionNode):
+    """The Binomial distribution is the extension of the
+Bernoulli distribution to multiple flips. The input
+is the count of flips and the probability of each
+coming up heads; each sample is the number of heads
+after "count" flips.
+
+The probability can be expressed either as a normal
+probability between 0.0 and 1.0, or as log-odds, which
+is any real number. That is, to represent, say,
+13 heads for every 17 tails, the logits would be log(13/17).
+
+If the model gave the probability as a value when executing
+the program then torch will automatically translate
+logits to normal probabilities. If however the model gives
+a stochastic node as the argument and uses logits, then
+we generate a different node in BMG."""
+
+    # TODO: We do not yet have a BMG node for Binomial
+    # with logits. When we do, add support for it as we
+    # did with Bernoulli above.
+
     edges = ["count", "probability"]
     is_logits: bool
 
@@ -624,12 +914,73 @@ class BinomialNode(DistributionNode):
             + f"n{d[self.probability]}}}));"
         )
 
+    # TODO: We will need to implement computation of the support
+    # of an arbitrary binomial distribution because samples are
+    # discrete values between 0 and count, which is typically small.
+    # Though implementing support computation if count is non-stochastic
+    # is straightforward, we do not yet have the gear to implement
+    # this for stochastic counts. Consider this contrived case:
+    #
+    # @sample def a(): return Binomial(2, 0.5)
+    # @sample def b(): return Binomial(a() + 1, 0.4)
+    # @sample def c(i): return Normal(0.0, 2.0)
+    # @sample def d(): return Normal(c(b()), 3.0)
+    #
+    # The support of a() is 0, 1, 2 -- easy.
+    #
+    # We need to know the support of b() in order to build the
+    # graph for d(). But how do we know the support of b()?
+    #
+    # What we must do is compute that the maximum possible value
+    # for a() + 1 is 3, and so the support of b() is 0, 1, 2, 3,
+    # and therefore there are four samples of c(i) generated.
+    #
+    # There are two basic ways to do this that immediately come to
+    # mind.
+    #
+    # The first is to simply ask the graph for the support of
+    # a() + 1, which we can generate, and then take the maximum
+    # value thus generated.
+    #
+    # If that turns out to be too expensive for some reason then
+    # we can write a bit of code that answers the question
+    # "what is the maximum value of your support?" and have each
+    # node implement that. However, that then introduces new
+    # problems; to compute the maximum value of a negation, for
+    # instance, we then would also need to answer the question
+    # "what is the minimum value you support?" and so on.
     def support(self) -> Iterator[Any]:
         raise ValueError("Support of binomial is not yet implemented.")
 
 
 class CategoricalNode(DistributionNode):
-    """ Graph generator for categorical distributions"""
+    """The categorical distribution is the extension of the
+Bernoulli distribution to multiple outcomes; rather
+than flipping an unfair coin, this is rolling an unfair
+n-sided die.
+
+The input is the probability of each of n possible outcomes,
+and each sample is drawn from 0, 1, 2, ... n-1.
+
+The probability can be expressed either as a normal
+probability between 0.0 and 1.0, or as log-odds, which
+is any real number. That is, to represent, say,
+13 heads for every 17 tails, the logits would be log(13/17).
+
+If the model gave the probability as a value when executing
+the program then torch will automatically translate
+logits to normal probabilities. If however the model gives
+a stochastic node as the argument and uses logits, then
+we generate a different node in BMG."""
+
+    # Note that a vector of n probabilities that adds to 1.0 is
+    # called a simplex.
+    #
+    # TODO: we may wish to add simplexes to the
+    # BMG type system at some point, and also bounded integers.
+    #
+    # TODO: We do not yet have a BMG node for categorical
+    # distributions; when we do, finish this implementation.
 
     edges = ["probability"]
     is_logits: bool
@@ -646,7 +997,6 @@ class CategoricalNode(DistributionNode):
     def probability(self, p: BMGNode) -> None:
         self.children[0] = p
 
-    # TODO: Do we need a generic type for "distribution of X"?
     @property
     def node_type(self) -> Any:
         return Categorical
@@ -667,6 +1017,10 @@ class CategoricalNode(DistributionNode):
 
     def __str__(self) -> str:
         return "Categorical(" + str(self.probability) + ")"
+
+    # TODO: Delete this cut-n-pasted incorrect code and just
+    # raise errors instead to indicate that this feature is not
+    # yet implemented
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         # TODO: Handle case where child is logits
@@ -701,6 +1055,13 @@ class CategoricalNode(DistributionNode):
 
 
 class DirichletNode(DistributionNode):
+    """The Dirichlet distribution generates simplexs -- vectors
+whose members are probabilities that add to 1.0, and
+so it is useful for generating inputs to the categorical
+distribution."""
+
+    # TODO: We do not yet have a BMG node for Dirichlet
+    # distributions; when we do, finish this implementation.
     edges = ["concentration"]
 
     def __init__(self, concentration: BMGNode):
@@ -714,7 +1075,6 @@ class DirichletNode(DistributionNode):
     def concentration(self, p: BMGNode) -> None:
         self.children[0] = p
 
-    # TODO: Do we need a generic type for "distribution of X"?
     @property
     def node_type(self) -> Any:
         return Dirichlet
@@ -732,6 +1092,10 @@ class DirichletNode(DistributionNode):
 
     def __str__(self) -> str:
         return f"Dirichlet({str(self.concentration)})"
+
+    # TODO: Delete this cut-n-pasted incorrect code and just
+    # raise errors instead to indicate that this feature is not
+    # yet implemented
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -768,6 +1132,18 @@ class DirichletNode(DistributionNode):
 
 
 class HalfCauchyNode(DistributionNode):
+    """The Cauchy distribution is a bell curve with zero mean
+and a heavier tail than the normal distribution; it is useful
+for generating samples that are not as clustered around
+the mean as a normal.
+
+The half Cauchy distribution is just the distribution you
+get when you take the absolute value of the samples from
+a Cauchy distribution. The input is a positive scale factor
+and a sample is a positive real number."""
+
+    # TODO: Add support for the Cauchy distribution as well.
+
     edges = ["scale"]
 
     def __init__(self, scale: BMGNode):
@@ -830,6 +1206,10 @@ class HalfCauchyNode(DistributionNode):
 
 
 class NormalNode(DistributionNode):
+
+    """The normal (or "Gaussian") distribution is a bell curve with
+a given mean and standard deviation."""
+
     edges = ["mu", "sigma"]
 
     def __init__(self, mu: BMGNode, sigma: BMGNode):
@@ -901,6 +1281,14 @@ class NormalNode(DistributionNode):
 
 
 class StudentTNode(DistributionNode):
+    """The Student T distribution is a bell curve with zero mean
+and a heavier tail than the normal distribution. It is
+useful in statistical analysis because a common situation
+is to have observations of a normal process but to not
+know the true mean. Samples from the T distribution can
+be used to represent the difference between an observed mean
+and the true mean."""
+
     edges = ["df", "loc", "scale"]
 
     def __init__(self, df: BMGNode, loc: BMGNode, scale: BMGNode):
@@ -983,6 +1371,14 @@ class StudentTNode(DistributionNode):
 
 
 class UniformNode(DistributionNode):
+
+    """The Uniform distribution is a "flat" distribution of values
+between 0.0 and 1.0."""
+
+    # TODO: We do not yet have an implementation of the uniform
+    # distribution as a BMG node. When we do, implement the
+    # feature here.
+
     edges = ["low", "high"]
 
     def __init__(self, low: BMGNode, high: BMGNode):
@@ -1004,7 +1400,6 @@ class UniformNode(DistributionNode):
     def high(self, p: BMGNode) -> None:
         self.children[1] = p
 
-    # TODO: Do we need a generic type for "distribution of X"?
     @property
     def node_type(self) -> Any:
         return Uniform
@@ -1022,6 +1417,10 @@ class UniformNode(DistributionNode):
 
     def __str__(self) -> str:
         return f"Uniform({str(self.low)},{str(self.high)})"
+
+    # TODO: Delete this cut-n-pasted incorrect code and just
+    # raise errors instead to indicate that this feature is not
+    # yet implemented
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -1057,7 +1456,14 @@ class UniformNode(DistributionNode):
         raise ValueError(f"Uniform distribution does not have finite support.")
 
 
+# TODO: The rest of the distribution nodes are in alphabetical order;
+# consider moving this code up higher in the module.
+
+
 class BetaNode(DistributionNode):
+    """The beta distribution samples are values between 0.0 and 1.0, and
+so is useful for creating probabilities."""
+
     edges = ["alpha", "beta"]
 
     def __init__(self, alpha: BMGNode, beta: BMGNode):
@@ -1131,24 +1537,28 @@ class BetaNode(DistributionNode):
 
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
+    """This is the base class for all operators.
+The children are the operands of each operator."""
+
     def __init__(self, children: List[BMGNode]):
         BMGNode.__init__(self, children)
 
 
-# This node will only be generated when tranforming the Python version of
-# the graph into the BMG format; for instance, if we have a multiplication
-# of a Bernoulli sample node by 2.0, in the Python form we'll have a scalar
-# multiplied by a sample of type tensor. In the BMG form the sample will be
-# of type Boolean and we cannot multiply a Boolean by a Real. Instead we'll
-# generate "if_then_else(sample, 0.0, 1.0) * 2.0" which typechecks in the
-# BMG type system.
-#
-# Eventually we will probably use this node to represent Python's
-# "consequence if condition else alternative" syntax, and possibly
-# other conditional stochastic control flows.
-
-
 class IfThenElseNode(OperatorNode):
+    """This class represents a stochastic choice between two options, where
+the condition is a Boolean."""
+
+    # This node will only be generated when tranforming the Python version of
+    # the graph into the BMG format; for instance, if we have a multiplication
+    # of a Bernoulli sample node by 2.0, in the Python form we'll have a scalar
+    # multiplied by a sample of type tensor. In the BMG form the sample will be
+    # of type Boolean and we cannot multiply a Boolean by a Real. Instead we'll
+    # generate "if_then_else(sample, 0.0, 1.0) * 2.0" which typechecks in the
+    # BMG type system.
+    #
+    # Eventually we will probably use this node to represent Python's
+    # "consequence if condition else alternative" syntax, and possibly
+    # other conditional stochastic control flows.
     edges = ["condition", "consequence", "alternative"]
 
     def __init__(self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode):
@@ -1229,13 +1639,20 @@ class IfThenElseNode(OperatorNode):
 
 
 class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
+    """This is the base class for all binary operators."""
+
     edges = ["left", "right"]
     operator_type: OperatorType
 
     def __init__(self, left: BMGNode, right: BMGNode):
         OperatorNode.__init__(self, [left, right])
 
-    # TODO: Improve this
+    # TODO: We do not correctly compute the type of a node in the
+    # graph accumulated from initially executing the Python program,
+    # and neither do we yet correctly impose the BMG type system
+    # restrictions on binary operators -- namely that both input
+    # types must be the same, and the output type is also that type.
+
     @property
     def node_type(self) -> Any:
         if self.left.node_type == Tensor or self.right.node_type == Tensor:
@@ -1279,6 +1696,11 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
 
 class AdditionNode(BinaryOperatorNode):
+    """This represents an addition of values."""
+
+    # TODO: We accumulate nodes as strictly binary operations, but BMG supports
+    # n-ary addition; we might consider a graph transformation that turns
+    # chained additions into a single addition node.
     operator_type = OperatorType.ADD
 
     def __init__(self, left: BMGNode, right: BMGNode):
@@ -1302,6 +1724,11 @@ class AdditionNode(BinaryOperatorNode):
 
 
 class MultiplicationNode(BinaryOperatorNode):
+    """This represents a multiplication of nodes."""
+
+    # TODO: We accumulate nodes as strictly binary operations, but BMG supports
+    # n-ary multiplication; we might consider a graph transformation that turns
+    # chained multiplications into a single multiplication node.
     operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
@@ -1325,7 +1752,12 @@ class MultiplicationNode(BinaryOperatorNode):
 
 
 class MatrixMultiplicationNode(BinaryOperatorNode):
-    # TODO: Fix this.
+
+    """"This represents a matrix multiplication."""
+
+    # TODO: We do not yet have an implementation of matrix
+    # multiplication as a BMG node. When we do, implement the
+    # feature here.
     operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
@@ -1349,9 +1781,17 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
 
 
 class DivisionNode(BinaryOperatorNode):
-    # TODO: We're going to represent division as Mult(x, Power(y, -1)) so
-    # TODO: we can remove this class.
-    operator_type = OperatorType.MULTIPLY  # TODO
+    """This represents a division."""
+
+    # TODO: There is no division node in BMG, and it is not clear how
+    # we will represent it; obviously divisions by constants can be
+    # turned into multiplications easily enough, but division by a
+    # stochastic node has no representation.
+    # We could add a division node, or we could add a power node
+    # and generate c/d as Multiply(c, Power(d, -1.0))
+    # Either way, when we decide, implement the transformation to
+    # BMG nodes accordingly.
+    operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1375,6 +1815,12 @@ class DivisionNode(BinaryOperatorNode):
 
 
 class IndexNode(BinaryOperatorNode):
+    """This represents a stochastic choice of multiple options; the left
+operand must be a map, and the right is the stochastic value used to
+choose an element from the map."""
+
+    # See notes on MapNode for an explanation of this code.
+    # TODO: Move this closer to the map code.
     operator_type = OperatorType.MULTIPLY  # TODO
 
     def __init__(self, left: MapNode, right: BMGNode):
@@ -1398,6 +1844,8 @@ class IndexNode(BinaryOperatorNode):
 
 
 class PowerNode(BinaryOperatorNode):
+    """This represents an x-to-the-y operation."""
+
     # TODO: We haven't added power to the C++ implementation of BMG yet.
     # TODO: When we do, update this.
     operator_type = OperatorType.MULTIPLY  # TODO
@@ -1423,15 +1871,20 @@ class PowerNode(BinaryOperatorNode):
 
 
 class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
+    """This is the base type of unary operator nodes."""
+
     edges = ["operand"]
     operator_type: OperatorType
 
     def __init__(self, operand: BMGNode):
         OperatorNode.__init__(self, [operand])
 
-    # TODO: Improve this
     @property
     def node_type(self) -> Any:
+        # In BMG, the output type of all unary operators
+        # is the same as the input;
+        # TODO: Is that the case when the graph represents
+        # the Python semantics? Is there work to do here?
         return self.operand.node_type
 
     @property
@@ -1464,6 +1917,12 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
 
 class NegateNode(UnaryOperatorNode):
+
+    """This represents a unary minus."""
+
+    # TODO: Add notes about the semantics of the various BMG
+    # negation nodes.
+
     operator_type = OperatorType.NEGATE
 
     def __init__(self, operand: BMGNode):
@@ -1485,6 +1944,11 @@ class NegateNode(UnaryOperatorNode):
 
 
 class NotNode(UnaryOperatorNode):
+    """This represents a logical not."""
+
+    # TODO: Add notes about the semantics of the various BMG
+    # negation nodes.
+
     # TODO: We do not support NOT in BMG yet; when we do, update this.
     operator_type = OperatorType.NEGATE  # TODO
 
@@ -1510,6 +1974,9 @@ class NotNode(UnaryOperatorNode):
         return SetOfTensors(not o for o in self.operand.support())
 
 
+# TODO: Describe the situations in which we generate this.
+
+
 class ToRealNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_REAL
 
@@ -1533,6 +2000,9 @@ class ToRealNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
+
+
+# TODO: Describe the situations in which we generate this.
 
 
 class ToTensorNode(UnaryOperatorNode):
@@ -1562,6 +2032,9 @@ class ToTensorNode(UnaryOperatorNode):
 
 
 class ExpNode(UnaryOperatorNode):
+    """This represents an exponentiation operation; it is generated when
+a model contains calls to Tensor.exp or math.exp."""
+
     operator_type = OperatorType.EXP
 
     def __init__(self, operand: BMGNode):
@@ -1584,6 +2057,10 @@ class ExpNode(UnaryOperatorNode):
 
 
 class LogNode(UnaryOperatorNode):
+
+    """This represents a log operation; it is generated when
+a model contains calls to Tensor.log or math.log."""
+
     # TODO: We do not support LOG in BMG yet; when we do, update this:
     operator_type = OperatorType.EXP  # TODO
 
@@ -1607,6 +2084,13 @@ class LogNode(UnaryOperatorNode):
 
 
 class SampleNode(UnaryOperatorNode):
+    """This represents a single unique sample from a distribution;
+if a graph has two sample nodes both taking input from the same
+distribution, each sample is logically distinct. But if a graph
+has two nodes that both input from the same sample node, we must
+treat those two uses of the sample as though they had identical
+values."""
+
     operator_type = OperatorType.SAMPLE
 
     def __init__(self, operand: DistributionNode):
@@ -1642,6 +2126,33 @@ class SampleNode(UnaryOperatorNode):
 
 
 class Observation(BMGNode):
+    """This represents an observed value of a sample. For example
+we might have a prior that a mint produces a coin that is
+uniformly unfair. We could then observe a flip of the coin
+and if heads, that is small but not zero evidence that
+the coin is unfair in the heads direction. Given that
+observation, our belief in the true unfairness of the coin
+should no loger be uniform."""
+
+    # TODO: Here we treat an observation as node which takes input
+    # from a sample and has an associated value. This implementation
+    # choice differs from BMG, which does not treat observations as
+    # nodes in the graph; since an observation is never the input
+    # of any other node, this makes sense.  We might consider
+    # following this pattern and making the observation not inherit
+    # from BMGNode.
+    #
+    # TODO: **Observations are logically distinct from models.**
+    # That is, it is common to have one model and many different
+    # sets of observations. (And similarly but less common, we
+    # could imagine having one set of observations used by many
+    # models.)  Moreover it is not yet clear how exactly
+    # observation nodes are to be generated by the compiler;
+    # from what model source code, if any, do we generate these
+    # nodes?  This code is only used right now for testing purposes
+    # and we need to do significant design work to figure out
+    # how users wish to generate observations of models that have
+    # been compiled into BMG.
     value: Any
     edges = ["operand"]
 
@@ -1692,6 +2203,20 @@ class Observation(BMGNode):
 
 
 class Query(BMGNode):
+    """A query is a marker on a node in the graph that indicates
+to the inference engine that the user is interested in
+getting a distribution of values of that node. It always
+points to an operator node.
+
+We represent queries in models with the @query annotation;
+the compiler causes the returned nodes of such models
+to have a query node accumulated into the graph builder.
+"""
+
+    # TODO: As with observations, properly speaking there is no
+    # need to represent a query as a *node*, and BMG does not
+    # do so. We might wish to follow this pattern as well.
+
     edges = ["operator"]
 
     def __init__(self, operator: OperatorNode):
@@ -1734,6 +2259,11 @@ class Query(BMGNode):
 
     def support(self) -> Iterator[Any]:
         return []
+
+
+#####
+##### That's it for the graph nodes.
+#####
 
 
 def is_from_lifted_module(f) -> bool:
@@ -1801,11 +2331,6 @@ class BMGraphBuilder:
         }
 
     def add_node(self, node: BMGNode) -> None:
-        # Maintain the invariant that children are always before parents
-        # in the list.
-        # TODO: If we are ever in a situation where we need to make nodes
-        # TODO: and then add the edges later, we'll have to instead do
-        # TODO: a deterministic topo sort.
         if node not in self.nodes:
             for child in node.children:
                 self.add_node(child)
