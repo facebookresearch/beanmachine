@@ -50,7 +50,9 @@ from beanmachine.ppl.utils.rules import (
 
 _some_top_down = ast_domain.some_top_down
 _not_identifier: Pattern = negate(name())
+_not_starred: Pattern = negate(starred())
 _list_not_identifier: PatternBase = ListAny(_not_identifier)
+_list_not_starred: PatternBase = ListAny(_not_starred)
 _list_all_identifiers: PatternBase = ListAll(name())
 _not_identifier_keyword: Pattern = keyword(value=_not_identifier)
 _not_identifier_keywords: PatternBase = ListAny(_not_identifier_keyword)
@@ -214,6 +216,18 @@ class SingleAssignment:
             targets=[ast.Name(id=id, ctx=ast.Store())], value=keyword.value
         )
         return assignment, rewritten
+
+    def _splice_non_starred(self, original: List[ast.expr]) -> List[ast.expr]:
+        index, value = next(
+            (i, v) for i, v in enumerate(original) if match(_not_starred, v)
+        )
+        rewritten = (
+            original[:index]
+            + [ast.Starred(ast.List([value], ctx=ast.Load()), ctx=ast.Load())]
+            + original[index + 1 :]
+        )
+
+        return rewritten
 
     def _transform_call(self) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
@@ -533,6 +547,21 @@ class SingleAssignment:
             "handle_assign_call_two_star_args",
         )
 
+    def _handle_assigned_call_regular_arg(self) -> Rule:
+        # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
+        return PatternRule(
+            assign(value=call(args=_list_not_starred)),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=self._splice_non_starred(source_term.value.args),
+                    keywords=source_term.value.keywords,
+                ),
+            ),
+            "_handle_assigned_call_regular_arg",
+        )
+
     def _handle_asign_call_keyword(self) -> Rule:
         # If we have t = foo(a, b, z=123) rewrite that to
         # t1 = 123, t = foo(a, b, t1),
@@ -619,6 +648,9 @@ class SingleAssignment:
                 self._handle_assign_call_function_expression(),
                 self._handle_assigned_call_single_regular_arg(),
                 self._handle_assigned_call_two_star_args(),
+                # TODO: disabled because this causes an infinite loop
+                # TODO: suspecting this is coupled to old call rules above
+                # self._handle_assigned_call_regular_arg(),
             ]
         )
 
