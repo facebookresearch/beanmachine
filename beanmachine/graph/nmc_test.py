@@ -108,17 +108,17 @@ class TestNMC(unittest.TestCase):
         g.query(x_y)
         means = g.infer_mean(10000, graph.InferenceType.NMC)
         print("means", means)  # only printed on error
-        self.assertTrue(abs(means[0] - 0.0) < 0.1, "mean of x should be 0")
+        self.assertTrue(abs(means[0] - 0.0) < 0.2, "mean of x should be 0")
         self.assertTrue(
-            abs(means[1] - SIGMA_X ** 2) < 0.1, f"mean of x^2 should be {SIGMA_X**2}"
+            abs(means[1] - SIGMA_X ** 2) < 0.2, f"mean of x^2 should be {SIGMA_X**2}"
         )
-        self.assertTrue(abs(means[2] - 0.0) < 0.1, "mean of y should be 0")
+        self.assertTrue(abs(means[2] - 0.0) < 0.2, "mean of y should be 0")
         self.assertTrue(
-            abs(means[3] - SIGMA_Y ** 2) < 0.1, f"mean of y^2 should be {SIGMA_Y**2}"
+            abs(means[3] - SIGMA_Y ** 2) < 0.2, f"mean of y^2 should be {SIGMA_Y**2}"
         )
         post_cov = means[4] / math.sqrt(means[1]) / math.sqrt(means[3])
         self.assertTrue(
-            abs(post_cov - RHO) < 0.1, f"covariance should be {RHO} is {post_cov}"
+            abs(post_cov - RHO) < 0.2, f"covariance should be {RHO} is {post_cov}"
         )
 
     def test_probit_regression(self):
