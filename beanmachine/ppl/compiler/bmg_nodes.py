@@ -166,9 +166,9 @@ class SetOfTensors(collections.abc.Set):
         return len(self.elements)
 
 
-#####
-##### Nodes representing constant values
-#####
+# ####
+# #### Nodes representing constant values
+# ####
 
 
 class ConstantNode(BMGNode, metaclass=ABCMeta):
@@ -443,9 +443,9 @@ class TensorNode(ConstantNode):
         return bool(self.value)
 
 
-#####
-##### Nodes representing distributions
-#####
+# ####
+# #### Nodes representing distributions
+# ####
 
 
 class DistributionNode(BMGNode, metaclass=ABCMeta):
@@ -628,7 +628,7 @@ so is useful for creating probabilities."""
         # TODO: the user.  This would happen if we did something like
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a beta.
-        raise ValueError(f"Beta distribution does not have finite support.")
+        raise ValueError("Beta distribution does not have finite support.")
 
 
 class BinomialNode(DistributionNode):
@@ -939,7 +939,7 @@ distribution."""
         # TODO: the user.  This would happen if we did something like
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a Dirichlet.
-        raise ValueError(f"Dirichlet distribution does not have finite support.")
+        raise ValueError("Dirichlet distribution does not have finite support.")
 
 
 class HalfCauchyNode(DistributionNode):
@@ -1013,7 +1013,7 @@ and a sample is a positive real number."""
         # TODO: the user.  This would happen if we did something like
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a half Cauchy.
-        raise ValueError(f"HalfCauchy distribution does not have finite support.")
+        raise ValueError("HalfCauchy distribution does not have finite support.")
 
 
 class NormalNode(DistributionNode):
@@ -1088,7 +1088,7 @@ a given mean and standard deviation."""
         # TODO: the user.  This would happen if we did something like
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a normal.
-        raise ValueError(f"Normal distribution does not have finite support.")
+        raise ValueError("Normal distribution does not have finite support.")
 
 
 class StudentTNode(DistributionNode):
@@ -1178,7 +1178,7 @@ and the true mean."""
         # TODO: the user.  This would happen if we did something like
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a student t.
-        raise ValueError(f"StudentT distribution does not have finite support.")
+        raise ValueError("StudentT distribution does not have finite support.")
 
 
 class UniformNode(DistributionNode):
@@ -1264,12 +1264,12 @@ between 0.0 and 1.0."""
         # TODO: the user.  This would happen if we did something like
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a uniform.
-        raise ValueError(f"Uniform distribution does not have finite support.")
+        raise ValueError("Uniform distribution does not have finite support.")
 
 
-#####
-##### Operators
-#####
+# ####
+# #### Operators
+# ####
 
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
@@ -1280,9 +1280,9 @@ The children are the operands of each operator."""
         BMGNode.__init__(self, children)
 
 
-#####
-##### Ternary operators
-#####
+# ####
+# #### Ternary operators
+# ####
 
 
 class IfThenElseNode(OperatorNode):
@@ -1379,9 +1379,9 @@ the condition is a Boolean."""
         )
 
 
-#####
-##### Binary operators
-#####
+# ####
+# #### Binary operators
+# ####
 
 
 class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
@@ -1465,7 +1465,7 @@ class AdditionNode(BinaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l + r for l in self.left.support() for r in self.right.support()
+            el + ar for el in self.left.support() for ar in self.right.support()
         )
 
 
@@ -1499,7 +1499,7 @@ class DivisionNode(BinaryOperatorNode):
     def support(self) -> Iterator[Any]:
         # TODO: Filter out division by zero?
         return SetOfTensors(
-            l / r for l in self.left.support() for r in self.right.support()
+            el / ar for el in self.left.support() for ar in self.right.support()
         )
 
 
@@ -1643,7 +1643,7 @@ choose an element from the map."""
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l for r in self.right.support() for l in self.left[r].support()
+            el for ar in self.right.support() for el in self.left[ar].support()
         )
 
 
@@ -1672,7 +1672,9 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            torch.mm(l, r) for l in self.left.support() for r in self.right.support()
+            torch.mm(el, ar)
+            for el in self.left.support()
+            for ar in self.right.support()
         )
 
 
@@ -1700,7 +1702,7 @@ class MultiplicationNode(BinaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l * r for l in self.left.support() for r in self.right.support()
+            el * ar for el in self.left.support() for ar in self.right.support()
         )
 
 
@@ -1727,13 +1729,13 @@ class PowerNode(BinaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(
-            l ** r for l in self.left.support() for r in self.right.support()
+            el ** ar for el in self.left.support() for ar in self.right.support()
         )
 
 
-#####
-##### Unary operators
-#####
+# ####
+# #### Unary operators
+# ####
 
 
 class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
@@ -1991,9 +1993,9 @@ class ToTensorNode(UnaryOperatorNode):
         return SetOfTensors(torch.tensor(o) for o in self.operand.support())
 
 
-#####
-##### Marker nodes
-#####
+# ####
+# #### Marker nodes
+# ####
 
 # TODO: Do we also need to represent factors?
 

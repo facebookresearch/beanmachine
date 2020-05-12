@@ -111,9 +111,9 @@ from torch.distributions import (
 
 builtin_function_or_method = type(abs)
 
-#####
-##### The following classes define the various graph node types.
-#####
+# ####
+# #### The following classes define the various graph node types.
+# ####
 
 # TODO: This section is over two thousand lines of code, none of which
 # makes use of the actual graph builder; the node types could be
@@ -172,9 +172,9 @@ class KnownFunction:
         self.function = function
 
 
-#####
-##### That's it for the graph nodes.
-#####
+# ####
+# #### That's it for the graph nodes.
+# ####
 
 
 def is_from_lifted_module(f) -> bool:
