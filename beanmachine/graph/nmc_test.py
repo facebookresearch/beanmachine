@@ -182,7 +182,9 @@ class TestNMC(unittest.TestCase):
         ITEM_LABELS = [[False, False], [False, True], [True, True]]
         # see https://mc-stan.org/docs/2_19/functions-reference/covariance.html for
         # a reference on this covariance function
-        covar = ALPHA ** 2 * (-(SCORES.unsqueeze(1) - SCORES) ** 2 / 2 / RHO ** 2).exp()
+        covar = (
+            ALPHA ** 2 * (-((SCORES.unsqueeze(1) - SCORES) ** 2) / 2 / RHO ** 2).exp()
+        )
         tau = covar.inverse()  # the precision matrix
         g = graph.Graph()
         # first we will create f ~ GP
@@ -214,9 +216,11 @@ class TestNMC(unittest.TestCase):
             [sens_alpha, sens_beta],
         )
         spec, comp_spec, sens = [], [], []
-        for l in range(NUM_LABELERS):
+        for labeler in range(NUM_LABELERS):
             spec.append(g.add_operator(graph.OperatorType.SAMPLE, [spec_prior]))
-            comp_spec.append(g.add_operator(graph.OperatorType.COMPLEMENT, [spec[l]]))
+            comp_spec.append(
+                g.add_operator(graph.OperatorType.COMPLEMENT, [spec[labeler]])
+            )
             sens.append(g.add_operator(graph.OperatorType.SAMPLE, [sens_prior]))
         # for each item i
         for i, labels in enumerate(ITEM_LABELS):
