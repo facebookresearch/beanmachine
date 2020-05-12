@@ -895,3 +895,30 @@ x = f(*r1)
 """
         # TODO: The following test should work when broken call rewrites are removed
         # self.check_rewrite(source, expected)
+
+    def test_single_assignment_call_three_arg(self) -> None:
+        """Test the assign rule for starring an unstarred regular arg"""
+
+        source = """
+x = f(1, 2, 3)
+"""
+        # TODO: The following is what we should get after old rules are removed
+        expected = """
+a5 = 1
+a3 = [a5]
+a8 = 2
+a6 = [a8]
+a2 = a3 + a6
+a7 = 3
+a4 = [a7]
+r1 = a2 + a4
+x = f(*r1)
+"""
+        # TODO: The following test the old rule! Replace w above expected
+        expected = """
+a1 = 1
+a2 = 2
+a3 = 3
+x = f(a1, a2, a3)
+"""
+        self.check_rewrite(source, expected)

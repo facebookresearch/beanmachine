@@ -540,7 +540,8 @@ class SingleAssignment:
                             ),
                             source_term.value.args[0].ctx,
                         )
-                    ],
+                    ]
+                    + source_term.value.args[2:],
                     keywords=source_term.value.keywords,
                 ),
             ),
