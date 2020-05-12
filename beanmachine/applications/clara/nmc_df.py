@@ -152,7 +152,7 @@ class LabelingErrorBMModel(object):
         if n_labeler_groups is None:
             n_labeler_groups = args_dict["k"]
 
-        logger.info(f"Fitting using NMC ...")
+        logger.info("Fitting using NMC ...")
         # TO DO: incorporate n_item_groups and n_labeler_groups into nmc
         # TO DO: extend nmc to support n_item_groups > 1 and
         # n_labeler_groups != args_dict["k"]
