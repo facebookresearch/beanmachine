@@ -2,8 +2,8 @@ version: 2.1
 
 commands:
 
-  pip_dev_install:
-    description: "Install beanmachine[dev] & dependencies via pip"
+  pip_install_deps:
+    description: "Install beanmachine dependencies via pip"
     steps:
       - run:
           name: "Upgrade pip"
@@ -14,9 +14,30 @@ commands:
       - run:
           name: "Install pytorch"
           command: sudo pip install --progress-bar off torch==1.4.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+
+  pip_dev_install:
+    description: "Install beanmachine[dev] via pip"
+    steps:
       - run:
           name: "Install beanmachine[dev]"
           command: sudo pip install -v -e .[dev]
+
+  setup_py_install:
+    description: "Install beanmachine as an ordinary user would via setup.py install"
+    steps:
+      - run:
+          name: "Install beanmachine"
+          command: sudo python setup.py install
+
+  pip_lint_install:
+    description: "Install lint packages via pip"
+    steps:
+      - run:
+          name: "Upgrade pip"
+          command: sudo pip install --progress-bar off --upgrade pip
+      - run:
+          name: "Install lint packages"
+          command: sudo pip install --progress-bar off black==19.3b0 isort flake8
 
   lint_flake8:
     description: "Lint with flake8"
@@ -42,26 +63,53 @@ commands:
           name: "Lint with black"
           command: black --check --diff --line-length=88 .
 
-  unit_tests:
-    description: "Run unit tests"
+  dev_unit_tests:
+    description: "Run unit tests when installed in dev mode"
     steps:
       - run:
           name: "Run unit tests"
           command: pytest -ra --cov=. --cov-report term-missing
 
+  user_unit_tests:
+    description: "Run unit tests when as an ordinary user would"
+    steps:
+      - run:
+          name: "Install pytest"
+          command: pip install pytest
+      - run:
+          name: "Run unit tests"
+          command: pytest --pyargs beanmachine
+
 
 jobs:
 
-  lint_test_py36_pip:
+  dev_install_test_py36_pip:
     docker:
       - image: circleci/python:3.6.9
     steps:
       - checkout
+      - pip_install_deps
       - pip_dev_install
+      - dev_unit_tests
+
+  user_install_test_py36_pip:
+    docker:
+      - image: circleci/python:3.6.9
+    steps:
+      - checkout
+      - pip_install_deps
+      - setup_py_install
+      - user_unit_tests
+
+  lint_py36_pip:
+    docker:
+      - image: circleci/python:3.6.9
+    steps:
+      - checkout
+      - pip_lint_install
       - lint_flake8
       - lint_isort
       - lint_black
-      - unit_tests
 
 
 aliases:
@@ -77,5 +125,11 @@ workflows:
 
   lint_and_test:
     jobs:
-      - lint_test_py36_pip:
+      - lint_py36_pip:
+          filters: *exclude_ghpages_fbconfig
+
+      - dev_install_test_py36_pip:
+          filters: *exclude_ghpages_fbconfig
+
+      - user_install_test_py36_pip:
           filters: *exclude_ghpages_fbconfig

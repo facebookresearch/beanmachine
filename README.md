@@ -13,3 +13,8 @@ Bean Machine is a probabilistic programming language for inference over statisti
     cd BeanMachine
     pip install numpy torch
     python setup.py install
+
+Further, if you would like to run the builtin unit tests:
+
+    pip install pytest
+    pytest --pyargs beanmachine
