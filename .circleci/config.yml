@@ -52,16 +52,22 @@ commands:
 
 jobs:
 
-  lint_test_py36_pip:
+  test_py36_pip:
     docker:
       - image: circleci/python:3.6.9
     steps:
       - checkout
       - pip_dev_install
+      - unit_tests
+
+  lint_py36:
+    docker:
+      - image: circleci/python:3.6.9
+    steps:
+      - checkout
       - lint_flake8
       - lint_isort
       - lint_black
-      - unit_tests
 
 
 aliases:
@@ -77,5 +83,8 @@ workflows:
 
   lint_and_test:
     jobs:
-      - lint_test_py36_pip:
+      - lint_py36:
+          filters: *exclude_ghpages_fbconfig
+
+      - test_py36_pip:
           filters: *exclude_ghpages_fbconfig
