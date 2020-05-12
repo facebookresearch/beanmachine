@@ -18,6 +18,16 @@ commands:
           name: "Install beanmachine[dev]"
           command: sudo pip install -v -e .[dev]
 
+  pip_lint_install:
+    description: "Install beanmachine[lint] & dependencies via pip"
+    steps:
+      - run:
+          name: "Upgrade pip"
+          command: sudo pip install --progress-bar off --upgrade pip
+      - run:
+          name: "Install lint packages"
+          command: sudo pip install --progress-bar off black==19.3b0 isort flake8
+
   lint_flake8:
     description: "Lint with flake8"
     steps:
@@ -52,16 +62,23 @@ commands:
 
 jobs:
 
-  lint_test_py36_pip:
+  test_py36_pip:
     docker:
       - image: circleci/python:3.6.9
     steps:
       - checkout
       - pip_dev_install
+      - unit_tests
+
+  lint_py36:
+    docker:
+      - image: circleci/python:3.6.9
+    steps:
+      - checkout
+      - pip_lint_install
       - lint_flake8
       - lint_isort
       - lint_black
-      - unit_tests
 
 
 aliases:
@@ -77,5 +94,8 @@ workflows:
 
   lint_and_test:
     jobs:
-      - lint_test_py36_pip:
+      - lint_py36:
+          filters: *exclude_ghpages_fbconfig
+
+      - test_py36_pip:
           filters: *exclude_ghpages_fbconfig
