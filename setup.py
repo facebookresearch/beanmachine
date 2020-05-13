@@ -5,7 +5,7 @@ import re
 import sys
 from glob import glob
 
-from setuptools import setup
+from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 
 
@@ -92,15 +92,7 @@ setup(
         "tqdm>=4.40.2",
         "astor>=0.7.1",
     ],
-    packages=[
-        "beanmachine.ppl.diagnostics",
-        "beanmachine.ppl.inference.proposer",
-        "beanmachine.ppl.inference",
-        "beanmachine.ppl.model",
-        "beanmachine.ppl.world",
-        "beanmachine.ppl.utils",
-        "beanmachine.applications.clara",
-    ],
+    packages=find_packages(),
     ext_modules=[
         CppExtension(
             name="beanmachine.graph",
@@ -108,13 +100,13 @@ setup(
                 set(glob("beanmachine/graph/**/*.cpp", recursive=True))
                 - set(glob("beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
-            include_dirs=["."],
+            include_dirs=[os.getcwd()],
             extra_compile_args=EXTRA_COMPILE_ARGS,
         ),
         CppExtension(
             name="beanmachine.ppl.utils.tensorops",
             sources=["beanmachine/ppl/utils/tensorops.cpp"],
-            include_dirs=["."],
+            include_dirs=[os.getcwd()],
             extra_compile_args=EXTRA_COMPILE_ARGS,
         ),
     ],
