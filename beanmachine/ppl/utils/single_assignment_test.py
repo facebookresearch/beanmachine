@@ -896,6 +896,35 @@ x = f(*r1)
         # TODO: The following test should work when broken call rewrites are removed
         # self.check_rewrite(source, expected)
 
+    def test_single_assignment_call_empty_regular_arg(self) -> None:
+        """Test the assign rule for starring an empty regular arg"""
+
+        source = """
+x = f()
+"""
+        expected = """
+x = f(*[])
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            _some_top_down(self.s._handle_assigned_call_empty_regular_arg()),
+        )
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assigned_call_empty_regular_arg())),
+        )
+
+        expected = """
+r1 = []
+x = f(*r1)
+"""
+        # TODO: The following test should work when broken call rewrites are removed
+        # self.check_rewrite(source, expected)
+
     def test_single_assignment_call_three_arg(self) -> None:
         """Test the assign rule for starring an unstarred regular arg"""
 

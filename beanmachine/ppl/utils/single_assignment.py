@@ -563,6 +563,21 @@ class SingleAssignment:
             "_handle_assigned_call_regular_arg",
         )
 
+    def _handle_assigned_call_empty_regular_arg(self) -> Rule:
+        # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
+        return PatternRule(
+            assign(value=call(args=[])),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=[ast.Starred(ast.List([], ctx=ast.Load()), ctx=ast.Load())],
+                    keywords=source_term.value.keywords,
+                ),
+            ),
+            "_handle_assigned_call_empty_regular_arg",
+        )
+
     def _handle_asign_call_keyword(self) -> Rule:
         # If we have t = foo(a, b, z=123) rewrite that to
         # t1 = 123, t = foo(a, b, t1),
