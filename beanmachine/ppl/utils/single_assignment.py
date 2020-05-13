@@ -223,7 +223,7 @@ class SingleAssignment:
         )
         rewritten = (
             original[:index]
-            + [ast.Starred(ast.List([value], ctx=ast.Load()), ctx=ast.Load())]
+            + [ast.Starred(ast.List(elts=[value], ctx=ast.Load()), ctx=ast.Load())]
             + original[index + 1 :]
         )
 
