@@ -232,14 +232,14 @@ class TestNMC(unittest.TestCase):
             )
             violating_i = g.add_operator(graph.OperatorType.SAMPLE, [dist_i])
             # for each labeler l
-            for l, label_val in enumerate(labels):
+            for lidx, label_val in enumerate(labels):
                 # if violating_i
                 #     prob_i_l = sens_l
                 # else
                 #     prob_i_l = 1 - spec_l
                 prob_i_l = g.add_operator(
                     graph.OperatorType.IF_THEN_ELSE,
-                    [violating_i, sens[l], comp_spec[l]],
+                    [violating_i, sens[lidx], comp_spec[lidx]],
                 )
                 # label_i_l ~ Bernoulli(prob_i_l)
                 dist_i_l = g.add_distribution(
