@@ -18,14 +18,21 @@ const double RANDOM_WALK_WEIGHT = 0.01;
 
 std::unique_ptr<Proposer>
 nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
-  // For boolean variables we will put a point mass on the complementary value.
+  std::vector<double> weights;
+  std::vector<std::unique_ptr<Proposer>> proposers;
+  // For boolean variables we will put a point mass on the complementary value
+  // and a small mass on the current value. This latter is needed to avoid
+  // periodicity.
   if (value.type == graph::AtomicType::BOOLEAN) {
-    return std::make_unique<Delta>(graph::AtomicValue(not value._bool));
+    weights.push_back(0.99);
+    proposers.push_back(
+        std::make_unique<Delta>(graph::AtomicValue(not value._bool)));
+    weights.push_back(0.01);
+    proposers.push_back(
+        std::make_unique<Delta>(graph::AtomicValue(value._bool)));
   }
   // For continuous-valued variables we will mix multiple proposers with various
   // weights with a small probability always given to a random walk proposer.
-  std::vector<double> weights;
-  std::vector<std::unique_ptr<Proposer>> proposers;
   if (value.type == graph::AtomicType::PROBABILITY) {
     double x = value._double;
     assert(x > 0 and x < 1);
