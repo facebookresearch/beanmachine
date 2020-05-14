@@ -68,7 +68,7 @@ class Fail(RuleResult):
         return True
 
     def expect_success(self) -> Any:
-        raise ValueError("Expected success")
+        raise ValueError("Expected success but rewrite rule patten match failed")
 
 
 class Success(RuleResult):
