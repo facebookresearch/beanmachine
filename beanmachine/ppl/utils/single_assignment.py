@@ -653,6 +653,7 @@ class SingleAssignment:
                 self._handle_assigned_call_single_regular_arg(),
                 self._handle_assigned_call_two_star_args(),
                 self._handle_assigned_call_regular_arg(),
+                self._handle_assigned_call_empty_regular_arg(),
             ]
         )
 

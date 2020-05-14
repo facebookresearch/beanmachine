@@ -1930,7 +1930,7 @@ digraph "graph" {
 
 
 class CompilerTest(unittest.TestCase):
-    def test_to_python_raw(self) -> None:
+    def disabled_test_to_python_raw(self) -> None:
         """Tests for to_python_raw from bm_to_bmg.py"""
         self.maxDiff = None
         observed = to_python_raw(source1)
