@@ -253,3 +253,55 @@ class TestNMC(unittest.TestCase):
         means = g.infer_mean(1000, graph.InferenceType.NMC)
         self.assertLess(means[0], means[1])
         self.assertLess(means[1], means[2])
+
+    def test_uncoupled_bools(self):
+        """
+        X_1 ~ Bernoulli(0.5)
+        X_2 ~ Bernoulli(0.5)
+        P(X_1 == X_2) = 0.5
+        """
+        g = graph.Graph()
+        half = g.add_constant_probability(0.5)
+        bernoulli = g.add_distribution(
+            graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [half]
+        )
+        X_1 = g.add_operator(graph.OperatorType.SAMPLE, [bernoulli])
+        X_2 = g.add_operator(graph.OperatorType.SAMPLE, [bernoulli])
+        g.query(X_1)
+        g.query(X_2)
+        prob_equal = (
+            sum(x == y for (x, y) in g.infer(100000, graph.InferenceType.NMC)) / 100000
+        )
+        self.assertAlmostEqual(prob_equal, 0.5, delta=0.01)
+
+    def test_coupled_bools(self):
+        """
+        X_1 ~ Bernoulli(0.5)
+        X_2 ~ Bernoulli(0.5)
+        sigma_1 = 1 if X_1 else -1
+        sigma_2 = 1 if X_2 else -1
+        target += sigma_1 * sigma_2
+        P(X_1 == X_2) = e / (e + e^-1)
+        """
+        g = graph.Graph()
+        half = g.add_constant_probability(0.5)
+        bernoulli = g.add_distribution(
+            graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [half]
+        )
+        X_1 = g.add_operator(graph.OperatorType.SAMPLE, [bernoulli])
+        X_2 = g.add_operator(graph.OperatorType.SAMPLE, [bernoulli])
+        plus_one = g.add_constant(1.0)
+        minus_one = g.add_constant(-1.0)
+        sigma_1 = g.add_operator(
+            graph.OperatorType.IF_THEN_ELSE, [X_1, plus_one, minus_one]
+        )
+        sigma_2 = g.add_operator(
+            graph.OperatorType.IF_THEN_ELSE, [X_2, plus_one, minus_one]
+        )
+        g.add_factor(graph.FactorType.EXP_PRODUCT, [sigma_1, sigma_2])
+        g.query(X_1)
+        g.query(X_2)
+        prob_equal = (
+            sum(x == y for (x, y) in g.infer(100000, graph.InferenceType.NMC)) / 100000
+        )
+        self.assertAlmostEqual(prob_equal, 0.88, delta=0.01)
