@@ -70,44 +70,52 @@ from torch.distributions.bernoulli import Bernoulli
 @probabilistic(bmg)
 @memoize
 def X():
-    a7 = 0.01
-    a4 = bmg.handle_function(tensor, [a7], {})
-    r1 = bmg.handle_function(Bernoulli, [a4], {})
+    a14 = 0.01
+    r11 = [a14]
+    a7 = bmg.handle_function(tensor, [*r11], {})
+    r4 = [a7]
+    r1 = bmg.handle_function(Bernoulli, [*r4], {})
     return bmg.handle_sample(r1)
 
 
 @probabilistic(bmg)
 @memoize
 def Y():
-    a8 = 0.01
-    a5 = bmg.handle_function(tensor, [a8], {})
-    r2 = bmg.handle_function(Bernoulli, [a5], {})
+    a15 = 0.01
+    r12 = [a15]
+    a8 = bmg.handle_function(tensor, [*r12], {})
+    r5 = [a8]
+    r2 = bmg.handle_function(Bernoulli, [*r5], {})
     return bmg.handle_sample(r2)
 
 
 @probabilistic(bmg)
 @memoize
 def Z():
-    a9 = 1
-    a16 = bmg.handle_dot_get(torch, 'tensor')
-    a19 = -0.010050326585769653
-    a14 = bmg.handle_function(a16, [a19], {})
-    a20 = bmg.handle_function(X, [], {})
-    a24 = bmg.handle_dot_get(torch, 'tensor')
-    a26 = -4.605170249938965
-    a22 = bmg.handle_function(a24, [a26], {})
-    a17 = bmg.handle_multiplication(a20, a22)
-    a13 = bmg.handle_addition(a14, a17)
-    a18 = bmg.handle_function(Y, [], {})
-    a25 = 0.01
-    a23 = bmg.handle_function(tensor, [a25], {})
-    a21 = bmg.handle_function(log, [], {**{'input': a23}})
-    a15 = bmg.handle_multiplication(a18, a21)
-    a12 = bmg.handle_addition(a13, a15)
-    a11 = bmg.handle_function(exp, [], {**{'input': a12}})
-    a10 = bmg.handle_negate(a11)
-    a6 = bmg.handle_addition(a9, a10)
-    r3 = bmg.handle_function(Bernoulli, [a6], {})
+    a10 = 1
+    a21 = bmg.handle_dot_get(torch, 'tensor')
+    a29 = -0.010050326585769653
+    r26 = [a29]
+    a19 = bmg.handle_function(a21, [*r26], {})
+    a24 = bmg.handle_function(X, [], {})
+    a30 = bmg.handle_dot_get(torch, 'tensor')
+    a34 = -4.605170249938965
+    r32 = [a34]
+    a27 = bmg.handle_function(a30, [*r32], {})
+    a22 = bmg.handle_multiplication(a24, a27)
+    a18 = bmg.handle_addition(a19, a22)
+    a23 = bmg.handle_function(Y, [], {})
+    a33 = 0.01
+    r31 = [a33]
+    a28 = bmg.handle_function(tensor, [*r31], {})
+    a25 = bmg.handle_function(log, [], {**{'input': a28}})
+    a20 = bmg.handle_multiplication(a23, a25)
+    a17 = bmg.handle_addition(a18, a20)
+    a16 = bmg.handle_function(exp, [], {**{'input': a17}})
+    a13 = bmg.handle_negate(a16)
+    a9 = bmg.handle_addition(a10, a13)
+    r6 = [a9]
+    r3 = bmg.handle_function(Bernoulli, [*r6], {})
     return bmg.handle_sample(r3)
 
 
@@ -283,14 +291,16 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a7 = 0.5
-    a5 = bmg.handle_function(tensor, [a7], {})
+    a11 = 0.5
+    r8 = [a11]
+    a4 = bmg.handle_function(tensor, [*r8], {})
     a25 = 0.1
-    a20 = bmg.handle_function(tensor, [a25], {})
-    a15 = bmg.handle_multiplication(n, a20)
-    a11 = bmg.handle_function(exp, [], {**{'input': a15}})
-    a8 = bmg.handle_function(log, [], {**{'input': a11}})
-    a3 = bmg.handle_addition(a5, a8)
+    r21 = [a25]
+    a15 = bmg.handle_function(tensor, [*r21], {})
+    a12 = bmg.handle_multiplication(n, a15)
+    a9 = bmg.handle_function(exp, [], {**{'input': a12}})
+    a6 = bmg.handle_function(log, [], {**{'input': a9}})
+    a3 = bmg.handle_addition(a4, a6)
     r1 = bmg.handle_function(Bernoulli, [], {**{'probs': a3}})
     return bmg.handle_sample(r1)
 
@@ -298,26 +308,34 @@ def x(n):
 @probabilistic(bmg)
 @memoize
 def z():
-    a16 = 0.3
-    a12 = bmg.handle_function(tensor, [a16], {})
-    a21 = 0
-    a17 = bmg.handle_function(x, [a21], {})
-    a9 = bmg.handle_power(a12, a17)
-    a22 = 0
-    a18 = bmg.handle_function(x, [a22], {})
-    a26 = 10.0
-    a23 = bmg.handle_function(tensor, [a26], {})
-    a13 = bmg.handle_division(a18, a23)
-    a6 = bmg.handle_addition(a9, a13)
-    a27 = 1
-    a24 = bmg.handle_function(x, [a27], {})
-    a29 = 0.4
-    a28 = bmg.handle_function(tensor, [a29], {})
-    a19 = bmg.handle_multiplication(a24, a28)
-    a14 = bmg.handle_function(neg, [a19], {})
-    a10 = bmg.handle_negate(a14)
-    a4 = bmg.handle_addition(a6, a10)
-    r2 = bmg.handle_function(Bernoulli, [a4], {})
+    a26 = 0.3
+    r22 = [a26]
+    a16 = bmg.handle_function(tensor, [*r22], {})
+    a30 = 0
+    r27 = [a30]
+    a19 = bmg.handle_function(x, [*r27], {})
+    a13 = bmg.handle_power(a16, a19)
+    a31 = 0
+    r28 = [a31]
+    a20 = bmg.handle_function(x, [*r28], {})
+    a34 = 10.0
+    r32 = [a34]
+    a23 = bmg.handle_function(tensor, [*r32], {})
+    a17 = bmg.handle_division(a20, a23)
+    a10 = bmg.handle_addition(a13, a17)
+    a37 = 1
+    r36 = [a37]
+    a33 = bmg.handle_function(x, [*r36], {})
+    a39 = 0.4
+    r38 = [a39]
+    a35 = bmg.handle_function(tensor, [*r38], {})
+    a29 = bmg.handle_multiplication(a33, a35)
+    r24 = [a29]
+    a18 = bmg.handle_function(neg, [*r24], {})
+    a14 = bmg.handle_negate(a18)
+    a7 = bmg.handle_addition(a10, a14)
+    r5 = [a7]
+    r2 = bmg.handle_function(Bernoulli, [*r5], {})
     return bmg.handle_sample(r2)
 
 
@@ -402,15 +420,20 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a15 = 0.5
-    a9 = bmg.handle_function(tensor, [a15], {})
-    a26 = 0.1
-    a24 = bmg.handle_function(tensor, [a26], {})
-    a22 = bmg.handle_multiplication(n, a24)
-    a20 = bmg.handle_function(exp, [a22], {})
-    a16 = bmg.handle_function(log, [a20], {})
-    a5 = bmg.handle_addition(a9, a16)
-    r1 = bmg.handle_function(Bernoulli, [a5], {})
+    a27 = 0.5
+    r25 = [a27]
+    a15 = bmg.handle_function(tensor, [*r25], {})
+    a40 = 0.1
+    r38 = [a40]
+    a36 = bmg.handle_function(tensor, [*r38], {})
+    a34 = bmg.handle_multiplication(n, a36)
+    r32 = [a34]
+    a29 = bmg.handle_function(exp, [*r32], {})
+    r28 = [a29]
+    a21 = bmg.handle_function(log, [*r28], {})
+    a13 = bmg.handle_addition(a15, a21)
+    r7 = [a13]
+    r1 = bmg.handle_function(Bernoulli, [*r7], {})
     return bmg.handle_sample(r1)
 
 
@@ -419,28 +442,35 @@ def x(n):
 def z():
     sum = 0.0
     n = 0
-    a10 = bmg.handle_dot_get(torch, 'tensor')
-    a17 = -4.605170249938965
-    a6 = bmg.handle_function(a10, [a17], {})
-    a11 = bmg.handle_function(x, [n], {})
-    a2 = bmg.handle_multiplication(a6, a11)
+    a8 = bmg.handle_dot_get(torch, 'tensor')
+    a22 = -4.605170249938965
+    r16 = [a22]
+    a5 = bmg.handle_function(a8, [*r16], {})
+    r17 = [n]
+    a9 = bmg.handle_function(x, [*r17], {})
+    a2 = bmg.handle_multiplication(a5, a9)
     sum = bmg.handle_addition(sum, a2)
     n = 1
-    a12 = bmg.handle_dot_get(torch, 'tensor')
-    a18 = -4.605170249938965
-    a7 = bmg.handle_function(a12, [a18], {})
-    a13 = bmg.handle_function(x, [n], {})
-    a3 = bmg.handle_multiplication(a7, a13)
+    a10 = bmg.handle_dot_get(torch, 'tensor')
+    a23 = -4.605170249938965
+    r18 = [a23]
+    a6 = bmg.handle_function(a10, [*r18], {})
+    r19 = [n]
+    a11 = bmg.handle_function(x, [*r19], {})
+    a3 = bmg.handle_multiplication(a6, a11)
     sum = bmg.handle_addition(sum, a3)
-    a14 = 1
-    a27 = bmg.handle_dot_get(torch, 'tensor')
-    a28 = -0.010050326585769653
-    a25 = bmg.handle_function(a27, [a28], {})
-    a23 = bmg.handle_addition(a25, sum)
-    a21 = bmg.handle_function(exp, [a23], {})
-    a19 = bmg.handle_negate(a21)
-    a8 = bmg.handle_addition(a14, a19)
-    r4 = bmg.handle_function(Bernoulli, [a8], {})
+    a20 = 1
+    a35 = bmg.handle_dot_get(torch, 'tensor')
+    a39 = -0.010050326585769653
+    r37 = [a39]
+    a33 = bmg.handle_function(a35, [*r37], {})
+    a31 = bmg.handle_addition(a33, sum)
+    r30 = [a31]
+    a26 = bmg.handle_function(exp, [*r30], {})
+    a24 = bmg.handle_negate(a26)
+    a14 = bmg.handle_addition(a20, a24)
+    r12 = [a14]
+    r4 = bmg.handle_function(Bernoulli, [*r12], {})
     return bmg.handle_sample(r4)
 
 
@@ -527,15 +557,20 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a11 = 0.5
-    a8 = bmg.handle_function(tensor, [a11], {})
-    a23 = 0.1
-    a21 = bmg.handle_function(tensor, [a23], {})
-    a19 = bmg.handle_multiplication(n, a21)
-    a16 = bmg.handle_function(exp, [a19], {})
-    a12 = bmg.handle_function(log, [a16], {})
-    a4 = bmg.handle_addition(a8, a12)
-    r1 = bmg.handle_function(Bernoulli, [a4], {})
+    a22 = 0.5
+    r19 = [a22]
+    a13 = bmg.handle_function(tensor, [*r19], {})
+    a35 = 0.1
+    r33 = [a35]
+    a31 = bmg.handle_function(tensor, [*r33], {})
+    a29 = bmg.handle_multiplication(n, a31)
+    r27 = [a29]
+    a24 = bmg.handle_function(exp, [*r27], {})
+    r23 = [a24]
+    a15 = bmg.handle_function(log, [*r23], {})
+    a9 = bmg.handle_addition(a13, a15)
+    r6 = [a9]
+    r1 = bmg.handle_function(Bernoulli, [*r6], {})
     return bmg.handle_sample(r1)
 
 
@@ -545,24 +580,29 @@ def z():
     sum = 0.0
     a = 2
     b = 3
-    a5 = bmg.handle_addition(a, b)
-    f2 = [a, a5]
+    a4 = bmg.handle_addition(a, b)
+    f2 = [a, a4]
     for n in f2:
-        a13 = bmg.handle_dot_get(torch, 'tensor')
-        a17 = -4.605170249938965
-        a9 = bmg.handle_function(a13, [a17], {})
-        a14 = bmg.handle_function(x, [n], {})
-        a6 = bmg.handle_multiplication(a9, a14)
-        sum = bmg.handle_addition(sum, a6)
-    a10 = 1
-    a24 = bmg.handle_dot_get(torch, 'tensor')
-    a25 = -0.010050326585769653
-    a22 = bmg.handle_function(a24, [a25], {})
-    a20 = bmg.handle_addition(a22, sum)
-    a18 = bmg.handle_function(exp, [a20], {})
-    a15 = bmg.handle_negate(a18)
-    a7 = bmg.handle_addition(a10, a15)
-    r3 = bmg.handle_function(Bernoulli, [a7], {})
+        a10 = bmg.handle_dot_get(torch, 'tensor')
+        a20 = -4.605170249938965
+        r16 = [a20]
+        a7 = bmg.handle_function(a10, [*r16], {})
+        r17 = [n]
+        a11 = bmg.handle_function(x, [*r17], {})
+        a5 = bmg.handle_multiplication(a7, a11)
+        sum = bmg.handle_addition(sum, a5)
+    a14 = 1
+    a30 = bmg.handle_dot_get(torch, 'tensor')
+    a34 = -0.010050326585769653
+    r32 = [a34]
+    a28 = bmg.handle_function(a30, [*r32], {})
+    a26 = bmg.handle_addition(a28, sum)
+    r25 = [a26]
+    a21 = bmg.handle_function(exp, [*r25], {})
+    a18 = bmg.handle_negate(a21)
+    a12 = bmg.handle_addition(a14, a18)
+    r8 = [a12]
+    r3 = bmg.handle_function(Bernoulli, [*r8], {})
     return bmg.handle_sample(r3)
 
 
@@ -604,33 +644,41 @@ from torch.distributions import Bernoulli
 
 def q(a, b):
     a5 = bmg.handle_addition(a, b)
-    a8 = 0.5
-    r1 = bmg.handle_multiplication(a5, a8)
+    a6 = 0.5
+    r1 = bmg.handle_multiplication(a5, a6)
     return r1
 
 
 def r(p):
-    r2 = bmg.handle_function(Bernoulli, [p], {})
+    r7 = [p]
+    r2 = bmg.handle_function(Bernoulli, [*r7], {})
     return r2
 
 
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a6 = 0.5
-    r3 = bmg.handle_function(Bernoulli, [a6], {})
+    a10 = 0.5
+    r8 = [a10]
+    r3 = bmg.handle_function(Bernoulli, [*r8], {})
     return bmg.handle_sample(r3)
 
 
 @probabilistic(bmg)
 @memoize
 def z():
-    a10 = 0
-    a9 = bmg.handle_function(x, [a10], {})
-    a12 = 1
-    a11 = bmg.handle_function(x, [a12], {})
-    a7 = bmg.handle_function(q, [a9, a11], {})
-    r4 = bmg.handle_function(r, [a7], {})
+    a18 = 0
+    r17 = [a18]
+    a14 = bmg.handle_function(x, [*r17], {})
+    a13 = [a14]
+    a20 = 1
+    r19 = [a20]
+    a16 = bmg.handle_function(x, [*r19], {})
+    a15 = [a16]
+    r12 = bmg.handle_addition(a13, a15)
+    a11 = bmg.handle_function(q, [*r12], {})
+    r9 = [a11]
+    r4 = bmg.handle_function(r, [*r9], {})
     return bmg.handle_sample(r4)
 
 
@@ -697,28 +745,32 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a9 = 0.5
-    a7 = bmg.handle_multiplication(n, a9)
-    a10 = 0.25
-    a4 = bmg.handle_addition(a7, a10)
-    r1 = bmg.handle_function(Bernoulli, [a4], {})
+    a11 = 0.5
+    a10 = bmg.handle_multiplication(n, a11)
+    a12 = 0.25
+    a7 = bmg.handle_addition(a10, a12)
+    r4 = [a7]
+    r1 = bmg.handle_function(Bernoulli, [*r4], {})
     return bmg.handle_sample(r1)
 
 
 @probabilistic(bmg)
 @memoize
 def y():
-    a5 = 0.5
-    r2 = bmg.handle_function(Bernoulli, [a5], {})
+    a8 = 0.5
+    r5 = [a8]
+    r2 = bmg.handle_function(Bernoulli, [*r5], {})
     return bmg.handle_sample(r2)
 
 
 @probabilistic(bmg)
 @memoize
 def z():
-    a8 = bmg.handle_function(y, [], {})
-    a6 = bmg.handle_function(x, [a8], {})
-    r3 = bmg.handle_function(Bernoulli, [a6], {})
+    a14 = bmg.handle_function(y, [], {})
+    r13 = [a14]
+    a9 = bmg.handle_function(x, [*r13], {})
+    r6 = [a9]
+    r3 = bmg.handle_function(Bernoulli, [*r6], {})
     return bmg.handle_sample(r3)
 
 
@@ -786,21 +838,25 @@ from torch import exp
 @probabilistic(bmg)
 @memoize
 def X():
-    a3 = 0.0
-    a5 = 3.0
-    r1 = bmg.handle_function(Normal, [a3, a5], {})
+    a9 = 0.0
+    a7 = [a9]
+    a12 = 3.0
+    a10 = [a12]
+    r5 = bmg.handle_addition(a7, a10)
+    r1 = bmg.handle_function(Normal, [*r5], {})
     return bmg.handle_sample(r1)
 
 
 @probabilistic(bmg)
 @memoize
 def Y():
-    a4 = 0.0
-    a8 = bmg.handle_function(X, [], {})
-    a9 = 0.5
-    a7 = bmg.handle_multiplication(a8, a9)
-    a6 = bmg.handle_function(exp, [a7], {})
-    r2 = bmg.handle_function(Normal, [], {**{'loc': a4}, **{'scale': a6}})
+    a3 = 0.0
+    a11 = bmg.handle_function(X, [], {})
+    a13 = 0.5
+    a8 = bmg.handle_multiplication(a11, a13)
+    r6 = [a8]
+    a4 = bmg.handle_function(exp, [*r6], {})
+    r2 = bmg.handle_function(Normal, [], {**{'loc': a3}, **{'scale': a4}})
     return bmg.handle_sample(r2)
 
 
@@ -858,9 +914,12 @@ from torch.distributions import Beta, Bernoulli
 @probabilistic(bmg)
 @memoize
 def mint():
-    a3 = 1.0
-    a5 = 1.0
-    r1 = bmg.handle_function(Beta, [a3, a5], {})
+    a7 = 1.0
+    a6 = [a7]
+    a9 = 1.0
+    a8 = [a9]
+    r5 = bmg.handle_addition(a6, a8)
+    r1 = bmg.handle_function(Beta, [*r5], {})
     return bmg.handle_sample(r1)
 
 
@@ -868,7 +927,8 @@ def mint():
 @memoize
 def toss():
     a4 = bmg.handle_function(mint, [], {})
-    r2 = bmg.handle_function(Bernoulli, [a4], {})
+    r3 = [a4]
+    r2 = bmg.handle_function(Bernoulli, [*r3], {})
     return bmg.handle_sample(r2)
 
 
@@ -1113,51 +1173,60 @@ bmg = BMGraphBuilder()
 from torch import tensor
 from torch.distributions import Bernoulli
 FAKE_PRIOR = 0.001
-a7 = 0.01
-a12 = 0.02
-a17 = 0.03
-a1 = [a7, a12, a17]
-FAKE_REQ_PROB = bmg.handle_function(tensor, [a1], {})
-a8 = 0.04
-a13 = 0.05
-a18 = 0.06
-a2 = [a8, a13, a18]
-REAL_REQ_PROB = bmg.handle_function(tensor, [a2], {})
+a14 = 0.01
+a19 = 0.02
+a24 = 0.03
+a8 = [a14, a19, a24]
+r4 = [a8]
+FAKE_REQ_PROB = bmg.handle_function(tensor, [*r4], {})
+a15 = 0.04
+a20 = 0.05
+a25 = 0.06
+a9 = [a15, a20, a25]
+r5 = [a9]
+REAL_REQ_PROB = bmg.handle_function(tensor, [*r5], {})
 REQ_PROB = [REAL_REQ_PROB, FAKE_REQ_PROB]
-a9 = 0.99
-a14 = 0.5
-a19 = 0.07
-a3 = [a9, a14, a19]
-REAL_ACC_PROB = bmg.handle_function(tensor, [a3], {})
+a16 = 0.99
+a21 = 0.5
+a26 = 0.07
+a10 = [a16, a21, a26]
+r6 = [a10]
+REAL_ACC_PROB = bmg.handle_function(tensor, [*r6], {})
 
 
 @probabilistic(bmg)
 @memoize
 def is_fake(account):
-    r4 = bmg.handle_function(Bernoulli, [FAKE_PRIOR], {})
-    return bmg.handle_sample(r4)
+    r11 = [FAKE_PRIOR]
+    r1 = bmg.handle_function(Bernoulli, [*r11], {})
+    return bmg.handle_sample(r1)
 
 
 @probabilistic(bmg)
 @memoize
 def all_requests_sent(account):
-    a15 = bmg.handle_function(is_fake, [account], {})
-    a10 = bmg.handle_index(REQ_PROB, a15)
-    r5 = bmg.handle_function(Bernoulli, [a10], {})
-    return bmg.handle_sample(r5)
+    r27 = [account]
+    a22 = bmg.handle_function(is_fake, [*r27], {})
+    a17 = bmg.handle_index(REQ_PROB, a22)
+    r12 = [a17]
+    r2 = bmg.handle_function(Bernoulli, [*r12], {})
+    return bmg.handle_sample(r2)
 
 
 @probabilistic(bmg)
 @memoize
 def all_requests_accepted(account):
-    a16 = bmg.handle_function(all_requests_sent, [account], {})
-    a11 = bmg.handle_multiplication(REAL_ACC_PROB, a16)
-    r6 = bmg.handle_function(Bernoulli, [a11], {})
-    return bmg.handle_sample(r6)
+    r28 = [account]
+    a23 = bmg.handle_function(all_requests_sent, [*r28], {})
+    a18 = bmg.handle_multiplication(REAL_ACC_PROB, a23)
+    r13 = [a18]
+    r3 = bmg.handle_function(Bernoulli, [*r13], {})
+    return bmg.handle_sample(r3)
 
 
 _1 = 0
-_2 = bmg.handle_function(all_requests_accepted, [_1], {})
+r7 = [_1]
+_2 = bmg.handle_function(all_requests_accepted, [*r7], {})
 roots = []
 """
 

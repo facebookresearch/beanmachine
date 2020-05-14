@@ -490,17 +490,6 @@ class SingleAssignment:
             "handle_assign_call_function_expression",
         )
 
-    def _handle_assign_call_args(self) -> Rule:
-        # If we have t = foo(x + y, 2) rewrite that to
-        # t1 = x + y, t2 = 2, t = foo(t1, t2).
-        # TODO: This will eventually be phased out with new strategy
-        # TODO: Will require changing at least 4 test cases
-        return PatternRule(
-            assign(value=call(func=name(), args=_list_not_identifier)),
-            self._transform_call(),
-            "handle_assign_call_args",
-        )
-
     def _handle_assigned_call_single_regular_arg(self) -> Rule:
         # Rewrite x = f(*([1]+[2]) into d=[1]+[2]; x = f(*d)
         return PatternRule(
@@ -657,16 +646,13 @@ class SingleAssignment:
                 self._handle_assign_tuple(),
                 self._handle_assign_dictionary_keys(),
                 self._handle_assign_dictionary_values(),
-                # TODO: We plan to remove the following rules
-                self._handle_assign_call_args(),
+                # TODO: Following will be replaced with new approach
                 self._handle_asign_call_keyword(),
                 # Acceptable rules
                 self._handle_assign_call_function_expression(),
                 self._handle_assigned_call_single_regular_arg(),
                 self._handle_assigned_call_two_star_args(),
-                # TODO: disabled because this causes an infinite loop
-                # TODO: suspecting this is coupled to old call rules above
-                # self._handle_assigned_call_regular_arg(),
+                self._handle_assigned_call_regular_arg(),
             ]
         )
 

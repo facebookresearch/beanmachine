@@ -93,7 +93,8 @@ def f(x):
 """
         expected = """
 def f(x):
-    a2 = g(x)
+    r3 = [x]
+    a2 = g(*r3)
     u1 = a2 + x
 """
 
@@ -193,14 +194,17 @@ def f(x):
 """
         expected = """
 def f(x):
-    a2 = x + x
-    r1 = gt(a2, x)
+    a6 = x + x
+    a5 = [a6]
+    a7 = [x]
+    r4 = a5 + a7
+    r1 = gt(*r4)
     if r1:
-        a3 = a + b
-        c = a3 + c
+        a2 = a + b
+        c = a2 + c
     else:
-        a4 = c + a
-        b = a4 + b
+        a3 = c + a
+        b = a3 + b
 """
         self.check_rewrite(
             source,
@@ -737,7 +741,7 @@ def f(x):
 
         source = """
 def f():
-    aab = a(b)
+    aab = a + b
     if aab:
         return 1 + ~x + 2 + g(5, y=6)
     z = torch.tensor([1.0 + 2.0, 4.0])
@@ -750,35 +754,37 @@ def f():
 
         expected = """
 def f():
-    aab = a(b)
+    aab = a + b
     if aab:
-        a9 = 3
+        a8 = 3
         a15 = ~x
-        a5 = a9 + a15
-        a16 = 5
-        a20 = 6
-        a10 = g(a16, y=a20)
-        r1 = a5 + a10
+        a5 = a8 + a15
+        a22 = 5
+        r19 = [a22]
+        a9 = g(*r19, y=6)
+        r1 = a5 + a9
         return r1
     a2 = torch.tensor
-    a11 = 3.0
-    a17 = 4.0
+    a20 = 3.0
+    a23 = 4.0
+    a16 = [a20, a23]
+    r10 = [a16]
+    z = a2(*r10)
+    a11 = 10
+    a17 = 20
     a6 = [a11, a17]
-    z = a2(a6)
-    a12 = 10
-    a18 = 20
-    a7 = [a12, a18]
-    a19 = 30
+    a18 = 30
     a21 = 40
-    a13 = [a19, a21]
-    f3 = [a7, a13]
+    a12 = [a18, a21]
+    f3 = [a6, a12]
     for x in f3:
         for y in x:
             _1 = x + y
-            _2 = print(_1)
+            r13 = [_1]
+            _2 = print(*r13)
     a14 = 2.0
-    a8 = a14 * y
-    r4 = a8 / z
+    a7 = a14 * y
+    r4 = a7 / z
     return r4
 """
         self.check_rewrite(source, expected)
@@ -791,11 +797,13 @@ def f():
         source = "b = c(d + e).f(g + h)"
 
         expected = """
-a4 = d + e
-a2 = c(a4)
+a6 = d + e
+r4 = [a6]
+a2 = c(*r4)
 a1 = a2.f
-a3 = g + h
-b = a1(a3)
+a5 = g + h
+r3 = [a5]
+b = a1(*r3)
 """
         self.check_rewrite(source, expected)
 
@@ -808,8 +816,9 @@ b = a1(a3)
 
         expected = """
 a1 = b + c
-a3 = d + e
-a2 = f(a3)
+a4 = d + e
+r3 = [a4]
+a2 = f(*r3)
 a = a1[a2]
 """
         self.check_rewrite(source, expected)
@@ -837,8 +846,15 @@ x = f(*r1)
             many(_some_top_down(self.s._handle_assigned_call_single_regular_arg())),
         )
 
-        # TODO: The following test should work when broken call rewrites are removed
-        # self.check_rewrite(source, expected)
+        expected = """
+a3 = 1
+a2 = [a3]
+a5 = 2
+a4 = [a5]
+r1 = a2 + a4
+x = f(*r1)
+"""
+        self.check_rewrite(source, expected)
 
     def test_single_assignment_call_two_star_args(self) -> None:
         """Test the assign rule for merging starred call arguments"""
@@ -863,11 +879,14 @@ x = f(*([1] + [2]))
         )
 
         expected = """
-r1 = [1] + [2]
+a3 = 1
+a2 = [a3]
+a5 = 2
+a4 = [a5]
+r1 = a2 + a4
 x = f(*r1)
 """
-        # TODO: The following test should work when broken call rewrites are removed
-        # self.check_rewrite(source, expected)
+        self.check_rewrite(source, expected)
 
     def test_single_assignment_call_regular_arg(self) -> None:
         """Test the assign rule for starring an unstarred regular arg"""
@@ -890,7 +909,11 @@ x = f(*[1], *[2])
         )
 
         expected = """
-r1 = [1] + [2]
+a3 = 1
+a2 = [a3]
+a5 = 2
+a4 = [a5]
+r1 = a2 + a4
 x = f(*r1)
 """
         # TODO: The following test should work when broken call rewrites are removed
@@ -922,8 +945,7 @@ x = f(*[])
 r1 = []
 x = f(*r1)
 """
-        # TODO: The following test should work when broken call rewrites are removed
-        # self.check_rewrite(source, expected)
+        self.check_rewrite(source, expected)
 
     def test_single_assignment_call_three_arg(self) -> None:
         """Test the assign rule for starring an unstarred regular arg"""
@@ -931,7 +953,6 @@ x = f(*r1)
         source = """
 x = f(1, 2, 3)
 """
-        # TODO: The following is what we should get after old rules are removed
         expected = """
 a5 = 1
 a3 = [a5]
@@ -943,11 +964,5 @@ a4 = [a7]
 r1 = a2 + a4
 x = f(*r1)
 """
-        # TODO: The following test the old rule! Replace w above expected
-        expected = """
-a1 = 1
-a2 = 2
-a3 = 3
-x = f(a1, a2, a3)
-"""
+
         self.check_rewrite(source, expected)
