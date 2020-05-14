@@ -8,18 +8,18 @@ namespace proposer {
 graph::AtomicValue uniform_initializer(
     std::mt19937& gen,
     graph::AtomicType type) {
+  // The initialization rules here are based on Stan's default initialization
+  // except for discrete variables which are sampled uniformly.
+  // Note: Stan doesn't support discrete variables.
   if (type == graph::AtomicType::BOOLEAN) {
     bool val = std::bernoulli_distribution(0.5)(gen);
     return graph::AtomicValue(val);
   } else if (type == graph::AtomicType::PROBABILITY) {
-    double prob = util::sample_beta(gen, 1.0, 1.0);
-    return graph::AtomicValue(graph::AtomicType::PROBABILITY, prob);
+    return graph::AtomicValue(graph::AtomicType::PROBABILITY, 0.5);
   } else if (type == graph::AtomicType::REAL) {
-    std::normal_distribution<double> dist(0, 1);
-    return graph::AtomicValue(dist(gen));
+    return graph::AtomicValue(0.0);
   } else if (type == graph::AtomicType::POS_REAL) {
-    std::exponential_distribution<double> dist(1.0);
-    return graph::AtomicValue(graph::AtomicType::POS_REAL, dist(gen));
+    return graph::AtomicValue(graph::AtomicType::POS_REAL, 1.0);
   }
   // we shouldn't be called with other types, the following will invalidate the
   // value
