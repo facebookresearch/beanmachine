@@ -24,7 +24,7 @@ std::set<uint> Graph::compute_support() {
     queue.push_back(node_id);
   }
   // BFS loop
-  while (queue.size() > 0) {
+  while (not queue.empty()) {
     uint node_id = queue.front();
     queue.pop_front();
     if (visited.find(node_id) != visited.end()) {
@@ -64,7 +64,7 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
   std::set<uint> visited;
   std::list<uint> queue({root_id});
   // BFS loop
-  while (queue.size() > 0) {
+  while (not queue.empty()) {
     uint node_id = queue.front();
     queue.pop_front();
     if (visited.find(node_id) != visited.end()) {
