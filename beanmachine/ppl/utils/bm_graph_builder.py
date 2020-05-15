@@ -44,6 +44,10 @@ execution of the lifted program; it implements phases
 three, four and five.
 """
 
+# TODO: Consider whether this module is doing too much. We might
+# break it up into two modules, one which accumulates the graph
+# and the other which transforms the node types.
+
 import torch  # isort:skip  torch has to be imported before graph
 import math
 import sys
@@ -53,6 +57,10 @@ from typing import Any, Callable, Dict, List
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
 # TODO: for now, we'll just turn off error checking in this mModuleNotFoundError
 # pyre-ignore-all-errors
+# TODO: It is somewhat confusing to import a type named "Graph" here;
+# Consider renaming it to NativeGraph or some other more descriptive
+# name that tells the reader that this is a really-truly BMG graph
+# that we are constructing in memory.
 from beanmachine.graph import Graph
 from beanmachine.ppl.compiler.bmg_nodes import (
     AdditionNode,
@@ -111,15 +119,6 @@ from torch.distributions import (
 
 builtin_function_or_method = type(abs)
 
-# ####
-# #### The following classes define the various graph node types.
-# ####
-
-# TODO: This section is over two thousand lines of code, none of which
-# makes use of the actual graph builder; the node types could be
-# moved into a module of their own.
-
-
 # If we encounter a function call on a stochastic node during
 # graph accumulation we will attempt to build a node in the graph
 # for that invocation. These are the instance methods on tensors
@@ -172,11 +171,6 @@ class KnownFunction:
         self.function = function
 
 
-# ####
-# #### That's it for the graph nodes.
-# ####
-
-
 def is_from_lifted_module(f) -> bool:
     return (
         hasattr(f, "__module__")
@@ -196,13 +190,40 @@ def is_ordinary_call(f, args, kwargs) -> bool:
 
 
 class BMGraphBuilder:
+    """A graph builder which accumulates stochastic graph nodes as a model executes,
+and then transforms that into a valid Bean Machine Graph."""
 
-    # Note that Python 3.7 guarantees that dictionaries maintain insertion order.
+    # ####
+    # #### State and initialization
+    # ####
+
+    # We keep a list of all the nodes in the graph and associate a unique
+    # integer with each.
+
+    # TODO: The original idea was to use these integers when generating code
+    # that constructs the graph, or DOT files that display the graph.
+    # However, the integer generated is ordered according to when the node
+    # was created, which is not necessarily the order in which we would
+    # like to enumerate them for code generation purposes.
+    #
+    # We have therefore changed the code generation process to do a deterministic
+    # topological sort of the nodes, and then number them in topological sort
+    # order when emitting code; that way the code is generated so that each node
+    # is numbered in the order it appears in the code. This is more pleasant
+    # to read and understand, but the real benefit is that it makes the test
+    # cases more stable and easier to verify.
+    #
+    # We can replace this dictionary with an unordered set; consider doing so.
+
     nodes: Dict[BMGNode, int]
 
+    # Certain function calls are special because they call graph nodes to
+    # be created; we have a dictionary here that maps Python function objects
+    # to the graph builder method that knows how to create the appropriate
+    # node type.
     function_map: Dict[Callable, Callable]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.nodes = {}
         self.function_map = {
             # Math functions
@@ -241,13 +262,62 @@ class BMGraphBuilder:
             Uniform: self.handle_uniform,
         }
 
+    # ####
+    # #### Node creation and accumulation
+    # ####
+
+    # This code is called while the lifted program executes.
+    #
+    # The "add" methods unconditionally create a new graph node
+    # and add to the builder *if it does not already exist*.
+    # By memoizing almost all the "add" methods we ensure that
+    # the graph is deduplicated automatically.
+    #
+    # The "handle" methods, in contrast, conditionally create new
+    # graph nodes only when required because an operation on a
+    # stochastic value must be accumulated into the graph.
+    #
+    # For example, if we have a call to handle_addition where all
+    # operands are ordinary floats (or constant graph nodes)
+    # then there is no need to add a new node to the graph. But
+    # if we have an addition of 1.0 to a stochastic node -- perhaps
+    # a sample node, or perhaps some other graph node that eventually
+    # involves a sample node -- then we need to construct a new
+    # addition node, which is then returned and becomes the value
+    # manipulated by the executing lifted program.
+    #
+    # TODO: The code in the "handle" methods which folds operations
+    # on constant nodes and regular values is a holdover from an
+    # earlier prototyping stage in which all values were lifted to
+    # graph nodes. These scenarios should now be impossible, and we
+    # should take a work item to remove this now-unnecessary code.
+
     def add_node(self, node: BMGNode) -> None:
+        """This adds a node we've recently created to the node set;
+it maintains the invariant that all the input nodes are also added."""
         if node not in self.nodes:
             for child in node.children:
                 self.add_node(child)
             self.nodes[node] = len(self.nodes)
 
+    # ####
+    # #### Graph accumulation for constant values
+    # ####
+
+    # This code handles creating nodes for ordinary values such as
+    # floating point values and tensors created during the execution
+    # of the lifted program. We only create graph nodes for an ordinary
+    # value when that value is somehow involved in a stochastic
+    # operation.
+
+    # During the execution of the lifted program we should only be
+    # creating nodes for real, Boolean and tensor values; during the
+    # phase where we ensure that the BMG type system constraints are met
+    # we construct probability, postive real, and natural number nodes.
+
     def add_constant(self, value: Any) -> ConstantNode:
+        """This takes any constant value of a supported type,
+creates a constant graph node for it, and adds it to the builder"""
         if isinstance(value, bool):
             return self.add_boolean(value)
         if isinstance(value, int):
@@ -294,6 +364,14 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    # ####
+    # #### Graph accumulation for distributions
+    # ####
+
+    # TODO: This code is mostly but not entirely in alpha order
+    # by distribution type; we might reorganize it to make it
+    # slightly easier to follow.
+
     @memoize
     def add_bernoulli(
         self, probability: BMGNode, is_logits: bool = False
@@ -319,6 +397,12 @@ class BMGraphBuilder:
         node = BinomialNode(count, probability, is_logits)
         self.add_node(node)
         return node
+
+    # TODO: Add a note here describing why it is important that the function
+    # signatures of the handler methods for distributions match those of
+    # the torch distribution constructors.
+
+    # TODO: Verify that they do match.
 
     def handle_binomial(
         self, total_count: Any, probs: Any = None, logits: Any = None
@@ -436,6 +520,18 @@ class BMGraphBuilder:
             concentration0 = self.add_constant(concentration0)
         return self.add_beta(concentration1, concentration0)
 
+    # ####
+    # #### Graph accumulation for operators
+    # ####
+
+    # The handler methods here are both invoked directly, when, say
+    # there was an explicit addition in the original model, and
+    # indirectly as the result of processing a function call such
+    # as tensor.add.
+
+    # TODO: This code is not very well organized; consider sorting it
+    # into alpha order by operation.
+
     @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
@@ -542,6 +638,9 @@ class BMGraphBuilder:
             return input.value ** exponent.value
         return self.add_power(input, exponent)
 
+    # TODO: Indexes and maps are slightly tricky; add some comments here
+    # explaining what's going on.
+
     @memoize
     def add_index(self, left: MapNode, right: BMGNode) -> BMGNode:
         # TODO: Is there a better way to say "if list length is 1" that bails out
@@ -599,6 +698,9 @@ class BMGraphBuilder:
         if isinstance(input, ConstantNode):
             return not input.value
         return self.add_not(input)
+
+    # TODO: Add some comments here explaining under what circumstances
+    # we accumulate these conversion nodes.
 
     @memoize
     def add_to_real(self, operand: BMGNode) -> ToRealNode:
@@ -668,6 +770,13 @@ class BMGraphBuilder:
     def _canonicalize_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
     ):
+        """The purpose of this helper method is to uniformly handle all
+possibility for function calls. That is, the receiver can be stochastic,
+normal, or missing, and the arguments can be stochastic or normal values,
+and can be positional or named. We take in an object representing the function
+(possibly a KnownFunction helper that is bound to a receiver), and the arguments.
+We produce a function object that requires no receiver, and an argument list
+that has the receiver, if any, as its first member."""
         if kwargs is None:
             kwargs = {}
         if isinstance(function, KnownFunction):
@@ -731,6 +840,10 @@ class BMGraphBuilder:
         return node
 
     def handle_sample(self, operand: Any) -> SampleNode:
+        """As we execute the lifted program, this method is called every
+time a model function decorated with @sample returns; we verify that the
+returned value is a distribution that we know how to accumulate into the
+graph, and add a sample node to the graph."""
         if isinstance(operand, DistributionNode):
             return self.add_sample(operand)
         if isinstance(operand, Bernoulli):
@@ -757,6 +870,7 @@ class BMGraphBuilder:
         if isinstance(operand, Uniform):
             b = self.handle_uniform(operand.low, operand.high)
             return self.add_sample(b)
+        # TODO: Get this into alpha order
         if isinstance(operand, Beta):
             b = self.handle_beta(operand.concentration1, operand.concentration0)
             return self.add_sample(b)
@@ -831,11 +945,30 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    # ####
+    # #### Output
+    # ####
+
+    # The graph builder can either construct the BMG nodes in memory
+    # directly, or return a Python or C++ program which does so.
+    #
+    # In addition, for debugging purposes we support dumping the
+    # graph as a DOT graph description.
+    #
+    # Note that there is a slight difference here; the DOT dump
+    # gives the entire graph that we have accumulated, including
+    # any orphaned nodes. The other output formats do a topological
+    # sort of the graph nodes and only output the nodes which are
+    # inputs into samples, queries, and observations.
+
     def to_dot(self) -> str:
+        """This dumps the entire accumulated graph state, including
+orphans, as a DOT graph description; nodes are enumerated in the order
+they were created."""
         db = DotBuilder()
         max_length = len(str(len(self.nodes) - 1))
 
-        def to_id(index):
+        def to_id(index) -> str:
             return "N" + str(index).zfill(max_length)
 
         for node, index in self.nodes.items():
@@ -846,6 +979,8 @@ class BMGraphBuilder:
         return str(db)
 
     def to_bmg(self) -> Graph:
+        """This transforms the accumulated graph into a BMG type system compliant
+graph and then creates the graph nodes in memory."""
         g = Graph()
         d: Dict[BMGNode, int] = {}
         self._fix_types()
@@ -854,13 +989,17 @@ class BMGraphBuilder:
         return g
 
     def _resort_nodes(self) -> Dict[BMGNode, int]:
-        # Renumber the nodes so that the ids are in numerical order.
+        """This renumbers the nodes so that the ids are in topological order;
+it returns a dictionary mapping nodes to integers."""
         sorted_nodes = {}
         for index, node in enumerate(self._traverse_from_roots()):
             sorted_nodes[node] = index
         return sorted_nodes
 
     def to_python(self) -> str:
+        """This transforms the accumulatled graph into a BMG type system compliant
+graph and then creates a Python program which creates the graph."""
+
         self._fix_types()
         header = """from beanmachine import graph
 from torch import tensor
@@ -870,6 +1009,8 @@ g = graph.Graph()
         return header + "\n".join(n._to_python(sorted_nodes) for n in sorted_nodes)
 
     def to_cpp(self) -> str:
+        """This transforms the accumulatled graph into a BMG type system compliant
+graph and then creates a C++ program which creates the graph."""
         self._fix_types()
         sorted_nodes = self._resort_nodes()
         return "graph::Graph g;\n" + "\n".join(
@@ -877,7 +1018,25 @@ g = graph.Graph()
         )
 
     def _traverse_from_roots(self) -> List[BMGNode]:
+        """This returns a list of the reachable graph nodes
+in topologically sorted order. The ordering invariants are
+(1) all sample, observation and query nodes are enumerated
+in the order they were added, and
+(2) all inputs are enumerated before their outputs, and
+(3) inputs to the "left" are enumerated before those to
+the "right"."""
+
+        # That we require here that the graph is acyclic.
+
+        # TODO: The graph should be acyclic by construction;
+        # we detect cycles while executing the lifted model.
+        # However, we might want to add a quick cycle checking
+        # pass here as a sanity check.
+
+        # This is the sorted set of nodes that will be returned.
         result = []
+        # These are nodes we've already added to the result
+        # buffer and therefore can be skipped.
         seen = set()
 
         def is_root(n: BMGNode) -> bool:
@@ -903,24 +1062,94 @@ g = graph.Graph()
             visit(r)
         return result
 
+    # ####
+    # #### Type transformation
+    # ####
+
+    # Bean Machine Graph uses a different type system than the lifted
+    # Python program from which we have accumulated the graph. The
+    # purpose of the code below is to transform our accumulated graph
+    # gradually into a form which passes the BMG type checker.
+    #
+    # For example a model which contains
+    #
+    # @sample
+    # def flip():
+    #   return Bernoulli(tensor(0.5))
+    #
+    # will cause us to accumulate a graph which accurately represents
+    # the original Python program:
+    #
+    # constant   -->    distribution -->   sample
+    # tensor            Bernoulli          tensor
+    #
+    # But what we need to satisfy the BMG type checker is
+    #
+    # constant   -->    distribution -->   sample
+    # probability       Bernoulli          Boolean
+    #
+    # The purpose of this code is to mutate the accumulated graph into a
+    # form which follows the BMG type system rules, but without introducing
+    # a semantic change to the model.
+    #
+    # The code below traverses every node in the graph that is an input
+    # directly or indirectly to an observation, query or sample, and
+    # mutates the graph until the BMG type system requirements are met.
+    #
+    # It is important that we understand how the mutations happen to
+    # the graph as we go:
+    #
+    # * Distribution nodes are neither created nor destroyed; their
+    #   input nodes may be mutated in place or replaced entirely.
+    #   Their sample types are updated.
+    #
+    # * Sample nodes are not created or destroyed and they are not
+    #   mutated to take input from different distributions. The
+    #   only mutation they observe is the sample type of their
+    #   distribution changing.
+    #
+    # * Constant nodes are immutable.
+    #
+    # TODO: Finish this explanation describing the effects on
+    # other operators and how they could be replaced.
+
     # TODO: All the type fixing code which follows uses exceptions as the
     # TODO: error reporting mechanism. This is fine for now but eventually
     # TODO: we'll need to design a proper user-centric error reporting
     # TODO: mechanism.
 
     def _fix_types(self) -> None:
+        """This method ensures that the transitive closure of inputs to
+observations, queries and samples complies with the BMG type system."""
+
         # So far these rewrites can add nodes but none of them need further
         # rewriting. If this changes, we might need to iterate until
         # we reach a fixpoint.
+
         for node in self._traverse_from_roots():
             self._fix_type(node)
 
     def _fix_type(self, node: BMGNode) -> None:
+        """This method ensures that the transitive closure of inputs to
+a specific node complies with the BMG type system."""
+
         # A sample's type depends entirely on its distribution's
-        # node_type, so just fix the distribution.
+        # sample_type, so just fix the distribution.
         if isinstance(node, SampleNode):
             self._fix_type(node.operand)
-        if isinstance(node, BernoulliNode):
+
+        # If we can (1) fix the transitive closure of the inputs
+        # to all distributions, and (2) ensure the sample_type
+        # attribute of all distributions is correct, then we're
+        # done the majority of the work.
+
+        # TODO: There is a remaining work item here; we might have
+        # a query on an operator that does not type check. For example
+        # we might have a query that in Python adds a sample from
+        # a HalfCauchy to a sample from a Normal, which will then
+        # be an illegal addition node.
+
+        elif isinstance(node, BernoulliNode):
             self._fix_bernoulli(node)
         elif isinstance(node, BetaNode):
             self._fix_beta(node)
@@ -933,10 +1162,9 @@ g = graph.Graph()
         elif isinstance(node, StudentTNode):
             self._fix_studentt(node)
 
-    # Ensures that Bernoulli nodes take the appropriate
-    # input type; once they do, they are updated to automatically
-    # mark samples as being bools.
     def _fix_bernoulli(self, node: BernoulliNode) -> None:
+        """Ensure that a Bernoulli node's input is a probability
+and its samples are Boolean."""
         if node.types_fixed:
             return
         if node.is_logits:
@@ -946,10 +1174,9 @@ g = graph.Graph()
         node.probability = prob
         node.types_fixed = True
 
-    # Ensures that binomial nodes take the appropriate
-    # input types; once they do, they are updated to automatically
-    # mark samples as being naturals.
     def _fix_binomial(self, node: BinomialNode) -> None:
+        """Ensure that a binomial node's inputs are a probability
+and a natural, and its samples are naturals."""
         if node.types_fixed:
             return
         if node.is_logits:
@@ -962,6 +1189,8 @@ g = graph.Graph()
         node.types_fixed = True
 
     def _fix_beta(self, node: BetaNode) -> None:
+        """Ensure that a beta node's inputs are positive
+reals, and its samples are probabilities."""
         if node.types_fixed:
             return
         node.alpha = self._ensure_pos_real(node.alpha)
@@ -969,12 +1198,18 @@ g = graph.Graph()
         node.types_fixed = True
 
     def _fix_half_cauchy(self, node: HalfCauchyNode) -> None:
+        """Ensure that a half Cauchy node's input is a positive
+reals, and its samples are positive reals."""
+
         if node.types_fixed:
             return
         node.scale = self._ensure_pos_real(node.scale)
         node.types_fixed = True
 
     def _fix_normal(self, node: NormalNode) -> None:
+        """Ensure that a normal node's inputs are
+reals, and its samples are reals."""
+
         if node.types_fixed:
             return
         node.mu = self._ensure_real(node.mu)
@@ -982,6 +1217,9 @@ g = graph.Graph()
         node.types_fixed = True
 
     def _fix_studentt(self, node: StudentTNode) -> None:
+        """Ensure that a Student T node's inputs are
+correctly typed, and its samples are reals."""
+
         if node.types_fixed:
             return
         node.df = self._ensure_pos_real(node.df)
@@ -990,6 +1228,8 @@ g = graph.Graph()
         node.types_fixed = True
 
     def _ensure_probability(self, node: BMGNode) -> BMGNode:
+        """Ensure that an arbitrary node is of type probability,
+possibly creating a new node."""
         # The fixed type might already be correct.
         self._fix_type(node)
         if node.node_type == Probability:
@@ -1011,6 +1251,9 @@ g = graph.Graph()
         return self.add_probability(v)
 
     def _ensure_real(self, node: BMGNode) -> BMGNode:
+        """Ensure that an arbitrary node is of type real,
+possibly creating a new node."""
+
         # The fixed type might already be correct.
         self._fix_type(node)
         if node.node_type == float:
@@ -1039,7 +1282,9 @@ g = graph.Graph()
         return self.add_real(v)
 
     def _ensure_pos_real(self, node: BMGNode) -> BMGNode:
-        # The fixed type might already be correct.
+        """Ensure that an arbitrary node is of type positive real,
+possibly creating a new node."""
+
         self._fix_type(node)
         if node.node_type == PositiveReal:
             return node
@@ -1060,6 +1305,8 @@ g = graph.Graph()
         return self.add_pos_real(v)
 
     def _ensure_natural(self, node: BMGNode) -> BMGNode:
+        """Ensure that an arbitrary node is of type natural,
+possibly creating a new node."""
         # The fixed type might already be correct.
         self._fix_type(node)
         if node.node_type == Natural:
@@ -1069,6 +1316,8 @@ g = graph.Graph()
         raise ValueError("Conversion to natural node not yet implemented.")
 
     def _constant_to_natural(self, node: ConstantNode) -> NaturalNode:
+        # TODO: This is not necessary; we've already checked this in the
+        # caller. Remove it.
         # The fixed type might already be correct.
         self._fix_type(node)
         if isinstance(node, TensorNode):
