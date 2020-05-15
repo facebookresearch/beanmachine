@@ -223,7 +223,7 @@ class SingleAssignment:
         )
         rewritten = (
             original[:index]
-            + [ast.Starred(ast.List(elts=[value], ctx=ast.Load()), ctx=ast.Load())]
+            + [ast.Starred(ast.List(elts=[value], ctx=ast.Load()), ast.Load())]
             + original[index + 1 :]
         )
 
@@ -560,7 +560,7 @@ class SingleAssignment:
                 targets=source_term.targets,
                 value=ast.Call(
                     func=source_term.value.func,
-                    args=[ast.Starred(ast.List([], ctx=ast.Load()), ctx=ast.Load())],
+                    args=[ast.Starred(ast.List([], ast.Load()), ast.Load())],
                     keywords=source_term.value.keywords,
                 ),
             ),
