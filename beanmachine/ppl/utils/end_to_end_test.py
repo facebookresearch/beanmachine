@@ -220,11 +220,18 @@ from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal, S
 
 @sample
 def flip():
+  # Sample is a Boolean
   return Bernoulli(tensor(0.5))
 
 @sample
 def normal():
+  # Converts Boolean to real, positive real
   return Normal(flip(), flip())
+
+@sample
+def binomial():
+  # Converts Boolean to natural
+  return Binomial(flip(), 0.5)
 
 """
 
@@ -253,12 +260,23 @@ uint n9 = g.add_distribution(
   std::vector<uint>({n5, n8}));
 uint n10 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n9}));
+uint n11 = g.add_constant(1);
+uint n12 = g.add_constant(0);
+n13 = g.add_operator(
+  graph::OperatorType::IF_THEN_ELSE,
+  std::vector<uint>({n2, n11, n12}));
+uint n14 = g.add_distribution(
+  graph::DistributionType::BINOMIAL,
+  graph::AtomicType::NATURAL,
+  std::vector<uint>({n13, n0}));
+uint n15 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n14}));
 """
 
 expected_bmg_2 = """
-Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
+Node 0 type 1 parents [ ] children [ 1 14 ] probability value 0.5
 Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
-Node 2 type 3 parents [ 1 ] children [ 5 8 ] boolean value 0
+Node 2 type 3 parents [ 1 ] children [ 5 8 13 ] boolean value 0
 Node 3 type 1 parents [ ] children [ 5 ] real value 1
 Node 4 type 1 parents [ ] children [ 5 ] real value 0
 Node 5 type 3 parents [ 2 3 4 ] children [ 9 ] real value 0
@@ -267,6 +285,11 @@ Node 7 type 1 parents [ ] children [ 8 ] pos real value 1e-10
 Node 8 type 3 parents [ 2 6 7 ] children [ 9 ] pos real value 0
 Node 9 type 2 parents [ 5 8 ] children [ 10 ] unknown value
 Node 10 type 3 parents [ 9 ] children [ ] real value 0
+Node 11 type 1 parents [ ] children [ 13 ] natural value 1
+Node 12 type 1 parents [ ] children [ 13 ] natural value 0
+Node 13 type 3 parents [ 2 11 12 ] children [ 14 ] natural value 0
+Node 14 type 2 parents [ 13 0 ] children [ 15 ] unknown value
+Node 15 type 3 parents [ 14 ] children [ ] natural value 0
 """
 
 expected_python_2 = """
@@ -294,6 +317,16 @@ n9 = g.add_distribution(
   graph.AtomicType.REAL,
   [n5, n8])
 n10 = g.add_operator(graph.OperatorType.SAMPLE, [n9])
+n11 = g.add_constant(1)
+n12 = g.add_constant(0)
+n13 = g.add_operator(
+  graph.OperatorType.IF_THEN_ELSE,
+  [n2, n11, n12])
+n14 = g.add_distribution(
+  graph.DistributionType.BINOMIAL,
+  graph.AtomicType.NATURAL,
+  [n13, n0])
+n15 = g.add_operator(graph.OperatorType.SAMPLE, [n14])
 """
 
 
