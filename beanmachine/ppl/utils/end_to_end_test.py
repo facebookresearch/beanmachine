@@ -224,7 +224,8 @@ def flip():
 
 @sample
 def normal():
-  return Normal(flip(), 1.0)
+  return Normal(flip(), flip())
+
 """
 
 expected_cpp_2 = """
@@ -242,24 +243,57 @@ n5 = g.add_operator(
   graph::OperatorType::IF_THEN_ELSE,
   std::vector<uint>({n2, n3, n4}));
 uint n6 = g.add_constant_pos_real(1.0);
-uint n7 = g.add_distribution(
+uint n7 = g.add_constant_pos_real(0.0);
+n8 = g.add_operator(
+  graph::OperatorType::IF_THEN_ELSE,
+  std::vector<uint>({n2, n6, n7}));
+uint n9 = g.add_distribution(
   graph::DistributionType::NORMAL,
   graph::AtomicType::REAL,
-  std::vector<uint>({n5, n6}));
-uint n8 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n7}));
+  std::vector<uint>({n5, n8}));
+uint n10 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n9}));
 """
 
 expected_bmg_2 = """
 Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
 Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
-Node 2 type 3 parents [ 1 ] children [ 5 ] boolean value 0
+Node 2 type 3 parents [ 1 ] children [ 5 8 ] boolean value 0
 Node 3 type 1 parents [ ] children [ 5 ] real value 1
 Node 4 type 1 parents [ ] children [ 5 ] real value 0
-Node 5 type 3 parents [ 2 3 4 ] children [ 7 ] real value 0
-Node 6 type 1 parents [ ] children [ 7 ] pos real value 1
-Node 7 type 2 parents [ 5 6 ] children [ 8 ] unknown value
-Node 8 type 3 parents [ 7 ] children [ ] real value 0
+Node 5 type 3 parents [ 2 3 4 ] children [ 9 ] real value 0
+Node 6 type 1 parents [ ] children [ 8 ] pos real value 1
+Node 7 type 1 parents [ ] children [ 8 ] pos real value 1e-10
+Node 8 type 3 parents [ 2 6 7 ] children [ 9 ] pos real value 0
+Node 9 type 2 parents [ 5 8 ] children [ 10 ] unknown value
+Node 10 type 3 parents [ 9 ] children [ ] real value 0
+"""
+
+expected_python_2 = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_probability(0.5)
+n1 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_constant(1.0)
+n4 = g.add_constant(0.0)
+n5 = g.add_operator(
+  graph.OperatorType.IF_THEN_ELSE,
+  [n2, n3, n4])
+n6 = g.add_constant_pos_real(1.0)
+n7 = g.add_constant_pos_real(0.0)
+n8 = g.add_operator(
+  graph.OperatorType.IF_THEN_ELSE,
+  [n2, n6, n7])
+n9 = g.add_distribution(
+  graph.DistributionType.NORMAL,
+  graph.AtomicType.REAL,
+  [n5, n8])
+n10 = g.add_operator(graph.OperatorType.SAMPLE, [n9])
 """
 
 
@@ -293,3 +327,9 @@ class EndToEndTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_bmg(source_2).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_2))
+
+    def test_to_python_2(self) -> None:
+        """test_to_python_2 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_python(source_2)
+        self.assertEqual(observed.strip(), expected_python_2.strip())
