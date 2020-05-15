@@ -1265,8 +1265,6 @@ possibly creating a new node."""
         raise ValueError("Conversion to real node not yet implemented.")
 
     def _bool_to_real(self, node: BMGNode) -> BMGNode:
-        # TODO: If there is a query node pointing to the original node
-        # then it needs to be retargetted to the new one.
         one = self.add_real(1.0)
         zero = self.add_real(0.0)
         return self.add_if_then_else(node, one, zero)
@@ -1290,7 +1288,14 @@ possibly creating a new node."""
             return node
         if isinstance(node, ConstantNode):
             return self._constant_to_pos_real(node)
+        if node.node_type == bool:
+            return self._bool_to_pos_real(node)
         raise ValueError("Conversion to positive real node not yet implemented.")
+
+    def _bool_to_pos_real(self, node: BMGNode) -> BMGNode:
+        one = self.add_pos_real(1.0)
+        zero = self.add_pos_real(0.0)
+        return self.add_if_then_else(node, one, zero)
 
     def _constant_to_pos_real(self, node: ConstantNode) -> PositiveRealNode:
         if isinstance(node, TensorNode):
