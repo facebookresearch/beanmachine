@@ -54,7 +54,7 @@ void to_pos_real(graph::Node* node) {
   } else {
     throw std::runtime_error(
         "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
-        " for TO_REAL operator at node_id " + std::to_string(node->index));
+        " for TO_POS_REAL operator at node_id " + std::to_string(node->index));
   }
 }
 
