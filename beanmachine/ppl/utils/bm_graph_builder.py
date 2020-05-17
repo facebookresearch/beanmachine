@@ -254,6 +254,7 @@ and then transforms that into a valid Bean Machine Graph."""
             # Distribution constructors
             Bernoulli: self.handle_bernoulli,
             Beta: self.handle_beta,
+            Binomial: self.handle_binomial,
             Categorical: self.handle_categorical,
             Dirichlet: self.handle_dirichlet,
             HalfCauchy: self.handle_halfcauchy,
@@ -1318,7 +1319,14 @@ possibly creating a new node."""
             return node
         if isinstance(node, ConstantNode):
             return self._constant_to_natural(node)
+        if node.node_type == bool:
+            return self._bool_to_natural(node)
         raise ValueError("Conversion to natural node not yet implemented.")
+
+    def _bool_to_natural(self, node: BMGNode) -> BMGNode:
+        one = self.add_natural(1)
+        zero = self.add_natural(0)
+        return self.add_if_then_else(node, one, zero)
 
     def _constant_to_natural(self, node: ConstantNode) -> NaturalNode:
         # TODO: This is not necessary; we've already checked this in the
