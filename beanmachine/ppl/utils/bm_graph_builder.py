@@ -1237,7 +1237,14 @@ possibly creating a new node."""
             return node
         if isinstance(node, ConstantNode):
             return self._constant_to_probability(node)
+        if node.node_type == bool:
+            return self._bool_to_probability(node)
         raise ValueError("Conversion to probability node not yet implemented.")
+
+    def _bool_to_probability(self, node: BMGNode) -> BMGNode:
+        one = self.add_probability(1.0)
+        zero = self.add_probability(0.0)
+        return self.add_if_then_else(node, one, zero)
 
     def _constant_to_probability(self, node: ConstantNode) -> ProbabilityNode:
         if isinstance(node, TensorNode):

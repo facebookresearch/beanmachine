@@ -230,8 +230,8 @@ def normal():
 
 @sample
 def binomial():
-  # Converts Boolean to natural
-  return Binomial(flip(), 0.5)
+  # Converts Boolean to natural and probability
+  return Binomial(flip(), flip())
 
 """
 
@@ -265,18 +265,23 @@ uint n12 = g.add_constant(0);
 n13 = g.add_operator(
   graph::OperatorType::IF_THEN_ELSE,
   std::vector<uint>({n2, n11, n12}));
-uint n14 = g.add_distribution(
+uint n14 = g.add_constant_probability(1.0);
+uint n15 = g.add_constant_probability(0.0);
+n16 = g.add_operator(
+  graph::OperatorType::IF_THEN_ELSE,
+  std::vector<uint>({n2, n14, n15}));
+uint n17 = g.add_distribution(
   graph::DistributionType::BINOMIAL,
   graph::AtomicType::NATURAL,
-  std::vector<uint>({n13, n0}));
-uint n15 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n14}));
+  std::vector<uint>({n13, n16}));
+uint n18 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n17}));
 """
 
 expected_bmg_2 = """
-Node 0 type 1 parents [ ] children [ 1 14 ] probability value 0.5
+Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
 Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
-Node 2 type 3 parents [ 1 ] children [ 5 8 13 ] boolean value 0
+Node 2 type 3 parents [ 1 ] children [ 5 8 13 16 ] boolean value 0
 Node 3 type 1 parents [ ] children [ 5 ] real value 1
 Node 4 type 1 parents [ ] children [ 5 ] real value 0
 Node 5 type 3 parents [ 2 3 4 ] children [ 9 ] real value 0
@@ -287,9 +292,12 @@ Node 9 type 2 parents [ 5 8 ] children [ 10 ] unknown value
 Node 10 type 3 parents [ 9 ] children [ ] real value 0
 Node 11 type 1 parents [ ] children [ 13 ] natural value 1
 Node 12 type 1 parents [ ] children [ 13 ] natural value 0
-Node 13 type 3 parents [ 2 11 12 ] children [ 14 ] natural value 0
-Node 14 type 2 parents [ 13 0 ] children [ 15 ] unknown value
-Node 15 type 3 parents [ 14 ] children [ ] natural value 0
+Node 13 type 3 parents [ 2 11 12 ] children [ 17 ] natural value 0
+Node 14 type 1 parents [ ] children [ 16 ] probability value 1
+Node 15 type 1 parents [ ] children [ 16 ] probability value 1e-10
+Node 16 type 3 parents [ 2 14 15 ] children [ 17 ] probability value 0
+Node 17 type 2 parents [ 13 16 ] children [ 18 ] unknown value
+Node 18 type 3 parents [ 17 ] children [ ] natural value 0
 """
 
 expected_python_2 = """
@@ -322,11 +330,16 @@ n12 = g.add_constant(0)
 n13 = g.add_operator(
   graph.OperatorType.IF_THEN_ELSE,
   [n2, n11, n12])
-n14 = g.add_distribution(
+n14 = g.add_constant_probability(1.0)
+n15 = g.add_constant_probability(0.0)
+n16 = g.add_operator(
+  graph.OperatorType.IF_THEN_ELSE,
+  [n2, n14, n15])
+n17 = g.add_distribution(
   graph.DistributionType.BINOMIAL,
   graph.AtomicType.NATURAL,
-  [n13, n0])
-n15 = g.add_operator(graph.OperatorType.SAMPLE, [n14])
+  [n13, n16])
+n18 = g.add_operator(graph.OperatorType.SAMPLE, [n17])
 """
 
 
