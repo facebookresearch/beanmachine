@@ -490,7 +490,7 @@ class SingleAssignment:
             "handle_assign_call_function_expression",
         )
 
-    def _handle_assigned_call_single_regular_arg(self) -> Rule:
+    def _handle_assign_call_single_star_arg(self) -> Rule:
         # Rewrite x = f(*([1]+[2]) into d=[1]+[2]; x = f(*d)
         return PatternRule(
             assign(value=call(func=name(), args=[starred(value=_not_identifier)])),
@@ -506,10 +506,10 @@ class SingleAssignment:
                     ),
                 ),
             ),
-            "handle_assign_call_single_regular_arg",
+            "handle_assign_call_single_star_arg",
         )
 
-    def _handle_assigned_call_two_star_args(self) -> Rule:
+    def _handle_assign_call_two_star_args(self) -> Rule:
         # Rewrite x= f(*[1],*[2]) into x = f(*([1]+[2]))
         # TODO: Ideally, would like to merge [1].ctx with the [0].ctx below
         return PatternRule(
@@ -537,7 +537,7 @@ class SingleAssignment:
             "handle_assign_call_two_star_args",
         )
 
-    def _handle_assigned_call_regular_arg(self) -> Rule:
+    def _handle_assign_call_regular_arg(self) -> Rule:
         # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
         return PatternRule(
             assign(value=call(args=_list_not_starred)),
@@ -549,10 +549,10 @@ class SingleAssignment:
                     keywords=source_term.value.keywords,
                 ),
             ),
-            "_handle_assigned_call_regular_arg",
+            "_handle_assign_call_regular_arg",
         )
 
-    def _handle_assigned_call_empty_regular_arg(self) -> Rule:
+    def _handle_assign_call_empty_regular_arg(self) -> Rule:
         # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
         return PatternRule(
             assign(value=call(args=[])),
@@ -564,7 +564,7 @@ class SingleAssignment:
                     keywords=source_term.value.keywords,
                 ),
             ),
-            "_handle_assigned_call_empty_regular_arg",
+            "_handle_assign_call_empty_regular_arg",
         )
 
     def _handle_asign_call_keyword(self) -> Rule:
@@ -650,10 +650,10 @@ class SingleAssignment:
                 self._handle_asign_call_keyword(),
                 # Acceptable rules
                 self._handle_assign_call_function_expression(),
-                self._handle_assigned_call_single_regular_arg(),
-                self._handle_assigned_call_two_star_args(),
-                self._handle_assigned_call_regular_arg(),
-                self._handle_assigned_call_empty_regular_arg(),
+                self._handle_assign_call_single_star_arg(),
+                self._handle_assign_call_two_star_args(),
+                self._handle_assign_call_regular_arg(),
+                self._handle_assign_call_empty_regular_arg(),
             ]
         )
 
