@@ -823,7 +823,7 @@ a = a1[a2]
 """
         self.check_rewrite(source, expected)
 
-    def test_single_assignment_call_single_regular_arg(self) -> None:
+    def test_single_assignment_call_single_star_arg(self) -> None:
         """Test the assign rule final step in rewriting regular call arguments"""
 
         source = """
@@ -837,13 +837,13 @@ x = f(*r1)
         self.check_rewrite(
             source,
             expected,
-            _some_top_down(self.s._handle_assigned_call_single_regular_arg()),
+            _some_top_down(self.s._handle_assign_call_single_star_arg()),
         )
 
         self.check_rewrite(
             source,
             expected,
-            many(_some_top_down(self.s._handle_assigned_call_single_regular_arg())),
+            many(_some_top_down(self.s._handle_assign_call_single_star_arg())),
         )
 
         expected = """
@@ -867,15 +867,13 @@ x = f(*([1] + [2]))
 """
 
         self.check_rewrite(
-            source,
-            expected,
-            _some_top_down(self.s._handle_assigned_call_two_star_args()),
+            source, expected, _some_top_down(self.s._handle_assign_call_two_star_args())
         )
 
         self.check_rewrite(
             source,
             expected,
-            many(_some_top_down(self.s._handle_assigned_call_two_star_args())),
+            many(_some_top_down(self.s._handle_assign_call_two_star_args())),
         )
 
         expected = """
@@ -899,13 +897,13 @@ x = f(*[1], *[2])
 """
 
         self.check_rewrite(
-            source, expected, _some_top_down(self.s._handle_assigned_call_regular_arg())
+            source, expected, _some_top_down(self.s._handle_assign_call_regular_arg())
         )
 
         self.check_rewrite(
             source,
             expected,
-            many(_some_top_down(self.s._handle_assigned_call_regular_arg())),
+            many(_some_top_down(self.s._handle_assign_call_regular_arg())),
         )
 
         expected = """
@@ -932,13 +930,13 @@ x = f(*[])
         self.check_rewrite(
             source,
             expected,
-            _some_top_down(self.s._handle_assigned_call_empty_regular_arg()),
+            _some_top_down(self.s._handle_assign_call_empty_regular_arg()),
         )
 
         self.check_rewrite(
             source,
             expected,
-            many(_some_top_down(self.s._handle_assigned_call_empty_regular_arg())),
+            many(_some_top_down(self.s._handle_assign_call_empty_regular_arg())),
         )
 
         expected = """
