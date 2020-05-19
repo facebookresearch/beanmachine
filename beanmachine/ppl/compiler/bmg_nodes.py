@@ -10,7 +10,12 @@ from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Dict, Iterator, List
 
 from beanmachine.graph import AtomicType, DistributionType as dt, Graph, OperatorType
-from beanmachine.ppl.compiler.bmg_types import Natural, PositiveReal, Probability
+from beanmachine.ppl.compiler.bmg_types import (
+    Malformed,
+    Natural,
+    PositiveReal,
+    Probability,
+)
 from torch import Tensor, tensor
 from torch.distributions import (
     Bernoulli,
@@ -1393,17 +1398,22 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     def __init__(self, left: BMGNode, right: BMGNode):
         OperatorNode.__init__(self, [left, right])
 
-    # TODO: We do not correctly compute the type of a node in the
-    # graph accumulated from initially executing the Python program,
-    # and neither do we yet correctly impose the BMG type system
-    # restrictions on binary operators -- namely that both input
-    # types must be the same, and the output type is also that type.
+    # The BMG type system requires that every binary operator have
+    # the same type for the left and right input, which is then
+    # the output type. If a node has the left and right inputs the
+    # same, that is the output type; otherwise we mark the node as
+    # malformed, and will fix it in a later pass.
+
+    # TODO: Index nodes are binary operators, but the type of
+    # an index node is the type of the values in the map. When
+    # we add index nodes and maps to the BMG type system, we will
+    # need to implement this correctly.
 
     @property
     def node_type(self) -> Any:
-        if self.left.node_type == Tensor or self.right.node_type == Tensor:
-            return Tensor
-        return float
+        if self.left.node_type == self.right.node_type:
+            return self.left.node_type
+        return Malformed
 
     @property
     def left(self) -> BMGNode:

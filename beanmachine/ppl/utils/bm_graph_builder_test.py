@@ -23,6 +23,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     TensorNode,
     ToRealNode,
 )
+from beanmachine.ppl.compiler.bmg_types import Malformed
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
@@ -1287,8 +1288,22 @@ digraph "graph" {
         b = bmg.add_boolean(True)
         bern = bmg.add_bernoulli(t)
         s = bmg.add_sample(bern)
-        # TODO: What should we do for things like bool plus real, and so on?
-        # TODO: Are these errors, or do we introduce to_real nodes?
+
+        # The BMG type system requires that the left and right inputs
+        # to a binary operator have the same type, and that is the type
+        # of the output.
+        #
+        # Nodes which do not meet the requirements of the BMG type system
+        # because, for instance, they're adding a bool to a real,
+        # are marked as "malformed". We will do a pass over the graph
+        # before emitting a true BMG graph to detects and (if possible)
+        # fix malformed nodes.
+        #
+        # However, operations on constants are folded to the type
+        # they would be in Python; a real constant plus a tensor constant
+        # is a tensor constant; these are not addition nodes at all but
+        # rather constant nodes, so they will be marked as correctly typed.
+
         self.assertEqual(t.node_type, Tensor)
         self.assertEqual(r.node_type, float)
         self.assertEqual(b.node_type, bool)
@@ -1298,22 +1313,32 @@ digraph "graph" {
         self.assertEqual(bmg.add_addition(r, t).node_type, Tensor)
         self.assertEqual(bmg.add_addition(t, r).node_type, Tensor)
         self.assertEqual(bmg.add_addition(t, t).node_type, Tensor)
-        self.assertEqual(bmg.add_addition(s, r).node_type, Tensor)
+
+        # This one, for example, is malformed because we cannot fold the
+        # addition of a sample of tensor type and a real; we'll have to
+        # fix this up later. (And moreover, we'll need to do additional
+        # work then because we will also fix the sample type to be
+        # Boolean in the BMG type system, so we will actually have
+        # bool plus real.)
+
+        self.assertEqual(bmg.add_addition(s, r).node_type, Malformed)
+
         self.assertEqual(bmg.add_division(r, r).node_type, float)
         self.assertEqual(bmg.add_division(r, t).node_type, Tensor)
         self.assertEqual(bmg.add_division(t, r).node_type, Tensor)
         self.assertEqual(bmg.add_division(t, t).node_type, Tensor)
-        self.assertEqual(bmg.add_division(s, r).node_type, Tensor)
+
+        self.assertEqual(bmg.add_division(s, r).node_type, Malformed)
         self.assertEqual(bmg.add_multiplication(r, r).node_type, float)
         self.assertEqual(bmg.add_multiplication(r, t).node_type, Tensor)
         self.assertEqual(bmg.add_multiplication(t, r).node_type, Tensor)
         self.assertEqual(bmg.add_multiplication(t, t).node_type, Tensor)
-        self.assertEqual(bmg.add_multiplication(s, r).node_type, Tensor)
+        self.assertEqual(bmg.add_multiplication(s, r).node_type, Malformed)
         self.assertEqual(bmg.add_power(r, r).node_type, float)
         self.assertEqual(bmg.add_power(r, t).node_type, Tensor)
         self.assertEqual(bmg.add_power(t, r).node_type, Tensor)
         self.assertEqual(bmg.add_power(t, t).node_type, Tensor)
-        self.assertEqual(bmg.add_power(s, r).node_type, Tensor)
+        self.assertEqual(bmg.add_power(s, r).node_type, Malformed)
         self.assertEqual(bmg.add_negate(r).node_type, float)
         self.assertEqual(bmg.add_negate(t).node_type, Tensor)
         self.assertEqual(bmg.add_negate(s).node_type, Tensor)
