@@ -458,7 +458,7 @@ std::vector<uint> Graph::get_parent_ids(const std::vector<Node*>& parent_nodes) 
 Graph::Graph(const Graph& other) {
   // This copy constructor does not copy the inference results (if available)
   // from the source graph.
-  for (int i = 0; i < other.nodes.size(); i++) {
+  for (uint i = 0; i < other.nodes.size(); i++) {
     Node* node = other.nodes[i].get();
     std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
     switch(node->node_type) {
