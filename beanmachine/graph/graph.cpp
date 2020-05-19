@@ -447,5 +447,51 @@ std::vector<std::vector<double>>& Graph::variational(
   return variational_params;
 }
 
+std::vector<uint> Graph::get_parent_ids(const std::vector<Node*>& parent_nodes) const {
+  std::vector<uint> parent_ids;
+  for (auto node : parent_nodes) {
+    parent_ids.push_back(node->index);
+  }
+  return parent_ids;
+}
+
+Graph::Graph(const Graph& other) {
+  // This copy constructor does not copy the inference results (if available)
+  // from the source graph.
+  for (int i = 0; i < other.nodes.size(); i++) {
+    Node* node = other.nodes[i].get();
+    std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
+    switch(node->node_type) {
+      case NodeType::CONSTANT: {
+        AtomicValue value_copy = AtomicValue(node->value);
+        add_constant(value_copy);
+        break;
+      }
+      case NodeType::DISTRIBUTION: {
+        distribution::Distribution* dist = static_cast<distribution::Distribution*>(node);
+        add_distribution(dist->dist_type, dist->sample_type, parent_ids);
+        break;
+      }
+      case NodeType::OPERATOR: {
+        add_operator(static_cast<oper::Operator*>(node)->op_type, parent_ids);
+        if (node->is_observed) {
+          observe(node->index, AtomicValue(node->value));
+        }
+        break;
+      }
+      case NodeType::FACTOR: {
+        add_factor(static_cast<factor::Factor*>(node)->fac_type, parent_ids);
+        break;
+      }
+      default: {
+        throw std::invalid_argument("Trying to copy a node of unknown type.");
+      }
+    }
+  }
+  for (uint node_id : other.queries) {
+    query(node_id);
+  }
+}
+
 } // namespace graph
 } // namespace beanmachine

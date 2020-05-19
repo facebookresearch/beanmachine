@@ -59,6 +59,29 @@ class AtomicValue {
     assert(type == AtomicType::TENSOR);
   }
   AtomicValue(AtomicType type, double value);
+  AtomicValue(const AtomicValue& other): type(other.type) {
+    switch(type) {
+      case AtomicType::UNKNOWN: {
+        throw std::invalid_argument("Trying to copy an AtomicValue of unknown type.");
+      }
+      case AtomicType::BOOLEAN: {
+        _bool = other._bool;
+        break;
+      }
+      case AtomicType::NATURAL: {
+        _natural = other._natural;
+        break;
+      }
+      case AtomicType::TENSOR: {
+        _tensor = other._tensor.clone();
+        break;
+      }
+      default: {
+        _double = other._double;
+        break;
+      }
+    }
+  }
   std::string to_string() const;
   bool operator==(const AtomicValue& other) const {
     return type == other.type and
@@ -174,6 +197,7 @@ class ConstNode : public Node {
 
 struct Graph {
   Graph() {}
+  Graph(const Graph& other);
   ~Graph() {}
   std::string to_string() const;
   // Graph builder APIs -> return the node number
@@ -268,6 +292,7 @@ struct Graph {
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
+  std::vector<uint> get_parent_ids(const std::vector<Node*>& parent_nodes) const;
   Node* check_node(uint node_id, NodeType node_type);
   void _infer(uint num_samples, InferenceType algorithm, uint seed);
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order

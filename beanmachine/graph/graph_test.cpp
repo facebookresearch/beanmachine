@@ -97,9 +97,10 @@ TEST(testgraph, infer_bn) {
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d3}));
   g.observe(GRASSWET, true);
   g.query(RAIN);
+  uint n_iter = 100;
   const std::vector<std::vector<graph::AtomicValue>>& samples =
-      g.infer(100, graph::InferenceType::REJECTION);
-  ASSERT_EQ(samples.size(), 100);
+      g.infer(n_iter, graph::InferenceType::REJECTION);
+  ASSERT_EQ(samples.size(), n_iter);
   uint sum = 0;
   for (const auto& sample : samples) {
     const auto& s = sample.front();
@@ -109,4 +110,109 @@ TEST(testgraph, infer_bn) {
   // less than 1 in million odds of failing these tests with correct infer
   EXPECT_LT(sum, 60);
   EXPECT_GT(sum, 10);
+}
+
+TEST(testgraph, clone_graph) {
+  // This graph is not a meaningful model. It is designed to include all
+  // types of nodes to test the copy constructor.
+  graph::Graph g;
+  // constants
+  graph::natural_t a{2};
+  uint c_bool = g.add_constant(true);
+  uint c_real = g.add_constant(-2.5);
+  uint c_natural = g.add_constant(a);
+  uint c_torch = g.add_constant(torch::from_blob((float[]){.6, .4, .99, .01}, {2, 2}));
+  uint c_prob = g.add_constant_probability(0.5);
+  uint c_pos = g.add_constant_pos_real(2.5);
+  // distributions
+  uint d_bernoulli = g.add_distribution(
+    graph::DistributionType::BERNOULLI,
+    graph::AtomicType::BOOLEAN,
+    std::vector<uint>{c_prob});
+  uint d_bernoulli_or = g.add_distribution(
+    graph::DistributionType::BERNOULLI_NOISY_OR,
+    graph::AtomicType::BOOLEAN,
+    std::vector<uint>{c_pos});
+  uint d_bernoulli_logit = g.add_distribution(
+    graph::DistributionType::BERNOULLI_LOGIT,
+    graph::AtomicType::BOOLEAN,
+    std::vector<uint>{c_real});
+  uint d_beta = g.add_distribution(
+    graph::DistributionType::BETA,
+    graph::AtomicType::PROBABILITY,
+    std::vector<uint>{c_pos, c_pos});
+  uint d_binomial = g.add_distribution(
+    graph::DistributionType::BINOMIAL,
+    graph::AtomicType::NATURAL,
+    std::vector<uint>{c_natural, c_prob});
+  uint d_flat = g.add_distribution(
+    graph::DistributionType::FLAT,
+    graph::AtomicType::POS_REAL,
+    std::vector<uint>{});
+  uint d_normal = g.add_distribution(
+    graph::DistributionType::NORMAL,
+    graph::AtomicType::REAL,
+    std::vector<uint>{c_real, c_pos});
+  uint d_halfcauchy = g.add_distribution(
+    graph::DistributionType::HALF_CAUCHY,
+    graph::AtomicType::POS_REAL,
+    std::vector<uint>{c_pos});
+  uint d_studentt = g.add_distribution(
+    graph::DistributionType::STUDENT_T,
+    graph::AtomicType::REAL,
+    std::vector<uint>{c_pos, c_real, c_pos});
+  uint d_gamma = g.add_distribution(
+    graph::DistributionType::GAMMA,
+    graph::AtomicType::POS_REAL,
+    std::vector<uint>{c_pos, c_pos});
+  // operators
+  uint o_sample_bool = g.add_operator(
+    graph::OperatorType::SAMPLE, std::vector<uint>{d_bernoulli});
+  uint o_sample_real = g.add_operator(
+    graph::OperatorType::SAMPLE, std::vector<uint>{d_normal});
+  uint o_sample_natural = g.add_operator(
+    graph::OperatorType::SAMPLE, std::vector<uint>{d_binomial});
+  uint o_sample_prob = g.add_operator(
+    graph::OperatorType::SAMPLE, std::vector<uint>{d_beta});
+  uint o_sample_pos = g.add_operator(
+    graph::OperatorType::SAMPLE, std::vector<uint>{d_gamma});
+
+  uint o_to_real = g.add_operator(
+    graph::OperatorType::TO_REAL, std::vector<uint>{o_sample_pos});
+  uint o_to_pos = g.add_operator(
+    graph::OperatorType::TO_POS_REAL, std::vector<uint>{o_sample_prob});
+  uint o_to_tensor = g.add_operator(
+    graph::OperatorType::TO_TENSOR, std::vector<uint>{o_sample_real});
+  uint o_complement = g.add_operator(
+    graph::OperatorType::COMPLEMENT, std::vector<uint>{o_sample_prob});
+  uint o_negate = g.add_operator(
+    graph::OperatorType::NEGATE, std::vector<uint>{c_real});
+  uint o_exp = g.add_operator(
+    graph::OperatorType::EXP, std::vector<uint>{c_real});
+  uint o_expm1 = g.add_operator(
+    graph::OperatorType::EXPM1, std::vector<uint>{o_sample_pos});
+  uint o_multiply = g.add_operator(
+    graph::OperatorType::MULTIPLY, std::vector<uint>{c_real, o_sample_real});
+  uint o_add = g.add_operator(
+    graph::OperatorType::ADD, std::vector<uint>{c_real, o_sample_real, o_to_real});
+  uint o_phi = g.add_operator(
+    graph::OperatorType::PHI, std::vector<uint>{o_sample_real});
+  uint o_logistic = g.add_operator(
+    graph::OperatorType::LOGISTIC, std::vector<uint>{c_real});
+  uint o_ifelse = g.add_operator(
+    graph::OperatorType::IF_THEN_ELSE,
+    std::vector<uint>{o_sample_bool, o_sample_pos, c_pos});
+  // factors
+  uint f_expprod = g.add_factor(
+    graph::FactorType::EXP_PRODUCT,
+    std::vector<uint>{o_sample_real, o_sample_pos, o_to_pos});
+  // observe and query
+  g.observe(o_sample_real, 1.5);
+  g.observe(o_sample_prob, 0.1);
+  g.query(o_multiply);
+  g.query(o_add);
+  g.query(o_ifelse);
+  // copy and test
+  graph::Graph g_copy(g);
+  ASSERT_EQ(g.to_string(), g_copy.to_string());
 }

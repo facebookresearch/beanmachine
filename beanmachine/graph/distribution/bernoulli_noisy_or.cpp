@@ -24,7 +24,7 @@ static inline double log1mexpm(double x) {
 BernoulliNoisyOr::BernoulliNoisyOr(
     graph::AtomicType sample_type,
     const std::vector<graph::Node*>& in_nodes)
-    : Distribution(graph::DistributionType::BERNOULLI, sample_type) {
+    : Distribution(graph::DistributionType::BERNOULLI_NOISY_OR, sample_type) {
   if (sample_type != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument(
         "BernoulliNoisyOr produces boolean valued samples");
