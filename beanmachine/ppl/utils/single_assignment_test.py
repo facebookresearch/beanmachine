@@ -856,6 +856,35 @@ x = f(*r1)
 """
         self.check_rewrite(source, expected)
 
+    def test_single_assignment_call_single_double_star_arg(self) -> None:
+        """Test the assign rule final step in rewriting keyword call arguments"""
+
+        source = """
+x = f(*d, **({x: 5}))
+"""
+        expected = """
+r1 = {x: 5}
+x = f(*d, **r1)
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            _some_top_down(self.s._handle_assign_call_single_double_star_arg()),
+        )
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_call_single_double_star_arg())),
+        )
+
+        expected = """
+a2 = 5
+r1 = {x: a2}
+x = f(*d, **r1)"""
+        self.check_rewrite(source, expected)
+
     def test_single_assignment_call_two_star_args(self) -> None:
         """Test the assign rule for merging starred call arguments"""
 

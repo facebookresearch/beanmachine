@@ -509,6 +509,36 @@ class SingleAssignment:
             "handle_assign_call_single_star_arg",
         )
 
+    def _handle_assign_call_single_double_star_arg(self) -> Rule:
+        # Rewrite x = f(*a, **{k:5}) into t = {k: 5} ; x = f(*a, **t)
+        # Note: In the strategy we have chosen for dealing with keywords
+        #       the argument to ** should normally be dict(...). However,
+        #       if there is only a single argument of the form above there
+        #       is no need for the further checking and the short-cut
+        #       transformation is therefore expected to be sound.
+        return PatternRule(
+            assign(
+                value=call(
+                    func=name(),
+                    args=[starred(value=name())],
+                    keywords=[keyword(arg=None, value=_not_identifier)],
+                )
+            ),
+            self._transform_with_name(
+                "r",
+                lambda source_term: source_term.value.keywords[0].value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=ast.Call(
+                        func=source_term.value.func,
+                        args=source_term.value.args,
+                        keywords=[ast.keyword(arg=None, value=new_name)],
+                    ),
+                ),
+            ),
+            "handle_assign_call_single_double_star_arg",
+        )
+
     def _handle_assign_call_two_star_args(self) -> Rule:
         # Rewrite x= f(*[1],*[2]) into x = f(*([1]+[2]))
         # TODO: Ideally, would like to merge [1].ctx with the [0].ctx below
@@ -648,12 +678,15 @@ class SingleAssignment:
                 self._handle_assign_dictionary_values(),
                 # TODO: Following will be replaced with new approach
                 self._handle_asign_call_keyword(),
-                # Acceptable rules
+                # Acceptable rules for handling function calls
                 self._handle_assign_call_function_expression(),
+                #  Rules for regular arguments
                 self._handle_assign_call_single_star_arg(),
                 self._handle_assign_call_two_star_args(),
                 self._handle_assign_call_regular_arg(),
                 self._handle_assign_call_empty_regular_arg(),
+                #  Rules for keyword arguments
+                self._handle_assign_call_single_double_star_arg(),
             ]
         )
 
