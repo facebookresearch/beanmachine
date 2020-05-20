@@ -276,6 +276,16 @@ class TestBayesNet(unittest.TestCase):
         # since we have observed grass wet is true the query should be true
         self.assertEqual(type(samples[0][1]), bool)
         self.assertTrue(samples[0][1])
+        # test parallel inference
+        samples_all = g.infer(num_samples=1, n_chains=2)
+        self.assertTrue(len(samples_all) == 2)
+        self.assertTrue(len(samples_all[0]) == 1)
+        self.assertTrue(len(samples_all[1]) == 1)
+        self.assertEqual(samples[0][0], samples_all[0][0][0])
+        self.assertEqual(samples[0][1], samples_all[0][0][1])
+        self.assertEqual(type(samples_all[1][0][0]), bool)
+        self.assertEqual(type(samples_all[1][0][1]), bool)
+        self.assertTrue(samples_all[1][0][1])
 
     def test_infer_mean(self):
         g = graph.Graph()
@@ -290,6 +300,13 @@ class TestBayesNet(unittest.TestCase):
         means = g.infer_mean(100)
         self.assertAlmostEqual(means[0], 1.0)
         self.assertAlmostEqual(means[1], 1.0)
+        # test parallel inference
+        means_all = g.infer_mean(num_samples=100, n_chains=2)
+        self.assertTrue(len(means_all) == 2)
+        self.assertAlmostEqual(means_all[0][0], 1.0)
+        self.assertAlmostEqual(means_all[0][1], 1.0)
+        self.assertAlmostEqual(means_all[1][0], 1.0)
+        self.assertAlmostEqual(means_all[1][1], 1.0)
         # negative test, don't support aggregating tensors
         c2 = g.add_constant(torch.tensor(0.5))
         op2 = g.add_operator(graph.OperatorType.ADD, [c2, c2])

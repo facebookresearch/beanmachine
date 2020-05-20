@@ -221,10 +221,44 @@ struct Graph {
   void observe(uint var, torch::Tensor val);
   void observe(uint var, AtomicValue val);
   uint query(uint var); // returns the index of the query in the samples
+  /*
+  Draw Monte Carlo samples from the posterior distribution using a single chain.
+  :param num_samples: The number of the MCMC samples.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator.
+  :returns: The posterior samples.
+  */
   std::vector<std::vector<AtomicValue>>&
   infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  /*
+  Draw Monte Carlo samples from the posterior distribution using multiple chains.
+  :param num_samples: The number of the MCMC samples of each chain.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator of the first chain.
+  :param n_chains: The number of MCMC chains.
+  :returns: The posterior samples from all chains.
+  */
+  std::vector<std::vector<std::vector<AtomicValue>>>&
+  infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
   std::vector<double>&
+  /*
+  Make point estimates of the posterior means from a single MCMC chain.
+  :param num_samples: The number of the MCMC samples.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator.
+  :returns: The posterior means.
+  */
   infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  /*
+  Make point estimates of the posterior means from multiple MCMC chains.
+  :param num_samples: The number of the MCMC samples of each chain.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator of the first chain.
+  :param n_chains: The number of MCMC chains.
+  :returns: The posterior means from all chains.
+  */
+  std::vector<std::vector<double>>&
+  infer_mean(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
   /*
   Use mean-field variational inference to infer the posterior mean, variance
   of the queried nodes in the graph.
@@ -288,6 +322,7 @@ struct Graph {
   :returns: The sum of log_prob of source node and all stochastic descendants.
   */
   double log_prob(uint src_idx);
+  uint thread_index;
 
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
@@ -295,6 +330,7 @@ struct Graph {
   std::vector<uint> get_parent_ids(const std::vector<Node*>& parent_nodes) const;
   Node* check_node(uint node_id, NodeType node_type);
   void _infer(uint num_samples, InferenceType algorithm, uint seed);
+  void _infer_parallel(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
   std::set<uint> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a
@@ -303,7 +339,10 @@ struct Graph {
   std::vector<uint> queries; // list of queried nodenums
   std::set<uint> queried; // set of queried nodes
   std::vector<std::vector<AtomicValue>> samples;
+  std::vector<std::vector<std::vector<AtomicValue>>> samples_allchains;
   std::vector<double> means;
+  std::vector<std::vector<double>> means_allchains;
+  Graph* master_graph = nullptr;
   AggregationType agg_type;
   uint agg_samples;
   std::vector<std::vector<double>> variational_params;
