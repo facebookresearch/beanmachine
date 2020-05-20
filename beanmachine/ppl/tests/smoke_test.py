@@ -16,3 +16,9 @@ class ToplevelSmokeTest(unittest.TestCase):
         @bmp.functional
         def foo_sum(n):
             return sum(foo(i) for i in range(n))
+
+        # exercise invocation from top-level package directly
+        samples = bmp.CompositionalInference().infer(
+            [foo_sum(3)], {foo(0): False}, 1000, 1
+        )
+        bmp.Diagnostics(samples)
