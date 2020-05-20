@@ -18,7 +18,13 @@ Probability   -- a real between 0.0 and 1.0
 Positive Real -- what it says on the tin
 Natural       -- a non-negative integer
 
-The type definitions are the objects which represent the last three."""
+The type definitions are the objects which represent the last three.
+
+During construction of a graph we may create nodes which need to be
+"fixed up" later; for example, a multiplication node with a tensor
+on one side and a real on the other cannot be represented in the BMG
+type system. We will mark such nodes as having the "Malformed" type.
+"""
 
 # TODO: We might also need:
 # * Bounded natural -- a sample from a categorical
@@ -35,4 +41,8 @@ class PositiveReal:
 
 
 class Natural:
+    pass
+
+
+class Malformed:
     pass
