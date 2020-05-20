@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import warnings
 from functools import wraps
 
 from beanmachine.ppl.model.utils import Mode, RVIdentifier
@@ -80,6 +81,14 @@ class StatisticalModel(object):
 
     @staticmethod
     def sample(f):
+        warnings.warn(
+            "@sample will be deprecated, use @random_variable instead",
+            DeprecationWarning,
+        )
+        return StatisticalModel.random_variable(f)
+
+    @staticmethod
+    def random_variable(f):
         """
         Decorator to be used for every stochastic random variable defined in
         all statistical models.
@@ -98,6 +107,13 @@ class StatisticalModel(object):
 
     @staticmethod
     def query(f):
+        warnings.warn(
+            "@query will be deprecated, use @functional instead", DeprecationWarning
+        )
+        return StatisticalModel.functional(f)
+
+    @staticmethod
+    def functional(f):
         """
         Decorator to be used for every query defined in statistical model.
         """
@@ -113,5 +129,8 @@ class StatisticalModel(object):
         return wrapper
 
 
-sample = StatisticalModel.sample
-query = StatisticalModel.query
+random_variable = StatisticalModel.random_variable
+sample = random_variable
+
+functional = StatisticalModel.functional
+query = functional
