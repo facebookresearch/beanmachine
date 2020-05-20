@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <random>
 #include <sstream>
+#include <thread>
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/factor/factor.h"
@@ -356,28 +357,35 @@ uint Graph::query(uint node_id) {
 
 void Graph::collect_sample() {
   // construct a sample of the queried nodes
+  auto& sample_collector = (master_graph == nullptr)
+      ? this->samples
+      : master_graph->samples_allchains[thread_index];
+  auto& mean_collector = (master_graph == nullptr)
+      ? this->means
+      : master_graph->means_allchains[thread_index];
   if (agg_type == AggregationType::NONE) {
     std::vector<AtomicValue> sample;
     for (uint node_id : queries) {
       sample.push_back(nodes[node_id]->value);
     }
-    samples.push_back(sample);
+    sample_collector.push_back(sample);
   }
   // note: we divide each new value by agg_samples rather than directly add
   // them to the total to avoid overflow
   else if (agg_type == AggregationType::MEAN) {
+    assert(mean_collector.size() == queries.size());
     uint pos = 0;
     for (uint node_id : queries) {
       AtomicValue value = nodes[node_id]->value;
       if (value.type == AtomicType::BOOLEAN) {
-        means[pos] += double(value._bool) / agg_samples;
+        mean_collector[pos] += double(value._bool) / agg_samples;
       } else if (
           value.type == AtomicType::REAL or
           value.type == AtomicType::POS_REAL or
           value.type == AtomicType::PROBABILITY) {
-        means[pos] += value._double / agg_samples;
+        mean_collector[pos] += value._double / agg_samples;
       } else if (value.type == AtomicType::NATURAL) {
-        means[pos] += double(value._natural) / agg_samples;
+        mean_collector[pos] += double(value._natural) / agg_samples;
       } else {
         throw std::runtime_error(
             "Mean aggregation only supported for "
@@ -415,6 +423,57 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   return samples;
 }
 
+std::vector<std::vector<std::vector<AtomicValue>>>&
+Graph::infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains) {
+  agg_type = AggregationType::NONE;
+  samples.clear();
+  samples_allchains.clear();
+  samples_allchains.resize(n_chains, std::vector<std::vector<AtomicValue>>());
+  _infer_parallel(num_samples, algorithm, seed, n_chains);
+  return samples_allchains;
+}
+
+void Graph::_infer_parallel(
+    uint num_samples, InferenceType algorithm, uint seed, uint n_chains) {
+  if (n_chains < 1) {
+    throw std::runtime_error("n_chains can't be zero");
+  }
+  master_graph = this;
+  thread_index = 0;
+  // clone graphs
+  std::vector<Graph*> graph_copies;
+  std::vector<uint> seedvec;
+  for (uint i = 0; i < n_chains; i++) {
+    if (i > 0) {
+      Graph* g_ptr = new Graph(*this);
+      g_ptr->thread_index = i;
+      graph_copies.push_back(g_ptr);
+    } else {
+      graph_copies.push_back(this);
+    }
+    seedvec.push_back(seed + 13 * i);
+  }
+  assert(graph_copies.size() == n_chains);
+  assert(seedvec.size() == n_chains);
+  // start threads
+  std::vector<std::thread> threads;
+  for (uint i = 0; i < n_chains; i++) {
+    std::thread infer_thread(&Graph::_infer, graph_copies[i], num_samples, algorithm, seedvec[i]);
+    threads.push_back(std::move(infer_thread));
+  }
+  assert(threads.size() == n_chains);
+  // join threads
+  for (uint i = 0; i < n_chains; i++) {
+    threads[i].join();
+    if (i > 0) {
+      delete graph_copies[i];
+    }
+  }
+  graph_copies.clear();
+  threads.clear();
+  master_graph = nullptr;
+}
+
 std::vector<double>&
 Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   agg_type = AggregationType::MEAN;
@@ -423,6 +482,18 @@ Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   means.resize(queries.size(), 0.0);
   _infer(num_samples, algorithm, seed);
   return means;
+}
+
+std::vector<std::vector<double>>&
+Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed, uint n_chains) {
+  agg_type = AggregationType::MEAN;
+  agg_samples = num_samples;
+  means.clear();
+  means.resize(queries.size(), 0.0);
+  means_allchains.clear();
+  means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
+  _infer_parallel(num_samples, algorithm, seed, n_chains);
+  return means_allchains;
 }
 
 std::vector<std::vector<double>>& Graph::variational(
@@ -491,6 +562,9 @@ Graph::Graph(const Graph& other) {
   for (uint node_id : other.queries) {
     query(node_id);
   }
+  master_graph = other.master_graph;
+  agg_type = other.agg_type;
+  agg_samples = other.agg_samples;
 }
 
 } // namespace graph

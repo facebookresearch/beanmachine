@@ -110,6 +110,30 @@ TEST(testgraph, infer_bn) {
   // less than 1 in million odds of failing these tests with correct infer
   EXPECT_LT(sum, 60);
   EXPECT_GT(sum, 10);
+  // using multiple chains
+  const auto& all_samples =
+    g.infer(n_iter, graph::InferenceType::REJECTION, 123, 2);
+  ASSERT_EQ(all_samples.size(), 2);
+  ASSERT_EQ(all_samples[0].size(), n_iter);
+  ASSERT_EQ(all_samples[1].size(), n_iter);
+
+  uint eqsum = 0;
+  for (int i = 0; i < n_iter; i++) {
+    const auto& s0 = all_samples[0][i].front();
+    const auto& s1 = all_samples[1][i].front();
+    // @lint-ignore HOWTOEVEN
+    eqsum += (s0._bool == s1._bool) ? 1 : 0;
+  }
+  ASSERT_LT(eqsum, n_iter);
+
+  const auto& all_means =
+    g.infer_mean(n_iter, graph::InferenceType::REJECTION, 123, 2);
+  ASSERT_EQ(all_means.size(), 2);
+  ASSERT_NE(all_means[0].front(), all_means[1].front());
+  ASSERT_GT(all_means[0].front(), 0.1);
+  ASSERT_LT(all_means[0].front(), 0.6);
+  ASSERT_GT(all_means[1].front(), 0.1);
+  ASSERT_LT(all_means[1].front(), 0.6);
 }
 
 TEST(testgraph, clone_graph) {
