@@ -3,7 +3,7 @@
 import ast
 import unittest
 
-import beanmachine.ppl.utils.ast_tools as ast_tools
+import beanmachine.ppl.compiler.ast_tools as ast_tools
 
 
 class ASTToolsTest(unittest.TestCase):
