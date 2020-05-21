@@ -94,6 +94,7 @@ _unroll_loop: Rule = PatternRule(
         [
             statement
             for element in f.iter.elts
+            # pyre-fixme[10]: Name `element` is used but not defined.
             for statement in ([ast.Assign(targets=[f.target], value=element)] + f.body)
         ]
         + f.orelse

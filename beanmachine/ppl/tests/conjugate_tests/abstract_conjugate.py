@@ -33,7 +33,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         return (torch.mean(predictions, 0), torch.std(predictions, 0))
 
     def compute_beta_binomial_moments(
-        self
+        self,
     ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small beta binomial model.
@@ -51,7 +51,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         alpha = alpha + obs
         beta = beta - obs + trials
         expected_mean = alpha / (alpha + beta)
-        # pyre-fixme[16]: `float` has no attribute `pow`.
         expected_std = (
             (alpha * beta) / (alpha + beta).pow(2.0) * (alpha + beta + 1.0)
         ).pow(0.5)
@@ -59,7 +58,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         return (expected_mean, expected_std, queries, observations)
 
     def compute_gamma_gamma_moments(
-        self
+        self,
     ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small gamma gamma model.
@@ -81,7 +80,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         return (expected_mean, expected_std, queries, observations)
 
     def compute_gamma_normal_moments(
-        self
+        self,
     ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small gamma normal model.
@@ -104,7 +103,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         return (expected_mean, expected_std, queries, observations)
 
     def compute_normal_normal_moments(
-        self
+        self,
     ) -> Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]]:
         """
         Computes mean and standard deviation of a small normal normal model.
@@ -123,6 +122,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             mu / std.pow(2.0) + obs / sigma.pow(2.0)
         )
         expected_std = (std.pow(2.0) + sigma.pow(2.0)).pow(-0.5)
+        # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor, List[RVIdentifier],
+        #  Dict[RVIdentifier, Tensor]]` but got `Tuple[float, typing.Any,
+        #  List[typing.Any], Dict[typing.Any, typing.Any]]`.
         return (expected_mean, expected_std, queries, observations)
 
     def compute_distant_normal_normal_moments(self):

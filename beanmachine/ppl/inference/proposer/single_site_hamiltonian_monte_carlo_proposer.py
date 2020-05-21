@@ -244,7 +244,6 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         p_vector = torch.reshape(p, (-1,))
         if self.covariance is None:
             self.covariance = torch.eye(len(p_vector), dtype=p.dtype)
-        # pyre-fixme
         return torch.matmul(p_vector.T, torch.matmul(self.covariance, p_vector)) / 2
 
     def _compute_potential_energy_gradient(self, node, world, q_unconstrained):
@@ -316,7 +315,6 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         p = p - self.step_size * grad_U / 2
 
         zero_grad(q_unconstrained)
-        # pyre-fixme
         proposed_K = self._compute_kinetic_energy(p)
         q = node_var.transform_from_unconstrained_to_constrained(q_unconstrained)
         self.runtime_error = False

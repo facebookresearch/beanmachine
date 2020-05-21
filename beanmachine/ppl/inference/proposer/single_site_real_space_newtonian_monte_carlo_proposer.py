@@ -66,10 +66,12 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             # If any of alpha or beta are scalar, we have to reshape them
             # random variable shape to allow for per-index learning rate.
             if is_scalar(self.alpha_) or is_scalar(self.beta_):
+                # pyre-fixme[8]: Attribute has type `float`; used as `Tensor`.
                 self.alpha_ = self.alpha_ * torch.ones_like(
                     node_var.unconstrained_value
                 ).reshape(-1)
 
+                # pyre-fixme[8]: Attribute has type `float`; used as `Tensor`.
                 self.beta_ = self.beta_ * torch.ones_like(
                     node_var.unconstrained_value
                 ).reshape(-1)
@@ -238,4 +240,6 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
                 )
         else:
             self.accepted_samples_ += 1
+            # pyre-fixme[8]: Attribute has type `float`; used as `Tensor`.
+            # pyre-fixme[8]: Attribute has type `float`; used as `Tensor`.
             self.alpha_, self.beta_ = self.compute_beta_priors_from_accepted_lr()

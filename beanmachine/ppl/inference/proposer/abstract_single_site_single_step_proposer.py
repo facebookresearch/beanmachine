@@ -30,9 +30,10 @@ class AbstractSingleSiteSingleStepProposer(
         """
         node_var = world.get_node_in_world_raise_error(node, False)
 
-        proposal_distribution_struct, auxiliary_variables = self.get_proposal_distribution(
-            node, node_var, world, {}
-        )
+        (
+            proposal_distribution_struct,
+            auxiliary_variables,
+        ) = self.get_proposal_distribution(node, node_var, world, {})
         node_var.proposal_distribution = proposal_distribution_struct
         proposal_distribution_struct = node_var.proposal_distribution
         proposal_distribution = proposal_distribution_struct.proposal_distribution
@@ -58,6 +59,9 @@ class AbstractSingleSiteSingleStepProposer(
                 negative_proposal_log_update + node_var.jacobian
             )
 
+        # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor, Dict[typing.Any,
+        #  typing.Any]]` but got `Tuple[typing.Any, typing.Union[Tensor, int],
+        #  Dict[typing.Any, typing.Any]]`.
         return (new_value, negative_proposal_log_update, auxiliary_variables)
 
     def post_process(

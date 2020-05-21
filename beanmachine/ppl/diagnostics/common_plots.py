@@ -83,7 +83,6 @@ def autocorr(x: Tensor) -> Tuple[List[int], List[float]]:
             (y1 - (x.mean(dim=0).expand(y1.size())))
             * (y2 - (x.mean(dim=0).expand(y2.size())))
         ).sum(0)
-        # pyre-fixme[7]: Expected `Tensor` but got `float`.
         return sum_product / ((len(x) - lag) * torch.var(x, dim=0))
 
     max_lag = x.size(0)
