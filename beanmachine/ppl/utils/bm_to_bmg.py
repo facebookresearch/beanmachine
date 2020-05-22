@@ -7,6 +7,7 @@ import types
 from typing import List
 
 import astor
+from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
 from beanmachine.ppl.utils.ast_patterns import (
     arguments,
     assign,
@@ -356,7 +357,10 @@ def to_graph_builder(source: str) -> BMGraphBuilder:
     # TODO: once, we're not overwriting existing work.
     filename = "<BMGAST>"
     a: ast.AST = _bm_to_bmg_ast(source)
-    compiled = compile(a, filename, "exec")
+    try:
+        compiled = compile(a, filename, "exec")
+    except Exception as ex:
+        raise LiftedCompilationError(source, a, ex) from ex
     new_module = types.ModuleType(filename)
     sys.modules[filename] = new_module
     mod_globals = new_module.__dict__
