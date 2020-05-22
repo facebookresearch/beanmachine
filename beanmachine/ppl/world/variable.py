@@ -231,8 +231,15 @@ class Variable(object):
         """
         Computes the log probability of the value of the random varialble
         """
-        # pyre-fixme
-        self.log_prob = self.distribution.log_prob(self.value).sum()
+        try:
+            # pyre-fixme
+            self.log_prob = self.distribution.log_prob(self.value).sum()
+        except (RuntimeError, ValueError) as e:
+            # pyre-fixme
+            if not self.distribution.support.check(self.value):
+                self.log_prob = tensor(float("-Inf"))
+            else:
+                raise e
 
     def set_transform(self, transform: List):
         """
