@@ -148,5 +148,20 @@ void logistic(graph::Node* node) {
       graph::AtomicType::PROBABILITY, util::logistic(parent._double));
 }
 
+void log1pexp(graph::Node* node) {
+  assert(node->in_nodes.size() == 1);
+  const graph::AtomicValue& parent = node->in_nodes[0]->value;
+  if (parent.type == graph::AtomicType::REAL or
+      parent.type == graph::AtomicType::POS_REAL) {
+    node->value._double = util::log1pexp(parent._double);
+  } else if (parent.type == graph::AtomicType::TENSOR) {
+    node->value._tensor = parent._tensor.exp().log1p();
+  } else {
+    throw std::runtime_error(
+        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        " for LOG1PEXP operator at node_id " + std::to_string(node->index));
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

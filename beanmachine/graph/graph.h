@@ -113,6 +113,7 @@ enum class OperatorType {
   PHI,
   LOGISTIC,
   IF_THEN_ELSE,
+  LOG1PEXP,
 };
 
 enum class DistributionType {
