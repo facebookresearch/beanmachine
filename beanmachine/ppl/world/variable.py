@@ -85,7 +85,7 @@ class Variable(object):
                 )
 
     def __str__(self) -> str:
-        return str(self.value.item()) + " from " + str(self.distribution)
+        return str(self.value) + " from " + str(self.distribution)
 
     def initialize_value(self, obs: Optional[Tensor]) -> Tensor:
         """

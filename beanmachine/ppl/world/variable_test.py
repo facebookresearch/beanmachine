@@ -2,6 +2,7 @@
 import unittest
 from collections import namedtuple
 
+import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.world.variable import Variable
@@ -100,3 +101,25 @@ class VariableTest(unittest.TestCase):
         )
 
         self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
+
+    def test_str_nonscalar(self):
+        distribution = dist.MultivariateNormal(tensor([0.0, 0.0]), torch.eye(2))
+        var = Variable(
+            distribution=distribution,
+            value=None,
+            log_prob=None,
+            parent=set(),
+            children=set(),
+            proposal_distribution=None,
+            extended_val=None,
+            is_discrete=None,
+            transforms=[],
+            unconstrained_value=None,
+            jacobian=None,
+        )
+        value = var.initialize_value(None)
+        var.update_value(value)
+        try:
+            str(var)
+        except Exception:
+            self.fail("str(Variable) raised an Exception!")
