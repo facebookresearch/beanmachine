@@ -7,8 +7,8 @@ import beanmachine.ppl.compiler.ast_tools as ast_tools
 
 
 class ASTToolsTest(unittest.TestCase):
-    def test_1(self) -> None:
-        """Test 1"""
+    def test_ast_tools_print_tree(self) -> None:
+        """test_ast_tools_print_tree"""
         node = ast.parse("2 + 3")
         observed = ast_tools.print_tree(node, False)
         expected = """
@@ -25,6 +25,9 @@ Module
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_ast_tools_print_graph(self) -> None:
+        """test_ast_tools_print_graph"""
+        node = ast.parse("2 + 3")
         observed = ast_tools.print_graph(node)
         expected = """
 digraph "graph" {
@@ -46,4 +49,26 @@ digraph "graph" {
   N4 -> N8[label=n];
   N6 -> N7[label=n];
 }"""
+        self.maxDiff = None
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_ast_tools_print_python(self) -> None:
+        """test_ast_tools_print_python"""
+        node = ast.parse("x = f(2 + 3)")
+        observed = ast_tools.print_python(node)
+        expected = """
+Module(
+    body=[
+        Assign(
+            targets=[Name(id="x", ctx=Store())],
+            value=Call(
+                func=Name(id="f", ctx=Load()),
+                args=[BinOp(left=Num(n=2), op=Add(), right=Num(n=3))],
+                keywords=[],
+            ),
+        )
+    ]
+)
+"""
+        self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
