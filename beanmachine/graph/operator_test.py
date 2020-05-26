@@ -132,7 +132,9 @@ class TestOperators(unittest.TestCase):
         s1 = g.add_operator(bmg.OperatorType.SAMPLE, [d1])
         with self.assertRaises(ValueError) as cm:
             o1 = g.add_operator(bmg.OperatorType.EXP, [s1])
-        self.assertTrue("operator requires real/tensor parent" in str(cm.exception))
+        self.assertTrue(
+            "operator EXP/EXPM1 requires real/tensor parent" in str(cm.exception)
+        )
 
         # the proper way to do it is to convert to floating point first
         g = bmg.Graph()

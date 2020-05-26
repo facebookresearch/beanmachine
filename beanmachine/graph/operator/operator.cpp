@@ -133,9 +133,21 @@ Operator::Operator(
       if (type0 != graph::AtomicType::REAL and
           type0 != graph::AtomicType::POS_REAL and
           type0 != graph::AtomicType::TENSOR) {
-        throw std::invalid_argument("operator requires real/tensor parent");
+        throw std::invalid_argument(
+            "operator EXP/EXPM1 requires real/tensor parent");
       }
       value = graph::AtomicValue(type0);
+      break;
+    }
+    case graph::OperatorType::LOG1PEXP: {
+      check_unary_op(op_type, in_nodes);
+      if (type0 != graph::AtomicType::REAL and
+          type0 != graph::AtomicType::POS_REAL and
+          type0 != graph::AtomicType::TENSOR) {
+        throw std::invalid_argument(
+            "operator LOG1PEXP requires real/pos_real/tensor parent");
+      }
+      value = graph::AtomicValue(graph::AtomicType::POS_REAL);
       break;
     }
     case graph::OperatorType::MULTIPLY: {
@@ -232,6 +244,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::LOGISTIC: {
       logistic(this);
+      break;
+    }
+    case graph::OperatorType::LOG1PEXP: {
+      log1pexp(this);
       break;
     }
     case graph::OperatorType::EXP: {

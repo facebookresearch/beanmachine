@@ -58,6 +58,18 @@ void Operator::compute_gradients() {
           f_grad * in_nodes[0]->grad2;
       break;
     }
+    case graph::OperatorType::LOG1PEXP: {
+      // f(x) = log (1 + exp(x))
+      // f'(x) = exp(x) / (1 + exp(x)) = 1 - exp(-f)
+      // f''(x) = exp(x) / (1 + exp(x))^2 = f' * (1 - f')
+      double f_x = value._double;
+      double f_grad = 1.0 - std::exp(-f_x);
+      double f_grad2 = f_grad * (1.0 - f_grad);
+      grad1 = f_grad * in_nodes[0]->grad1;
+      grad2 = f_grad2 * in_nodes[0]->grad1 * in_nodes[0]->grad1 +
+          f_grad * in_nodes[0]->grad2;
+      break;
+    }
     // for f(y) = exp(y) or f(y) = exp(y)-1 we have f'(y) = exp(y) and f''(y) =
     // exp(y)
     case graph::OperatorType::EXP:

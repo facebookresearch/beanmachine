@@ -89,7 +89,7 @@ TEST(testoperator, phi) {
 
 TEST(testoperator, logistic) {
   Graph g;
-  // negative tests: exactly one real should be the input to a PHI
+  // negative tests: exactly one real should be the input to a LOGISTIC
   EXPECT_THROW(
       g.add_operator(OperatorType::LOGISTIC, std::vector<uint>{}),
       std::invalid_argument);
@@ -188,4 +188,52 @@ TEST(testoperator, if_then_else) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, 1240, 1e-3);
   EXPECT_NEAR(grad2, 1220, 1e-3);
+}
+
+TEST(testoperator, log1pexp) {
+  Graph g;
+  // negative tests: exactly one real/pos/tensor should be the input
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG1PEXP, std::vector<uint>{}),
+      std::invalid_argument);
+  auto prob1 = g.add_constant_probability(0.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG1PEXP, std::vector<uint>{prob1}),
+      std::invalid_argument);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOG1PEXP, std::vector<uint>{pos1, pos1}),
+      std::invalid_argument);
+  // y ~ Normal(log1pexp(x^2), 1) and x = 0.5; note: ln[1+exp(0.25)] = 0.826
+  auto prior = g.add_distribution(
+      DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
+  auto log1pexp_x_sq =
+      g.add_operator(OperatorType::LOG1PEXP, std::vector<uint>{x_sq});
+  auto log1pexp_x_sq_real =
+      g.add_operator(OperatorType::TO_REAL, std::vector<uint>{log1pexp_x_sq});
+  auto likelihood = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{log1pexp_x_sq_real, pos1});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
+  g.query(y);
+  g.observe(x, 0.5);
+  const auto& means = g.infer_mean(10000, InferenceType::NMC);
+  EXPECT_NEAR(means[0], 0.826, 0.01);
+  g.observe(y, 0.0);
+  // check gradient:
+  // Verified in pytorch using the following code:
+  // x = tensor([0.5], requires_grad=True)
+  // x_sq = x * x
+  // f_x = dist.Normal(x_sq.exp().log1p(), tensor(1.0)).log_prob(tensor(0.0))
+  // f_grad = torch.autograd.grad(f_x, x, create_graph=True)
+  // f_grad2 = torch.autograd.grad(f_grad, x)
+  // f_grad -> -0.4643 and f_grad2 -> -1.4480
+  double grad1 = 0;
+  double grad2 = 0;
+  g.gradient_log_prob(x, grad1, grad2);
+  EXPECT_NEAR(grad1, -0.4643, 1e-3);
+  EXPECT_NEAR(grad2, -1.4480, 1e-3);
 }
