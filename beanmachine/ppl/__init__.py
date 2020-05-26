@@ -1,5 +1,13 @@
 import logging
 
+from beanmachine.ppl.inference import (
+    CompositionalInference,
+    SingleSiteAncestralMetropolisHastings,
+    SingleSiteHamiltonianMonteCarlo,
+    SingleSiteNewtonianMonteCarlo,
+    SingleSiteRandomWalk,
+    SingleSiteUniformMetropolisHastings,
+)
 from beanmachine.ppl.model import functional, random_variable
 
 
@@ -14,4 +22,13 @@ LOGGER.handlers.clear()
 LOGGER.addHandler(console_handler)
 LOGGER.addHandler(file_handler)
 
-__all__ = ["functional", "random_variable"]
+__all__ = [
+    "CompositionalInference",
+    "SingleSiteAncestralMetropolisHastings",
+    "SingleSiteHamiltonianMonteCarlo",
+    "SingleSiteNewtonianMonteCarlo",
+    "SingleSiteRandomWalk",
+    "SingleSiteUniformMetropolisHastings",
+    "functional",
+    "random_variable",
+]
