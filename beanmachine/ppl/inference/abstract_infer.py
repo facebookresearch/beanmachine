@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
+import random
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Dict, List
@@ -50,6 +51,7 @@ class AbstractInference(object, metaclass=ABCMeta):
     @staticmethod
     def set_seed_for_chain(random_seed: int, chain: int):
         torch.manual_seed(random_seed + chain * 31)
+        random.seed(random_seed + chain * 31)
 
     def _parallel_infer(
         self,
@@ -95,9 +97,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         try:
             self.queries_ = queries
             self.observations_ = observations
-            # pyre-fixme[6]: Expected `Union[bytes, str, typing.SupportsInt]` for
-            #  1st param but got `Tensor`.
-            random_seed = int(torch.randint(2 ** 62, (1,)))
+            random_seed = torch.randint(2 ** 62, (1,)).int().item()
 
             if num_chains > 1 and run_in_parallel:
                 manager = mp.Manager()
