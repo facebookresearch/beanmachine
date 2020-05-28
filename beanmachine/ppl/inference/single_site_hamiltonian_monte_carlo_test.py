@@ -4,32 +4,29 @@ import unittest
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo import (
-    SingleSiteHamiltonianMonteCarlo,
-)
-from beanmachine.ppl.model.statistical_model import sample
+import beanmachine.ppl as bm
 
 
 class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):
     class SampleNormalModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
     class ChangingParentsModel(object):
-        @sample
+        @bm.random_variable
         def parent_one(self):
             return dist.Normal(0.0, torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def parent_two(self):
             return dist.Normal(0.0, torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bad_child(self):
             if self.parent_one() > 0:
                 return dist.Normal(self.parent_one(), torch.tensor(1.0))
@@ -38,7 +35,7 @@ class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_hamiltonian_monte_carlo(self):
         model = self.SampleNormalModel()
-        hmc = SingleSiteHamiltonianMonteCarlo(0.1, 10)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 10)
         foo_key = model.foo()
         bar_key = model.bar()
         hmc.queries_ = [model.foo()]
@@ -53,7 +50,7 @@ class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_hamiltonian_monte_carlo_parents_changed(self):
         model = self.ChangingParentsModel()
-        hmc = SingleSiteHamiltonianMonteCarlo(0.1, 10)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 10)
 
         parent_one_key = model.parent_one()
         child_key = model.bad_child()

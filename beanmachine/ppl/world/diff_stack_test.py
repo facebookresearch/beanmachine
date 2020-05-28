@@ -1,20 +1,21 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.model.statistical_model import StatisticalModel, sample
+from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import Mode
 from beanmachine.ppl.world import Diff, Variable
 
 
 class DiffStackTest(unittest.TestCase):
     class SampleModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), tensor(1.0))
 

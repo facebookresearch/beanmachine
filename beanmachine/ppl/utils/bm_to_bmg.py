@@ -27,7 +27,7 @@ from beanmachine.ppl.utils.ast_patterns import (
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.utils.fold_constants import _fold_unary_op, fold
 from beanmachine.ppl.utils.optimize import optimize
-from beanmachine.ppl.utils.patterns import ListAny
+from beanmachine.ppl.utils.patterns import ListAny, match_any
 from beanmachine.ppl.utils.rules import (
     AllListMembers,
     AllOf as all_of,
@@ -223,11 +223,19 @@ _math_to_bmg: Rule = _top_down(
 
 
 _is_sample: PatternRule = PatternRule(
-    function_def(decorator_list=ListAny(name(id="sample")))
+    function_def(
+        decorator_list=ListAny(
+            match_any(attribute(attr="random_variable"), name(id="sample"))
+        )
+    )
 )
 
 _is_query: PatternRule = PatternRule(
-    function_def(decorator_list=ListAny(name(id="query")))
+    function_def(
+        decorator_list=ListAny(
+            match_any(attribute(attr="functional"), name(id="query"))
+        )
+    )
 )
 
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
@@ -240,7 +248,12 @@ _remove_query_decorator: Rule = _descend_until(
     _is_query,
     _specific_child(
         "decorator_list",
-        SomeListMembers(PatternRule(name(id="query"), lambda n: remove_from_list)),
+        SomeListMembers(
+            PatternRule(
+                match_any(attribute(attr="functional"), name(id="query")),
+                lambda n: remove_from_list,
+            )
+        ),
     ),
 )
 
@@ -250,7 +263,7 @@ _sample_to_memoize: Rule = _descend_until(
         "decorator_list",
         SomeListMembers(
             PatternRule(
-                name(id="sample"),
+                match_any(attribute(attr="random_variable"), name(id="sample")),
                 lambda n: ListEdit(
                     [
                         ast.Call(

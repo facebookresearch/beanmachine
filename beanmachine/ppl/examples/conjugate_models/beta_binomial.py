@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import beanmachine.ppl as bm
 import torch.distributions as dist
-from beanmachine.ppl.model.statistical_model import sample
 from torch import Tensor
 
 
@@ -10,10 +10,10 @@ class BetaBinomialModel(object):
         self.beta_ = beta
         self.trials_ = trials
 
-    @sample
+    @bm.random_variable
     def beta(self):
         return dist.Beta(self.alpha_, self.beta_)
 
-    @sample
+    @bm.random_variable
     def binomial(self):
         return dist.Binomial(self.trials_, self.beta())

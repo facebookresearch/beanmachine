@@ -1,9 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo import (
-    SingleSiteHamiltonianMonteCarlo,
-)
+import beanmachine.ppl as bm
 from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
     AbstractConjugateTests,
 )
@@ -13,11 +11,11 @@ class SingleSiteHamiltonianMonteCarloConjugateTest(
     unittest.TestCase, AbstractConjugateTests
 ):
     def test_beta_binomial_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(0.5, 0.05)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.5, 0.05)
         self.beta_binomial_conjugate_run(hmc, num_samples=150, delta=0.15)
 
     def test_gamma_gamma_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(0.1, 0.01)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 0.01)
         self.gamma_gamma_conjugate_run(hmc, num_samples=200, delta=0.15)
 
     def test_gamma_normal_conjugate_run(self):
@@ -25,13 +23,13 @@ class SingleSiteHamiltonianMonteCarloConjugateTest(
         pass
 
     def test_normal_normal_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(0.5, 0.05)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.5, 0.05)
         self.normal_normal_conjugate_run(hmc, num_samples=500, delta=0.1)
 
     def test_distant_normal_normal_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(1.0, 0.1)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(1.0, 0.1)
         self.distant_normal_normal_conjugate_run(hmc, num_samples=500, delta=0.1)
 
     def test_dirichlet_categorical_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(0.1, 0.01)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 0.01)
         self.dirichlet_categorical_conjugate_run(hmc, num_samples=200, delta=0.15)

@@ -4,36 +4,33 @@ import unittest
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
-    SingleSiteNewtonianMonteCarlo,
-)
-from beanmachine.ppl.model.statistical_model import sample
+import beanmachine.ppl as bm
 
 
 class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
     class SampleNormalModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
     class SampleLogisticRegressionModel(object):
-        @sample
+        @bm.random_variable
         def theta_0(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def theta_1(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def x(self, i):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def y(self, i):
             y = self.theta_1() * self.x(i) + self.theta_0()
             probs = 1 / (1 + (y * -1).exp())
@@ -41,7 +38,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
 
     def test_single_site_newtonian_monte_carlo(self):
         model = self.SampleNormalModel()
-        nw = SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo()
         foo_key = model.foo()
         bar_key = model.bar()
         nw.queries_ = [model.foo()]

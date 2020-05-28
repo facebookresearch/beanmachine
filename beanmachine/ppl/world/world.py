@@ -35,11 +35,11 @@ class World(object):
 
     for instance for model below:
 
-    @sample
+    @bm.random_variable
     def foo():
         return dist.Bernoulli(torch.tensor(0.1))
 
-    @sample
+    @bm.random_variable
     def bar():
         if not foo().item():
             return dist.Bernoulli(torch.tensor(0.1))

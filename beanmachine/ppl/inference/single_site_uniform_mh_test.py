@@ -1,39 +1,36 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.inference.single_site_uniform_mh import (
-    SingleSiteUniformMetropolisHastings,
-)
-from beanmachine.ppl.model.statistical_model import sample
 
 
 class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
     class SampleBernoulliModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Beta(torch.tensor(2.0), torch.tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Bernoulli(self.foo())
 
     class SampleCategoricalModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Dirichlet(torch.tensor([0.5, 0.5]))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Categorical(self.foo())
 
     def test_single_site_uniform_mh_with_bernoulli(self):
         model = self.SampleBernoulliModel()
-        mh = SingleSiteUniformMetropolisHastings()
+        mh = bm.SingleSiteUniformMetropolisHastings()
         foo_key = model.foo()
         bar_key = model.bar()
         mh.queries_ = [model.foo()]
@@ -50,7 +47,7 @@ class SingleSiteUniformMetropolisHastingsTest(unittest.TestCase):
 
     def test_single_site_uniform_mh_with_categorical(self):
         model = self.SampleCategoricalModel()
-        mh = SingleSiteUniformMetropolisHastings()
+        mh = bm.SingleSiteUniformMetropolisHastings()
         foo_key = model.foo()
         bar_key = model.bar()
         mh.queries_ = [model.foo()]

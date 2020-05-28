@@ -1,9 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo import (
-    SingleSiteHamiltonianMonteCarlo,
-)
+import beanmachine.ppl as bm
 from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
     AbstractConjugateTests,
 )
@@ -25,13 +23,13 @@ class SingleSiteAdaptiveHamiltonianMonteCarloConjugateTest(
         pass
 
     def test_normal_normal_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(0.5)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.5)
         self.normal_normal_conjugate_run(hmc, num_samples=300, delta=0.15)
 
     def test_distant_normal_normal_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(1.0)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(1.0)
         self.distant_normal_normal_conjugate_run(hmc, num_samples=500, delta=0.15)
 
     def test_dirichlet_categorical_conjugate_run(self):
-        hmc = SingleSiteHamiltonianMonteCarlo(0.1)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1)
         self.dirichlet_categorical_conjugate_run(hmc, num_samples=200, delta=0.15)

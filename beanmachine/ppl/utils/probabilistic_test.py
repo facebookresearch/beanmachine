@@ -17,11 +17,11 @@ class ProbabilisticTest(unittest.TestCase):
 
         # x is 0 or 1, we use that to choose from two different distributions:
         #
-        # @sample
+        # @bm.random_variable
         # def x():
         #   return Bernoulli(0.5)
         #
-        # @sample
+        # @bm.random_variable
         # def sample_function_1(p):
         #   return Bernoulli((p + 0.5) * 0.5)
         #
@@ -93,7 +93,7 @@ class ProbabilisticTest(unittest.TestCase):
         # x is 0 or 1
         # y is 2 or 3
         # We want a Bernoulli(0.02) or (0.03) or (0.04)
-        # @sample
+        # @bm.random_variable
         # def sample_function_2(x, y):
         #   return Bernoulli((x + y) * 0.01)
         # We would lower that to something like:

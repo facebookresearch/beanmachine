@@ -1,9 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from beanmachine.ppl.inference.single_site_uniform_mh import (
-    SingleSiteUniformMetropolisHastings,
-)
+import beanmachine.ppl as bm
 from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
     AbstractConjugateTests,
 )
@@ -13,7 +11,7 @@ class SingleSiteUniformMetropolisHastingsConjugateTest(
     unittest.TestCase, AbstractConjugateTests
 ):
     def setUp(self):
-        self.mh = SingleSiteUniformMetropolisHastings()
+        self.mh = bm.SingleSiteUniformMetropolisHastings()
 
     def test_beta_binomial_conjugate_run(self):
         self.beta_binomial_conjugate_run(self.mh)

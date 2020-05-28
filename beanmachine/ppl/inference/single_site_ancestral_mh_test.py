@@ -4,7 +4,6 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from torch import tensor
 
 
 class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
@@ -51,7 +50,7 @@ class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
         mh = bm.SingleSiteAncestralMetropolisHastings()
 
         queries = [model.mu()]
-        observations = {model.K(): tensor(2.0)}
+        observations = {model.K(): torch.tensor(2.0)}
 
         torch.manual_seed(42)
         samples = mh.infer(queries, observations, num_samples=5, num_chains=1)

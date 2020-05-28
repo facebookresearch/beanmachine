@@ -737,10 +737,10 @@ we generate a different node in BMG."""
     # is straightforward, we do not yet have the gear to implement
     # this for stochastic counts. Consider this contrived case:
     #
-    # @sample def a(): return Binomial(2, 0.5)
-    # @sample def b(): return Binomial(a() + 1, 0.4)
-    # @sample def c(i): return Normal(0.0, 2.0)
-    # @sample def d(): return Normal(c(b()), 3.0)
+    # @bm.random_variable def a(): return Binomial(2, 0.5)
+    # @bm.random_variable def b(): return Binomial(a() + 1, 0.4)
+    # @bm.random_variable def c(i): return Normal(0.0, 2.0)
+    # @bm.random_variable def d(): return Normal(c(b()), 3.0)
     #
     # The support of a() is 0, 1, 2 -- easy.
     #
@@ -1520,15 +1520,15 @@ multiple control flows based on the value of a stochastic node."""
 
     # For example, suppose we have this contrived model:
     #
-    #   @sample def weird(i):
+    #   @bm.random_variable def weird(i):
     #     if i == 0:
     #       return Normal(0.0, 1.0)
     #     return Normal(1.0, 1.0)
     #
-    #   @sample def flips():
+    #   @bm.random_variable def flips():
     #     return Binomial(2, 0.5)
     #
-    #   @sample def really_weird():
+    #   @bm.random_variable def really_weird():
     #     return Normal(weird(flips()), 1.0)
     #
     # There are three possibilities for weird(flips()) on the last line;
@@ -2093,7 +2093,7 @@ to the inference engine that the user is interested in
 getting a distribution of values of that node. It always
 points to an operator node.
 
-We represent queries in models with the @query annotation;
+We represent queries in models with the @bm.functional annotation;
 the compiler causes the returned nodes of such models
 to have a query node accumulated into the graph builder.
 """

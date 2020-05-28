@@ -1,41 +1,41 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import unittest
 
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer import (
     SingleSiteSimplexNewtonianMonteCarloProposer,
 )
-from beanmachine.ppl.model.statistical_model import sample
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
 
 
 class SingleSiteSimplexNewtonianMonteCarloProposerTest(unittest.TestCase):
     class SampleNormalModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
     class SampleLogisticRegressionModel(object):
-        @sample
+        @bm.random_variable
         def theta_0(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def theta_1(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def x(self, i):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def y(self, i):
             y = self.theta_1() * self.x(i) + self.theta_0()
             probs = 1 / (1 + (y * -1).exp())
