@@ -11,22 +11,22 @@ class StatisticalModel(object):
     Parent class to all statistical models implemented in Bean Machine.
 
     every random variable in the model needs to be defined with function
-    declaration accompanied with @sample decorator.
+    declaration accompanied with @bm.random_variable decorator.
 
     for instance, here is Gaussian Mixture Model implementation:
 
 
     K, alpha, beta, gamma = init()
 
-    @sample
+    @bm.random_variable
     def mu():
         return Normal(alpha, beta)
 
-    @sample
+    @bm.random_variable
     def z(i):
         return Uniform(K)
 
-    @sample
+    @bm.random_variable
     def y(i):
         return Normal(mu(z(i)), gamma)
     """

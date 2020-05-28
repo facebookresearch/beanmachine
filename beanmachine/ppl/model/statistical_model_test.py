@@ -1,14 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.model.statistical_model import (
-    RVIdentifier,
-    StatisticalModel,
-    query,
-    sample,
-)
+from beanmachine.ppl.model.statistical_model import RVIdentifier, StatisticalModel
 from beanmachine.ppl.model.utils import Mode
 
 
@@ -18,44 +14,44 @@ class StatisticalModelTest(unittest.TestCase):
         StatisticalModel.reset()
 
     class SampleModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def baz(self):
             return dist.Normal(self.foo(), self.bar())
 
     class SampleLargeModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def baz(self):
             return dist.Normal(self.foo(), self.bar())
 
-        @sample
+        @bm.random_variable
         def foobar(self):
             return dist.Normal(self.baz(), self.bar())
 
-        @sample
+        @bm.random_variable
         def bazbar(self, i):
             return dist.Normal(self.baz(), self.foo())
 
-        @sample
+        @bm.random_variable
         def foobaz(self):
             return dist.Normal(self.bazbar(1), self.foo())
 
-        @query
+        @bm.functional
         def avg(self):
             return self.foo() + 1
 

@@ -2,14 +2,13 @@
 import unittest
 from typing import Dict, Tuple
 
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
 )
-from beanmachine.ppl.model.statistical_model import sample
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 
@@ -50,17 +49,17 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
                 )
 
     class SampleGammaModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Gamma(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Gamma(self.foo(), torch.tensor(1.0))
 
     def test_custom_proposer(self):
         model = self.SampleGammaModel()
-        ci = CompositionalInference({model.foo: self.CustomProposer()})
+        ci = bm.CompositionalInference({model.foo: self.CustomProposer()})
         ci.queries_ = [model.foo()]
         ci.observations_ = {model.bar(): tensor(2.0)}
         ci._infer(2)

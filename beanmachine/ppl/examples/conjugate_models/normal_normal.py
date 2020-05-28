@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import beanmachine.ppl as bm
 import torch.distributions as dist
-from beanmachine.ppl.model.statistical_model import sample
 from torch import Tensor
 
 
@@ -10,10 +10,10 @@ class NormalNormalModel(object):
         self.std_ = std
         self.sigma_ = sigma
 
-    @sample
+    @bm.random_variable
     def normal_p(self):
         return dist.Normal(self.mu_, self.std_)
 
-    @sample
+    @bm.random_variable
     def normal(self):
         return dist.Normal(self.normal_p(), self.sigma_)

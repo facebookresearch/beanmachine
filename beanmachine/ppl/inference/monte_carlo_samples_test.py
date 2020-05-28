@@ -1,27 +1,24 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
-)
-from beanmachine.ppl.model.statistical_model import sample
 
 
 class MonteCarloSamplesTest(unittest.TestCase):
     class SampleModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
     def test_default_four_chains(self):
         model = self.SampleModel()
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         foo_key = model.foo()
         mcs = mh.infer([foo_key], {}, 10)
 
@@ -44,7 +41,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
 
     def test_one_chain(self):
         model = self.SampleModel()
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         foo_key = model.foo()
         bar_key = model.bar()
         mcs = mh.infer([foo_key, bar_key], {}, 10, 1)
@@ -68,7 +65,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
 
     def test_chain_exceptions(self):
         model = self.SampleModel()
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         foo_key = model.foo()
         mcs = mh.infer([foo_key], {}, 10)
 
@@ -88,7 +85,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
 
     def test_num_adaptive_samples(self):
         model = self.SampleModel()
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         foo_key = model.foo()
         mcs = mh.infer([foo_key], {}, 10, num_adaptive_samples=3)
 

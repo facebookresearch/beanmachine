@@ -35,11 +35,11 @@ class World(object):
 
     for instance for model below:
 
-    @sample
+    @bm.random_variable
     def foo():
         return dist.Bernoulli(torch.tensor(0.1))
 
-    @sample
+    @bm.random_variable
     def bar():
         if not foo().item():
             return dist.Bernoulli(torch.tensor(0.1))
@@ -552,9 +552,10 @@ class World(object):
         node_log_update = self.start_diff_with_proposed_val(
             node, proposed_value, start_new_diff=start_new_diff
         )
-        children_node_log_update, graph_update = self.create_child_with_new_distributions(
-            node
-        )
+        (
+            children_node_log_update,
+            graph_update,
+        ) = self.create_child_with_new_distributions(node)
         if not allow_graph_update and graph_update:
             raise RuntimeError(f"Computation graph changed after proposal for {node}")
         world_log_update = self.diff_.log_prob()

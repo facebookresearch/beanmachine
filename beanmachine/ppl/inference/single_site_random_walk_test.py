@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.examples.conjugate_models import (
@@ -9,8 +10,6 @@ from beanmachine.ppl.examples.conjugate_models import (
     GammaNormalModel,
     NormalNormalModel,
 )
-from beanmachine.ppl.inference.single_site_random_walk import SingleSiteRandomWalk
-from beanmachine.ppl.model.statistical_model import sample
 
 
 # A distribution which apparently takes values on the full number line,
@@ -79,11 +78,11 @@ class IntegerSupportDist(dist.Distribution):
 
 class SingleSiteRandomWalkTest(unittest.TestCase):
     class SampleModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
@@ -92,7 +91,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
     def test_single_site_random_walk_mechanics(self):
         model = self.SampleModel()
-        mh = SingleSiteRandomWalk()
+        mh = bm.SingleSiteRandomWalk()
         foo_key = model.foo()
         bar_key = model.bar()
         mh.queries_ = [foo_key]
@@ -112,20 +111,20 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
     """
 
     class RealSupportModel(object):
-        @sample
+        @bm.random_variable
         def p(self):
             return RealSupportDist()
 
-        @sample
+        @bm.random_variable
         def q(self):
             return dist.Normal(self.p(), torch.tensor(1.0))
 
     class HalfRealSupportModel(object):
-        @sample
+        @bm.random_variable
         def p(self):
             return HalfRealSupportDist()
 
-        @sample
+        @bm.random_variable
         def q(self):
             return dist.Normal(self.p(), torch.tensor(1.0))
 
@@ -134,26 +133,26 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
             self.lower_bound = IntervalRealSupportDist().support.lower_bound
             self.upper_bound = IntervalRealSupportDist().support.upper_bound
 
-        @sample
+        @bm.random_variable
         def p(self):
             return IntervalRealSupportDist()
 
-        @sample
+        @bm.random_variable
         def q(self):
             return dist.Normal(self.p(), torch.tensor(1.0))
 
     class IntegerSupportModel(object):
-        @sample
+        @bm.random_variable
         def p(self):
             return IntegerSupportDist()
 
-        @sample
+        @bm.random_variable
         def q(self):
             return dist.Normal(self.p(), torch.tensor(1.0))
 
     def test_single_site_random_walk_full_support(self):
         model = self.RealSupportModel()
-        mh = SingleSiteRandomWalk()
+        mh = bm.SingleSiteRandomWalk()
         p_key = model.p()
         queries = [p_key]
         observations = {model.q(): torch.tensor(1.0)}
@@ -170,7 +169,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
     def test_single_site_random_walk_half_support(self):
         model = self.HalfRealSupportModel()
-        mh = SingleSiteRandomWalk()
+        mh = bm.SingleSiteRandomWalk()
         p_key = model.p()
         queries = [p_key]
         observations = {model.q(): torch.tensor(100.0)}
@@ -194,7 +193,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         # Test for a single item of evidence
         def inner_fnc(evidence: float):
             model = self.IntervalRealSupportModel()
-            mh = SingleSiteRandomWalk()
+            mh = bm.SingleSiteRandomWalk()
             p_key = model.p()
             queries = [p_key]
             observations = {model.q(): torch.tensor(evidence)}
@@ -228,7 +227,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = NormalNormalModel(
             mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
         )
-        mh = SingleSiteRandomWalk(step_size=4)
+        mh = bm.SingleSiteRandomWalk(step_size=4)
         p_key = model.normal_p()
         queries = [p_key]
         observations = {model.normal(): torch.tensor(100.0)}
@@ -246,7 +245,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = NormalNormalModel(
             mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
         )
-        mh = SingleSiteRandomWalk(step_size=10)
+        mh = bm.SingleSiteRandomWalk(step_size=10)
         p_key = model.normal_p()
         queries = [p_key]
         observations = {model.normal(): torch.tensor(100.0)}
@@ -258,7 +257,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = NormalNormalModel(
             mu=torch.zeros(2), std=torch.ones(2), sigma=torch.ones(2)
         )
-        mh = SingleSiteRandomWalk(step_size=10)
+        mh = bm.SingleSiteRandomWalk(step_size=10)
         p_key = model.normal_p()
         queries = [p_key]
         observations = {model.normal(): torch.tensor([100.0, -100.0])}
@@ -271,7 +270,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = GammaNormalModel(
             shape=torch.ones(1), rate=torch.ones(1), mu=torch.ones(1)
         )
-        mh = SingleSiteRandomWalk(step_size=4.0)
+        mh = bm.SingleSiteRandomWalk(step_size=4.0)
         p_key = model.gamma()
         queries = [p_key]
         observations = {model.normal(): torch.tensor([100.0])}
@@ -290,7 +289,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = BetaBinomialModel(
             alpha=torch.ones(1) * 2.0, beta=torch.ones(1), trials=torch.ones(1) * 10.0
         )
-        mh = SingleSiteRandomWalk(step_size=0.3)
+        mh = bm.SingleSiteRandomWalk(step_size=0.3)
         p_key = model.beta()
         queries = [p_key]
         observations = {model.binomial(): torch.tensor([10.0])}
@@ -308,7 +307,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
     def test_single_site_random_walk_simplex_support_rate(self):
         model = CategoricalDirichletModel(alpha=torch.tensor([1.0, 10.0]))
-        mh = SingleSiteRandomWalk(step_size=1.0)
+        mh = bm.SingleSiteRandomWalk(step_size=1.0)
         p_key = model.dirichlet()
         queries = [p_key]
         observations = {model.categorical(): torch.tensor([1.0, 1.0, 1.0])}

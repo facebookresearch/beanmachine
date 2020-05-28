@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.model.statistical_model import sample
 from torch import Tensor
 
 
@@ -11,10 +11,10 @@ class GammaNormalModel(object):
         self.rate_ = rate
         self.mu_ = mu
 
-    @sample
+    @bm.random_variable
     def gamma(self):
         return dist.Gamma(self.shape_, self.rate_)
 
-    @sample
+    @bm.random_variable
     def normal(self):
         return dist.Normal(self.mu_, 1 / torch.sqrt(self.gamma()))

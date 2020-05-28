@@ -18,44 +18,44 @@ def tidy(s: str) -> str:
 # * No use of a sample as an index.
 #
 source_1 = """
-from beanmachine.ppl.model.statistical_model import sample
+import beanmachine.ppl as bm
 import torch
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal, StudentT
 
-@sample
+@bm.random_variable
 def flip_straight_constant():
   return Bernoulli(tensor(0.5))
 
-@sample
+@bm.random_variable
 def flip_logit_constant():
   return Bernoulli(logits=tensor(-2.0))
 
-@sample
+@bm.random_variable
 def standard_normal():
   return Normal(0.0, 1.0)
 
-@sample
+@bm.random_variable
 def flip_logit_normal():
   return Bernoulli(logits=standard_normal())
 
-@sample
+@bm.random_variable
 def beta_constant():
   return Beta(1.0, 1.0)
 
-@sample
+@bm.random_variable
 def hc(i):
   return HalfCauchy(1.0)
 
-@sample
+@bm.random_variable
 def beta_hc():
   return Beta(hc(1), hc(2))
 
-@sample
+@bm.random_variable
 def student_t():
   return StudentT(hc(1), standard_normal(), hc(2))
 
-@sample
+@bm.random_variable
 def bin_constant():
   return Binomial(3, 0.5)
 
@@ -213,22 +213,22 @@ n23 = g.add_operator(graph.OperatorType.SAMPLE, [n22])
 # These are cases where we have a type conversion on a sample.
 
 source_2 = """
-from beanmachine.ppl.model.statistical_model import sample
+import beanmachine.ppl as bm
 import torch
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal, StudentT
 
-@sample
+@bm.random_variable
 def flip():
   # Sample is a Boolean
   return Bernoulli(tensor(0.5))
 
-@sample
+@bm.random_variable
 def normal():
   # Converts Boolean to real, positive real
   return Normal(flip(), flip())
 
-@sample
+@bm.random_variable
 def binomial():
   # Converts Boolean to natural and probability
   return Binomial(flip(), flip())

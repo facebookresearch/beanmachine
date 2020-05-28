@@ -1,44 +1,41 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import unittest
 
+import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
 )
-from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
-    SingleSiteNewtonianMonteCarlo,
-)
-from beanmachine.ppl.model.statistical_model import sample
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
 
 
 class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
     class SampleNormalModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
     class SampleLogisticRegressionModel(object):
-        @sample
+        @bm.random_variable
         def theta_0(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def theta_1(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def x(self, i):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def y(self, i):
             y = self.theta_1() * self.x(i) + self.theta_0()
             probs = 1 / (1 + (y * -1).exp())
@@ -46,7 +43,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
 
     def test_mean_scale_tril_for_node_with_child(self):
         model = self.SampleNormalModel()
-        nw = SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
         nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
         foo_key = model.foo()
@@ -105,7 +102,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
 
     def test_mean_scale_tril(self):
         model = self.SampleNormalModel()
-        nw = SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
         nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
         foo_key = model.foo()
@@ -144,7 +141,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
 
     def test_mean_scale_tril_for_iids(self):
         model = self.SampleNormalModel()
-        nw = SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
         nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
         foo_key = model.foo()
@@ -183,7 +180,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
 
     def test_multi_mean_scale_tril_computation_in_inference(self):
         model = self.SampleLogisticRegressionModel()
-        nw = SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo()
         nw.world_ = World()
         nw_proposer = SingleSiteRealSpaceNewtonianMonteCarloProposer()
 

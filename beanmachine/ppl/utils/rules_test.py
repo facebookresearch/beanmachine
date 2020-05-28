@@ -11,6 +11,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_domain,
     ast_false,
     ast_true,
+    attribute,
     binop,
     constant_tensor_any,
     expr,
@@ -287,7 +288,7 @@ try_once(
         result = _all(_all(if_then(even, add_one)))(t).expect_success()
         self.assertEqual(ast.dump(result), ast.dump(ast.parse("1; 1; 3; 3; 5; 5 + 6")))
 
-    def test_find_samples(self) -> None:
+    def test_find_random_variables(self) -> None:
         """Find all the functions that have a decorator, delete everything else."""
 
         self.maxDiff = None
@@ -296,7 +297,9 @@ try_once(
         rule = pattern_rules(
             [
                 (
-                    function_def(decorator_list=ListAny(name(id="sample"))),
+                    function_def(
+                        decorator_list=ListAny(attribute(attr="random_variable"))
+                    ),
                     lambda f: ast.FunctionDef(
                         name=f.name,
                         args=f.args,
@@ -310,11 +313,11 @@ try_once(
         )
         source = """
 # foo.py
-@sample
+@bm.random_variable
 def bias() -> Beta:
     return Beta(1, 1)
 
-@sample
+@bm.random_variable
 def toss(i) -> Bernoulli:
     return Bernoulli(bias())
 

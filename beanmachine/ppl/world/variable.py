@@ -34,7 +34,7 @@ class Variable(object):
 
     for instance, for the following randodm variable:
 
-    @sample
+    @bm.random_variable
     def bar(self):
         if not self.foo():
             return dist.Bernoulli(torch.tensor(0.1))

@@ -1,15 +1,12 @@
 import unittest
 from typing import Dict
 
+import beanmachine.ppl as bm
 import beanmachine.ppl.diagnostics.common_statistics as common_statistics
 import pandas as pd
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.diagnostics.diagnostics import Diagnostics
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
-)
-from beanmachine.ppl.model.statistical_model import sample
 from statsmodels.tsa.stattools import acf
 
 
@@ -22,22 +19,22 @@ beta_dis = dist.Beta(torch.tensor([1.0, 2.0, 3.0]), torch.tensor([9.0, 8.0, 7.0]
 normal_dis = dist.Normal(torch.tensor([0.0, 1.0, 2.0]), torch.tensor([0.5, 1.0, 1.5]))
 
 
-@sample
+@bm.random_variable
 def diri(i, j):
     return diri_dis
 
 
-@sample
+@bm.random_variable
 def beta(i):
     return beta_dis
 
 
-@sample
+@bm.random_variable
 def normal():
     return normal_dis
 
 
-@sample
+@bm.random_variable
 def foo():
     return dist.Normal(0, 1)
 
@@ -133,7 +130,7 @@ class DiagnosticsTest(unittest.TestCase):
                 index += 1
 
         torch.manual_seed(123)
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         query_list = [beta(0), diri(1, 5), normal()]
         num_chains = 2
         samples = mh.infer(query_list, {}, 1000, num_chains)
@@ -156,7 +153,7 @@ class DiagnosticsTest(unittest.TestCase):
         _test_autocorr_object(Diagnostics(samples), query, query_samples)
 
     def test_r_hat_one_chain(self):
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         samples = mh.infer([normal()], {}, 50, 1)
         diagnostics = Diagnostics(samples)
         with self.assertWarns(UserWarning):
@@ -164,7 +161,7 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertTrue(results.empty)
 
     def test_r_hat_column(self):
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         samples = mh.infer([normal()], {}, 100, 2)
         diagnostics = Diagnostics(samples)
 
@@ -175,7 +172,7 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertTrue("r_hat" not in out_df.columns)
 
     def test_r_hat_no_column(self):
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         samples = mh.infer([normal()], {}, 100, 1)
         out_df = Diagnostics(samples).summary()
         self.assertTrue("r_hat" not in out_df.columns)
@@ -222,7 +219,7 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertAlmostEqual(dim2, 15.1438, delta=0.001)
 
     def test_effective_sample_size_columns(self):
-        mh = SingleSiteAncestralMetropolisHastings()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
         samples = mh.infer([normal()], {}, 100, 2)
         out_df = Diagnostics(samples).summary()
         self.assertTrue("n_eff" in out_df.columns)

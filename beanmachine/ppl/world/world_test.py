@@ -1,54 +1,55 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.model.statistical_model import StatisticalModel, sample
+from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import Mode
 from beanmachine.ppl.world import Variable, World
 
 
 class WorldTest(unittest.TestCase):
     class SampleModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             return dist.Normal(self.foo(), tensor(1.0))
 
     class SampleModelWithParentUpdate(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def baz(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             if self.foo().item() > 0.3:
                 return dist.Normal(self.foo(), tensor(1.0))
             return dist.Normal(self.baz(), tensor(1.0))
 
     class SampleLargeModelUpdate(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def baz(self):
             return dist.Normal(self.foo(), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def foobar(self):
             if self.foo().item() < 1:
                 return dist.Normal(self.foo(), tensor(1.0))
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def bar(self):
             if self.foo().item() < 0.3:
                 return dist.Normal(self.foo(), tensor(1.0))
@@ -58,34 +59,34 @@ class WorldTest(unittest.TestCase):
                 return dist.Normal(self.foobar(), tensor(1.0))
             return dist.Normal(self.foobaz(), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def foobaz(self):
             if self.foo().item() < 1:
                 return dist.Normal(self.foobar(), 1)
             return dist.Normal(tensor(0.0), tensor(1.0))
 
     class SampleLargeModelWithAncesters(object):
-        @sample
+        @bm.random_variable
         def X(self):
             return dist.Categorical([0.5, 0.5])
 
-        @sample
+        @bm.random_variable
         def A(self, i):
             return dist.Normal(0.0, 1.0)
 
-        @sample
+        @bm.random_variable
         def B(self, i):
             return dist.Normal(self.A(i), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def C(self, i):
             return dist.Normal(self.B(i), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def D(self, i):
             return dist.Normal(self.B(i), abs(self.C(i).item()) + 0.1)
 
-        @sample
+        @bm.random_variable
         def Y(self):
             return dist.Normal(self.D(self.X().item()), tensor(1.0))
 
@@ -130,9 +131,12 @@ class WorldTest(unittest.TestCase):
         foo_markov_blanket = world.get_markov_blanket(foo_key)
         self.assertListEqual(list(foo_markov_blanket), [])
 
-        children_log_update, world_log_update, node_log_update, _ = world.propose_change(
-            foo_key, tensor(0.25)
-        )
+        (
+            children_log_update,
+            world_log_update,
+            node_log_update,
+            _,
+        ) = world.propose_change(foo_key, tensor(0.25))
 
         expected_children_log_update = dist.Normal(tensor(0.25), tensor(1.0)).log_prob(
             tensor(0.1)
@@ -293,9 +297,12 @@ class WorldTest(unittest.TestCase):
 
         world.accept_diff()
 
-        children_log_update, world_log_update, node_log_update, score = world.propose_change(
-            foo_key, tensor(0.55)
-        )
+        (
+            children_log_update,
+            world_log_update,
+            node_log_update,
+            score,
+        ) = world.propose_change(foo_key, tensor(0.55))
 
         expected_node_update = (
             dist.Normal(tensor(0.0), tensor(1.0))
@@ -487,9 +494,12 @@ class WorldTest(unittest.TestCase):
             ),
         )
 
-        children_log_update, world_log_update, node_log_update, score = world.propose_change(
-            X_key, tensor(1.0)
-        )
+        (
+            children_log_update,
+            world_log_update,
+            node_log_update,
+            score,
+        ) = world.propose_change(X_key, tensor(1.0))
 
         a_value = tensor(0.0)
         b_value = tensor(0.0)

@@ -1,9 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
@@ -14,45 +14,44 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.model.statistical_model import sample
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
 
 
 class CompositionalInferenceTest(unittest.TestCase):
     class SampleModel(object):
-        @sample
+        @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def foobar(self):
             return dist.Categorical(tensor([0.5, 0, 5]))
 
-        @sample
+        @bm.random_variable
         def foobaz(self):
             return dist.Bernoulli(0.1)
 
-        @sample
+        @bm.random_variable
         def bazbar(self):
             return dist.Poisson(tensor([4]))
 
     class SampleNormalModel(object):
-        @sample
+        @bm.random_variable
         def foo(self, i):
             return dist.Normal(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def bar(self, i):
             return dist.Normal(tensor(10.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def foobar(self, i):
             return dist.Normal(self.foo(i) + self.bar(i), tensor(1.0))
 
     def test_single_site_compositionl_inference(self):
         model = self.SampleModel()
-        c = CompositionalInference()
+        c = bm.CompositionalInference()
         foo_key = model.foo()
         c.world_ = World()
         distribution = dist.Bernoulli(0.1)
@@ -152,7 +151,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_single_site_compositionl_inference_with_input(self):
         model = self.SampleModel()
-        c = CompositionalInference({model.foo: SingleSiteAncestralProposer()})
+        c = bm.CompositionalInference({model.foo: SingleSiteAncestralProposer()})
         foo_key = model.foo()
         c.world_ = World()
         distribution = dist.Normal(0.1, 1)
@@ -181,7 +180,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
     def test_proposer_for_block(self):
         model = self.SampleNormalModel()
-        ci = CompositionalInference()
+        ci = bm.CompositionalInference()
         ci.add_sequential_proposer([model.foo, model.bar])
         ci.queries_ = [
             model.foo(0),

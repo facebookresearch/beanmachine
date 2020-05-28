@@ -22,23 +22,23 @@ def tidy(s: str) -> str:
 
 
 source1 = """
-from beanmachine.ppl.model.statistical_model import sample
+import beanmachine.ppl as bm
 import torch
 from torch import exp, log, tensor
 from torch.distributions.bernoulli import Bernoulli
 
 assert 1 + 1 == 2, "math still works"
 
-@sample
+@bm.random_variable
 def X():
   assert 2 + 2 == 4, "math still works"
   return Bernoulli(tensor(0.01))
 
-@sample
+@bm.random_variable
 def Y():
   return Bernoulli(tensor(0.01))
 
-@sample
+@bm.random_variable
 def Z():
     return Bernoulli(
         1
@@ -50,18 +50,18 @@ def Z():
     )
 
 # Verify this is removed
-@query
+@bm.functional
 def Q():
   pass
 """
 
 expected_raw_1 = """
+import beanmachine.ppl as bm
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
-from beanmachine.ppl.model.statistical_model import sample
 import torch
 from torch import exp, log, tensor
 from torch.distributions.bernoulli import Bernoulli
@@ -248,17 +248,18 @@ Node 16 type 3 parents [ 15 ] children [ ] unknown value
 
 
 source2 = """
+import beanmachine.ppl as bm
 import torch
 from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
 
 
-@sample
+@bm.random_variable
 def x(n):
     return Bernoulli(probs=tensor(0.5) + log(input=exp(input=n * tensor(0.1))))
 
 
-@sample
+@bm.random_variable
 def z():
     return Bernoulli(
         tensor(0.3) ** x(0) + x(0) / tensor(10.0) - neg(x(1) * tensor(0.4))
@@ -388,15 +389,16 @@ digraph "graph" {
 # that we can use to experiment with these sorts of distributions:
 
 source3 = """
+import beanmachine.ppl as bm
 import torch
 from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
 
-@sample
+@bm.random_variable
 def x(n):
   return Bernoulli(tensor(0.5) + log(exp(n * tensor(0.1))))
 
-@sample
+@bm.random_variable
 def z():
   sum = 0.0
   for n in [0, 1]:
@@ -523,15 +525,16 @@ digraph "graph" {
 """
 
 source4 = """
+import beanmachine.ppl as bm
 import torch
 from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
 
-@sample
+@bm.random_variable
 def x(n):
   return Bernoulli(tensor(0.5) + log(exp(n * tensor(0.1))))
 
-@sample
+@bm.random_variable
 def z():
   sum = 0.0
   a = 2
@@ -612,6 +615,7 @@ roots = [z()]
 # Demonstrate that function calls work as expected when the
 # function called is NOT a sample function.
 source5 = """
+import beanmachine.ppl as bm
 import torch
 from torch.distributions import Bernoulli
 
@@ -623,11 +627,11 @@ def q(a, b):
 def r(p):
   return Bernoulli(p)
 
-@sample
+@bm.random_variable
 def x(n):
   return Bernoulli(0.5)
 
-@sample
+@bm.random_variable
 def z():
   return r(q(x(0), x(1)))
 """
@@ -714,20 +718,21 @@ digraph "graph" {
 # Flip the unfair coin and use that to construct either a double-headed
 # or double-tailed coin.
 source6 = """
+import beanmachine.ppl as bm
 import torch
 from torch.distributions import Bernoulli
 
 # x(0) is Bern(0.25)
 # x(1) is Bern(0.75)
-@sample
+@bm.random_variable
 def x(n):
   return Bernoulli(n * 0.5 + 0.25)
 
-@sample
+@bm.random_variable
 def y():
   return Bernoulli(0.5)
 
-@sample
+@bm.random_variable
 def z():
   return Bernoulli(x(y()))
 """
@@ -813,14 +818,15 @@ digraph "graph" {
 
 # Neal's funnel
 source7 = """
+import beanmachine.ppl as bm
 from torch.distributions import Normal
 from torch import exp
 
-@sample
+@bm.random_variable
 def X():
   return Normal(0.0, 3.0)
 
-@sample
+@bm.random_variable
 def Y():
     return Normal(loc=0.0, scale=exp(X() * 0.5))
 """
@@ -889,15 +895,16 @@ digraph "graph" {
 
 # Mint an unfair coin, then flip it.
 source8 = """
+import beanmachine.ppl as bm
 from torch.distributions import Beta, Bernoulli
 
 # What is the unfairness of the coins from this mint?
-@sample
+@bm.random_variable
 def mint():
     return Beta(1.0, 1.0)
 
 # Mint a coin and then toss it.
-@sample
+@bm.random_variable
 def toss():
     return Bernoulli(mint())
 """
@@ -952,25 +959,26 @@ digraph "graph" {
 
 # Testing support for calls with keyword args
 source9 = """
+import beanmachine.ppl as bm
 from torch.distributions import Bernoulli
 
-@sample
+@bm.random_variable
 def toss():
     return Bernoulli(probs=0.5)
 
 # Notice that logits Bernoulli with constant argument is folded to
 # probs Bernoulli...
-@sample
+@bm.random_variable
 def toss2():
     return Bernoulli(logits=0.0)
 
 # ...but we must make a distinction between logits and probs if the
 # argument is a sample.
-@sample
+@bm.random_variable
 def toss3():
     return Bernoulli(probs=toss())
 
-@sample
+@bm.random_variable
 def toss4():
     return Bernoulli(logits=toss())
 """
@@ -1041,6 +1049,7 @@ digraph "graph" {
 
 # Bayesian regression
 source10 = """
+import beanmachine.ppl as bm
 from torch import tensor, zeros
 from torch.distributions import Normal, Bernoulli
 N = 3
@@ -1049,13 +1058,13 @@ X = tensor([[1.0, 10, 20], [1.0, -100, -190], [1.0, -101, -192]])
 intercept_scale = 0.9
 coef_scale = [1.2, 2.3]
 
-@sample
+@bm.random_variable
 def beta():
     return Normal(
         zeros((K + 1, 1)), tensor([intercept_scale] + coef_scale).view(K + 1, 1)
     )
 
-@sample
+@bm.random_variable
 def y():
     return Bernoulli(logits=X.mm(beta()))
 """
@@ -1143,6 +1152,7 @@ digraph "graph" {
 # A sketch of a model for predicting if a new account is fake based on
 # friend requests issued and accepted.
 source11 = """
+import beanmachine.ppl as bm
 from torch import tensor
 from torch.distributions import Bernoulli
 FAKE_PRIOR = 0.001
@@ -1151,13 +1161,13 @@ FAKE_REQ_PROB = tensor([0.01, 0.02, 0.03])
 REAL_REQ_PROB = tensor([0.04, 0.05, 0.06])
 REQ_PROB = [REAL_REQ_PROB, FAKE_REQ_PROB]
 REAL_ACC_PROB = tensor([0.99, 0.50, 0.07])
-@sample
+@bm.random_variable
 def is_fake(account):
   return Bernoulli(FAKE_PRIOR)
-@sample
+@bm.random_variable
 def all_requests_sent(account):
   return Bernoulli(REQ_PROB[is_fake(account)])
-@sample
+@bm.random_variable
 def all_requests_accepted(account):
   return Bernoulli(REAL_ACC_PROB * all_requests_sent(account))
 _1 = 0
@@ -1165,6 +1175,7 @@ _2 = all_requests_accepted(_1)
 """
 
 expected_raw_11 = """
+import beanmachine.ppl as bm
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
@@ -1265,24 +1276,25 @@ digraph "graph" {
 """
 
 source12 = """
+import beanmachine.ppl as bm
 from torch.distributions import Normal, Uniform
-@sample
+@bm.random_variable
 def theta_0():
     return Normal(0,1)
 
-@sample
+@bm.random_variable
 def theta_1():
     return Normal(0,1)
 
-@sample
+@bm.random_variable
 def error():
     return Uniform(0,1)
 
-@sample
+@bm.random_variable
 def x(i):
     return Normal(0,1)
 
-@sample
+@bm.random_variable
 def y(i):
     return Normal(theta_0() + theta_1() * x(i), error())
 
@@ -1351,19 +1363,20 @@ digraph "graph" {
 # multidimensional Bernoulli distributions. Flip two coins,
 # take their average, and use that to make a third coin:
 source13 = """
+import beanmachine.ppl as bm
 import torch
 from torch import tensor
 from torch.distributions import Bernoulli
 
-@sample
+@bm.random_variable
 def x(n):
   return Bernoulli(n.sum()*0.5)
 
-@sample
+@bm.random_variable
 def y():
   return Bernoulli(tensor([0.5,0.5]))
 
-@sample
+@bm.random_variable
 def z():
   return Bernoulli(x(y()))
 """
@@ -1417,11 +1430,12 @@ digraph "graph" {
 
 # Simple example of categorical
 source14 = """
+import beanmachine.ppl as bm
 import torch
 from torch.distributions import Bernoulli, Categorical
 from torch import tensor
 
-@sample
+@bm.random_variable
 def x(n):
   if n == 0:
     return Bernoulli(0.5)
@@ -1429,11 +1443,11 @@ def x(n):
     return Categorical(tensor([1.0, 3.0, 4.0]))
   return Bernoulli(0.75)
 
-@sample
+@bm.random_variable
 def y():
   return Categorical(tensor([2.0, 6.0, 8.0]))
 
-@sample
+@bm.random_variable
 def z():
   p = x(y()) * 0.25
   return Bernoulli(p)
@@ -1489,20 +1503,21 @@ digraph "graph" {
 # mean we want with z(0), ..., use that to sample mu(z(0)) to get the mean,
 # and then use that mean to sample from a normal distribution.
 source15 = """
+import beanmachine.ppl as bm
 from torch import tensor
 from torch.distributions import Categorical, Normal
 
-@sample
+@bm.random_variable
 def mu(k):
     # Means of the components are normally distributed
     return Normal(0, 1)
 
-@sample
+@bm.random_variable
 def z(i):
     # Choose a category, 0, 1 or 2 with ratio 1:3:4.
     return Categorical(tensor([1., 3., 4.]))
 
-@sample
+@bm.random_variable
 def y(i):
     return Normal(mu(z(i)), 1)
 
@@ -1551,6 +1566,7 @@ digraph "graph" {
 
 # Simplified CLARA model
 source16 = """
+import beanmachine.ppl as bm
 from torch import tensor
 from torch.distributions import Categorical, Dirichlet
 # three categories
@@ -1570,7 +1586,7 @@ bar_jpg = 21
 
 beta = tensor([1., 1., 1.])
 
-@sample
+@bm.random_variable
 def pi():
   return Dirichlet(beta)
 
@@ -1587,13 +1603,13 @@ alpha = [
 
 # For each classifier j, and each category k, sample a categorical distribution
 # of likely classifications of an item truly of category k.
-@sample
+@bm.random_variable
 def theta(j: int, k: int):
     return Dirichlet(alpha[k])
 
 # For each item i, sample it from a collection of items whose true
 # categories are distributed by pi. The output sample is a category.
-@sample
+@bm.random_variable
 def z(i: int):
     return Categorical(pi())
 
@@ -1602,7 +1618,7 @@ def z(i: int):
 # classifier j will be to sample from a categorical distribution
 # whose parameters are theta(j, z(i))
 # The output sample is again a category.
-@sample
+@bm.random_variable
 def y(i: int, j: int):
     return Categorical(theta(j, z(i)))
 
@@ -1698,9 +1714,9 @@ digraph "graph" {
 
 # Bayesian Meta-analysis example
 source17 = """
+import beanmachine.ppl as bm
 from torch.distributions import HalfCauchy, Normal, StudentT
 from torch import tensor
-from beanmachine.ppl.model.statistical_model import sample
 
 class Node:
     def __init__(self, level=None, parent=None, result=None, stddev=None):
@@ -1729,7 +1745,7 @@ experiments = [
     Node(result=32.3,  stddev=3.2, parent=team4),
 ]
 
-@sample
+@bm.random_variable
 def experiment_result(experiment):
     mean = (
         true_value() +
@@ -1739,15 +1755,15 @@ def experiment_result(experiment):
         node_bias(experiment.parent.parent))
     return Normal(mean, experiment.stddev)
 
-@sample
+@bm.random_variable
 def true_value():
     return StudentT(3, 0, 10)
 
-@sample
+@bm.random_variable
 def node_bias(node):
     return Normal(0, sigma(node.level))
 
-@sample
+@bm.random_variable
 def sigma(level):
     return HalfCauchy(tensor(1.))
 
@@ -1867,27 +1883,27 @@ digraph "graph" {
 
 
 source18 = """
+import beanmachine.ppl as bm
 from torch.distributions import HalfCauchy, Normal, StudentT
 from torch import tensor
-from beanmachine.ppl.model.statistical_model import query, sample
 
-@sample
+@bm.random_variable
 def result():
     return Normal(mean(), 1.0)
 
-@query
+@bm.functional
 def mean():
   return true_value() + bias()
 
-@sample
+@bm.random_variable
 def true_value():
     return StudentT(3, 0, 10)
 
-@sample
+@bm.random_variable
 def bias():
     return Normal(0, sigma())
 
-@sample
+@bm.random_variable
 def sigma():
     return HalfCauchy(tensor(1.))
 """
@@ -2020,18 +2036,19 @@ class CompilerTest(unittest.TestCase):
 
         # The dependency graph here is x -> y -> z -> x
         bad_model_1 = """
+import beanmachine.ppl as bm
 import torch
 from torch import tensor
 
-@sample
+@bm.random_variable
 def x():
   return Bernoulli(y())
 
-@sample
+@bm.random_variable
 def y():
   return Bernoulli(z())
 
-@sample
+@bm.random_variable
 def z():
   return Bernoulli(x())
 """
@@ -2040,18 +2057,19 @@ def z():
 
         # The dependency graph here is z -> x(2) -> y(0) -> x(1) -> y(0)
         bad_model_2 = """
+import beanmachine.ppl as bm
 import torch
 from torch import tensor
 
-@sample
+@bm.random_variable
 def x(n):
   return Bernoulli(y(0))
 
-@sample
+@bm.random_variable
 def y(n):
   return Bernoulli(x(n + 1))
 
-@sample
+@bm.random_variable
 def z():
   return Bernoulli(x(2))
 """

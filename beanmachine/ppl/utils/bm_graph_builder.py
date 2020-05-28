@@ -842,7 +842,7 @@ that has the receiver, if any, as its first member."""
 
     def handle_sample(self, operand: Any) -> SampleNode:
         """As we execute the lifted program, this method is called every
-time a model function decorated with @sample returns; we verify that the
+time a model function decorated with @bm.random_variable returns; we verify that the
 returned value is a distribution that we know how to accumulate into the
 graph, and add a sample node to the graph."""
         if isinstance(operand, DistributionNode):
@@ -919,7 +919,7 @@ graph, and add a sample node to the graph."""
         return node
 
     def handle_query(self, value: Any) -> Any:
-        # When we have an @query function, we need to put a node
+        # When we have an @bm.functional function, we need to put a node
         # in the graph indicating that the value returned is of
         # interest to the user, and the inference engine should
         # accumulate information about it.  Under what circumstances
@@ -1074,7 +1074,7 @@ the "right"."""
     #
     # For example a model which contains
     #
-    # @sample
+    # @bm.random_variable
     # def flip():
     #   return Bernoulli(tensor(0.5))
     #
