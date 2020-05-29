@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
+from unittest.mock import patch
 
 import beanmachine.ppl as bm
 import torch.distributions as dist
@@ -259,3 +260,17 @@ class CompositionalInferenceTest(unittest.TestCase):
             children_log_updates.item(),
             delta=0.001,
         )
+
+    def test_block_inference_on_functions(self):
+        @bm.random_variable
+        def foo():
+            return dist.Normal(0, 1)
+
+        ci = bm.CompositionalInference()
+        ci.add_sequential_proposer([foo])
+
+        with patch.object(
+            ci, "block_propose_change", wraps=ci.block_propose_change
+        ) as mock:
+            ci.infer([foo()], {}, num_samples=2)
+            mock.assert_called()
