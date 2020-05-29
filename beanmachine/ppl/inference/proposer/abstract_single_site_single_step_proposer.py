@@ -6,6 +6,7 @@ import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.abstract_single_site_proposer import (
     AbstractSingleSiteProposer,
 )
+from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
@@ -106,7 +107,7 @@ class AbstractSingleSiteSingleStepProposer(
         ):
             old_value = old_value.reshape(-1)
 
-        positive_log_update = proposal_distribution.log_prob(old_value).sum()
+        positive_log_update = safe_log_prob_sum(proposal_distribution, old_value)
 
         if requires_transform:
             positive_log_update = positive_log_update - node_var.jacobian

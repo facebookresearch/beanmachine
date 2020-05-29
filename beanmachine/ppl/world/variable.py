@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Set
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
+from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.utils import RVIdentifier, float_types
 from beanmachine.ppl.world.utils import get_transforms, is_discrete
 from torch import Tensor
@@ -231,15 +232,7 @@ class Variable(object):
         """
         Computes the log probability of the value of the random varialble
         """
-        try:
-            # pyre-fixme
-            self.log_prob = self.distribution.log_prob(self.value).sum()
-        except (RuntimeError, ValueError) as e:
-            # pyre-fixme
-            if not self.distribution.support.check(self.value):
-                self.log_prob = tensor(float("-Inf"))
-            else:
-                raise e
+        self.log_prob = safe_log_prob_sum(self.distribution, self.value)
 
     def set_transform(self, transform: List):
         """

@@ -4,6 +4,7 @@ from enum import Enum
 from typing import List
 
 from beanmachine.ppl.model.utils import RVIdentifier
+from torch import Tensor, tensor
 
 
 class BlockType(Enum):
@@ -27,3 +28,14 @@ class Block:
     first_node: RVIdentifier
     type: BlockType
     block: List[str]
+
+
+def safe_log_prob_sum(distrib, value: Tensor) -> Tensor:
+    "Computes log_prob, converting out of support exceptions to -Infinity."
+    try:
+        return distrib.log_prob(value).sum()
+    except (RuntimeError, ValueError) as e:
+        if not distrib.support.check(value):
+            return tensor(float("-Inf"))
+        else:
+            raise e
