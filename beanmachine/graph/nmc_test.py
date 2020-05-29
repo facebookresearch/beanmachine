@@ -305,3 +305,127 @@ class TestNMC(unittest.TestCase):
             sum(x == y for (x, y) in g.infer(100000, graph.InferenceType.NMC)) / 100000
         )
         self.assertAlmostEqual(prob_equal, 0.88, delta=0.01)
+
+    @classmethod
+    def create_GPfactor(cls, bmg, alpha, rho, scores, mu=0.0):
+        # see https://mc-stan.org/docs/2_19/functions-reference/covariance.html for
+        # a reference on this covariance function
+        covar = (
+            alpha ** 2 * (-((scores.unsqueeze(1) - scores) ** 2) / 2 / rho ** 2).exp()
+        )
+        tau = covar.inverse()  # the precision matrix
+        neg_mu = bmg.add_constant(-mu)
+        # f ~ GP
+        flat = bmg.add_distribution(
+            graph.DistributionType.FLAT, graph.AtomicType.REAL, []
+        )
+        f = [bmg.add_operator(graph.OperatorType.SAMPLE, [flat]) for _ in scores]
+        if mu == 0.0:
+            f_centered = f
+        else:
+            f_centered = [
+                bmg.add_operator(graph.OperatorType.ADD, [fi, neg_mu]) for fi in f
+            ]
+        for i in range(len(scores)):
+            tau_i_i = bmg.add_constant(-0.5 * tau[i, i].item())
+            bmg.add_factor(
+                graph.FactorType.EXP_PRODUCT, [tau_i_i, f_centered[i], f_centered[i]]
+            )
+            for j in range(i + 1, len(scores)):
+                tau_i_j = bmg.add_constant(-1.0 * tau[i, j].item())
+                bmg.add_factor(
+                    graph.FactorType.EXP_PRODUCT,
+                    [tau_i_j, f_centered[i], f_centered[j]],
+                )
+        return f
+
+    @classmethod
+    def sum_negate_nodes(cls, bmg, in_nodes):
+        result = bmg.add_operator(
+            graph.OperatorType.NEGATE,
+            [
+                bmg.add_operator(
+                    graph.OperatorType.TO_REAL,
+                    [bmg.add_operator(graph.OperatorType.ADD, in_nodes)],
+                )
+            ],
+        )
+        return result
+
+    def test_clara_gp_logit(self):
+        """
+        CLARA-GP model with prev, sens, spec in logit space
+        f_prev() ~ GP(0, squared_exp_covar)
+        f_sens() ~ GP(logit(0.9), squared_exp_covar)
+        f_spec() ~ GP(logit(0.95), squared_exp_covar)
+        for each item i
+            log_prev_i = -log1pexp(-f_prev(i)) # log(prev_i)
+            log_comp_prev_i = -log1pexp(f_prev(i)) # log(1 - prev_i)
+            # assume all labeller share the same sens and spec
+            # so sens and spec only depends on score, indexed by i
+            log_spec_i = -log1pexp(-f_spec(i))
+            log_com_spec_i = -log1pexp(f_spec(i))
+            log_sens_i = -log1pexp(-f_sens(i))
+            log_comp_sens_i = -log1pexp(f_sens(i))
+            loglik1, loglik2 = log_prev_i, log_comp_prev_i
+            for each label
+                loglik1 += label_i_l ? log_sens_i : log_comp_sens_i
+                loglik2 += label_i_l ? log_comp_spec_i : log_spec_i
+            add factor:
+                logsumexp(loglik1, loglk2)
+        """
+        ALPHA = 1.0
+        RHO = 0.1
+        SPEC_MU = 2.9  # logit(0.95)
+        SENS_MU = 2.2  # logit(0.9)
+        # NUM_LABELERS = 2
+        SCORES = torch.tensor([0.1, 0.2, 0.3])
+        ITEM_LABELS = [[False, False], [False, True], [True, True]]
+        # create f ~ GP
+        g = graph.Graph()
+        f_prev = self.create_GPfactor(g, ALPHA, RHO, SCORES)
+        f_spec = self.create_GPfactor(g, ALPHA, RHO, SCORES, SPEC_MU)
+        f_sens = self.create_GPfactor(g, ALPHA, RHO, SCORES, SENS_MU)
+        # for each factor:
+        #   -log(p) = lop1pexp(-f)
+        #   -log(1-p) = log1pexp(f)
+        # note: the followings log_* are negative log probabilities,
+        #   negate right before LOGSUMEXP
+
+        # for each item i
+        for i, labels in enumerate(ITEM_LABELS):
+            # in this test case, we assume labelers share the same spec and sens
+            log_spec = g.add_operator(
+                graph.OperatorType.LOG1PEXP,
+                [g.add_operator(graph.OperatorType.NEGATE, [f_spec[i]])],
+            )
+            log_comp_spec = g.add_operator(graph.OperatorType.LOG1PEXP, [f_spec[i]])
+            log_sens = g.add_operator(
+                graph.OperatorType.LOG1PEXP,
+                [g.add_operator(graph.OperatorType.NEGATE, [f_sens[i]])],
+            )
+            log_comp_sens = g.add_operator(graph.OperatorType.LOG1PEXP, [f_sens[i]])
+            log_prev = g.add_operator(
+                graph.OperatorType.LOG1PEXP,
+                [g.add_operator(graph.OperatorType.NEGATE, [f_prev[i]])],
+            )
+            log_comp_prev = g.add_operator(graph.OperatorType.LOG1PEXP, [f_prev[i]])
+            loglik1, loglik2 = [log_prev], [log_comp_prev]
+            # for each labeler l
+            for label_val in labels:
+                if label_val:
+                    loglik1.append(log_sens)
+                    loglik2.append(log_comp_spec)
+                else:
+                    loglik1.append(log_comp_sens)
+                    loglik2.append(log_spec)
+            loglik1 = self.sum_negate_nodes(g, loglik1)
+            loglik2 = self.sum_negate_nodes(g, loglik2)
+            g.add_factor(
+                graph.FactorType.EXP_PRODUCT,
+                [g.add_operator(graph.OperatorType.LOGSUMEXP, [loglik1, loglik2])],
+            )
+            g.query(f_prev[i])
+        means = g.infer_mean(1000, graph.InferenceType.NMC)
+        self.assertLess(means[0], means[1])
+        self.assertLess(means[1], means[2])
