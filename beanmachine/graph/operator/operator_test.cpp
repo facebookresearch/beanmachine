@@ -237,3 +237,62 @@ TEST(testoperator, log1pexp) {
   EXPECT_NEAR(grad1, -0.4643, 1e-3);
   EXPECT_NEAR(grad2, -1.4480, 1e-3);
 }
+
+TEST(testoperator, logsumexp) {
+  Graph g;
+  // negative tests: two or more real/pos should be the input
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{}),
+      std::invalid_argument);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{pos1}),
+      std::invalid_argument);
+  auto prob1 = g.add_constant_probability(0.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{prob1, prob1}),
+      std::invalid_argument);
+  // y ~ Normal(logsumexp(x^2, z^3), 1) and x = 0.5, z = -0.5
+  // note: ln[exp(0.25) + exp(-0.125)] = 0.773
+  auto prior = g.add_distribution(
+      DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto z = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
+  auto z_thrd = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{z, z, z});
+  auto logsumexp_xz =
+      g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{x_sq, z_thrd});
+  auto likelihood = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{logsumexp_xz, pos1});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
+  g.query(y);
+  g.observe(x, 0.5);
+  g.observe(z, -0.5);
+  const auto& means = g.infer_mean(10000, InferenceType::NMC);
+  EXPECT_NEAR(means[0], 0.773, 0.01);
+  g.observe(y, 0.0);
+  // check gradient:
+  // Verified in pytorch using the following code:
+  // x = tensor([0.5], requires_grad=True)
+  // z = tensor([-0.5], requires_grad=True)
+  // x_sq = x * x
+  // z_thrd = z * z * z
+  // in_nodes = torch.cat((x_sq, z_thrd), 0)
+  // f_xz = dist.Normal(in_nodes.logsumexp(dim=0), tensor(1.0)).log_prob(tensor(0.0))
+  // f_grad = torch.autograd.grad(f_xz, x, create_graph=True) # -0.4582
+  // f_grad2 = torch.autograd.grad(f_grad, x) # -1.4543
+  // f_grad = torch.autograd.grad(f_xz, z, create_graph=True) # -0.2362
+  // f_grad2 = torch.autograd.grad(f_grad, z) # 0.7464
+  double grad1 = 0;
+  double grad2 = 0;
+  g.gradient_log_prob(x, grad1, grad2);
+  EXPECT_NEAR(grad1, -0.4582, 1e-3);
+  EXPECT_NEAR(grad2, -1.4543, 1e-3);
+  grad1 = 0;
+  grad2 = 0;
+  g.gradient_log_prob(z, grad1, grad2);
+  EXPECT_NEAR(grad1, -0.2362, 1e-3);
+  EXPECT_NEAR(grad2, 0.7464, 1e-3);
+}
