@@ -44,7 +44,10 @@ class CompositionalInference(AbstractMHInference):
         """
         blocks = []
         for rv in block:
-            blocks.append(rv.__func__)
+            if hasattr(rv, "__func__"):
+                blocks.append(rv.__func__)
+            else:
+                blocks.append(rv)
         self.blocks_.append(blocks)
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
