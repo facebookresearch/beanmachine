@@ -116,6 +116,31 @@ void Operator::compute_gradients() {
       }
       break;
     }
+    case graph::OperatorType::LOGSUMEXP: {
+      // f(g1, ..., gn) = log(sum_i^n exp(gi))
+      // note: in the following equations, df/dx means partial derivative
+      // grad1 = df/dx = sum_i^n (df/dgi * dgi/dx)
+      // where df/dgi = exp(gi) / sum_j^n exp(gj) = exp(gi - f)
+      // grad2 = d(df/dx)/dx =
+      // sum_i^n{ d(df/dgi)/dx * dgi/dx + df/dgi * d(dgi/dx)/dx }
+      // where d(df/dgi)/dx = exp(gi - f) * (dgi/dx - df/dx)
+      // therefore, grad2 = sum_i^n{exp(gi - f) * [(dgi/dx - grad1)*dgi/dx + d(dgi/dx)/dx]}
+      grad1 = grad2 = 0;
+      const uint N = in_nodes.size();
+      std::vector<double> f_grad;
+      for (uint i = 0; i < N; i++) {
+        const auto node_i = in_nodes[i];
+        double f_grad_i = std::exp(node_i->value._double - value._double);
+        grad1 += f_grad_i * node_i->grad1;
+        f_grad.push_back(f_grad_i);
+      }
+      assert(f_grad.size() == N);
+      for (uint i = 0; i < N; i++) {
+        const auto node_i = in_nodes[i];
+        grad2 += f_grad[i] * (node_i->grad1 * (node_i->grad1 - grad1) + node_i->grad2);
+      }
+      break;
+    }
     case graph::OperatorType::IF_THEN_ELSE: {
       if (in_nodes[0]->value._bool) {
         grad1 = in_nodes[1]->grad1;
