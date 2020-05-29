@@ -1,5 +1,6 @@
 import logging
 
+from beanmachine.ppl.diagnostics import Diagnostics
 from beanmachine.ppl.inference import (
     CompositionalInference,
     SingleSiteAncestralMetropolisHastings,
@@ -24,6 +25,7 @@ LOGGER.addHandler(file_handler)
 
 __all__ = [
     "CompositionalInference",
+    "Diagnostics",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
     "SingleSiteNewtonianMonteCarlo",

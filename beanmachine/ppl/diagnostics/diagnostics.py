@@ -5,8 +5,6 @@ import math
 import warnings
 from typing import Callable, Dict, List, Optional, Tuple
 
-import beanmachine.ppl.diagnostics.common_plots as common_plots
-import beanmachine.ppl.diagnostics.common_statistics as common_stats
 import numpy as np
 import pandas as pd
 import plotly
@@ -14,6 +12,8 @@ from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.utils import RVIdentifier
 from plotly.subplots import make_subplots
 from torch import Tensor
+
+from . import common_plots, common_statistics as common_stats
 
 
 class BaseDiagnostics:
