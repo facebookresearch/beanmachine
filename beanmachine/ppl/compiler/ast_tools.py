@@ -10,6 +10,7 @@ from typing import Any, List, Tuple
 
 import beanmachine.ppl.utils.dotbuilder as db
 import beanmachine.ppl.utils.treeprinter as tp
+import black
 
 
 def _get_name(node: Any) -> str:
@@ -46,3 +47,9 @@ representation of the tree as a graph."""
         return []
 
     return db.print_graph([node], get_children, None, _get_name)
+
+
+def print_python(node: AST) -> str:
+    """Takes an AST and produces a string containing a human-readable
+Python expression that builds the AST node."""
+    return black.format_str(ast.dump(node), mode=black.FileMode())
