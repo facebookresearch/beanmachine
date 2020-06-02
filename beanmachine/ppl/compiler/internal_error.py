@@ -3,20 +3,47 @@
 
 import os
 from ast import AST
+from tempfile import NamedTemporaryFile
 from typing import Optional
 
 import beanmachine.ppl.compiler.ast_tools as ast_tools
 
 
+_BEANSTALK_LOG_ERRORS_TO_DISK = "BEANSTALK_LOG_ERRORS_TO_DISK"
+
 _BEANSTALK_VERBOSE_EXCEPTIONS = "BEANSTALK_VERBOSE_EXCEPTIONS"
+
+
+_help_log = f"""Set environment variable {_BEANSTALK_LOG_ERRORS_TO_DISK}
+to 1 to dump extended error information to a temporary file.
+"""
 
 _help_verbose = f"""Set environment variable {_BEANSTALK_VERBOSE_EXCEPTIONS}
 to 1 for extended error information.
 """
 
 
+def _log_to_disk(message: str) -> str:
+    temp = NamedTemporaryFile(prefix="beanstalk_ice_", delete=False, mode="wt")
+    try:
+        temp.write(message)
+    finally:
+        temp.close()
+    return temp.name
+
+
 def _check_environment(variable: str) -> bool:
     return os.environ.get(variable) == "1"
+
+
+# You can change this to True for debugging purposes.
+_always_log_errors_to_disk = False
+
+
+def _log_errors_to_disk() -> bool:
+    return _always_log_errors_to_disk or _check_environment(
+        _BEANSTALK_LOG_ERRORS_TO_DISK
+    )
 
 
 # You can change this to True for debugging purposes.
@@ -69,11 +96,17 @@ failed = {ast_tools.print_python(ast)}
 ### End internal compiler error ###
 """
 
+        log = _log_errors_to_disk()
         use_verbose = _verbose_exceptions()
 
-        help_text = "" if use_verbose else _help_verbose
+        help_text = "" if log else _help_log
+        help_text += "" if use_verbose else _help_verbose
 
         message = verbose if use_verbose else brief
         message += help_text
+
+        if log:
+            logname = _log_to_disk(verbose)
+            message += f"\nExtended error information logged to {logname}\n"
 
         InternalError.__init__(self, message, original_exception)
