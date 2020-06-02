@@ -1,7 +1,8 @@
 import logging
 
-from beanmachine.ppl.diagnostics import Diagnostics
-from beanmachine.ppl.inference import (
+from . import experimental
+from .diagnostics import Diagnostics
+from .inference import (
     CompositionalInference,
     SingleSiteAncestralMetropolisHastings,
     SingleSiteHamiltonianMonteCarlo,
@@ -9,7 +10,7 @@ from beanmachine.ppl.inference import (
     SingleSiteRandomWalk,
     SingleSiteUniformMetropolisHastings,
 )
-from beanmachine.ppl.model import functional, random_variable
+from .model import functional, random_variable
 
 
 console_handler = logging.StreamHandler()
@@ -31,6 +32,7 @@ __all__ = [
     "SingleSiteNewtonianMonteCarlo",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
+    "experimental",
     "functional",
     "random_variable",
 ]
