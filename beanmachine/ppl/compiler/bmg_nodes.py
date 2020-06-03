@@ -590,7 +590,7 @@ so is useful for creating probabilities."""
         return Beta
 
     def sample_type(self) -> Any:
-        if self.fixed_types:
+        if self.types_fixed:
             return Probability
         return self.alpha.node_type
 
@@ -1139,7 +1139,7 @@ and the true mean."""
         return StudentT
 
     def sample_type(self) -> Any:
-        if self.fixed_types:
+        if self.types_fixed:
             return float
         return self.df.node_type
 
