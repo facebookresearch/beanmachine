@@ -2,6 +2,7 @@ import logging
 
 from . import experimental
 from .diagnostics import Diagnostics
+from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
 from .inference import (
     CompositionalInference,
     SingleSiteAncestralMetropolisHastings,
@@ -35,4 +36,7 @@ __all__ = [
     "experimental",
     "functional",
     "random_variable",
+    "effective_sample_size",
+    "split_r_hat",
+    "r_hat",
 ]
