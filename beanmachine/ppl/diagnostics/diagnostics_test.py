@@ -133,7 +133,7 @@ class DiagnosticsTest(unittest.TestCase):
         mh = bm.SingleSiteAncestralMetropolisHastings()
         query_list = [beta(0), diri(1, 5), normal()]
         num_chains = 2
-        samples = mh.infer(query_list, {}, 1000, num_chains)
+        samples = mh.infer(query_list, {}, 1500, num_chains)
 
         out_df = Diagnostics(samples).summary()
         _inference_evaulation(out_df)
