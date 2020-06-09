@@ -17,6 +17,8 @@ from tqdm import tqdm
 
 
 LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
+LOGGER_PROPOSER = logging.getLogger("beanmachine.debug.proposer")
+LOGGER_GRAPH = logging.getLogger("beanmachine.debug.graph")
 
 
 class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
@@ -110,9 +112,11 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         :param proposer: the proposer with which propose a new value for node
         :returns: acceptance probability for the query
         """
-        proposed_value, negative_proposal_log_update, auxiliary_variables = proposer.propose(
-            node, self.world_
-        )
+        (
+            proposed_value,
+            negative_proposal_log_update,
+            auxiliary_variables,
+        ) = proposer.propose(node, self.world_)
 
         LOGGER_UPDATES.log(
             LogLevel.DEBUG_UPDATES.value,
@@ -172,10 +176,19 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                 # We look up the node's current markov blanket before re-sampling
                 old_node_markov_blanket = self.world_.get_markov_blanket(node)
                 proposer = self.find_best_single_site_proposer(node)
-                # We use the best single site proposer to propose a new value.
-                proposed_value, negative_proposal_log_update, auxiliary_variables = proposer.propose(
-                    node, self.world_
+                LOGGER_PROPOSER.log(
+                    LogLevel.DEBUG_PROPOSER.value,
+                    "=" * 30
+                    + "\n"
+                    + "Proposer info for node: {n}\n".format(n=node)
+                    + "- Type: {pt}\n".format(pt=str(type(proposer))),
                 )
+                # We use the best single site proposer to propose a new value.
+                (
+                    proposed_value,
+                    negative_proposal_log_update,
+                    auxiliary_variables,
+                ) = proposer.propose(node, self.world_)
                 neg_proposal_log_updates += negative_proposal_log_update
 
                 LOGGER_UPDATES.log(
@@ -225,13 +238,16 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         :param block: the block of random variables to be resampled sequentially
         in this inference run
         """
-        LOGGER_UPDATES.debug(
-            "=" * 30 + "\n" + "Block: {b}\n".format(b=block.first_node)
+        LOGGER_UPDATES.log(
+            LogLevel.DEBUG_UPDATES.value,
+            "=" * 30 + "\n" + "Block: {b}\n".format(b=block.first_node),
         )
 
-        nodes_log_updates, children_log_updates, proposal_log_updates = self.block_propose_change(
-            block
-        )
+        (
+            nodes_log_updates,
+            children_log_updates,
+            proposal_log_updates,
+        ) = self.block_propose_change(block)
         self.accept_or_reject_update(
             nodes_log_updates, children_log_updates, proposal_log_updates
         )
@@ -286,7 +302,10 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         """
         self.initialize_world()
         queries_sample = defaultdict()
-
+        LOGGER_GRAPH.log(
+            LogLevel.DEBUG_GRAPH.value,
+            "=" * 30 + "\n" + "Initialized graph:\n{g}\n".format(g=str(self.world_)),
+        )
         for iteration in tqdm(
             iterable=range(num_samples + num_adaptive_samples),
             desc="Samples collected",
@@ -303,6 +322,13 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                         continue
 
                     proposer = self.find_best_single_site_proposer(node)
+                    LOGGER_PROPOSER.log(
+                        LogLevel.DEBUG_PROPOSER.value,
+                        "=" * 30
+                        + "\n"
+                        + "Proposer info for node: {n}\n".format(n=node)
+                        + "- Type: {pt}\n".format(pt=str(type(proposer))),
+                    )
                     is_accepted, acceptance_probability = self.single_inference_run(
                         node, proposer
                     )
@@ -340,4 +366,8 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                         dim=0,
                     )
             self.world_.accept_diff()
+            LOGGER_GRAPH.log(
+                LogLevel.DEBUG_GRAPH.value,
+                "=" * 30 + "\n" + "Graph update:\n{g}\n".format(g=str(self.world_)),
+            )
         return queries_sample

@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import logging
 from typing import Dict, Tuple
 
 import torch.distributions as dist
@@ -17,6 +18,9 @@ from beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carl
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
+
+
+LOGGER_WARNING = logging.getLogger("beanmachine.warning")
 
 
 class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -85,6 +89,10 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             ) or isinstance(node_var.distribution, dist.Beta):
                 self.proposers_[node] = SingleSiteSimplexNewtonianMonteCarloProposer()
             else:
+                LOGGER_WARNING.warning(
+                    "Node {n} has unsupported constraints. ".format(n=node)
+                    + "Proposer falls back to SingleSiteAncestralProposer.\n"
+                )
                 return super().get_proposal_distribution(
                     node, node_var, world, auxiliary_variables
                 )

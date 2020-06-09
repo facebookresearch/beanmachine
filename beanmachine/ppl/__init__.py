@@ -1,5 +1,3 @@
-import logging
-
 from . import experimental
 from .diagnostics import Diagnostics
 from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
@@ -11,19 +9,10 @@ from .inference import (
     SingleSiteRandomWalk,
     SingleSiteUniformMetropolisHastings,
 )
-from .model import functional, random_variable
+from .model import functional, get_beanmachine_logger, random_variable
 
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.WARNING)
-file_handler = logging.FileHandler("beanmachine.log")
-file_handler.setLevel(logging.INFO)
-
-LOGGER = logging.getLogger("beanmachine")
-LOGGER.setLevel(logging.INFO)
-LOGGER.handlers.clear()
-LOGGER.addHandler(console_handler)
-LOGGER.addHandler(file_handler)
+LOGGER = get_beanmachine_logger()
 
 __all__ = [
     "CompositionalInference",

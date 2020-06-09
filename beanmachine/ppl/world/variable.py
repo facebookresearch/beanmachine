@@ -19,6 +19,13 @@ class ProposalDistribution:
     requires_reshape: bool
     arguments: Dict
 
+    def __str__(self) -> str:
+        try:
+            str_ouput = str(self.proposal_distribution)
+        except NotImplementedError:
+            str_ouput = str(type(self.proposal_distribution))
+        return str_ouput
+
 
 @dataclass
 class Variable(object):
@@ -86,7 +93,11 @@ class Variable(object):
                 )
 
     def __str__(self) -> str:
-        return str(self.value) + " from " + str(self.distribution)
+        try:
+            str_ouput = str(self.value) + " from " + str(self.distribution)
+        except NotImplementedError:
+            str_ouput = str(self.value) + " from " + str(type(self.distribution))
+        return str_ouput
 
     def initialize_value(self, obs: Optional[Tensor]) -> Tensor:
         """

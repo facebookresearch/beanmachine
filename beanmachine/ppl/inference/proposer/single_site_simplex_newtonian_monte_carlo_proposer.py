@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import logging
 from typing import Dict, Tuple
 
 import torch
@@ -15,6 +16,9 @@ from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
+
+
+LOGGER_WARNING = logging.getLogger("beanmachine.warning")
 
 
 class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -46,6 +50,9 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         )
         zero_grad(node_val)
         if not is_valid(first_gradient) or not is_valid(hessian_diag_minus_max):
+            LOGGER_WARNING.warning(
+                "Gradient or Hessian is invalid at node {n}.\n".format(n=str(node_var))
+            )
             return False, tensor(0.0)
         node_val_reshaped = node_val.clone().reshape(-1)
         predicted_alpha = (
@@ -97,6 +104,10 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
 
         is_valid, alpha = self.compute_alpha(node_var, world)
         if not is_valid:
+            LOGGER_WARNING.warning(
+                "Node {n} has invalid proposal solution. ".format(n=node)
+                + "Proposer falls back to SingleSiteAncestralProposer.\n"
+            )
             return super().get_proposal_distribution(
                 node, node_var, world, auxiliary_variables
             )
