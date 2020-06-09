@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import logging
 from typing import Dict, Tuple
 
 import torch
@@ -12,6 +13,9 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import Variable, World
 from torch import Tensor, tensor
+
+
+LOGGER_WARNING = logging.getLogger("beanmachine.warning")
 
 
 class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -261,7 +265,12 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         is_valid, grad_U = compute_first_gradient(
             -score, node_var.unconstrained_value, retain_graph=True
         )
-
+        if not is_valid:
+            LOGGER_WARNING.warning(
+                "Gradient is invalid at node {n}: {nv}.\n".format(
+                    n=str(node), nv=str(node_var)
+                )
+            )
         world.reset_diff()
         return is_valid, grad_U
 
@@ -289,6 +298,10 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         if not is_valid:
             self.runtime_error = True
             zero_grad(q_unconstrained)
+            LOGGER_WARNING.warning(
+                "Node {n} has invalid proposal solution. ".format(n=node)
+                + "Proposer falls back to SingleSiteAncestralProposer.\n"
+            )
             return super().propose(node, world)
 
         # take a half-step for momentum
@@ -306,6 +319,10 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             if not is_valid:
                 self.runtime_error = True
                 zero_grad(q_unconstrained)
+                LOGGER_WARNING.warning(
+                    "Node {n} has invalid proposal solution. ".format(n=node)
+                    + "Proposer falls back to SingleSiteAncestralProposer.\n"
+                )
                 return super().propose(node, world)
 
             if i < num_steps - 1:

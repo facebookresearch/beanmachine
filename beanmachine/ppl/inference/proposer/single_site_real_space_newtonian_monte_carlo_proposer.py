@@ -22,6 +22,7 @@ from torch import Tensor, tensor
 
 
 LOGGER_ERROR = logging.getLogger("beanmachine.error")
+LOGGER_WARNING = logging.getLogger("beanmachine.warning")
 
 
 class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -112,6 +113,13 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         first_gradient, hessian = tensorops.gradients(score, node_val)
         zero_grad(node_val)
         if not is_valid(first_gradient) or not is_valid(hessian):
+            LOGGER_WARNING.warning(
+                "Gradient or Hessian is invalid at node {nv}.\n".format(
+                    nv=str(node_var)
+                )
+                + "Node {n} has invalid proposal solution. ".format(n=node)
+                + "Proposer falls back to SingleSiteAncestralProposer.\n"
+            )
             return super().get_proposal_distribution(node, node_var, world, {})
         first_gradient = first_gradient.detach()
         hessian = hessian.detach()

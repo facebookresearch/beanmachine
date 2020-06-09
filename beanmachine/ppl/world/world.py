@@ -123,7 +123,7 @@ class World(object):
             + "\n\nObservations:\n"
             + "\n".join(
                 [
-                    str(key) + "=" + str(value.item())
+                    str(key) + "=" + str(value)
                     for key, value in self.observations_.items()
                 ]
             )

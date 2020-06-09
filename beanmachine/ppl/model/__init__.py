@@ -6,7 +6,7 @@ from beanmachine.ppl.model.statistical_model import (
     random_variable,
     sample,
 )
-from beanmachine.ppl.model.utils import Mode, RVIdentifier
+from beanmachine.ppl.model.utils import Mode, RVIdentifier, get_beanmachine_logger
 
 
 __all__ = [
@@ -17,4 +17,5 @@ __all__ = [
     "query",
     "random_variable",
     "sample",
+    "get_beanmachine_logger",
 ]

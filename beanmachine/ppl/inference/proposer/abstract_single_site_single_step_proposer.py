@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import logging
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Tuple
 
@@ -7,9 +8,12 @@ from beanmachine.ppl.inference.proposer.abstract_single_site_proposer import (
     AbstractSingleSiteProposer,
 )
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
+
+
+LOGGER_PROPOSER = logging.getLogger("beanmachine.debug.proposer")
 
 
 class AbstractSingleSiteSingleStepProposer(
@@ -40,6 +44,12 @@ class AbstractSingleSiteSingleStepProposer(
         proposal_distribution = proposal_distribution_struct.proposal_distribution
         requires_transform = proposal_distribution_struct.requires_transform
         requires_reshape = proposal_distribution_struct.requires_reshape
+
+        LOGGER_PROPOSER.log(
+            LogLevel.DEBUG_PROPOSER.value,
+            "- Distribution: {pt}\n".format(pt=str(proposal_distribution_struct))
+            + "- Auxiliary params: {pa}\n".format(pa=str(auxiliary_variables)),
+        )
 
         new_value = proposal_distribution.sample()
         negative_proposal_log_update = (
