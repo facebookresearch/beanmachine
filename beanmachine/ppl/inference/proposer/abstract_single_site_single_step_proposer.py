@@ -98,13 +98,8 @@ class AbstractSingleSiteSingleStepProposer(
             raise ValueError("old value is not available in world")
 
         if (
-            requires_reshape
-            and not (
-                isinstance(node_var.distribution, dist.Beta)
-                and not world.get_transform(node)
-            )
-            and not isinstance(node_var.distribution, dist.Gamma)
-        ):
+            world.get_transform(node) and proposal_distribution != node_var.distribution
+        ) or (requires_reshape and not isinstance(node_var.distribution, dist.Beta)):
             old_value = old_value.reshape(-1)
 
         positive_log_update = safe_log_prob_sum(proposal_distribution, old_value)

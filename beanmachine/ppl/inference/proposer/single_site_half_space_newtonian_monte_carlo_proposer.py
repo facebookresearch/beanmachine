@@ -57,8 +57,8 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             else torch.ones(predicted_beta.shape).to(dtype=predicted_beta.dtype)
         )
         predicted_beta = torch.where(condition, predicted_beta, mean)
-        predicted_alpha.reshape(node_val.shape)
-        predicted_beta.reshape(node_val.shape)
+        predicted_alpha = predicted_alpha.reshape(node_val.shape)
+        predicted_beta = predicted_beta.reshape(node_val.shape)
         return True, predicted_alpha, predicted_beta
 
     def get_proposal_distribution(
@@ -98,7 +98,7 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             ProposalDistribution(
                 proposal_distribution=dist.Gamma(alpha, beta),
                 requires_transform=False,
-                requires_reshape=True,
+                requires_reshape=False,
                 arguments={},
             ),
             {},
