@@ -13,7 +13,7 @@ from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
 from torch import Tensor
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 
 LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
@@ -306,6 +306,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             LogLevel.DEBUG_GRAPH.value,
             "=" * 30 + "\n" + "Initialized graph:\n{g}\n".format(g=str(self.world_)),
         )
+        # pyre-fixme
         for iteration in tqdm(
             iterable=range(num_samples + num_adaptive_samples),
             desc="Samples collected",
