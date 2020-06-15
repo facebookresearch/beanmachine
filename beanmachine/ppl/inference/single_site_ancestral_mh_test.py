@@ -65,3 +65,29 @@ class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
         samples = mh.infer(queries, observations, num_samples=5, num_chains=1)
         run_3 = samples.get_variable(model.mu()).clone()
         self.assertFalse(run_1.allclose(run_3))
+
+    def test_initialize_from_prior(self):
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        model = self.SampleModel()
+        for _ in range(10):
+            mh.reset()
+            mh.queries_ = [model.foo()]
+            node = mh.world_.get_node_in_world(mh.queries_[0])
+            self.assertIsNone(node)
+            mh.initialize_world(initialize_from_prior=False)
+            val = mh.world_.get_node_in_world(mh.queries_[0]).value
+            self.assertAlmostEqual(val.item(), 0.0, delta=1e-4)
+
+        torch.manual_seed(2)
+        samples_from_prior = []
+        for _ in range(10000):
+            mh.reset()
+            mh.queries_ = [model.foo()]
+            node = mh.world_.get_node_in_world(mh.queries_[0])
+            self.assertIsNone(node)
+            mh.initialize_world(initialize_from_prior=True)
+            val = mh.world_.get_node_in_world(mh.queries_[0]).value
+            samples_from_prior.append(val.item())
+
+        self.assertNotEqual(samples_from_prior[0], samples_from_prior[1])
+        self.assertAlmostEqual(sum(samples_from_prior) / 10000.0, 0.0, delta=1e-2)

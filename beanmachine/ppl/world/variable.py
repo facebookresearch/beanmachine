@@ -99,12 +99,15 @@ class Variable(object):
             str_ouput = str(self.value) + " from " + str(type(self.distribution))
         return str_ouput
 
-    def initialize_value(self, obs: Optional[Tensor]) -> Tensor:
+    def initialize_value(
+        self, obs: Optional[Tensor], initialize_from_prior: bool = False
+    ) -> Tensor:
         """
         Initialized the Variable value
 
         :param is_obs: the boolean representing whether the node is an
         observation or not
+        :param initialize_from_prior: if true, returns sample from prior
         :returns: the value to the set the Variable value to
         """
         distribution = self.distribution
@@ -114,6 +117,8 @@ class Variable(object):
         support = distribution.support
         if obs is not None:
             return obs
+        if initialize_from_prior:
+            return sample_val
         elif isinstance(support, dist.constraints._Real):
             return torch.zeros(sample_val.shape, dtype=sample_val.dtype)
         elif isinstance(support, dist.constraints._Simplex):
@@ -214,6 +219,7 @@ class Variable(object):
         value: Optional[Tensor],
         obs_value: Optional[Tensor],
         should_transform: bool = False,
+        initialize_from_prior: bool = False,
     ):
         """
         Updates log probability, transforms and is_discrete, value,
@@ -223,6 +229,7 @@ class Variable(object):
         initialized value will be set.
         :params obs_value: the observation value if observed else None.
         :params should_transform: a boolean to identify whether to set
+        :param initialize_from_prior: if true, returns sample from prior
         transforms and transformed values.
         """
         if self.transforms is None:
@@ -233,7 +240,7 @@ class Variable(object):
             )
 
         if value is None:
-            value = self.initialize_value(obs_value)
+            value = self.initialize_value(obs_value, initialize_from_prior)
         self.update_value(value)
         self.update_log_prob()
         if self.is_discrete is None:

@@ -41,6 +41,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_samples: int,
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
+        initialize_from_prior: bool = False,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
@@ -82,6 +83,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         run_in_parallel: bool = False,
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
+        initialize_from_prior: bool = False,
     ) -> MonteCarloSamples:
         """
         Run inference algorithms and reset the world/mode at the end.
@@ -92,6 +94,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         :params num_chains: number of chains to run
         :params num_adaptive_samples: number of steps to allow proposer adaptation.
         :param verbose: Integer indicating how much output to print to stdio
+        :param initialize_from_prior: boolean to initialize samples from prior
         :returns: view of data for chains and samples for query
         """
         try:
@@ -120,7 +123,12 @@ class AbstractInference(object, metaclass=ABCMeta):
                 chain_queries = []
                 for chain in range(num_chains):
                     AbstractInference.set_seed_for_chain(random_seed, chain)
-                    rv_dicts = self._infer(num_samples, num_adaptive_samples, verbose)
+                    rv_dicts = self._infer(
+                        num_samples,
+                        num_adaptive_samples,
+                        verbose,
+                        initialize_from_prior,
+                    )
                     chain_queries.append(rv_dicts)
 
             monte_carlo_samples = MonteCarloSamples(chain_queries, num_adaptive_samples)

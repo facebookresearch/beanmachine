@@ -90,6 +90,16 @@ class World(object):
         self.reset_diff()
         self.should_transform_ = defaultdict(bool)
         self.should_transform_all_ = False
+        self.initialize_from_prior_ = False
+
+    def set_initialize_from_prior(self, initialize_from_prior: bool = True):
+        """
+        Initialize the random variables from their priors.
+
+        :param initialize_from_prior: if True sample from prior else initialize to 0 in
+        unconstrained space.
+        """
+        self.initialize_from_prior_ = initialize_from_prior
 
     def set_all_nodes_transform(self, should_transform: bool) -> None:
         self.should_transform_all_ = should_transform
@@ -616,7 +626,9 @@ class World(object):
         self.stack_.pop()
 
         obs_value = self.observations_[node] if node in self.observations_ else None
-        node_var.update_fields(None, obs_value, self.get_transform(node))
+        node_var.update_fields(
+            None, obs_value, self.get_transform(node), self.initialize_from_prior_
+        )
         self.update_diff_log_prob(node)
 
         return node_var.value

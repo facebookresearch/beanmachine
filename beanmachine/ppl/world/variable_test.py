@@ -63,6 +63,29 @@ class VariableTest(unittest.TestCase):
         self.assertEqual(var_copy.parent is var.parent, False)
         self.assertEqual(var_copy.children is var.children, False)
 
+    def test_initialize(self):
+        distribution = dist.Normal(0, 1)
+        val = distribution.sample()
+        log_prob = distribution.log_prob(val)
+        var = Variable(
+            distribution=distribution,
+            value=val,
+            log_prob=log_prob,
+            parent=set({}),
+            children=set({}),
+            proposal_distribution=None,
+            extended_val=None,
+            is_discrete=False,
+            transforms=[],
+            unconstrained_value=val,
+            jacobian=tensor(0.0),
+        )
+        value = var.initialize_value(None)
+        self.assertAlmostEqual(value.item(), 0, delta=1e-5)
+        first_sample = var.initialize_value(None, True)
+        second_sample = var.initialize_value(None, True)
+        self.assertNotEqual(first_sample.item(), second_sample.item())
+
     def test_transform_log_prob(self):
         distribution = dist.Gamma(2, 2)
         val = distribution.sample()

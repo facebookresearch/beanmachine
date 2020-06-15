@@ -31,14 +31,14 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         super().__init__()
         self.blocks_ = []
 
-    def initialize_world(self):
+    def initialize_world(self, initialize_from_prior: bool = False):
         """
         Initializes the world variables with queries and observation calls.
 
-        :param queries: random variables to query
-        :param observations: observed random variables with their values
+        :param initialize_from_prior: boolean to initialize samples from prior
         """
         self.world_.set_observations(self.observations_)
+        self.world_.set_initialize_from_prior(initialize_from_prior)
         StatisticalModel.set_mode(Mode.INFERENCE)
         for node in self.observations_:
             # makes the call for the observation node, which will run sample(node())
@@ -291,6 +291,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         num_samples: int,
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
+        initialize_from_prior: bool = False,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Run inference algorithms.
@@ -298,9 +299,11 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         :param num_samples: number of samples excluding adaptation.
         :param num_adapt_steps: number of steps to adapt/tune the proposer.
         :param verbose: Integer indicating how much output to print to stdio
+        :param initialize_from_prior: boolean to initialize samples from prior
         :returns: samples for the query
         """
-        self.initialize_world()
+        self.initialize_world(initialize_from_prior)
+        self.world_.set_initialize_from_prior(True)
         queries_sample = defaultdict()
         LOGGER_GRAPH.log(
             LogLevel.DEBUG_GRAPH.value,
