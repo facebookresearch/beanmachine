@@ -42,7 +42,7 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         from propose.
         :returns: the log probability of proposing the old value from this new world.
         """
-        raise NotImplementedError("Inference algorithm must implement propose.")
+        raise NotImplementedError("Inference algorithm must implement post_process.")
 
     def do_adaptation(
         self,

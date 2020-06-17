@@ -9,7 +9,7 @@ from torch import Tensor, tensor
 
 class WorldVars(object):
     """
-    Represents the collection of random variables in Word based inference.
+    Represents the collection of random variables in World based inference.
     """
 
     def __init__(self):

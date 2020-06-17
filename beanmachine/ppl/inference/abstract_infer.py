@@ -3,15 +3,17 @@ import logging
 import random
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Dict, List
+from typing import ClassVar, Dict, List
 
 import torch
 import torch.multiprocessing as mp
-from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
 from torch import Tensor
 from torch.multiprocessing import Queue
+
+from ..model.statistical_model import StatisticalModel
+from ..model.utils import LogLevel, RVIdentifier
+from ..world import World
+from .monte_carlo_samples import MonteCarloSamples
 
 
 class VerboseLevel(Enum):
@@ -31,6 +33,9 @@ class AbstractInference(object, metaclass=ABCMeta):
     """
     Abstract inference object that all inference algorithms inherit from.
     """
+
+    world_: World
+    _rand_int_max: ClassVar[int] = 2 ** 62
 
     def __init__(self):
         self.reset()
@@ -98,10 +103,11 @@ class AbstractInference(object, metaclass=ABCMeta):
         :returns: view of data for chains and samples for query
         """
         try:
+            random_seed = (
+                torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
+            )
             self.queries_ = queries
             self.observations_ = observations
-            random_seed = torch.randint(2 ** 62, (1,)).int().item()
-
             if num_chains > 1 and run_in_parallel:
                 manager = mp.Manager()
                 q = manager.Queue()
