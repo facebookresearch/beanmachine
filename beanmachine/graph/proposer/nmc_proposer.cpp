@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <random>
+#include <math.h>
 
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/proposer/beta.h"
@@ -18,6 +19,7 @@ const double RANDOM_WALK_WEIGHT = 0.01;
 
 std::unique_ptr<Proposer>
 nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
+  bool is_valid_grad = std::isfinite(grad1) && std::isfinite(grad2);
   std::vector<double> weights;
   std::vector<std::unique_ptr<Proposer>> proposers;
   // For boolean variables we will put a point mass on the complementary value
@@ -49,7 +51,7 @@ nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
     // b = 1 - (1-x)^2 [f'(x) + x f''(x)]
     double a = 1 - x * x * (-grad1 + (1 - x) * grad2);
     double b = 1 - (1 - x) * (1 - x) * (grad1 + x * grad2);
-    if (a > 0 and b > 0) {
+    if (is_valid_grad and a > 0 and b > 0) {
       weights.push_back(MAIN_PROPOSER_WEIGHT);
       proposers.push_back(std::make_unique<Beta>(a, b));
     }
@@ -66,7 +68,7 @@ nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
     // Solving for mu and sigma^2
     // sigma = sqrt(-1 / f''(x) )
     // mu = x - f'(x) / f''(x)
-    if (grad2 < 0) {
+    if (is_valid_grad and grad2 < 0) {
       double sigma = std::sqrt(-1 / grad2);
       double mu = value._double - grad1 / grad2;
       // we will mix multiple proposers with increasing variance and lower
@@ -92,7 +94,7 @@ nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
     // sgn((x-m)/s) = -sgn(f'(x))
     // s = (-2/f'(x)) * ((x-m)/s) / (1 + ((x-m)/s)^2)
     double scaled_x_sq = 1 / (1 - 2 * grad2 / (grad1 * grad1));
-    if (scaled_x_sq > 0) {
+    if (is_valid_grad and scaled_x_sq > 0) {
       double scaled_x = std::sqrt(scaled_x_sq);
       if (grad1 > 0) {
         scaled_x = -scaled_x;
@@ -120,7 +122,7 @@ nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
     // beta = - x f''(x) - f'(x)
     double alpha = 1 - x * x * grad2;
     double beta = -x * grad2 - grad1;
-    if (alpha > 0 and beta > 0) {
+    if (is_valid_grad and alpha > 0 and beta > 0) {
       weights.push_back(MAIN_PROPOSER_WEIGHT);
       proposers.push_back(std::make_unique<Gamma>(alpha, beta));
       // another proposer with higher variance

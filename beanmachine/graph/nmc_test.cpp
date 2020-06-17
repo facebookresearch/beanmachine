@@ -211,3 +211,109 @@ TEST(testnmc, gmm_two_components) {
   EXPECT_NEAR(post_means[1], 1.0, 0.1);
   EXPECT_NEAR(post_means[2], 9.5, 0.1);
 }
+
+TEST(testnmc, infinite_grad) {
+    /*
+    This is a manual construction of a modified version of the BMA++ model.
+    In practice, this model structure is not used, but it could produce
+    float-divide-by-zero error. Because exp() overflows to Inf, making the
+    grad1 and grad2 both infinite, then an invalid Normal proposer with
+    sigma = 0.
+    This test case is used to test if the bug is fixed.
+    The model structure is:
+        with yi and sei observed for each observation i
+        - likelihood
+            yi ~ Normal(yhat_i, sei)
+            yhat_i = exp(fere_i) if sign_i else -exp(fere_i)
+            sign_i ~ Bernoulli(prob_sign)
+            fere_i = fixed_effect + random_effect(i)
+            random_effect ~ Normal(0, re_scale)
+        - priors
+            fixed_effect ~ Normal(0, 2)
+            re_scale ~ Half-Cauchy(1)
+            prob_sign ~ Beta(1, 1)
+    */
+    Graph g;
+    uint zero = g.add_constant(0.0);
+    uint one = g.add_constant_pos_real(1.0);
+    uint two = g.add_constant_pos_real(2.0);
+    uint sei = g.add_constant_pos_real(0.15);
+    std::vector<double> y = {
+        0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.0, -0.1, -0.2, -0.3, -0.4, -0.5};
+    std::vector<uint> re_id = {
+        0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+
+    uint beta_prior = g.add_distribution(
+        DistributionType::BETA,
+        AtomicType::PROBABILITY,
+        std::vector<uint>({one, one}));
+    uint normal_prior = g.add_distribution(
+        DistributionType::NORMAL,
+        AtomicType::REAL,
+        std::vector<uint>({zero, two}));
+    uint halfcauchy_prior = g.add_distribution(
+        DistributionType::HALF_CAUCHY,
+        AtomicType::POS_REAL,
+        std::vector<uint>({one}));
+
+    uint prob_sign =
+        g.add_operator(OperatorType::SAMPLE, std::vector<uint>({beta_prior}));
+    uint fe =
+        g.add_operator(OperatorType::SAMPLE, std::vector<uint>({normal_prior}));
+    uint re_scale = g.add_operator(
+        OperatorType::SAMPLE, std::vector<uint>({halfcauchy_prior}));
+
+    uint sign_dist = g.add_distribution(
+        DistributionType::BERNOULLI,
+        AtomicType::BOOLEAN,
+        std::vector<uint>({prob_sign}));
+    uint re_dist = g.add_distribution(
+        DistributionType::NORMAL,
+        AtomicType::REAL,
+        std::vector<uint>({zero, re_scale}));
+    uint re0_value =
+        g.add_operator(OperatorType::SAMPLE, std::vector<uint>({re_dist}));
+    uint re1_value =
+        g.add_operator(OperatorType::SAMPLE, std::vector<uint>({re_dist}));
+    std::vector<uint> re_values = {re0_value, re1_value};
+
+    for (uint i = 0; i < y.size(); i++) {
+        uint re = re_values[re_id[i]];
+        uint fere =
+            g.add_operator(OperatorType::ADD, std::vector<uint>({fe, re}));
+        uint sign =
+            g.add_operator(OperatorType::SAMPLE, std::vector<uint>({sign_dist}));
+        uint yhat_pos =
+            g.add_operator(OperatorType::EXP, std::vector<uint>({fere}));
+        uint yhat_neg =
+            g.add_operator(OperatorType::NEGATE, std::vector<uint>({yhat_pos}));
+        uint yhat = g.add_operator(
+            OperatorType::IF_THEN_ELSE,
+            std::vector<uint>({sign, yhat_pos, yhat_neg}));
+        uint y_dist = g.add_distribution(
+            DistributionType::NORMAL,
+            AtomicType::REAL,
+            std::vector<uint>({yhat, sei}));
+        uint yi = g.add_operator(OperatorType::SAMPLE, std::vector<uint>({y_dist}));
+        g.observe(yi, (double)y[i]);
+    }
+    g.query(prob_sign);
+    g.query(fe);
+    g.query(re_scale);
+
+    int num_samples = 1000;
+    std::vector<std::vector<AtomicValue>> samples =
+        g.infer(num_samples, InferenceType::NMC);
+    double sum = 0;
+    double sumsq = 0;
+    for (const auto& sample : samples) {
+        const auto& s = sample.front();
+        ASSERT_EQ(s.type, AtomicType::PROBABILITY);
+        sum += s._double;
+        sumsq += s._double * s._double;
+    }
+    double mean = sum / num_samples;
+    double var = sumsq / num_samples - mean * mean;
+    EXPECT_NEAR(mean, 0.5, 0.1);
+    EXPECT_LT(0.0, var);
+}
