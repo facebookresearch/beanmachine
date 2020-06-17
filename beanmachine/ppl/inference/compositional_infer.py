@@ -67,6 +67,7 @@ class CompositionalInference(AbstractMHInference):
             return self.proposers_per_rv_[node]
 
         node_var = self.world_.get_node_in_world(node, False)
+        # pyre-fixme
         distribution = node_var.distribution
         support = distribution.support
         if (

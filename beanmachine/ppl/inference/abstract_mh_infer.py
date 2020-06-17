@@ -124,6 +124,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             + "\n"
             + "Node: {n}\n".format(n=node)
             + "- Node value: {nv}\n".format(
+                # pyre-fixme
                 nv=self.world_.get_node_in_world(node, False, False).value
             )
             + "- Proposed value: {pv}\n".format(pv=proposed_value),
@@ -195,6 +196,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                     LogLevel.DEBUG_UPDATES.value,
                     "Node: {n}\n".format(n=node)
                     + "- Node value: {nv}\n".format(
+                        # pyre-fixme
                         nv=self.world_.get_node_in_world(node, False, False).value
                     )
                     + "- Proposed value: {pv}\n".format(pv=proposed_value),
@@ -320,9 +322,9 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             for block in blocks:
                 if block.type == BlockType.SINGLENODE:
                     node = block.first_node
-                    if node in self.observations_:
-                        continue
-                    if not self.world_.contains_in_world(node):
+                    if node in self.observations_ or not self.world_.contains_in_world(
+                        node
+                    ):
                         continue
 
                     proposer = self.find_best_single_site_proposer(node)

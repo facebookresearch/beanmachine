@@ -35,7 +35,7 @@ class StatisticalModel(object):
     __mode_ = Mode.INITIALIZE
 
     @staticmethod
-    def reset():
+    def reset() -> World:
         """
         Initialize world at the beginning of inference
         """

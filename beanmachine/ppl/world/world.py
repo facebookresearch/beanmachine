@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple
 
 import torch.distributions as dist
 from beanmachine.ppl.model.utils import RVIdentifier
@@ -339,9 +339,7 @@ class World(object):
         self.diff_stack_ = DiffStack()
         self.diff_ = self.diff_stack_.diff_stack_[-1]
 
-    def get_markov_blanket(
-        self, node: RVIdentifier
-    ) -> Set[Optional[Union[Any, RVIdentifier]]]:
+    def get_markov_blanket(self, node: RVIdentifier) -> Set[RVIdentifier]:
         """
         Extracts the markov block of a node in the world and we exclude the
         observed random variables.
@@ -360,7 +358,6 @@ class World(object):
             for parent in child_var.parent:
                 if parent not in self.observations_ and parent != node:
                     markov_blanket.add(parent)
-
         return markov_blanket
 
     def get_all_nodes_from_func(self, node_func: str) -> Set[RVIdentifier]:
