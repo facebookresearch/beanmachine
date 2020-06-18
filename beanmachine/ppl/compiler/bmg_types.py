@@ -1,5 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from typing import Any
+
 from torch import Tensor
 
 
@@ -133,7 +135,34 @@ greater than or equal to both."""
 
 # We can extend the two-argument supremum function to any number of arguments:
 def supremum(*ts: type) -> type:
+    """Takes any number of BMG types; returns the smallest type that is
+greater than or equal to all of them."""
     result = bool
     for t in ts:
         result = _supremum(result, t)
     return result
+
+
+def type_of_value(v: Any) -> type:
+    """This computes the smallest BMG type that a given value fits into."""
+    if isinstance(v, Tensor):
+        if v.numel() == 1:
+            return type_of_value(float(v))  # pyre-fixme
+        return Tensor
+    if isinstance(v, bool):
+        return bool
+    if isinstance(v, int):
+        if v == 0 or v == 1:
+            return bool
+        if v >= 2:
+            return Natural
+        return float
+    if isinstance(v, float):
+        if v == int(v):
+            return type_of_value(int(v))
+        if 0.0 <= v:
+            if v <= 1.0:
+                return Probability
+            return PositiveReal
+        return float
+    raise ValueError("Unexpected value passed to type_of_value")
