@@ -3,11 +3,13 @@ from .diagnostics import Diagnostics
 from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
 from .inference import (
     CompositionalInference,
+    Predictive,
     SingleSiteAncestralMetropolisHastings,
     SingleSiteHamiltonianMonteCarlo,
     SingleSiteNewtonianMonteCarlo,
     SingleSiteRandomWalk,
     SingleSiteUniformMetropolisHastings,
+    simulate,
 )
 from .model import functional, get_beanmachine_logger, random_variable
 
@@ -28,4 +30,6 @@ __all__ = [
     "effective_sample_size",
     "split_r_hat",
     "r_hat",
+    "Predictive",
+    "simulate",
 ]
