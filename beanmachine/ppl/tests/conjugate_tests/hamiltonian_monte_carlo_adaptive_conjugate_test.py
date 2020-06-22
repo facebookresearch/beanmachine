@@ -20,11 +20,15 @@ class SingleSiteAdaptiveHamiltonianMonteCarloConjugateTest(
         pass
 
     def test_gamma_normal_conjugate_run(self):
+        # division by 0 caused by first step size being too large
+        # proposing a constrained of 0.0 in the halfspace
         pass
 
     def test_normal_normal_conjugate_run(self):
-        hmc = bm.SingleSiteHamiltonianMonteCarlo(1.0)
-        self.normal_normal_conjugate_run(hmc, num_samples=300, delta=0.2)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.5)
+        self.normal_normal_conjugate_run(
+            hmc, num_samples=200, delta=0.15, num_adaptive_samples=200
+        )
 
     def test_distant_normal_normal_conjugate_run(self):
         hmc = bm.SingleSiteHamiltonianMonteCarlo(1.0)
