@@ -21,6 +21,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     SampleNode,
     StudentTNode,
     TensorNode,
+    ToPositiveRealNode,
     ToRealNode,
     ToTensorNode,
 )
@@ -352,6 +353,7 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(ToRealNode(bino).inf_type, float)
         self.assertEqual(ToRealNode(half).inf_type, float)
         self.assertEqual(ToRealNode(norm).inf_type, float)
+        # To Real is illegal on tensors
 
         # To Tensor
         self.assertEqual(ToTensorNode(bern).inf_type, Tensor)
@@ -361,4 +363,9 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(ToTensorNode(norm).inf_type, Tensor)
         self.assertEqual(ToTensorNode(t).inf_type, Tensor)
 
-        # TODO: To Pos Real
+        # To Positive Real
+        self.assertEqual(ToPositiveRealNode(bern).inf_type, PositiveReal)
+        self.assertEqual(ToPositiveRealNode(beta).inf_type, PositiveReal)
+        self.assertEqual(ToPositiveRealNode(bino).inf_type, PositiveReal)
+        self.assertEqual(ToPositiveRealNode(half).inf_type, PositiveReal)
+        # To Positive Real is illegal on reals and tensors

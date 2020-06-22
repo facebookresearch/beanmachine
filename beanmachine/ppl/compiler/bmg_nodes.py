@@ -2072,9 +2072,6 @@ values."""
         return self.operand.support()
 
 
-# TODO: Describe the situations in which we generate this.
-
-
 class ToRealNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_REAL
 
@@ -2104,10 +2101,33 @@ class ToRealNode(UnaryOperatorNode):
         return SetOfTensors(float(o) for o in self.operand.support())
 
 
-# TODO: Add ToPositiveReal
+class ToPositiveRealNode(UnaryOperatorNode):
+    operator_type = OperatorType.TO_POS_REAL
 
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
 
-# TODO: Describe the situations in which we generate this.
+    @property
+    def node_type(self) -> Any:
+        return PositiveReal
+
+    @property
+    def inf_type(self) -> type:
+        return PositiveReal
+
+    @property
+    def label(self) -> str:
+        return "ToPosReal"
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        return "ToPosReal(" + str(self.operand) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(float(o) for o in self.operand.support())
 
 
 class ToTensorNode(UnaryOperatorNode):
