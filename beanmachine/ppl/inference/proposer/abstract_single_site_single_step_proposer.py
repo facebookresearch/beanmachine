@@ -3,7 +3,6 @@ import logging
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Tuple
 
-import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.abstract_single_site_proposer import (
     AbstractSingleSiteProposer,
 )

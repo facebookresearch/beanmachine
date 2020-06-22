@@ -224,9 +224,6 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         :returns: Nothing.
         """
         iteration_number = iteration_number + 1
-        if iteration_number > num_adaptive_samples:
-            self.step_size = self.best_step_size
-            return
 
         if self.runtime_error:
             acceptance_probability = tensor(0.0, dtype=acceptance_probability.dtype)
@@ -243,6 +240,9 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             self._adapt_mass_matrix(
                 iteration_number - self.no_cov_iterations, node_var.transformed_value
             )
+
+        if iteration_number == num_adaptive_samples:
+            self.step_size = self.best_step_size
 
     def _compute_kinetic_energy(self, p: Tensor) -> Tensor:
         """
@@ -319,7 +319,10 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         # leapfrog steps
         for i in range(num_steps):
             q_transformed = q_transformed.detach()
-            q_transformed = q_transformed + self.step_size * p
+            p = p.detach()
+            p_vector = torch.reshape(p, (-1,))
+            p_scaled = torch.reshape(torch.matmul(self.covariance, p_vector), p.shape)
+            q_transformed = q_transformed + self.step_size * p_scaled
             is_valid, grad_U = self._compute_potential_energy_gradient(
                 node, world, q_transformed
             )

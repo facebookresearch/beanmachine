@@ -7,7 +7,7 @@ import torch
 import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
-from beanmachine.ppl.model.utils import RVIdentifier, float_types
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world.utils import (
     BetaDimensionTransform,
     get_default_transforms,

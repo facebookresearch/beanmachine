@@ -22,7 +22,7 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
     def test_gamma_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for
         # now to have a faster test.
-        self.gamma_normal_conjugate_run(self.mh, num_samples=5000, delta=0.2)
+        self.gamma_normal_conjugate_run(self.mh, num_samples=3000, delta=0.2)
 
     def test_normal_normal_conjugate_run(self):
         # Converges with 10k and more iterations but will use a bigger delta for

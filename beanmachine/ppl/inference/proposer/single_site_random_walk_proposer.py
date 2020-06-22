@@ -10,7 +10,6 @@ from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor, tensor
-from torch.distributions.transforms import AffineTransform
 
 
 class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
