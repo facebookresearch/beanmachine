@@ -1,9 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+from typing import List, Optional
+
 from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteNewtonianMonteCarloProposer,
 )
 from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.world.world import TransformType
 
 
 class SingleSiteNewtonianMonteCarlo(AbstractMHInference):
@@ -13,15 +16,17 @@ class SingleSiteNewtonianMonteCarlo(AbstractMHInference):
 
     def __init__(
         self,
-        use_transform_: bool = False,
+        transform_type: TransformType = TransformType.NONE,
+        transforms: Optional[List] = None,
         real_space_alpha: float = 10.0,
         real_space_beta: float = 1.0,
     ):
-        super().__init__()
-        self.world_.set_all_nodes_transform(use_transform_)
         self.proposer_ = {}
         self.real_space_alpha_ = real_space_alpha
         self.real_space_beta_ = real_space_beta
+        super().__init__(
+            SingleSiteNewtonianMonteCarloProposer(), transform_type, transforms
+        )
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """

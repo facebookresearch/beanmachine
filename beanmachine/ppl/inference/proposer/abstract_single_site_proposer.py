@@ -1,9 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from beanmachine.ppl.model.utils import RVIdentifier
-from beanmachine.ppl.world import World
+from beanmachine.ppl.world.world import TransformType, World
 from torch import Tensor
 
 
@@ -11,6 +11,16 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
     """
     Abstract proposer object that all proposer algorithms inherit from.
     """
+
+    def __init__(
+        self,
+        transform_type: TransformType = TransformType.NONE,
+        transforms: Optional[List] = None,
+    ):
+        if transform_type is TransformType.CUSTOM and transforms is None:
+            raise ValueError("Please specify the transform")
+        self.transform_type = transform_type
+        self.transforms = transforms
 
     @abstractmethod
     def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor, Dict]:

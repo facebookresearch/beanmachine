@@ -9,6 +9,9 @@ import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
 )
+from beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer import (
+    SingleSiteHalfSpaceNewtonianMonteCarloProposer,
+)
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 
@@ -77,3 +80,37 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
                 self.assertEqual(proposer.rate.item(), 1.0)
                 self.assertEqual(requires_transform, False)
                 self.assertEqual(requires_reshape, False)
+
+    def test_fallback_to_ancestral(self):
+        model = self.SampleGammaModel()
+        # force invalid gradient during halfspace proposal
+        proposer = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
+        ci = bm.CompositionalInference({model.foo: proposer})
+        foo_key = model.foo()
+        ci.queries_ = [model.foo()]
+        ci.observations_ = {model.bar(): tensor(-1.0)}
+        ci.initialize_world()
+        node_var = ci.world_.get_node_in_world_raise_error(foo_key, False)
+        world = ci.world_
+        (
+            proposal_distribution_struct,
+            auxiliary_variables,
+        ) = proposer.get_proposal_distribution(foo_key, node_var, world, {})
+
+        # test that there is no transform after fallback to ancestral MH
+        self.assertEqual(proposal_distribution_struct.requires_transform, False)
+
+        # valid gradient during halfspace proposal
+        proposer = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
+        ci = bm.CompositionalInference({model.foo: proposer})
+        foo_key = model.foo()
+        ci.queries_ = [model.foo()]
+        ci.observations_ = {model.bar(): tensor(2.0)}
+        ci.initialize_world()
+        world = ci.world_
+        (
+            proposal_distribution_struct,
+            auxiliary_variables,
+        ) = proposer.get_proposal_distribution(foo_key, node_var, world, {})
+        # test that there is transform without fallback to ancestral MH
+        self.assertEqual(proposal_distribution_struct.requires_transform, True)

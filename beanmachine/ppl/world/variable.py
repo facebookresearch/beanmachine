@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from dataclasses import dataclass, fields
+from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 import torch
@@ -7,7 +8,11 @@ import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.utils import RVIdentifier, float_types
-from beanmachine.ppl.world.utils import get_transforms, is_discrete
+from beanmachine.ppl.world.utils import (
+    BetaDimensionTransform,
+    get_default_transforms,
+    is_discrete,
+)
 from torch import Tensor
 from torch.distributions import Distribution
 
@@ -25,6 +30,18 @@ class ProposalDistribution:
         except NotImplementedError:
             str_ouput = str(type(self.proposal_distribution))
         return str_ouput
+
+
+class TransformType(Enum):
+    NONE = 0
+    DEFAULT = 1
+    CUSTOM = 2
+
+
+@dataclass
+class TransformData:
+    transform_type: TransformType
+    transforms: Optional[List]
 
 
 @dataclass
@@ -68,10 +85,9 @@ class Variable(object):
     children: Set[Optional[RVIdentifier]]
     log_prob: Tensor
     proposal_distribution: ProposalDistribution
-    extended_val: Tensor
     is_discrete: bool
     transforms: List
-    unconstrained_value: Tensor
+    transformed_value: Tensor
     jacobian: Tensor
 
     def __post_init__(self) -> None:
@@ -162,10 +178,9 @@ class Variable(object):
             self.children.copy(),
             self.log_prob,
             self.proposal_distribution,
-            self.extended_val,
             self.is_discrete,
             self.transforms,
-            self.unconstrained_value,
+            self.transformed_value,
             self.jacobian,
         )
 
@@ -175,55 +190,23 @@ class Variable(object):
 
         :param value: the value to update the variable to
         """
-        if len(self.transforms) == 0:
-            self.value = value
-            self.jacobian = tensor(0.0)
-            if isinstance(self.distribution, dist.Beta):
-                self.extended_val = torch.cat(
-                    (self.value.unsqueeze(-1), (1 - self.value).unsqueeze(-1)), -1
-                )
-            if isinstance(self.value, float_types) and self.extended_val is None:
-                self.value.requires_grad_(True)
-            elif isinstance(self.value, float_types):
-                self.extended_val.requires_grad_(True)
-                self.value = self.extended_val.transpose(-1, 0)[0]
-            self.unconstrained_value = value
-        else:
-            transform = self.transforms[0]
-            unconstrained_sample = self.transform_from_constrained_to_unconstrained(
-                value
-            )
-            if isinstance(value, float_types):
-                unconstrained_sample.requires_grad_(True)
-            constrained_sample = self.transform_from_unconstrained_to_constrained(
-                unconstrained_sample
-            )
-            self.value = constrained_sample
-            self.unconstrained_value = unconstrained_sample
-            if isinstance(self.distribution, dist.Beta):
-                sample = torch.cat(
-                    (
-                        constrained_sample.unsqueeze(-1),
-                        (1 - constrained_sample).unsqueeze(-1),
-                    ),
-                    -1,
-                )
-            else:
-                sample = constrained_sample
-            self.jacobian = transform.log_abs_det_jacobian(
-                unconstrained_sample, sample
-            ).sum()
+        self.transformed_value = self.transform_value(value)
+        if not self.is_discrete:
+            self.transformed_value.requires_grad_(True)
+        self.value = self.inverse_transform_value(self.transformed_value)
+        self.update_jacobian()
 
     def update_fields(
         self,
         value: Optional[Tensor],
         obs_value: Optional[Tensor],
-        should_transform: bool = False,
+        transform_data: TransformData,
+        proposer,
         initialize_from_prior: bool = False,
     ):
         """
         Updates log probability, transforms and is_discrete, value,
-        unconstrained_value and jacobian parameters in the Variable.
+        transformed_value and jacobian parameters in the Variable.
 
         :param value: the value of the tensor if available, otherwise, a new
         initialized value will be set.
@@ -232,19 +215,17 @@ class Variable(object):
         :param initialize_from_prior: if true, returns sample from prior
         transforms and transformed values.
         """
-        if self.transforms is None:
-            self.transforms = (
-                get_transforms(self.distribution)
-                if obs_value is None and should_transform
-                else []
-            )
+        if obs_value is not None:
+            self.transforms = []
+        else:
+            self.set_transform(transform_data, proposer)
 
+        if self.is_discrete is None:
+            self.is_discrete = is_discrete(self.distribution)
         if value is None:
             value = self.initialize_value(obs_value, initialize_from_prior)
         self.update_value(value)
         self.update_log_prob()
-        if self.is_discrete is None:
-            self.is_discrete = is_discrete(self.distribution)
 
     def update_log_prob(self) -> None:
         """
@@ -252,55 +233,62 @@ class Variable(object):
         """
         self.log_prob = safe_log_prob_sum(self.distribution, self.value)
 
-    def set_transform(self, transform: List):
+    def set_transform(self, transform_data: TransformData, proposer):
         """
         Sets the variable transform to the transform passed in.
 
         :param transform: the transform value to the set the variable transform
         to
         """
-        self.transforms = transform
+        if transform_data.transform_type == TransformType.DEFAULT:
+            self.transforms = get_default_transforms(self.distribution)
+        elif transform_data.transform_type == TransformType.NONE:
+            if (
+                isinstance(self.distribution, dist.Beta)
+                and proposer is not None
+                and hasattr(proposer, "reshape_untransformed_beta_to_dirichlet")
+                and proposer.reshape_untransformed_beta_to_dirichlet
+            ):
+                self.transforms = [BetaDimensionTransform()]
+            else:
+                self.transforms = []
+        else:
+            if transform_data.transforms is None:
+                self.transforms = []
+            else:
+                # pyre-fixme
+                self.transforms = transform_data.transforms
 
-    def transform_from_unconstrained_to_constrained(
-        self, unconstrained_sample: Tensor
-    ) -> Tensor:
+    def update_jacobian(self):
+        temp = self.value
+        self.jacobian = tensor(0.0, dtype=temp.dtype)
+        for transform in self.transforms:
+            transformed_value = transform(temp)
+            self.jacobian -= transform.log_abs_det_jacobian(
+                temp, transformed_value
+            ).sum()
+            temp = transformed_value
+
+    def inverse_transform_value(self, transformed_value: Tensor) -> Tensor:
         """
-        Transforms the sample from unconstrained space to constrained space.
+        Transforms the value from transformed space to original space.
 
-        :param unconstrained_sample: unconstrained sample
-        :returns: constrained sample
+        :param transformed_value: transformed space sample
+        :returns: original space sample
         """
-        if len(self.transforms) == 0:
-            return unconstrained_sample
-        if isinstance(self.distribution, dist.Beta) and isinstance(
-            self.transforms[0], dist.StickBreakingTransform
-        ):
-            val = self.transforms[0]._call(unconstrained_sample)
-            return val.transpose(-1, 0)[0].T
-        return self.transforms[0]._call(unconstrained_sample)
+        temp = transformed_value
+        for transform in reversed(self.transforms):
+            temp = transform.inv(temp)
+        return temp
 
-    def transform_from_constrained_to_unconstrained(
-        self, constrained_sample: Tensor
-    ) -> Tensor:
+    def transform_value(self, value: Tensor) -> Tensor:
         """
-        Transforms the sample from constrained space to unconstrained space.
+        Transforms the value from original space to transformed space.
 
-        :param unconstrained_sample: unconstrained sample
-        :returns: constrained sample
+        :param value: value in original space
+        :returns: value in transformed space
         """
-        if len(self.transforms) == 0:
-            return constrained_sample
-
-        if isinstance(self.distribution, dist.Beta) and isinstance(
-            self.transforms[0], dist.StickBreakingTransform
-        ):
-            val = torch.cat(
-                (
-                    constrained_sample.unsqueeze(-1),
-                    (1 - constrained_sample).unsqueeze(-1),
-                ),
-                -1,
-            )
-            return self.transforms[0]._inverse(val)
-
-        return self.transforms[0]._inverse(constrained_sample)
+        temp = value
+        for transform in self.transforms:
+            temp = transform(temp)
+        return temp

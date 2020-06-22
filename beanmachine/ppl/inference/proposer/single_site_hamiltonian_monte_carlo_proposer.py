@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import logging
-from typing import Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
@@ -12,6 +12,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import Variable, World
+from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor, tensor
 
 
@@ -19,8 +20,14 @@ LOGGER_WARNING = logging.getLogger("beanmachine.warning")
 
 
 class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
-    def __init__(self, path_length: float, step_size: float = 0.01):
-        super().__init__()
+    def __init__(
+        self,
+        path_length: float,
+        step_size: float = 0.1,
+        transform_type: TransformType = TransformType.DEFAULT,
+        transforms: Optional[List] = None,
+    ):
+        super().__init__(transform_type, transforms)
         # mass matrix parameters
         self.mass_matrix_initialized = False
         self.sample_mean = None
@@ -49,7 +56,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         node: RVIdentifier,
         node_var: Variable,
         world: World,
-        q_unconstrained: Tensor,
+        q_transformed: Tensor,
         p: Tensor,
         original_grad: Tensor,
     ) -> Tensor:
@@ -60,25 +67,25 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param node: the node that we proposing a value for
         :param node_var: the Variable object associated with node
         :param world: the world where the node exists
-        :param q_unconstrained: the original value
+        :param q_transformed: the original value
         :param p: the sampled momentum
-        :param original_grad: the gradient at q_unconstrained
+        :param original_grad: the gradient at q_transformed
         :returns: the acceptance probability given the new q and p.
         """
         # make one leapfrog step
         p_new = p - self.step_size * original_grad / 2
-        q_new = q_unconstrained + self.step_size * p_new
+        q_new = q_transformed + self.step_size * p_new
         is_valid, step_grad = self._compute_potential_energy_gradient(
             node, world, q_new
         )
         if not is_valid:
-            return tensor(1e-10, dtype=q_unconstrained.dtype)
+            return tensor(1e-10, dtype=q_transformed.dtype)
         p_new = p_new - self.step_size * step_grad / 2
 
         # compute acceptance probability
         current_K = self._compute_kinetic_energy(p)
         proposed_K = self._compute_kinetic_energy(p_new)
-        q = node_var.transform_from_unconstrained_to_constrained(q_new)
+        q = node_var.inverse_transform_value(q_new)
         children_log_update, _, node_log_update, _ = world.propose_change(
             node, q, False
         )
@@ -101,18 +108,18 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             raise ValueError(f"{node} has no value")
 
         # initialize momentum and kinetic energy
-        q_unconstrained = node_var.unconstrained_value
-        p = torch.randn(q_unconstrained.shape)
+        q_transformed = node_var.transformed_value
+        p = torch.randn(q_transformed.shape)
 
         # take one leapfrog step with step size = 1.0
-        self.step_size = tensor(1.0, dtype=q_unconstrained.dtype)
+        self.step_size = tensor(1.0, dtype=q_transformed.dtype)
         is_valid, original_grad = self._compute_potential_energy_gradient(
-            node, world, q_unconstrained
+            node, world, q_transformed
         )
         if not is_valid:
             return
         acceptance_prob = self._compute_new_step_acceptance_probability(
-            node, node_var, world, q_unconstrained, p, original_grad
+            node, node_var, world, q_transformed, p, original_grad
         )
         if acceptance_prob > tensor(0.5):
             a = 1
@@ -126,7 +133,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             # half or double step size
             self.step_size = step_size_multiplier * self.step_size
             acceptance_prob = self._compute_new_step_acceptance_probability(
-                node, node_var, world, q_unconstrained, p, original_grad
+                node, node_var, world, q_transformed, p, original_grad
             )
             if torch.pow(acceptance_prob, a) < threshold:
                 # stop if the acceptance probability crosses the threshold
@@ -234,7 +241,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         self._adapt_step_size(node, world, acceptance_probability, iteration_number)
         if iteration_number > self.no_cov_iterations:
             self._adapt_mass_matrix(
-                iteration_number - self.no_cov_iterations, node_var.unconstrained_value
+                iteration_number - self.no_cov_iterations, node_var.transformed_value
             )
 
     def _compute_kinetic_energy(self, p: Tensor) -> Tensor:
@@ -250,20 +257,20 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             self.covariance = torch.eye(len(p_vector), dtype=p.dtype)
         return torch.matmul(p_vector.T, torch.matmul(self.covariance, p_vector)) / 2
 
-    def _compute_potential_energy_gradient(self, node, world, q_unconstrained):
+    def _compute_potential_energy_gradient(self, node, world, q_transformed):
         """
-        Compute the gradient of the likelihood w.r.t the new unconstrained value
+        Compute the gradient of the likelihood w.r.t the new transformed value
 
         :param node: the node for which we'll need to propose a new value for
         :param world: the world in which we'll propose a new value for node
-        :param q_unconstrained: the proposed unconstrained value for the node
+        :param q_transformed: the proposed transformed value for the node
         """
-        score = world.propose_change_unconstrained_value(
-            node, q_unconstrained, allow_graph_update=False
+        score = world.propose_change_transformed_value(
+            node, q_transformed, allow_graph_update=False
         )[3]
         node_var = world.get_node_in_world(node, False)
         is_valid, grad_U = compute_first_gradient(
-            -score, node_var.unconstrained_value, retain_graph=True
+            -score, node_var.transformed_value, retain_graph=True
         )
         if not is_valid:
             LOGGER_WARNING.warning(
@@ -286,18 +293,18 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         node_var = world.get_node_in_world_raise_error(node, False)
         if node_var.value is None:
             raise ValueError(f"{node} has no value")
-        q_unconstrained = node_var.unconstrained_value
+        q_transformed = node_var.transformed_value
 
         # initialize momentum
-        p = torch.randn(q_unconstrained.shape)
+        p = torch.randn(q_transformed.shape)
         current_K = self._compute_kinetic_energy(p)
 
         is_valid, grad_U = self._compute_potential_energy_gradient(
-            node, world, q_unconstrained
+            node, world, q_transformed
         )
         if not is_valid:
             self.runtime_error = True
-            zero_grad(q_unconstrained)
+            zero_grad(q_transformed)
             LOGGER_WARNING.warning(
                 "Node {n} has invalid proposal solution. ".format(n=node)
                 + "Proposer falls back to SingleSiteAncestralProposer.\n"
@@ -311,14 +318,14 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         num_steps = min(ideal_num_steps, self.max_num_steps)
         # leapfrog steps
         for i in range(num_steps):
-            q_unconstrained = q_unconstrained.detach()
-            q_unconstrained = q_unconstrained + self.step_size * p
+            q_transformed = q_transformed.detach()
+            q_transformed = q_transformed + self.step_size * p
             is_valid, grad_U = self._compute_potential_energy_gradient(
-                node, world, q_unconstrained
+                node, world, q_transformed
             )
             if not is_valid:
                 self.runtime_error = True
-                zero_grad(q_unconstrained)
+                zero_grad(q_transformed)
                 LOGGER_WARNING.warning(
                     "Node {n} has invalid proposal solution. ".format(n=node)
                     + "Proposer falls back to SingleSiteAncestralProposer.\n"
@@ -331,9 +338,9 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         # final half-step for momentum
         p = p - self.step_size * grad_U / 2
 
-        zero_grad(q_unconstrained)
+        zero_grad(q_transformed)
         proposed_K = self._compute_kinetic_energy(p)
-        q = node_var.transform_from_unconstrained_to_constrained(q_unconstrained)
+        q = node_var.inverse_transform_value(q_transformed)
         self.runtime_error = False
         return q.detach(), current_K - proposed_K, {}
 

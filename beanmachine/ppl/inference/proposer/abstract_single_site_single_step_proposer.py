@@ -55,17 +55,12 @@ class AbstractSingleSiteSingleStepProposer(
         negative_proposal_log_update = (
             -1 * proposal_distribution.log_prob(new_value).sum()
         )
-        if requires_reshape:
-            if isinstance(node_var.distribution, dist.Beta) and isinstance(
-                proposal_distribution, dist.Dirichlet
-            ):
-                new_value = new_value.transpose(-1, 0)[0].T.reshape(
-                    node_var.value.shape
-                )
 
-            new_value = new_value.reshape(node_var.unconstrained_value.shape)
+        if requires_reshape:
+            new_value = new_value.reshape(node_var.transformed_value.shape)
+
         if requires_transform:
-            new_value = node_var.transform_from_unconstrained_to_constrained(new_value)
+            new_value = node_var.inverse_transform_value(new_value)
             negative_proposal_log_update = (
                 negative_proposal_log_update + node_var.jacobian
             )
@@ -99,23 +94,21 @@ class AbstractSingleSiteSingleStepProposer(
         requires_transform = proposal_distribution_struct.requires_transform
         requires_reshape = proposal_distribution_struct.requires_reshape
 
-        if proposal_distribution == node_var.distribution:
-            old_value = world.get_old_value(node)
+        if requires_transform:
+            old_value = world.get_old_transformed_value(node)
         else:
-            old_value = world.get_old_unconstrained_value(node)
-
+            old_value = world.get_old_value(node)
         if old_value is None:
             raise ValueError("old value is not available in world")
 
-        if (
-            world.get_transform(node) and proposal_distribution != node_var.distribution
-        ) or (requires_reshape and not isinstance(node_var.distribution, dist.Beta)):
+        if requires_reshape:
             old_value = old_value.reshape(-1)
 
         positive_log_update = safe_log_prob_sum(proposal_distribution, old_value)
 
         if requires_transform:
             positive_log_update = positive_log_update - node_var.jacobian
+
         return positive_log_update
 
     @abstractmethod

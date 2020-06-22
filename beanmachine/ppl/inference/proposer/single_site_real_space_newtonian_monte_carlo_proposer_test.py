@@ -62,10 +62,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
 
@@ -78,10 +77,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=observed_val,
+            transformed_value=observed_val,
             jacobian=tensor(0.0),
         )
 
@@ -120,10 +118,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
 
@@ -159,10 +156,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
 
@@ -206,10 +202,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=theta_0_value,
+            transformed_value=theta_0_value,
             jacobian=tensor(0.0),
         )
 
@@ -220,10 +215,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=theta_1_value,
+            transformed_value=theta_1_value,
             jacobian=tensor(0.0),
         )
 
@@ -235,10 +229,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=x_0_value,
+            transformed_value=x_0_value,
             jacobian=tensor(0.0),
         )
 
@@ -249,10 +242,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set({y_0_key, y_1_key}),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=x_1_value,
+            transformed_value=x_1_value,
             jacobian=tensor(0.0),
         )
 
@@ -267,10 +259,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set({theta_0_key, theta_1_key, x_0_key}),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=tensor(1.0),
+            transformed_value=tensor(1.0),
             jacobian=tensor(0.0),
         )
 
@@ -285,10 +276,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set({theta_0_key, theta_1_key, x_1_key}),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=tensor(1.0),
+            transformed_value=tensor(1.0),
             jacobian=tensor(0.0),
         )
 
@@ -332,7 +322,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         )
         proposal_value.requires_grad_(True)
         world_vars[theta_0_key].value = proposal_value
-        world_vars[theta_0_key].unconstrained_value = proposal_value
+        world_vars[theta_0_key].transformed_value = proposal_value
         world_vars[theta_0_key].log_prob = theta_0_distribution.log_prob(proposal_value)
 
         y = proposal_value + theta_1_value * x_0_value

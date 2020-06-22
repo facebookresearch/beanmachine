@@ -38,7 +38,7 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         :returns: alpha and beta of the Gamma distribution as proposal
         distribution
         """
-        node_val = node_var.value
+        node_val = node_var.transformed_value
         score = world.compute_score(node_var)
         zero_grad(node_val)
         # pyre-fixme
@@ -108,7 +108,7 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         return (
             ProposalDistribution(
                 proposal_distribution=dist.Gamma(alpha, beta),
-                requires_transform=False,
+                requires_transform=True,
                 requires_reshape=False,
                 arguments={},
             ),

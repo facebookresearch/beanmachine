@@ -1,10 +1,37 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 from typing import List
 
+import torch
 import torch.distributions as dist
 import torch.distributions.constraints as constraints
-import torch.tensor as tensor
+from torch import Tensor, tensor
 from torch.distributions import Distribution
+from torch.distributions.transforms import Transform
+
+
+class BetaDimensionTransform(Transform):
+    bijective = True
+
+    def __eq__(self, other):
+        return isinstance(other, BetaDimensionTransform)
+
+    def _call(self, x):
+        """
+        Abstract method to compute forward transformation.
+        """
+        return torch.cat((x.unsqueeze(-1), (1 - x).unsqueeze(-1)), -1)
+
+    def _inverse(self, y):
+        """
+        Abstract method to compute inverse transformation.
+        """
+        return y.transpose(-1, 0)[0]
+
+    def log_abs_det_jacobian(self, x, y):
+        """
+        Computes the log det jacobian `log |dy/dx|` given input and output.
+        """
+        return tensor(0.0)
 
 
 def is_discrete(distribution: Distribution) -> bool:
@@ -27,7 +54,7 @@ def is_discrete(distribution: Distribution) -> bool:
     return False
 
 
-def get_transforms(distribution: Distribution) -> List:
+def get_default_transforms(distribution: Distribution) -> List:
     """
     Get transforms of a distribution to transform it from constrained space
     into unconstrained space.
@@ -38,31 +65,51 @@ def get_transforms(distribution: Distribution) -> List:
     """
     # pyre-fixme
     support = distribution.support
+    # pyre-fixme
+    sample = distribution.sample()
     if is_discrete(distribution):
         return []
-
-    if isinstance(support, constraints._Real):
+    elif isinstance(support, constraints._Real):
         return []
 
-    if isinstance(support, constraints._Interval):
-        lower_bound = tensor(support.lower_bound)
-        upper_bound = tensor(support.upper_bound)
-        if lower_bound.mean() != 0.0 or upper_bound.mean() != 1.0:
-            raise ValueError(
-                "Only distributions with 0 as lower bound and 1 as upper bound is supported"
-            )
+    elif isinstance(support, constraints._Interval):
+        lower_bound = support.lower_bound
+        if not isinstance(lower_bound, Tensor):
+            lower_bound = tensor(lower_bound, dtype=sample.dtype)
+        upper_bound = support.upper_bound
+        if not isinstance(upper_bound, Tensor):
+            upper_bound = tensor(upper_bound, dtype=sample.dtype)
 
-        return [dist.StickBreakingTransform()]
+        lower_bound_zero = dist.AffineTransform(-lower_bound, 1.0)
+        upper_bound_one = dist.AffineTransform(0, 1.0 / (upper_bound - lower_bound))
+        beta_dimension = BetaDimensionTransform()
+        stick_breaking = dist.StickBreakingTransform().inv
 
-    if isinstance(support, constraints._GreaterThan) or isinstance(
+        return [lower_bound_zero, upper_bound_one, beta_dimension, stick_breaking]
+
+    elif isinstance(support, constraints._GreaterThan) or isinstance(
         support, constraints._GreaterThanEq
     ):
-        lower_bound = tensor(support.lower_bound)
-        if lower_bound.sum() > 0.0:
-            raise ValueError("Only distributions with 0 as lower bound is supported")
+        lower_bound = support.lower_bound
+        if not isinstance(lower_bound, Tensor):
+            lower_bound = tensor(lower_bound, dtype=sample.dtype)
+        lower_bound_zero = dist.AffineTransform(-lower_bound, 1.0)
+        log_transform = dist.ExpTransform().inv
 
-        return [dist.ExpTransform()]
+        return [lower_bound_zero, log_transform]
 
-    if isinstance(support, constraints._Simplex):
-        return [dist.StickBreakingTransform()]
+    elif isinstance(support, constraints._LessThan):
+        upper_bound = support.upper_bound
+        if not isinstance(upper_bound, Tensor):
+            upper_bound = tensor(upper_bound, dtype=sample.dtype)
+
+        upper_bound_zero = dist.AffineTransform(-upper_bound, 1.0)
+        flip_to_greater = dist.AffineTransform(0, -1.0)
+        log_transform = dist.ExpTransform().inv
+
+        return [upper_bound_zero, flip_to_greater, log_transform]
+
+    elif isinstance(support, constraints._Simplex):
+        return [dist.StickBreakingTransform().inv]
+
     return []

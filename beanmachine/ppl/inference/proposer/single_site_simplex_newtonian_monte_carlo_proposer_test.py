@@ -53,10 +53,9 @@ class SingleSiteSimplexNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
         world_ = World()

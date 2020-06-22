@@ -23,8 +23,8 @@ class SingleSiteAdaptiveHamiltonianMonteCarloConjugateTest(
         pass
 
     def test_normal_normal_conjugate_run(self):
-        hmc = bm.SingleSiteHamiltonianMonteCarlo(0.5)
-        self.normal_normal_conjugate_run(hmc, num_samples=300, delta=0.15)
+        hmc = bm.SingleSiteHamiltonianMonteCarlo(1.0)
+        self.normal_normal_conjugate_run(hmc, num_samples=300, delta=0.2)
 
     def test_distant_normal_normal_conjugate_run(self):
         hmc = bm.SingleSiteHamiltonianMonteCarlo(1.0)

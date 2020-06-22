@@ -9,6 +9,9 @@ import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
+from beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer import (
+    SingleSiteHamiltonianMonteCarloProposer,
+)
 from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteNewtonianMonteCarloProposer,
 )
@@ -16,7 +19,9 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.world.variable import Variable
+from beanmachine.ppl.model.statistical_model import sample
+from beanmachine.ppl.world.utils import BetaDimensionTransform
+from beanmachine.ppl.world.variable import TransformType, Variable
 from beanmachine.ppl.world.world import World
 
 
@@ -81,6 +86,31 @@ class CompositionalInferenceTest(unittest.TestCase):
         def component(self, i):
             return dist.Categorical(self.alpha())
 
+    class SampleTransformModel(object):
+        @sample
+        def realspace(self):
+            return dist.Normal(tensor(0.0), tensor(1.0))
+
+        @sample
+        def halfspace(self):
+            return dist.Gamma(tensor(2.0), tensor(2.0))
+
+        @sample
+        def simplex(self):
+            return dist.Dirichlet(tensor([0.1, 0.9]))
+
+        @sample
+        def interval(self):
+            return dist.Uniform(tensor(1.0), tensor(3.0))
+
+        @sample
+        def beta(self):
+            return dist.Beta(tensor(1.0), tensor(1.0))
+
+        @sample
+        def discrete(self):
+            return dist.Poisson(tensor(2.0))
+
     def test_single_site_compositionl_inference(self):
         model = self.SampleModel()
         c = bm.CompositionalInference()
@@ -96,10 +126,9 @@ class CompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
         self.assertEqual(
@@ -119,10 +148,9 @@ class CompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
 
@@ -144,10 +172,9 @@ class CompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
 
@@ -168,10 +195,9 @@ class CompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
         self.assertEqual(
@@ -197,10 +223,9 @@ class CompositionalInferenceTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
         self.assertEqual(
@@ -326,3 +351,167 @@ class CompositionalInferenceTest(unittest.TestCase):
         # TODO: we should never raise RuntimeError, blocked by T67717820
         with self.assertRaises(RuntimeError):
             mh.infer(queries, {}, num_samples=10, num_chains=1)
+
+    def test_single_site_compositional_inference_transform_default(self):
+        model = self.SampleTransformModel()
+        ci = bm.CompositionalInference(
+            {
+                model.realspace: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.DEFAULT
+                ),
+                model.halfspace: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.DEFAULT
+                ),
+                model.simplex: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.DEFAULT
+                ),
+                model.interval: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.DEFAULT
+                ),
+                model.beta: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.DEFAULT
+                ),
+            }
+        )
+
+        real_key = model.realspace()
+        half_key = model.halfspace()
+        simplex_key = model.simplex()
+        interval_key = model.interval()
+        beta_key = model.beta()
+
+        ci.queries_ = [
+            model.realspace(),
+            model.halfspace(),
+            model.simplex(),
+            model.interval(),
+            model.beta(),
+        ]
+        ci.observations_ = {}
+        ci.initialize_world()
+        var_dict = ci.world_.variables_.vars()
+
+        self.assertTrue(real_key in var_dict)
+        self.assertEqual(var_dict[real_key].transforms, [])
+
+        self.assertTrue(half_key in var_dict)
+        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
+        log_transform = dist.ExpTransform().inv
+        expected_transforms = [lower_bound_zero, log_transform]
+        self.assertEqual(var_dict[half_key].transforms, expected_transforms)
+
+        self.assertTrue(simplex_key in var_dict)
+        self.assertEqual(
+            var_dict[simplex_key].transforms, [dist.StickBreakingTransform().inv]
+        )
+
+        self.assertTrue(interval_key in var_dict)
+        lower_bound_zero = dist.AffineTransform(-1.0, 1.0)
+        upper_bound_one = dist.AffineTransform(0, 1.0 / 2.0)
+        beta_dimension = BetaDimensionTransform()
+        stick_breaking = dist.StickBreakingTransform().inv
+        expected_transforms = [
+            lower_bound_zero,
+            upper_bound_one,
+            beta_dimension,
+            stick_breaking,
+        ]
+        self.assertEqual(var_dict[interval_key].transforms, expected_transforms)
+
+        self.assertTrue(beta_key in var_dict)
+        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
+        upper_bound_one = dist.AffineTransform(0.0, 1.0)
+        beta_dimension = BetaDimensionTransform()
+        stick_breaking = dist.StickBreakingTransform().inv
+        expected_transforms = [
+            lower_bound_zero,
+            upper_bound_one,
+            beta_dimension,
+            stick_breaking,
+        ]
+        self.assertEqual(var_dict[beta_key].transforms, expected_transforms)
+
+    def test_single_site_compositional_inference_transform_mixed(self):
+        model = self.SampleTransformModel()
+        ci = bm.CompositionalInference(
+            {
+                model.realspace: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.CUSTOM,
+                    transforms=[dist.ExpTransform()],
+                ),
+                model.halfspace: SingleSiteHamiltonianMonteCarloProposer(
+                    0.1, 10, transform_type=TransformType.DEFAULT
+                ),
+                model.simplex: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.NONE
+                ),
+                model.interval: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.CUSTOM,
+                    transforms=[dist.AffineTransform(1.0, 2.0)],
+                ),
+                model.beta: SingleSiteNewtonianMonteCarloProposer(
+                    transform_type=TransformType.NONE
+                ),
+                model.discrete: SingleSiteUniformProposer(
+                    transform_type=TransformType.NONE
+                ),
+            }
+        )
+
+        real_key = model.realspace()
+        half_key = model.halfspace()
+        simplex_key = model.simplex()
+        interval_key = model.interval()
+        beta_key = model.beta()
+        discrete_key = model.discrete()
+
+        ci.queries_ = [
+            model.realspace(),
+            model.halfspace(),
+            model.simplex(),
+            model.interval(),
+            model.beta(),
+            model.discrete(),
+        ]
+        ci.observations_ = {}
+        ci.initialize_world()
+        var_dict = ci.world_.variables_.vars()
+
+        self.assertTrue(real_key in var_dict)
+        self.assertEqual(var_dict[real_key].transforms, [dist.ExpTransform()])
+
+        self.assertTrue(half_key in var_dict)
+        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
+        log_transform = dist.ExpTransform().inv
+        expected_transforms = [lower_bound_zero, log_transform]
+        self.assertEqual(var_dict[half_key].transforms, expected_transforms)
+
+        self.assertTrue(simplex_key in var_dict)
+        self.assertEqual(var_dict[simplex_key].transforms, [])
+
+        self.assertTrue(interval_key in var_dict)
+        self.assertEqual(
+            var_dict[interval_key].transforms, [dist.AffineTransform(1.0, 2.0)]
+        )
+
+        self.assertTrue(beta_key in var_dict)
+        self.assertEqual(var_dict[beta_key].transforms, [BetaDimensionTransform()])
+
+        self.assertTrue(discrete_key in var_dict)
+        self.assertEqual(var_dict[discrete_key].transforms, [])
+
+    def test_single_site_compositional_inference_ancestral_beta(self):
+        model = self.SampleTransformModel()
+        ci = bm.CompositionalInference(
+            {model.beta: SingleSiteAncestralProposer(transform_type=TransformType.NONE)}
+        )
+
+        beta_key = model.beta()
+
+        ci.queries_ = [model.beta()]
+        ci.observations_ = {}
+        ci.initialize_world()
+        var_dict = ci.world_.variables_.vars()
+
+        self.assertTrue(beta_key in var_dict)
+        self.assertEqual(var_dict[beta_key].transforms, [])

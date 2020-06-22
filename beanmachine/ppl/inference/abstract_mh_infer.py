@@ -3,7 +3,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from random import shuffle
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.distributions as dist
@@ -12,6 +12,7 @@ from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseL
 from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
+from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 from tqdm.auto import tqdm
 
@@ -27,8 +28,15 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
     inherit from.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        proposer=None,
+        transform_type: TransformType = TransformType.NONE,
+        transforms: Optional[List] = None,
+    ):
         super().__init__()
+        self.world_.set_all_nodes_proposer(proposer)
+        self.world_.set_all_nodes_transform(transform_type, transforms)
         self.blocks_ = []
 
     def initialize_world(self, initialize_from_prior: bool = False):

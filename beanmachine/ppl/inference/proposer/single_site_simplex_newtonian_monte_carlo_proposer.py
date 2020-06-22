@@ -26,6 +26,9 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
     Single-Site Simplex Newtonian Monte Carlo Proposers
     """
 
+    def __init__(self):
+        self.reshape_untransformed_beta_to_dirichlet = True
+
     def compute_alpha(
         self, node_var: Variable, world: World, min_alpha_value: float = 1e-3
     ) -> Tuple[bool, Tensor]:
@@ -38,9 +41,7 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param node_var: the node Variable we're proposing a new value for
         :returns: alpha of the Dirichlet distribution as proposal distribution
         """
-        node_val = (
-            node_var.value if node_var.extended_val is None else node_var.extended_val
-        )
+        node_val = node_var.transformed_value
         score = world.compute_score(node_var)
         # ensures gradient is zero at the end of each proposals.
         zero_grad(node_val)
@@ -61,10 +62,6 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
 
         # pyre-fixme
         mean = node_var.distribution.mean
-
-        if isinstance(node_var.distribution, dist.Beta):
-            # pyre-fixme
-            mean = torch.cat((mean.unsqueeze(-1), (1 - mean).unsqueeze(-1)), -1)
 
         predicted_alpha = torch.where(
             predicted_alpha < -1 * min_alpha_value, mean, predicted_alpha
@@ -114,8 +111,8 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         return (
             ProposalDistribution(
                 proposal_distribution=dist.Dirichlet(alpha),
-                requires_transform=False,
-                requires_reshape=True,
+                requires_transform=True,
+                requires_reshape=False,
                 arguments={},
             ),
             {},

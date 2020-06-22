@@ -3,6 +3,7 @@ import unittest
 
 import beanmachine.ppl as bm
 import torch.distributions as dist
+import torch.tensor as tensor
 
 
 class ToplevelSmokeTest(unittest.TestCase):
@@ -19,7 +20,7 @@ class ToplevelSmokeTest(unittest.TestCase):
         # exercise invocation from top-level package directly
         # Compositional Inference
         samples = bm.CompositionalInference().infer(
-            [foo_sum(3)], {foo(0): False}, 1000, 1
+            [foo_sum(3)], {foo(0): tensor(0.0)}, 1000, 1
         )
         bm.Diagnostics(samples)
 

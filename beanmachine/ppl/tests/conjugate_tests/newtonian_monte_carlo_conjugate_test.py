@@ -5,13 +5,14 @@ import beanmachine.ppl as bm
 from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
     AbstractConjugateTests,
 )
+from beanmachine.ppl.world import TransformType
 
 
 class SingleSiteNewtonianMonteCarloConjugateTest(
     unittest.TestCase, AbstractConjugateTests
 ):
     def test_beta_binomial_conjugate_run(self):
-        nw = bm.SingleSiteNewtonianMonteCarlo()
+        nw = bm.SingleSiteNewtonianMonteCarlo(TransformType.NONE)
         self.beta_binomial_conjugate_run(nw, num_samples=350, delta=0.15)
         # failing for transform proposer because hessian is extremely close to 0
         # NMC has a covariance that is too large to produce good samples
@@ -35,7 +36,7 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
     def test_dirichlet_categorical_conjugate_run(self):
         nw = bm.SingleSiteNewtonianMonteCarlo()
         self.dirichlet_categorical_conjugate_run(nw, num_samples=100, delta=0.15)
-        nw_transform = bm.SingleSiteNewtonianMonteCarlo(True)
+        nw_transform = bm.SingleSiteNewtonianMonteCarlo(TransformType.DEFAULT)
         self.dirichlet_categorical_conjugate_run(
             nw_transform, num_samples=100, delta=0.15
         )

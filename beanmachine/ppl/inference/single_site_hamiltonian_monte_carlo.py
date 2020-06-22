@@ -1,9 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+from typing import List, Optional
+
 from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer import (
     SingleSiteHamiltonianMonteCarloProposer,
 )
 from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.world.world import TransformType
 
 
 class SingleSiteHamiltonianMonteCarlo(AbstractMHInference):
@@ -11,9 +14,18 @@ class SingleSiteHamiltonianMonteCarlo(AbstractMHInference):
     Implementation for SingleSiteHamiltonianMonteCarlo
     """
 
-    def __init__(self, path_length: float, step_size: float = 0.1):
-        super().__init__()
-        self.world_.set_all_nodes_transform(True)
+    def __init__(
+        self,
+        path_length: float,
+        step_size: float = 0.1,
+        transform_type: TransformType = TransformType.DEFAULT,
+        transforms: Optional[List] = None,
+    ):
+        super().__init__(
+            proposer=SingleSiteHamiltonianMonteCarloProposer(path_length, step_size),
+            transform_type=transform_type,
+            transforms=transforms,
+        )
         self.proposer_ = {}
         self.path_length_ = path_length
         self.step_size_ = step_size

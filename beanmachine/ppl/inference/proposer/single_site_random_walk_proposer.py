@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates
-from typing import Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.distributions as dist
@@ -8,6 +8,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor, tensor
 from torch.distributions.transforms import AffineTransform
 
@@ -22,7 +23,13 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
     proposal.
     """
 
-    def __init__(self, step_size: float, num_adapt_windows: int):
+    def __init__(
+        self,
+        step_size: float,
+        num_adapt_windows: int,
+        transform_type: TransformType = TransformType.NONE,
+        transforms: Optional[List] = None,
+    ):
         """
         Initialize object.
 
@@ -30,7 +37,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         """
 
         self.step_size = step_size
-        super().__init__()
+        super().__init__(transform_type, transforms)
         # Key is bool, indicates: is r.v. multidimensional?
         self.target_acc_rate = {False: tensor(0.44), True: tensor(0.234)}
 
@@ -90,39 +97,48 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         """
         node_distribution = node_var.distribution
 
-        # pyre-fixme
-        if isinstance(node_distribution.support, dist.constraints._Real):
+        # for now, assume all transforms will transform distributions into the realspace
+        if world.get_transforms_for_node(
+            node
+        ).transform_type != TransformType.NONE or isinstance(
+            # pyre-fixme
+            node_distribution.support,
+            dist.constraints._Real,
+        ):
             return (
                 ProposalDistribution(
                     proposal_distribution=dist.Normal(
-                        node_var.value,
-                        torch.ones(node_var.value.shape) * self.step_size,
+                        node_var.transformed_value,
+                        torch.ones(node_var.transformed_value.shape) * self.step_size,
                     ),
-                    requires_transform=False,
-                    requires_reshape=False,
-                    arguments={},
-                ),
-                {},
-            )
-        if isinstance(
-            node_distribution.support, dist.constraints._GreaterThan
-        ) or isinstance(node_distribution.support, dist.constraints._GreaterThan):
-            lower_bound = node_distribution.support.lower_bound
-            node_var.set_transform([AffineTransform(loc=lower_bound, scale=1.0)])
-            proposal_distribution = self.gamma_distbn_from_moments(
-                node_var.value - lower_bound, self.step_size ** 2
-            )
-
-            return (
-                ProposalDistribution(
-                    proposal_distribution=proposal_distribution,
                     requires_transform=True,
                     requires_reshape=False,
                     arguments={},
                 ),
                 {},
             )
-        if isinstance(node_distribution.support, dist.constraints._Interval):
+        elif isinstance(
+            node_distribution.support, dist.constraints._GreaterThan
+        ) or isinstance(node_distribution.support, dist.constraints._GreaterThan):
+            lower_bound = node_distribution.support.lower_bound
+            proposal_distribution = self.gamma_distbn_from_moments(
+                node_var.value - lower_bound, self.step_size ** 2
+            )
+            transform = dist.AffineTransform(loc=lower_bound, scale=1.0)
+            transformed_proposal = dist.TransformedDistribution(
+                proposal_distribution, transform
+            )
+
+            return (
+                ProposalDistribution(
+                    proposal_distribution=transformed_proposal,
+                    requires_transform=False,
+                    requires_reshape=False,
+                    arguments={},
+                ),
+                {},
+            )
+        elif isinstance(node_distribution.support, dist.constraints._Interval):
             lower_bound = node_distribution.support.lower_bound
             width = node_distribution.support.upper_bound - lower_bound
             # Compute first and second moments of the perturbation distribution
@@ -130,22 +146,21 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
             mu = (node_var.value - lower_bound) / width
             sigma = torch.ones(node_var.value.shape) * self.step_size / width
             proposal_distribution = self.beta_distbn_from_moments(mu, sigma)
-            if lower_bound != 0 and width != 1.0:
-                node_var.set_transform([AffineTransform(loc=lower_bound, scale=width)])
-                requires_transform = True
-            else:
-                requires_transform = False
+            transform = dist.AffineTransform(loc=lower_bound, scale=width)
+            transformed_proposal = dist.TransformedDistribution(
+                proposal_distribution, transform
+            )
 
             return (
                 ProposalDistribution(
-                    proposal_distribution=proposal_distribution,
-                    requires_transform=requires_transform,
+                    proposal_distribution=transformed_proposal,
+                    requires_transform=False,
                     requires_reshape=False,
                     arguments={},
                 ),
                 {},
             )
-        if isinstance(node_distribution.support, dist.constraints._Simplex):
+        elif isinstance(node_distribution.support, dist.constraints._Simplex):
             proposal_distribution = self.dirichlet_distbn_from_moments(
                 node_var.value, self.step_size
             )
@@ -158,9 +173,10 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
                 ),
                 {},
             )
-        return super().get_proposal_distribution(
-            node, node_var, world, auxiliary_variables
-        )
+        else:
+            return super().get_proposal_distribution(
+                node, node_var, world, auxiliary_variables
+            )
 
     def gamma_distbn_from_moments(self, expectation, sigma):
         """

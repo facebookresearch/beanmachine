@@ -36,6 +36,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         self.learning_rate_ = tensor(0.0)
         self.running_mean_, self.running_var_ = tensor(0.0), tensor(0.0)
         self.accepted_samples_ = 0
+        super().__init__()
 
     def get_proposal_distribution(
         self,
@@ -69,12 +70,12 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             if is_scalar(self.alpha_) or is_scalar(self.beta_):
                 # pyre-fixme[8]: Attribute has type `float`; used as `Tensor`.
                 self.alpha_ = self.alpha_ * torch.ones_like(
-                    node_var.unconstrained_value
+                    node_var.transformed_value
                 ).reshape(-1)
 
                 # pyre-fixme[8]: Attribute has type `float`; used as `Tensor`.
                 self.beta_ = self.beta_ * torch.ones_like(
-                    node_var.unconstrained_value
+                    node_var.transformed_value
                 ).reshape(-1)
 
             beta_ = dist.Beta(self.alpha_, self.beta_)
@@ -99,14 +100,14 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             return (
                 ProposalDistribution(
                     proposal_distribution=_proposer,
-                    requires_transform=node_var.proposal_distribution.requires_transform,
+                    requires_transform=True,
                     requires_reshape=True,
                     arguments=_arguments,
                 ),
                 aux_vars,
             )
 
-        node_val = node_var.unconstrained_value
+        node_val = node_var.transformed_value
         score = world.compute_score(node_var)
         zero_grad(node_val)
         # pyre-fixme
@@ -172,14 +173,10 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             # pyre-fixme
             _arguments["eig_decomp"] = (eig_vals, eig_vecs)
 
-        requires_transform = False
-        # pyre-fixme
-        if not isinstance(node_var.distribution.support, dist.constraints._Real):
-            requires_transform = True
         return (
             ProposalDistribution(
                 proposal_distribution=_proposer,
-                requires_transform=requires_transform,
+                requires_transform=True,
                 requires_reshape=True,
                 arguments=_arguments,
             ),

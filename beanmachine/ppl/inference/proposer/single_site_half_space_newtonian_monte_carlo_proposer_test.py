@@ -41,6 +41,15 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             probs = 1 / (1 + (y * -1).exp())
             return dist.Bernoulli(probs)
 
+    class SampleFallbackModel(object):
+        @bm.random_variable
+        def foo(self):
+            return dist.Gamma(tensor(2.0), tensor(2.0))
+
+        @bm.random_variable
+        def bar(self):
+            return dist.Normal(self.foo(), torch.tensor(1.0))
+
     def test_alpha_and_beta_for_gamma(self):
         alpha = tensor([2.0, 2.0, 2.0])
         beta = tensor([2.0, 2.0, 2.0])
@@ -54,10 +63,9 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             parent=set(),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=val,
+            transformed_value=val,
             jacobian=tensor(0.0),
         )
         world_ = World()

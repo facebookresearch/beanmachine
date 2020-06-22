@@ -233,8 +233,6 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         observations = {model.normal(): torch.tensor(100.0)}
         predictions = mh.infer(queries, observations, 100, 30)
         predictions = predictions.get_chain()[p_key]
-        print(predictions.shape)
-        print(predictions)
         self.assertIn(True, [45 < pred < 55 for pred in predictions])
 
     """

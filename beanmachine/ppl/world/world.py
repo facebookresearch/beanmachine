@@ -2,12 +2,11 @@
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
-import torch.distributions as dist
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
-from beanmachine.ppl.world.variable import Variable
+from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
 from beanmachine.ppl.world.world_vars import WorldVars
 from torch import Tensor, tensor
 
@@ -88,8 +87,8 @@ class World(object):
         self.stack_ = []
         self.observations_ = defaultdict()
         self.reset_diff()
-        self.should_transform_ = defaultdict(bool)
-        self.should_transform_all_ = False
+        self.transforms_ = defaultdict(lambda: TransformData(TransformType.NONE, []))
+        self.proposer_ = defaultdict(lambda: None)
         self.initialize_from_prior_ = False
 
     def set_initialize_from_prior(self, initialize_from_prior: bool = True):
@@ -101,25 +100,71 @@ class World(object):
         """
         self.initialize_from_prior_ = initialize_from_prior
 
-    def set_all_nodes_transform(self, should_transform: bool) -> None:
-        self.should_transform_all_ = should_transform
-
-    def set_transform(self, node, val):
+    def set_transforms(
+        self,
+        func_wrapper,
+        transform_type: TransformType,
+        transforms: Optional[List] = None,
+    ):
         """
         Enables transform for a given node.
 
         :param node: the node to enable the transform for
         """
-        self.should_transform_[node] = val
+        if transform_type == TransformType.CUSTOM and transforms is None:
+            raise ValueError("No transform provided for custom transform")
+        self.transforms_[func_wrapper] = TransformData(transform_type, transforms)
 
-    def get_transform(self, node):
+    def set_all_nodes_transform(
+        self, transform_type: TransformType, transforms: Optional[List] = None
+    ):
+        if transform_type == TransformType.CUSTOM and transforms is None:
+            raise ValueError("No transform provided")
+
+        for func_wrapper in self.transforms_:
+            self.transforms_[func_wrapper] = TransformData(transform_type, transforms)
+
+        self.transforms_ = defaultdict(
+            lambda: TransformData(transform_type, transforms)
+        )
+
+    def get_transforms_for_node(self, node):
         """
         Returns whether transform is enabled for a given node.
 
         :param node: the node to look up
         :returns: whether the node has transform enabled or not
         """
-        return self.should_transform_[node] or self.should_transform_all_
+        return self.transforms_[node.function._wrapper]
+
+    def set_proposer(self, func_wrapper, proposer):
+        """
+        Sets proposer for a given node
+
+        :param func_wrapper: the function wrapper
+        :param proposer: the associated proposer
+        """
+        self.proposer_[func_wrapper] = proposer
+
+    def set_all_nodes_proposer(self, proposer):
+        """
+        Sets the default proposers for all nodes
+
+        :param proposer: the default proposer
+        """
+        for func_wrapper in self.proposer_:
+            self.proposer_[func_wrapper] = proposer
+
+        self.proposer_ = defaultdict(lambda: proposer)
+
+    def get_proposer_for_node(self, node):
+        """
+        Returns the proposer for a given node
+
+        :param node: the node to look up
+        :returns: the associate proposer
+        """
+        return self.proposer_[node.function._wrapper]
 
     def __str__(self) -> str:
         return (
@@ -210,25 +255,17 @@ class World(object):
         score += node_var.jacobian
         return score
 
-    def get_old_unconstrained_value(self, node: RVIdentifier) -> Optional[Tensor]:
+    def get_old_transformed_value(self, node: RVIdentifier) -> Optional[Tensor]:
         """
-        Looks up the node in the world and returns the old unconstrained value
+        Looks up the node in the world and returns the old transformed value
         of the node.
 
         :param node: the node to look up
-        :returns: old unconstrained value of the node.
+        :returns: old transformed value of the node.
         """
         node_var = self.get_node_earlier_version(node)
         if node_var is not None:
-            if (
-                isinstance(node_var.distribution, dist.Beta)
-                and node_var.proposal_distribution is not None
-                and isinstance(
-                    node_var.proposal_distribution.proposal_distribution, dist.Dirichlet
-                )
-            ):
-                return node_var.extended_val
-            return node_var.unconstrained_value
+            return node_var.transformed_value
         return None
 
     def get_old_value(self, node: RVIdentifier) -> Optional[Tensor]:
@@ -389,7 +426,12 @@ class World(object):
             var = self.get_node_in_world_raise_error(node).copy()
 
         old_log_prob = var.log_prob
-        var.update_fields(proposed_value, None, self.should_transform_[node])
+        var.update_fields(
+            proposed_value,
+            None,
+            self.get_transforms_for_node(node),
+            self.get_proposer_for_node(node),
+        )
         var.proposal_distribution = None
         self.diff_stack_.add_node(node, var)
         node_log_update = var.log_prob - old_log_prob
@@ -499,7 +541,10 @@ class World(object):
                 self.observations_[child] if child in self.observations_ else None
             )
             child_var.update_fields(
-                child_var.value, obs_value, self.should_transform_[child]
+                child_var.value,
+                obs_value,
+                self.get_transforms_for_node(child),
+                self.get_proposer_for_node(child),
             )
             new_log_probs[child] = child_var.log_prob
 
@@ -515,10 +560,10 @@ class World(object):
         self.diff_.update_log_prob(children_log_update)
         return children_log_update, graph_update
 
-    def propose_change_unconstrained_value(
+    def propose_change_transformed_value(
         self,
         node: RVIdentifier,
-        proposed_unconstrained_value: Tensor,
+        proposed_transformed_value: Tensor,
         allow_graph_update=True,
     ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """
@@ -534,9 +579,7 @@ class World(object):
         # diff to track the changes is not started yet, so we're just reading
         # the node variable available in world_vars or diff.
         node_var = self.get_node_in_world_raise_error(node, False)
-        proposed_value = node_var.transform_from_unconstrained_to_constrained(
-            proposed_unconstrained_value
-        )
+        proposed_value = node_var.inverse_transform_value(proposed_transformed_value)
         return self.propose_change(node, proposed_value, allow_graph_update)
 
     def propose_change(
@@ -609,10 +652,9 @@ class World(object):
             parent=set(),
             children=set() if len(self.stack_) == 0 else set({self.stack_[-1]}),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=None,
             transforms=None,
-            unconstrained_value=None,
+            transformed_value=None,
             jacobian=None,
         )
 
@@ -624,8 +666,13 @@ class World(object):
 
         obs_value = self.observations_[node] if node in self.observations_ else None
         node_var.update_fields(
-            None, obs_value, self.get_transform(node), self.initialize_from_prior_
+            None,
+            obs_value,
+            self.get_transforms_for_node(node),
+            self.get_proposer_for_node(node),
+            self.initialize_from_prior_,
         )
+
         self.update_diff_log_prob(node)
 
         return node_var.value

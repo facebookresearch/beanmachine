@@ -22,18 +22,28 @@ class CompositionalInference(AbstractMHInference):
     """
 
     # pyre-fixme[9]: proposers has type `Dict[typing.Any, typing.Any]`; used as `None`.
-    def __init__(self, proposers: Dict = None, should_transform: bool = False):
+    def __init__(self, proposers: Dict = None):
         self.proposers_per_family_ = {}
         self.proposers_per_rv_ = {}
+        super().__init__()
+        # for setting the transform properly during initialization in Variable.py
+        # NMC requires an additional transform from Beta -> Reshaped beta
+        # so all nodes default to having this behavior unless otherwise specified using CI
+        # should be updated as initialization gets moved to the proposer
+        self.world_.set_all_nodes_proposer(SingleSiteNewtonianMonteCarloProposer())
         if proposers is not None:
             for key in proposers:
                 if hasattr(key, "__func__"):
+                    func_wrapper = key.__func__
                     self.proposers_per_family_[key.__func__] = proposers[key]
+                    self.world_.set_transforms(
+                        func_wrapper,
+                        proposers[key].transform_type,
+                        proposers[key].transforms,
+                    )
+                    self.world_.set_proposer(func_wrapper, proposers[key])
                 else:
                     self.proposers_per_family_[key] = proposers[key]
-
-        self.should_transform_ = should_transform
-        super().__init__()
 
     def add_sequential_proposer(self, block: List) -> None:
         """

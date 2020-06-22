@@ -34,10 +34,9 @@ class DiffStackTest(unittest.TestCase):
             parent=set(),
             children=set({bar_key}),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=tensor(0.5),
+            transformed_value=tensor(0.5),
             jacobian=tensor(0.0),
         )
         diff_vars.add_node(foo_key, foo_var)
@@ -48,10 +47,9 @@ class DiffStackTest(unittest.TestCase):
             parent=set({foo_key}),
             children=set(),
             proposal_distribution=None,
-            extended_val=None,
             is_discrete=False,
             transforms=[],
-            unconstrained_value=tensor(0.1),
+            transformed_value=tensor(0.1),
             jacobian=tensor(0.0),
         )
         diff_vars.add_node(bar_key, bar_var)

@@ -12,8 +12,8 @@ class SingleSiteAncestralMetropolisHastings(AbstractMHInference):
     """
 
     def __init__(self):
-        super().__init__()
         self.proposer_ = SingleSiteAncestralProposer()
+        super().__init__(proposer=self.proposer_)
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """

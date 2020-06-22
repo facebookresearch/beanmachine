@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import logging
-from typing import Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
@@ -17,6 +17,7 @@ from beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carl
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 
 
@@ -47,11 +48,18 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         4) Compute the final proposal log update: log(P(X'->X)) - log(P(X->X'))
     """
 
-    def __init__(self, nmc_alpha: float = 10.0, nmc_beta: float = 1.0):
+    def __init__(
+        self,
+        nmc_alpha: float = 10.0,
+        nmc_beta: float = 1.0,
+        transform_type: TransformType = TransformType.DEFAULT,
+        transforms: Optional[List] = None,
+    ):
         self.proposers_ = {}
         self.alpha_ = nmc_alpha
         self.beta_ = nmc_beta
-        super().__init__()
+        super().__init__(transform_type, transforms)
+        self.reshape_untransformed_beta_to_dirichlet = True
 
     def get_proposal_distribution(
         self,
@@ -74,7 +82,9 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         if node not in self.proposers_:
             # pyre-fixme
             node_distribution_support = node_var.distribution.support
-            if world.get_transform(node) or isinstance(
+            if world.get_transforms_for_node(
+                node
+            ).transform_type != TransformType.NONE or isinstance(
                 node_distribution_support, dist.constraints._Real
             ):
                 self.proposers_[node] = SingleSiteRealSpaceNewtonianMonteCarloProposer(
