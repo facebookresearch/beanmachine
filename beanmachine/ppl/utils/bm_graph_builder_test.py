@@ -1281,6 +1281,17 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(sa, []), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s]), n))
 
+    def test_to_positive_real(self) -> None:
+        """Test to_positive_real"""
+        bmg = BMGraphBuilder()
+        two = bmg.add_pos_real(2.0)
+        # to_positive_real on a positive real constant is an identity
+        self.assertEqual(bmg.add_to_positive_real(two), two)
+        beta22 = bmg.add_beta(two, two)
+        to_pr = bmg.add_to_positive_real(beta22)
+        # to_positive_real nodes are deduplicated
+        self.assertEqual(bmg.add_to_positive_real(beta22), to_pr)
+
     def test_types(self) -> None:
         bmg = BMGraphBuilder()
         t = bmg.add_tensor(tensor(1.0))
