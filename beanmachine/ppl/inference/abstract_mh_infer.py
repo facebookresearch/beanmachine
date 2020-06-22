@@ -323,7 +323,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         for iteration in tqdm(
             iterable=range(num_samples + num_adaptive_samples),
             desc="Samples collected",
-            disable=not bool(verbose.value),
+            disable=not verbose == VerboseLevel.LOAD_BAR,
         ):
             blocks = self.process_blocks()
             shuffle(blocks)
