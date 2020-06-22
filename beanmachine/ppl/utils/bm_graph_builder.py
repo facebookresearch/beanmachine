@@ -96,6 +96,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     SampleNode,
     StudentTNode,
     TensorNode,
+    ToPositiveRealNode,
     ToRealNode,
     ToTensorNode,
     UniformNode,
@@ -103,7 +104,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 from beanmachine.ppl.compiler.bmg_types import Natural, PositiveReal, Probability
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
-from torch import Tensor
+from torch import Tensor, tensor
 from torch.distributions import (
     Bernoulli,
     Beta,
@@ -704,7 +705,7 @@ creates a constant graph node for it, and adds it to the builder"""
     # we accumulate these conversion nodes.
 
     @memoize
-    def add_to_real(self, operand: BMGNode) -> ToRealNode:
+    def add_to_real(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, RealNode):
             return operand
         if isinstance(operand, ConstantNode):
@@ -721,7 +722,21 @@ creates a constant graph node for it, and adds it to the builder"""
         return self.add_to_real(operand)
 
     @memoize
-    def add_to_tensor(self, operand: BMGNode) -> ToTensorNode:
+    def add_to_positive_real(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, PositiveRealNode):
+            return operand
+        if isinstance(operand, ConstantNode):
+            return self.add_positive_real(float(operand.value))
+        node = ToPositiveRealNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_to_tensor(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, TensorNode):
+            return operand
+        if isinstance(operand, ConstantNode):
+            return self.add_tensor(tensor(operand.value))
         node = ToTensorNode(operand)
         self.add_node(node)
         return node
