@@ -3,6 +3,7 @@ from .diagnostics import Diagnostics
 from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
 from .inference import (
     CompositionalInference,
+    RejectionSampling,
     SingleSiteAncestralMetropolisHastings,
     SingleSiteHamiltonianMonteCarlo,
     SingleSiteNewtonianMonteCarlo,
@@ -17,6 +18,7 @@ LOGGER = get_beanmachine_logger()
 __all__ = [
     "CompositionalInference",
     "Diagnostics",
+    "RejectionSampling",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
     "SingleSiteNewtonianMonteCarlo",

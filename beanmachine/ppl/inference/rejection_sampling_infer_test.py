@@ -17,6 +17,24 @@ class RejectionSamplingTest(unittest.TestCase):
         def bar(self):
             return dist.Bernoulli(self.foo())
 
+    class SampleFunctionalModel:
+        @bm.random_variable
+        def foo(self):
+            return dist.Categorical(probs=torch.ones(7) / 7.0)
+
+        @bm.functional
+        def bar(self):
+            return torch.tensor(15.0) + self.foo()
+
+    class VectorModel:
+        @bm.random_variable
+        def foo(self):
+            return dist.Beta(0.25, 0.25)
+
+        @bm.random_variable
+        def bar(self):
+            return dist.Bernoulli(self.foo().repeat([3]))
+
     def test_rejection_sampling(self):
         model = self.SampleModel()
         bar_key = model.bar()
@@ -32,15 +50,6 @@ class RejectionSamplingTest(unittest.TestCase):
         mean = torch.mean(samples[model.foo()][0])
         self.assertTrue(mean > 0.6)
 
-    class SampleFunctionalModel:
-        @bm.random_variable
-        def foo(self):
-            return dist.Categorical(probs=torch.ones(7) * (1.0 / 7.0))
-
-        @bm.functional
-        def bar(self):
-            return torch.tensor(15.0) + self.foo()
-
     def test_inference_over_functionals(self):
         model = self.SampleFunctionalModel()
         rej = RejectionSampling()
@@ -48,3 +57,12 @@ class RejectionSamplingTest(unittest.TestCase):
         observations = {model.bar(): torch.tensor(20).int()}
         samples = rej.infer(queries, observations, num_samples=100, num_chains=1)
         self.assertTrue((samples[model.foo()][0] == 5).all())
+
+    def test_vectorized_inference(self):
+        model = self.VectorModel()
+        bar_observations = {model.bar(): torch.ones(3)}
+        num_samples = 1000
+        rej = RejectionSampling()
+        samples = rej.infer([model.foo()], bar_observations, num_samples, 1)
+        mean = torch.mean(samples[model.foo()][0])
+        self.assertTrue(mean.item() > 0.75)

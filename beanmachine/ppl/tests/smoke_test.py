@@ -17,7 +17,12 @@ class ToplevelSmokeTest(unittest.TestCase):
             return sum(foo(i) for i in range(n))
 
         # exercise invocation from top-level package directly
+        # Compositional Inference
         samples = bm.CompositionalInference().infer(
             [foo_sum(3)], {foo(0): False}, 1000, 1
         )
+        bm.Diagnostics(samples)
+
+        # Rejection Sampling
+        samples = bm.RejectionSampling().infer([foo_sum(2)], {foo(0): False}, 1000, 1)
         bm.Diagnostics(samples)

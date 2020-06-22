@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from beanmachine.ppl.inference.compositional_infer import CompositionalInference
+from beanmachine.ppl.inference.rejection_sampling_infer import RejectionSampling
 from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
@@ -17,6 +18,7 @@ from beanmachine.ppl.inference.single_site_uniform_mh import (
 
 __all__ = [
     "CompositionalInference",
+    "RejectionSampling",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
     "SingleSiteNewtonianMonteCarlo",

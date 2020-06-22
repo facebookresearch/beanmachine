@@ -35,6 +35,7 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
 
         :param initialize_from_prior: boolean to initialize samples from prior
         """
+        self.world_ = StatisticalModel.reset()
         self.world_.set_initialize_from_prior(initialize_from_prior)
         StatisticalModel.set_mode(Mode.INFERENCE)
         for node_key, node_observation in self.observations_.items():
@@ -42,9 +43,14 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
             node_var = self.world_.get_node_in_world(node_key)
             # a functional will not be in the world, so we access its sample differently
             node_var_sample = node_var.value if node_var else temp_sample
-            # rejection
-            if node_var_sample != node_observation:
-                self.world_ = StatisticalModel.reset()
+            # perform rejection
+            samples_dont_match = node_var_sample != node_observation
+            reject = (
+                samples_dont_match.any()
+                if torch.is_tensor(samples_dont_match)
+                else bool(samples_dont_match)
+            )
+            if reject:
                 return
         for query in self.queries_:
             # unsqueeze the sampled value tensor, which adds an extra dimension
@@ -62,7 +68,6 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
                     dim=0,
                 )
         self.num_accepted_samples += 1
-        self.world_ = StatisticalModel.reset()
 
     def _infer(
         self,
