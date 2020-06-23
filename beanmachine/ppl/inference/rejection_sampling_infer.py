@@ -22,12 +22,13 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
     algorithms will inherit from this class, and override the single_inference_step method
     """
 
-    def __init__(self, max_attempts_per_sample=1e4):
+    def __init__(self, max_attempts_per_sample=1e4, tolerance=0.0):
         super().__init__()
         self.num_accepted_samples = 0
         self.queries_sample = defaultdict()
         self.attempts_per_sample = 0
         self.max_attempts_per_sample = int(max_attempts_per_sample)
+        self.tolerance = torch.tensor(tolerance)
 
     def _single_inference_step(self):
         """
@@ -46,14 +47,23 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
             node_var = self.world_.get_node_in_world(node_key)
             # a functional will not be in the world, so we access its sample differently
             node_var_sample = node_var.value if node_var else temp_sample
+            # check if node_observation is a tensor, if not, cast it
+            if not torch.is_tensor(node_observation):
+                node_observation = torch.tensor(node_observation)
+            # check if shapes match else throw error
+            if node_var_sample.shape != node_observation.shape:
+                raise ValueError(
+                    f"Shape mismatch in random variable {node_key}"
+                    + "\nshape does not match with observation\n"
+                    + f"Expected observation shape: {node_var_sample.shape};"
+                    + f"Provided observation shape{node_observation.shape}"
+                )
             # perform rejection
-            samples_dont_match = node_var_sample != node_observation
-            reject = (
-                samples_dont_match.any()
-                if torch.is_tensor(samples_dont_match)
-                else bool(samples_dont_match)
+            samples_dont_match = torch.gt(
+                torch.abs(node_var_sample.float() - node_observation.float()),
+                self.tolerance,
             )
-            if reject:
+            if samples_dont_match.any():
                 self.attempts_per_sample += 1
                 LOGGER_UPDATES.log(
                     LogLevel.DEBUG_UPDATES.value,

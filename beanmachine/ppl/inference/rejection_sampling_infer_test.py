@@ -35,6 +35,15 @@ class RejectionSamplingTest(unittest.TestCase):
         def bar(self):
             return dist.Bernoulli(self.foo().repeat([3]))
 
+    class RealValuedVectorModel:
+        @bm.random_variable
+        def foo(self):
+            return dist.Uniform(0, 1)
+
+        @bm.random_variable
+        def bar(self):
+            return dist.Normal(self.foo().repeat([3]), 0.1)
+
     def test_rejection_sampling(self):
         model = self.SampleModel()
         bar_key = model.bar()
@@ -50,6 +59,14 @@ class RejectionSamplingTest(unittest.TestCase):
         mean = torch.mean(samples[model.foo()][0])
         self.assertTrue(mean > 0.6)
 
+    def test_single_inference_step(self):
+        model = self.SampleModel()
+        bar_key = model.bar()
+        rej = RejectionSampling()
+        rej.observations_ = {bar_key: torch.tensor(2)}
+        self.assertEqual(rej._single_inference_step(), 0)
+        rej.reset()
+
     def test_inference_over_functionals(self):
         model = self.SampleFunctionalModel()
         rej = RejectionSampling()
@@ -60,10 +77,12 @@ class RejectionSamplingTest(unittest.TestCase):
 
     def test_vectorized_inference(self):
         model = self.VectorModel()
-        bar_observations = {model.bar(): torch.ones(3)}
+        bar_key = model.bar()
+        foo_key = model.foo()
+        bar_observations = {bar_key: torch.ones(3)}
         num_samples = 1000
         rej = RejectionSampling()
-        samples = rej.infer([model.foo()], bar_observations, num_samples, 1)
+        samples = rej.infer([foo_key], bar_observations, num_samples, 1)
         mean = torch.mean(samples[model.foo()][0])
         self.assertTrue(mean.item() > 0.75)
 
@@ -74,6 +93,35 @@ class RejectionSamplingTest(unittest.TestCase):
         rej = RejectionSampling(max_attempts_per_sample=5)
         num_samples = 1000
         with self.assertRaises(RuntimeError):
+            rej.infer(
+                queries=[model.foo()],
+                observations=observations,
+                num_samples=num_samples,
+                num_chains=1,
+            )
+
+    def test_rejection_with_tolerance(self):
+        model = self.RealValuedVectorModel()
+        bar_key = model.bar()
+        observations = {bar_key: torch.tensor([0.1551, 0.1550, 0.1552])}
+        rej = RejectionSampling(tolerance=0.2)
+        num_samples = 500
+        samples = rej.infer(
+            queries=[model.foo()],
+            observations=observations,
+            num_samples=num_samples,
+            num_chains=1,
+        )
+        mean = torch.mean(samples[model.foo()][0])
+        self.assertAlmostEqual(mean.item(), 0.15, delta=0.2)
+
+    def test_shape_mismatch(self):
+        model = self.RealValuedVectorModel()
+        bar_key = model.bar()
+        observations = {bar_key: torch.tensor([0.15, 0.155])}
+        rej = RejectionSampling(tolerance=0.1)
+        num_samples = 500
+        with self.assertRaises(ValueError):
             rej.infer(
                 queries=[model.foo()],
                 observations=observations,
