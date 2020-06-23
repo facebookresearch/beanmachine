@@ -13,6 +13,7 @@ from tqdm.auto import tqdm
 
 
 LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
+LOGGER_ERROR = logging.getLogger("beanmachine.error")
 
 
 class RejectionSampling(AbstractInference, metaclass=ABCMeta):
@@ -21,22 +22,24 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
     algorithms will inherit from this class, and override the single_inference_step method
     """
 
-    def __init__(self):
+    def __init__(self, max_attempts_per_sample=1e4):
         super().__init__()
         self.num_accepted_samples = 0
         self.queries_sample = defaultdict()
+        self.attempts_per_sample = 0
+        self.max_attempts_per_sample = int(max_attempts_per_sample)
 
-    def single_inference_step(self, initialize_from_prior: bool = True):
+    def _single_inference_step(self):
         """
-        Single inference step of the rejection sampling algorithm.
-        Samples from prior of the node to be observed and compares
-        with provided observation. If all observations are accepted,
-        the queries are appended to samples dict.
+        Single inference step of the rejection sampling algorithm which attempts to obtain a sample.
+        Samples are generated from prior of the node to be observed, and are compared with provided
+        observations.If all observations are equal or within provided tolerence values, the sample
+        is accepted.
 
-        :param initialize_from_prior: boolean to initialize samples from prior
+        Retruns: 1 if sample is accepted and 0 if sample is rejected (used to update the tqdm iterator)
         """
         self.world_ = StatisticalModel.reset()
-        self.world_.set_initialize_from_prior(initialize_from_prior)
+        self.world_.set_initialize_from_prior(True)
         StatisticalModel.set_mode(Mode.INFERENCE)
         for node_key, node_observation in self.observations_.items():
             temp_sample = node_key.function._wrapper(*node_key.arguments)
@@ -51,7 +54,16 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
                 else bool(samples_dont_match)
             )
             if reject:
-                return
+                self.attempts_per_sample += 1
+                LOGGER_UPDATES.log(
+                    LogLevel.DEBUG_UPDATES.value,
+                    f"sample {self.num_accepted_samples}, attempt {self.attempts_per_sample}"
+                    + f" failed\n rejected node: {node_key}",
+                )
+                # check if number of attempts per sample exceeds the max allowed, report error and exit
+                if self.attempts_per_sample >= self.max_attempts_per_sample:
+                    raise RuntimeError("max_attempts_per_sample exceeded")
+                return 0
         for query in self.queries_:
             # unsqueeze the sampled value tensor, which adds an extra dimension
             # along which we'll be adding samples generated at each iteration
@@ -68,6 +80,8 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
                     dim=0,
                 )
         self.num_accepted_samples += 1
+        self.attempts_per_sample = 0
+        return 1
 
     def _infer(
         self,
@@ -93,20 +107,8 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
             total=num_samples, disable=not bool(verbose == VerboseLevel.LOAD_BAR)
         )
         while self.num_accepted_samples < num_samples:
-            prev_accepted_samples = self.num_accepted_samples
-            self.single_inference_step()
-            pbar.update(self.num_accepted_samples - prev_accepted_samples)
+            pbar.update(self._single_inference_step())
             total_attempted_samples += 1
-            # give a warning if number of attempts are 100x, 1000x and 10000x num_samples
-            if total_attempted_samples in (
-                num_samples * factor for factor in [100, 1000, 10000]
-            ):
-                LOGGER_UPDATES.log(
-                    LogLevel.DEBUG_UPDATES.value,
-                    f"Very low acceptance rate; consider respecifing the model? \
-                    \nAccepted {self.num_accepted_samples} from {total_attempted_samples} attempted samples. \
-                    \nAcceptance rate: {float(self.num_accepted_samples/total_attempted_samples)}",
-                )
         pbar.close()
         LOGGER_UPDATES.log(
             LogLevel.DEBUG_UPDATES.value,
