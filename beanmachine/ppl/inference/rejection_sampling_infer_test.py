@@ -66,3 +66,17 @@ class RejectionSamplingTest(unittest.TestCase):
         samples = rej.infer([model.foo()], bar_observations, num_samples, 1)
         mean = torch.mean(samples[model.foo()][0])
         self.assertTrue(mean.item() > 0.75)
+
+    def test_max_attempts(self):
+        model = self.SampleModel()
+        bar_key = model.bar()
+        observations = {bar_key: torch.tensor(1.0)}
+        rej = RejectionSampling(max_attempts_per_sample=5)
+        num_samples = 1000
+        with self.assertRaises(RuntimeError):
+            rej.infer(
+                queries=[model.foo()],
+                observations=observations,
+                num_samples=num_samples,
+                num_chains=1,
+            )
