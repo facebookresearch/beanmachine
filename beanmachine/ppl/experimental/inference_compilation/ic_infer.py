@@ -30,7 +30,7 @@ LOGGER_IC = logging.getLogger("beanmachine.debug.ic")
 # are sampled from the generative model i.e. without conditioning on any
 # `observations`
 ProposerFunc = Callable[
-    [World, Iterable[RVIdentifier], Dict[RVIdentifier, Tensor]], ProposalDistribution
+    [World, Iterable[RVIdentifier], Dict[RVIdentifier, Tensor]], dist.Distribution
 ]
 
 
@@ -39,8 +39,9 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
     Inference Compilation Proposer.
     """
 
-    def __init__(self, proposer_func: ProposerFunc):
-        self._proposer_func = proposer_func
+    def __init__(self, proposer_func: ProposerFunc, optimizer: optim.Optimizer):
+        self._proposer_func: ProposerFunc = proposer_func
+        self._optimizer: optim.Optimizer = optimizer
         super().__init__()
 
     def get_proposal_distribution(
@@ -69,6 +70,47 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
             {},
         )
 
+    def do_adaptation(
+        self,
+        node: RVIdentifier,
+        world: World,
+        acceptance_probability: Tensor,
+        iteration_number: int,
+        num_adaptive_samples: int,
+        is_accepted: bool,
+    ) -> None:
+        """
+        Adapts inference compilation (IC) proposers by hill climbing to improve
+        proposal probability of the provided `node`'s value. As `world` consists
+        of accepted MH samples, we can view IC adaptation as hill climbing an
+        inclusive KL-divergence computed empirically over samples (x,y) where the
+        observations y are consistent with test-time distributions (e.g.
+        covariate shift).
+
+        :param node: the node in `world` to perform proposer adaptation for
+        :param world: the new world if `is_accepted`, or the previous world
+        otherwise.
+        :param acceptance_probability: the acceptance probability of the previous move.
+        :param iteration_number: the current iteration of inference
+        :param num_adaptive_samples: the number of inference iterations for adaptation.
+        :param is_accepted: bool representing whether the new value was accepted.
+        :returns: nothing.
+        """
+        node_var = world.get_node_in_world_raise_error(node)
+        markov_blanket = filter(
+            lambda x: x not in world.observations_, world.get_markov_blanket(node)
+        )
+        proposal_distribution = self._proposer_func(
+            world, markov_blanket, world.observations_
+        )
+
+        optimizer = self._optimizer
+        # pyre-fixme
+        loss = -(proposal_distribution.log_prob(node_var.value))
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
 
 class ICInference(AbstractMHInference):
     """
@@ -79,6 +121,7 @@ class ICInference(AbstractMHInference):
     _node_embedding_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
     _mb_embedding_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
     _node_proposal_param_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
+    _optimizer: Optional[optim.Optimizer] = None
     _proposers: Optional[Callable[[RVIdentifier], ICProposer]] = None
     _node_ids: List[RVIdentifier] = []
     _NODE_ID_EMBEDDING_DIM: int = 32  # embedding dimension for RVIdentifier
@@ -178,12 +221,17 @@ class ICInference(AbstractMHInference):
         )
         self._node_proposal_param_nets = node_proposal_param_nets
 
+        optimizer = optimizer_func(obs_embedding_net.parameters())
+        if not optimizer:
+            raise Exception("optimizer_func did not return a valid optimizer!")
+        self._optimizer = optimizer
         proposers = lru_cache(maxsize=None)(
-            lambda node: ICProposer(proposer_func=self._proposer_func_for_node(node))
+            lambda node: ICProposer(
+                proposer_func=self._proposer_func_for_node(node), optimizer=optimizer
+            )
         )
         self._proposers = proposers
 
-        optimizer = optimizer_func(obs_embedding_net.parameters())
         rvs_in_optimizer = set()
 
         num_batches = int(math.ceil(num_worlds / batch_size))

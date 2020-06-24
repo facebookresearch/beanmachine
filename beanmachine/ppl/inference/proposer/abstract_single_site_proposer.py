@@ -67,14 +67,14 @@ class AbstractSingleSiteProposer(object, metaclass=ABCMeta):
         To be implemented by proposers that are capable of adaptation at
         the beginning of the chain.
 
-        :param node: the node for which we have already proposed a new value for.
-        :param world: the world in which we have already proposed a new value
-        for node.
+        :param node: the node in `world` to perform proposer adaptation for
+        :param world: the new world if `is_accepted`, or the previous world
+        otherwise.
         :param acceptance_probability: the acceptance probability of the previous move.
-        :param iteration_number: The current iteration of inference
-        :param num_adaptive_samples: The number of inference iterations for adaptation.
+        :param iteration_number: the current iteration of inference
+        :param num_adaptive_samples: the number of inference iterations for adaptation.
         :param is_accepted: bool representing whether the new value was accepted.
-        :returns: Nothing.
+        :returns: nothing.
         """
         return
 

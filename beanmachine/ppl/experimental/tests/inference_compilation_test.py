@@ -93,3 +93,33 @@ class InferenceCompilationTest(unittest.TestCase):
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
         self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
         self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+
+    def test_do_adaptation(self):
+        # undertrained model
+        model = NormalNormalModel(mu=tensor(0.0), std=tensor(1.0), sigma=tensor(1.0))
+        observed_value = -1.0
+        observations = {model.normal(): tensor(observed_value)}
+        ic = ICInference()
+        ic.compile(observations.keys(), num_worlds=30)
+
+        node = model.normal_p()
+        ic.queries_ = [node]
+        ic.observations_ = observations
+        ic.initialize_world(initialize_from_prior=True)
+
+        world = ic.world_
+        node_var = world.get_node_in_world_raise_error(node)
+        # save the value (since node_var can change during inference)
+        node_var_value = node_var.value
+        ic_proposer = ic._proposers(node)
+        before_adaptation_ll = ic_proposer.get_proposal_distribution(
+            node, node_var, world, {}
+        )[0].proposal_distribution.log_prob(node_var_value)
+
+        # run adaptation
+        ic._infer(num_samples=550, num_adaptive_samples=50)
+        after_adaptation_ll = ic_proposer.get_proposal_distribution(
+            node, node_var, world, {}
+        )[0].proposal_distribution.log_prob(node_var_value)
+
+        assert before_adaptation_ll < after_adaptation_ll
