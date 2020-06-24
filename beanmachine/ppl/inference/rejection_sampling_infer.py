@@ -122,7 +122,8 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
         pbar.close()
         LOGGER_UPDATES.log(
             LogLevel.DEBUG_UPDATES.value,
-            f"Inference completed; accepted {num_samples} from {total_attempted_samples} attempted samples. \
+            f"Inference completed; accepted {num_samples} from \
+             {total_attempted_samples} attempted samples. \
              \nAcceptance rate: {float(num_samples/total_attempted_samples)}",
         )
         return self.queries_sample
