@@ -10,7 +10,7 @@ from torch import tensor
 
 
 class InferenceCompilationTest(unittest.TestCase):
-    class WaldsModel:
+    class RandomGaussianSum:
         @bm.random_variable
         def N(self):
             k = 10
@@ -25,6 +25,24 @@ class InferenceCompilationTest(unittest.TestCase):
             "The Markov blanket of S varies depending on the value of N"
             loc = sum(self.x(i, j) for i in range(self.N().int().item()))
             return dist.Normal(loc=loc, scale=tensor(1.0))
+
+    class GMM:
+        def __init__(self, K=2):
+            self.K = K
+
+        @bm.random_variable
+        def mu(self, j):
+            return dist.Normal(0, 1)
+
+        @bm.random_variable
+        def c(self, i):
+            return dist.Categorical(probs=torch.ones(self.K) * 1.0 / self.K)
+
+        @bm.random_variable
+        def x(self, i):
+            c = self.c(i).int().item()
+            mu = self.mu(c)
+            return dist.Normal(mu, 0.1)
 
     def setUp(self):
         torch.manual_seed(42)
@@ -44,8 +62,8 @@ class InferenceCompilationTest(unittest.TestCase):
         assert samples[model.normal_p()].mean().item() <= prior_mean
         assert samples[model.normal_p()].mean().item() >= observed_value
 
-    def test_walds_identity(self):
-        model = self.WaldsModel()
+    def test_random_sum(self):
+        model = self.RandomGaussianSum()
         ic = ICInference()
         observations = {model.S(0): tensor(1.8), model.S(1): tensor(2.2)}
         ic.compile(observations.keys(), num_worlds=100)
@@ -58,3 +76,20 @@ class InferenceCompilationTest(unittest.TestCase):
         assert (
             N_posterior_mean_estimate < 4.5
         ), f"Expected {N_posterior_mean_estimate} < 4.5"
+
+    def test_gmm(self):
+        model = self.GMM(K=2)
+        ic = ICInference()
+        observations = {
+            model.x(0): tensor(1.0),
+            model.x(1): tensor(-1.0),
+            model.x(2): tensor(1.0),
+            model.x(3): tensor(-1.0),
+        }
+        ic.compile(observations.keys(), num_worlds=int(500))
+        queries = [model.mu(i) for i in range(model.K)]
+        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+
+        posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
