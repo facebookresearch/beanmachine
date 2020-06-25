@@ -2,7 +2,7 @@
 import logging
 import math
 from functools import lru_cache
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, Iterable, Optional, Sequence, Tuple
 
 import torch
 import torch.distributions as dist
@@ -123,9 +123,8 @@ class ICInference(AbstractMHInference):
     _node_proposal_param_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
     _optimizer: Optional[optim.Optimizer] = None
     _proposers: Optional[Callable[[RVIdentifier], ICProposer]] = None
-    _node_ids: List[RVIdentifier] = []
-    _NODE_ID_EMBEDDING_DIM: int = 32  # embedding dimension for RVIdentifier
-    _NODE_EMBEDDING_DIM: int = 4  # embedding dimension for node values
+    _NODE_ID_EMBEDDING_DIM: int = 0  # embedding dimension for RVIdentifier
+    _NODE_EMBEDDING_DIM: int = 32  # embedding dimension for node values
     _OBS_EMBEDDING_DIM = 4  # embedding dimension for observations
     _MB_EMBEDDING_DIM = 32  # embedding dimension for Markov blankets
 
@@ -148,7 +147,7 @@ class ICInference(AbstractMHInference):
         num_worlds: int = 100,
         batch_size: int = 16,
         optimizer_func=lambda parameters: optim.Adam(parameters, lr=1e-3),
-        max_num_rvs: int = 32,
+        node_id_embedding_dim: Optional[int] = None,
     ) -> "ICInference":
         """
         Trains neural network proposers for all unobserved variables encountered
@@ -161,22 +160,18 @@ class ICInference(AbstractMHInference):
         :param batch_size: number of worlds used in each optimization step
         :param optimizer_func: callable returning a torch.optim to optimize
         model parameters with
-        :param max_num_rvs: RVIdentifier OHE embedding dimension, must upper
-        bound the number of unique RVs in any world
+        :param node_id_embedding_dim: RVIdentifier embedding dimension
         """
         if len(observation_keys) == 0:
             raise Exception("Expected at least one observation RVIdentifier")
         if not all(map(lambda x: type(x) == RVIdentifier, observation_keys)):
             raise Exception("Expected every observation_key to be of type RVIdentifier")
 
-        self._NODE_ID_EMBEDDING_DIM = max_num_rvs
+        if node_id_embedding_dim:
+            self._NODE_ID_EMBEDDING_DIM = node_id_embedding_dim
 
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
         AbstractInference.set_seed_for_chain(random_seed, 0)
-
-        # used for assigning unique sequential IDs to OHE embed RVIdentifiers
-        # as they are encountered
-        self._node_ids = []
 
         # initialize once so observation embedding network can access RVIdentifiers
         self.reset()
@@ -324,15 +319,8 @@ class ICInference(AbstractMHInference):
         node_embedding_net = nn.Sequential(
             nn.Linear(in_features=in_shape, out_features=self._NODE_EMBEDDING_DIM)
         )
-
-        # explicitly encode node id, c.f. "address" in trace-based IC
-        try:
-            node_id = self._node_ids.index(node)
-        except ValueError:
-            node_id = len(self._node_ids)
-            self._node_ids.append(node)
-        node_id_ohe = torch.zeros(self._NODE_ID_EMBEDDING_DIM)
-        node_id_ohe[node_id] = 1.0
+        node_id_embedding = torch.randn(self._NODE_ID_EMBEDDING_DIM)
+        node_id_embedding /= node_id_embedding.norm(p=2)
 
         class NodeEmbedding(nn.Module):
             """
@@ -340,15 +328,17 @@ class ICInference(AbstractMHInference):
             node ID with node value embedding.
             """
 
-            def __init__(self, id_ohe, embedding_net):
+            def __init__(self, node_id_embedding, embedding_net):
                 super().__init__()
-                self.id_ohe = id_ohe
+                self.node_id_embedding = node_id_embedding
                 self.embedding_net = embedding_net
 
             def forward(self, x):
-                return torch.cat((self.id_ohe, self.embedding_net.forward(x.float())))
+                return torch.cat(
+                    (self.node_id_embedding, self.embedding_net.forward(x.float()))
+                )
 
-        return NodeEmbedding(node_id_ohe, node_embedding_net)
+        return NodeEmbedding(node_id_embedding, node_embedding_net)
 
     def _proposer_func_for_node(self, node: RVIdentifier):
         _, proposal_dist_constructor = self._proposal_distribution_for_node(node)
