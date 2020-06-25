@@ -86,7 +86,24 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor(1.0),
             model.x(3): tensor(-1.0),
         }
-        ic.compile(observations.keys(), num_worlds=int(500))
+        ic.compile(observations.keys(), num_worlds=500)
+        queries = [model.mu(i) for i in range(model.K)]
+        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+
+        posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+
+    def test_gmm_random_rvidentifier_embeddings(self):
+        model = self.GMM(K=2)
+        ic = ICInference()
+        observations = {
+            model.x(0): tensor(1.0),
+            model.x(1): tensor(-1.0),
+            model.x(2): tensor(1.0),
+            model.x(3): tensor(-1.0),
+        }
+        ic.compile(observations.keys(), num_worlds=500, node_id_embedding_dim=32)
         queries = [model.mu(i) for i in range(model.K)]
         ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
 
@@ -100,7 +117,7 @@ class InferenceCompilationTest(unittest.TestCase):
         observed_value = -1.0
         observations = {model.normal(): tensor(observed_value)}
         ic = ICInference()
-        ic.compile(observations.keys(), num_worlds=30)
+        ic.compile(observations.keys(), num_worlds=20)
 
         node = model.normal_p()
         ic.queries_ = [node]
@@ -109,17 +126,27 @@ class InferenceCompilationTest(unittest.TestCase):
 
         world = ic.world_
         node_var = world.get_node_in_world_raise_error(node)
-        # save the value (since node_var can change during inference)
-        node_var_value = node_var.value
+
+        # draw some posterior samples to compute empirical KL divergence over
+        samples = ic._infer(num_samples=10)
+
+        # compute empirical inclusive KL before adaptation
         ic_proposer = ic._proposers(node)
-        before_adaptation_ll = ic_proposer.get_proposal_distribution(
-            node, node_var, world, {}
-        )[0].proposal_distribution.log_prob(node_var_value)
+        before_adaptation_kldiv = -(
+            ic_proposer.get_proposal_distribution(node, node_var, world, {})[0]
+            .proposal_distribution.log_prob(samples[node])
+            .sum()
+        )
 
         # run adaptation
-        ic._infer(num_samples=550, num_adaptive_samples=50)
-        after_adaptation_ll = ic_proposer.get_proposal_distribution(
-            node, node_var, world, {}
-        )[0].proposal_distribution.log_prob(node_var_value)
+        ic._infer(num_samples=0, num_adaptive_samples=100)
 
-        assert before_adaptation_ll < after_adaptation_ll
+        # compute empirical inclusive KL after adaptation
+        ic_proposer = ic._proposers(node)
+        after_adaptation_kldiv = -(
+            ic_proposer.get_proposal_distribution(node, node_var, world, {})[0]
+            .proposal_distribution.log_prob(samples[node])
+            .sum()
+        )
+
+        assert before_adaptation_kldiv > after_adaptation_kldiv
