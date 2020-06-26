@@ -86,9 +86,9 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor(1.0),
             model.x(3): tensor(-1.0),
         }
-        ic.compile(observations.keys(), num_worlds=500)
+        ic.compile(observations.keys(), num_worlds=100)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=200, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
         self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
@@ -103,9 +103,9 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor(1.0),
             model.x(3): tensor(-1.0),
         }
-        ic.compile(observations.keys(), num_worlds=500, node_id_embedding_dim=32)
+        ic.compile(observations.keys(), num_worlds=100, node_id_embedding_dim=32)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=200, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
         self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
