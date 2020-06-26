@@ -367,7 +367,10 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                 # along which we'll be adding samples generated at each iteration
                 if query not in queries_sample:
                     queries_sample[query] = (
-                        query.function._wrapper(*query.arguments).unsqueeze(0).clone()
+                        query.function._wrapper(*query.arguments)
+                        .unsqueeze(0)
+                        .clone()
+                        .detach()
                     )
                 else:
                     queries_sample[query] = torch.cat(
@@ -375,7 +378,8 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                             queries_sample[query],
                             query.function._wrapper(*query.arguments)
                             .unsqueeze(0)
-                            .clone(),
+                            .clone()
+                            .detach(),
                         ],
                         dim=0,
                     )
