@@ -30,14 +30,55 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
         self.max_attempts_per_sample = int(max_attempts_per_sample)
         self.tolerance = torch.tensor(tolerance)
 
-    def _single_inference_step(self):
+    def _accept_sample(self):
+        """
+        This method performs the procedure of accepting a sample. It adds the requested qureies into the
+        accepted samples dict, updated number of accepted samples and resets the counter for attempts per
+        sample.
+        """
+        for query in self.queries_:
+            # unsqueeze the sampled value tensor, which adds an extra dimension
+            # along which we'll be adding samples generated at each iteration
+            if query not in self.queries_sample:
+                self.queries_sample[query] = (
+                    query.function._wrapper(*query.arguments).unsqueeze(0).clone()
+                )
+            else:
+                self.queries_sample[query] = torch.cat(
+                    [
+                        self.queries_sample[query],
+                        query.function._wrapper(*query.arguments).unsqueeze(0).clone(),
+                    ],
+                    dim=0,
+                )
+        self.num_accepted_samples += 1
+        self.attempts_per_sample = 0
+
+    def _reject_sample(self, node_key: RVIdentifier):
+        """
+        This method performs the procedure of rejecting a sample. This includes logging the rejection,
+        incrementing the number of attempts for current sample, and raising an error if they excced the
+        max amount.
+        :param node_key: the node which triggered the sample rejection. used for debug logging
+        """
+        self.attempts_per_sample += 1
+        LOGGER_UPDATES.log(
+            LogLevel.DEBUG_UPDATES.value,
+            f"sample {self.num_accepted_samples}, attempt {self.attempts_per_sample}"
+            + f" failed\n rejected node: {node_key}",
+        )
+        # check if number of attempts per sample exceeds the max allowed, report error and exit
+        if self.attempts_per_sample >= self.max_attempts_per_sample:
+            raise RuntimeError("max_attempts_per_sample exceeded")
+
+    def _single_inference_step(self) -> int:
         """
         Single inference step of the rejection sampling algorithm which attempts to obtain a sample.
         Samples are generated from prior of the node to be observed, and are compared with provided
         observations.If all observations are equal or within provided tolerence values, the sample
         is accepted.
 
-        Retruns: 1 if sample is accepted and 0 if sample is rejected (used to update the tqdm iterator)
+        :returns: 1 if sample is accepted and 0 if sample is rejected (used to update the tqdm iterator)
         """
         self.world_ = StatisticalModel.reset()
         self.world_.set_initialize_from_prior(True)
@@ -63,34 +104,12 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
                 torch.abs(node_var_sample.float() - node_observation.float()),
                 self.tolerance,
             )
+            # pyre-fixme
             if samples_dont_match.any():
-                self.attempts_per_sample += 1
-                LOGGER_UPDATES.log(
-                    LogLevel.DEBUG_UPDATES.value,
-                    f"sample {self.num_accepted_samples}, attempt {self.attempts_per_sample}"
-                    + f" failed\n rejected node: {node_key}",
-                )
-                # check if number of attempts per sample exceeds the max allowed, report error and exit
-                if self.attempts_per_sample >= self.max_attempts_per_sample:
-                    raise RuntimeError("max_attempts_per_sample exceeded")
+                self._reject_sample(node_key)
                 return 0
-        for query in self.queries_:
-            # unsqueeze the sampled value tensor, which adds an extra dimension
-            # along which we'll be adding samples generated at each iteration
-            if query not in self.queries_sample:
-                self.queries_sample[query] = (
-                    query.function._wrapper(*query.arguments).unsqueeze(0).clone()
-                )
-            else:
-                self.queries_sample[query] = torch.cat(
-                    [
-                        self.queries_sample[query],
-                        query.function._wrapper(*query.arguments).unsqueeze(0).clone(),
-                    ],
-                    dim=0,
-                )
-        self.num_accepted_samples += 1
-        self.attempts_per_sample = 0
+
+        self._accept_sample()
         return 1
 
     def _infer(
