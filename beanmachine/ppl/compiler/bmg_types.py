@@ -273,12 +273,14 @@ class UpperBound:
         self.bound = bound
 
 
-@memoize
-def upper_bound(bound: type) -> UpperBound:
-    return UpperBound(bound)
-
-
 Requirement = Union[type, UpperBound]
+
+
+@memoize
+def upper_bound(bound: Requirement) -> UpperBound:
+    if isinstance(bound, UpperBound):
+        return bound
+    return UpperBound(bound)
 
 
 def meets_requirement(t: type, r: Requirement) -> bool:
