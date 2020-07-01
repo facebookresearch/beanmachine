@@ -6,8 +6,10 @@ from beanmachine.ppl.compiler.bmg_types import (
     Natural,
     PositiveReal,
     Probability,
+    meets_requirement,
     supremum,
     type_of_value,
+    upper_bound,
 )
 from torch import Tensor, tensor
 
@@ -59,3 +61,11 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(float, type_of_value(tensor(-1.5)))
         self.assertEqual(float, type_of_value(tensor([[-1.5]])))
         self.assertEqual(Tensor, type_of_value(tensor([[0, 0]])))
+
+    def test_meets_requirement(self) -> None:
+        """test_meets_requirement"""
+        self.assertFalse(meets_requirement(Natural, bool))
+        self.assertTrue(meets_requirement(Natural, Natural))
+        self.assertTrue(meets_requirement(bool, upper_bound(Natural)))
+        self.assertTrue(meets_requirement(Natural, upper_bound(Natural)))
+        self.assertFalse(meets_requirement(PositiveReal, upper_bound(Natural)))
