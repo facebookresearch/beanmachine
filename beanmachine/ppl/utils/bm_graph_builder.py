@@ -218,10 +218,24 @@ and then transforms that into a valid Bean Machine Graph."""
 
     nodes: Dict[BMGNode, int]
 
+    # As we execute the lifted program, we accumulate graph nodes in the
+    # graph builder,and the program passes around graph nodes instead of
+    # regular values. What happens when a graph node is passed to a
+    # function, or used as the receiver of a function? That function will be
+    # expecting a regular value as its argument or receiver.
+    #
     # Certain function calls are special because they call graph nodes to
     # be created; we have a dictionary here that maps Python function objects
     # to the graph builder method that knows how to create the appropriate
     # node type.
+    #
+    # There are also some functions which we know can be passed a graph node
+    # and will treat it correctly even though it is a graph node and not
+    # a value. For example, the function which constructs a dictionary
+    # or the function which constructs a list. When we encounter one of
+    # these functions in the lifted program, we do not create a graph node
+    # or call a special helper function; we simply allow it to be called normally.
+
     function_map: Dict[Callable, Callable]
 
     def __init__(self) -> None:
@@ -263,6 +277,13 @@ and then transforms that into a valid Bean Machine Graph."""
             StudentT: self.handle_studentt,
             Uniform: self.handle_uniform,
         }
+
+    allowed_functions = {dict, list, set}
+
+    # TODO: Allowing these constructions raises additional problems that
+    # we have not yet solved. For example, what happens if someone
+    # searches a list for a value, but the list contains a graph node?
+    # And so on.
 
     # ####
     # #### Node creation and accumulation
@@ -820,6 +841,11 @@ that has the receiver, if any, as its first member."""
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
         if is_ordinary_call(f, args, kwargs):
             return f(*args, **kwargs)
+
+        # Some functions are perfectly safe for a graph node.
+        if f in BMGraphBuilder.allowed_functions:
+            return f(*args, **kwargs)
+
         # TODO: Do a sanity check that the arguments match and give
         # TODO: a good error if they do not. Alternatively, catch
         # TODO: the exception if the call fails and replace it with

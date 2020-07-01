@@ -1575,3 +1575,11 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_allowed_functions(self) -> None:
+        bmg = BMGraphBuilder()
+        p = bmg.add_constant(0.5)
+        b = bmg.add_bernoulli(p)
+        s = bmg.add_sample(b)
+        d = bmg.handle_function(dict, [[(1, s)]])
+        self.assertEqual(d, {1: s})
