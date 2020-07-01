@@ -101,7 +101,13 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ToTensorNode,
     UniformNode,
 )
-from beanmachine.ppl.compiler.bmg_types import Natural, PositiveReal, Probability
+from beanmachine.ppl.compiler.bmg_types import (
+    Natural,
+    PositiveReal,
+    Probability,
+    short_name_of_requirement,
+    short_name_of_type,
+)
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
@@ -1003,7 +1009,12 @@ graph, and add a sample node to the graph."""
     # sort of the graph nodes and only output the nodes which are
     # inputs into samples, queries, and observations.
 
-    def to_dot(self) -> str:
+    def to_dot(
+        self,
+        inf_types: bool = False,
+        edge_requirements: bool = False,
+        point_at_input: bool = False,
+    ) -> str:
         """This dumps the entire accumulated graph state, including
 orphans, as a DOT graph description; nodes are enumerated in the order
 they were created."""
@@ -1015,9 +1026,22 @@ they were created."""
 
         for node, index in self.nodes.items():
             n = to_id(index)
-            db.with_node(n, node.label)
-            for (child, label) in zip(node.children, node.edges):
-                db.with_edge(n, to_id(self.nodes[child]), label)
+            node_label = node.label
+            if inf_types:
+                node_label += ">=" + short_name_of_type(node.inf_type)
+            db.with_node(n, node_label)
+            for (child, edge_name, req) in zip(
+                node.children, node.edges, node.requirements
+            ):
+                edge_label = edge_name
+                if edge_requirements:
+                    edge_label += ":" + short_name_of_requirement(req)
+                # Bayesian networks are typically drawn with the arrows
+                # in the direction of data flow, not in the direction
+                # of dependency.
+                start_node = to_id(self.nodes[child]) if point_at_input else n
+                end_node = n if point_at_input else to_id(self.nodes[child])
+                db.with_edge(start_node, end_node, edge_label)
         return str(db)
 
     def to_bmg(self) -> Graph:
