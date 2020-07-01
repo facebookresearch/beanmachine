@@ -279,3 +279,9 @@ def upper_bound(bound: type) -> UpperBound:
 
 
 Requirement = Union[type, UpperBound]
+
+
+def meets_requirement(t: type, r: Requirement) -> bool:
+    if isinstance(r, UpperBound):
+        return _supremum(t, r.bound) == r.bound
+    return t == r
