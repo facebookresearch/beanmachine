@@ -106,7 +106,7 @@ class AbstractInference(object, metaclass=ABCMeta):
             random_seed = (
                 torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
             )
-            self.queries_ = queries
+            self.queries_ = set(queries)
             self.observations_ = observations
             if num_chains > 1 and run_in_parallel:
                 manager = mp.Manager()
@@ -149,5 +149,5 @@ class AbstractInference(object, metaclass=ABCMeta):
         Resets world, mode and observation
         """
         self.world_ = StatisticalModel.reset()
-        self.queries_ = []
+        self.queries_ = set()
         self.observations_ = {}

@@ -26,7 +26,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(4, 10).shape)
         self.assertEqual(mcs.get_chain(3)[foo_key].shape, torch.zeros(10).shape)
         self.assertEqual(mcs.get_num_chains(), 4)
-        self.assertEqual(mcs.get_rv_names(), [foo_key])
+        self.assertEqual(set(mcs.get_rv_names()), {foo_key})
 
         mcs.num_adaptive_samples = 3
 
@@ -37,7 +37,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         )
         self.assertEqual(mcs.get_chain(3)[foo_key].shape, torch.zeros(7).shape)
         self.assertEqual(mcs.get_num_chains(), 4)
-        self.assertEqual(mcs.get_rv_names(), [foo_key])
+        self.assertEqual(set(mcs.get_rv_names()), {foo_key})
 
     def test_one_chain(self):
         model = self.SampleModel()
@@ -50,7 +50,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         self.assertEqual(mcs.get_variable(foo_key).shape, torch.zeros(1, 10).shape)
         self.assertEqual(mcs.get_chain()[foo_key].shape, torch.zeros(10).shape)
         self.assertEqual(mcs.get_num_chains(), 1)
-        self.assertEqual(mcs.get_rv_names(), [foo_key, bar_key])
+        self.assertEqual(set(mcs.get_rv_names()), {foo_key, bar_key})
 
         mcs.num_adaptive_samples = 3
 
@@ -61,7 +61,7 @@ class MonteCarloSamplesTest(unittest.TestCase):
         )
         self.assertEqual(mcs.get_chain()[foo_key].shape, torch.zeros(7).shape)
         self.assertEqual(mcs.get_num_chains(), 1)
-        self.assertEqual(mcs.get_rv_names(), [foo_key, bar_key])
+        self.assertEqual(set(mcs.get_rv_names()), {foo_key, bar_key})
 
     def test_chain_exceptions(self):
         model = self.SampleModel()
@@ -95,3 +95,11 @@ class MonteCarloSamplesTest(unittest.TestCase):
             mcs.get_variable(foo_key, include_adapt_steps=True).shape,
             torch.zeros(4, 13).shape,
         )
+
+    def test_duplicate_queries(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        foo_key = model.foo()
+        mcs = mh.infer([foo_key, foo_key], {}, num_samples=1, num_chains=1)
+
+        self.assertEqual(mcs[foo_key].numel(), 1)
