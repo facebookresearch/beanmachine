@@ -1,3 +1,10 @@
+---
+id: overview
+title: Welcome
+sidebar_label: Welcome
+---
+
+
 Bean Machine is a new universal probabilistic programming language to enable fast and accurate Bayesian analysis. Today, we’re using Bean Machine to platformize Bayesian analysis across Facebook. Bean Machine is built atop PyTorch, and touts a modeling engine that exploits state-of-the-art gradient-based inference techniques to scale to large datasets. Its declarative modeling language allows for the expression of deep, domain-specific models, and can deliver directly-interpretable results that are robust-by-default. We have battle-tested Bean Machine across critical domains in Facebook including Integrity, Experimentation, and Networking to demonstrate its cutting-edge performance, and we are excited to open source the platform later this year!
 
 ## Why Bayesian?
