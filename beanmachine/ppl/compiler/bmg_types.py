@@ -54,6 +54,9 @@ class Malformed:
     pass
 
 
+Real = float
+
+
 """
 When converting from an accumulated graph that uses Python types, we
 can express the rules concisely by defining a *type lattice*. A type
@@ -287,3 +290,46 @@ def meets_requirement(t: type, r: Requirement) -> bool:
     if isinstance(r, UpperBound):
         return _supremum(t, r.bound) == r.bound
     return t == r
+
+
+_type_names = {
+    bool: "bool",
+    Malformed: "malformed",
+    Natural: "natural",
+    PositiveReal: "positive real",
+    Real: "real",
+    Probability: "probability",
+    Tensor: "tensor",
+}
+
+_short_type_names = {
+    bool: "B",
+    Malformed: "M",
+    Natural: "N",
+    PositiveReal: "R+",
+    Real: "R",
+    Probability: "P",
+    Tensor: "T",
+}
+
+
+def name_of_type(t: type) -> str:
+    return _type_names[t]
+
+
+def short_name_of_type(t: type) -> str:
+    return _short_type_names[t]
+
+
+def name_of_requirement(r: Requirement) -> str:
+    if isinstance(r, UpperBound):
+        return "<=" + name_of_requirement(r.bound)
+    assert isinstance(r, type)
+    return name_of_type(r)
+
+
+def short_name_of_requirement(r: Requirement) -> str:
+    if isinstance(r, UpperBound):
+        return "<=" + short_name_of_requirement(r.bound)
+    assert isinstance(r, type)
+    return short_name_of_type(r)

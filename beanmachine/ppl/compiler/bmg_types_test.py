@@ -11,6 +11,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     type_of_value,
     upper_bound,
 )
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Tensor, tensor
 
 
@@ -69,3 +70,47 @@ class BMGTypesTest(unittest.TestCase):
         self.assertTrue(meets_requirement(bool, upper_bound(Natural)))
         self.assertTrue(meets_requirement(Natural, upper_bound(Natural)))
         self.assertFalse(meets_requirement(PositiveReal, upper_bound(Natural)))
+
+    def test_types_in_dot(self) -> None:
+        """test_types_in_dot"""
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+        one = bmg.add_constant(tensor(1.0))
+        two = bmg.add_constant(tensor(2.0))
+        half = bmg.add_constant(tensor(0.5))
+        beta = bmg.add_beta(two, two)
+        betas = bmg.add_sample(beta)
+        mult = bmg.add_multiplication(half, betas)
+        norm = bmg.add_normal(mult, one)
+        bern = bmg.add_bernoulli(mult)
+        bmg.add_sample(norm)
+        bmg.add_sample(bern)
+        bmg.add_query(mult)
+
+        observed = bmg.to_dot(True, True, True)
+        expected = """
+digraph "graph" {
+  N00[label="1.0>=B"];
+  N01[label="2.0>=N"];
+  N02[label="0.5>=P"];
+  N03[label="Beta>=P"];
+  N04[label="Sample>=P"];
+  N05[label="*>=P"];
+  N06[label="Normal>=R"];
+  N07[label="Bernoulli>=B"];
+  N08[label="Sample>=R"];
+  N09[label="Sample>=B"];
+  N10[label="Query>=P"];
+  N00 -> N06[label="sigma:R+"];
+  N01 -> N03[label="alpha:R+"];
+  N01 -> N03[label="beta:R+"];
+  N02 -> N05[label="left:P"];
+  N03 -> N04[label="operand:P"];
+  N04 -> N05[label="right:P"];
+  N05 -> N06[label="mu:R"];
+  N05 -> N07[label="probability:P"];
+  N05 -> N10[label="operator:P"];
+  N06 -> N08[label="operand:R"];
+  N07 -> N09[label="operand:B"];
+}"""
+        self.assertEqual(observed.strip(), expected.strip())
