@@ -1,7 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
+from contextlib import closing
+from io import BytesIO
 
 import beanmachine.ppl as bm
+import dill
 import torch
 import torch.distributions as dist
 
@@ -95,3 +98,20 @@ class MonteCarloSamplesTest(unittest.TestCase):
             mcs.get_variable(foo_key, include_adapt_steps=True).shape,
             torch.zeros(4, 13).shape,
         )
+
+    def test_serializable(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        mcs = mh.infer([model.foo()], {}, 10, 1)
+
+        with closing(BytesIO()) as fp:
+            # should SerDe without exception
+            dill.dump((mcs, model), fp)
+            fp.seek(0)
+            samples_deser, model_deser = dill.load(fp)
+
+            # should be able to lookup using deserialized instance methods
+            self.assertTrue(model_deser.foo() in samples_deser.data.rv_dict)
+
+            # NOTE: samples_deser is keyed on model_deser.foo(), NOT model.foo()
+            self.assertTrue(model.foo() not in samples_deser.data.rv_dict)

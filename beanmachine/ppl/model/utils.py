@@ -7,13 +7,30 @@ from typing import Any
 import torch
 
 
-@dataclass(eq=True, frozen=True)
+@dataclass(frozen=True)
 class RVIdentifier:
     function: Any
     arguments: Any
 
     def __str__(self):
         return str(self.function.__name__) + str(self.arguments)
+
+    def __eq__(self, other):
+        # NOTE: equality comparison on function is overridden because
+        # deserialization may result in the function id changing; arguments are
+        # still compared by id to ensure the same method on different instances
+        # are not equal
+        return (
+            (self.function.__name__ == other.function.__name__)
+            and (self.function.__code__ == other.function.__code__)
+            and (self.function.__module__ == other.function.__module__)
+            and (self.function.__globals__ == other.function.__globals__)
+            and (self.function.__closure__ == other.function.__closure__)
+            and self.arguments == other.arguments
+        )
+
+    def __hash__(self):
+        return hash((self.function.__name__, self.function.__code__, self.arguments))
 
 
 class Mode(Enum):

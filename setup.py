@@ -13,7 +13,7 @@ REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 6
 
 
-TEST_REQUIRES = ["pytest", "pytest-cov", "gpytorch"]
+TEST_REQUIRES = ["pytest", "pytest-cov"]
 DEV_REQUIRES = TEST_REQUIRES + [
     "black==19.3b0",
     "isort",
@@ -83,15 +83,16 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=[
-        "torch>=1.4.0",
+        "astor>=0.7.1",
         "dataclasses>=0.6",
+        "gpytorch>=1.1.1",
         "pandas>=0.24.2",
+        "pathos>=0.2.4",
         "plotly>=2.2.1",
         "scipy>=0.16",
         "statsmodels>=0.8.0",
+        "torch>=1.5",
         "tqdm>=4.40.2",
-        "astor>=0.7.1",
-        "black>=19.3b0",
     ],
     packages=find_packages(),
     ext_modules=[
