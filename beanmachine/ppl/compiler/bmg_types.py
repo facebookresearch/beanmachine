@@ -18,7 +18,7 @@ types in the BMG type system are:
 Unknown       -- we largely do not need to worry about this one,
                  and it is more "undefined" than "unknown"
 Boolean       -- we can just use bool
-Real          -- we can just use float
+Real          -- we can just use float, but we'll make an alias Real
 Tensor        -- we can just use Tensor
 Probability   -- a real between 0.0 and 1.0
 Positive Real -- what it says on the tin
@@ -170,37 +170,37 @@ _lookup = {
     (bool, Natural): Natural,
     (bool, Probability): Probability,
     (bool, PositiveReal): PositiveReal,
-    (bool, float): float,
+    (bool, Real): Real,
     (bool, Tensor): Tensor,
     (Natural, bool): Natural,
     (Natural, Natural): Natural,
     (Natural, Probability): PositiveReal,
     (Natural, PositiveReal): PositiveReal,
-    (Natural, float): float,
+    (Natural, Real): Real,
     (Natural, Tensor): Tensor,
     (Probability, bool): Probability,
     (Probability, Natural): PositiveReal,
     (Probability, Probability): Probability,
     (Probability, PositiveReal): PositiveReal,
-    (Probability, float): float,
+    (Probability, Real): Real,
     (Probability, Tensor): Tensor,
     (PositiveReal, bool): PositiveReal,
     (PositiveReal, Natural): PositiveReal,
     (PositiveReal, Probability): PositiveReal,
     (PositiveReal, PositiveReal): PositiveReal,
-    (PositiveReal, float): float,
+    (PositiveReal, Real): Real,
     (PositiveReal, Tensor): Tensor,
-    (float, bool): float,
-    (float, Natural): float,
-    (float, Probability): float,
-    (float, PositiveReal): float,
-    (float, float): float,
-    (float, Tensor): Tensor,
+    (Real, bool): Real,
+    (Real, Natural): Real,
+    (Real, Probability): Real,
+    (Real, PositiveReal): Real,
+    (Real, Real): Real,
+    (Real, Tensor): Tensor,
     (Tensor, bool): Tensor,
     (Tensor, Natural): Tensor,
     (Tensor, Probability): Tensor,
     (Tensor, PositiveReal): Tensor,
-    (Tensor, float): Tensor,
+    (Tensor, Real): Tensor,
     (Tensor, Tensor): Tensor,
 }
 
@@ -236,7 +236,7 @@ def type_of_value(v: Any) -> type:
             return bool
         if v >= 2:
             return Natural
-        return float
+        return Real
     if isinstance(v, float):
         if v == int(v):
             return type_of_value(int(v))
@@ -244,7 +244,7 @@ def type_of_value(v: Any) -> type:
             if v <= 1.0:
                 return Probability
             return PositiveReal
-        return float
+        return Real
     raise ValueError("Unexpected value passed to type_of_value")
 
 

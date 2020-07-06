@@ -6,6 +6,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Natural,
     PositiveReal,
     Probability,
+    Real,
     meets_requirement,
     supremum,
     type_of_value,
@@ -22,8 +23,8 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(bool, supremum())
         self.assertEqual(Probability, supremum(Probability))
         self.assertEqual(PositiveReal, supremum(Probability, Natural))
-        self.assertEqual(float, supremum(Natural, Probability, float))
-        self.assertEqual(Tensor, supremum(float, Tensor, Natural, bool))
+        self.assertEqual(Real, supremum(Natural, Probability, Real))
+        self.assertEqual(Tensor, supremum(Real, Tensor, Natural, bool))
 
     def test_type_of_value(self) -> None:
         """test_type_of_value"""
@@ -58,9 +59,9 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(PositiveReal, type_of_value(1.5))
         self.assertEqual(PositiveReal, type_of_value(tensor(1.5)))
         self.assertEqual(PositiveReal, type_of_value(tensor([[1.5]])))
-        self.assertEqual(float, type_of_value(-1.5))
-        self.assertEqual(float, type_of_value(tensor(-1.5)))
-        self.assertEqual(float, type_of_value(tensor([[-1.5]])))
+        self.assertEqual(Real, type_of_value(-1.5))
+        self.assertEqual(Real, type_of_value(tensor(-1.5)))
+        self.assertEqual(Real, type_of_value(tensor([[-1.5]])))
         self.assertEqual(Tensor, type_of_value(tensor([[0, 0]])))
 
     def test_meets_requirement(self) -> None:

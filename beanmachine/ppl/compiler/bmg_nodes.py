@@ -15,6 +15,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Natural,
     PositiveReal,
     Probability,
+    Real,
     Requirement,
     supremum,
     type_of_value,
@@ -567,7 +568,7 @@ we generate a different node in BMG."""
     def requirements(self) -> List[Requirement]:
         # The input to a Bernoulli must be exactly a real number if "logits",
         # and otherwise must be a Probability.
-        return [float if self.is_logits else Probability]
+        return [Real if self.is_logits else Probability]
 
     @property
     def size(self) -> torch.Size:
@@ -759,7 +760,7 @@ we generate a different node in BMG."""
         # The left input to a binomial must be a natural; the right
         # input must be a real number if "logits" and a Probability
         # otherwise.
-        return [Natural, float if self.is_logits else Probability]
+        return [Natural, Real if self.is_logits else Probability]
 
     @property
     def size(self) -> torch.Size:
@@ -1162,13 +1163,13 @@ a given mean and standard deviation."""
 
     @property
     def inf_type(self) -> type:
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
         # The mean of a normal must be a real; the standard deviation
         # must be a positive real.
-        return [float, PositiveReal]
+        return [Real, PositiveReal]
 
     @property
     def size(self) -> torch.Size:
@@ -1259,11 +1260,11 @@ and the true mean."""
 
     @property
     def inf_type(self) -> type:
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
-        return [PositiveReal, float, PositiveReal]
+        return [PositiveReal, Real, PositiveReal]
 
     def sample_type(self) -> Any:
         if self.types_fixed:
@@ -1351,7 +1352,7 @@ between 0.0 and 1.0."""
     def inf_type(self) -> type:
         # TODO: We will probably need to be smarter here
         # once this is implemented in BMG.
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1359,7 +1360,7 @@ between 0.0 and 1.0."""
         # BMG; when we do, revisit this code.
         # TODO: If we know that a Uniform is bounded by constants 0.0 and 1.0,
         # we can generate a Flat distribution node for BMG.
-        return [float, float]
+        return [Real, Real]
 
     def sample_type(self) -> Any:
         return self.low.node_type
@@ -1684,7 +1685,7 @@ class DivisionNode(BinaryOperatorNode):
     def inf_type(self) -> type:
         # TODO: We do not support division in BMG yet; when we do, implement
         # this correctly.
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1968,7 +1969,7 @@ class PowerNode(BinaryOperatorNode):
     def inf_type(self) -> type:
         # TODO: We do not yet support power nodes in BMG; when we
         # do, revisit this code.
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2096,7 +2097,7 @@ a model contains calls to Tensor.log or math.log."""
     @property
     def inf_type(self) -> type:
         # TODO: When we support this node in BMG, revisit this code.
-        return supremum(self.operand.inf_type, float)
+        return supremum(self.operand.inf_type, Real)
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2137,7 +2138,7 @@ class NegateNode(UnaryOperatorNode):
 
     @property
     def inf_type(self) -> type:
-        return supremum(self.operand.inf_type, float)
+        return supremum(self.operand.inf_type, Real)
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2262,12 +2263,12 @@ class ToRealNode(UnaryOperatorNode):
     @property
     def inf_type(self) -> type:
         # A ToRealNode's output is always real
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
         # A ToRealNode's input must be real or smaller.
-        return [upper_bound(float)]
+        return [upper_bound(Real)]
 
     @property
     def label(self) -> str:
