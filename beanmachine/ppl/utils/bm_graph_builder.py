@@ -1011,6 +1011,7 @@ graph, and add a sample node to the graph."""
 
     def to_dot(
         self,
+        graph_types: bool = False,
         inf_types: bool = False,
         edge_requirements: bool = False,
         point_at_input: bool = False,
@@ -1027,6 +1028,8 @@ they were created."""
         for node, index in self.nodes.items():
             n = to_id(index)
             node_label = node.label
+            if graph_types:
+                node_label += ":" + short_name_of_type(node.graph_type)
             if inf_types:
                 node_label += ">=" + short_name_of_type(node.inf_type)
             db.with_node(n, node_label)
