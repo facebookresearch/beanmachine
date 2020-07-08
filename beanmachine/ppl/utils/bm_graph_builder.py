@@ -105,6 +105,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Natural,
     PositiveReal,
     Probability,
+    Real,
     short_name_of_requirement,
     short_name_of_type,
 )
@@ -356,6 +357,25 @@ creates a constant graph node for it, and adds it to the builder"""
         if isinstance(value, Tensor):
             return self.add_tensor(value)
         raise TypeError("value must be a bool, real or tensor")
+
+    def add_constant_of_type(self, value: Any, node_type: type) -> ConstantNode:
+        """This takes any constant value of a supported type and creates a
+constant graph node of the stated type for it, and adds it to the builder"""
+        if node_type == bool:
+            return self.add_boolean(bool(value))
+        if node_type == Probability:
+            return self.add_probability(float(value))
+        if node_type == Natural:
+            return self.add_natural(int(value))
+        if node_type == PositiveReal:
+            return self.add_pos_real(float(value))
+        if node_type == Real:
+            return self.add_real(float(value))
+        if node_type == Tensor:
+            if isinstance(value, Tensor):
+                return self.add_tensor(value)
+            return self.add_tensor(tensor(value))
+        raise TypeError("node type must be a valid BMG type")
 
     @memoize
     def add_real(self, value: float) -> RealNode:
