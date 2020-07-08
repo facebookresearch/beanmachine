@@ -69,6 +69,12 @@ class BMGNode(ABC):
     def __init__(self, children: List["BMGNode"]):
         self.children = children
 
+    @property
+    @abstractmethod
+    def graph_type(self) -> type:
+        """The type of the node in the graph type system."""
+        pass
+
     # TODO: I have worked out a new type inference algorithm which
     # uses the *infimum type* of a node; once that algorithm
     # is implemented, this property and all implementations of it
@@ -263,6 +269,10 @@ class BooleanNode(ConstantNode):
         return str(self.value)
 
     @property
+    def graph_type(self) -> type:
+        return bool
+
+    @property
     def node_type(self) -> Any:
         return bool
 
@@ -295,6 +305,10 @@ class NaturalNode(ConstantNode):
 
     def __str__(self) -> str:
         return str(self.value)
+
+    @property
+    def graph_type(self) -> type:
+        return Natural
 
     @property
     def node_type(self) -> Any:
@@ -338,6 +352,10 @@ class PositiveRealNode(ConstantNode):
         return str(self.value)
 
     @property
+    def graph_type(self) -> type:
+        return PositiveReal
+
+    @property
     def node_type(self) -> Any:
         return PositiveReal
 
@@ -379,6 +397,10 @@ class ProbabilityNode(ConstantNode):
         return str(self.value)
 
     @property
+    def graph_type(self) -> type:
+        return Probability
+
+    @property
     def node_type(self) -> Any:
         return Probability
 
@@ -418,6 +440,10 @@ class RealNode(ConstantNode):
 
     def __str__(self) -> str:
         return str(self.value)
+
+    @property
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def node_type(self) -> Any:
@@ -465,6 +491,10 @@ class TensorNode(ConstantNode):
         if length == 0 or length == 1:
             return TensorNode._tensor_to_python(t)
         return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
+
+    @property
+    def graph_type(self) -> type:
+        return Tensor
 
     # TODO: Do tensor types need to describe their contents?
     @property
@@ -557,6 +587,10 @@ we generate a different node in BMG."""
         self.children[0] = p
 
     @property
+    def graph_type(self) -> type:
+        return bool
+
+    @property
     def node_type(self) -> Any:
         return Bernoulli
 
@@ -641,6 +675,10 @@ so is useful for creating probabilities."""
     @beta.setter
     def beta(self, p: BMGNode) -> None:
         self.children[1] = p
+
+    @property
+    def graph_type(self) -> type:
+        return Probability
 
     @property
     def node_type(self) -> Any:
@@ -746,6 +784,10 @@ we generate a different node in BMG."""
     @probability.setter
     def probability(self, p: BMGNode) -> None:
         self.children[1] = p
+
+    @property
+    def graph_type(self) -> type:
+        return Natural
 
     @property
     def node_type(self) -> Any:
@@ -895,6 +937,10 @@ we generate a different node in BMG."""
         return Categorical
 
     @property
+    def graph_type(self) -> Any:
+        return Natural
+
+    @property
     def inf_type(self) -> type:
         return Natural
 
@@ -979,6 +1025,10 @@ distribution."""
     @concentration.setter
     def concentration(self, p: BMGNode) -> None:
         self.children[0] = p
+
+    @property
+    def graph_type(self) -> type:
+        return Tensor
 
     @property
     def node_type(self) -> Any:
@@ -1075,6 +1125,10 @@ and a sample is a positive real number."""
         self.children[0] = p
 
     @property
+    def graph_type(self) -> type:
+        return PositiveReal
+
+    @property
     def node_type(self) -> Any:
         return HalfCauchy
 
@@ -1156,6 +1210,10 @@ a given mean and standard deviation."""
     @sigma.setter
     def sigma(self, p: BMGNode) -> None:
         self.children[1] = p
+
+    @property
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def node_type(self) -> Any:
@@ -1255,6 +1313,10 @@ and the true mean."""
         self.children[2] = p
 
     @property
+    def graph_type(self) -> type:
+        return Real
+
+    @property
     def node_type(self) -> Any:
         return StudentT
 
@@ -1343,6 +1405,10 @@ between 0.0 and 1.0."""
     @high.setter
     def high(self, p: BMGNode) -> None:
         self.children[1] = p
+
+    @property
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def node_type(self) -> Any:
@@ -1451,6 +1517,12 @@ the condition is a Boolean."""
 
     def __init__(self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode):
         OperatorNode.__init__(self, [condition, consequence, alternative])
+
+    @property
+    def graph_type(self) -> type:
+        if self.consequence.graph_type == self.alternative.graph_type:
+            return self.consequence.graph_type
+        return Malformed
 
     @property
     def node_type(self) -> Any:
@@ -1623,6 +1695,12 @@ class AdditionNode(BinaryOperatorNode):
         return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
 
     @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
+
+    @property
     def requirements(self) -> List[Requirement]:
         # We require that the input types of an addition be exactly the same.
         # In order to minimize the output type of the node we will take the
@@ -1686,6 +1764,12 @@ class DivisionNode(BinaryOperatorNode):
         # TODO: We do not support division in BMG yet; when we do, implement
         # this correctly.
         return Real
+
+    @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1778,6 +1862,14 @@ multiple control flows based on the value of a stochastic node."""
         )
 
     @property
+    def graph_type(self) -> type:
+        first = self.children[0].graph_type
+        for i in range(len(self.children) // 2):
+            if self.children[i * 2 + 1].graph_type != first:
+                return Malformed
+        return first
+
+    @property
     def requirements(self) -> List[Requirement]:
         it = self.inf_type
         # TODO: This isn't quite right; when we support this kind of node
@@ -1847,6 +1939,10 @@ choose an element from the map."""
         return self.left.inf_type
 
     @property
+    def graph_type(self) -> type:
+        return self.left.graph_type
+
+    @property
     def requirements(self) -> List[Requirement]:
         it = self.inf_type
         # TODO: This isn't quite right; when we support this kind of node
@@ -1887,6 +1983,12 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         # TODO: We do not yet support matrix multiplication in BMG;
         # when we do, revisit this code.
         return supremum(self.left.inf_type, self.right.inf_type)
+
+    @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1930,6 +2032,12 @@ class MultiplicationNode(BinaryOperatorNode):
         return supremum(self.left.inf_type, self.right.inf_type, Probability)
 
     @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
+
+    @property
     def requirements(self) -> List[Requirement]:
         # We require that the input types of a multiplication be exactly the same.
         # In order to minimize the output type of the node we will take the
@@ -1970,6 +2078,12 @@ class PowerNode(BinaryOperatorNode):
         # TODO: We do not yet support power nodes in BMG; when we
         # do, revisit this code.
         return Real
+
+    @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2065,6 +2179,10 @@ a model contains calls to Tensor.exp or math.exp."""
         return supremum(self.operand.inf_type, PositiveReal)
 
     @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
+
+    @property
     def requirements(self) -> List[Requirement]:
         # Exp requires that the input type be exactly the same as the
         # output type; the smallest possible output type is therefore
@@ -2098,6 +2216,10 @@ a model contains calls to Tensor.log or math.log."""
     def inf_type(self) -> type:
         # TODO: When we support this node in BMG, revisit this code.
         return supremum(self.operand.inf_type, Real)
+
+    @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2141,6 +2263,10 @@ class NegateNode(UnaryOperatorNode):
         return supremum(self.operand.inf_type, Real)
 
     @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
+
+    @property
     def requirements(self) -> List[Requirement]:
         # We require that the input type be identical to the output type,
         # and the smallest possible output type is the infimum type of
@@ -2174,6 +2300,10 @@ class NotNode(UnaryOperatorNode):
     def inf_type(self) -> type:
         # TODO: When we support this node in BMG, revisit this code.
         return bool
+
+    @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
 
     @property
     def node_type(self) -> Any:
@@ -2222,6 +2352,10 @@ values."""
         return self.operand.inf_type
 
     @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
+
+    @property
     def requirements(self) -> List[Requirement]:
         return [self.inf_type]
 
@@ -2261,6 +2395,10 @@ class ToRealNode(UnaryOperatorNode):
         return float
 
     @property
+    def graph_type(self) -> type:
+        return Real
+
+    @property
     def inf_type(self) -> type:
         # A ToRealNode's output is always real
         return Real
@@ -2293,6 +2431,10 @@ class ToPositiveRealNode(UnaryOperatorNode):
 
     @property
     def node_type(self) -> Any:
+        return PositiveReal
+
+    @property
+    def graph_type(self) -> type:
         return PositiveReal
 
     @property
@@ -2333,6 +2475,10 @@ class ToTensorNode(UnaryOperatorNode):
     @property
     def inf_type(self) -> type:
         # The output of a ToTensorNode is always a tensor.
+        return Tensor
+
+    @property
+    def graph_type(self) -> type:
         return Tensor
 
     @property
@@ -2419,7 +2565,11 @@ should no loger be uniform."""
         # to check for errors; for example, if we have an observation with
         # value 0.5 on an operation known to be of type Natural then we can
         # flag that as a likely error.
-        return type_of_value(self.value)
+        return self.observed.inf_type
+
+    @property
+    def graph_type(self) -> type:
+        return self.observed.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2482,6 +2632,10 @@ to have a query node accumulated into the graph builder.
     @operator.setter
     def operator(self, p: OperatorNode) -> None:
         self.children[0] = p
+
+    @property
+    def graph_type(self) -> type:
+        return self.operator.graph_type
 
     @property
     def node_type(self) -> Any:
