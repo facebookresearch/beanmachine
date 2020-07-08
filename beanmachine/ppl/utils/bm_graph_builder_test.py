@@ -23,7 +23,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     TensorNode,
     ToRealNode,
 )
-from beanmachine.ppl.compiler.bmg_types import Malformed
+from beanmachine.ppl.compiler.bmg_types import Malformed, PositiveReal, Real
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
@@ -1512,23 +1512,23 @@ digraph "graph" {
 
     def test_studentt(self) -> None:
         bmg = BMGraphBuilder()
-        df = bmg.add_constant(3.0)
-        loc = bmg.add_constant(2.0)
-        scale = bmg.add_constant(1.0)
+        df = bmg.add_constant_of_type(3.0, PositiveReal)
+        loc = bmg.add_constant_of_type(2.0, Real)
+        scale = bmg.add_constant_of_type(1.0, PositiveReal)
         d = bmg.add_studentt(df, loc, scale)
         bmg.add_sample(d)
-        observed = bmg.to_dot()
+        observed = bmg.to_dot(True, False, False, True)
         expected = """
 digraph "graph" {
-  N0[label=3.0];
-  N1[label=2.0];
-  N2[label=1.0];
-  N3[label=StudentT];
-  N4[label=Sample];
-  N3 -> N0[label=df];
-  N3 -> N1[label=loc];
-  N3 -> N2[label=scale];
-  N4 -> N3[label=operand];
+  N0[label="3.0:R+"];
+  N1[label="2.0:R"];
+  N2[label="1.0:R+"];
+  N3[label="StudentT:R"];
+  N4[label="Sample:R"];
+  N0 -> N3[label=df];
+  N1 -> N3[label=loc];
+  N2 -> N3[label=scale];
+  N3 -> N4[label=operand];
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
