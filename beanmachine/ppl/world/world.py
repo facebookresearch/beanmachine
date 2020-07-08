@@ -157,6 +157,15 @@ class World(object):
 
         self.proposer_ = defaultdict(lambda: proposer)
 
+    def reject_latest_diff(self):
+        """
+        Reject the top diff.
+        """
+        if self.diff_stack_.len() == 1:
+            self.reject_diff()
+        else:
+            self.diff_ = self.diff_stack_.remove_last_diff()
+
     def get_proposer_for_node(self, node):
         """
         Returns the proposer for a given node

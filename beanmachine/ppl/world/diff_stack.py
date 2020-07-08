@@ -70,7 +70,29 @@ class DiffStack(object):
             len(self.diff_stack_) - 1
         ):
             self.diff_var_.add(node)
-            self.node_to_diffs_[node].append(len(self.diff_stack_) - 1)
+            self.node_to_diffs_[node].append(self.len() - 1)
+
+    def len(self) -> int:
+        """
+        :returns: the length of the diff stack
+        """
+        return len(self.diff_stack_)
+
+    def remove_last_diff(self) -> Diff:
+        """
+        Delete latest diff and returns the new latest diff
+
+        :returns: the new latest diff
+        """
+        diff_len = self.len() - 1
+        for node in self.diff_.vars():
+            node_indices = self.node_to_diffs_[node]
+            if diff_len in node_indices:
+                node_indices.remove(diff_len)
+
+        self.diff_ = self.diff_stack_[-2]
+        del self.diff_stack_[-1]
+        return self.diff_
 
     def get_diff_stack(self) -> List:
         """
