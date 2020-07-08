@@ -88,20 +88,20 @@ class BMGTypesTest(unittest.TestCase):
         bmg.add_sample(bern)
         bmg.add_query(mult)
 
-        observed = bmg.to_dot(True, True, True)
+        observed = bmg.to_dot(True, True, True, True)
         expected = """
 digraph "graph" {
-  N00[label="1.0>=B"];
-  N01[label="2.0>=N"];
-  N02[label="0.5>=P"];
-  N03[label="Beta>=P"];
-  N04[label="Sample>=P"];
-  N05[label="*>=P"];
-  N06[label="Normal>=R"];
-  N07[label="Bernoulli>=B"];
-  N08[label="Sample>=R"];
-  N09[label="Sample>=B"];
-  N10[label="Query>=P"];
+  N00[label="1.0:T>=B"];
+  N01[label="2.0:T>=N"];
+  N02[label="0.5:T>=P"];
+  N03[label="Beta:P>=P"];
+  N04[label="Sample:P>=P"];
+  N05[label="*:M>=P"];
+  N06[label="Normal:R>=R"];
+  N07[label="Bernoulli:B>=B"];
+  N08[label="Sample:R>=R"];
+  N09[label="Sample:B>=B"];
+  N10[label="Query:M>=P"];
   N00 -> N06[label="sigma:R+"];
   N01 -> N03[label="alpha:R+"];
   N01 -> N03[label="beta:R+"];
