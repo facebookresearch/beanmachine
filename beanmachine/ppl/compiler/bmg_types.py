@@ -287,6 +287,9 @@ def upper_bound(bound: Requirement) -> UpperBound:
 
 
 def meets_requirement(t: type, r: Requirement) -> bool:
+    # A malformed node meets no requirements
+    if t == Malformed:
+        return False
     if isinstance(r, UpperBound):
         return _supremum(t, r.bound) == r.bound
     return t == r
