@@ -5,6 +5,7 @@ from typing import List, Optional
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.utils import RVIdentifier
+from torch.distributions import Categorical
 
 from .single_site_ancestral_mh import SingleSiteAncestralMetropolisHastings
 
@@ -19,7 +20,7 @@ class Predictive(object):
         queries: List[RVIdentifier],
         posterior: Optional[MonteCarloSamples] = None,
         num_samples: Optional[int] = None,
-    ):
+    ) -> MonteCarloSamples:
         """
         Generates predictives from a generative model.
 
@@ -79,5 +80,31 @@ class Predictive(object):
             # pyre-fixme
             return MonteCarloSamples(dict(rv_dict))
 
+    @staticmethod
+    def empirical(
+        queries: List[RVIdentifier],
+        samples: MonteCarloSamples,
+        num_samples: Optional[int] = 1,
+    ) -> MonteCarloSamples:
+        """
+        Samples from the empirical (marginal) distribution of the queried variables.
+
+        :param queries: list of ``random_variable``s to be sampled.
+        :param samples: ``MonteCarloSamples`` of the distribution.
+        :param num_samples: Number of samples to sample (with replacement). Defaults to 1.
+        :returns: ``MonteCarloSamples`` object containing the sampled random variables.
+        """
+        rv_dict = {}
+        num_chains = samples.get_num_chains()
+        total_num_samples = samples.get_num_samples()
+        chain_indices = Categorical(torch.ones(num_chains)).sample((num_samples,))
+        sample_indices = Categorical(torch.ones(total_num_samples)).sample(
+            (num_samples,)
+        )
+        for q in queries:
+            rv_dict[q] = samples.data.rv_dict[q][chain_indices, sample_indices]
+        return MonteCarloSamples([rv_dict])
+
 
 simulate = Predictive.simulate
+empirical = Predictive.empirical

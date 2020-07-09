@@ -97,3 +97,9 @@ class MonteCarloSamples(object):
         :returns: the number of chains run during inference
         """
         return self.data.num_chains
+
+    def get_num_samples(self) -> int:
+        """
+        :returns: the number of samples run during inference
+        """
+        return len(next(iter(self.data.rv_dict.values())))

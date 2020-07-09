@@ -10,6 +10,7 @@ from .inference import (
     SingleSiteNewtonianMonteCarlo,
     SingleSiteRandomWalk,
     SingleSiteUniformMetropolisHastings,
+    empirical,
     simulate,
 )
 from .model import functional, get_beanmachine_logger, random_variable
@@ -33,5 +34,6 @@ __all__ = [
     "split_r_hat",
     "r_hat",
     "Predictive",
+    "empirical",
     "simulate",
 ]

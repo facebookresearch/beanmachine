@@ -85,3 +85,20 @@ class PredictiveTest(unittest.TestCase):
         assert predictive_0.shape == (2, 10, 1, 2)
         assert predictive_1.shape == (2, 10, 1, 2)
         assert (predictive_1 - predictive_0).sum().item() != 0
+
+    def test_empirical(self):
+        obs = {
+            self.likelihood_i(0): torch.tensor(1.0),
+            self.likelihood_i(1): torch.tensor(0.0),
+            self.likelihood_i(2): torch.tensor(0.0),
+        }
+        post_samples = bm.SingleSiteAncestralMetropolisHastings().infer(
+            [self.prior()], obs, num_samples=10, num_chains=4
+        )
+        empirical = bm.empirical([self.prior()], post_samples, num_samples=26)
+        assert empirical[self.prior()].shape == (1, 26)
+        predictives = bm.simulate(list(obs.keys()), post_samples)
+        empirical = bm.empirical(list(obs.keys()), predictives, num_samples=27)
+        assert len(empirical.data.rv_dict.keys()) == 3
+        assert empirical[self.likelihood_i(0)].shape == (1, 27)
+        assert empirical[self.likelihood_i(1)].shape == (1, 27)

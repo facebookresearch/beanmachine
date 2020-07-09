@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from beanmachine.ppl.inference.compositional_infer import CompositionalInference
-from beanmachine.ppl.inference.predictive import Predictive, simulate
+from beanmachine.ppl.inference.predictive import Predictive, empirical, simulate
 from beanmachine.ppl.inference.rejection_sampling_infer import RejectionSampling
 from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
@@ -26,5 +26,6 @@ __all__ = [
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
     "Predictive",
+    "empirical",
     "simulate",
 ]
