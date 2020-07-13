@@ -21,6 +21,7 @@ from ...inference.proposer.single_site_ancestral_proposer import (
 )
 from ...model.utils import RVIdentifier
 from ...world import ProposalDistribution, Variable, World
+from . import utils
 
 
 LOGGER_IC = logging.getLogger("beanmachine.debug.ic")
@@ -305,19 +306,19 @@ class ICInference(AbstractMHInference):
                 )
             ),
             dim=0,
-        )
+        ).flatten()
         return nn.Linear(
             in_features=obs_vec.shape[0], out_features=self._OBS_EMBEDDING_DIM
         )
 
     def _build_node_embedding_network(self, node: RVIdentifier) -> nn.Module:
         node_var = self.world_.get_node_in_world_raise_error(node)
-        node_vec = node_var.value
+        node_vec = utils.ensure_1d(node_var.value)
         # NOTE: assumes that node does not change shape across worlds
-        # TODO: better handling of 0d (e.g. tensor(1.)) vs 1d (e.g. tensor([1.]))
-        in_shape = 1 if len(node_vec.shape) == 0 else node_vec.shape[0]
         node_embedding_net = nn.Sequential(
-            nn.Linear(in_features=in_shape, out_features=self._NODE_EMBEDDING_DIM)
+            nn.Linear(
+                in_features=node_vec.shape[0], out_features=self._NODE_EMBEDDING_DIM
+            )
         )
         node_id_embedding = torch.randn(self._NODE_ID_EMBEDDING_DIM)
         node_id_embedding /= node_id_embedding.norm(p=2)
@@ -360,7 +361,7 @@ class ICInference(AbstractMHInference):
                 if obs_embedding_net is None:
                     raise Exception("No observation embedding network found!")
 
-                obs_vec = torch.stack(obs_nodes, dim=0)
+                obs_vec = torch.stack(obs_nodes, dim=0).flatten()
                 # pyre-fixme
                 obs_embedding = obs_embedding_net.forward(obs_vec)
 
@@ -369,18 +370,16 @@ class ICInference(AbstractMHInference):
                 raise Exception("No node embedding networks found!")
 
             node_embedding = node_embedding_nets(node).forward(
-                # TODO: ensure tensors exactly 1d here, OHE integers?
-                world.get_node_in_world_raise_error(node).value.unsqueeze(0)
+                utils.ensure_1d(world.get_node_in_world_raise_error(node).value)
             )
 
             mb_embedding = torch.zeros(self._MB_EMBEDDING_DIM)
             mb_nodes = list(
                 map(
                     lambda mb_node: node_embedding_nets(mb_node).forward(
-                        # TODO: ensure tensors exactly 1d here, OHE integers?
-                        world.get_node_in_world_raise_error(mb_node)
-                        .value.unsqueeze(0)
-                        .float()
+                        utils.ensure_1d(
+                            world.get_node_in_world_raise_error(mb_node).value
+                        )
                     ),
                     sorted(markov_blanket, key=str),
                 )
@@ -419,15 +418,35 @@ class ICInference(AbstractMHInference):
         node_var = self.world_.get_node_in_world_raise_error(node)
         distribution = node_var.distribution
         # pyre-fixme
+        sample_val = distribution.sample()
+        # pyre-fixme
         support = distribution.support
-        # NOTE: only univariates supported
+
+        ndim = sample_val.dim()
+        if ndim > 1:
+            raise NotImplementedError(
+                f"IC currently only supports 0D (scalar) and 1D (vector) values. "
+                f"Encountered node={node} with dim={ndim}"
+            )
+
         if (
             isinstance(support, dist.constraints._Real)
             or isinstance(support, dist.constraints._Simplex)
             or isinstance(support, dist.constraints._GreaterThan)
         ):
-            # TODO: use a GMM
-            return (2, lambda x: dist.Normal(loc=x[0], scale=torch.exp(x[1])))
+            # TODO: use a GMM with compile-time configured # components
+            # TODO: try IAF density estimator
+            if ndim == 0:
+                return (2, lambda x: dist.Normal(loc=x[0], scale=torch.exp(x[1])))
+            else:
+                # TODO: non-diagonal covariance matrix and/or 2D GMM
+                d = sample_val.shape[0]
+                return (
+                    2 * d,
+                    lambda x: dist.MultivariateNormal(
+                        loc=x[:d], covariance_matrix=torch.diag(torch.exp(x[d : 2 * d]))
+                    ),
+                )
         elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
             distribution, dist.Categorical
         ):
