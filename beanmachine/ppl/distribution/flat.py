@@ -18,7 +18,6 @@ class Flat(dist.Distribution):
         return torch.zeros(sample_shape)
 
     def sample(self):
-
         return torch.zeros(self.shape)
 
     def log_prob(self, value):

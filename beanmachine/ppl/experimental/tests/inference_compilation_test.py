@@ -4,6 +4,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.distribution import Flat
 from beanmachine.ppl.examples.conjugate_models import NormalNormalModel
 from beanmachine.ppl.experimental.inference_compilation.ic_infer import ICInference
 from torch import tensor
@@ -27,12 +28,18 @@ class InferenceCompilationTest(unittest.TestCase):
             return dist.Normal(loc=loc, scale=tensor(1.0))
 
     class GMM:
-        def __init__(self, K=2):
+        def __init__(self, K=2, d=1):
             self.K = K
+            self.d = d
 
         @bm.random_variable
         def mu(self, j):
-            return dist.Normal(0, 1)
+            if self.d == 1:
+                return dist.Normal(0, 1)
+            else:
+                return dist.MultivariateNormal(
+                    loc=torch.zeros(self.d), covariance_matrix=torch.eye(self.d)
+                )
 
         @bm.random_variable
         def c(self, i):
@@ -42,7 +49,12 @@ class InferenceCompilationTest(unittest.TestCase):
         def x(self, i):
             c = self.c(i).int().item()
             mu = self.mu(c)
-            return dist.Normal(mu, 0.1)
+            if self.d == 1:
+                return dist.Normal(mu, 0.1)
+            else:
+                return dist.MultivariateNormal(
+                    loc=mu, covariance_matrix=0.1 * torch.eye(self.d)
+                )
 
     def setUp(self):
         torch.manual_seed(42)
@@ -110,6 +122,29 @@ class InferenceCompilationTest(unittest.TestCase):
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
         self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
         self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+
+    def test_gmm_2d(self):
+        model = self.GMM(K=2, d=2)
+        ic = ICInference()
+        observations = {
+            model.x(0): tensor([0.0, 1.0]),
+            model.x(1): tensor([0.0, -1.0]),
+            model.x(2): tensor([0.0, 1.0]),
+            model.x(3): tensor([0.0, -1.0]),
+        }
+        ic.compile(observations.keys(), num_worlds=500)
+        queries = [model.mu(i) for i in range(model.K)]
+        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+
+        posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+
+    def test_raises_on_matrix_distributions(self):
+        rv = bm.random_variable(lambda: Flat((2, 2)))
+        rv_obs = bm.random_variable(lambda: dist.Normal(rv()[0, 0], 1))
+        with self.assertRaises(NotImplementedError):
+            ICInference().compile([rv_obs()])
 
     def test_do_adaptation(self):
         # undertrained model
