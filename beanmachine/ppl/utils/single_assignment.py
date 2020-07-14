@@ -690,6 +690,25 @@ class SingleAssignment:
             "_handle_assign_call_empty_regular_arg",
         )
 
+    def _handle_assign_call_empty_keyward_arg(self) -> Rule:
+        # Rewrite x = f(1) into x = f(1,**{})
+        # Basically, ensure that any call has at least one ** argument
+        # TODO: The identifier "dict" should be made global unique in target name space
+        return PatternRule(
+            assign(value=call(func=negate(name(id="dict")), keywords=[])),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=source_term.value.args,
+                    keywords=[
+                        ast.keyword(arg=None, value=ast.Dict(keys=[], values=[]))
+                    ],
+                ),
+            ),
+            "_handle_assign_call_empty_keyword_arg",
+        )
+
     def _handle_asign_call_keyword(self) -> Rule:
         # If we have t = foo(a, b, z=123) rewrite that to
         # t1 = 123, t = foo(a, b, t1),
@@ -782,6 +801,7 @@ class SingleAssignment:
                 self._handle_assign_call_single_double_star_arg(),
                 self._handle_assign_call_two_double_star_args(),
                 self._handle_assign_call_keyword_arg(),
+                self._handle_assign_call_empty_keyward_arg(),
             ]
         )
 
