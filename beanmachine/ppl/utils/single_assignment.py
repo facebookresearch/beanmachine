@@ -57,6 +57,10 @@ _list_all_identifiers: PatternBase = ListAll(name())
 _not_identifier_keyword: Pattern = keyword(value=_not_identifier)
 _not_identifier_keywords: PatternBase = ListAny(_not_identifier_keyword)
 
+# TODO: Requirement args=[] will be problematic with regular arg rewrites
+# TODO: The identifier "dict" should be made global unique in target name space
+double_star_arg = keyword(arg=None, value=call(func=name(id="dict"), args=[]))
+
 _binops: Pattern = match_any(
     ast.Add,
     ast.BitAnd,
@@ -567,6 +571,41 @@ class SingleAssignment:
             "handle_assign_call_two_star_args",
         )
 
+    def _handle_assign_call_two_double_star_args(self) -> Rule:
+        # Rewrite x= f(**dict(**{a:1,b:2}),**dict(**{b:3,c:4}))
+        #  into x = f(**dict(**{a:1,b:2},**{b:3,c:4}))
+        # Note: Since we are not lifting, no restriction needed on func or args
+        # TODO: Ideally, would like to merge [1].ctx with the [0].ctx below
+        return PatternRule(
+            assign(
+                value=call(
+                    keywords=HeadTail(
+                        double_star_arg, HeadTail(double_star_arg, anyPattern)
+                    )
+                )
+            ),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=source_term.value.args,
+                    keywords=[
+                        ast.keyword(
+                            arg=None,
+                            value=ast.Call(
+                                func=ast.Name(id="dict", ctx=ast.Load()),
+                                args=[],
+                                keywords=source_term.value.keywords[0].value.keywords
+                                + source_term.value.keywords[1].value.keywords,
+                            ),
+                        )
+                    ]
+                    + source_term.value.keywords[2:],
+                ),
+            ),
+            "handle_assign_call_two_double_star_args",
+        )
+
     def _handle_assign_call_regular_arg(self) -> Rule:
         # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
         return PatternRule(
@@ -584,8 +623,9 @@ class SingleAssignment:
 
     def _handle_assign_call_empty_regular_arg(self) -> Rule:
         # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
+        # TODO: Consider generalizing mechanism for things like "dict" below
         return PatternRule(
-            assign(value=call(args=[])),
+            assign(value=call(func=negate(name(id="dict")), args=[])),
             lambda source_term: ast.Assign(
                 targets=source_term.targets,
                 value=ast.Call(
@@ -677,7 +717,7 @@ class SingleAssignment:
                 self._handle_assign_dictionary_keys(),
                 self._handle_assign_dictionary_values(),
                 # TODO: Following will be replaced with new approach
-                self._handle_asign_call_keyword(),
+                # self._handle_asign_call_keyword(),
                 # Acceptable rules for handling function calls
                 self._handle_assign_call_function_expression(),
                 #  Rules for regular arguments
@@ -687,6 +727,7 @@ class SingleAssignment:
                 self._handle_assign_call_empty_regular_arg(),
                 #  Rules for keyword arguments
                 self._handle_assign_call_single_double_star_arg(),
+                self._handle_assign_call_two_double_star_args(),
             ]
         )
 
