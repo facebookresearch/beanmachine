@@ -109,6 +109,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     short_name_of_requirement,
     short_name_of_type,
 )
+from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
@@ -284,13 +285,6 @@ and then transforms that into a valid Bean Machine Graph."""
             StudentT: self.handle_studentt,
             Uniform: self.handle_uniform,
         }
-
-    allowed_functions = {dict, list, set}
-
-    # TODO: Allowing these constructions raises additional problems that
-    # we have not yet solved. For example, what happens if someone
-    # searches a list for a value, but the list contains a graph node?
-    # And so on.
 
     # ####
     # #### Node creation and accumulation
@@ -869,7 +863,7 @@ that has the receiver, if any, as its first member."""
             return f(*args, **kwargs)
 
         # Some functions are perfectly safe for a graph node.
-        if f in BMGraphBuilder.allowed_functions:
+        if f in allowed_functions:
             return f(*args, **kwargs)
 
         # TODO: Do a sanity check that the arguments match and give
