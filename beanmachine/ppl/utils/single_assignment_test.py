@@ -1087,6 +1087,16 @@ x = f(*r1, **r2)
 """
         self.check_rewrite(source, expected)
 
+        source = """
+x = f()
+"""
+        expected = """
+r1 = []
+x = f(*r1)
+"""
+
+        self.check_rewrite(source, expected)
+
     def test_single_assignment_call_empty_regular_arg(self) -> None:
         """Test the assign rule for starring an empty regular arg"""
 
