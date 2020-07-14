@@ -1,11 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import unittest
-from typing import Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
+from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
 )
@@ -14,6 +15,7 @@ from beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_c
 )
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from beanmachine.ppl.world.world import TransformType
 
 
 class SingleSiteCustomProposerTest(unittest.TestCase):
@@ -114,3 +116,50 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
         ) = proposer.get_proposal_distribution(foo_key, node_var, world, {})
         # test that there is transform without fallback to ancestral MH
         self.assertEqual(proposal_distribution_struct.requires_transform, True)
+
+    class CustomTransformProposer(AbstractSingleSiteSingleStepProposer):
+        def get_proposal_distribution(
+            self,
+            node: RVIdentifier,
+            node_var: Variable,
+            world: World,
+            auxiliary_variables: Dict,
+        ) -> Tuple[ProposalDistribution, Dict]:
+            return (
+                ProposalDistribution(
+                    proposal_distribution=dist.TransformedDistribution(
+                        node_var.distribution, dist.ExpTransform().inv
+                    ),
+                    requires_transform=True,
+                    requires_reshape=False,
+                    arguments={},
+                ),
+                {},
+            )
+
+    class CustomInference(AbstractMHInference):
+        def __init__(
+            self,
+            proposer,
+            transform_type: TransformType = TransformType.DEFAULT,
+            transforms: Optional[List] = None,
+        ):
+            super().__init__(
+                proposer, transform_type=transform_type, transforms=transforms
+            )
+            self.proposer_ = proposer
+
+        def find_best_single_site_proposer(self, node: RVIdentifier):
+            return self.proposer_
+
+    def test_transform_for_single_site_single_step_proposer(self):
+        model = self.SampleGammaModel()
+        infer = self.CustomInference(self.CustomTransformProposer)
+        foo_key = model.foo()
+        infer.queries_ = [model.foo()]
+        infer.initialize_world(initialize_from_prior=True)
+        is_accepted, acceptance_probability = infer.single_inference_run(
+            foo_key, self.CustomTransformProposer()
+        )
+        self.assertEqual(is_accepted, True)
+        self.assertAlmostEqual(acceptance_probability, 1.0, delta=1e-5)
