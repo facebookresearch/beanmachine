@@ -1980,7 +1980,7 @@ class CompilerTest(unittest.TestCase):
         observed = to_python(source1)
         self.assertEqual(observed.strip(), expected_python_1.strip())
 
-    def test_to_dot(self) -> None:
+    def disabled_test_to_dot(self) -> None:
         """Tests for to_dot from bm_to_bmg.py"""
         self.maxDiff = None
         observed = to_dot(source1)
