@@ -709,25 +709,6 @@ class SingleAssignment:
             "_handle_assign_call_empty_keyword_arg",
         )
 
-    def _handle_asign_call_keyword(self) -> Rule:
-        # If we have t = foo(a, b, z=123) rewrite that to
-        # t1 = 123, t = foo(a, b, t1),
-        # but do it after we've rewriten the receiver and the
-        # positional arguments.
-        # TODO: This will eventually be phased out with new strategy
-        # TODO: Will require changing at least 2 test case
-        return PatternRule(
-            assign(
-                value=call(
-                    func=name(),
-                    args=_list_all_identifiers,
-                    keywords=_not_identifier_keywords,
-                )
-            ),
-            self._transform_call_keyword(),
-            "handle_assign_call_keyword",
-        )
-
     def _handle_handle_assign_attribute(self) -> Rule:
         # If we have t = (x + y).z, rewrite that as t1 = x + y, t = t1.z
         return PatternRule(
@@ -788,8 +769,6 @@ class SingleAssignment:
                 self._handle_assign_tuple(),
                 self._handle_assign_dictionary_keys(),
                 self._handle_assign_dictionary_values(),
-                # TODO: Following will be replaced with new approach
-                # self._handle_asign_call_keyword(),
                 # Acceptable rules for handling function calls
                 self._handle_assign_call_function_expression(),
                 #  Rules for regular arguments
