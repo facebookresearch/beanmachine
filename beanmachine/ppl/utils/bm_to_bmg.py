@@ -108,7 +108,7 @@ def _args_to_list(args: List[ast.AST]) -> ast.List:
     return ast.List(elts=args, ctx=ast.Load())
 
 
-def _kwargs_to_dict(keywords: List[ast.keyword]) -> ast.Dict:
+def _kwargs_to_dict(keywords: List[ast.keyword]) -> ast.expr:
     # If we have a call
     # f(a=b, c=d)
     # then we generate the dictionary
@@ -118,9 +118,12 @@ def _kwargs_to_dict(keywords: List[ast.keyword]) -> ast.Dict:
     # directly but we would run into complications when supporting
     # **kwargs scenarios (which are still TODO)
 
-    keys = [None] * len(keywords)
-    values = [ast.Dict(keys=[ast.Str(s=k.arg)], values=[k.value]) for k in keywords]
-    return ast.Dict(keys, values)
+    if len(keywords) == 1 and keywords[0].arg is None:
+        return keywords[0].value
+    else:
+        keys = [None] * len(keywords)
+        values = [ast.Dict(keys=[ast.Str(s=k.arg)], values=[k.value]) for k in keywords]
+        return ast.Dict(keys, values)
 
 
 _handle_call: PatternRule = PatternRule(
