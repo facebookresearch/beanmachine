@@ -103,7 +103,8 @@ def f(x):
         expected = """
 def f(x):
     r3 = [x]
-    a2 = g(*r3)
+    r4 = {}
+    a2 = g(*r3, **r4)
     u1 = a2 + x
 """
 
@@ -207,7 +208,8 @@ def f(x):
     a5 = [a6]
     a7 = [x]
     r4 = a5 + a7
-    r1 = gt(*r4)
+    r8 = {}
+    r1 = gt(*r4, **r8)
     if r1:
         a2 = a + b
         c = a2 + c
@@ -768,30 +770,32 @@ def f():
         a8 = 3
         a15 = ~x
         a5 = a8 + a15
-        a22 = 5
-        r19 = [a22]
-        r24 = dict(y=6)
-        a9 = g(*r19, **r24)
+        a24 = 5
+        r19 = [a24]
+        r26 = dict(y=6)
+        a9 = g(*r19, **r26)
         r1 = a5 + a9
         return r1
     a2 = torch.tensor
     a20 = 3.0
-    a23 = 4.0
-    a16 = [a20, a23]
+    a25 = 4.0
+    a16 = [a20, a25]
     r10 = [a16]
-    z = a2(*r10)
+    r21 = {}
+    z = a2(*r10, **r21)
     a11 = 10
     a17 = 20
     a6 = [a11, a17]
     a18 = 30
-    a21 = 40
-    a12 = [a18, a21]
+    a22 = 40
+    a12 = [a18, a22]
     f3 = [a6, a12]
     for x in f3:
         for y in x:
             _1 = x + y
             r13 = [_1]
-            _2 = print(*r13)
+            r23 = {}
+            _2 = print(*r13, **r23)
     a14 = 2.0
     a7 = a14 * y
     r4 = a7 / z
@@ -809,11 +813,13 @@ def f():
         expected = """
 a6 = d + e
 r4 = [a6]
-a2 = c(*r4)
+r8 = {}
+a2 = c(*r4, **r8)
 a1 = a2.f
 a5 = g + h
 r3 = [a5]
-b = a1(*r3)
+r7 = {}
+b = a1(*r3, **r7)
 """
         self.check_rewrite(source, expected)
 
@@ -828,7 +834,8 @@ b = a1(*r3)
 a1 = b + c
 a4 = d + e
 r3 = [a4]
-a2 = f(*r3)
+r5 = {}
+a2 = f(*r3, **r5)
 a = a1[a2]
 """
         self.check_rewrite(source, expected)
@@ -859,10 +866,11 @@ x = f(*r1)
         expected = """
 a3 = 1
 a2 = [a3]
-a5 = 2
-a4 = [a5]
+a6 = 2
+a4 = [a6]
 r1 = a2 + a4
-x = f(*r1)
+r5 = {}
+x = f(*r1, **r5)
 """
         self.check_rewrite(source, expected)
 
@@ -918,10 +926,11 @@ x = f(*([1] + [2]))
         expected = """
 a3 = 1
 a2 = [a3]
-a5 = 2
-a4 = [a5]
+a6 = 2
+a4 = [a6]
 r1 = a2 + a4
-x = f(*r1)
+r5 = {}
+x = f(*r1, **r5)
 """
         self.check_rewrite(source, expected)
 
@@ -1006,10 +1015,11 @@ x = f(*[1], *[2])
         expected = """
 a3 = 1
 a2 = [a3]
-a5 = 2
-a4 = [a5]
+a6 = 2
+a4 = [a6]
 r1 = a2 + a4
-x = f(*r1)
+r5 = {}
+x = f(*r1, **r5)
 """
         self.check_rewrite(source, expected)
 
@@ -1092,7 +1102,8 @@ x = f()
 """
         expected = """
 r1 = []
-x = f(*r1)
+r2 = {}
+x = f(*r1, **r2)
 """
 
         self.check_rewrite(source, expected)
@@ -1121,7 +1132,8 @@ x = f(*[])
 
         expected = """
 r1 = []
-x = f(*r1)
+r2 = {}
+x = f(*r1, **r2)
 """
         self.check_rewrite(source, expected)
 
@@ -1132,15 +1144,16 @@ x = f(*r1)
 x = f(1, 2, 3)
 """
         expected = """
-a5 = 1
-a3 = [a5]
-a8 = 2
-a6 = [a8]
-a2 = a3 + a6
-a7 = 3
-a4 = [a7]
+a6 = 1
+a3 = [a6]
+a9 = 2
+a7 = [a9]
+a2 = a3 + a7
+a8 = 3
+a4 = [a8]
 r1 = a2 + a4
-x = f(*r1)
+r5 = {}
+x = f(*r1, **r5)
 """
 
         self.check_rewrite(source, expected)
