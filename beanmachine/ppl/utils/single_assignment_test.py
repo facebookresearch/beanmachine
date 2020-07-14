@@ -40,6 +40,15 @@ class SingleAssignmentTest(unittest.TestCase):
         result = self.s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
+    def check_rewrite_ast(self, source, expected, rules=default_rules):
+        """Tests that starting from applying rules to source yields expected ast"""
+
+        self.maxDiff = None
+        self.s._count = 0
+        m = ast.parse(source)
+        result = self.s.single_assignment(fold(m))
+        self.assertEqual(ast.dump(result), ast.dump(ast.parse(expected)))
+
     def test_single_assignment_pre_unassigned_expressions(self) -> None:
         """Tests need for a new rule to handle unassigned expressions"""
 
@@ -761,7 +770,8 @@ def f():
         a5 = a8 + a15
         a22 = 5
         r19 = [a22]
-        a9 = g(*r19, y=6)
+        r24 = dict(y=6)
+        a9 = g(*r19, **r24)
         r1 = a5 + a9
         return r1
     a2 = torch.tensor
@@ -919,10 +929,10 @@ x = f(*r1)
         """Test the assign rule for merging double starred call arguments"""
 
         source = """
-x = f(*d,**dict(**a), **dict(**b, **c))
+x = f(*d,**a, **b, **c)
 """
         expected = """
-x = f(*d, **dict(**a, **b, **c))
+x = f(*d, **dict(**a, **b), **c)
 """
 
         self.check_rewrite(
@@ -931,17 +941,47 @@ x = f(*d, **dict(**a, **b, **c))
             _some_top_down(self.s._handle_assign_call_two_double_star_args()),
         )
 
+        expected = """
+x = f(*d, **dict(**dict(**a, **b), **c))
+"""
+
         self.check_rewrite(
             source,
             expected,
             many(_some_top_down(self.s._handle_assign_call_two_double_star_args())),
         )
 
+        source = expected
         expected = """
-r1 = dict(**a, **b, **c)
+r1 = dict(**dict(**a, **b), **c)
+x = f(*d, **r1)
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_call_single_double_star_arg())),
+        )
+
+        expected = """
+r1 = dict(**dict(**a, **b), **c)
 x = f(*d, **r1)
 """
         self.check_rewrite(source, expected)
+
+        source = """
+x= f(**{a:1},**{b:3})
+"""
+
+        expected = """
+x = f(**dict(**{a: 1}, **{b: 3}))
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            _some_top_down(self.s._handle_assign_call_two_double_star_args()),
+        )
 
     def test_single_assignment_call_regular_arg(self) -> None:
         """Test the assign rule for starring an unstarred regular arg"""
@@ -971,8 +1011,81 @@ a4 = [a5]
 r1 = a2 + a4
 x = f(*r1)
 """
-        # TODO: The following test should work when broken call rewrites are removed
-        # self.check_rewrite(source, expected)
+        self.check_rewrite(source, expected)
+
+    def test_single_assignment_call_keyword_arg(self) -> None:
+        """Test the assign rule for starring an unstarred keyword arg"""
+
+        source = """
+x = f(**dict(**d), k=42, **dict(**e))
+"""
+        expected = """
+x = f(**dict(**d), **dict(k=42), **dict(**e))
+"""
+
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_assign_call_keyword_arg())
+        )
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_call_keyword_arg())),
+        )
+
+        # TODO: This just for debugging a non-terminating loop
+        expected = """
+x = f(*[], **dict(**d), k=42, **dict(**e))
+"""
+        self.check_rewrite(source, expected, _some_top_down(self.s._handle_assign()))
+
+        source = expected
+        expected = """
+r1 = []
+x = f(*r1, **dict(**d), k=42, **dict(**e))
+"""
+        self.check_rewrite(source, expected, _some_top_down(self.s._handle_assign()))
+
+        source = expected
+        expected = """
+r1 = []
+x = f(*r1, **dict(**d), **dict(k=42), **dict(**e))
+"""
+        self.check_rewrite(source, expected, _some_top_down(self.s._handle_assign()))
+
+        source = expected
+        expected = """
+r1 = []
+x = f(*r1, **dict(**dict(**d), **dict(k=42)), **dict(**e))
+"""
+        self.check_rewrite(source, expected, _some_top_down(self.s._handle_assign()))
+
+        source = expected
+        expected = """
+r1 = []
+x = f(*r1, **dict(**dict(**dict(**d), **dict(k=42)), **dict(**e)))
+"""
+        self.check_rewrite(source, expected, _some_top_down(self.s._handle_assign()))
+
+        source = expected
+        expected = """
+r1 = []
+r1 = dict(**dict(**dict(**d), **dict(k=42)), **dict(**e))
+x = f(*r1, **r1)
+"""
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign()))
+        )
+
+        source = """
+x = f(**dict(**d), k=42, **dict(**e))
+"""
+        expected = """
+r1 = []
+r2 = dict(**dict(**dict(**d), **dict(k=42)), **dict(**e))
+x = f(*r1, **r2)
+"""
+        self.check_rewrite(source, expected)
 
     def test_single_assignment_call_empty_regular_arg(self) -> None:
         """Test the assign rule for starring an empty regular arg"""
@@ -1021,3 +1134,21 @@ x = f(*r1)
 """
 
         self.check_rewrite(source, expected)
+
+    def test_crashing_case(self) -> None:
+        """Debugging a crash in an external test"""
+
+        source = """
+def flip_logit_constant():
+  return Bernoulli(logits=tensor(-2.0))
+"""
+        expected = """
+def flip_logit_constant():
+    r2 = []
+    r3 = dict(logits=tensor(-2.0))
+    r1 = Bernoulli(*r2, **r3)
+    return r1
+"""
+        self.check_rewrite(source, expected)
+
+        self.check_rewrite_ast(source, expected)
