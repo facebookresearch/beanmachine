@@ -1070,9 +1070,11 @@ they were created."""
     def to_bmg(self) -> Graph:
         """This transforms the accumulated graph into a BMG type system compliant
 graph and then creates the graph nodes in memory."""
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+        fix_problems(self).raise_errors()
         g = Graph()
         d: Dict[BMGNode, int] = {}
-        self._fix_types()
         for node in self._traverse_from_roots():
             d[node] = node._add_to_graph(g, d)
         return g
@@ -1088,8 +1090,10 @@ it returns a dictionary mapping nodes to integers."""
     def to_python(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
 graph and then creates a Python program which creates the graph."""
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
 
-        self._fix_types()
+        fix_problems(self).raise_errors()
+
         header = """from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
@@ -1100,7 +1104,10 @@ g = graph.Graph()
     def to_cpp(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
 graph and then creates a C++ program which creates the graph."""
-        self._fix_types()
+
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+        fix_problems(self).raise_errors()
         sorted_nodes = self._resort_nodes()
         return "graph::Graph g;\n" + "\n".join(
             n._to_cpp(sorted_nodes) for n in sorted_nodes
