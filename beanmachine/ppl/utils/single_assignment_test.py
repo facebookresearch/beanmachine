@@ -915,6 +915,34 @@ x = f(*r1)
 """
         self.check_rewrite(source, expected)
 
+    def test_single_assignment_call_two_double_star_args(self) -> None:
+        """Test the assign rule for merging double starred call arguments"""
+
+        source = """
+x = f(*d,**dict(**a), **dict(**b, **c))
+"""
+        expected = """
+x = f(*d, **dict(**a, **b, **c))
+"""
+
+        self.check_rewrite(
+            source,
+            expected,
+            _some_top_down(self.s._handle_assign_call_two_double_star_args()),
+        )
+
+        self.check_rewrite(
+            source,
+            expected,
+            many(_some_top_down(self.s._handle_assign_call_two_double_star_args())),
+        )
+
+        expected = """
+r1 = dict(**a, **b, **c)
+x = f(*d, **r1)
+"""
+        self.check_rewrite(source, expected)
+
     def test_single_assignment_call_regular_arg(self) -> None:
         """Test the assign rule for starring an unstarred regular arg"""
 
