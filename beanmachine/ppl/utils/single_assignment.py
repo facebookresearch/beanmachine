@@ -29,6 +29,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     subscript,
     unaryop,
 )
+from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.patterns import (
     HeadTail,
     ListAll,
@@ -64,6 +65,10 @@ _not_keyword_with_no_arg = negate(_keyword_with_no_arg)
 _list_not_keyword_with_no_arg = ListAny(_not_keyword_with_no_arg)
 _keyword_with_arg = keyword(arg=negate(None))
 _list_with_keyword_with_arg = ListAny(_keyword_with_arg)
+# _not_in_allowed_functions: Pattern = negate(name(id="dict"))
+_not_in_allowed_functions: Pattern = negate(
+    match_any(*[name(id=t.__name__) for t in allowed_functions])
+)
 
 _binops: Pattern = match_any(
     ast.Add,
@@ -608,7 +613,7 @@ class SingleAssignment:
         return PatternRule(
             assign(
                 value=call(
-                    func=negate(name(id="dict")),
+                    func=_not_in_allowed_functions,
                     keywords=HeadTail(
                         _keyword_with_no_arg, HeadTail(_keyword_with_no_arg, anyPattern)
                     ),
@@ -658,7 +663,7 @@ class SingleAssignment:
         return PatternRule(
             assign(
                 value=call(
-                    func=negate(name(id="dict")), keywords=_list_with_keyword_with_arg
+                    func=_not_in_allowed_functions, keywords=_list_with_keyword_with_arg
                 )
             ),
             lambda source_term: ast.Assign(
@@ -678,7 +683,7 @@ class SingleAssignment:
         # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
         # TODO: The identifier "dict" should be made global unique in target name space
         return PatternRule(
-            assign(value=call(func=negate(name(id="dict")), args=[])),
+            assign(value=call(func=_not_in_allowed_functions, args=[])),
             lambda source_term: ast.Assign(
                 targets=source_term.targets,
                 value=ast.Call(
@@ -695,7 +700,7 @@ class SingleAssignment:
         # Basically, ensure that any call has at least one ** argument
         # TODO: The identifier "dict" should be made global unique in target name space
         return PatternRule(
-            assign(value=call(func=negate(name(id="dict")), keywords=[])),
+            assign(value=call(func=_not_in_allowed_functions, keywords=[])),
             lambda source_term: ast.Assign(
                 targets=source_term.targets,
                 value=ast.Call(
