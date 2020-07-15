@@ -43,6 +43,26 @@ class Violation(BMGError):
         return msg
 
 
+class UnsupportedNode(BMGError):
+    node: BMGNode
+    consumer: BMGNode
+    edge: str
+
+    def __init__(self, node: BMGNode, consumer: BMGNode, edge: str) -> None:
+        self.node = node
+        self.consumer = consumer
+        self.edge = edge
+
+    def __str__(self) -> str:
+        msg = (
+            # TODO: Improve wording and diagnosis.
+            f"The model uses a {self.node.label} operation unsupported by "
+            + f"Bean Machine Graph.\nThe unsupported node is the {self.edge} "
+            + f"of a {self.consumer.label}."
+        )
+        return msg
+
+
 class ErrorReport:
 
     errors: List[BMGError]
@@ -57,6 +77,9 @@ class ErrorReport:
         if len(self.errors) != 0:
             # TODO: Better error
             raise ValueError(str(self))
+
+    def any(self) -> bool:
+        return len(self.errors) != 0
 
     def __str__(self) -> str:
         return "\n".join(sorted(str(e) for e in self.errors))

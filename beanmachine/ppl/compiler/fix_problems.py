@@ -7,6 +7,8 @@ are made; if there are nodes that cannot be represented in BMG
 or cannot be made to meet type requirements, an error report is
 returned."""
 
+from typing import Optional
+
 from beanmachine.ppl.compiler.bmg_nodes import (
     BMGNode,
     ConstantNode,
@@ -31,7 +33,11 @@ from beanmachine.ppl.compiler.bmg_types import (
     supremum,
     upper_bound,
 )
-from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
+from beanmachine.ppl.compiler.error_report import (
+    ErrorReport,
+    UnsupportedNode,
+    Violation,
+)
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Tensor
 
@@ -285,20 +291,57 @@ requirement is given; the name of this edge is provided for error reporting."""
             return self._meet_operator_requirement(node, requirement, consumer, edge)
         raise AssertionError("Unexpected node type")
 
-    def meet_all_requirements(self, node: BMGNode) -> None:
-        requirements = node.requirements
-        for i in range(len(requirements)):
-            node.children[i] = self.meet_requirement(
-                node.children[i], requirements[i], node, node.edges[i]
-            )
+    def _replace_unsupported_node(self, node: BMGNode) -> Optional[BMGNode]:
+        # TODO:
+        # Uniform -> Flat
+        # Chi2 -> Gamma
+        # Not -> Complement
+        # Index/Map -> IfThenElse
+        # Division -> Multiplication
+        # Power -> Multiplication
+        return None
+
+    def _fix_unsupported_nodes(self) -> None:
+        replacements = {}
+        reported = set()
+        nodes = self.bmg._traverse_from_roots()
+        for node in nodes:
+            for i in range(len(node.children)):
+                c = node.children[i]
+                if c._supported_in_bmg():
+                    continue
+                # We have an unsupported node. Have we already worked out its
+                # replacement node?
+                if c in replacements:
+                    node.children[i] = replacements[c]
+                    continue
+                # We have an unsupported node; have we already reported it as
+                # having no replacement?
+                if c in reported:
+                    continue
+                # We have an unsupported node and we don't know what to do.
+                replacement = self._replace_unsupported_node(c)
+                if replacement is None:
+                    self.errors.add_error(UnsupportedNode(c, node, node.edges[i]))
+                    reported.add(c)
+                else:
+                    replacements[c] = replacement
+                    node.children[i] = replacement
+
+    def _fix_unmet_requirements(self) -> None:
+        nodes = self.bmg._traverse_from_roots()
+        for node in nodes:
+            requirements = node.requirements
+            for i in range(len(requirements)):
+                node.children[i] = self.meet_requirement(
+                    node.children[i], requirements[i], node, node.edges[i]
+                )
 
     def fix_all_problems(self) -> None:
-        nodes = self.bmg._traverse_from_roots()
-        # TODO: Find nodes we do not support, and transform them
-        # into nodes we do support when possible; produce an error
-        # otherwise.
-        for node in nodes:
-            self.meet_all_requirements(node)
+        self._fix_unsupported_nodes()
+        if self.errors.any():
+            return
+        self._fix_unmet_requirements()
 
 
 def fix_problems(bmg: BMGraphBuilder) -> ErrorReport:

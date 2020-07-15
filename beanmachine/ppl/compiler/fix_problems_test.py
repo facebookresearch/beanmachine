@@ -317,3 +317,38 @@ digraph "graph" {
                 """
 
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_5(self) -> None:
+        """test_fix_problems_5"""
+
+        # This test has some problems that cannot be fixed.
+        #
+        # * No support for power yet
+        # * No support for division yet
+        # * No support for log yet
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        one = bmg.add_constant(1.0)
+        hc = bmg.add_halfcauchy(one)
+        hcs1 = bmg.add_sample(hc)
+        hcs2 = bmg.add_sample(hc)
+        hcs3 = bmg.add_sample(hc)
+        q = bmg.add_division(hcs1, hcs2)
+        p = bmg.add_power(hcs3, q)
+        lg = bmg.add_log(p)
+        norm = bmg.add_normal(lg, one)
+        bmg.add_sample(norm)
+
+        error_report = fix_problems(bmg)
+        observed = str(error_report)
+        expected = """
+The model uses a ** operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a Log.
+The model uses a / operation unsupported by Bean Machine Graph.
+The unsupported node is the right of a **.
+The model uses a Log operation unsupported by Bean Machine Graph.
+The unsupported node is the mu of a Normal.
+"""
+        self.assertEqual(observed.strip(), expected.strip())
