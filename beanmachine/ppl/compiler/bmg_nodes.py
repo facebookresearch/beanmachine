@@ -1973,6 +1973,37 @@ class PowerNode(BinaryOperatorNode):
     def inf_type(self) -> type:
         # TODO: We do not yet support power nodes in BMG; when we
         # do, revisit this code.
+
+        # What could the rules be?
+        #
+        # Proposal 1: Implement a log node, and then implement power as
+        # X ** Y --> exp( X * log Y)
+        #
+        # Type analysis is then whatever type analysis is for that.
+        #
+        # Note: If Y is a constant then we can do this today.
+        #
+        # Pro: Easy.
+        #
+        # Con: We might be able to get tighter bounds on typing if
+        # we have a custom node.
+        #
+        # Proposal 2: Make a custom node. What should its typing rules be?
+        #
+        # If we have X ** Y then
+        #
+        # * If X or Y is tensor then X ** Y is tensor; convert both to tensor
+        # * otherwise, if Y is bool then X ** Y is X (we can generate "if Y then X else 1")
+        # * otherwise:
+        # * let Y = sup(Y, posreal)
+        # * if X is bool or natural then let X = posreal
+        # That then leaves us only six more cases:
+        # prob ** posreal --> prob
+        # prob ** real --> posreal
+        # posreal ** posreal --> posreal
+        # posreal ** real --> posreal
+        # real ** posreal --> real
+        # real ** real --> real
         return Real
 
     @property
