@@ -82,6 +82,8 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
         """
         self.world_ = StatisticalModel.reset()
         self.world_.set_initialize_from_prior(True)
+        self.world_.set_maintain_graph(False)
+        self.world_.set_cache_functionals(True)
         StatisticalModel.set_mode(Mode.INFERENCE)
         for node_key, node_observation in self.observations_.items():
             temp_sample = node_key.function._wrapper(*node_key.arguments)

@@ -122,7 +122,9 @@ class StatisticalModel(object):
         def wrapper(*args):
             if StatisticalModel.__mode_ == Mode.INITIALIZE:
                 return StatisticalModel.get_func_key(f, args)
-
+            world = StatisticalModel.__world_
+            if world.get_cache_functionals():
+                return world.update_cached_functionals(f, *args)
             return f(*args)
 
         f._wrapper = wrapper
