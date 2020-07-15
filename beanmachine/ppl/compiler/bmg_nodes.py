@@ -975,6 +975,86 @@ distribution."""
         raise ValueError("Dirichlet distribution does not have finite support.")
 
 
+class GammaNode(DistributionNode):
+    """The gamma distribution is a distribution of positive
+real numbers characterized by positive real concentration and rate
+parameters."""
+
+    edges = ["concentration", "rate"]
+
+    def __init__(self, concentration: BMGNode, rate: BMGNode):
+        DistributionNode.__init__(self, [concentration, rate])
+
+    @property
+    def concentration(self) -> BMGNode:
+        return self.children[0]
+
+    @concentration.setter
+    def concentration(self, p: BMGNode) -> None:
+        self.children[0] = p
+
+    @property
+    def rate(self) -> BMGNode:
+        return self.children[1]
+
+    @rate.setter
+    def rate(self, p: BMGNode) -> None:
+        self.children[1] = p
+
+    @property
+    def graph_type(self) -> type:
+        return PositiveReal
+
+    @property
+    def inf_type(self) -> type:
+        return PositiveReal
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [PositiveReal, PositiveReal]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.concentration.size
+
+    @property
+    def label(self) -> str:
+        return "Gamma"
+
+    def __str__(self) -> str:
+        return f"Gamma({str(self.concentration)}, {str(self.rate)})"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            dt.GAMMA, AtomicType.POS_REAL, [d[self.concentration], d[self.rate]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.GAMMA,\n"
+            + "  graph.AtomicType.POS_REAL,\n"
+            + f"  [n{d[self.concentration]}, n{d[self.rate]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::GAMMA,\n"
+            + "  graph::AtomicType::POS_REAL,\n"
+            + f"  std::vector<uint>({{n{d[self.concentration]}, n{d[self.rate]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a Gamma.
+        raise ValueError("Gamma distribution does not have finite support.")
+
+
 class HalfCauchyNode(DistributionNode):
     """The Cauchy distribution is a bell curve with zero mean
 and a heavier tail than the normal distribution; it is useful
