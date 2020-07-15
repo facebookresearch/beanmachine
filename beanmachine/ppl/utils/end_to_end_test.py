@@ -21,7 +21,15 @@ source_1 = """
 import beanmachine.ppl as bm
 import torch
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal, StudentT
+from torch.distributions import (
+    Bernoulli,
+    Beta,
+    Binomial,
+    Gamma,
+    HalfCauchy,
+    Normal,
+    StudentT,
+)
 
 @bm.random_variable
 def flip_straight_constant():
@@ -58,6 +66,10 @@ def student_t():
 @bm.random_variable
 def bin_constant():
   return Binomial(3, 0.5)
+
+@bm.random_variable
+def gamma():
+  return Gamma(1.0, 2.0)
 
 """
 
@@ -124,6 +136,13 @@ uint n22 = g.add_distribution(
   std::vector<uint>({n21, n0}));
 uint n23 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n22}));
+uint n24 = g.add_constant_pos_real(2.0);
+uint n25 = g.add_distribution(
+  graph::DistributionType::GAMMA,
+  graph::AtomicType::POS_REAL,
+  std::vector<uint>({n7, n24}));
+uint n26 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
 """
 
 expected_bmg_1 = """
@@ -134,7 +153,7 @@ Node 3 type 1 parents [ ] children [ 4 ] probability value 0.119203
 Node 4 type 2 parents [ 3 ] children [ 5 ] unknown value
 Node 5 type 3 parents [ 4 ] children [ ] boolean value 0
 Node 6 type 1 parents [ ] children [ 8 ] real value 0
-Node 7 type 1 parents [ ] children [ 8 12 12 14 ] pos real value 1
+Node 7 type 1 parents [ ] children [ 8 12 12 14 25 ] pos real value 1
 Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown value
 Node 9 type 3 parents [ 8 ] children [ 10 19 ] real value 0
 Node 10 type 2 parents [ 9 ] children [ 11 ] unknown value
@@ -151,6 +170,9 @@ Node 20 type 3 parents [ 19 ] children [ ] real value 0
 Node 21 type 1 parents [ ] children [ 22 ] natural value 3
 Node 22 type 2 parents [ 21 0 ] children [ 23 ] unknown value
 Node 23 type 3 parents [ 22 ] children [ ] natural value 0
+Node 24 type 1 parents [ ] children [ 25 ] pos real value 2
+Node 25 type 2 parents [ 7 24 ] children [ 26 ] unknown value
+Node 26 type 3 parents [ 25 ] children [ ] pos real value 0
 """
 
 expected_python_1 = """
@@ -208,6 +230,12 @@ n22 = g.add_distribution(
   graph.AtomicType.NATURAL,
   [n21, n0])
 n23 = g.add_operator(graph.OperatorType.SAMPLE, [n22])
+n24 = g.add_constant_pos_real(2.0)
+n25 = g.add_distribution(
+  graph.DistributionType.GAMMA,
+  graph.AtomicType.POS_REAL,
+  [n7, n24])
+n26 = g.add_operator(graph.OperatorType.SAMPLE, [n25])
 """
 
 # These are cases where we have a type conversion on a sample.
