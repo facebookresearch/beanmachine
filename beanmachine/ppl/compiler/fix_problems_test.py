@@ -120,6 +120,13 @@ digraph "graph" {
         self.maxDiff = None
         bmg = BMGraphBuilder()
 
+        # @rv def bern():
+        #   return Bernoulli(tensor(0.5))
+        # @rv def norm():
+        #   return Normal(bern(), bern() + tensor(1.0))
+        # @rv def bino():
+        #   return Binomial(bern(), 0.5)
+
         one = bmg.add_constant(tensor(1.0))
         half = bmg.add_constant(tensor(0.5))
         bern = bmg.add_bernoulli(half)
@@ -205,6 +212,13 @@ digraph "graph" {
         # * Fraction used for count
         # * Number greater than 1.0 used as probability
 
+        # @rv def bern():
+        #   return Bernoulli(tensor([0.5, 0.5]))
+        # @rv def norm():
+        #   return Normal(-1.0, -1.0)
+        # @rv def bino():
+        #   return Binomial(3.14, 3.14)
+
         self.maxDiff = None
         bmg = BMGraphBuilder()
 
@@ -239,6 +253,13 @@ The sigma of a Normal is required to be a positive real but is a real.
         #
         # In this scenario, the problem fixer turns the multplication
         # into an if-then-else.
+        #
+        # @rv def berns():
+        #   return Bernoulli(0.5)
+        # @rv def nats():
+        #   return Binomial(2, 0.5)
+        # @rv def bino():
+        #   return Binomial(berns() * nats(), 0.5)
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -330,6 +351,11 @@ digraph "graph" {
         self.maxDiff = None
         bmg = BMGraphBuilder()
 
+        # @rv def hcs(n):
+        #   return HalfCauchy(1.0)
+        # @rv def norm():
+        #   return Normal(log(hcs(3) ** (hcs(1) / hcs(2))), 1.0)
+
         one = bmg.add_constant(1.0)
         hc = bmg.add_halfcauchy(one)
         hcs1 = bmg.add_sample(hc)
@@ -349,6 +375,35 @@ The unsupported node is the operand of a Log.
 The model uses a / operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a **.
 The model uses a Log operation unsupported by Bean Machine Graph.
+The unsupported node is the mu of a Normal.
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_6(self) -> None:
+        """test_fix_problems_6"""
+
+        # This test has a problem that will be fixed in a later diff.
+        # We can rewrite an unsupported division by constant into
+        # a multiplication.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        # def hcs(): return HalfCauchy(1.0)
+        # def norm(): return Normal(hcs() / 2.5, 1.0)
+
+        one = bmg.add_constant(1.0)
+        two = bmg.add_constant(2.5)
+        hc = bmg.add_halfcauchy(one)
+        hcs = bmg.add_sample(hc)
+        q = bmg.add_division(hcs, two)
+        norm = bmg.add_normal(q, one)
+        bmg.add_sample(norm)
+
+        error_report = fix_problems(bmg)
+        observed = str(error_report)
+        expected = """
+The model uses a / operation unsupported by Bean Machine Graph.
 The unsupported node is the mu of a Normal.
 """
         self.assertEqual(observed.strip(), expected.strip())
