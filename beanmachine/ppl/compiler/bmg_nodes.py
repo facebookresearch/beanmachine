@@ -2176,6 +2176,61 @@ a model contains calls to Tensor.log or math.log."""
         return SetOfTensors(torch.log(o) for o in self.operand.support())
 
 
+# BMG supports three different kinds of negation:
+
+# * The "complement" node with a Boolean operand has the semantics
+#   of logical negation.  The input and output are both bool.
+#
+# * The "complement" node with a probability operand has the semantics
+#   of (1 - p). The input and output are both probability.
+#
+# * The "negate" node has the semantics of (0 - x). The input and output
+#   are both real or both tensor.
+#
+# Note that there is no subtraction operator in BMG; to express x - y
+# we generate nodes as though (x + (-y)) was written; that is, the
+# sum of x and a real-number negation of y.
+#
+# This presents several problems when accumulating a graph while executing
+# a Python model, and then turning said graph into a valid BMG, particularly
+# during type analysis.
+#
+# Our strategy is:
+#
+# * When we accumulate the graph we will create nodes for addition
+#   (AdditionNode), unary negation (NegationNode) and the "not"
+#   operator (NotNode).  We will not generate "complement" nodes
+#   directly from Python source.
+#
+# * After accumulating the graph we will do type analysis and use
+#   that to drive a rewriting pass. The rewriting pass will perform
+#   these tasks:
+#
+#   (1) "not" nodes whose operands are bool will be converted into
+#       "complement" nodes.
+#
+#   (2) "not" nodes whose operands are not bool will produce an error.
+#       (The "not" operator applied to a non-bool x in Python has the
+#       semantics of "x == 0" and we do not have any way to represent
+#       these semantics in BMG.
+#
+#   (3) Call a constant "one-like" if it is True, 1, 1.0, or a single-
+#       valued tensor with a one-like value. If we have a one-like node,
+#       call it 1 for short, then we will look for patterns in the
+#       accumulated graph such as
+#
+#       1 + (-p)
+#       (-p) + 1
+#       -(p + -1)
+#       -(-1 + p)
+#
+#       and replace them with "complement" nodes.
+#
+#   (4) Other usages of binary + and unary - in the Python model will
+#       be converted to BMG following the rules for addition and negation
+#       in BMG: negation must be real or tensor valued, and so on.
+
+
 class NegateNode(UnaryOperatorNode):
 
     """This represents a unary minus."""
@@ -2219,10 +2274,7 @@ class NegateNode(UnaryOperatorNode):
 
 
 class NotNode(UnaryOperatorNode):
-    """This represents a logical not."""
-
-    # TODO: Add notes about the semantics of the various BMG
-    # negation nodes.
+    """This represents a logical not that appears in the Python model."""
 
     # TODO: We do not support NOT in BMG yet; when we do, update this.
     operator_type = OperatorType.NEGATE  # TODO
