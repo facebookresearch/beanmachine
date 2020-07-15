@@ -14,6 +14,9 @@ from torch import nn
 
 
 class TraininfTest(unittest.TestCase):
+    def tearDown(self):
+        StatisticalModel.reset()
+
     class SampleModel(object):
         @bm.random_variable
         def foo(self):
