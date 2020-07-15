@@ -9,8 +9,7 @@
 
 module.exports = {
   title: 'BeanMachine',
-  tagline: 'A universal probabilistic programming language to enable ' +
-            'fast and accurate Bayesian analysis',
+  tagline: 'A universal probabilistic programming language to enable fast and accurate Bayesian analysis',
   url: 'https://your-docusaurus-test-site.com',
   baseUrl: '/',
   favicon: 'img/favicon.ico',
@@ -41,7 +40,7 @@ module.exports = {
     },
     footer: {
       style: 'dark',
-      links: [
+       links: [
         {
           title: 'Learn',
           items: [

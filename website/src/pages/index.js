@@ -18,7 +18,7 @@ import styles from './styles.module.css';
 const features = [
   {
     title: <>Declarative modeling</>,
-    imageUrl: 'img/undraw_docusaurus_mountain.svg',
+    imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
         Clean, intuitive syntax that lets you focus on the model
@@ -48,6 +48,7 @@ const features = [
   },
 ];
 
+
 function Feature({imageUrl, title, description}) {
   const imgUrl = useBaseUrl(imageUrl);
   return (
@@ -69,7 +70,7 @@ function Home() {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      description="BeanMachine">
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>
@@ -89,8 +90,8 @@ function Home() {
       <main>
         {features && features.length > 0 && (
           <section className={styles.features}>
-            <div className="container">
-              <div className="row">
+            <div className='container'>
+              <div className='row'>
                 {features.map(({title, imageUrl, description}) => (
                   <Feature
                     key={title}
@@ -99,16 +100,6 @@ function Home() {
                     description={description}
                   />
                 ))}
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-            <main>
-        {features && features.length > 0 && (
-          <section className={styles.features}>
-            <div className="container">
-              <div className="row">
               </div>
             </div>
           </section>
