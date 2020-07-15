@@ -103,3 +103,26 @@ class ApproximateBayesianComputationTest(unittest.TestCase):
                 queries, observations, num_samples=100, num_chains=1, verbose=None
             )
         abc.reset()
+
+    def test_simulate_mode(self):
+        model = self.CoinTossModel(observation_shape=10)
+        COIN_TOSS_DATA = dist.Bernoulli(0.9).sample([10])
+        abc = ApproximateBayesianComputation(
+            tolerance={model.num_heads(): 1, model.mean_value(): 0.1}
+        )
+        observations = {
+            model.num_heads(): model.toss_head_count(COIN_TOSS_DATA),
+            model.mean_value(): model.toss_mean(COIN_TOSS_DATA),
+        }
+        queries = [model.bias()]
+        samples = abc.infer(
+            queries, observations, num_samples=1, num_chains=1, verbose=None
+        )
+        # simulate 10 coin tosses from accepted bias sample
+        sim_observations = {model.bias(): samples[model.bias()][0]}
+        sim_queries = [model.coin_toss()]
+        sim_abc = ApproximateBayesianComputation(simulate=True)
+        sim_samples = sim_abc.infer(
+            sim_queries, sim_observations, num_samples=10, num_chains=1, verbose=None
+        )
+        self.assertTrue(torch.sum(sim_samples[model.coin_toss()][0] == 1.0) > 5)
