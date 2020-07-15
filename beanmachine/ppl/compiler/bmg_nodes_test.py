@@ -9,6 +9,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BinomialNode,
     BooleanNode,
     ExpNode,
+    FlatNode,
     GammaNode,
     HalfCauchyNode,
     IfThenElseNode,
@@ -78,6 +79,7 @@ class ASTToolsTest(unittest.TestCase):
         bern = SampleNode(BernoulliNode(prob))
         beta = SampleNode(BetaNode(pos, pos))
         bino = SampleNode(BinomialNode(nat, prob))
+        flat = SampleNode(FlatNode())
         gamm = SampleNode(GammaNode(pos, pos))
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
@@ -86,6 +88,7 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(bern.inf_type, bool)
         self.assertEqual(beta.inf_type, Probability)
         self.assertEqual(bino.inf_type, Natural)
+        self.assertEqual(flat.inf_type, Probability)
         self.assertEqual(gamm.inf_type, PositiveReal)
         self.assertEqual(half.inf_type, PositiveReal)
         self.assertEqual(norm.inf_type, Real)
