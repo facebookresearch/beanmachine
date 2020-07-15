@@ -9,6 +9,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BinomialNode,
     BooleanNode,
     ExpNode,
+    GammaNode,
     HalfCauchyNode,
     IfThenElseNode,
     MultiplicationNode,
@@ -77,6 +78,7 @@ class ASTToolsTest(unittest.TestCase):
         bern = SampleNode(BernoulliNode(prob))
         beta = SampleNode(BetaNode(pos, pos))
         bino = SampleNode(BinomialNode(nat, prob))
+        gamm = SampleNode(GammaNode(pos, pos))
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
         stut = SampleNode(StudentTNode(pos, pos, pos))
@@ -84,6 +86,7 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(bern.inf_type, bool)
         self.assertEqual(beta.inf_type, Probability)
         self.assertEqual(bino.inf_type, Natural)
+        self.assertEqual(gamm.inf_type, PositiveReal)
         self.assertEqual(half.inf_type, PositiveReal)
         self.assertEqual(norm.inf_type, Real)
         self.assertEqual(stut.inf_type, Real)
@@ -427,6 +430,7 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(BernoulliNode(prob).requirements, [Probability])
         self.assertEqual(BetaNode(pos, pos).requirements, [PositiveReal, PositiveReal])
         self.assertEqual(BinomialNode(nat, prob).requirements, [Natural, Probability])
+        self.assertEqual(GammaNode(pos, pos).requirements, [PositiveReal, PositiveReal])
         self.assertEqual(HalfCauchyNode(pos).requirements, [PositiveReal])
         self.assertEqual(NormalNode(real, pos).requirements, [Real, PositiveReal])
         self.assertEqual(
