@@ -23,7 +23,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     TensorNode,
     ToRealNode,
 )
-from beanmachine.ppl.compiler.bmg_types import Malformed, PositiveReal, Real
+from beanmachine.ppl.compiler.bmg_types import PositiveReal, Real
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
@@ -1291,80 +1291,6 @@ digraph "graph" {
         to_pr = bmg.add_to_positive_real(beta22)
         # to_positive_real nodes are deduplicated
         self.assertEqual(bmg.add_to_positive_real(beta22), to_pr)
-
-    def test_types(self) -> None:
-        bmg = BMGraphBuilder()
-        t = bmg.add_tensor(tensor(1.0))
-        r = bmg.add_real(1.0)
-        b = bmg.add_boolean(True)
-        bern = bmg.add_bernoulli(t)
-        s = bmg.add_sample(bern)
-
-        # The BMG type system requires that the left and right inputs
-        # to a binary operator have the same type, and that is the type
-        # of the output.
-        #
-        # Nodes which do not meet the requirements of the BMG type system
-        # because, for instance, they're adding a bool to a real,
-        # are marked as "malformed". We will do a pass over the graph
-        # before emitting a true BMG graph to detects and (if possible)
-        # fix malformed nodes.
-        #
-        # However, operations on constants are folded to the type
-        # they would be in Python; a real constant plus a tensor constant
-        # is a tensor constant; these are not addition nodes at all but
-        # rather constant nodes, so they will be marked as correctly typed.
-
-        self.assertEqual(t.node_type, Tensor)
-        self.assertEqual(r.node_type, float)
-        self.assertEqual(b.node_type, bool)
-        self.assertEqual(bern.node_type, Bernoulli)
-        self.assertEqual(s.node_type, Tensor)
-        self.assertEqual(bmg.add_addition(r, r).node_type, float)
-        self.assertEqual(bmg.add_addition(r, t).node_type, Tensor)
-        self.assertEqual(bmg.add_addition(t, r).node_type, Tensor)
-        self.assertEqual(bmg.add_addition(t, t).node_type, Tensor)
-
-        # This one, for example, is malformed because we cannot fold the
-        # addition of a sample of tensor type and a real; we'll have to
-        # fix this up later. (And moreover, we'll need to do additional
-        # work then because we will also fix the sample type to be
-        # Boolean in the BMG type system, so we will actually have
-        # bool plus real.)
-
-        self.assertEqual(bmg.add_addition(s, r).node_type, Malformed)
-
-        self.assertEqual(bmg.add_division(r, r).node_type, float)
-        self.assertEqual(bmg.add_division(r, t).node_type, Tensor)
-        self.assertEqual(bmg.add_division(t, r).node_type, Tensor)
-        self.assertEqual(bmg.add_division(t, t).node_type, Tensor)
-
-        self.assertEqual(bmg.add_division(s, r).node_type, Malformed)
-        self.assertEqual(bmg.add_multiplication(r, r).node_type, float)
-        self.assertEqual(bmg.add_multiplication(r, t).node_type, Tensor)
-        self.assertEqual(bmg.add_multiplication(t, r).node_type, Tensor)
-        self.assertEqual(bmg.add_multiplication(t, t).node_type, Tensor)
-        self.assertEqual(bmg.add_multiplication(s, r).node_type, Malformed)
-        self.assertEqual(bmg.add_power(r, r).node_type, float)
-        self.assertEqual(bmg.add_power(r, t).node_type, Tensor)
-        self.assertEqual(bmg.add_power(t, r).node_type, Tensor)
-        self.assertEqual(bmg.add_power(t, t).node_type, Tensor)
-        self.assertEqual(bmg.add_power(s, r).node_type, Malformed)
-        self.assertEqual(bmg.add_negate(r).node_type, float)
-        self.assertEqual(bmg.add_negate(t).node_type, Tensor)
-        self.assertEqual(bmg.add_negate(s).node_type, Tensor)
-        self.assertEqual(bmg.add_not(b).node_type, bool)
-        self.assertEqual(bmg.add_not(t).node_type, bool)
-        self.assertEqual(bmg.add_not(s).node_type, bool)
-        self.assertEqual(bmg.add_exp(r).node_type, float)
-        self.assertEqual(bmg.add_exp(t).node_type, Tensor)
-        self.assertEqual(bmg.add_exp(s).node_type, Tensor)
-        self.assertEqual(bmg.add_log(r).node_type, float)
-        self.assertEqual(bmg.add_log(t).node_type, Tensor)
-        self.assertEqual(bmg.add_log(s).node_type, Tensor)
-        self.assertEqual(bmg.add_to_real(t).node_type, float)
-        self.assertEqual(bmg.add_to_real(b).node_type, float)
-        self.assertEqual(bmg.add_to_real(s).node_type, float)
 
     def test_sizes(self) -> None:
         bmg = BMGraphBuilder()

@@ -22,17 +22,6 @@ from beanmachine.ppl.compiler.bmg_types import (
     upper_bound,
 )
 from torch import Tensor, tensor
-from torch.distributions import (
-    Bernoulli,
-    Beta,
-    Binomial,
-    Categorical,
-    Dirichlet,
-    HalfCauchy,
-    Normal,
-    StudentT,
-    Uniform,
-)
 from torch.distributions.utils import broadcast_all
 
 
@@ -73,20 +62,6 @@ class BMGNode(ABC):
     @abstractmethod
     def graph_type(self) -> type:
         """The type of the node in the graph type system."""
-        pass
-
-    # TODO: I have worked out a new type inference algorithm which
-    # uses the *infimum type* of a node; once that algorithm
-    # is implemented, this property and all implementations of it
-    # can be removed.
-    @property
-    @abstractmethod
-    def node_type(self) -> Any:
-        """The type information associated with this node.
-Every node has an associated type; before the type fixing phase
-the type is the data type as it would be in the original
-Python model. After type fixing it is the type in the BMG type
-system."""
         pass
 
     @property
@@ -273,10 +248,6 @@ class BooleanNode(ConstantNode):
         return bool
 
     @property
-    def node_type(self) -> Any:
-        return bool
-
-    @property
     def size(self) -> torch.Size:
         return torch.Size([])
 
@@ -308,10 +279,6 @@ class NaturalNode(ConstantNode):
 
     @property
     def graph_type(self) -> type:
-        return Natural
-
-    @property
-    def node_type(self) -> Any:
         return Natural
 
     @property
@@ -356,10 +323,6 @@ class PositiveRealNode(ConstantNode):
         return PositiveReal
 
     @property
-    def node_type(self) -> Any:
-        return PositiveReal
-
-    @property
     def size(self) -> torch.Size:
         return torch.Size([])
 
@@ -398,10 +361,6 @@ class ProbabilityNode(ConstantNode):
 
     @property
     def graph_type(self) -> type:
-        return Probability
-
-    @property
-    def node_type(self) -> Any:
         return Probability
 
     @property
@@ -444,10 +403,6 @@ class RealNode(ConstantNode):
     @property
     def graph_type(self) -> type:
         return Real
-
-    @property
-    def node_type(self) -> Any:
-        return float
 
     @property
     def size(self) -> torch.Size:
@@ -496,11 +451,6 @@ class TensorNode(ConstantNode):
     def graph_type(self) -> type:
         return Tensor
 
-    # TODO: Do tensor types need to describe their contents?
-    @property
-    def node_type(self) -> Any:
-        return Tensor
-
     @property
     def size(self) -> torch.Size:
         return self.value.size()
@@ -529,31 +479,8 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
     """This is the base class for all nodes that represent
 probability distributions."""
 
-    # TODO: When the type checking algorithm is rewritten, this
-    # attribute can be removed.
-    types_fixed: bool
-
     def __init__(self, children: List[BMGNode]):
-        self.types_fixed = False
         BMGNode.__init__(self, children)
-
-    # Distribution nodes do not have a type themselves.
-    # (In BMG they have type "unknown", but "no type" would be
-    # a more accurate way to characterize it.)
-    # However, we do know the type that will be produced when
-    # sampling this distribution, and we need that information to
-    # correctly assign a type to SampleNodes.
-    #
-    # The node_type property of a distribution will return the
-    # Python type that was used to construct the distribution in
-    # the original model.
-
-    # TODO: I am working on developing a new type inference algorithm;
-    # when it is implemented we will no longer need sample_type, so
-    # this should be deleted then.
-    @abstractmethod
-    def sample_type(self) -> Any:
-        pass
 
 
 class BernoulliNode(DistributionNode):
@@ -591,10 +518,6 @@ we generate a different node in BMG."""
         return bool
 
     @property
-    def node_type(self) -> Any:
-        return Bernoulli
-
-    @property
     def inf_type(self) -> type:
         return bool
 
@@ -606,14 +529,7 @@ we generate a different node in BMG."""
 
     @property
     def size(self) -> torch.Size:
-        if self.types_fixed:
-            return torch.Size([])
         return self.probability.size
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return bool
-        return self.probability.node_type
 
     @property
     def label(self) -> str:
@@ -645,8 +561,6 @@ we generate a different node in BMG."""
         )
 
     def support(self) -> Iterator[Any]:
-        if self.types_fixed:
-            return [False, True]
         s = self.size
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
 
@@ -681,10 +595,6 @@ so is useful for creating probabilities."""
         return Probability
 
     @property
-    def node_type(self) -> Any:
-        return Beta
-
-    @property
     def inf_type(self) -> type:
         return Probability
 
@@ -692,11 +602,6 @@ so is useful for creating probabilities."""
     def requirements(self) -> List[Requirement]:
         # Both inputs to a beta must be positive reals
         return [PositiveReal, PositiveReal]
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return Probability
-        return self.alpha.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -790,10 +695,6 @@ we generate a different node in BMG."""
         return Natural
 
     @property
-    def node_type(self) -> Any:
-        return Binomial
-
-    @property
     def inf_type(self) -> type:
         return Natural
 
@@ -806,16 +707,9 @@ we generate a different node in BMG."""
 
     @property
     def size(self) -> torch.Size:
-        if self.types_fixed:
-            return torch.Size([])
         return broadcast_all(
             torch.zeros(self.count.size), torch.zeros(self.probability.size)
         ).size()
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return Natural
-        return Tensor
 
     @property
     def label(self) -> str:
@@ -933,10 +827,6 @@ we generate a different node in BMG."""
         self.children[0] = p
 
     @property
-    def node_type(self) -> Any:
-        return Categorical
-
-    @property
     def graph_type(self) -> Any:
         return Natural
 
@@ -955,12 +845,6 @@ we generate a different node in BMG."""
     @property
     def size(self) -> torch.Size:
         return self.probability.size[0:-1]
-
-    def sample_type(self) -> Any:
-        # TODO: When we support bounded integer types
-        # TODO: this should indicate that it is a tensor
-        # TODO: of bound integers.
-        return self.probability.node_type
 
     @property
     def label(self) -> str:
@@ -1031,10 +915,6 @@ distribution."""
         return Tensor
 
     @property
-    def node_type(self) -> Any:
-        return Dirichlet
-
-    @property
     def inf_type(self) -> type:
         return Tensor
 
@@ -1049,9 +929,6 @@ distribution."""
     @property
     def size(self) -> torch.Size:
         return self.concentration.size
-
-    def sample_type(self) -> Any:
-        return self.concentration.node_type
 
     @property
     def label(self) -> str:
@@ -1129,10 +1006,6 @@ and a sample is a positive real number."""
         return PositiveReal
 
     @property
-    def node_type(self) -> Any:
-        return HalfCauchy
-
-    @property
     def inf_type(self) -> type:
         return PositiveReal
 
@@ -1144,9 +1017,6 @@ and a sample is a positive real number."""
     @property
     def size(self) -> torch.Size:
         return self.scale.size
-
-    def sample_type(self) -> Any:
-        return self.scale.node_type
 
     @property
     def label(self) -> str:
@@ -1216,10 +1086,6 @@ a given mean and standard deviation."""
         return Real
 
     @property
-    def node_type(self) -> Any:
-        return Normal
-
-    @property
     def inf_type(self) -> type:
         return Real
 
@@ -1232,9 +1098,6 @@ a given mean and standard deviation."""
     @property
     def size(self) -> torch.Size:
         return self.mu.size
-
-    def sample_type(self) -> Any:
-        return self.mu.node_type
 
     @property
     def label(self) -> str:
@@ -1317,21 +1180,12 @@ and the true mean."""
         return Real
 
     @property
-    def node_type(self) -> Any:
-        return StudentT
-
-    @property
     def inf_type(self) -> type:
         return Real
 
     @property
     def requirements(self) -> List[Requirement]:
         return [PositiveReal, Real, PositiveReal]
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return float
-        return self.df.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -1411,10 +1265,6 @@ between 0.0 and 1.0."""
         return Real
 
     @property
-    def node_type(self) -> Any:
-        return Uniform
-
-    @property
     def inf_type(self) -> type:
         # TODO: We will probably need to be smarter here
         # once this is implemented in BMG.
@@ -1427,9 +1277,6 @@ between 0.0 and 1.0."""
         # TODO: If we know that a Uniform is bounded by constants 0.0 and 1.0,
         # we can generate a Flat distribution node for BMG.
         return [Real, Real]
-
-    def sample_type(self) -> Any:
-        return self.low.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -1523,10 +1370,6 @@ the condition is a Boolean."""
         if self.consequence.graph_type == self.alternative.graph_type:
             return self.consequence.graph_type
         return Malformed
-
-    @property
-    def node_type(self) -> Any:
-        return self.consequence.node_type
 
     @property
     def inf_type(self) -> type:
@@ -1625,23 +1468,6 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         OperatorNode.__init__(self, [left, right])
-
-    # The BMG type system requires that every binary operator have
-    # the same type for the left and right input, which is then
-    # the output type. If a node has the left and right inputs the
-    # same, that is the output type; otherwise we mark the node as
-    # malformed, and will fix it in a later pass.
-
-    # TODO: Index nodes are binary operators, but the type of
-    # an index node is the type of the values in the map. When
-    # we add index nodes and maps to the BMG type system, we will
-    # need to implement this correctly.
-
-    @property
-    def node_type(self) -> Any:
-        if self.left.node_type == self.right.node_type:
-            return self.left.node_type
-        return Malformed
 
     @property
     def left(self) -> BMGNode:
@@ -1848,10 +1674,6 @@ multiple control flows based on the value of a stochastic node."""
         # TODO: Verify that there is at least one pair.
         BMGNode.__init__(self, children)
         self.edges = [str(x) for x in range(len(children))]
-
-    @property
-    def node_type(self) -> Any:
-        return Dict
 
     @property
     def inf_type(self) -> type:
@@ -2120,14 +1942,6 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         OperatorNode.__init__(self, [operand])
 
     @property
-    def node_type(self) -> Any:
-        # In BMG, the output type of all unary operators
-        # is the same as the input;
-        # TODO: Is that the case when the graph represents
-        # the Python semantics? Is there work to do here?
-        return self.operand.node_type
-
-    @property
     def operand(self) -> BMGNode:
         return self.children[0]
 
@@ -2306,10 +2120,6 @@ class NotNode(UnaryOperatorNode):
         return self.operand.graph_type
 
     @property
-    def node_type(self) -> Any:
-        return bool
-
-    @property
     def requirements(self) -> List[Requirement]:
         # TODO: When we support this node in BMG, revisit this code.
         return [self.inf_type]
@@ -2341,10 +2151,6 @@ values."""
 
     def __init__(self, operand: DistributionNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def node_type(self) -> Any:
-        return self.operand.sample_type()
 
     @property
     def inf_type(self) -> type:
@@ -2391,10 +2197,6 @@ class ToRealNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def node_type(self) -> Any:
-        return float
-
-    @property
     def graph_type(self) -> type:
         return Real
 
@@ -2428,10 +2230,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def node_type(self) -> Any:
-        return PositiveReal
 
     @property
     def graph_type(self) -> type:
@@ -2494,10 +2292,6 @@ class ToTensorNode(UnaryOperatorNode):
         # TODO: Is this correct?
         return torch.Size([1])
 
-    @property
-    def node_type(self) -> Any:
-        return Tensor
-
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.tensor(o) for o in self.operand.support())
 
@@ -2553,10 +2347,6 @@ should no loger be uniform."""
     @observed.setter
     def operand(self, p: SampleNode) -> None:
         self.children[0] = p
-
-    @property
-    def node_type(self) -> Any:
-        return type(self.value)
 
     @property
     def inf_type(self) -> type:
@@ -2636,10 +2426,6 @@ to have a query node accumulated into the graph builder.
     @property
     def graph_type(self) -> type:
         return self.operator.graph_type
-
-    @property
-    def node_type(self) -> Any:
-        return self.operator.node_type
 
     @property
     def inf_type(self) -> type:
