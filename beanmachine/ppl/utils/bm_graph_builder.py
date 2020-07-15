@@ -75,6 +75,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DistributionNode,
     DivisionNode,
     ExpNode,
+    GammaNode,
     HalfCauchyNode,
     IfThenElseNode,
     IndexNode,
@@ -119,6 +120,7 @@ from torch.distributions import (
     Binomial,
     Categorical,
     Dirichlet,
+    Gamma,
     HalfCauchy,
     Normal,
     StudentT,
@@ -280,6 +282,7 @@ and then transforms that into a valid Bean Machine Graph."""
             Binomial: self.handle_binomial,
             Categorical: self.handle_categorical,
             Dirichlet: self.handle_dirichlet,
+            Gamma: self.handle_gamma,
             HalfCauchy: self.handle_halfcauchy,
             Normal: self.handle_normal,
             StudentT: self.handle_studentt,
@@ -482,6 +485,21 @@ constant graph node of the stated type for it, and adds it to the builder"""
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
         return self.add_categorical(probability, logits is not None)
+
+    @memoize
+    def add_gamma(self, concentration: BMGNode, rate: BMGNode) -> GammaNode:
+        node = GammaNode(concentration, rate)
+        self.add_node(node)
+        return node
+
+    def handle_gamma(
+        self, concentration: Any, rate: Any, validate_args=None
+    ) -> GammaNode:
+        if not isinstance(concentration, BMGNode):
+            concentration = self.add_constant(concentration)
+        if not isinstance(rate, BMGNode):
+            rate = self.add_constant(rate)
+        return self.add_gamma(concentration, rate)
 
     @memoize
     def add_halfcauchy(self, scale: BMGNode) -> HalfCauchyNode:
@@ -919,6 +937,9 @@ graph, and add a sample node to the graph."""
             return self.add_sample(b)
         if isinstance(operand, Dirichlet):
             b = self.handle_dirichlet(operand.concentration)
+            return self.add_sample(b)
+        if isinstance(operand, Gamma):
+            b = self.handle_gamma(operand.concentration, operand.rate)
             return self.add_sample(b)
         if isinstance(operand, HalfCauchy):
             b = self.handle_halfcauchy(operand.scale)
