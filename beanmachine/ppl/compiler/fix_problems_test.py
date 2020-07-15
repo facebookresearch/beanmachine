@@ -227,3 +227,30 @@ The probability of a Binomial is required to be a probability but is a positive 
 The sigma of a Normal is required to be a positive real but is a real.
         """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_4(self) -> None:
+        """test_fix_problems_4"""
+
+        # This test has some problems that cannot be fixed -- yet.
+        # We will add a rule to the type system that allows
+        # bool * bool and bool * natural to work by turning them
+        # into if-then-else, and we will update this test then.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        two = bmg.add_natural(2)
+        half = bmg.add_probability(0.5)
+        bern = bmg.add_bernoulli(half)
+        berns = bmg.add_sample(bern)
+        nat = bmg.add_binomial(two, half)
+        nats = bmg.add_sample(nat)
+        mult = bmg.add_multiplication(berns, nats)
+        bino = bmg.add_binomial(mult, half)
+        bmg.add_sample(bino)
+
+        error_report = fix_problems(bmg)
+        observed = str(error_report)
+        expected = """
+The count of a Binomial is required to be a natural but is a positive real."""
+        self.assertEqual(observed.strip(), expected.strip())

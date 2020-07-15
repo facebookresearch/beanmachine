@@ -352,6 +352,33 @@ n13 = g.add_distribution(
 n14 = g.add_operator(graph.OperatorType.SAMPLE, [n13])
 """
 
+# Here is a model which we at present cannot compile because
+# we do not support multiplication of a Boolean by a natural
+# to produce a natural. The test verifies that we do not
+# support it, but rather produce an exception when attempting
+# to compile it. When we do support multiplication of Boolean
+# by natural to produce natural, we will update the test
+# case accordingly.
+
+source_3 = """
+import beanmachine.ppl as bm
+import torch
+from torch import tensor
+from torch.distributions import Bernoulli, Binomial
+
+@bm.random_variable
+def flip():
+  return Bernoulli(0.5)
+
+@bm.random_variable
+def nat():
+  return Binomial(2, 0.5)
+
+@bm.random_variable
+def bin():
+  return Binomial(nat() * flip(), 0.5)
+"""
+
 
 class EndToEndTest(unittest.TestCase):
     def test_to_cpp_1(self) -> None:
@@ -389,3 +416,9 @@ class EndToEndTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_python(source_2)
         self.assertEqual(observed.strip(), expected_python_2.strip())
+
+    def test_to_python_3(self) -> None:
+        """test_to_python_3 from end_to_end_test.py"""
+        self.maxDiff = None
+        with self.assertRaises(ValueError):
+            to_python(source_3)
