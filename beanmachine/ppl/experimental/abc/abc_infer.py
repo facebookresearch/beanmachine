@@ -49,6 +49,8 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
         """
         self.world_ = StatisticalModel.reset()
         self.world_.set_initialize_from_prior(True)
+        self.world_.set_maintain_graph(False)
+        self.world_.set_cache_functionals(True)
         StatisticalModel.set_mode(Mode.INFERENCE)
         # if a distance function was not passed, instantiate default distance
 
