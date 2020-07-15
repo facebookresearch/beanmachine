@@ -352,13 +352,13 @@ n13 = g.add_distribution(
 n14 = g.add_operator(graph.OperatorType.SAMPLE, [n13])
 """
 
-# Here is a model which we at present cannot compile because
-# we do not support multiplication of a Boolean by a natural
-# to produce a natural. The test verifies that we do not
-# support it, but rather produce an exception when attempting
-# to compile it. When we do support multiplication of Boolean
-# by natural to produce natural, we will update the test
-# case accordingly.
+# Here we multiply a bool by a natural, and then use that as a natural.
+# This cannot be turned into a BMG that uses multiplication because
+# there is no multiplication defined on naturals or bools; the best
+# we could do as a multiplication is to turn both into a positive real
+# and multiply those.  But we *can* turn this into an if-then-else
+# that takes a bool and returns either the given natural or zero,
+# so that's what we'll do.
 
 source_3 = """
 import beanmachine.ppl as bm
@@ -377,6 +377,33 @@ def nat():
 @bm.random_variable
 def bin():
   return Binomial(nat() * flip(), 0.5)
+"""
+
+expected_python_3 = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_probability(0.5)
+n1 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_constant(2)
+n4 = g.add_distribution(
+  graph.DistributionType.BINOMIAL,
+  graph.AtomicType.NATURAL,
+  [n3, n0])
+n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+n6 = g.add_constant(0)
+n7 = g.add_operator(
+  graph.OperatorType.IF_THEN_ELSE,
+  [n2, n5, n6])
+n8 = g.add_distribution(
+  graph.DistributionType.BINOMIAL,
+  graph.AtomicType.NATURAL,
+  [n7, n0])
+n9 = g.add_operator(graph.OperatorType.SAMPLE, [n8])
 """
 
 
@@ -420,5 +447,5 @@ class EndToEndTest(unittest.TestCase):
     def test_to_python_3(self) -> None:
         """test_to_python_3 from end_to_end_test.py"""
         self.maxDiff = None
-        with self.assertRaises(ValueError):
-            to_python(source_3)
+        observed = to_python(source_3)
+        self.assertEqual(observed.strip(), expected_python_3.strip())

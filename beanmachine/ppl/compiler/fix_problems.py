@@ -13,12 +13,14 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DistributionNode,
     IndexNode,
     MapNode,
+    MultiplicationNode,
     Observation,
     OperatorNode,
     Query,
     SampleNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
+    Malformed,
     Natural,
     PositiveReal,
     Probability,
@@ -115,12 +117,78 @@ error is added to the error report."""
         assert requirement == node.inf_type
         return node
 
-    def _convert_node(self, node: OperatorNode, requirement: type) -> OperatorNode:
+    def _convert_malformed_multiplication(
+        self, node: MultiplicationNode, requirement: type, consumer: BMGNode, edge: str
+    ) -> BMGNode:
+        # We are given a malformed multiplication node which can be converted
+        # to a semantically equivalent node that meets the given requirement.
+        # Verify these preconditions.
+
+        assert node.graph_type == Malformed
+        assert supremum(node.inf_type, requirement) == requirement
+
+        # Under what conditions can a multiplication be malformed?
+        #
+        # * Its operand types are not equal
+        # * Its operand types are not probability or larger
+
+        lgt = node.left.graph_type
+        rgt = node.right.graph_type
+
+        # Which of those conditions are possible at this point? Remember,
+        # we visit nodes in topological order, so the requirements of the
+        # left and right operands have already been met and they are converted
+        # to their correct types.
+        #
+        # * If its operands were malformed, those malformations would have already
+        #   been fixed. We never leave a reachable malformed node in the graph.
+
+        assert lgt != Malformed and rgt != Malformed
+
+        # * If its operands were any combination of natural, probability,
+        #   positive real, real or tensor, then we would already have converted
+        #   them both to the smallest possible common type larger than probability.
+        #   They would therefore be equal.
+        #
+        # * Therefore, for this node to be malformed, at least one of its operands
+        #   must be bool.
+
+        assert lgt == bool or rgt == bool
+
+        # * In that case, we can convert it to an if-then-else.
+
+        if lgt == bool:
+            zero = self.bmg.add_constant_of_type(0.0, rgt)
+            if_then_else = self.bmg.add_if_then_else(node.left, node.right, zero)
+            assert if_then_else.graph_type == rgt
+        else:
+            zero = self.bmg.add_constant_of_type(0.0, lgt)
+            if_then_else = self.bmg.add_if_then_else(node.right, node.left, zero)
+            assert if_then_else.graph_type == lgt
+
+        # We have met the requirements of the if-then-else; the condition
+        # is bool and the consequence and alternative are of the same type.
+        # However, we might not yet have met the original requirement, which
+        # we have not yet used in this method. We might need to put a to_real
+        # on top of it, for instance.
+        #
+        # Recurse to ensure that is met.
+
+        return self.meet_requirement(if_then_else, requirement, consumer, edge)
+
+    def _convert_node(
+        self, node: OperatorNode, requirement: type, consumer: BMGNode, edge: str
+    ) -> BMGNode:
         # We have been given a node which does not meet a requirement,
         # but it can be converted to a node which does meet the requirement
         # that has the same semantics. Start by confirming those preconditions.
-        assert node.inf_type != requirement
+        assert node.graph_type != requirement
         assert supremum(node.inf_type, requirement) == requirement
+
+        if isinstance(node, MultiplicationNode) and node.graph_type == Malformed:
+            return self._convert_malformed_multiplication(
+                node, requirement, consumer, edge
+            )
 
         # Converting anything to tensor, real or positive real is easy;
         # there's already a node for that so just insert it on the edge
@@ -157,34 +225,41 @@ error is added to the error report."""
     def _meet_operator_requirement(
         self, node: OperatorNode, requirement: Requirement, consumer: BMGNode, edge: str
     ) -> BMGNode:
-        # We check requirements in topologically-sorted order, so if
-        # we are checking a requirement that points to an operator,
-        # the operator node has already had all of its input edges rewritten.
-        # For example, we know that for a multiplication, for instance,
-        # the left and right operands have already been converted to the
-        # output type of the operator. We therefore know that the infimum
-        # type of the operator is the actual type of the operator.
-
         # If the operator node already meets the requirement, we're done.
-        if meets_requirement(node.inf_type, requirement):
+        if meets_requirement(node.graph_type, requirement):
             return node
 
-        # It does not meet the requirement. Is there a semantically equivalent node
-        # that does meet the requirement?
+        # It does not meet the requirement. Can we convert this thing to a node
+        # whose type does meet the requirement? Remember, the inf type is the
+        # smallest type that this node is convertible to, so if the inf type
+        # meets an upper bound requirement, then the conversion we want exists.
 
-        if not meets_requirement(node.inf_type, upper_bound(requirement)):
+        it = node.inf_type
+
+        if not meets_requirement(it, upper_bound(requirement)):
             # No; add an error.
             self.errors.add_error(Violation(node, requirement, consumer, edge))
             return node
 
-        # Yes; create that node.
+        # We definitely can meet the requirement; it just remains to figure
+        # out exactly how.
         #
-        # The inf type did not meet the requirement, but did meet an upper bound
-        # requirement. We therefore know that the requirement was exact, and
-        # therefore we need to introduce a conversion to the exact type.
+        # There are now two possibilities:
+        #
+        # * The requirement is an exact requirement. We know that the node
+        #   can be converted to that type, because its inf type meets an
+        #   upper bound requirement. Convert it to that exact type.
+        #
+        # * The requirement is an upper-bound requirement, and the inf type
+        #   meets it. Convert the node to the inf type.
 
-        assert isinstance(requirement, type)
-        return self._convert_node(node, requirement)
+        if isinstance(requirement, type):
+            result = self._convert_node(node, requirement, consumer, edge)
+        else:
+            result = self._convert_node(node, it, consumer, edge)
+
+        assert meets_requirement(result.graph_type, requirement)
+        return result
 
     def meet_requirement(
         self, node: BMGNode, requirement: Requirement, consumer: BMGNode, edge: str
