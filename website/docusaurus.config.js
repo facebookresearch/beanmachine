@@ -15,7 +15,7 @@ module.exports = {
   baseUrl: '/',
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  projectName: 'beanmachine', // Usually your repo name.
   themeConfig: {
     navbar: {
       title: 'BeanMachine',
@@ -51,7 +51,7 @@ module.exports = {
             },
             {
               label: 'Second Doc',
-              to: 'docs/doc2',
+              to: 'docs',
             },
           ],
         },
@@ -120,7 +120,7 @@ module.exports = {
         docs: {
           // It is recommended to set document id as docs home page (`docs/` path).
           path: '../docs/',
-          homePageId: '../docs/toc',
+          homePageId: '/docs/toc',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl:

@@ -1,6 +1,10 @@
-<!-- @import "../header.md" -->
+---
+id: bean_machine_advantages
+title: BeanMachine Advantages
+sidebar_label: BeanMachine Advantages
+---
 
-# Bean Machine advantages
+<!-- @import "../header.md" -->
 
 By building on top of PyTorch and providing declarative syntax, Bean Machine can be simultaneously performant and intuitive. Bean Machine provides further value by implementing cutting-edge inference algorithms and allowing the user to select and program custom inferences for different problems and subproblems.
 

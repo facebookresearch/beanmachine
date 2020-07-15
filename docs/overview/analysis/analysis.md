@@ -103,7 +103,7 @@ plt.ylabel("Probability density")
 plt.legend();
 ```
 
-![](posterior_reproduction_rate.png)
+![](/img/posterior_reproduction_rate.png)
 
 ## <a name="diagnostics"></a>Diagnostics
 
@@ -146,8 +146,8 @@ Bean Machine can also plot diagnostic information to assess health of the infere
 bm.Diagnostics(samples).plot(display=True)
 ```
 
-![](trace_reproduction_rate.png)
-![](autocorrelation_reproduction_rate.png)
+![](/img/trace_reproduction_rate.png)
+![](/img/autocorrelation_reproduction_rate.png)
 
 The diagnostics output shows two diagnostic plots for individual random variables: trace plots and autocorrelation plots.
 

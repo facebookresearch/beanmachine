@@ -1,6 +1,10 @@
-<!-- @import "../header.md" -->
+---
+id: landing_page
+title: BeanMachine
+sidebar_label: BeanMachine
+---
 
-# Bean Machine
+<!-- @import "../header.md" -->
 
 Declarative, programmable, efficient probabilistic inference
 
