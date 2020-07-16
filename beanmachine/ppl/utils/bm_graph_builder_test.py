@@ -1476,6 +1476,26 @@ digraph "graph" {
 """
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_gamma(self) -> None:
+        bmg = BMGraphBuilder()
+        concentration = bmg.add_pos_real(1.0)
+        rate = bmg.add_pos_real(2.0)
+        d = bmg.add_gamma(concentration, rate)
+        bmg.add_sample(d)
+        observed = bmg.to_dot(True, False, True, True)
+        expected = """
+digraph "graph" {
+  N0[label="1.0:R+"];
+  N1[label="2.0:R+"];
+  N2[label="Gamma:R+"];
+  N3[label="Sample:R+"];
+  N0 -> N2[label="concentration:R+"];
+  N1 -> N2[label="rate:R+"];
+  N2 -> N3[label="operand:R+"];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_if_then_else(self) -> None:
         bmg = BMGraphBuilder()
         p = bmg.add_constant(0.5)
