@@ -22,6 +22,16 @@ commands:
           name: "Install beanmachine[dev]"
           command: sudo pip install -v -e .[dev]
 
+  apt_get_install_deps:
+    description: "Install beanmachine graph dependencies via apt-get"
+    steps:
+      - run:
+          name: "Update package lists"
+          command: sudo apt-get update
+      - run:
+          name: "Install Boost"
+          command: sudo apt-get install libboost-all-dev
+
   setup_py_install:
     description: "Install beanmachine as an ordinary user would via setup.py install"
     steps:
@@ -89,6 +99,7 @@ jobs:
     steps:
       - checkout
       - pip_install_deps
+      - apt_get_install_deps
       - pip_dev_install
       - dev_unit_tests
 
@@ -98,6 +109,7 @@ jobs:
     steps:
       - checkout
       - pip_install_deps
+      - apt_get_install_deps
       - setup_py_install
       - user_unit_tests
 
