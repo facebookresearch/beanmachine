@@ -114,6 +114,20 @@ class DiffStack(object):
         """
         return self.diff_stack_[-1]
 
+    def is_marked_for_delete(self, node: RVIdentifier) -> bool:
+        """
+        Get whether a node is marked for delete.
+
+        :param node: the RVIdentifier to be looked up in the diff stack.
+        :returns: whether a node is marked for delete.
+        """
+        if node in self.node_to_diffs_ and self.node_to_diffs_[node]:
+            diff_index = self.node_to_diffs_[node][-1]
+            if self.diff_stack_[diff_index].is_marked_for_delete(node):
+                return True
+
+        return False
+
     def get_node(self, node: RVIdentifier) -> Optional[Variable]:
         """
         Get the node from diff stack.

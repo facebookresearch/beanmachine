@@ -182,6 +182,8 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             # We will go through all random variables that are both in the
             # markov blanket and block.
             for node in markov_blanket_func[node_func].copy():
+                if self.world_.is_marked_node_for_delete(node):
+                    continue
                 # We look up the node's current markov blanket before re-sampling
                 old_node_markov_blanket = self.world_.get_markov_blanket(node)
                 proposer = self.find_best_single_site_proposer(node)

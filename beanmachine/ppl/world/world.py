@@ -433,6 +433,15 @@ class World(object):
                     markov_blanket.add(parent)
         return markov_blanket
 
+    def is_marked_node_for_delete(self, node: RVIdentifier) -> bool:
+        """
+        Returns whether a node is marked for delete.
+
+        :param node: the node to be looked up in the world.
+        :returns: whether the node is marked for delete.
+        """
+        return self.diff_stack_.is_marked_for_delete(node)
+
     def get_all_nodes_from_func(self, node_func: str) -> Set[RVIdentifier]:
         """
         Fetches all nodes that have a given node function.
