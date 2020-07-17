@@ -1930,21 +1930,61 @@ class MultiplicationNode(BinaryOperatorNode):
         return "*"
 
     @property
+    def graph_type(self) -> type:
+        # A multiplication node must have its left, right and output
+        # types all the same, and that type must be Probability or
+        # larger. If these conditions are not met then the node is malformed.
+        # However, we can convert some multiplications into if-then-else
+        # nodes which are well-formed. We will express these facts
+        # in the requirements and inf type computation, and the problem fixer
+        # will turn malformed multiplications into a correct form.
+        lgt = self.left.graph_type
+        if lgt != self.right.graph_type:
+            return Malformed
+        if lgt == bool or lgt == Natural:
+            return Malformed
+        return lgt
+
+    @property
     def inf_type(self) -> type:
+        # As noted above, we can multiply two probabilities, two positive
+        # reals, two reals or two tensors and get the same type out. However
+        # if we have a model in which a bool or natural is multiplied by a
+        # bool or natural, then we can create a legal BMG graph as follows:
+        #
+        # bool1 * bool2 can become "if bool1 then bool2 else false"
+        # bool * nat and nat * bool can become "if bool then nat else 0"
+        # nat * nat must convert both nats to positive real.
+        #
+        # So what then is the inf type? Remember, the inf type is the smallest
+        # type that this node can be converted to, so let's say that.
+
+        # If either operand is bool then we can convert to an if-then-else
+        # and keep the type the same as the other operand:
+
+        lit = self.left.inf_type
+        rit = self.right.inf_type
+        if lit == bool:
+            return rit
+        if rit == bool:
+            return lit
+
+        # If neither type is bool then the best we can do is the sup
+        # of the left type, the right type, and Probability.
         return supremum(self.left.inf_type, self.right.inf_type, Probability)
 
     @property
-    def graph_type(self) -> type:
-        if self.left.graph_type == self.right.graph_type:
-            return self.left.graph_type
-        return Malformed
-
-    @property
     def requirements(self) -> List[Requirement]:
-        # We require that the input types of a multiplication be exactly the same.
-        # In order to minimize the output type of the node we will take the
-        # supremum of the infimums of the input types, and then require that
-        # the inputs each be of that type.
+        # As noted above, we have special handling if an operand to a multiplication
+        # is a bool. In those cases, we can simply impose a requirement that can
+        # always be met: that the operands be of their inf types.
+        lit = self.left.inf_type
+        rit = self.right.inf_type
+        if lit == bool or rit == bool:
+            return [lit, rit]
+        # If we're not in one of those special cases then we require that both
+        # operands be the inf type, which, recall, is the sup of the left, right
+        # and Probability.
         it = self.inf_type
         return [it, it]
 

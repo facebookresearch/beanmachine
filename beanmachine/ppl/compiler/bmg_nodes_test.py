@@ -105,15 +105,19 @@ class ASTToolsTest(unittest.TestCase):
         # we could meet the requirements of the BMG type system by inserting code
         # that converted the bool to a probability."
 
-        # bool x bool -> Probability
+        # In fact, a bool multiplied by any type can be converted to an "if-then-else"
+        # that chooses between the other operand and a zero of that type, so they
+        # are all possible.
+
+        # bool x bool -> bool
         # bool x Probability -> Probability
-        # bool x Natural -> PositiveReal
+        # bool x Natural -> Natural
         # bool x PositiveReal -> PositiveReal
         # bool x Real -> Real
         # bool x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(bern, bern).inf_type, Probability)
+        self.assertEqual(MultiplicationNode(bern, bern).inf_type, bool)
         self.assertEqual(MultiplicationNode(bern, beta).inf_type, Probability)
-        self.assertEqual(MultiplicationNode(bern, bino).inf_type, PositiveReal)
+        self.assertEqual(MultiplicationNode(bern, bino).inf_type, Natural)
         self.assertEqual(MultiplicationNode(bern, half).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bern, norm).inf_type, Real)
         self.assertEqual(MultiplicationNode(bern, t).inf_type, Tensor)
@@ -131,13 +135,13 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(MultiplicationNode(beta, norm).inf_type, Real)
         self.assertEqual(MultiplicationNode(beta, t).inf_type, Tensor)
 
-        # Natural x bool -> PositiveReal
+        # Natural x bool -> Natural
         # Natural x Probability -> PositiveReal
         # Natural x Natural -> PositiveReal
         # Natural x PositiveReal -> PositiveReal
         # Natural x Real -> Real
         # Natural x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(bino, bern).inf_type, PositiveReal)
+        self.assertEqual(MultiplicationNode(bino, bern).inf_type, Natural)
         self.assertEqual(MultiplicationNode(bino, beta).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, bino).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, half).inf_type, PositiveReal)
@@ -456,27 +460,35 @@ class ASTToolsTest(unittest.TestCase):
         # What this is really saying is "if we multiplied a bool by a probability,
         # we could meet the requirements of the BMG type system by inserting code
         # that converted the bool to a probability."
+        #
+        # The question then is: what requirements should be generated on the edges
+        # when we have, say, a bool multiplied by a probability? The smallest possible
+        # requirement is just that: the bool is required to be a bool, and the
+        # probability is required to be a probability, and we can "multiply" them
+        # by converting the multiplication to an if-then-else.
+        #
+        # Consider by contrast a multiplication of probability by natural.
+        # There is no multiplication node or equivalent node we can generate that
+        # is any better than "convert both to positive real and multiply them",
+        # so in that case we put a requirement on both operands that they be
+        # positive reals.
 
-        # bool x bool -> Probability
+        # bool x bool -> bool
         # bool x Probability -> Probability
-        # bool x Natural -> PositiveReal
+        # bool x Natural -> Natural
         # bool x PositiveReal -> PositiveReal
         # bool x Real -> Real
         # bool x Tensor -> Tensor
+        self.assertEqual(MultiplicationNode(bern, bern).requirements, [bool, bool])
         self.assertEqual(
-            MultiplicationNode(bern, bern).requirements, [Probability, Probability]
+            MultiplicationNode(bern, beta).requirements, [bool, Probability]
         )
+        self.assertEqual(MultiplicationNode(bern, bino).requirements, [bool, Natural])
         self.assertEqual(
-            MultiplicationNode(bern, beta).requirements, [Probability, Probability]
+            MultiplicationNode(bern, half).requirements, [bool, PositiveReal]
         )
-        self.assertEqual(
-            MultiplicationNode(bern, bino).requirements, [PositiveReal, PositiveReal]
-        )
-        self.assertEqual(
-            MultiplicationNode(bern, half).requirements, [PositiveReal, PositiveReal]
-        )
-        self.assertEqual(MultiplicationNode(bern, norm).requirements, [Real, Real])
-        self.assertEqual(MultiplicationNode(bern, t).requirements, [Tensor, Tensor])
+        self.assertEqual(MultiplicationNode(bern, norm).requirements, [bool, Real])
+        self.assertEqual(MultiplicationNode(bern, t).requirements, [bool, Tensor])
 
         # Probability x bool -> Probability
         # Probability x Probability -> Probability
@@ -485,7 +497,7 @@ class ASTToolsTest(unittest.TestCase):
         # Probability x Real -> Real
         # Probability x Tensor -> Tensor
         self.assertEqual(
-            MultiplicationNode(beta, bern).requirements, [Probability, Probability]
+            MultiplicationNode(beta, bern).requirements, [Probability, bool]
         )
         self.assertEqual(
             MultiplicationNode(beta, beta).requirements, [Probability, Probability]
@@ -499,15 +511,13 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(MultiplicationNode(beta, norm).requirements, [Real, Real])
         self.assertEqual(MultiplicationNode(beta, t).requirements, [Tensor, Tensor])
 
-        # Natural x bool -> PositiveReal
+        # Natural x bool -> Natural
         # Natural x Probability -> PositiveReal
         # Natural x Natural -> PositiveReal
         # Natural x PositiveReal -> PositiveReal
         # Natural x Real -> Real
         # Natural x Tensor -> Tensor
-        self.assertEqual(
-            MultiplicationNode(bino, bern).requirements, [PositiveReal, PositiveReal]
-        )
+        self.assertEqual(MultiplicationNode(bino, bern).requirements, [Natural, bool])
         self.assertEqual(
             MultiplicationNode(bino, beta).requirements, [PositiveReal, PositiveReal]
         )
@@ -527,7 +537,7 @@ class ASTToolsTest(unittest.TestCase):
         # PositiveReal x Real -> Real
         # PositiveReal x Tensor -> Tensor
         self.assertEqual(
-            MultiplicationNode(half, bern).requirements, [PositiveReal, PositiveReal]
+            MultiplicationNode(half, bern).requirements, [PositiveReal, bool]
         )
         self.assertEqual(
             MultiplicationNode(half, beta).requirements, [PositiveReal, PositiveReal]
@@ -547,7 +557,7 @@ class ASTToolsTest(unittest.TestCase):
         # Real x PositiveReal -> Real
         # Real x Real -> Real
         # Real x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(norm, bern).requirements, [Real, Real])
+        self.assertEqual(MultiplicationNode(norm, bern).requirements, [Real, bool])
         self.assertEqual(MultiplicationNode(norm, beta).requirements, [Real, Real])
         self.assertEqual(MultiplicationNode(norm, bino).requirements, [Real, Real])
         self.assertEqual(MultiplicationNode(norm, half).requirements, [Real, Real])
@@ -560,7 +570,7 @@ class ASTToolsTest(unittest.TestCase):
         # Tensor x PositiveReal -> Tensor
         # Tensor x Real -> Tensor
         # Tensor x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(t, bern).requirements, [Tensor, Tensor])
+        self.assertEqual(MultiplicationNode(t, bern).requirements, [Tensor, bool])
         self.assertEqual(MultiplicationNode(t, beta).requirements, [Tensor, Tensor])
         self.assertEqual(MultiplicationNode(t, bino).requirements, [Tensor, Tensor])
         self.assertEqual(MultiplicationNode(t, half).requirements, [Tensor, Tensor])
