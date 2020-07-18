@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import copy
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -411,6 +412,15 @@ class World(object):
         """
         self.diff_stack_ = DiffStack()
         self.diff_ = self.diff_stack_.diff_stack_[-1]
+
+    def copy(self):
+        """
+        Returns a copy of the world.
+        """
+        world_copy = World()
+        world_copy.transforms_ = copy.deepcopy(self.transforms_)
+        world_copy.proposer_ = copy.deepcopy(self.proposer_)
+        return world_copy
 
     def get_markov_blanket(self, node: RVIdentifier) -> Set[RVIdentifier]:
         """

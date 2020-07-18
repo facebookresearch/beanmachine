@@ -45,6 +45,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
 
         :param initialize_from_prior: boolean to initialize samples from prior
         """
+        self.initialize_infer()
         self.world_.set_observations(self.observations_)
         self.world_.set_initialize_from_prior(initialize_from_prior)
         StatisticalModel.set_mode(Mode.INFERENCE)

@@ -38,7 +38,11 @@ class AbstractInference(object, metaclass=ABCMeta):
     _rand_int_max: ClassVar[int] = 2 ** 62
 
     def __init__(self):
-        self.reset()
+        self.world_ = World()
+        self.initial_world_ = self.world_
+        StatisticalModel.reset()
+        self.queries_ = []
+        self.observations_ = {}
 
     @abstractmethod
     def _infer(
@@ -144,10 +148,18 @@ class AbstractInference(object, metaclass=ABCMeta):
             self.reset()
         return monte_carlo_samples
 
+    def initialize_infer(self):
+        """
+        Initialize inference
+        """
+        self.initial_world_ = self.world_.copy()
+        StatisticalModel.set_world(self.world_)
+
     def reset(self):
         """
         Resets world, mode and observation
         """
-        self.world_ = StatisticalModel.reset()
+        self.world_ = self.initial_world_
+        StatisticalModel.reset()
         self.queries_ = []
         self.observations_ = {}
