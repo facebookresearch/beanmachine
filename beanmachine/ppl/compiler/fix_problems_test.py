@@ -231,10 +231,14 @@ The sigma of a Normal is required to be a positive real but is a real.
     def test_fix_problems_4(self) -> None:
         """test_fix_problems_4"""
 
-        # This test has some problems that cannot be fixed -- yet.
-        # We will add a rule to the type system that allows
-        # bool * bool and bool * natural to work by turning them
-        # into if-then-else, and we will update this test then.
+        # The problem we have here is:
+        #
+        # * Multiplication is only defined on probability or larger
+        # * We have a multiplication of a bool by a natural
+        # * We require a natural.
+        #
+        # In this scenario, the problem fixer turns the multplication
+        # into an if-then-else.
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -249,8 +253,67 @@ The sigma of a Normal is required to be a positive real but is a real.
         bino = bmg.add_binomial(mult, half)
         bmg.add_sample(bino)
 
-        error_report = fix_problems(bmg)
-        observed = str(error_report)
+        observed = bmg.to_dot(True, True, True, True)
+
         expected = """
-The count of a Binomial is required to be a natural but is a positive real."""
+digraph "graph" {
+  N0[label="2:N>=N"];
+  N1[label="0.5:P>=P"];
+  N2[label="Bernoulli:B>=B"];
+  N3[label="Sample:B>=B"];
+  N4[label="Binomial:N>=N"];
+  N5[label="Sample:N>=N"];
+  N6[label="*:M>=N"];
+  N7[label="Binomial:N>=N"];
+  N8[label="Sample:N>=N"];
+  N0 -> N4[label="count:N"];
+  N1 -> N2[label="probability:P"];
+  N1 -> N4[label="probability:P"];
+  N1 -> N7[label="probability:P"];
+  N2 -> N3[label="operand:B"];
+  N3 -> N6[label="left:B"];
+  N4 -> N5[label="operand:N"];
+  N5 -> N6[label="right:N"];
+  N6 -> N7[label="count:N"];
+  N7 -> N8[label="operand:N"];
+}"""
+
+        self.assertEqual(observed.strip(), expected.strip())
+
+        error_report = fix_problems(bmg)
+
+        self.assertEqual("", str(error_report).strip())
+
+        observed = bmg.to_dot(True, True, True, True)
+
+        expected = """
+
+digraph "graph" {
+  N00[label="2:N>=N"];
+  N01[label="0.5:P>=P"];
+  N02[label="Bernoulli:B>=B"];
+  N03[label="Sample:B>=B"];
+  N04[label="Binomial:N>=N"];
+  N05[label="Sample:N>=N"];
+  N06[label="*:M>=N"];
+  N07[label="Binomial:N>=N"];
+  N08[label="Sample:N>=N"];
+  N09[label="0:N>=B"];
+  N10[label="if:N>=N"];
+  N00 -> N04[label="count:N"];
+  N01 -> N02[label="probability:P"];
+  N01 -> N04[label="probability:P"];
+  N01 -> N07[label="probability:P"];
+  N02 -> N03[label="operand:B"];
+  N03 -> N06[label="left:B"];
+  N03 -> N10[label="condition:B"];
+  N04 -> N05[label="operand:N"];
+  N05 -> N06[label="right:N"];
+  N05 -> N10[label="consequence:N"];
+  N07 -> N08[label="operand:N"];
+  N09 -> N10[label="alternative:N"];
+  N10 -> N07[label="count:N"];
+}
+                """
+
         self.assertEqual(observed.strip(), expected.strip())

@@ -393,8 +393,16 @@ def to_cpp(source: str) -> str:
     return to_graph_builder(source).to_cpp()
 
 
-def to_dot(source: str) -> str:
-    return to_graph_builder(source).to_dot()
+def to_dot(
+    source: str,
+    graph_types: bool = False,
+    inf_types: bool = False,
+    edge_requirements: bool = False,
+    point_at_input: bool = False,
+) -> str:
+    return to_graph_builder(source).to_dot(
+        graph_types, inf_types, edge_requirements, point_at_input
+    )
 
 
 def to_bmg(source: str):
