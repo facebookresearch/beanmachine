@@ -1627,14 +1627,21 @@ class DivisionNode(BinaryOperatorNode):
     @property
     def inf_type(self) -> type:
         # TODO: We do not support division in BMG yet; when we do, implement
-        # this correctly.
-        return Real
+        # this correctly. Best guess so far: division is defined only on
+        # positive reals, reals and tensors.
+        return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
 
     @property
     def graph_type(self) -> type:
-        if self.left.graph_type == self.right.graph_type:
-            return self.left.graph_type
-        return Malformed
+        # TODO: We do not support division in BMG yet; when we do, implement
+        # this correctly. Best guess so far: left, right and output types
+        # must be the same, and must be PositiveReal, Real or tensor.
+        lgt = self.left.graph_type
+        if lgt != self.right.graph_type:
+            return Malformed
+        if lgt != PositiveReal and lgt != Real and lgt != Tensor:
+            return Malformed
+        return lgt
 
     @property
     def requirements(self) -> List[Requirement]:
