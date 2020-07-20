@@ -21,6 +21,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     type_of_value,
     upper_bound,
 )
+from beanmachine.ppl.compiler.internal_error import InternalError
 from torch import Tensor, tensor
 from torch.distributions.utils import broadcast_all
 
@@ -95,28 +96,33 @@ If the node represents a scalar value then produce Size([])."""
 for graph visualization and debugging."""
         pass
 
-    @abstractmethod
+    # Many of the node types defined in this module have no direct counterparts
+    # in BMG; they are generated during execution of the model and accumulated
+    # into a graph builder. They must then be transformed into semantically-
+    # equivalent supported nodes.
+
+    def _supported_in_bmg(self) -> bool:
+        return False
+
     def _add_to_graph(self, g: Graph, d: Dict["BMGNode", int]) -> int:
         """This adds a node to an in-memory BMG instance. Each node
 in BMG is associated with an integer handle; this returns
 the handle for this node assigned by BMG."""
-        pass
+        raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
-    @abstractmethod
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         """We can emit the graph as a Python program which, when executed,
 builds a BMG instance. This method returns a string of Python
 code to construct this node. The dictionary associates a unique
 integer with each node that can be used to construct an identifier."""
-        pass
+        raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
-    @abstractmethod
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         """We can emit the graph as a C++ program which, when executed,
 builds a BMG instance. This method returns a string of C++
 code to construct this node. The dictionary associates a unique
 integer with each node that can be used to construct an identifier."""
-        pass
+        raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
     @abstractmethod
     def support(self) -> Iterator[Any]:
@@ -215,6 +221,9 @@ the "positive real" 1.0, the "probability" 1.0 and the
     @abstractmethod
     def _value_to_python(self) -> str:
         pass
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
@@ -538,6 +547,9 @@ we generate a different node in BMG."""
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         dist_type = dt.BERNOULLI_LOGIT if self.is_logits else dt.BERNOULLI
         return g.add_distribution(dist_type, AtomicType.BOOLEAN, [d[self.probability]])
@@ -613,6 +625,9 @@ so is useful for creating probabilities."""
 
     def __str__(self) -> str:
         return f"Beta({str(self.alpha)},{str(self.beta)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -718,14 +733,21 @@ we generate a different node in BMG."""
     def __str__(self) -> str:
         return f"Binomial({self.count}, {self.probability})"
 
+    def _supported_in_bmg(self) -> bool:
+        return not self.is_logits
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         # TODO: Fix this when we support binomial logits.
+        if self.is_logits:
+            raise InternalError("Binomial with logits is not supported in BMG.")
         return g.add_distribution(
             dt.BINOMIAL, AtomicType.NATURAL, [d[self.count], d[self.probability]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
+        if self.is_logits:
+            raise InternalError("Binomial with logits is not supported in BMG.")
         return (
             f"n{d[self]} = g.add_distribution(\n"
             + "  graph.DistributionType.BINOMIAL,\n"
@@ -735,6 +757,8 @@ we generate a different node in BMG."""
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
+        if self.is_logits:
+            raise InternalError("Binomial with logits is not supported in BMG.")
         return (
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BINOMIAL,\n"
@@ -853,35 +877,6 @@ we generate a different node in BMG."""
     def __str__(self) -> str:
         return "Categorical(" + str(self.probability) + ")"
 
-    # TODO: Delete this cut-n-pasted incorrect code and just
-    # raise errors instead to indicate that this feature is not
-    # yet implemented
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: Handle case where child is logits
-        # TODO: This is incorrect.
-        return g.add_distribution(
-            dt.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
-        # TODO: This is incorrect.
-        return (
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
-        # TODO: This is incorrect.
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
-        )
-
     def support(self) -> Iterator[Any]:
         s = self.probability.size
         r = list(range(s[-1]))
@@ -936,34 +931,6 @@ distribution."""
 
     def __str__(self) -> str:
         return f"Dirichlet({str(self.concentration)})"
-
-    # TODO: Delete this cut-n-pasted incorrect code and just
-    # raise errors instead to indicate that this feature is not
-    # yet implemented
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            # TODO: Fix this when we add the node type to BMG
-            dt.BERNOULLI,
-            AtomicType.BOOLEAN,
-            [d[self.concentration]],
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.concentration]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.concentration]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1023,6 +990,9 @@ parameters."""
 
     def __str__(self) -> str:
         return f"Gamma({str(self.concentration)}, {str(self.rate)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -1105,6 +1075,9 @@ and a sample is a positive real number."""
     def __str__(self) -> str:
         return f"HalfCauchy({str(self.scale)})"
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(dt.HALF_CAUCHY, AtomicType.POS_REAL, [d[self.scale]])
 
@@ -1185,6 +1158,9 @@ a given mean and standard deviation."""
 
     def __str__(self) -> str:
         return f"Normal({str(self.mu)},{str(self.sigma)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -1278,6 +1254,9 @@ and the true mean."""
     def __str__(self) -> str:
         return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
             dt.STUDENT_T, AtomicType.REAL, [d[self.df], d[self.loc], d[self.scale]]
@@ -1368,34 +1347,6 @@ between 0.0 and 1.0."""
 
     def __str__(self) -> str:
         return f"Uniform({str(self.low)},{str(self.high)})"
-
-    # TODO: Delete this cut-n-pasted incorrect code and just
-    # raise errors instead to indicate that this feature is not
-    # yet implemented
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            # TODO: Fix this when we add the node type to BMG
-            dt.BERNOULLI,
-            AtomicType.BOOLEAN,
-            [d[self.low]],
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.low]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.low]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1566,9 +1517,13 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         self.children[1] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         return g.add_operator(self.operator_type, [d[self.left], d[self.right]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         n = d[self]
         ot = self.operator_type
         left = d[self.left]
@@ -1576,6 +1531,8 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         return f"n{n} = g.add_operator(graph.{ot}, [n{left}, n{right}])"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         ot = str(self.operator_type).replace(".", "::")
         left = d[self.left]
         right = d[self.right]
@@ -1631,6 +1588,9 @@ class AdditionNode(BinaryOperatorNode):
             el + ar for el in self.left.support() for ar in self.right.support()
         )
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class DivisionNode(BinaryOperatorNode):
     """This represents a division."""
@@ -1643,7 +1603,6 @@ class DivisionNode(BinaryOperatorNode):
     # and generate c/d as Multiply(c, Power(d, -1.0))
     # Either way, when we decide, implement the transformation to
     # BMG nodes accordingly.
-    operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1786,18 +1745,6 @@ multiple control flows based on the value of a stochastic node."""
     def label(self) -> str:
         return "map"
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: map nodes are not currently part of the graph
-        return -1
-
-    def _to_python(self, d: Dict[BMGNode, int]) -> str:
-        # TODO: map nodes are not currently part of the graph
-        return ""
-
-    def _to_cpp(self, d: Dict[BMGNode, int]) -> str:
-        # TODO: map nodes are not currently part of the graph
-        return ""
-
     def support(self) -> Iterator[Any]:
         return []
 
@@ -1826,7 +1773,6 @@ operand must be a map, and the right is the stochastic value used to
 choose an element from the map."""
 
     # See notes on MapNode for an explanation of this code.
-    operator_type = OperatorType.MULTIPLY  # TODO
 
     def __init__(self, left: MapNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1871,7 +1817,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
     # TODO: We do not yet have an implementation of matrix
     # multiplication as a BMG node. When we do, implement the
     # feature here.
-    operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -2000,13 +1945,15 @@ class MultiplicationNode(BinaryOperatorNode):
             el * ar for el in self.left.support() for ar in self.right.support()
         )
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class PowerNode(BinaryOperatorNode):
     """This represents an x-to-the-y operation."""
 
     # TODO: We haven't added power to the C++ implementation of BMG yet.
     # TODO: When we do, update this.
-    operator_type = OperatorType.MULTIPLY  # TODO
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -2070,15 +2017,21 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         self.children[0] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         return g.add_operator(self.operator_type, [d[self.operand]])
 
     def _to_python(self, d: Dict[BMGNode, int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         n = d[self]
         o = d[self.operand]
         ot = str(self.operator_type)
         return f"n{n} = g.add_operator(graph.{ot}, [n{o}])"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         n = d[self]
         o = d[self.operand]
         # Since OperatorType is not actually an enum, there is no
@@ -2141,7 +2094,6 @@ class LogNode(UnaryOperatorNode):
 a model contains calls to Tensor.log or math.log."""
 
     # TODO: We do not support LOG in BMG yet; when we do, update this:
-    operator_type = OperatorType.EXP  # TODO
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
@@ -2272,6 +2224,9 @@ class NegateNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(-o for o in self.operand.support())
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class NotNode(UnaryOperatorNode):
     """This represents a logical not that appears in the Python model."""
@@ -2361,6 +2316,9 @@ values."""
     def support(self) -> Iterator[Any]:
         return self.operand.support()
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class ToRealNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_REAL
@@ -2395,6 +2353,9 @@ class ToRealNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 class ToPositiveRealNode(UnaryOperatorNode):
@@ -2431,6 +2392,9 @@ class ToPositiveRealNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class ToTensorNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_TENSOR
@@ -2466,6 +2430,9 @@ class ToTensorNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.tensor(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 # ####
@@ -2550,6 +2517,9 @@ should no loger be uniform."""
     def __str__(self) -> str:
         return str(self.observed) + "=" + str(self.value)
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         g.observe(d[self.observed], self.value)
         return -1
@@ -2617,6 +2587,9 @@ to have a query node accumulated into the graph builder.
 
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         g.query(d[self.operator])
