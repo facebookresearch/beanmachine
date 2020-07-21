@@ -382,9 +382,8 @@ The unsupported node is the mu of a Normal.
     def test_fix_problems_6(self) -> None:
         """test_fix_problems_6"""
 
-        # This test has a problem that will be fixed in a later diff.
-        # We can rewrite an unsupported division by constant into
-        # a multiplication.
+        # This test shows that we can rewrite a division by a constant
+        # into a multiplication.
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -400,10 +399,60 @@ The unsupported node is the mu of a Normal.
         norm = bmg.add_normal(q, one)
         bmg.add_sample(norm)
 
-        error_report = fix_problems(bmg)
-        observed = str(error_report)
+        observed = bmg.to_dot(True, True, True, True)
+
         expected = """
-The model uses a / operation unsupported by Bean Machine Graph.
-The unsupported node is the mu of a Normal.
+digraph "graph" {
+  N0[label="1.0:R>=B"];
+  N1[label="2.5:R>=R+"];
+  N2[label="HalfCauchy:R+>=R+"];
+  N3[label="Sample:R+>=R+"];
+  N4[label="/:M>=R+"];
+  N5[label="Normal:R>=R"];
+  N6[label="Sample:R>=R"];
+  N0 -> N2[label="scale:R+"];
+  N0 -> N5[label="sigma:R+"];
+  N1 -> N4[label="right:R+"];
+  N2 -> N3[label="operand:R+"];
+  N3 -> N4[label="left:R+"];
+  N4 -> N5[label="mu:R"];
+  N5 -> N6[label="operand:R"];
+}
 """
+
+        self.assertEqual(observed.strip(), expected.strip())
+
+        error_report = fix_problems(bmg)
+
+        self.assertEqual("", str(error_report).strip())
+
+        observed = bmg.to_dot(True, True, True, True)
+
+        expected = """
+digraph "graph" {
+  N00[label="1.0:R>=B"];
+  N01[label="2.5:R>=R+"];
+  N02[label="HalfCauchy:R+>=R+"];
+  N03[label="Sample:R+>=R+"];
+  N04[label="/:M>=R+"];
+  N05[label="Normal:R>=R"];
+  N06[label="Sample:R>=R"];
+  N07[label="0.4:R>=P"];
+  N08[label="*:R+>=R+"];
+  N09[label="1.0:R+>=B"];
+  N10[label="0.4:R+>=P"];
+  N11[label="ToReal:R>=R"];
+  N01 -> N04[label="right:R+"];
+  N02 -> N03[label="operand:R+"];
+  N03 -> N04[label="left:R+"];
+  N03 -> N08[label="left:R+"];
+  N05 -> N06[label="operand:R"];
+  N08 -> N11[label="operand:<=R"];
+  N09 -> N02[label="scale:R+"];
+  N09 -> N05[label="sigma:R+"];
+  N10 -> N08[label="right:R+"];
+  N11 -> N05[label="mu:R"];
+}
+"""
+
         self.assertEqual(observed.strip(), expected.strip())

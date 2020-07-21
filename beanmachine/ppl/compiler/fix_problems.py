@@ -13,6 +13,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BMGNode,
     ConstantNode,
     DistributionNode,
+    DivisionNode,
     IndexNode,
     MapNode,
     MultiplicationNode,
@@ -297,8 +298,13 @@ requirement is given; the name of this edge is provided for error reporting."""
         # Chi2 -> Gamma
         # Not -> Complement
         # Index/Map -> IfThenElse
-        # Division -> Multiplication
         # Power -> Multiplication
+        if isinstance(node, DivisionNode):
+            r = node.right
+            if isinstance(r, ConstantNode):
+                return self.bmg.add_multiplication(
+                    node.left, self.bmg.add_constant(1.0 / r.value)
+                )
         return None
 
     def _fix_unsupported_nodes(self) -> None:
