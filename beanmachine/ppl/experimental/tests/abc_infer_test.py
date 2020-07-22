@@ -35,27 +35,30 @@ class ApproximateBayesianComputationTest(unittest.TestCase):
             return self.toss_mean(self.coin_toss())
 
     def test_abc_inference(self):
-        model = self.CoinTossModel(observation_shape=100)
-        COIN_TOSS_DATA = dist.Bernoulli(0.9).sample([100])
+        model = self.CoinTossModel(observation_shape=10)
+        COIN_TOSS_DATA = dist.Bernoulli(0.9).sample([10])
+        num_heads_key = model.num_heads()
+        mean_value_key = model.mean_value()
         abc = ApproximateBayesianComputation(
-            tolerance={model.num_heads(): 10, model.mean_value(): 0.1}
+            tolerance={num_heads_key: 1.0, mean_value_key: 0.1}
         )
         observations = {
-            model.num_heads(): model.toss_head_count(COIN_TOSS_DATA),
-            model.mean_value(): model.toss_mean(COIN_TOSS_DATA),
+            num_heads_key: model.toss_head_count(COIN_TOSS_DATA),
+            mean_value_key: model.toss_mean(COIN_TOSS_DATA),
         }
         queries = [model.bias()]
         samples = abc.infer(
-            queries, observations, num_samples=100, num_chains=1, verbose=None
+            queries, observations, num_samples=10, num_chains=1, verbose=None
         )
         mean = torch.mean(samples[model.bias()][0])
-        self.assertTrue(mean.item() > 0.75)
+        self.assertTrue(mean.item() > 0.65)
+        abc.reset()
 
     def test_abc_inference_with_singleton_arguments(self):
-        model = self.CoinTossModel(observation_shape=100)
-        COIN_TOSS_DATA = dist.Bernoulli(0.9).sample([100])
+        model = self.CoinTossModel(observation_shape=10)
+        COIN_TOSS_DATA = dist.Bernoulli(0.9).sample([10])
         abc = ApproximateBayesianComputation(
-            distance_function=torch.dist, tolerance=10.0
+            distance_function=torch.dist, tolerance=1.0
         )
         observations = {
             model.num_heads(): model.toss_head_count(COIN_TOSS_DATA),
@@ -63,16 +66,17 @@ class ApproximateBayesianComputationTest(unittest.TestCase):
         }
         queries = [model.bias()]
         samples = abc.infer(
-            queries, observations, num_samples=100, num_chains=1, verbose=None
+            queries, observations, num_samples=10, num_chains=1, verbose=None
         )
         mean = torch.mean(samples[model.bias()][0])
-        self.assertTrue(mean.item() > 0.75)
+        self.assertTrue(mean.item() > 0.65)
+        abc.reset()
 
     def test_single_inference_step(self):
         model = self.CoinTossModel(observation_shape=10)
-        abc = ApproximateBayesianComputation(tolerance={model.num_heads(): 0.1})
-        abc.observations_ = {model.num_heads(): torch.tensor(2)}
-        self.assertEqual(abc._single_inference_step(), 0)
+        abc = ApproximateBayesianComputation(tolerance={model.num_heads(): 1.0})
+        abc.observations_ = {model.num_heads(): torch.tensor(15.0)}
+        self.assertEqual(abc._single_inference_step(), 0.0)
         abc.reset()
 
     def test_max_attempts(self):
@@ -99,3 +103,26 @@ class ApproximateBayesianComputationTest(unittest.TestCase):
                 queries, observations, num_samples=100, num_chains=1, verbose=None
             )
         abc.reset()
+
+    def test_simulate_mode(self):
+        model = self.CoinTossModel(observation_shape=10)
+        COIN_TOSS_DATA = dist.Bernoulli(0.9).sample([10])
+        abc = ApproximateBayesianComputation(
+            tolerance={model.num_heads(): 1, model.mean_value(): 0.1}
+        )
+        observations = {
+            model.num_heads(): model.toss_head_count(COIN_TOSS_DATA),
+            model.mean_value(): model.toss_mean(COIN_TOSS_DATA),
+        }
+        queries = [model.bias()]
+        samples = abc.infer(
+            queries, observations, num_samples=1, num_chains=1, verbose=None
+        )
+        # simulate 10 coin tosses from accepted bias sample
+        sim_observations = {model.bias(): samples[model.bias()][0]}
+        sim_queries = [model.coin_toss()]
+        sim_abc = ApproximateBayesianComputation(simulate=True)
+        sim_samples = sim_abc.infer(
+            sim_queries, sim_observations, num_samples=10, num_chains=1, verbose=None
+        )
+        self.assertTrue(torch.sum(sim_samples[model.coin_toss()][0] == 1.0) > 5)

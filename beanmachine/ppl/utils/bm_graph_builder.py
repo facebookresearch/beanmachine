@@ -75,6 +75,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DistributionNode,
     DivisionNode,
     ExpNode,
+    GammaNode,
     HalfCauchyNode,
     IfThenElseNode,
     IndexNode,
@@ -101,7 +102,15 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ToTensorNode,
     UniformNode,
 )
-from beanmachine.ppl.compiler.bmg_types import Natural, PositiveReal, Probability
+from beanmachine.ppl.compiler.bmg_types import (
+    Natural,
+    PositiveReal,
+    Probability,
+    Real,
+    short_name_of_requirement,
+    short_name_of_type,
+)
+from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from torch import Tensor, tensor
@@ -111,6 +120,7 @@ from torch.distributions import (
     Binomial,
     Categorical,
     Dirichlet,
+    Gamma,
     HalfCauchy,
     Normal,
     StudentT,
@@ -272,18 +282,12 @@ and then transforms that into a valid Bean Machine Graph."""
             Binomial: self.handle_binomial,
             Categorical: self.handle_categorical,
             Dirichlet: self.handle_dirichlet,
+            Gamma: self.handle_gamma,
             HalfCauchy: self.handle_halfcauchy,
             Normal: self.handle_normal,
             StudentT: self.handle_studentt,
             Uniform: self.handle_uniform,
         }
-
-    allowed_functions = {dict, list, set}
-
-    # TODO: Allowing these constructions raises additional problems that
-    # we have not yet solved. For example, what happens if someone
-    # searches a list for a value, but the list contains a graph node?
-    # And so on.
 
     # ####
     # #### Node creation and accumulation
@@ -350,6 +354,25 @@ creates a constant graph node for it, and adds it to the builder"""
         if isinstance(value, Tensor):
             return self.add_tensor(value)
         raise TypeError("value must be a bool, real or tensor")
+
+    def add_constant_of_type(self, value: Any, node_type: type) -> ConstantNode:
+        """This takes any constant value of a supported type and creates a
+constant graph node of the stated type for it, and adds it to the builder"""
+        if node_type == bool:
+            return self.add_boolean(bool(value))
+        if node_type == Probability:
+            return self.add_probability(float(value))
+        if node_type == Natural:
+            return self.add_natural(int(value))
+        if node_type == PositiveReal:
+            return self.add_pos_real(float(value))
+        if node_type == Real:
+            return self.add_real(float(value))
+        if node_type == Tensor:
+            if isinstance(value, Tensor):
+                return self.add_tensor(value)
+            return self.add_tensor(tensor(value))
+        raise TypeError("node type must be a valid BMG type")
 
     @memoize
     def add_real(self, value: float) -> RealNode:
@@ -462,6 +485,21 @@ creates a constant graph node for it, and adds it to the builder"""
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
         return self.add_categorical(probability, logits is not None)
+
+    @memoize
+    def add_gamma(self, concentration: BMGNode, rate: BMGNode) -> GammaNode:
+        node = GammaNode(concentration, rate)
+        self.add_node(node)
+        return node
+
+    def handle_gamma(
+        self, concentration: Any, rate: Any, validate_args=None
+    ) -> GammaNode:
+        if not isinstance(concentration, BMGNode):
+            concentration = self.add_constant(concentration)
+        if not isinstance(rate, BMGNode):
+            rate = self.add_constant(rate)
+        return self.add_gamma(concentration, rate)
 
     @memoize
     def add_halfcauchy(self, scale: BMGNode) -> HalfCauchyNode:
@@ -843,7 +881,7 @@ that has the receiver, if any, as its first member."""
             return f(*args, **kwargs)
 
         # Some functions are perfectly safe for a graph node.
-        if f in BMGraphBuilder.allowed_functions:
+        if f in allowed_functions:
             return f(*args, **kwargs)
 
         # TODO: Do a sanity check that the arguments match and give
@@ -900,6 +938,9 @@ graph, and add a sample node to the graph."""
         if isinstance(operand, Dirichlet):
             b = self.handle_dirichlet(operand.concentration)
             return self.add_sample(b)
+        if isinstance(operand, Gamma):
+            b = self.handle_gamma(operand.concentration, operand.rate)
+            return self.add_sample(b)
         if isinstance(operand, HalfCauchy):
             b = self.handle_halfcauchy(operand.scale)
             return self.add_sample(b)
@@ -935,9 +976,12 @@ graph, and add a sample node to the graph."""
         # TODO: which do we wish to support?
 
         if isinstance(operand, BMGNode):
-            if operand.node_type == Tensor:
-                if name in known_tensor_instance_functions:
-                    return KnownFunction(operand, getattr(Tensor, name))
+            # If we're invoking a function on a graph node during execution of
+            # the lifted program, that graph node is almost certainly a tensor
+            # in the original program; assume that it is, and see if this is
+            # a function on a tensor that we know how to accumulate into the graph.
+            if name in known_tensor_instance_functions:
+                return KnownFunction(operand, getattr(Tensor, name))
             raise ValueError(
                 f"Fetching the value of attribute {name} is not "
                 + "supported in Bean Machine Graph."
@@ -1003,7 +1047,13 @@ graph, and add a sample node to the graph."""
     # sort of the graph nodes and only output the nodes which are
     # inputs into samples, queries, and observations.
 
-    def to_dot(self) -> str:
+    def to_dot(
+        self,
+        graph_types: bool = False,
+        inf_types: bool = False,
+        edge_requirements: bool = False,
+        point_at_input: bool = False,
+    ) -> str:
         """This dumps the entire accumulated graph state, including
 orphans, as a DOT graph description; nodes are enumerated in the order
 they were created."""
@@ -1015,17 +1065,34 @@ they were created."""
 
         for node, index in self.nodes.items():
             n = to_id(index)
-            db.with_node(n, node.label)
-            for (child, label) in zip(node.children, node.edges):
-                db.with_edge(n, to_id(self.nodes[child]), label)
+            node_label = node.label
+            if graph_types:
+                node_label += ":" + short_name_of_type(node.graph_type)
+            if inf_types:
+                node_label += ">=" + short_name_of_type(node.inf_type)
+            db.with_node(n, node_label)
+            for (child, edge_name, req) in zip(
+                node.children, node.edges, node.requirements
+            ):
+                edge_label = edge_name
+                if edge_requirements:
+                    edge_label += ":" + short_name_of_requirement(req)
+                # Bayesian networks are typically drawn with the arrows
+                # in the direction of data flow, not in the direction
+                # of dependency.
+                start_node = to_id(self.nodes[child]) if point_at_input else n
+                end_node = n if point_at_input else to_id(self.nodes[child])
+                db.with_edge(start_node, end_node, edge_label)
         return str(db)
 
     def to_bmg(self) -> Graph:
         """This transforms the accumulated graph into a BMG type system compliant
 graph and then creates the graph nodes in memory."""
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+        fix_problems(self).raise_errors()
         g = Graph()
         d: Dict[BMGNode, int] = {}
-        self._fix_types()
         for node in self._traverse_from_roots():
             d[node] = node._add_to_graph(g, d)
         return g
@@ -1041,8 +1108,10 @@ it returns a dictionary mapping nodes to integers."""
     def to_python(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
 graph and then creates a Python program which creates the graph."""
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
 
-        self._fix_types()
+        fix_problems(self).raise_errors()
+
         header = """from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
@@ -1053,7 +1122,10 @@ g = graph.Graph()
     def to_cpp(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
 graph and then creates a C++ program which creates the graph."""
-        self._fix_types()
+
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+        fix_problems(self).raise_errors()
         sorted_nodes = self._resort_nodes()
         return "graph::Graph g;\n" + "\n".join(
             n._to_cpp(sorted_nodes) for n in sorted_nodes
@@ -1103,293 +1175,3 @@ the "right"."""
         for r in roots:
             visit(r)
         return result
-
-    # ####
-    # #### Type transformation
-    # ####
-
-    # Bean Machine Graph uses a different type system than the lifted
-    # Python program from which we have accumulated the graph. The
-    # purpose of the code below is to transform our accumulated graph
-    # gradually into a form which passes the BMG type checker.
-    #
-    # For example a model which contains
-    #
-    # @bm.random_variable
-    # def flip():
-    #   return Bernoulli(tensor(0.5))
-    #
-    # will cause us to accumulate a graph which accurately represents
-    # the original Python program:
-    #
-    # constant   -->    distribution -->   sample
-    # tensor            Bernoulli          tensor
-    #
-    # But what we need to satisfy the BMG type checker is
-    #
-    # constant   -->    distribution -->   sample
-    # probability       Bernoulli          Boolean
-    #
-    # The purpose of this code is to mutate the accumulated graph into a
-    # form which follows the BMG type system rules, but without introducing
-    # a semantic change to the model.
-    #
-    # The code below traverses every node in the graph that is an input
-    # directly or indirectly to an observation, query or sample, and
-    # mutates the graph until the BMG type system requirements are met.
-    #
-    # It is important that we understand how the mutations happen to
-    # the graph as we go:
-    #
-    # * Distribution nodes are neither created nor destroyed; their
-    #   input nodes may be mutated in place or replaced entirely.
-    #   Their sample types are updated.
-    #
-    # * Sample nodes are not created or destroyed and they are not
-    #   mutated to take input from different distributions. The
-    #   only mutation they observe is the sample type of their
-    #   distribution changing.
-    #
-    # * Constant nodes are immutable.
-    #
-    # TODO: Finish this explanation describing the effects on
-    # other operators and how they could be replaced.
-
-    # TODO: All the type fixing code which follows uses exceptions as the
-    # TODO: error reporting mechanism. This is fine for now but eventually
-    # TODO: we'll need to design a proper user-centric error reporting
-    # TODO: mechanism.
-
-    def _fix_types(self) -> None:
-        """This method ensures that the transitive closure of inputs to
-observations, queries and samples complies with the BMG type system."""
-
-        # So far these rewrites can add nodes but none of them need further
-        # rewriting. If this changes, we might need to iterate until
-        # we reach a fixpoint.
-
-        for node in self._traverse_from_roots():
-            self._fix_type(node)
-
-    def _fix_type(self, node: BMGNode) -> None:
-        """This method ensures that the transitive closure of inputs to
-a specific node complies with the BMG type system."""
-
-        # A sample's type depends entirely on its distribution's
-        # sample_type, so just fix the distribution.
-        if isinstance(node, SampleNode):
-            self._fix_type(node.operand)
-
-        # If we can (1) fix the transitive closure of the inputs
-        # to all distributions, and (2) ensure the sample_type
-        # attribute of all distributions is correct, then we're
-        # done the majority of the work.
-
-        # TODO: There is a remaining work item here; we might have
-        # a query on an operator that does not type check. For example
-        # we might have a query that in Python adds a sample from
-        # a HalfCauchy to a sample from a Normal, which will then
-        # be an illegal addition node.
-
-        elif isinstance(node, BernoulliNode):
-            self._fix_bernoulli(node)
-        elif isinstance(node, BetaNode):
-            self._fix_beta(node)
-        if isinstance(node, BinomialNode):
-            self._fix_binomial(node)
-        elif isinstance(node, HalfCauchyNode):
-            self._fix_half_cauchy(node)
-        elif isinstance(node, NormalNode):
-            self._fix_normal(node)
-        elif isinstance(node, StudentTNode):
-            self._fix_studentt(node)
-
-    def _fix_bernoulli(self, node: BernoulliNode) -> None:
-        """Ensure that a Bernoulli node's input is a probability
-and its samples are Boolean."""
-        if node.types_fixed:
-            return
-        if node.is_logits:
-            prob = self._ensure_real(node.probability)
-        else:
-            prob = self._ensure_probability(node.probability)
-        node.probability = prob
-        node.types_fixed = True
-
-    def _fix_binomial(self, node: BinomialNode) -> None:
-        """Ensure that a binomial node's inputs are a probability
-and a natural, and its samples are naturals."""
-        if node.types_fixed:
-            return
-        if node.is_logits:
-            raise ValueError("Logits binomial is not yet implemented.")
-            # prob = self._ensure_real(node.probability)
-        else:
-            prob = self._ensure_probability(node.probability)
-        node.count = self._ensure_natural(node.count)
-        node.probability = prob
-        node.types_fixed = True
-
-    def _fix_beta(self, node: BetaNode) -> None:
-        """Ensure that a beta node's inputs are positive
-reals, and its samples are probabilities."""
-        if node.types_fixed:
-            return
-        node.alpha = self._ensure_pos_real(node.alpha)
-        node.beta = self._ensure_pos_real(node.beta)
-        node.types_fixed = True
-
-    def _fix_half_cauchy(self, node: HalfCauchyNode) -> None:
-        """Ensure that a half Cauchy node's input is a positive
-reals, and its samples are positive reals."""
-
-        if node.types_fixed:
-            return
-        node.scale = self._ensure_pos_real(node.scale)
-        node.types_fixed = True
-
-    def _fix_normal(self, node: NormalNode) -> None:
-        """Ensure that a normal node's inputs are
-reals, and its samples are reals."""
-
-        if node.types_fixed:
-            return
-        node.mu = self._ensure_real(node.mu)
-        node.sigma = self._ensure_pos_real(node.sigma)
-        node.types_fixed = True
-
-    def _fix_studentt(self, node: StudentTNode) -> None:
-        """Ensure that a Student T node's inputs are
-correctly typed, and its samples are reals."""
-
-        if node.types_fixed:
-            return
-        node.df = self._ensure_pos_real(node.df)
-        node.loc = self._ensure_real(node.loc)
-        node.scale = self._ensure_pos_real(node.scale)
-        node.types_fixed = True
-
-    def _ensure_probability(self, node: BMGNode) -> BMGNode:
-        """Ensure that an arbitrary node is of type probability,
-possibly creating a new node."""
-        # The fixed type might already be correct.
-        self._fix_type(node)
-        if node.node_type == Probability:
-            return node
-        if isinstance(node, ConstantNode):
-            return self._constant_to_probability(node)
-        if node.node_type == bool:
-            return self._bool_to_probability(node)
-        raise ValueError("Conversion to probability node not yet implemented.")
-
-    def _bool_to_probability(self, node: BMGNode) -> BMGNode:
-        one = self.add_probability(1.0)
-        zero = self.add_probability(0.0)
-        return self.add_if_then_else(node, one, zero)
-
-    def _constant_to_probability(self, node: ConstantNode) -> ProbabilityNode:
-        if isinstance(node, TensorNode):
-            if node.value.shape.numel() != 1:
-                raise ValueError(
-                    "To use a tensor as a probability it must "
-                    + "have exactly one element."
-                )
-        v = float(node.value)
-        if v < 0.0 or v > 1.0:
-            raise ValueError("A probability must be between 0.0 and 1.0.")
-        return self.add_probability(v)
-
-    def _ensure_real(self, node: BMGNode) -> BMGNode:
-        """Ensure that an arbitrary node is of type real,
-possibly creating a new node."""
-
-        # The fixed type might already be correct.
-        self._fix_type(node)
-        if node.node_type == float:
-            return node
-        if isinstance(node, ConstantNode):
-            return self._constant_to_real(node)
-        if node.node_type == bool:
-            return self._bool_to_real(node)
-        raise ValueError("Conversion to real node not yet implemented.")
-
-    def _bool_to_real(self, node: BMGNode) -> BMGNode:
-        one = self.add_real(1.0)
-        zero = self.add_real(0.0)
-        return self.add_if_then_else(node, one, zero)
-
-    def _constant_to_real(self, node: ConstantNode) -> RealNode:
-        if isinstance(node, TensorNode):
-            if node.value.shape.numel() != 1:
-                raise ValueError(
-                    "To use a tensor as a real number it must "
-                    + "have exactly one element."
-                )
-        v = float(node.value)
-        return self.add_real(v)
-
-    def _ensure_pos_real(self, node: BMGNode) -> BMGNode:
-        """Ensure that an arbitrary node is of type positive real,
-possibly creating a new node."""
-
-        self._fix_type(node)
-        if node.node_type == PositiveReal:
-            return node
-        if isinstance(node, ConstantNode):
-            return self._constant_to_pos_real(node)
-        if node.node_type == bool:
-            return self._bool_to_pos_real(node)
-        raise ValueError("Conversion to positive real node not yet implemented.")
-
-    def _bool_to_pos_real(self, node: BMGNode) -> BMGNode:
-        one = self.add_pos_real(1.0)
-        zero = self.add_pos_real(0.0)
-        return self.add_if_then_else(node, one, zero)
-
-    def _constant_to_pos_real(self, node: ConstantNode) -> PositiveRealNode:
-        if isinstance(node, TensorNode):
-            if node.value.shape.numel() != 1:
-                raise ValueError(
-                    "To use a tensor as a positive real number it must "
-                    + "have exactly one element."
-                )
-        v = float(node.value)
-        if v < 0.0:
-            raise ValueError("A positive real must be greater than 0.0.")
-        return self.add_pos_real(v)
-
-    def _ensure_natural(self, node: BMGNode) -> BMGNode:
-        """Ensure that an arbitrary node is of type natural,
-possibly creating a new node."""
-        # The fixed type might already be correct.
-        self._fix_type(node)
-        if node.node_type == Natural:
-            return node
-        if isinstance(node, ConstantNode):
-            return self._constant_to_natural(node)
-        if node.node_type == bool:
-            return self._bool_to_natural(node)
-        raise ValueError("Conversion to natural node not yet implemented.")
-
-    def _bool_to_natural(self, node: BMGNode) -> BMGNode:
-        one = self.add_natural(1)
-        zero = self.add_natural(0)
-        return self.add_if_then_else(node, one, zero)
-
-    def _constant_to_natural(self, node: ConstantNode) -> NaturalNode:
-        # TODO: This is not necessary; we've already checked this in the
-        # caller. Remove it.
-        # The fixed type might already be correct.
-        self._fix_type(node)
-        if isinstance(node, TensorNode):
-            if node.value.shape.numel() != 1:
-                raise ValueError(
-                    "To use a tensor as a natural number it must "
-                    + "have exactly one element."
-                )
-        v = float(node.value)
-        if v < 0.0:
-            raise ValueError("A natural must be positive.")
-        if not v.is_integer():
-            raise ValueError("A natural must be an integer.")
-        return self.add_natural(int(v))

@@ -37,7 +37,7 @@ class StatisticalModel(object):
     @staticmethod
     def reset() -> World:
         """
-        Initialize world at the beginning of inference
+        Resets the world at the beginning of inference
         """
         StatisticalModel.__world_ = World()
         StatisticalModel.__mode_ = Mode.INITIALIZE
@@ -49,6 +49,13 @@ class StatisticalModel(object):
         :returns: __world_
         """
         return StatisticalModel.__world_
+
+    @staticmethod
+    def set_world(world) -> None:
+        """
+        :param world: the world to set the __world_ to
+        """
+        StatisticalModel.__world_ = world
 
     @staticmethod
     def get_mode() -> Mode:
@@ -122,7 +129,9 @@ class StatisticalModel(object):
         def wrapper(*args):
             if StatisticalModel.__mode_ == Mode.INITIALIZE:
                 return StatisticalModel.get_func_key(f, args)
-
+            world = StatisticalModel.__world_
+            if world.get_cache_functionals():
+                return world.update_cached_functionals(f, *args)
             return f(*args)
 
         f._wrapper = wrapper

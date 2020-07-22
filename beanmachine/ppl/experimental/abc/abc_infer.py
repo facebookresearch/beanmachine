@@ -23,6 +23,7 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
         distance_function: Union[Dict, Callable] = torch.dist,
         tolerance: Union[Dict, float] = 0.0,
         max_attempts_per_sample: int = 10000,
+        simulate: bool = False,
     ):
         """
         :param distance_function: This can be a single Callable method which will be applied to all
@@ -32,11 +33,12 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
         summay statistics, or a dict which would have the summary statistics as keys and the specific
         tolerances as values
         :param max_attempts_per_sample: number of attempts to make per sample before inference stops
+        :param simulate: if True, operate in simulation mode else perform inference
         """
-        super().__init__()
+        super().__init__(max_attempts_per_sample)
         self.distance_function = distance_function
         self.tolerance = tolerance
-        self.max_attempts_per_sample = max_attempts_per_sample
+        self.simulate = simulate
 
     def _single_inference_step(self) -> int:
         """
@@ -49,8 +51,13 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
         """
         self.world_ = StatisticalModel.reset()
         self.world_.set_initialize_from_prior(True)
+        self.world_.set_maintain_graph(False)
+        self.world_.set_cache_functionals(True)
         StatisticalModel.set_mode(Mode.INFERENCE)
-        # if a distance function was not passed, instantiate default distance
+        if self.simulate:
+            # in simulate mode, user passes obtained samples as observations and shall query nodes to be
+            # simulated. This required observations to set instead of being sampled from prior
+            self.world_.set_observations(self.observations_)
 
         for summary_statistic, observed_summary in self.observations_.items():
             # makes the call for the summary statistic node, which will run sample(node())
@@ -59,6 +66,10 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
             computed_summary = summary_statistic.function._wrapper(
                 *summary_statistic.arguments
             )
+            if self.simulate:
+                # if we are simulating, simply accept sample
+                self._accept_sample()
+                return 1
             # check if passed observation is a tensor, if not, cast it
             if not torch.is_tensor(observed_summary):
                 observed_summary = torch.tensor(observed_summary)

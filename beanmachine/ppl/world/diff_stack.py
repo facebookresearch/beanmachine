@@ -70,7 +70,29 @@ class DiffStack(object):
             len(self.diff_stack_) - 1
         ):
             self.diff_var_.add(node)
-            self.node_to_diffs_[node].append(len(self.diff_stack_) - 1)
+            self.node_to_diffs_[node].append(self.len() - 1)
+
+    def len(self) -> int:
+        """
+        :returns: the length of the diff stack
+        """
+        return len(self.diff_stack_)
+
+    def remove_last_diff(self) -> Diff:
+        """
+        Delete latest diff and returns the new latest diff
+
+        :returns: the new latest diff
+        """
+        diff_len = self.len() - 1
+        for node in self.diff_.vars():
+            node_indices = self.node_to_diffs_[node]
+            if diff_len in node_indices:
+                node_indices.remove(diff_len)
+
+        self.diff_ = self.diff_stack_[-2]
+        del self.diff_stack_[-1]
+        return self.diff_
 
     def get_diff_stack(self) -> List:
         """
@@ -91,6 +113,20 @@ class DiffStack(object):
         :returns: the latest diff on the stack.
         """
         return self.diff_stack_[-1]
+
+    def is_marked_for_delete(self, node: RVIdentifier) -> bool:
+        """
+        Get whether a node is marked for delete.
+
+        :param node: the RVIdentifier to be looked up in the diff stack.
+        :returns: whether a node is marked for delete.
+        """
+        if node in self.node_to_diffs_ and self.node_to_diffs_[node]:
+            diff_index = self.node_to_diffs_[node][-1]
+            if self.diff_stack_[diff_index].is_marked_for_delete(node):
+                return True
+
+        return False
 
     def get_node(self, node: RVIdentifier) -> Optional[Variable]:
         """

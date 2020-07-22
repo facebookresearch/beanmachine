@@ -18,7 +18,7 @@ types in the BMG type system are:
 Unknown       -- we largely do not need to worry about this one,
                  and it is more "undefined" than "unknown"
 Boolean       -- we can just use bool
-Real          -- we can just use float
+Real          -- we can just use float, but we'll make an alias Real
 Tensor        -- we can just use Tensor
 Probability   -- a real between 0.0 and 1.0
 Positive Real -- what it says on the tin
@@ -52,6 +52,9 @@ class Natural:
 
 class Malformed:
     pass
+
+
+Real = float
 
 
 """
@@ -167,37 +170,37 @@ _lookup = {
     (bool, Natural): Natural,
     (bool, Probability): Probability,
     (bool, PositiveReal): PositiveReal,
-    (bool, float): float,
+    (bool, Real): Real,
     (bool, Tensor): Tensor,
     (Natural, bool): Natural,
     (Natural, Natural): Natural,
     (Natural, Probability): PositiveReal,
     (Natural, PositiveReal): PositiveReal,
-    (Natural, float): float,
+    (Natural, Real): Real,
     (Natural, Tensor): Tensor,
     (Probability, bool): Probability,
     (Probability, Natural): PositiveReal,
     (Probability, Probability): Probability,
     (Probability, PositiveReal): PositiveReal,
-    (Probability, float): float,
+    (Probability, Real): Real,
     (Probability, Tensor): Tensor,
     (PositiveReal, bool): PositiveReal,
     (PositiveReal, Natural): PositiveReal,
     (PositiveReal, Probability): PositiveReal,
     (PositiveReal, PositiveReal): PositiveReal,
-    (PositiveReal, float): float,
+    (PositiveReal, Real): Real,
     (PositiveReal, Tensor): Tensor,
-    (float, bool): float,
-    (float, Natural): float,
-    (float, Probability): float,
-    (float, PositiveReal): float,
-    (float, float): float,
-    (float, Tensor): Tensor,
+    (Real, bool): Real,
+    (Real, Natural): Real,
+    (Real, Probability): Real,
+    (Real, PositiveReal): Real,
+    (Real, Real): Real,
+    (Real, Tensor): Tensor,
     (Tensor, bool): Tensor,
     (Tensor, Natural): Tensor,
     (Tensor, Probability): Tensor,
     (Tensor, PositiveReal): Tensor,
-    (Tensor, float): Tensor,
+    (Tensor, Real): Tensor,
     (Tensor, Tensor): Tensor,
 }
 
@@ -233,7 +236,7 @@ def type_of_value(v: Any) -> type:
             return bool
         if v >= 2:
             return Natural
-        return float
+        return Real
     if isinstance(v, float):
         if v == int(v):
             return type_of_value(int(v))
@@ -241,7 +244,7 @@ def type_of_value(v: Any) -> type:
             if v <= 1.0:
                 return Probability
             return PositiveReal
-        return float
+        return Real
     raise ValueError("Unexpected value passed to type_of_value")
 
 
@@ -273,15 +276,63 @@ class UpperBound:
         self.bound = bound
 
 
-@memoize
-def upper_bound(bound: type) -> UpperBound:
-    return UpperBound(bound)
-
-
 Requirement = Union[type, UpperBound]
 
 
+@memoize
+def upper_bound(bound: Requirement) -> UpperBound:
+    if isinstance(bound, UpperBound):
+        return bound
+    return UpperBound(bound)
+
+
 def meets_requirement(t: type, r: Requirement) -> bool:
+    # A malformed node meets no requirements
+    if t == Malformed:
+        return False
     if isinstance(r, UpperBound):
         return _supremum(t, r.bound) == r.bound
     return t == r
+
+
+_type_names = {
+    bool: "bool",
+    Malformed: "malformed",
+    Natural: "natural",
+    PositiveReal: "positive real",
+    Real: "real",
+    Probability: "probability",
+    Tensor: "tensor",
+}
+
+_short_type_names = {
+    bool: "B",
+    Malformed: "M",
+    Natural: "N",
+    PositiveReal: "R+",
+    Real: "R",
+    Probability: "P",
+    Tensor: "T",
+}
+
+
+def name_of_type(t: type) -> str:
+    return _type_names[t]
+
+
+def short_name_of_type(t: type) -> str:
+    return _short_type_names[t]
+
+
+def name_of_requirement(r: Requirement) -> str:
+    if isinstance(r, UpperBound):
+        return "<=" + name_of_requirement(r.bound)
+    assert isinstance(r, type)
+    return name_of_type(r)
+
+
+def short_name_of_requirement(r: Requirement) -> str:
+    if isinstance(r, UpperBound):
+        return "<=" + short_name_of_requirement(r.bound)
+    assert isinstance(r, type)
+    return short_name_of_type(r)

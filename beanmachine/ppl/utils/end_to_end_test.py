@@ -21,7 +21,15 @@ source_1 = """
 import beanmachine.ppl as bm
 import torch
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal, StudentT
+from torch.distributions import (
+    Bernoulli,
+    Beta,
+    Binomial,
+    Gamma,
+    HalfCauchy,
+    Normal,
+    StudentT,
+)
 
 @bm.random_variable
 def flip_straight_constant():
@@ -58,6 +66,10 @@ def student_t():
 @bm.random_variable
 def bin_constant():
   return Binomial(3, 0.5)
+
+@bm.random_variable
+def gamma():
+  return Gamma(1.0, 2.0)
 
 """
 
@@ -124,6 +136,13 @@ uint n22 = g.add_distribution(
   std::vector<uint>({n21, n0}));
 uint n23 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n22}));
+uint n24 = g.add_constant_pos_real(2.0);
+uint n25 = g.add_distribution(
+  graph::DistributionType::GAMMA,
+  graph::AtomicType::POS_REAL,
+  std::vector<uint>({n7, n24}));
+uint n26 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
 """
 
 expected_bmg_1 = """
@@ -134,7 +153,7 @@ Node 3 type 1 parents [ ] children [ 4 ] probability value 0.119203
 Node 4 type 2 parents [ 3 ] children [ 5 ] unknown value
 Node 5 type 3 parents [ 4 ] children [ ] boolean value 0
 Node 6 type 1 parents [ ] children [ 8 ] real value 0
-Node 7 type 1 parents [ ] children [ 8 12 12 14 ] pos real value 1
+Node 7 type 1 parents [ ] children [ 8 12 12 14 25 ] pos real value 1
 Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown value
 Node 9 type 3 parents [ 8 ] children [ 10 19 ] real value 0
 Node 10 type 2 parents [ 9 ] children [ 11 ] unknown value
@@ -151,6 +170,9 @@ Node 20 type 3 parents [ 19 ] children [ ] real value 0
 Node 21 type 1 parents [ ] children [ 22 ] natural value 3
 Node 22 type 2 parents [ 21 0 ] children [ 23 ] unknown value
 Node 23 type 3 parents [ 22 ] children [ ] natural value 0
+Node 24 type 1 parents [ ] children [ 25 ] pos real value 2
+Node 25 type 2 parents [ 7 24 ] children [ 26 ] unknown value
+Node 26 type 3 parents [ 25 ] children [ ] pos real value 0
 """
 
 expected_python_1 = """
@@ -208,6 +230,12 @@ n22 = g.add_distribution(
   graph.AtomicType.NATURAL,
   [n21, n0])
 n23 = g.add_operator(graph.OperatorType.SAMPLE, [n22])
+n24 = g.add_constant_pos_real(2.0)
+n25 = g.add_distribution(
+  graph.DistributionType.GAMMA,
+  graph.AtomicType.POS_REAL,
+  [n7, n24])
+n26 = g.add_operator(graph.OperatorType.SAMPLE, [n25])
 """
 
 # These are cases where we have a type conversion on a sample.
@@ -244,60 +272,50 @@ uint n1 = g.add_distribution(
   std::vector<uint>({n0}));
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
-uint n3 = g.add_constant(1.0);
-uint n4 = g.add_constant(0.0);
-n5 = g.add_operator(
-  graph::OperatorType::IF_THEN_ELSE,
-  std::vector<uint>({n2, n3, n4}));
-uint n6 = g.add_constant_pos_real(1.0);
-uint n7 = g.add_constant_pos_real(0.0);
-n8 = g.add_operator(
-  graph::OperatorType::IF_THEN_ELSE,
-  std::vector<uint>({n2, n6, n7}));
-uint n9 = g.add_distribution(
+uint n3 = g.add_operator(
+  graph::OperatorType::TO_REAL, std::vector<uint>({n2}));
+uint n4 = g.add_operator(
+  graph::OperatorType::TO_POS_REAL, std::vector<uint>({n2}));
+uint n5 = g.add_distribution(
   graph::DistributionType::NORMAL,
   graph::AtomicType::REAL,
-  std::vector<uint>({n5, n8}));
-uint n10 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n9}));
-uint n11 = g.add_constant(1);
-uint n12 = g.add_constant(0);
-n13 = g.add_operator(
+  std::vector<uint>({n3, n4}));
+uint n6 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n5}));
+uint n7 = g.add_constant(1);
+uint n8 = g.add_constant(0);
+n9 = g.add_operator(
   graph::OperatorType::IF_THEN_ELSE,
-  std::vector<uint>({n2, n11, n12}));
-uint n14 = g.add_constant_probability(1.0);
-uint n15 = g.add_constant_probability(0.0);
-n16 = g.add_operator(
+  std::vector<uint>({n2, n7, n8}));
+uint n10 = g.add_constant_probability(1.0);
+uint n11 = g.add_constant_probability(0.0);
+n12 = g.add_operator(
   graph::OperatorType::IF_THEN_ELSE,
-  std::vector<uint>({n2, n14, n15}));
-uint n17 = g.add_distribution(
+  std::vector<uint>({n2, n10, n11}));
+uint n13 = g.add_distribution(
   graph::DistributionType::BINOMIAL,
   graph::AtomicType::NATURAL,
-  std::vector<uint>({n13, n16}));
-uint n18 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n17}));
+  std::vector<uint>({n9, n12}));
+uint n14 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n13}));
 """
 
 expected_bmg_2 = """
 Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
 Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
-Node 2 type 3 parents [ 1 ] children [ 5 8 13 16 ] boolean value 0
-Node 3 type 1 parents [ ] children [ 5 ] real value 1
-Node 4 type 1 parents [ ] children [ 5 ] real value 0
-Node 5 type 3 parents [ 2 3 4 ] children [ 9 ] real value 0
-Node 6 type 1 parents [ ] children [ 8 ] pos real value 1
-Node 7 type 1 parents [ ] children [ 8 ] pos real value 1e-10
-Node 8 type 3 parents [ 2 6 7 ] children [ 9 ] pos real value 0
-Node 9 type 2 parents [ 5 8 ] children [ 10 ] unknown value
-Node 10 type 3 parents [ 9 ] children [ ] real value 0
-Node 11 type 1 parents [ ] children [ 13 ] natural value 1
-Node 12 type 1 parents [ ] children [ 13 ] natural value 0
-Node 13 type 3 parents [ 2 11 12 ] children [ 17 ] natural value 0
-Node 14 type 1 parents [ ] children [ 16 ] probability value 1
-Node 15 type 1 parents [ ] children [ 16 ] probability value 1e-10
-Node 16 type 3 parents [ 2 14 15 ] children [ 17 ] probability value 0
-Node 17 type 2 parents [ 13 16 ] children [ 18 ] unknown value
-Node 18 type 3 parents [ 17 ] children [ ] natural value 0
+Node 2 type 3 parents [ 1 ] children [ 3 4 9 12 ] boolean value 0
+Node 3 type 3 parents [ 2 ] children [ 5 ] real value 0
+Node 4 type 3 parents [ 2 ] children [ 5 ] pos real value 0
+Node 5 type 2 parents [ 3 4 ] children [ 6 ] unknown value
+Node 6 type 3 parents [ 5 ] children [ ] real value 0
+Node 7 type 1 parents [ ] children [ 9 ] natural value 1
+Node 8 type 1 parents [ ] children [ 9 ] natural value 0
+Node 9 type 3 parents [ 2 7 8 ] children [ 13 ] natural value 0
+Node 10 type 1 parents [ ] children [ 12 ] probability value 1
+Node 11 type 1 parents [ ] children [ 12 ] probability value 1e-10
+Node 12 type 3 parents [ 2 10 11 ] children [ 13 ] probability value 0
+Node 13 type 2 parents [ 9 12 ] children [ 14 ] unknown value
+Node 14 type 3 parents [ 13 ] children [ ] natural value 0
 """
 
 expected_python_2 = """
@@ -310,36 +328,82 @@ n1 = g.add_distribution(
   graph.AtomicType.BOOLEAN,
   [n0])
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
-n3 = g.add_constant(1.0)
-n4 = g.add_constant(0.0)
-n5 = g.add_operator(
-  graph.OperatorType.IF_THEN_ELSE,
-  [n2, n3, n4])
-n6 = g.add_constant_pos_real(1.0)
-n7 = g.add_constant_pos_real(0.0)
-n8 = g.add_operator(
-  graph.OperatorType.IF_THEN_ELSE,
-  [n2, n6, n7])
-n9 = g.add_distribution(
+n3 = g.add_operator(graph.OperatorType.TO_REAL, [n2])
+n4 = g.add_operator(graph.OperatorType.TO_POS_REAL, [n2])
+n5 = g.add_distribution(
   graph.DistributionType.NORMAL,
   graph.AtomicType.REAL,
-  [n5, n8])
-n10 = g.add_operator(graph.OperatorType.SAMPLE, [n9])
-n11 = g.add_constant(1)
-n12 = g.add_constant(0)
-n13 = g.add_operator(
+  [n3, n4])
+n6 = g.add_operator(graph.OperatorType.SAMPLE, [n5])
+n7 = g.add_constant(1)
+n8 = g.add_constant(0)
+n9 = g.add_operator(
   graph.OperatorType.IF_THEN_ELSE,
-  [n2, n11, n12])
-n14 = g.add_constant_probability(1.0)
-n15 = g.add_constant_probability(0.0)
-n16 = g.add_operator(
+  [n2, n7, n8])
+n10 = g.add_constant_probability(1.0)
+n11 = g.add_constant_probability(0.0)
+n12 = g.add_operator(
   graph.OperatorType.IF_THEN_ELSE,
-  [n2, n14, n15])
-n17 = g.add_distribution(
+  [n2, n10, n11])
+n13 = g.add_distribution(
   graph.DistributionType.BINOMIAL,
   graph.AtomicType.NATURAL,
-  [n13, n16])
-n18 = g.add_operator(graph.OperatorType.SAMPLE, [n17])
+  [n9, n12])
+n14 = g.add_operator(graph.OperatorType.SAMPLE, [n13])
+"""
+
+# Here we multiply a bool by a natural, and then use that as a natural.
+# This cannot be turned into a BMG that uses multiplication because
+# there is no multiplication defined on naturals or bools; the best
+# we could do as a multiplication is to turn both into a positive real
+# and multiply those.  But we *can* turn this into an if-then-else
+# that takes a bool and returns either the given natural or zero,
+# so that's what we'll do.
+
+source_3 = """
+import beanmachine.ppl as bm
+import torch
+from torch import tensor
+from torch.distributions import Bernoulli, Binomial
+
+@bm.random_variable
+def flip():
+  return Bernoulli(0.5)
+
+@bm.random_variable
+def nat():
+  return Binomial(2, 0.5)
+
+@bm.random_variable
+def bin():
+  return Binomial(nat() * flip(), 0.5)
+"""
+
+expected_python_3 = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_probability(0.5)
+n1 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_constant(2)
+n4 = g.add_distribution(
+  graph.DistributionType.BINOMIAL,
+  graph.AtomicType.NATURAL,
+  [n3, n0])
+n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+n6 = g.add_constant(0)
+n7 = g.add_operator(
+  graph.OperatorType.IF_THEN_ELSE,
+  [n2, n5, n6])
+n8 = g.add_distribution(
+  graph.DistributionType.BINOMIAL,
+  graph.AtomicType.NATURAL,
+  [n7, n0])
+n9 = g.add_operator(graph.OperatorType.SAMPLE, [n8])
 """
 
 
@@ -379,3 +443,9 @@ class EndToEndTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_python(source_2)
         self.assertEqual(observed.strip(), expected_python_2.strip())
+
+    def test_to_python_3(self) -> None:
+        """test_to_python_3 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_python(source_3)
+        self.assertEqual(observed.strip(), expected_python_3.strip())

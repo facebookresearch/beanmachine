@@ -13,6 +13,7 @@ Bean Machine is a probabilistic programming language for inference over statisti
 
     git clone https://github.com/facebookincubator/BeanMachine.git
     cd BeanMachine
+    apt-get install libboost-all-dev
     pip install numpy torch
     python setup.py install
 

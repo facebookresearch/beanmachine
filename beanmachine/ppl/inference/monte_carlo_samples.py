@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.abs
 
 import copy
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from beanmachine.ppl.inference.monte_carlo_samples_data import MonteCarloSamplesData
 from beanmachine.ppl.model.utils import RVIdentifier
@@ -17,7 +17,11 @@ class MonteCarloSamples(object):
     """
 
     def __init__(
-        self, chain_results: List[Dict[RVIdentifier, Tensor]], num_adaptive_samples=0
+        self,
+        chain_results: Union[
+            List[Dict[RVIdentifier, Tensor]], Dict[RVIdentifier, Tensor]
+        ],
+        num_adaptive_samples=0,
     ):
         self.data = MonteCarloSamplesData(chain_results)
         self.chain = None
@@ -93,3 +97,9 @@ class MonteCarloSamples(object):
         :returns: the number of chains run during inference
         """
         return self.data.num_chains
+
+    def get_num_samples(self) -> int:
+        """
+        :returns: the number of samples run during inference
+        """
+        return len(next(iter(self.data.rv_dict.values())))

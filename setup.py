@@ -27,6 +27,9 @@ TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 EXTRA_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
 
+BOOST_HEADER = "/boost/math/special_functions/polygamma.hpp"
+
+
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
     error = (
@@ -51,6 +54,35 @@ with open(init_file, "r") as f:
 # read in README.md as the long description
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+
+def find_include_dirs():
+    inc_dir = {os.getcwd()}
+    if "--boost_include_dir" in sys.argv:
+        index = sys.argv.index("--boost_include_dir")
+        sys.argv.pop(index)
+        dir_candidate = sys.argv.pop(index)
+        header_dir = dir_candidate + BOOST_HEADER
+        if os.path.isfile(header_dir):
+            inc_dir.add(dir_candidate)
+            return list(inc_dir)
+        raise FileNotFoundError("Boost is not found in the given directory.")
+    if sys.platform == "win32":
+        raise ValueError("Please provide a valid --boost_include_dir.")
+    locs = os.popen("whereis boost").read().split(" ")
+    for loc in locs:
+        dir_candidate = os.path.dirname(loc)
+        header_dir = dir_candidate + BOOST_HEADER
+        if os.path.isfile(header_dir):
+            inc_dir.add(dir_candidate)
+            return list(inc_dir)
+    raise FileNotFoundError(
+        "Boost is not found. Please install Boost first,"
+        + " then provide a valid --boost_include_dir."
+    )
+
+
+bmg_inc_dir = find_include_dirs()
 
 setup(
     name="BeanMachine",
@@ -101,7 +133,7 @@ setup(
                 set(glob("beanmachine/graph/**/*.cpp", recursive=True))
                 - set(glob("beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
-            include_dirs=[os.getcwd()],
+            include_dirs=bmg_inc_dir,
             extra_compile_args=EXTRA_COMPILE_ARGS,
         ),
         CppExtension(

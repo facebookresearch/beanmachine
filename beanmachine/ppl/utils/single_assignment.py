@@ -29,6 +29,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     subscript,
     unaryop,
 )
+from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.patterns import (
     HeadTail,
     ListAll,
@@ -56,6 +57,18 @@ _list_not_starred: PatternBase = ListAny(_not_starred)
 _list_all_identifiers: PatternBase = ListAll(name())
 _not_identifier_keyword: Pattern = keyword(value=_not_identifier)
 _not_identifier_keywords: PatternBase = ListAny(_not_identifier_keyword)
+
+# TODO: The identifier "dict" should be made global unique in target name space
+_keyword_with_dict = keyword(arg=None, value=call(func=name(id="dict"), args=[]))
+_keyword_with_no_arg = keyword(arg=None)
+_not_keyword_with_no_arg = negate(_keyword_with_no_arg)
+_list_not_keyword_with_no_arg = ListAny(_not_keyword_with_no_arg)
+_keyword_with_arg = keyword(arg=negate(None))
+_list_with_keyword_with_arg = ListAny(_keyword_with_arg)
+# _not_in_allowed_functions: Pattern = negate(name(id="dict"))
+_not_in_allowed_functions: Pattern = negate(
+    match_any(*[name(id=t.__name__) for t in allowed_functions])
+)
 
 _binops: Pattern = match_any(
     ast.Add,
@@ -224,6 +237,30 @@ class SingleAssignment:
         rewritten = (
             original[:index]
             + [ast.Starred(ast.List(elts=[value], ctx=ast.Load()), ast.Load())]
+            + original[index + 1 :]
+        )
+
+        return rewritten
+
+    # TODO: The identifier "dict" should be made global unique in target name space
+    def _splice_non_double_starred(
+        self, original: List[ast.keyword]
+    ) -> List[ast.keyword]:
+        index, value = next(
+            (i, v) for i, v in enumerate(original) if match(_keyword_with_arg, v)
+        )
+        rewritten = (
+            original[:index]
+            + [
+                ast.keyword(
+                    arg=None,
+                    value=ast.Call(
+                        func=ast.Name(id="dict", ctx=ast.Load()),
+                        args=[],
+                        keywords=[value],
+                    ),
+                )
+            ]
             + original[index + 1 :]
         )
 
@@ -567,6 +604,43 @@ class SingleAssignment:
             "handle_assign_call_two_star_args",
         )
 
+    def _handle_assign_call_two_double_star_args(self) -> Rule:
+        # Rewrite x = f(**{a:1},**{b:3})
+        #  into   x = f(**dict(**{a: 1}, **{b: 3}))
+        # Note: Since we are not lifting, no restriction needed on func or args
+        # TODO: Ideally, would like to merge [1].ctx with the [0].ctx below
+        # TODO: The identifier "dict" should be made global unique in target name space
+        return PatternRule(
+            assign(
+                value=call(
+                    func=_not_in_allowed_functions,
+                    keywords=HeadTail(
+                        _keyword_with_no_arg, HeadTail(_keyword_with_no_arg, anyPattern)
+                    ),
+                )
+            ),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=source_term.value.args,
+                    keywords=[
+                        ast.keyword(
+                            arg=None,
+                            value=ast.Call(
+                                func=ast.Name(id="dict", ctx=ast.Load()),
+                                args=[],
+                                keywords=[source_term.value.keywords[0]]
+                                + [source_term.value.keywords[1]],
+                            ),
+                        )
+                    ]
+                    + source_term.value.keywords[2:],
+                ),
+            ),
+            "handle_assign_call_two_double_star_args",
+        )
+
     def _handle_assign_call_regular_arg(self) -> Rule:
         # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
         return PatternRule(
@@ -582,10 +656,34 @@ class SingleAssignment:
             "_handle_assign_call_regular_arg",
         )
 
+    def _handle_assign_call_keyword_arg(self) -> Rule:
+        # Rewrite x = f(k=42) into x = f(**dict(k=42))
+        # TODO: The identifier "dict" should be made global unique in target name space
+
+        return PatternRule(
+            assign(
+                value=call(
+                    func=_not_in_allowed_functions, keywords=_list_with_keyword_with_arg
+                )
+            ),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=source_term.value.args,
+                    keywords=self._splice_non_double_starred(
+                        source_term.value.keywords
+                    ),
+                ),
+            ),
+            "_handle_assign_call_keyword_arg",
+        )
+
     def _handle_assign_call_empty_regular_arg(self) -> Rule:
         # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
+        # TODO: The identifier "dict" should be made global unique in target name space
         return PatternRule(
-            assign(value=call(args=[])),
+            assign(value=call(func=_not_in_allowed_functions, args=[])),
             lambda source_term: ast.Assign(
                 targets=source_term.targets,
                 value=ast.Call(
@@ -597,23 +695,23 @@ class SingleAssignment:
             "_handle_assign_call_empty_regular_arg",
         )
 
-    def _handle_asign_call_keyword(self) -> Rule:
-        # If we have t = foo(a, b, z=123) rewrite that to
-        # t1 = 123, t = foo(a, b, t1),
-        # but do it after we've rewriten the receiver and the
-        # positional arguments.
-        # TODO: This will eventually be phased out with new strategy
-        # TODO: Will require changing at least 2 test case
+    def _handle_assign_call_empty_keyward_arg(self) -> Rule:
+        # Rewrite x = f(1) into x = f(1,**{})
+        # Basically, ensure that any call has at least one ** argument
+        # TODO: The identifier "dict" should be made global unique in target name space
         return PatternRule(
-            assign(
-                value=call(
-                    func=name(),
-                    args=_list_all_identifiers,
-                    keywords=_not_identifier_keywords,
-                )
+            assign(value=call(func=_not_in_allowed_functions, keywords=[])),
+            lambda source_term: ast.Assign(
+                targets=source_term.targets,
+                value=ast.Call(
+                    func=source_term.value.func,
+                    args=source_term.value.args,
+                    keywords=[
+                        ast.keyword(arg=None, value=ast.Dict(keys=[], values=[]))
+                    ],
+                ),
             ),
-            self._transform_call_keyword(),
-            "handle_assign_call_keyword",
+            "_handle_assign_call_empty_keyword_arg",
         )
 
     def _handle_handle_assign_attribute(self) -> Rule:
@@ -676,8 +774,6 @@ class SingleAssignment:
                 self._handle_assign_tuple(),
                 self._handle_assign_dictionary_keys(),
                 self._handle_assign_dictionary_values(),
-                # TODO: Following will be replaced with new approach
-                self._handle_asign_call_keyword(),
                 # Acceptable rules for handling function calls
                 self._handle_assign_call_function_expression(),
                 #  Rules for regular arguments
@@ -687,6 +783,9 @@ class SingleAssignment:
                 self._handle_assign_call_empty_regular_arg(),
                 #  Rules for keyword arguments
                 self._handle_assign_call_single_double_star_arg(),
+                self._handle_assign_call_two_double_star_args(),
+                self._handle_assign_call_keyword_arg(),
+                self._handle_assign_call_empty_keyward_arg(),
             ]
         )
 

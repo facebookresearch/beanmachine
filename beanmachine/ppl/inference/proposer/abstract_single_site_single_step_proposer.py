@@ -61,7 +61,7 @@ class AbstractSingleSiteSingleStepProposer(
         if requires_transform:
             new_value = node_var.inverse_transform_value(new_value)
             negative_proposal_log_update = (
-                negative_proposal_log_update + node_var.jacobian
+                negative_proposal_log_update - node_var.jacobian
             )
 
         # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor, Dict[typing.Any,
@@ -106,7 +106,7 @@ class AbstractSingleSiteSingleStepProposer(
         positive_log_update = safe_log_prob_sum(proposal_distribution, old_value)
 
         if requires_transform:
-            positive_log_update = positive_log_update - node_var.jacobian
+            positive_log_update = positive_log_update + node_var.jacobian
 
         return positive_log_update
 

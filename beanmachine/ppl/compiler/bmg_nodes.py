@@ -15,23 +15,14 @@ from beanmachine.ppl.compiler.bmg_types import (
     Natural,
     PositiveReal,
     Probability,
+    Real,
     Requirement,
     supremum,
     type_of_value,
     upper_bound,
 )
+from beanmachine.ppl.compiler.internal_error import InternalError
 from torch import Tensor, tensor
-from torch.distributions import (
-    Bernoulli,
-    Beta,
-    Binomial,
-    Categorical,
-    Dirichlet,
-    HalfCauchy,
-    Normal,
-    StudentT,
-    Uniform,
-)
 from torch.distributions.utils import broadcast_all
 
 
@@ -68,18 +59,10 @@ class BMGNode(ABC):
     def __init__(self, children: List["BMGNode"]):
         self.children = children
 
-    # TODO: I have worked out a new type inference algorithm which
-    # uses the *infimum type* of a node; once that algorithm
-    # is implemented, this property and all implementations of it
-    # can be removed.
     @property
     @abstractmethod
-    def node_type(self) -> Any:
-        """The type information associated with this node.
-Every node has an associated type; before the type fixing phase
-the type is the data type as it would be in the original
-Python model. After type fixing it is the type in the BMG type
-system."""
+    def graph_type(self) -> type:
+        """The type of the node in the graph type system."""
         pass
 
     @property
@@ -113,28 +96,33 @@ If the node represents a scalar value then produce Size([])."""
 for graph visualization and debugging."""
         pass
 
-    @abstractmethod
+    # Many of the node types defined in this module have no direct counterparts
+    # in BMG; they are generated during execution of the model and accumulated
+    # into a graph builder. They must then be transformed into semantically-
+    # equivalent supported nodes.
+
+    def _supported_in_bmg(self) -> bool:
+        return False
+
     def _add_to_graph(self, g: Graph, d: Dict["BMGNode", int]) -> int:
         """This adds a node to an in-memory BMG instance. Each node
 in BMG is associated with an integer handle; this returns
 the handle for this node assigned by BMG."""
-        pass
+        raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
-    @abstractmethod
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         """We can emit the graph as a Python program which, when executed,
 builds a BMG instance. This method returns a string of Python
 code to construct this node. The dictionary associates a unique
 integer with each node that can be used to construct an identifier."""
-        pass
+        raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
-    @abstractmethod
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         """We can emit the graph as a C++ program which, when executed,
 builds a BMG instance. This method returns a string of C++
 code to construct this node. The dictionary associates a unique
 integer with each node that can be used to construct an identifier."""
-        pass
+        raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
     @abstractmethod
     def support(self) -> Iterator[Any]:
@@ -234,6 +222,9 @@ the "positive real" 1.0, the "probability" 1.0 and the
     def _value_to_python(self) -> str:
         pass
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         v = _value_to_cpp(self.value)
@@ -262,7 +253,7 @@ class BooleanNode(ConstantNode):
         return str(self.value)
 
     @property
-    def node_type(self) -> Any:
+    def graph_type(self) -> type:
         return bool
 
     @property
@@ -296,7 +287,7 @@ class NaturalNode(ConstantNode):
         return str(self.value)
 
     @property
-    def node_type(self) -> Any:
+    def graph_type(self) -> type:
         return Natural
 
     @property
@@ -337,7 +328,7 @@ class PositiveRealNode(ConstantNode):
         return str(self.value)
 
     @property
-    def node_type(self) -> Any:
+    def graph_type(self) -> type:
         return PositiveReal
 
     @property
@@ -378,7 +369,7 @@ class ProbabilityNode(ConstantNode):
         return str(self.value)
 
     @property
-    def node_type(self) -> Any:
+    def graph_type(self) -> type:
         return Probability
 
     @property
@@ -419,8 +410,8 @@ class RealNode(ConstantNode):
         return str(self.value)
 
     @property
-    def node_type(self) -> Any:
-        return float
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def size(self) -> torch.Size:
@@ -465,9 +456,8 @@ class TensorNode(ConstantNode):
             return TensorNode._tensor_to_python(t)
         return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
 
-    # TODO: Do tensor types need to describe their contents?
     @property
-    def node_type(self) -> Any:
+    def graph_type(self) -> type:
         return Tensor
 
     @property
@@ -498,31 +488,8 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
     """This is the base class for all nodes that represent
 probability distributions."""
 
-    # TODO: When the type checking algorithm is rewritten, this
-    # attribute can be removed.
-    types_fixed: bool
-
     def __init__(self, children: List[BMGNode]):
-        self.types_fixed = False
         BMGNode.__init__(self, children)
-
-    # Distribution nodes do not have a type themselves.
-    # (In BMG they have type "unknown", but "no type" would be
-    # a more accurate way to characterize it.)
-    # However, we do know the type that will be produced when
-    # sampling this distribution, and we need that information to
-    # correctly assign a type to SampleNodes.
-    #
-    # The node_type property of a distribution will return the
-    # Python type that was used to construct the distribution in
-    # the original model.
-
-    # TODO: I am working on developing a new type inference algorithm;
-    # when it is implemented we will no longer need sample_type, so
-    # this should be deleted then.
-    @abstractmethod
-    def sample_type(self) -> Any:
-        pass
 
 
 class BernoulliNode(DistributionNode):
@@ -556,8 +523,8 @@ we generate a different node in BMG."""
         self.children[0] = p
 
     @property
-    def node_type(self) -> Any:
-        return Bernoulli
+    def graph_type(self) -> type:
+        return bool
 
     @property
     def inf_type(self) -> type:
@@ -567,18 +534,11 @@ we generate a different node in BMG."""
     def requirements(self) -> List[Requirement]:
         # The input to a Bernoulli must be exactly a real number if "logits",
         # and otherwise must be a Probability.
-        return [float if self.is_logits else Probability]
+        return [Real if self.is_logits else Probability]
 
     @property
     def size(self) -> torch.Size:
-        if self.types_fixed:
-            return torch.Size([])
         return self.probability.size
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return bool
-        return self.probability.node_type
 
     @property
     def label(self) -> str:
@@ -586,6 +546,9 @@ we generate a different node in BMG."""
 
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         dist_type = dt.BERNOULLI_LOGIT if self.is_logits else dt.BERNOULLI
@@ -610,8 +573,6 @@ we generate a different node in BMG."""
         )
 
     def support(self) -> Iterator[Any]:
-        if self.types_fixed:
-            return [False, True]
         s = self.size
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
 
@@ -642,8 +603,8 @@ so is useful for creating probabilities."""
         self.children[1] = p
 
     @property
-    def node_type(self) -> Any:
-        return Beta
+    def graph_type(self) -> type:
+        return Probability
 
     @property
     def inf_type(self) -> type:
@@ -653,11 +614,6 @@ so is useful for creating probabilities."""
     def requirements(self) -> List[Requirement]:
         # Both inputs to a beta must be positive reals
         return [PositiveReal, PositiveReal]
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return Probability
-        return self.alpha.node_type
 
     @property
     def size(self) -> torch.Size:
@@ -669,6 +625,9 @@ so is useful for creating probabilities."""
 
     def __str__(self) -> str:
         return f"Beta({str(self.alpha)},{str(self.beta)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -747,8 +706,8 @@ we generate a different node in BMG."""
         self.children[1] = p
 
     @property
-    def node_type(self) -> Any:
-        return Binomial
+    def graph_type(self) -> type:
+        return Natural
 
     @property
     def inf_type(self) -> type:
@@ -759,20 +718,13 @@ we generate a different node in BMG."""
         # The left input to a binomial must be a natural; the right
         # input must be a real number if "logits" and a Probability
         # otherwise.
-        return [Natural, float if self.is_logits else Probability]
+        return [Natural, Real if self.is_logits else Probability]
 
     @property
     def size(self) -> torch.Size:
-        if self.types_fixed:
-            return torch.Size([])
         return broadcast_all(
             torch.zeros(self.count.size), torch.zeros(self.probability.size)
         ).size()
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return Natural
-        return Tensor
 
     @property
     def label(self) -> str:
@@ -781,14 +733,21 @@ we generate a different node in BMG."""
     def __str__(self) -> str:
         return f"Binomial({self.count}, {self.probability})"
 
+    def _supported_in_bmg(self) -> bool:
+        return not self.is_logits
+
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         # TODO: Fix this when we support binomial logits.
+        if self.is_logits:
+            raise InternalError("Binomial with logits is not supported in BMG.")
         return g.add_distribution(
             dt.BINOMIAL, AtomicType.NATURAL, [d[self.count], d[self.probability]]
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
+        if self.is_logits:
+            raise InternalError("Binomial with logits is not supported in BMG.")
         return (
             f"n{d[self]} = g.add_distribution(\n"
             + "  graph.DistributionType.BINOMIAL,\n"
@@ -798,6 +757,8 @@ we generate a different node in BMG."""
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
+        if self.is_logits:
+            raise InternalError("Binomial with logits is not supported in BMG.")
         return (
             f"uint n{d[self]} = g.add_distribution(\n"
             + "  graph::DistributionType::BINOMIAL,\n"
@@ -890,8 +851,8 @@ we generate a different node in BMG."""
         self.children[0] = p
 
     @property
-    def node_type(self) -> Any:
-        return Categorical
+    def graph_type(self) -> Any:
+        return Natural
 
     @property
     def inf_type(self) -> type:
@@ -909,47 +870,12 @@ we generate a different node in BMG."""
     def size(self) -> torch.Size:
         return self.probability.size[0:-1]
 
-    def sample_type(self) -> Any:
-        # TODO: When we support bounded integer types
-        # TODO: this should indicate that it is a tensor
-        # TODO: of bound integers.
-        return self.probability.node_type
-
     @property
     def label(self) -> str:
         return "Categorical" + ("(logits)" if self.is_logits else "")
 
     def __str__(self) -> str:
         return "Categorical(" + str(self.probability) + ")"
-
-    # TODO: Delete this cut-n-pasted incorrect code and just
-    # raise errors instead to indicate that this feature is not
-    # yet implemented
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: Handle case where child is logits
-        # TODO: This is incorrect.
-        return g.add_distribution(
-            dt.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
-        # TODO: This is incorrect.
-        return (
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.probability]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
-        # TODO: This is incorrect.
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         s = self.probability.size
@@ -980,8 +906,8 @@ distribution."""
         self.children[0] = p
 
     @property
-    def node_type(self) -> Any:
-        return Dirichlet
+    def graph_type(self) -> type:
+        return Tensor
 
     @property
     def inf_type(self) -> type:
@@ -999,43 +925,12 @@ distribution."""
     def size(self) -> torch.Size:
         return self.concentration.size
 
-    def sample_type(self) -> Any:
-        return self.concentration.node_type
-
     @property
     def label(self) -> str:
         return "Dirichlet"
 
     def __str__(self) -> str:
         return f"Dirichlet({str(self.concentration)})"
-
-    # TODO: Delete this cut-n-pasted incorrect code and just
-    # raise errors instead to indicate that this feature is not
-    # yet implemented
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            # TODO: Fix this when we add the node type to BMG
-            dt.BERNOULLI,
-            AtomicType.BOOLEAN,
-            [d[self.concentration]],
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.concentration]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.concentration]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1045,6 +940,89 @@ distribution."""
         # TODO: x(n()) where x() is a sample that takes a finite index but
         # TODO: n() is a sample that returns a Dirichlet.
         raise ValueError("Dirichlet distribution does not have finite support.")
+
+
+class GammaNode(DistributionNode):
+    """The gamma distribution is a distribution of positive
+real numbers characterized by positive real concentration and rate
+parameters."""
+
+    edges = ["concentration", "rate"]
+
+    def __init__(self, concentration: BMGNode, rate: BMGNode):
+        DistributionNode.__init__(self, [concentration, rate])
+
+    @property
+    def concentration(self) -> BMGNode:
+        return self.children[0]
+
+    @concentration.setter
+    def concentration(self, p: BMGNode) -> None:
+        self.children[0] = p
+
+    @property
+    def rate(self) -> BMGNode:
+        return self.children[1]
+
+    @rate.setter
+    def rate(self, p: BMGNode) -> None:
+        self.children[1] = p
+
+    @property
+    def graph_type(self) -> type:
+        return PositiveReal
+
+    @property
+    def inf_type(self) -> type:
+        return PositiveReal
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [PositiveReal, PositiveReal]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.concentration.size
+
+    @property
+    def label(self) -> str:
+        return "Gamma"
+
+    def __str__(self) -> str:
+        return f"Gamma({str(self.concentration)}, {str(self.rate)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            dt.GAMMA, AtomicType.POS_REAL, [d[self.concentration], d[self.rate]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.GAMMA,\n"
+            + "  graph.AtomicType.POS_REAL,\n"
+            + f"  [n{d[self.concentration]}, n{d[self.rate]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::GAMMA,\n"
+            + "  graph::AtomicType::POS_REAL,\n"
+            + f"  std::vector<uint>({{n{d[self.concentration]}, n{d[self.rate]}}}));"
+        )
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a Gamma.
+        raise ValueError("Gamma distribution does not have finite support.")
 
 
 class HalfCauchyNode(DistributionNode):
@@ -1074,8 +1052,8 @@ and a sample is a positive real number."""
         self.children[0] = p
 
     @property
-    def node_type(self) -> Any:
-        return HalfCauchy
+    def graph_type(self) -> type:
+        return PositiveReal
 
     @property
     def inf_type(self) -> type:
@@ -1090,15 +1068,15 @@ and a sample is a positive real number."""
     def size(self) -> torch.Size:
         return self.scale.size
 
-    def sample_type(self) -> Any:
-        return self.scale.node_type
-
     @property
     def label(self) -> str:
         return "HalfCauchy"
 
     def __str__(self) -> str:
         return f"HalfCauchy({str(self.scale)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(dt.HALF_CAUCHY, AtomicType.POS_REAL, [d[self.scale]])
@@ -1157,25 +1135,22 @@ a given mean and standard deviation."""
         self.children[1] = p
 
     @property
-    def node_type(self) -> Any:
-        return Normal
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def inf_type(self) -> type:
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
         # The mean of a normal must be a real; the standard deviation
         # must be a positive real.
-        return [float, PositiveReal]
+        return [Real, PositiveReal]
 
     @property
     def size(self) -> torch.Size:
         return self.mu.size
-
-    def sample_type(self) -> Any:
-        return self.mu.node_type
 
     @property
     def label(self) -> str:
@@ -1183,6 +1158,9 @@ a given mean and standard deviation."""
 
     def __str__(self) -> str:
         return f"Normal({str(self.mu)},{str(self.sigma)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -1254,21 +1232,16 @@ and the true mean."""
         self.children[2] = p
 
     @property
-    def node_type(self) -> Any:
-        return StudentT
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def inf_type(self) -> type:
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
-        return [PositiveReal, float, PositiveReal]
-
-    def sample_type(self) -> Any:
-        if self.types_fixed:
-            return float
-        return self.df.node_type
+        return [PositiveReal, Real, PositiveReal]
 
     @property
     def size(self) -> torch.Size:
@@ -1280,6 +1253,9 @@ and the true mean."""
 
     def __str__(self) -> str:
         return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_distribution(
@@ -1344,14 +1320,14 @@ between 0.0 and 1.0."""
         self.children[1] = p
 
     @property
-    def node_type(self) -> Any:
-        return Uniform
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def inf_type(self) -> type:
         # TODO: We will probably need to be smarter here
         # once this is implemented in BMG.
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1359,10 +1335,7 @@ between 0.0 and 1.0."""
         # BMG; when we do, revisit this code.
         # TODO: If we know that a Uniform is bounded by constants 0.0 and 1.0,
         # we can generate a Flat distribution node for BMG.
-        return [float, float]
-
-    def sample_type(self) -> Any:
-        return self.low.node_type
+        return [Real, Real]
 
     @property
     def size(self) -> torch.Size:
@@ -1374,34 +1347,6 @@ between 0.0 and 1.0."""
 
     def __str__(self) -> str:
         return f"Uniform({str(self.low)},{str(self.high)})"
-
-    # TODO: Delete this cut-n-pasted incorrect code and just
-    # raise errors instead to indicate that this feature is not
-    # yet implemented
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            # TODO: Fix this when we add the node type to BMG
-            dt.BERNOULLI,
-            AtomicType.BOOLEAN,
-            [d[self.low]],
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"n{d[self]} = g.add_distribution(graph.DistributionType.BERNOULLI, "
-            + f"graph.AtomicType.BOOLEAN, [n{d[self.low]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.low]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1452,8 +1397,10 @@ the condition is a Boolean."""
         OperatorNode.__init__(self, [condition, consequence, alternative])
 
     @property
-    def node_type(self) -> Any:
-        return self.consequence.node_type
+    def graph_type(self) -> type:
+        if self.consequence.graph_type == self.alternative.graph_type:
+            return self.consequence.graph_type
+        return Malformed
 
     @property
     def inf_type(self) -> type:
@@ -1553,23 +1500,6 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     def __init__(self, left: BMGNode, right: BMGNode):
         OperatorNode.__init__(self, [left, right])
 
-    # The BMG type system requires that every binary operator have
-    # the same type for the left and right input, which is then
-    # the output type. If a node has the left and right inputs the
-    # same, that is the output type; otherwise we mark the node as
-    # malformed, and will fix it in a later pass.
-
-    # TODO: Index nodes are binary operators, but the type of
-    # an index node is the type of the values in the map. When
-    # we add index nodes and maps to the BMG type system, we will
-    # need to implement this correctly.
-
-    @property
-    def node_type(self) -> Any:
-        if self.left.node_type == self.right.node_type:
-            return self.left.node_type
-        return Malformed
-
     @property
     def left(self) -> BMGNode:
         return self.children[0]
@@ -1587,9 +1517,13 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         self.children[1] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         return g.add_operator(self.operator_type, [d[self.left], d[self.right]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         n = d[self]
         ot = self.operator_type
         left = d[self.left]
@@ -1597,6 +1531,8 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         return f"n{n} = g.add_operator(graph.{ot}, [n{left}, n{right}])"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         ot = str(self.operator_type).replace(".", "::")
         left = d[self.left]
         right = d[self.right]
@@ -1620,6 +1556,12 @@ class AdditionNode(BinaryOperatorNode):
     @property
     def inf_type(self) -> type:
         return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
+
+    @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1646,6 +1588,9 @@ class AdditionNode(BinaryOperatorNode):
             el + ar for el in self.left.support() for ar in self.right.support()
         )
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class DivisionNode(BinaryOperatorNode):
     """This represents a division."""
@@ -1658,7 +1603,6 @@ class DivisionNode(BinaryOperatorNode):
     # and generate c/d as Multiply(c, Power(d, -1.0))
     # Either way, when we decide, implement the transformation to
     # BMG nodes accordingly.
-    operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1683,8 +1627,21 @@ class DivisionNode(BinaryOperatorNode):
     @property
     def inf_type(self) -> type:
         # TODO: We do not support division in BMG yet; when we do, implement
-        # this correctly.
-        return float
+        # this correctly. Best guess so far: division is defined only on
+        # positive reals, reals and tensors.
+        return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
+
+    @property
+    def graph_type(self) -> type:
+        # TODO: We do not support division in BMG yet; when we do, implement
+        # this correctly. Best guess so far: left, right and output types
+        # must be the same, and must be PositiveReal, Real or tensor.
+        lgt = self.left.graph_type
+        if lgt != self.right.graph_type:
+            return Malformed
+        if lgt != PositiveReal and lgt != Real and lgt != Tensor:
+            return Malformed
+        return lgt
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1765,16 +1722,20 @@ multiple control flows based on the value of a stochastic node."""
         self.edges = [str(x) for x in range(len(children))]
 
     @property
-    def node_type(self) -> Any:
-        return Dict
-
-    @property
     def inf_type(self) -> type:
         # The inf type of a map is the supremum of the types of all
         # its inputs.
         return supremum(
             *[self.children[i * 2 + 1].inf_type for i in range(len(self.children) // 2)]
         )
+
+    @property
+    def graph_type(self) -> type:
+        first = self.children[0].graph_type
+        for i in range(len(self.children) // 2):
+            if self.children[i * 2 + 1].graph_type != first:
+                return Malformed
+        return first
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1790,18 +1751,6 @@ multiple control flows based on the value of a stochastic node."""
     @property
     def label(self) -> str:
         return "map"
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: map nodes are not currently part of the graph
-        return -1
-
-    def _to_python(self, d: Dict[BMGNode, int]) -> str:
-        # TODO: map nodes are not currently part of the graph
-        return ""
-
-    def _to_cpp(self, d: Dict[BMGNode, int]) -> str:
-        # TODO: map nodes are not currently part of the graph
-        return ""
 
     def support(self) -> Iterator[Any]:
         return []
@@ -1831,7 +1780,6 @@ operand must be a map, and the right is the stochastic value used to
 choose an element from the map."""
 
     # See notes on MapNode for an explanation of this code.
-    operator_type = OperatorType.MULTIPLY  # TODO
 
     def __init__(self, left: MapNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1844,6 +1792,10 @@ choose an element from the map."""
     def inf_type(self) -> type:
         # The inf type of an index is that of its map.
         return self.left.inf_type
+
+    @property
+    def graph_type(self) -> type:
+        return self.left.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1872,7 +1824,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
     # TODO: We do not yet have an implementation of matrix
     # multiplication as a BMG node. When we do, implement the
     # feature here.
-    operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1886,6 +1837,12 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         # TODO: We do not yet support matrix multiplication in BMG;
         # when we do, revisit this code.
         return supremum(self.left.inf_type, self.right.inf_type)
+
+    @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1925,15 +1882,61 @@ class MultiplicationNode(BinaryOperatorNode):
         return "*"
 
     @property
+    def graph_type(self) -> type:
+        # A multiplication node must have its left, right and output
+        # types all the same, and that type must be Probability or
+        # larger. If these conditions are not met then the node is malformed.
+        # However, we can convert some multiplications into if-then-else
+        # nodes which are well-formed. We will express these facts
+        # in the requirements and inf type computation, and the problem fixer
+        # will turn malformed multiplications into a correct form.
+        lgt = self.left.graph_type
+        if lgt != self.right.graph_type:
+            return Malformed
+        if lgt == bool or lgt == Natural:
+            return Malformed
+        return lgt
+
+    @property
     def inf_type(self) -> type:
+        # As noted above, we can multiply two probabilities, two positive
+        # reals, two reals or two tensors and get the same type out. However
+        # if we have a model in which a bool or natural is multiplied by a
+        # bool or natural, then we can create a legal BMG graph as follows:
+        #
+        # bool1 * bool2 can become "if bool1 then bool2 else false"
+        # bool * nat and nat * bool can become "if bool then nat else 0"
+        # nat * nat must convert both nats to positive real.
+        #
+        # So what then is the inf type? Remember, the inf type is the smallest
+        # type that this node can be converted to, so let's say that.
+
+        # If either operand is bool then we can convert to an if-then-else
+        # and keep the type the same as the other operand:
+
+        lit = self.left.inf_type
+        rit = self.right.inf_type
+        if lit == bool:
+            return rit
+        if rit == bool:
+            return lit
+
+        # If neither type is bool then the best we can do is the sup
+        # of the left type, the right type, and Probability.
         return supremum(self.left.inf_type, self.right.inf_type, Probability)
 
     @property
     def requirements(self) -> List[Requirement]:
-        # We require that the input types of a multiplication be exactly the same.
-        # In order to minimize the output type of the node we will take the
-        # supremum of the infimums of the input types, and then require that
-        # the inputs each be of that type.
+        # As noted above, we have special handling if an operand to a multiplication
+        # is a bool. In those cases, we can simply impose a requirement that can
+        # always be met: that the operands be of their inf types.
+        lit = self.left.inf_type
+        rit = self.right.inf_type
+        if lit == bool or rit == bool:
+            return [lit, rit]
+        # If we're not in one of those special cases then we require that both
+        # operands be the inf type, which, recall, is the sup of the left, right
+        # and Probability.
         it = self.inf_type
         return [it, it]
 
@@ -1949,13 +1952,15 @@ class MultiplicationNode(BinaryOperatorNode):
             el * ar for el in self.left.support() for ar in self.right.support()
         )
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class PowerNode(BinaryOperatorNode):
     """This represents an x-to-the-y operation."""
 
     # TODO: We haven't added power to the C++ implementation of BMG yet.
     # TODO: When we do, update this.
-    operator_type = OperatorType.MULTIPLY  # TODO
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1968,7 +1973,13 @@ class PowerNode(BinaryOperatorNode):
     def inf_type(self) -> type:
         # TODO: We do not yet support power nodes in BMG; when we
         # do, revisit this code.
-        return float
+        return Real
+
+    @property
+    def graph_type(self) -> type:
+        if self.left.graph_type == self.right.graph_type:
+            return self.left.graph_type
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2005,14 +2016,6 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         OperatorNode.__init__(self, [operand])
 
     @property
-    def node_type(self) -> Any:
-        # In BMG, the output type of all unary operators
-        # is the same as the input;
-        # TODO: Is that the case when the graph represents
-        # the Python semantics? Is there work to do here?
-        return self.operand.node_type
-
-    @property
     def operand(self) -> BMGNode:
         return self.children[0]
 
@@ -2021,15 +2024,21 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         self.children[0] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         return g.add_operator(self.operator_type, [d[self.operand]])
 
     def _to_python(self, d: Dict[BMGNode, int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         n = d[self]
         o = d[self.operand]
         ot = str(self.operator_type)
         return f"n{n} = g.add_operator(graph.{ot}, [n{o}])"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        if not self._supported_in_bmg():
+            raise InternalError(f"{str(type(self))} is not supported in BMG.")
         n = d[self]
         o = d[self.operand]
         # Since OperatorType is not actually an enum, there is no
@@ -2064,6 +2073,10 @@ a model contains calls to Tensor.exp or math.exp."""
         return supremum(self.operand.inf_type, PositiveReal)
 
     @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
+
+    @property
     def requirements(self) -> List[Requirement]:
         # Exp requires that the input type be exactly the same as the
         # output type; the smallest possible output type is therefore
@@ -2088,7 +2101,6 @@ class LogNode(UnaryOperatorNode):
 a model contains calls to Tensor.log or math.log."""
 
     # TODO: We do not support LOG in BMG yet; when we do, update this:
-    operator_type = OperatorType.EXP  # TODO
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
@@ -2096,7 +2108,11 @@ a model contains calls to Tensor.log or math.log."""
     @property
     def inf_type(self) -> type:
         # TODO: When we support this node in BMG, revisit this code.
-        return supremum(self.operand.inf_type, float)
+        return supremum(self.operand.inf_type, Real)
+
+    @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2119,6 +2135,61 @@ a model contains calls to Tensor.log or math.log."""
         return SetOfTensors(torch.log(o) for o in self.operand.support())
 
 
+# BMG supports three different kinds of negation:
+
+# * The "complement" node with a Boolean operand has the semantics
+#   of logical negation.  The input and output are both bool.
+#
+# * The "complement" node with a probability operand has the semantics
+#   of (1 - p). The input and output are both probability.
+#
+# * The "negate" node has the semantics of (0 - x). The input and output
+#   are both real or both tensor.
+#
+# Note that there is no subtraction operator in BMG; to express x - y
+# we generate nodes as though (x + (-y)) was written; that is, the
+# sum of x and a real-number negation of y.
+#
+# This presents several problems when accumulating a graph while executing
+# a Python model, and then turning said graph into a valid BMG, particularly
+# during type analysis.
+#
+# Our strategy is:
+#
+# * When we accumulate the graph we will create nodes for addition
+#   (AdditionNode), unary negation (NegationNode) and the "not"
+#   operator (NotNode).  We will not generate "complement" nodes
+#   directly from Python source.
+#
+# * After accumulating the graph we will do type analysis and use
+#   that to drive a rewriting pass. The rewriting pass will perform
+#   these tasks:
+#
+#   (1) "not" nodes whose operands are bool will be converted into
+#       "complement" nodes.
+#
+#   (2) "not" nodes whose operands are not bool will produce an error.
+#       (The "not" operator applied to a non-bool x in Python has the
+#       semantics of "x == 0" and we do not have any way to represent
+#       these semantics in BMG.
+#
+#   (3) Call a constant "one-like" if it is True, 1, 1.0, or a single-
+#       valued tensor with a one-like value. If we have a one-like node,
+#       call it 1 for short, then we will look for patterns in the
+#       accumulated graph such as
+#
+#       1 + (-p)
+#       (-p) + 1
+#       -(p + -1)
+#       -(-1 + p)
+#
+#       and replace them with "complement" nodes.
+#
+#   (4) Other usages of binary + and unary - in the Python model will
+#       be converted to BMG following the rules for addition and negation
+#       in BMG: negation must be real or tensor valued, and so on.
+
+
 class NegateNode(UnaryOperatorNode):
 
     """This represents a unary minus."""
@@ -2137,7 +2208,11 @@ class NegateNode(UnaryOperatorNode):
 
     @property
     def inf_type(self) -> type:
-        return supremum(self.operand.inf_type, float)
+        return supremum(self.operand.inf_type, Real)
+
+    @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2156,12 +2231,12 @@ class NegateNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(-o for o in self.operand.support())
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class NotNode(UnaryOperatorNode):
-    """This represents a logical not."""
-
-    # TODO: Add notes about the semantics of the various BMG
-    # negation nodes.
+    """This represents a logical not that appears in the Python model."""
 
     # TODO: We do not support NOT in BMG yet; when we do, update this.
     operator_type = OperatorType.NEGATE  # TODO
@@ -2175,8 +2250,8 @@ class NotNode(UnaryOperatorNode):
         return bool
 
     @property
-    def node_type(self) -> Any:
-        return bool
+    def graph_type(self) -> type:
+        return self.operand.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2212,13 +2287,13 @@ values."""
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def node_type(self) -> Any:
-        return self.operand.sample_type()
-
-    @property
     def inf_type(self) -> type:
         # The infimum type of a sample is that of its distribution.
         return self.operand.inf_type
+
+    @property
+    def graph_type(self) -> type:
+        return self.operand.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2248,6 +2323,9 @@ values."""
     def support(self) -> Iterator[Any]:
         return self.operand.support()
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class ToRealNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_REAL
@@ -2256,18 +2334,18 @@ class ToRealNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def node_type(self) -> Any:
-        return float
+    def graph_type(self) -> type:
+        return Real
 
     @property
     def inf_type(self) -> type:
         # A ToRealNode's output is always real
-        return float
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
         # A ToRealNode's input must be real or smaller.
-        return [upper_bound(float)]
+        return [upper_bound(Real)]
 
     @property
     def label(self) -> str:
@@ -2283,6 +2361,9 @@ class ToRealNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class ToPositiveRealNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_POS_REAL
@@ -2291,7 +2372,7 @@ class ToPositiveRealNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def node_type(self) -> Any:
+    def graph_type(self) -> type:
         return PositiveReal
 
     @property
@@ -2318,6 +2399,9 @@ class ToPositiveRealNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class ToTensorNode(UnaryOperatorNode):
     operator_type = OperatorType.TO_TENSOR
@@ -2335,6 +2419,10 @@ class ToTensorNode(UnaryOperatorNode):
         return Tensor
 
     @property
+    def graph_type(self) -> type:
+        return Tensor
+
+    @property
     def requirements(self) -> List[Requirement]:
         # A ToTensorNode's input must be Tensor or smaller.
         return [upper_bound(Tensor)]
@@ -2347,12 +2435,11 @@ class ToTensorNode(UnaryOperatorNode):
         # TODO: Is this correct?
         return torch.Size([1])
 
-    @property
-    def node_type(self) -> Any:
-        return Tensor
-
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.tensor(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 # ####
@@ -2408,17 +2495,17 @@ should no loger be uniform."""
         self.children[0] = p
 
     @property
-    def node_type(self) -> Any:
-        return type(self.value)
-
-    @property
     def inf_type(self) -> type:
         # TODO: Since an observation node is never consumed, it's not actually
         # meaningful to compute its type, but we can potentially use this
         # to check for errors; for example, if we have an observation with
         # value 0.5 on an operation known to be of type Natural then we can
         # flag that as a likely error.
-        return type_of_value(self.value)
+        return self.observed.inf_type
+
+    @property
+    def graph_type(self) -> type:
+        return self.observed.graph_type
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2436,6 +2523,9 @@ should no loger be uniform."""
 
     def __str__(self) -> str:
         return str(self.observed) + "=" + str(self.value)
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         g.observe(d[self.observed], self.value)
@@ -2483,8 +2573,8 @@ to have a query node accumulated into the graph builder.
         self.children[0] = p
 
     @property
-    def node_type(self) -> Any:
-        return self.operator.node_type
+    def graph_type(self) -> type:
+        return self.operator.graph_type
 
     @property
     def inf_type(self) -> type:
@@ -2504,6 +2594,9 @@ to have a query node accumulated into the graph builder.
 
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         g.query(d[self.operator])

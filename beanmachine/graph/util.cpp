@@ -1,6 +1,8 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
+#include <boost/math/special_functions/polygamma.hpp>
+
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/util.h"
 
@@ -102,7 +104,7 @@ double log_sum_exp(const std::vector<double>& values) {
 }
 
 double polygamma(int n, double x) {
-  return torch::scalar_tensor(x).polygamma(n).item<double>();
+  return boost::math::polygamma(n, x);
 }
 
 double log1pexp(double x) {

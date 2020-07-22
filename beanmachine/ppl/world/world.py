@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import copy
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -90,6 +91,9 @@ class World(object):
         self.transforms_ = defaultdict(lambda: TransformData(TransformType.NONE, []))
         self.proposer_ = defaultdict(lambda: None)
         self.initialize_from_prior_ = False
+        self.maintain_graph_ = True
+        self.cache_functionals_ = False
+        self.cached_functionals_ = defaultdict()
 
     def set_initialize_from_prior(self, initialize_from_prior: bool = True):
         """
@@ -99,6 +103,30 @@ class World(object):
         unconstrained space.
         """
         self.initialize_from_prior_ = initialize_from_prior
+
+    def set_cache_functionals(self, cache_functionals: bool = True):
+        """
+        Cache any functionals computed in world. maintain_graph_ needs to be False for cache_funtionals
+        to be True
+
+        :param cache_functionals: if True cache functionals
+        """
+        self.cache_functionals_ = cache_functionals
+
+    def get_cache_functionals(self) -> bool:
+        """
+        returns if the cache_functionals flag is set in the world
+        """
+        return self.cache_functionals_
+
+    def set_maintain_graph(self, maintain_graph: bool = True):
+        """
+        Indicate if updates to nodes in graph requires updating it's markov blanket.
+        Some inference methds do not require updates to world and node log probs upon proposal.
+        chache_functionals needs to be False for maintain_graph to be True
+        :param maintain_graph: if True compute log prob updates and markov blankets
+        """
+        self.maintain_graph_ = maintain_graph
 
     def set_transforms(
         self,
@@ -156,6 +184,15 @@ class World(object):
             self.proposer_[func_wrapper] = proposer
 
         self.proposer_ = defaultdict(lambda: proposer)
+
+    def reject_latest_diff(self):
+        """
+        Reject the top diff.
+        """
+        if self.diff_stack_.len() == 1:
+            self.reject_diff()
+        else:
+            self.diff_ = self.diff_stack_.remove_last_diff()
 
     def get_proposer_for_node(self, node):
         """
@@ -376,6 +413,15 @@ class World(object):
         self.diff_stack_ = DiffStack()
         self.diff_ = self.diff_stack_.diff_stack_[-1]
 
+    def copy(self):
+        """
+        Returns a copy of the world.
+        """
+        world_copy = World()
+        world_copy.transforms_ = copy.deepcopy(self.transforms_)
+        world_copy.proposer_ = copy.deepcopy(self.proposer_)
+        return world_copy
+
     def get_markov_blanket(self, node: RVIdentifier) -> Set[RVIdentifier]:
         """
         Extracts the markov block of a node in the world and we exclude the
@@ -396,6 +442,15 @@ class World(object):
                 if parent not in self.observations_ and parent != node:
                     markov_blanket.add(parent)
         return markov_blanket
+
+    def is_marked_node_for_delete(self, node: RVIdentifier) -> bool:
+        """
+        Returns whether a node is marked for delete.
+
+        :param node: the node to be looked up in the world.
+        :returns: whether the node is marked for delete.
+        """
+        return self.diff_stack_.is_marked_for_delete(node)
 
     def get_all_nodes_from_func(self, node_func: str) -> Set[RVIdentifier]:
         """
@@ -582,6 +637,11 @@ class World(object):
         proposed_value = node_var.inverse_transform_value(proposed_transformed_value)
         return self.propose_change(node, proposed_value, allow_graph_update)
 
+    def update_cached_functionals(self, f, *args) -> Tensor:
+        if (f, *args) not in self.cached_functionals_:
+            self.cached_functionals_[(f, *args)] = f(*args)
+        return self.cached_functionals_[(f, *args)]
+
     def propose_change(
         self,
         node: RVIdentifier,
@@ -599,6 +659,14 @@ class World(object):
         difference of old and new log probability of world, difference of old
         and new log probability of node, new score of world
         """
+        assert self.maintain_graph_ != self.cache_functionals_
+        if not self.maintain_graph_:
+            var = self.variables_.get_node_raise_error(node).copy()
+            var.update_value(proposed_value)
+            # pyre-fixme the inference methods that call this propose_change method but does not require
+            # to maintain world would not expect any return values
+            return
+
         node_log_update = self.start_diff_with_proposed_val(
             node, proposed_value, start_new_diff=start_new_diff
         )
@@ -627,6 +695,7 @@ class World(object):
 
         :param node: the node which was called from StatisticalModel.sample()
         """
+        assert self.maintain_graph_ != self.cache_functionals_
         if len(self.stack_) > 0:
             # We are making updates to the parent, so we need to call the
             # get_node_in_world_raise_error, we don't need to add the variable
@@ -638,7 +707,11 @@ class World(object):
         # 509 and 527.
         node_var = self.get_node_in_world(node, False)
         if node_var is not None:
-            if len(self.stack_) > 0 and self.stack_[-1] not in node_var.children:
+            if (
+                self.maintain_graph_
+                and len(self.stack_) > 0
+                and self.stack_[-1] not in node_var.children
+            ):
                 var_copy = node_var.copy()
                 var_copy.children.add(self.stack_[-1])
                 self.add_node_to_world(node, var_copy)
@@ -659,12 +732,12 @@ class World(object):
         )
 
         self.add_node_to_world(node, node_var)
-
         self.stack_.append(node)
         node_var.distribution = node.function(*node.arguments)
         self.stack_.pop()
 
         obs_value = self.observations_[node] if node in self.observations_ else None
+
         node_var.update_fields(
             None,
             obs_value,
@@ -673,6 +746,7 @@ class World(object):
             self.initialize_from_prior_,
         )
 
-        self.update_diff_log_prob(node)
+        if self.maintain_graph_:
+            self.update_diff_log_prob(node)
 
         return node_var.value
