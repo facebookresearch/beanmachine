@@ -13,6 +13,8 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.utils import RVIdentifier
+
+# pyre-fixme[21]: Could not find name `tensorops` in `beanmachine.ppl.utils`.
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
@@ -53,6 +55,7 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # pyre-fixme
         predicted_alpha = (1 - hessian_diag * (node_val_reshaped * node_val_reshaped)).T
         predicted_beta = -1 * node_val_reshaped * hessian_diag - first_gradient
+        # pyre-fixme[6]: `&` is not supported for operand types `bool` and `ByteTensor`.
         condition = (predicted_alpha > 0) & (predicted_beta > 0)
         predicted_alpha = torch.where(
             condition, predicted_alpha, tensor(1.0).to(dtype=predicted_beta.dtype)

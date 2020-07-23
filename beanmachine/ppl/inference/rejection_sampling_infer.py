@@ -9,6 +9,8 @@ from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseL
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
 from torch import Tensor
+
+# pyre-fixme[21]: Could not find name `tqdm` in `tqdm.auto`.
 from tqdm.auto import tqdm
 
 
