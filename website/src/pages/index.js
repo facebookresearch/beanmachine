@@ -18,7 +18,7 @@ import styles from './styles.module.css';
 const features = [
   {
     title: <>Declarative modeling</>,
-    imageUrl: 'img/undraw_docusaurus_tree.svg',
+    // imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
         Clean, intuitive syntax that lets you focus on the model
@@ -28,7 +28,7 @@ const features = [
   },
   {
     title: <>Programmable inference</>,
-    imageUrl: 'img/undraw_docusaurus_tree.svg',
+    // imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
         Mix-and-match inference methods, proposers, and
@@ -38,7 +38,7 @@ const features = [
   },
   {
     title: <>Powered by React</>,
-    imageUrl: 'img/undraw_docusaurus_react.svg',
+    // imageUrl: 'img/undraw_docusaurus_react.svg',
     description: (
       <>
         Leverage native GPU and autograd support and
@@ -73,6 +73,8 @@ function Home() {
       description="BeanMachine">
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">
+        <img className={styles.heroLogo} src='img/beanmachine.svg' alt="BeanMachine Logo." width="100"/>
+          <img className="imgUrl">{siteConfig.imgUrl}</img>
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
           <div className={styles.buttons}>
@@ -88,6 +90,7 @@ function Home() {
         </div>
       </header>
       <main>
+
         {features && features.length > 0 && (
           <section className={styles.features}>
             <div className='container'>

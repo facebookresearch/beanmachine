@@ -10,17 +10,17 @@
 module.exports = {
   title: 'BeanMachine',
   tagline: 'A universal probabilistic programming language to enable fast and accurate Bayesian analysis',
-  url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
+  url: 'https://home.fburl.com/ppl',  // Change to path for release.
+  baseUrl: '/',                  // for devserver preview use '/~brianjo/beanmachine/'
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'beanmachine', // Usually your repo name.
+  projectName: 'beanmachine',   // Usually your repo name.
   themeConfig: {
     navbar: {
       title: 'BeanMachine',
       logo: {
         alt: 'BeanMachine Logo',
-        src: 'img/beanmachine.png',
+        src: 'img/beanmachine.svg',
       },
       links: [
         {
@@ -45,12 +45,12 @@ module.exports = {
           title: 'Learn',
           items: [
             {
-              label: 'Style Guide',
-              to: 'docs',
+              label: 'Quick Start',
+              to: '/docs/overview/quick_start/quick_start/',
             },
             {
-              label: 'Second Doc',
-              to: 'docs',
+              label: 'Modeling',
+              to: '/docs/overview/modeling/modeling/',
             },
           ],
         },
@@ -105,7 +105,7 @@ module.exports = {
       ],
       logo: {
         alt: 'BeanMachine Logo',
-        src: 'img/beanmachine.png',
+        src: 'img/beanmachine.svg',
         href: 'https://opensource.facebook.com',
       },
       // Please do not remove the credits, help to publicize Docusaurus :)
