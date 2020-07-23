@@ -456,3 +456,42 @@ digraph "graph" {
 """
 
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_7(self) -> None:
+        """test_fix_problems_7"""
+
+        # This test has a problem that cannot be fixed yet, but
+        # will be fixable soon; when it is, update this test to
+        # show the fixed and unfixed problem.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        # @rv def foo1():
+        #   return Uniform(0.0, 1.0) # OK
+        # @rv def foo2():
+        #   return Uniform(1.0, 2.0) # Bad
+        # @rv def foo3():
+        #   return Uniform(0.0, foo2()) # Bad
+
+        zero = bmg.add_constant(0.0)
+        one = bmg.add_constant(1.0)
+        two = bmg.add_constant(2.0)
+        foo1 = bmg.add_uniform(zero, one)
+        bmg.add_sample(foo1)
+        foo2 = bmg.add_uniform(one, two)
+        foo2s = bmg.add_sample(foo2)
+        foo3 = bmg.add_uniform(one, foo2s)
+        bmg.add_sample(foo3)
+
+        error_report = fix_problems(bmg)
+        observed = str(error_report)
+        expected = """
+The model uses a Uniform operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a Sample.
+The model uses a Uniform operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a Sample.
+The model uses a Uniform operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a Sample.
+"""
+        self.assertEqual(observed.strip(), expected.strip())
