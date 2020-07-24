@@ -25,7 +25,6 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
     def __init__(
         self,
         step_size: float,
-        num_adapt_windows: int,
         transform_type: TransformType = TransformType.NONE,
         transforms: Optional[List] = None,
     ):
