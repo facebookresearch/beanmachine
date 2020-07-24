@@ -108,6 +108,8 @@ class InverseAutoregressiveFlow(nn.Module):
             x, log_d = layer_.forward(tmp)
             elbo += log_d
             z_f.append(x)
+            if log_jacobian.size != log_d.size():
+                log_jacobian = torch.zeros(log_d.size())
             log_jacobian += log_d
         elbo += (
             -self.based_distribution_.log_prob(z_f[0]).view(z_f[0].size(0), -1).sum(1)

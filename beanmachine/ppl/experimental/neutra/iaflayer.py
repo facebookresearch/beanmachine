@@ -121,7 +121,8 @@ class InverseAutoregressiveLayer(nn.Module):
             z = x * torch.exp(loga) + mu
         if self.idx_ % 2 == 1:
             tmp = z.clone()
-            z[:, 0], z[:, 1] = tmp[:, 1], tmp[:, 0]
+            if len(z[0]) > 1:
+                z[:, 0], z[:, 1] = tmp[:, 1], tmp[:, 0]
         log_jacobian = torch.sum(loga, dim=1)
         return z, log_jacobian
 

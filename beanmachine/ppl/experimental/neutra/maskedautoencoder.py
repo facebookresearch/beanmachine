@@ -1,5 +1,4 @@
 """
-
 Implements inverse autoregressive flows.
 
 reference:
@@ -103,13 +102,19 @@ class MaskedAutoencoder(nn.Module):
             in_layer
         )  # output layer would considered later for auto-regressive property.
         for layer in range(n_block):
-            # pyre-fixme
-            self.permute_[layer] = torch.randint(
-                self.permute_[layer - 1].min(),
-                in_layer - 1,
-                (hidden_layer,),
-                generator=g1,
-            )
+            if in_layer > 1:
+                # pyre-fixme
+                self.permute_[layer] = torch.randint(
+                    self.permute_[layer - 1].min(),
+                    in_layer - 1,
+                    (hidden_layer,),
+                    generator=g1,
+                )
+            else:
+                # pyre-fixme
+                self.permute_[layer] = torch.randint(
+                    self.permute_[layer - 1].min(), 2, (hidden_layer,), generator=g1
+                )
 
         # Build mask matrix, procedure mask for each layer.
         # 1) Build hidden layer masks
@@ -139,13 +144,15 @@ class MaskedAutoencoder(nn.Module):
                 mask_[-1][x][y] = self.permute_[n_block - 1][x] < self.permute_[-1][y]
         k = out_layer // in_layer
         mask_[-1] = torch.cat([mask_[-1]] * k, dim=1)
-
+        if in_layer == 1:
+            for i, m_ in enumerate(mask_):
+                m_ = torch.ones(m_.size())
+                mask_[i] = m_
         # Create masked layers
         layers = [in_layer]
         for _ in range(n_block):
             layers.append(hidden_layer)
         layers.append(out_layer)
-
         # Build Network
         for i in range(1, len(layers)):
             layer_ = MaskedLinear(layers[i - 1], layers[i])
