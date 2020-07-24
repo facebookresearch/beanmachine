@@ -102,4 +102,4 @@ class MonteCarloSamples(object):
         """
         :returns: the number of samples run during inference
         """
-        return len(next(iter(self.data.rv_dict.values())))
+        return next(iter(self.data.rv_dict.values())).shape[-1]

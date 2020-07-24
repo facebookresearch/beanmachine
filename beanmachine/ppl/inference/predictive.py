@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
@@ -8,6 +8,17 @@ from beanmachine.ppl.model.utils import RVIdentifier
 from torch.distributions import Categorical
 
 from .single_site_ancestral_mh import SingleSiteAncestralMetropolisHastings
+
+
+def _concat_rv_dicts(rvdict: List) -> Dict:
+    out_dict = {}
+    keys = list(rvdict[0].keys())
+    for k in keys:
+        t = []
+        for x in rvdict:
+            t.append(x[k])
+        out_dict[k] = torch.cat(t, -1).squeeze(0)
+    return out_dict
 
 
 class Predictive(object):
@@ -20,6 +31,7 @@ class Predictive(object):
         queries: List[RVIdentifier],
         posterior: Optional[MonteCarloSamples] = None,
         num_samples: Optional[int] = None,
+        vectorized: Optional[bool] = False,
     ) -> MonteCarloSamples:
         """
         Generates predictives from a generative model.
@@ -47,15 +59,33 @@ class Predictive(object):
         sampler = SingleSiteAncestralMetropolisHastings()
         if posterior:
             obs = posterior.data.rv_dict
-            # predictives are jointly sampled
-            sampler.queries_ = queries
-            sampler.observations_ = obs
-            query_dict = sampler._infer(1, initialize_from_prior=True)
-            sampler.reset()
-            for rvid, rv in query_dict.items():
-                if rv.dim() > 2:
-                    query_dict[rvid] = rv.squeeze(0)
-            return MonteCarloSamples(query_dict)
+            if vectorized:
+                # predictives are jointly sampled
+                sampler.queries_ = queries
+                sampler.observations_ = obs
+                query_dict = sampler._infer(1, initialize_from_prior=True)
+                sampler.reset()
+                for rvid, rv in query_dict.items():
+                    if rv.dim() > 2:
+                        query_dict[rvid] = rv.squeeze(0)
+                return MonteCarloSamples(query_dict)
+            else:
+                # predictives are sequentially sampled
+                preds = []
+
+                for c in range(posterior.get_num_chains()):
+                    rv_dicts = []
+                    for i in range(posterior.get_num_samples()):
+                        obs = {
+                            rv: posterior.get_chain(c)[rv][i]
+                            for rv in posterior.get_rv_names()
+                        }
+                        sampler.queries_ = queries
+                        sampler.observations_ = obs
+                        rv_dicts.append(sampler._infer(1, initialize_from_prior=True))
+                        sampler.reset()
+                    preds.append(_concat_rv_dicts(rv_dicts))
+                return MonteCarloSamples(preds)
         else:
             obs = {}
             predictives = []
@@ -75,7 +105,7 @@ class Predictive(object):
                         rv = rv.unsqueeze(0)
                     rv_dict[rvid].append(rv)
             for k, v in rv_dict.items():
-                # pyre-fixme
+                # pyre-ignore
                 rv_dict[k] = torch.cat(v, dim=1)
             # pyre-fixme
             return MonteCarloSamples(dict(rv_dict))
