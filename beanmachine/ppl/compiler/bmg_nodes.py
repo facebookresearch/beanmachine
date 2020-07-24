@@ -942,6 +942,64 @@ distribution."""
         raise ValueError("Dirichlet distribution does not have finite support.")
 
 
+class FlatNode(DistributionNode):
+
+    """The Flat distribution the standard uniform distribution from 0.0 to 1.0."""
+
+    edges = []
+
+    def __init__(self):
+        DistributionNode.__init__(self, [])
+
+    @property
+    def graph_type(self) -> type:
+        return Probability
+
+    @property
+    def inf_type(self) -> type:
+        return Probability
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return []
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(dt.FLAT, AtomicType.PROBABILITY, [])
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.FLAT,\n"
+            + "  graph.AtomicType.PROBABILITY,\n"
+            + "  [])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::FLAT,\n"
+            + "  graph::AtomicType::PROBABILITY,\n"
+            + "  std::vector<uint>({}));"
+        )
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    @property
+    def label(self) -> str:
+        return "Flat"
+
+    def __str__(self) -> str:
+        return "Flat()"
+
+    def support(self) -> Iterator[Any]:
+        raise ValueError("Flat distribution does not have finite support.")
+
+
 class GammaNode(DistributionNode):
     """The gamma distribution is a distribution of positive
 real numbers characterized by positive real concentration and rate
