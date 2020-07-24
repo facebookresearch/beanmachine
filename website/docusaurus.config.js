@@ -113,6 +113,7 @@ module.exports = {
       copyright: `Copyright &#169; ${new Date().getFullYear()} Facebook, Inc. Built with Docusaurus.`,
     },
   },
+  plugins: ['docusaurus-plugin-internaldocs-fb'],
   presets: [
     [
       '@docusaurus/preset-classic',
