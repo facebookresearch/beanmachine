@@ -17,11 +17,10 @@ class SingleSiteRandomWalk(AbstractMHInference):
     def __init__(
         self,
         step_size: float = 1.0,
-        num_adapt_windows: int = 5,
         transform_type: TransformType = TransformType.NONE,
         transforms: Optional[List] = None,
     ):
-        self.proposer_ = SingleSiteRandomWalkProposer(step_size, num_adapt_windows)
+        self.proposer_ = SingleSiteRandomWalkProposer(step_size)
         super().__init__(self.proposer_, transform_type, transforms)
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
