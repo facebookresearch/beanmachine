@@ -8,6 +8,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BetaNode,
     BinomialNode,
     BooleanNode,
+    Chi2Node,
     ExpNode,
     FlatNode,
     GammaNode,
@@ -81,6 +82,7 @@ class ASTToolsTest(unittest.TestCase):
         bino = SampleNode(BinomialNode(nat, prob))
         flat = SampleNode(FlatNode())
         gamm = SampleNode(GammaNode(pos, pos))
+        chi2 = SampleNode(Chi2Node(pos))
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
         stut = SampleNode(StudentTNode(pos, pos, pos))
@@ -89,6 +91,7 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(beta.inf_type, Probability)
         self.assertEqual(bino.inf_type, Natural)
         self.assertEqual(flat.inf_type, Probability)
+        self.assertEqual(chi2.inf_type, PositiveReal)
         self.assertEqual(gamm.inf_type, PositiveReal)
         self.assertEqual(half.inf_type, PositiveReal)
         self.assertEqual(norm.inf_type, Real)
@@ -438,6 +441,7 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(BetaNode(pos, pos).requirements, [PositiveReal, PositiveReal])
         self.assertEqual(BinomialNode(nat, prob).requirements, [Natural, Probability])
         self.assertEqual(GammaNode(pos, pos).requirements, [PositiveReal, PositiveReal])
+        self.assertEqual(Chi2Node(pos).requirements, [PositiveReal])
         self.assertEqual(HalfCauchyNode(pos).requirements, [PositiveReal])
         self.assertEqual(NormalNode(real, pos).requirements, [Real, PositiveReal])
         self.assertEqual(
