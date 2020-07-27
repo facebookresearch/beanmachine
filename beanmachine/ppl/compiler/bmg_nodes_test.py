@@ -372,13 +372,13 @@ class ASTToolsTest(unittest.TestCase):
         # exp Probability -> PositiveReal
         # exp Natural -> PositiveReal
         # exp PositiveReal -> PositiveReal
-        # exp Real -> Real
+        # exp Real -> PositiveReal
         # exp Tensor -> Tensor
         self.assertEqual(ExpNode(bern).inf_type, PositiveReal)
         self.assertEqual(ExpNode(beta).inf_type, PositiveReal)
         self.assertEqual(ExpNode(bino).inf_type, PositiveReal)
         self.assertEqual(ExpNode(half).inf_type, PositiveReal)
-        self.assertEqual(ExpNode(norm).inf_type, Real)
+        self.assertEqual(ExpNode(norm).inf_type, PositiveReal)
         self.assertEqual(ExpNode(t).inf_type, Tensor)
 
         # To Real
@@ -875,12 +875,9 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(NegateNode(t).requirements, [Tensor])
 
         # Exp
-        # exp bool -> PositiveReal
-        # exp Probability -> PositiveReal
-        # exp Natural -> PositiveReal
-        # exp PositiveReal -> PositiveReal
-        # exp Real -> Real
-        # exp Tensor -> Tensor
+        # Exp requires that its operand be positive real, real
+        # or tensor.
+
         self.assertEqual(ExpNode(bern).requirements, [PositiveReal])
         self.assertEqual(ExpNode(beta).requirements, [PositiveReal])
         self.assertEqual(ExpNode(bino).requirements, [PositiveReal])
