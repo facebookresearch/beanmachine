@@ -10,6 +10,8 @@ from beanmachine.ppl.experimental.abc.abc_smc_infer import (
 
 
 class ApproximateBayesianComputationTest(unittest.TestCase):
+    torch.manual_seed(42)
+
     class CoinTossModel:
         def __init__(self, observation_shape):
             self.observation_shape = observation_shape
@@ -54,7 +56,7 @@ class ApproximateBayesianComputationTest(unittest.TestCase):
         queries = [model.bias()]
         samples = abc_smc.infer(queries, observations, num_samples=100, num_chains=1)
         self.assertAlmostEqual(
-            torch.mean(samples[model.bias()][0]).item(), 0.77, delta=0.2
+            torch.mean(samples[model.bias()][0]).item(), 0.77, delta=0.3
         )
         abc_smc.reset()
 
