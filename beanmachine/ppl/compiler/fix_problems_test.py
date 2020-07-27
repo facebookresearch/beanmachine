@@ -460,9 +460,9 @@ digraph "graph" {
     def test_fix_problems_7(self) -> None:
         """test_fix_problems_7"""
 
-        # This test has a problem that cannot be fixed yet, but
-        # will be fixable soon; when it is, update this test to
-        # show the fixed and unfixed problem.
+        # The problem here is that we have two uniform distributions that
+        # we cannot turn into a flat distribution, and one we can. We therefore
+        # expect that we will get two errors.
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -487,8 +487,6 @@ digraph "graph" {
         error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = """
-The model uses a Uniform operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
 The model uses a Uniform operation unsupported by Bean Machine Graph.
 The unsupported node is the operand of a Sample.
 The model uses a Uniform operation unsupported by Bean Machine Graph.
