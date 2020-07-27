@@ -75,6 +75,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DistributionNode,
     DivisionNode,
     ExpNode,
+    FlatNode,
     GammaNode,
     HalfCauchyNode,
     IfThenElseNode,
@@ -580,6 +581,12 @@ constant graph node of the stated type for it, and adds it to the builder"""
         if not isinstance(concentration0, BMGNode):
             concentration0 = self.add_constant(concentration0)
         return self.add_beta(concentration1, concentration0)
+
+    @memoize
+    def add_flat(self) -> FlatNode:
+        node = FlatNode()
+        self.add_node(node)
+        return node
 
     # ####
     # #### Graph accumulation for operators

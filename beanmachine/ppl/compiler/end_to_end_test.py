@@ -29,6 +29,7 @@ from torch.distributions import (
     HalfCauchy,
     Normal,
     StudentT,
+    Uniform,
 )
 
 @bm.random_variable
@@ -71,6 +72,9 @@ def bin_constant():
 def gamma():
   return Gamma(1.0, 2.0)
 
+@bm.random_variable
+def flat():
+  return Uniform(0.0, 1.0)
 """
 
 expected_cpp_1 = """
@@ -143,6 +147,12 @@ uint n25 = g.add_distribution(
   std::vector<uint>({n7, n24}));
 uint n26 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
+uint n27 = g.add_distribution(
+  graph::DistributionType::FLAT,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({}));
+uint n28 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n27}));
 """
 
 expected_bmg_1 = """
@@ -173,6 +183,8 @@ Node 23 type 3 parents [ 22 ] children [ ] natural value 0
 Node 24 type 1 parents [ ] children [ 25 ] pos real value 2
 Node 25 type 2 parents [ 7 24 ] children [ 26 ] unknown value
 Node 26 type 3 parents [ 25 ] children [ ] pos real value 0
+Node 27 type 2 parents [ ] children [ 28 ] unknown value
+Node 28 type 3 parents [ 27 ] children [ ] probability value 0
 """
 
 expected_python_1 = """
@@ -236,6 +248,11 @@ n25 = g.add_distribution(
   graph.AtomicType.POS_REAL,
   [n7, n24])
 n26 = g.add_operator(graph.OperatorType.SAMPLE, [n25])
+n27 = g.add_distribution(
+  graph.DistributionType.FLAT,
+  graph.AtomicType.PROBABILITY,
+  [])
+n28 = g.add_operator(graph.OperatorType.SAMPLE, [n27])
 """
 
 # These are cases where we have a type conversion on a sample.

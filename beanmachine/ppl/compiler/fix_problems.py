@@ -21,6 +21,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     OperatorNode,
     Query,
     SampleNode,
+    UniformNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
     Malformed,
@@ -292,19 +293,44 @@ requirement is given; the name of this edge is provided for error reporting."""
             return self._meet_operator_requirement(node, requirement, consumer, edge)
         raise AssertionError("Unexpected node type")
 
+    def _replace_division(self, node: DivisionNode) -> Optional[BMGNode]:
+        r = node.right
+        if isinstance(r, ConstantNode):
+            return self.bmg.add_multiplication(
+                node.left, self.bmg.add_constant(1.0 / r.value)
+            )
+        return None
+
+    def _replace_uniform(self, node: UniformNode) -> Optional[BMGNode]:
+        # TODO: Suppose we have something like Uniform(1.0, 2.0).  Can we replace that
+        # with (Flat() + 1.0) ? The problem is that if there is an observation on
+        # a sample of the original uniform, we need to modify the observation to
+        # point to the sample, not the addition, and then we need to modify the value
+        # of the observation. But this is doable. Revisit this question later.
+        # For now, we can simply say that a uniform distribution over 0.0 to 1.0 can
+        # be replaced with a flat.
+        low = node.low
+        high = node.high
+        if (
+            isinstance(low, ConstantNode)
+            and float(low.value) == 0.0
+            and isinstance(high, ConstantNode)
+            and float(high.value) == 1.0
+        ):
+            return self.bmg.add_flat()
+        return None
+
     def _replace_unsupported_node(self, node: BMGNode) -> Optional[BMGNode]:
         # TODO:
-        # Uniform -> Flat
         # Chi2 -> Gamma
         # Not -> Complement
         # Index/Map -> IfThenElse
         # Power -> Multiplication
         if isinstance(node, DivisionNode):
-            r = node.right
-            if isinstance(r, ConstantNode):
-                return self.bmg.add_multiplication(
-                    node.left, self.bmg.add_constant(1.0 / r.value)
-                )
+            return self._replace_division(node)
+        if isinstance(node, UniformNode):
+            return self._replace_uniform(node)
+
         return None
 
     def _fix_unsupported_nodes(self) -> None:
