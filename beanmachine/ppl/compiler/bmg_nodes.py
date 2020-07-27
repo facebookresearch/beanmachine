@@ -1597,6 +1597,9 @@ the condition is a Boolean."""
             + f"  std::vector<uint>({{n{i}, n{t}, n{e}}}));"
         )
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 # ####
 # #### Binary operators
@@ -2247,29 +2250,46 @@ a model contains calls to Tensor.exp or math.exp."""
         # TODO: Not always a tensor.
         return SetOfTensors(torch.exp(o) for o in self.operand.support())
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class LogNode(UnaryOperatorNode):
-
     """This represents a log operation; it is generated when
 a model contains calls to Tensor.log or math.log."""
 
-    # TODO: We do not support LOG in BMG yet; when we do, update this:
+    operator_type = OperatorType.LOG
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    # The log node is a bit odd in that it requires *either* a positive
+    # real *or* a tensor input, but does not accept real, which is between
+    # those two. This then leads to some unusual code when we are working
+    # out the smallest type this is convertible to, the type it really is,
+    # and the requirements on the operand.
+
     @property
     def inf_type(self) -> type:
-        # TODO: When we support this node in BMG, revisit this code.
-        return supremum(self.operand.inf_type, Real)
+        ot = self.operand.inf_type
+        if ot == Tensor or ot == Real:
+            return Tensor
+        return Real
 
     @property
     def graph_type(self) -> type:
-        return self.operand.graph_type
+        ot = self.operand.graph_type
+        if ot == Tensor:
+            return Tensor
+        if ot == PositiveReal:
+            return Real
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
-        # TODO: When we support this node in BMG, revisit this code.
+        it = self.operand.inf_type
+        if it == Tensor or it == Real:
+            return [Tensor]
         return [PositiveReal]
 
     @property
@@ -2286,6 +2306,9 @@ a model contains calls to Tensor.log or math.log."""
     def support(self) -> Iterator[Any]:
         # TODO: Not always a tensor.
         return SetOfTensors(torch.log(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 # BMG supports three different kinds of negation:

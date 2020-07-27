@@ -447,6 +447,77 @@ n8 = g.add_distribution(
 n9 = g.add_operator(graph.OperatorType.SAMPLE, [n8])
 """
 
+# End-to-end tests for math functions
+
+source_4 = """
+import beanmachine.ppl as bm
+import torch
+from torch import tensor
+from torch.distributions import HalfCauchy, Normal
+
+@bm.random_variable
+def pos(n):
+  return HalfCauchy(1.0)
+
+@bm.random_variable
+def math():
+  return Normal(pos(0).log(), pos(1).exp())
+"""
+
+expected_python_4 = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_pos_real(1.0)
+n1 = g.add_distribution(
+  graph.DistributionType.HALF_CAUCHY,
+  graph.AtomicType.POS_REAL,
+  [n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n4 = g.add_operator(graph.OperatorType.LOG, [n2])
+n5 = g.add_operator(graph.OperatorType.EXP, [n3])
+n6 = g.add_distribution(
+  graph.DistributionType.NORMAL,
+  graph.AtomicType.REAL,
+  [n4, n5])
+n7 = g.add_operator(graph.OperatorType.SAMPLE, [n6])
+"""
+
+expected_cpp_4 = """
+graph::Graph g;
+uint n0 = g.add_constant_pos_real(1.0);
+uint n1 = g.add_distribution(
+  graph::DistributionType::HALF_CAUCHY,
+  graph::AtomicType::POS_REAL,
+  std::vector<uint>({n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n3 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n4 = g.add_operator(
+  graph::OperatorType::LOG, std::vector<uint>({n2}));
+uint n5 = g.add_operator(
+  graph::OperatorType::EXP, std::vector<uint>({n3}));
+uint n6 = g.add_distribution(
+  graph::DistributionType::NORMAL,
+  graph::AtomicType::REAL,
+  std::vector<uint>({n4, n5}));
+uint n7 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n6}));
+"""
+
+expected_bmg_4 = """
+Node 0 type 1 parents [ ] children [ 1 ] pos real value 1
+Node 1 type 2 parents [ 0 ] children [ 2 3 ] unknown value
+Node 2 type 3 parents [ 1 ] children [ 4 ] pos real value 0
+Node 3 type 3 parents [ 1 ] children [ 5 ] pos real value 0
+Node 4 type 3 parents [ 2 ] children [ 6 ] real value 0
+Node 5 type 3 parents [ 3 ] children [ 6 ] pos real value 0
+Node 6 type 2 parents [ 4 5 ] children [ 7 ] unknown value
+Node 7 type 3 parents [ 6 ] children [ ] real value 0
+"""
+
 
 class EndToEndTest(unittest.TestCase):
     def test_to_cpp_1(self) -> None:
@@ -490,3 +561,21 @@ class EndToEndTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_python(source_3)
         self.assertEqual(observed.strip(), expected_python_3.strip())
+
+    def test_to_python_4(self) -> None:
+        """test_to_python_4 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_python(source_4)
+        self.assertEqual(observed.strip(), expected_python_4.strip())
+
+    def test_to_cpp_4(self) -> None:
+        """test_to_cpp_4 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_cpp(source_4)
+        self.assertEqual(observed.strip(), expected_cpp_4.strip())
+
+    def test_to_bmg_4(self) -> None:
+        """test_to_bmg_4 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_bmg(source_4).to_string()
+        self.assertEqual(tidy(observed), tidy(expected_bmg_4))
