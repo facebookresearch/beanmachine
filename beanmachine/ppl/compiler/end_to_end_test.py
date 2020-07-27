@@ -25,6 +25,7 @@ from torch.distributions import (
     Bernoulli,
     Beta,
     Binomial,
+    Chi2,
     Gamma,
     HalfCauchy,
     Normal,
@@ -75,6 +76,10 @@ def gamma():
 @bm.random_variable
 def flat():
   return Uniform(0.0, 1.0)
+
+@bm.random_variable
+def chi2():
+  return Chi2(8.0)
 """
 
 expected_cpp_1 = """
@@ -153,6 +158,14 @@ uint n27 = g.add_distribution(
   std::vector<uint>({}));
 uint n28 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n27}));
+uint n29 = g.add_constant_pos_real(4.0);
+uint n30 = g.add_constant_pos_real(0.5);
+uint n31 = g.add_distribution(
+  graph::DistributionType::GAMMA,
+  graph::AtomicType::POS_REAL,
+  std::vector<uint>({n29, n30}));
+uint n32 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n31}));
 """
 
 expected_bmg_1 = """
@@ -185,6 +198,10 @@ Node 25 type 2 parents [ 7 24 ] children [ 26 ] unknown value
 Node 26 type 3 parents [ 25 ] children [ ] pos real value 0
 Node 27 type 2 parents [ ] children [ 28 ] unknown value
 Node 28 type 3 parents [ 27 ] children [ ] probability value 0
+Node 29 type 1 parents [ ] children [ 31 ] pos real value 4
+Node 30 type 1 parents [ ] children [ 31 ] pos real value 0.5
+Node 31 type 2 parents [ 29 30 ] children [ 32 ] unknown value
+Node 32 type 3 parents [ 31 ] children [ ] pos real value 0
 """
 
 expected_python_1 = """
@@ -253,6 +270,13 @@ n27 = g.add_distribution(
   graph.AtomicType.PROBABILITY,
   [])
 n28 = g.add_operator(graph.OperatorType.SAMPLE, [n27])
+n29 = g.add_constant_pos_real(4.0)
+n30 = g.add_constant_pos_real(0.5)
+n31 = g.add_distribution(
+  graph.DistributionType.GAMMA,
+  graph.AtomicType.POS_REAL,
+  [n29, n30])
+n32 = g.add_operator(graph.OperatorType.SAMPLE, [n31])
 """
 
 # These are cases where we have a type conversion on a sample.

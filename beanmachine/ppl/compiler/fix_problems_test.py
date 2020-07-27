@@ -347,7 +347,6 @@ digraph "graph" {
         # * No support for power yet
         # * No support for division yet
         # * No support for log yet
-        # * No support for chi2 yet
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -356,8 +355,6 @@ digraph "graph" {
         #   return HalfCauchy(1.0)
         # @rv def norm():
         #   return Normal(log(hcs(3) ** (hcs(1) / hcs(2))), 1.0)
-        # @rv def c2():
-        #   return Chi2(1.0)
 
         one = bmg.add_constant(1.0)
         hc = bmg.add_halfcauchy(one)
@@ -369,8 +366,6 @@ digraph "graph" {
         lg = bmg.add_log(p)
         norm = bmg.add_normal(lg, one)
         bmg.add_sample(norm)
-        c2 = bmg.add_chi2(one)
-        bmg.add_sample(c2)
 
         error_report = fix_problems(bmg)
         observed = str(error_report)
@@ -379,8 +374,6 @@ The model uses a ** operation unsupported by Bean Machine Graph.
 The unsupported node is the operand of a Log.
 The model uses a / operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a **.
-The model uses a Chi2 operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
 The model uses a Log operation unsupported by Bean Machine Graph.
 The unsupported node is the mu of a Normal.
 """
@@ -499,4 +492,81 @@ The unsupported node is the operand of a Sample.
 The model uses a Uniform operation unsupported by Bean Machine Graph.
 The unsupported node is the operand of a Sample.
 """
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_8(self) -> None:
+        """test_fix_problems_8"""
+
+        # This test shows that we can rewrite a chi2 into a gamma.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        # @rv def hcs():
+        #   return HalfCauchy(1.0)
+        # @rv def chi2():
+        #   return Chi2(hcs())
+
+        one = bmg.add_constant(1.0)
+        hc = bmg.add_halfcauchy(one)
+        hcs = bmg.add_sample(hc)
+        chi2 = bmg.add_chi2(hcs)
+        bmg.add_sample(chi2)
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        expected = """
+digraph "graph" {
+  N0[label="1.0:R>=B"];
+  N1[label="HalfCauchy:R+>=R+"];
+  N2[label="Sample:R+>=R+"];
+  N3[label="Chi2:R+>=R+"];
+  N4[label="Sample:R+>=R+"];
+  N0 -> N1[label="scale:R+"];
+  N1 -> N2[label="operand:R+"];
+  N2 -> N3[label="df:R+"];
+  N3 -> N4[label="operand:R+"];
+}
+"""
+
+        self.assertEqual(observed.strip(), expected.strip())
+
+        error_report = fix_problems(bmg)
+
+        self.assertEqual("", str(error_report).strip())
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        expected = """
+digraph "graph" {
+  N0[label="1.0:R>=B"];
+  N1[label="HalfCauchy:R+>=R+"];
+  N2[label="Sample:R+>=R+"];
+  N3[label="Chi2:R+>=R+"];
+  N4[label="Sample:R+>=R+"];
+  N5[label="0.5:R+>=P"];
+  N6[label="*:R+>=R+"];
+  N7[label="Gamma:R+>=R+"];
+  N8[label="1.0:R+>=B"];
+  N1 -> N2[label="operand:R+"];
+  N2 -> N3[label="df:R+"];
+  N2 -> N6[label="left:R+"];
+  N5 -> N6[label="right:R+"];
+  N5 -> N7[label="rate:R+"];
+  N6 -> N7[label="concentration:R+"];
+  N7 -> N4[label="operand:R+"];
+  N8 -> N1[label="scale:R+"];
+}
+"""
+
         self.assertEqual(observed.strip(), expected.strip())
