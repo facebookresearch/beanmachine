@@ -70,6 +70,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BMGNode,
     BooleanNode,
     CategoricalNode,
+    Chi2Node,
     ConstantNode,
     DirichletNode,
     DistributionNode,
@@ -120,6 +121,7 @@ from torch.distributions import (
     Beta,
     Binomial,
     Categorical,
+    Chi2,
     Dirichlet,
     Gamma,
     HalfCauchy,
@@ -283,6 +285,7 @@ and then transforms that into a valid Bean Machine Graph."""
             Binomial: self.handle_binomial,
             Categorical: self.handle_categorical,
             Dirichlet: self.handle_dirichlet,
+            Chi2: self.handle_chi2,
             Gamma: self.handle_gamma,
             HalfCauchy: self.handle_halfcauchy,
             Normal: self.handle_normal,
@@ -486,6 +489,17 @@ constant graph node of the stated type for it, and adds it to the builder"""
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
         return self.add_categorical(probability, logits is not None)
+
+    @memoize
+    def add_chi2(self, df: BMGNode) -> Chi2Node:
+        node = Chi2Node(df)
+        self.add_node(node)
+        return node
+
+    def handle_chi2(self, df: Any, validate_args=None) -> Chi2Node:
+        if not isinstance(df, BMGNode):
+            df = self.add_constant(df)
+        return self.add_chi2(df)
 
     @memoize
     def add_gamma(self, concentration: BMGNode, rate: BMGNode) -> GammaNode:
@@ -944,6 +958,9 @@ graph, and add a sample node to the graph."""
             return self.add_sample(b)
         if isinstance(operand, Dirichlet):
             b = self.handle_dirichlet(operand.concentration)
+            return self.add_sample(b)
+        if isinstance(operand, Chi2):
+            b = self.handle_chi2(operand.df)
             return self.add_sample(b)
         if isinstance(operand, Gamma):
             b = self.handle_gamma(operand.concentration, operand.rate)
