@@ -19,6 +19,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     NegateNode,
     NormalNode,
     PositiveRealNode,
+    PowerNode,
     ProbabilityNode,
     RealNode,
     SampleNode,
@@ -403,6 +404,49 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(ToPositiveRealNode(bino).inf_type, PositiveReal)
         self.assertEqual(ToPositiveRealNode(half).inf_type, PositiveReal)
         # To Positive Real is illegal on reals and tensors
+
+        # Power
+        # * The inf type is equal to the base inf type with a few exceptions:
+        # * If the base is P or B and the exponent is R, the output is R+.
+        # * If the base is B the output is P.
+        # * If the base is N the output is R+.
+        # TODO: We can do a slightly better job than this; see comments
+        # in bmg_nodes.py for details.
+
+        # Base is B
+        self.assertEqual(PowerNode(bern, bern).inf_type, Probability)
+        self.assertEqual(PowerNode(bern, beta).inf_type, Probability)
+        self.assertEqual(PowerNode(bern, bino).inf_type, Probability)
+        self.assertEqual(PowerNode(bern, half).inf_type, Probability)
+        self.assertEqual(PowerNode(bern, norm).inf_type, PositiveReal)
+
+        # Base is P
+        self.assertEqual(PowerNode(beta, bern).inf_type, Probability)
+        self.assertEqual(PowerNode(beta, beta).inf_type, Probability)
+        self.assertEqual(PowerNode(beta, bino).inf_type, Probability)
+        self.assertEqual(PowerNode(beta, half).inf_type, Probability)
+        self.assertEqual(PowerNode(beta, norm).inf_type, PositiveReal)
+
+        # Base is N
+        self.assertEqual(PowerNode(bino, bern).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(bino, beta).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(bino, bino).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(bino, half).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(bino, norm).inf_type, PositiveReal)
+
+        # Base is R+
+        self.assertEqual(PowerNode(half, bern).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(half, beta).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(half, bino).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(half, half).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(half, norm).inf_type, PositiveReal)
+
+        # Base is R
+        self.assertEqual(PowerNode(norm, bern).inf_type, Real)
+        self.assertEqual(PowerNode(norm, beta).inf_type, Real)
+        self.assertEqual(PowerNode(norm, bino).inf_type, Real)
+        self.assertEqual(PowerNode(norm, half).inf_type, Real)
+        self.assertEqual(PowerNode(norm, norm).inf_type, Real)
 
     def test_requirements(self) -> None:
         """test_requirements"""
@@ -915,3 +959,25 @@ class ASTToolsTest(unittest.TestCase):
             ToPositiveRealNode(half).requirements, [upper_bound(PositiveReal)]
         )
         # To Positive Real is illegal on reals and tensors
+
+        # Power
+        #
+        # For non-tensor cases we require that the base be P, R+, R and the
+        # exponent be R+ or R.
+        #
+        # TODO: We can do a slightly better job than this; see comments
+        # in bmg_nodes.py for details.
+
+        self.assertEqual(
+            PowerNode(bern, bern).requirements, [Probability, PositiveReal]
+        )
+        self.assertEqual(
+            PowerNode(beta, beta).requirements, [Probability, PositiveReal]
+        )
+        self.assertEqual(
+            PowerNode(bino, bino).requirements, [PositiveReal, PositiveReal]
+        )
+        self.assertEqual(
+            PowerNode(half, half).requirements, [PositiveReal, PositiveReal]
+        )
+        self.assertEqual(PowerNode(norm, norm).requirements, [Real, Real])
