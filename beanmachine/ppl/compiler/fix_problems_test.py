@@ -347,6 +347,7 @@ digraph "graph" {
         # * No support for power yet
         # * No support for division yet
         # * No support for log yet
+        # * No support for chi2 yet
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -355,6 +356,8 @@ digraph "graph" {
         #   return HalfCauchy(1.0)
         # @rv def norm():
         #   return Normal(log(hcs(3) ** (hcs(1) / hcs(2))), 1.0)
+        # @rv def c2():
+        #   return Chi2(1.0)
 
         one = bmg.add_constant(1.0)
         hc = bmg.add_halfcauchy(one)
@@ -366,6 +369,8 @@ digraph "graph" {
         lg = bmg.add_log(p)
         norm = bmg.add_normal(lg, one)
         bmg.add_sample(norm)
+        c2 = bmg.add_chi2(one)
+        bmg.add_sample(c2)
 
         error_report = fix_problems(bmg)
         observed = str(error_report)
@@ -374,6 +379,8 @@ The model uses a ** operation unsupported by Bean Machine Graph.
 The unsupported node is the operand of a Log.
 The model uses a / operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a **.
+The model uses a Chi2 operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a Sample.
 The model uses a Log operation unsupported by Bean Machine Graph.
 The unsupported node is the mu of a Normal.
 """
