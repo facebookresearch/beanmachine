@@ -1496,6 +1496,28 @@ digraph "graph" {
 """
         self.assertEqual(observed.strip(), expected.strip())
 
+    def test_chi2(self) -> None:
+        bmg = BMGraphBuilder()
+        df = bmg.add_pos_real(1.0)
+        d = bmg.add_chi2(df)
+        bmg.add_sample(d)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=False,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+        expected = """
+digraph "graph" {
+  N0[label="1.0:R+"];
+  N1[label="Chi2:R+"];
+  N2[label="Sample:R+"];
+  N0 -> N1[label="df:R+"];
+  N1 -> N2[label="operand:R+"];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
     def test_if_then_else(self) -> None:
         bmg = BMGraphBuilder()
         p = bmg.add_constant(0.5)
