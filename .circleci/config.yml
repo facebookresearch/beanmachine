@@ -31,6 +31,9 @@ commands:
       - run:
           name: "Install Boost"
           command: sudo apt-get install libboost-all-dev
+      - run:
+          name: "Install Eigen"
+          command: sudo apt-get install libeigen3-dev
 
   setup_py_install:
     description: "Install beanmachine as an ordinary user would via setup.py install"

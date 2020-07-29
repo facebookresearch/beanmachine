@@ -27,24 +27,39 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
   static handle
   cast(AtomicValue src, return_value_policy policy, handle parent) {
     // for C++ -> Python condition the return object on the type
-    switch (src.type) {
-      case AtomicType::BOOLEAN: {
-        return type_caster<bool>::cast(src._bool, policy, parent);
+    if (src.type.variable_type == VariableType::SCALAR) {
+      switch (src.type.atomic_type) {
+        case AtomicType::BOOLEAN: {
+          return type_caster<bool>::cast(src._bool, policy, parent);
+        }
+        case AtomicType::PROBABILITY:
+        case AtomicType::REAL:
+        case AtomicType::POS_REAL: {
+          return type_caster<double>::cast(src._double, policy, parent);
+        }
+        case AtomicType::NATURAL: {
+          return type_caster<int>::cast(src._natural, policy, parent);
+        }
+        case AtomicType::TENSOR: {
+          return type_caster<torch::Tensor>::cast(src._tensor, policy, parent);
+        }
+        default: {
+          throw std::runtime_error("unexpected type for AtomicValue");
+        }
       }
-      case AtomicType::PROBABILITY:
-      case AtomicType::REAL:
-      case AtomicType::POS_REAL: {
-        return type_caster<double>::cast(src._double, policy, parent);
+    } else if (src.type.variable_type == VariableType::BROADCAST_MATRIX) {
+      switch(src.type.atomic_type){
+        case AtomicType::REAL:
+        case AtomicType::POS_REAL:
+        case AtomicType::PROBABILITY:
+          return type_caster<Eigen::MatrixXd>::cast(src._matrix, policy, parent);
+        default:
+          throw std::runtime_error("unexpected type for AtomicValue");
       }
-      case AtomicType::NATURAL: {
-        return type_caster<int>::cast(src._natural, policy, parent);
-      }
-      case AtomicType::TENSOR: {
-        return type_caster<torch::Tensor>::cast(src._tensor, policy, parent);
-      }
-      default: {
-        throw std::runtime_error("unexpected type for AtomicValue");
-      }
+    } else if (src.type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
+      return type_caster<Eigen::MatrixXd>::cast(src._matrix, policy, parent);
+    } else {
+      throw std::runtime_error("unexpected type for AtomicValue");
     }
   }
 };

@@ -7,7 +7,7 @@ namespace proposer {
 
 graph::AtomicValue uniform_initializer(
     std::mt19937& gen,
-    graph::AtomicType type) {
+    graph::ValueType type) {
   // The initialization rules here are based on Stan's default initialization
   // except for discrete variables which are sampled uniformly.
   // Note: Stan doesn't support discrete variables.

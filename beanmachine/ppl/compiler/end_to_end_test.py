@@ -156,35 +156,35 @@ uint n28 = g.add_operator(
 """
 
 expected_bmg_1 = """
-Node 0 type 1 parents [ ] children [ 1 22 ] probability value 0.5
-Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
-Node 2 type 3 parents [ 1 ] children [ ] boolean value 0
-Node 3 type 1 parents [ ] children [ 4 ] probability value 0.119203
-Node 4 type 2 parents [ 3 ] children [ 5 ] unknown value
-Node 5 type 3 parents [ 4 ] children [ ] boolean value 0
-Node 6 type 1 parents [ ] children [ 8 ] real value 0
-Node 7 type 1 parents [ ] children [ 8 12 12 14 25 ] pos real value 1
-Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown value
-Node 9 type 3 parents [ 8 ] children [ 10 19 ] real value 0
-Node 10 type 2 parents [ 9 ] children [ 11 ] unknown value
-Node 11 type 3 parents [ 10 ] children [ ] boolean value 0
-Node 12 type 2 parents [ 7 7 ] children [ 13 ] unknown value
-Node 13 type 3 parents [ 12 ] children [ ] probability value 0
-Node 14 type 2 parents [ 7 ] children [ 15 16 ] unknown value
-Node 15 type 3 parents [ 14 ] children [ 17 19 ] pos real value 0
-Node 16 type 3 parents [ 14 ] children [ 17 19 ] pos real value 0
-Node 17 type 2 parents [ 15 16 ] children [ 18 ] unknown value
-Node 18 type 3 parents [ 17 ] children [ ] probability value 0
-Node 19 type 2 parents [ 15 9 16 ] children [ 20 ] unknown value
-Node 20 type 3 parents [ 19 ] children [ ] real value 0
-Node 21 type 1 parents [ ] children [ 22 ] natural value 3
-Node 22 type 2 parents [ 21 0 ] children [ 23 ] unknown value
-Node 23 type 3 parents [ 22 ] children [ ] natural value 0
-Node 24 type 1 parents [ ] children [ 25 ] pos real value 2
-Node 25 type 2 parents [ 7 24 ] children [ 26 ] unknown value
-Node 26 type 3 parents [ 25 ] children [ ] pos real value 0
-Node 27 type 2 parents [ ] children [ 28 ] unknown value
-Node 28 type 3 parents [ 27 ] children [ ] probability value 0
+Node 0 type 1 parents [ ] children [ 1 22 ] probability 0.5
+Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
+Node 2 type 3 parents [ 1 ] children [ ] boolean 0
+Node 3 type 1 parents [ ] children [ 4 ] probability 0.119203
+Node 4 type 2 parents [ 3 ] children [ 5 ] unknown
+Node 5 type 3 parents [ 4 ] children [ ] boolean 0
+Node 6 type 1 parents [ ] children [ 8 ] real 0
+Node 7 type 1 parents [ ] children [ 8 12 12 14 25 ] positive real 1
+Node 8 type 2 parents [ 6 7 ] children [ 9 ] unknown
+Node 9 type 3 parents [ 8 ] children [ 10 19 ] real 0
+Node 10 type 2 parents [ 9 ] children [ 11 ] unknown
+Node 11 type 3 parents [ 10 ] children [ ] boolean 0
+Node 12 type 2 parents [ 7 7 ] children [ 13 ] unknown
+Node 13 type 3 parents [ 12 ] children [ ] probability 0
+Node 14 type 2 parents [ 7 ] children [ 15 16 ] unknown
+Node 15 type 3 parents [ 14 ] children [ 17 19 ] positive real 0
+Node 16 type 3 parents [ 14 ] children [ 17 19 ] positive real 0
+Node 17 type 2 parents [ 15 16 ] children [ 18 ] unknown
+Node 18 type 3 parents [ 17 ] children [ ] probability 0
+Node 19 type 2 parents [ 15 9 16 ] children [ 20 ] unknown
+Node 20 type 3 parents [ 19 ] children [ ] real 0
+Node 21 type 1 parents [ ] children [ 22 ] natural 3
+Node 22 type 2 parents [ 21 0 ] children [ 23 ] unknown
+Node 23 type 3 parents [ 22 ] children [ ] natural 0
+Node 24 type 1 parents [ ] children [ 25 ] positive real 2
+Node 25 type 2 parents [ 7 24 ] children [ 26 ] unknown
+Node 26 type 3 parents [ 25 ] children [ ] positive real 0
+Node 27 type 2 parents [ ] children [ 28 ] unknown
+Node 28 type 3 parents [ 27 ] children [ ] probability 0
 """
 
 expected_python_1 = """
@@ -318,21 +318,21 @@ uint n14 = g.add_operator(
 """
 
 expected_bmg_2 = """
-Node 0 type 1 parents [ ] children [ 1 ] probability value 0.5
-Node 1 type 2 parents [ 0 ] children [ 2 ] unknown value
-Node 2 type 3 parents [ 1 ] children [ 3 4 9 12 ] boolean value 0
-Node 3 type 3 parents [ 2 ] children [ 5 ] real value 0
-Node 4 type 3 parents [ 2 ] children [ 5 ] pos real value 0
-Node 5 type 2 parents [ 3 4 ] children [ 6 ] unknown value
-Node 6 type 3 parents [ 5 ] children [ ] real value 0
-Node 7 type 1 parents [ ] children [ 9 ] natural value 1
-Node 8 type 1 parents [ ] children [ 9 ] natural value 0
-Node 9 type 3 parents [ 2 7 8 ] children [ 13 ] natural value 0
-Node 10 type 1 parents [ ] children [ 12 ] probability value 1
-Node 11 type 1 parents [ ] children [ 12 ] probability value 1e-10
-Node 12 type 3 parents [ 2 10 11 ] children [ 13 ] probability value 0
-Node 13 type 2 parents [ 9 12 ] children [ 14 ] unknown value
-Node 14 type 3 parents [ 13 ] children [ ] natural value 0
+Node 0 type 1 parents [ ] children [ 1 ] probability 0.5
+Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
+Node 2 type 3 parents [ 1 ] children [ 3 4 9 12 ] boolean 0
+Node 3 type 3 parents [ 2 ] children [ 5 ] real 0
+Node 4 type 3 parents [ 2 ] children [ 5 ] positive real 0
+Node 5 type 2 parents [ 3 4 ] children [ 6 ] unknown
+Node 6 type 3 parents [ 5 ] children [ ] real 0
+Node 7 type 1 parents [ ] children [ 9 ] natural 1
+Node 8 type 1 parents [ ] children [ 9 ] natural 0
+Node 9 type 3 parents [ 2 7 8 ] children [ 13 ] natural 0
+Node 10 type 1 parents [ ] children [ 12 ] probability 1
+Node 11 type 1 parents [ ] children [ 12 ] probability 1e-10
+Node 12 type 3 parents [ 2 10 11 ] children [ 13 ] probability 0
+Node 13 type 2 parents [ 9 12 ] children [ 14 ] unknown
+Node 14 type 3 parents [ 13 ] children [ ] natural 0
 """
 
 expected_python_2 = """

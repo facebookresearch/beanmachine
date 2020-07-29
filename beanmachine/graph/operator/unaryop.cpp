@@ -16,7 +16,7 @@ void complement(graph::Node* node) {
     node->value._double = 1 - parent._double;
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for COMPLEMENT operator at node_id " + std::to_string(node->index));
   }
 }
@@ -35,7 +35,7 @@ void to_real(graph::Node* node) {
     node->value._double = (double)parent._natural;
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for TO_REAL operator at node_id " + std::to_string(node->index));
   }
 }
@@ -53,7 +53,7 @@ void to_pos_real(graph::Node* node) {
     node->value._double = (double)parent._natural;
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for TO_POS_REAL operator at node_id " + std::to_string(node->index));
   }
 }
@@ -77,7 +77,7 @@ void to_tensor(graph::Node* node) {
     node->value._tensor = parent._tensor.toType(torch::kDouble);
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for TO_TENSOR operator at node_id " + std::to_string(node->index));
   }
 }
@@ -91,7 +91,7 @@ void negate(graph::Node* node) {
     node->value._tensor = parent._tensor.neg();
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for NEGATE operator at node_id " + std::to_string(node->index));
   }
 }
@@ -106,7 +106,7 @@ void exp(graph::Node* node) {
     node->value._tensor = parent._tensor.exp();
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for EXP operator at node_id " + std::to_string(node->index));
   }
 }
@@ -121,7 +121,7 @@ void expm1(graph::Node* node) {
     node->value._tensor = parent._tensor.expm1();
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for EXPM1 operator at node_id " + std::to_string(node->index));
   }
 }
@@ -158,7 +158,7 @@ void log1pexp(graph::Node* node) {
     node->value._tensor = parent._tensor.exp().log1p();
   } else {
     throw std::runtime_error(
-        "invalid parent type " + std::to_string(static_cast<int>(parent.type)) +
+        "invalid parent type " + parent.type.to_string() +
         " for LOG1PEXP operator at node_id " + std::to_string(node->index));
   }
 }

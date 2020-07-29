@@ -8,6 +8,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <Eigen/Dense>
 #ifndef TORCH_API_INCLUDE_EXTENSION_H
 #include <torch/torch.h>
 #else
@@ -19,6 +20,13 @@ namespace graph {
 
 const double PRECISION = 1e-10; // minimum precision of values
 
+enum class VariableType {
+  UNKNOWN = 0,
+  SCALAR = 1,
+  BROADCAST_MATRIX,
+  ROW_SIMPLEX_MATRIX,
+};
+
 enum class AtomicType {
   UNKNOWN = 0,
   BOOLEAN = 1,
@@ -26,28 +34,83 @@ enum class AtomicType {
   REAL,
   POS_REAL, // Real numbers greater than *or* equal to zero
   NATURAL, // note: NATURAL numbers include zero (ISO 80000-2)
-  TENSOR
+  TENSOR, // to be deprecated
+};
+
+struct ValueType {
+  VariableType variable_type;
+  AtomicType atomic_type;
+
+  ValueType()
+      : variable_type(VariableType::UNKNOWN),
+        atomic_type(AtomicType::UNKNOWN) {}
+  ValueType(const ValueType& other)
+      : variable_type(other.variable_type), atomic_type(other.atomic_type) {}
+  explicit ValueType(const AtomicType& other)
+      : variable_type(VariableType::SCALAR), atomic_type(other) {}
+
+  ValueType(VariableType vtype, AtomicType atype)
+      : variable_type(vtype), atomic_type(atype) {
+    if (vtype == VariableType::ROW_SIMPLEX_MATRIX) {
+      assert(atype == AtomicType::PROBABILITY);
+    }
+  }
+
+  bool operator!=(const ValueType& other) const {
+    return variable_type != other.variable_type or
+        atomic_type != other.atomic_type;
+  }
+  bool operator!=(const AtomicType& other) const {
+    return variable_type != VariableType::SCALAR or atomic_type != other;
+  }
+  bool operator==(const ValueType& other) const {
+    return variable_type == other.variable_type and
+        atomic_type == other.atomic_type;
+  }
+  bool operator==(const AtomicType& other) const {
+    return variable_type == VariableType::SCALAR and atomic_type == other;
+  }
+  ValueType& operator=(const ValueType& other) {
+    if (this != &other) {
+      variable_type = other.variable_type;
+      atomic_type = other.atomic_type;
+    }
+    return *this;
+  }
+  ValueType& operator=(const AtomicType& other) {
+    variable_type = VariableType::SCALAR;
+    atomic_type = other;
+    return *this;
+  }
+  std::string to_string() const;
 };
 
 typedef unsigned long long int natural_t;
 
 class AtomicValue {
  public:
-  AtomicType type;
+  ValueType type;
   union {
     bool _bool;
     double _double;
     natural_t _natural;
   };
   torch::Tensor _tensor;
+  Eigen::MatrixXd _matrix;
+
   AtomicValue() : type(AtomicType::UNKNOWN) {}
   explicit AtomicValue(AtomicType type);
+  explicit AtomicValue(ValueType type, uint nrow, uint ncol);
   explicit AtomicValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
   explicit AtomicValue(natural_t value)
       : type(AtomicType::NATURAL), _natural(value) {}
   explicit AtomicValue(torch::Tensor value)
       : type(AtomicType::TENSOR), _tensor(value.clone()) {}
+  explicit AtomicValue(Eigen::MatrixXd& value)
+      : type(ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL)),
+        _matrix(value) {}
+
   AtomicValue(AtomicType type, bool value) : type(type), _bool(value) {
     assert(type == AtomicType::BOOLEAN);
   }
@@ -58,28 +121,64 @@ class AtomicValue {
       : type(type), _tensor(value) {
     assert(type == AtomicType::TENSOR);
   }
+  AtomicValue(AtomicType type, Eigen::MatrixXd& value) : _matrix(value) {
+    assert(
+        type == AtomicType::REAL or type == AtomicType::POS_REAL or
+        type == AtomicType::PROBABILITY);
+    this->type.variable_type = VariableType::BROADCAST_MATRIX;
+    this->type.atomic_type = type;
+  }
+  AtomicValue(ValueType type, Eigen::MatrixXd& value) : type(type), _matrix(value) {
+    assert(
+        type.variable_type == VariableType::BROADCAST_MATRIX or
+        type.variable_type == VariableType::ROW_SIMPLEX_MATRIX);
+    assert(
+        type.atomic_type == AtomicType::REAL or type.atomic_type == AtomicType::POS_REAL or
+        type.atomic_type == AtomicType::PROBABILITY);
+  }
   AtomicValue(AtomicType type, double value);
+
   AtomicValue(const AtomicValue& other): type(other.type) {
-    switch(type) {
-      case AtomicType::UNKNOWN: {
-        throw std::invalid_argument("Trying to copy an AtomicValue of unknown type.");
+    if (type.variable_type == VariableType::SCALAR) {
+      switch (type.atomic_type) {
+        case AtomicType::UNKNOWN: {
+          throw std::invalid_argument(
+              "Trying to copy an AtomicValue of unknown type.");
+        }
+        case AtomicType::BOOLEAN: {
+          _bool = other._bool;
+          break;
+        }
+        case AtomicType::NATURAL: {
+          _natural = other._natural;
+          break;
+        }
+        case AtomicType::TENSOR: {
+          _tensor = other._tensor.clone();
+          break;
+        }
+        default: {
+          _double = other._double;
+          break;
+        }
       }
-      case AtomicType::BOOLEAN: {
-        _bool = other._bool;
-        break;
+    } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
+      switch(type.atomic_type) {
+        case AtomicType::REAL:
+        case AtomicType::POS_REAL:
+        case AtomicType::PROBABILITY: {
+          _matrix = other._matrix;
+          break;
+        }
+        default: {
+          throw std::invalid_argument(
+              "Trying to copy a MATRIX AtomicValue of unsupported type.");
+        }
       }
-      case AtomicType::NATURAL: {
-        _natural = other._natural;
-        break;
-      }
-      case AtomicType::TENSOR: {
-        _tensor = other._tensor.clone();
-        break;
-      }
-      default: {
-        _double = other._double;
-        break;
-      }
+    } else if (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
+      _matrix = other._matrix;
+    } else {
+       throw std::invalid_argument("Trying to copy a value of unknown VariableType");
     }
   }
   std::string to_string() const;
@@ -90,6 +189,13 @@ class AtomicValue {
          (type == AtomicType::POS_REAL and _double == other._double) or
          (type == AtomicType::PROBABILITY and _double == other._double) or
          (type == AtomicType::NATURAL and _natural == other._natural) or
+         (type.variable_type == VariableType::BROADCAST_MATRIX and
+          (type.atomic_type == AtomicType::REAL or
+           type.atomic_type == AtomicType::POS_REAL or
+           type.atomic_type == AtomicType::PROBABILITY) and
+          _matrix.isApprox(other._matrix)) or
+         (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX and
+          _matrix.isApprox(other._matrix)) or
          (type == AtomicType::TENSOR and
           _tensor.eq(other._tensor).all().item<uint8_t>()));
   }
@@ -210,6 +316,10 @@ struct Graph {
   uint add_constant(AtomicValue value);
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
+  uint add_constant_matrix(Eigen::MatrixXd& value);
+  uint add_constant_pos_matrix(Eigen::MatrixXd& value);
+  uint add_constant_probability_matrix(Eigen::MatrixXd& value);
+  uint add_constant_row_simplex_matrix(Eigen::MatrixXd& value);
   uint add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,
@@ -221,6 +331,7 @@ struct Graph {
   void observe(uint var, double val);
   void observe(uint var, natural_t val);
   void observe(uint var, torch::Tensor val);
+  void observe(uint var, Eigen::MatrixXd& val);
   void observe(uint var, AtomicValue val);
   uint query(uint var); // returns the index of the query in the samples
   /*

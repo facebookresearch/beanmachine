@@ -4,6 +4,7 @@ import math
 import unittest
 
 import beanmachine.graph as bmg
+import numpy as np
 
 
 class TestOperators(unittest.TestCase):
@@ -19,6 +20,20 @@ class TestOperators(unittest.TestCase):
         c5 = g.add_constant_probability(0.7)
         c6 = g.add_constant(23)  # NATURAL
         c7 = g.add_constant(False)
+        # add const matrices, operators on matrix to be added
+        g.add_constant_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
+        g.add_constant_pos_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
+        g.add_constant_probability_matrix(np.array([0.1, 0.9]))
+        g.add_constant_row_simplex_matrix(np.array([[0.1, 0.9], [1.0, 0.0]]))
+        with self.assertRaises(ValueError):
+            g.add_constant_pos_matrix(np.array([[0.1, 0.0], [2.0, -1.0]]))
+        with self.assertRaises(ValueError):
+            g.add_constant_row_simplex_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
+        with self.assertRaises(ValueError):
+            # np.array([0.1, 0.9]) is by default a colum vector
+            g.add_constant_row_simplex_matrix(np.array([0.1, 0.9]))
+        with self.assertRaises(ValueError):
+            g.add_constant_probability_matrix(np.array([1.1, 0.9]))
         # test TO_REAL
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [])
