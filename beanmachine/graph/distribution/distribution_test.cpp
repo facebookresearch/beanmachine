@@ -1,8 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <array>
-
 #include <gtest/gtest.h>
-#include <torch/torch.h>
 
 #include "beanmachine/graph/distribution/bernoulli.h"
 #include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
@@ -81,13 +78,14 @@ TEST(testdistrib, bernoulli_noisy_or) {
 }
 
 TEST(testdistrib, tabular) {
-  // clang-format off
-  std::array<float, 4> mat_arr = {
-      0.9, 0.1,
-      0.1, 0.9};
-  // clang-format on
-  torch::Tensor mat = torch::from_blob(mat_arr.data(), {2, 2});
-  graph::ConstNode cnode1(graph::AtomicValue{mat});
+  Eigen::MatrixXd matrix(2, 2);
+  matrix << 0.9, 0.1,
+            0.1, 0.9;
+  graph::ConstNode cnode1(graph::AtomicValue(
+      graph::ValueType(
+          graph::VariableType::ROW_SIMPLEX_MATRIX,
+          graph::AtomicType::PROBABILITY),
+      matrix));
   graph::ConstNode cnode2(graph::AtomicValue{true});
   distribution::Tabular dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1, &cnode2});

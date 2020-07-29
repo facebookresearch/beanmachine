@@ -12,37 +12,6 @@ namespace util {
 // see https://core.ac.uk/download/pdf/41787448.pdf
 const double PHI_APPROX_GAMMA = 1.702;
 
-bool is_boolean_scalar(const torch::Tensor& value) {
-  if (value.dim() != 0 or value.scalar_type() != torch::ScalarType::Byte or
-      value.item<uint8_t>() > 1) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-bool is_boolean_tensor(const torch::Tensor& value) {
-  return (
-      value.scalar_type() == torch::ScalarType::Byte and
-      value.le(1).all().item<uint8_t>());
-}
-
-bool is_real_tensor(const torch::Tensor& value) {
-  torch::ScalarType sctype = value.scalar_type();
-  return (
-      sctype == torch::ScalarType::Half or sctype == torch::ScalarType::Float or
-      sctype == torch::ScalarType::Double);
-}
-
-bool is_real_scalar(const torch::Tensor& value) {
-  torch::ScalarType sctype = value.scalar_type();
-  return (
-      value.dim() == 0 and
-      (sctype == torch::ScalarType::Half or
-       sctype == torch::ScalarType::Float or
-       sctype == torch::ScalarType::Double));
-}
-
 bool sample_logodds(std::mt19937& gen, double logodds) {
   if (logodds < 0) {
     double wt = exp(logodds);

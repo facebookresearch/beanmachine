@@ -16,35 +16,27 @@ Tabular::Tabular(
   if (sample_type != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument("Tabular supports only boolean valued samples");
   }
-  // extract the matrix from the first parent
+  // extract the conditional probability vector from the first parent
   if (in_nodes.size() < 1 or
       in_nodes[0]->node_type != graph::NodeType::CONSTANT or
-      in_nodes[0]->value.type != graph::AtomicType::TENSOR) {
+      in_nodes[0]->value.type.variable_type != graph::VariableType::ROW_SIMPLEX_MATRIX) {
     throw std::invalid_argument(
-        "Tabular distribution first arg must be tensor");
+        "Tabular distribution's first arg must be ROW_SIMPLEX_MATRIX");
   }
-  const torch::Tensor matrix = in_nodes[0]->value._tensor;
-  if (not util::is_real_tensor(matrix)) {
+  const Eigen::MatrixXd& matrix = in_nodes[0]->value._matrix;
+  // the matrix must have num_column = 2, since we only support BOOLEAN sample_type
+  if (matrix.cols() != 2) {
     throw std::invalid_argument(
-        "Tabular distribution's tensor argument should have type float");
+        "Tabular distribution's first arg must have two columns.");
   }
-  // check the dimensions of the matrix
-  const torch::IntArrayRef sizes = matrix.sizes();
-  // we need one dimension for each parent excluding the first tensor parent
-  // and one for the output
-  if (sizes.size() != in_nodes.size()) {
+  // the n_rows should be equal to 2^{num_parents}, since all parents are boolean
+  if (matrix.rows() != std::pow(2.0, (float)(in_nodes.size() - 1))) {
     throw std::invalid_argument(
-        "Tabular distribution's tensor argument expected " +
-        std::to_string(in_nodes.size()) + " dims got " +
-        std::to_string(sizes.size()));
+        "Tabular distribution's first arg expected " +
+        std::to_string((uint)std::pow(2.0, (float)(in_nodes.size() - 1))) + " dims got " +
+        std::to_string(matrix.rows()));
   }
-  // since only boolean sample types are currently supported the last dimension
-  // of the matrix must be 2
-  if (sizes[sizes.size() - 1] != 2) {
-    throw std::invalid_argument(
-        "Tabular distribution's tensor should have last dimension size 2");
-  }
-  // go through each of the parents other than the tensor and verify its type
+  // go through each of the parents other than the matrix and verify its type
   for (uint paridx = 1; paridx < in_nodes.size(); paridx++) {
     const graph::Node* parent = in_nodes[paridx];
     if (parent->value.type != graph::AtomicType::BOOLEAN) {
@@ -52,31 +44,30 @@ Tabular::Tabular(
           "Tabular distribution only supports boolean parents currently");
     }
   }
-  // check that the matrix defines a probability distribution in the last dim
-  if (matrix.lt(0).any().item<uint8_t>()) {
-    throw std::invalid_argument("Tabular distribution tensor must be positive");
-  }
-  if (matrix.sum(-1).sub(1).abs().gt(1e-6).any().item<uint8_t>()) {
-    throw std::invalid_argument(
-        "Tabular distribution tensor last dim must add to 1");
-  }
 }
 
 double Tabular::get_probability() const {
-  std::vector<torch::Tensor> parents;
-  for (uint i = 1; i < in_nodes.size(); i++) {
+  uint col_id = 1;
+  uint row_id = 0;
+  // map parents value to an index, starting from the last parent
+  for (uint i = in_nodes.size() - 1, j = 0; i > 0; i--, j++) {
     const auto& parenti = in_nodes[i]->value;
     if (parenti.type != graph::AtomicType::BOOLEAN) {
       throw std::runtime_error(
           "Tabular distribution at node_id " + std::to_string(index) +
           " expects boolean parents");
     }
-    parents.push_back(
-        torch::scalar_tensor((int64_t)parenti._bool, torch::kLong));
+    if (parenti._bool) {
+      row_id += (uint)std::pow(2.0, (float)j);
+    }
   }
-  parents.push_back(torch::scalar_tensor((int64_t)1, torch::kLong));
-  assert(in_nodes[0]->value.type == graph::AtomicType::TENSOR);
-  double prob = in_nodes[0]->value._tensor.index(parents).item<double>();
+  assert(
+      in_nodes[0]->value.type.variable_type ==
+      graph::VariableType::ROW_SIMPLEX_MATRIX);
+  const Eigen::MatrixXd& matrix = in_nodes[0]->value._matrix;
+  assert(col_id < matrix.cols());
+  assert(row_id < matrix.rows());
+  double prob = matrix.coeff(row_id, col_id);
   if (prob < 0 or prob > 1) {
     throw std::runtime_error(
         "unexpected probability " + std::to_string(prob) +

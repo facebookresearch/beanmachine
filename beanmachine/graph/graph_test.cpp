@@ -3,7 +3,6 @@
 #include <tuple>
 
 #include <gtest/gtest.h>
-#include <torch/torch.h>
 
 #include "beanmachine/graph/graph.h"
 
@@ -72,23 +71,31 @@ TEST(testgraph, infer_bn) {
   graph::Graph g;
   // classic sprinkler BN, see the diagram here:
   // https://upload.wikimedia.org/wikipedia/commons/0/0e/SimpleBayesNet.svg
-  uint c1 = g.add_constant(torch::from_blob((float[]){.8, .2}, {2}));
+  Eigen::MatrixXd matrix1(1, 2);
+  matrix1 << 0.8, 0.2;
+  uint c1 = g.add_constant_row_simplex_matrix(matrix1);
   uint d1 = g.add_distribution(
       graph::DistributionType::TABULAR,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>({c1}));
   uint RAIN =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
-  uint c2 =
-      g.add_constant(torch::from_blob((float[]){.6, .4, .99, .01}, {2, 2}));
+  Eigen::MatrixXd matrix2(2, 2);
+  matrix2 << 0.6, 0.4,
+             0.99, 0.01;
+  uint c2 = g.add_constant_row_simplex_matrix(matrix2);
   uint d2 = g.add_distribution(
       graph::DistributionType::TABULAR,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>({c2, RAIN}));
   uint SPRINKLER =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
-  uint c3 = g.add_constant(
-      torch::from_blob((float[]){1, 0, .2, .8, .1, .9, .01, .99}, {2, 2, 2}));
+  Eigen::MatrixXd matrix3(4, 2);
+  matrix3 << 1.0, 0.0,
+             0.2, 0.8,
+             0.1, 0.9,
+             0.01, 0.99;
+  uint c3 = g.add_constant_row_simplex_matrix(matrix3);
   uint d3 = g.add_distribution(
       graph::DistributionType::TABULAR,
       graph::AtomicType::BOOLEAN,
@@ -145,9 +152,15 @@ TEST(testgraph, clone_graph) {
   uint c_bool = g.add_constant(true);
   uint c_real = g.add_constant(-2.5);
   uint c_natural = g.add_constant(a);
-  uint c_torch = g.add_constant(torch::from_blob((float[]){.6, .4, .99, .01}, {2, 2}));
   uint c_prob = g.add_constant_probability(0.5);
   uint c_pos = g.add_constant_pos_real(2.5);
+  Eigen::MatrixXd m1 = Eigen::MatrixXd::Identity(3, 3);
+  g.add_constant_pos_matrix(m1);
+  Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(3, 3);
+  g.add_constant_matrix(m2);
+  Eigen::MatrixXd m3(1, 2);
+  m3 << 0.2, 0.8;
+  g.add_constant_row_simplex_matrix(m3);
   // distributions
   uint d_bernoulli = g.add_distribution(
     graph::DistributionType::BERNOULLI,
