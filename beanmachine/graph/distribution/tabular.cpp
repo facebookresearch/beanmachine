@@ -97,7 +97,7 @@ double Tabular::log_prob(const graph::AtomicValue& value) const {
     throw std::runtime_error(
         "expecting boolean value in child of Tabular node_id " +
         std::to_string(index) + " got type " +
-        std::to_string(static_cast<int>(value.type)));
+        value.type.to_string());
   }
   return value._bool ? std::log(prob_true) : std::log(1 - prob_true);
 }

@@ -27,7 +27,7 @@ void multiply(graph::Node* node) {
     }
   } else {
     throw std::runtime_error(
-        "invalid type " + std::to_string(static_cast<int>(parent0.type)) +
+        "invalid type " + parent0.type.to_string() +
         " for MULTIPLY operator at node_id " + std::to_string(node->index));
   }
 }
@@ -52,7 +52,7 @@ void add(graph::Node* node) {
     }
   } else {
     throw std::runtime_error(
-        "invalid type " + std::to_string(static_cast<int>(parent0.type)) +
+        "invalid type " + parent0.type.to_string() +
         " for ADD operator at node_id " + std::to_string(node->index));
   }
 }
@@ -76,7 +76,7 @@ void logsumexp(graph::Node* node) {
     node->value._double = std::log(expsum) + max_val;
   } else {
     throw std::runtime_error(
-        "invalid type " + std::to_string(static_cast<int>(parent0.type)) +
+        "invalid type " + parent0.type.to_string() +
         " for LOGSUMEXP operator at node_id " + std::to_string(node->index));
   }
 }

@@ -1,4 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #define TORCH_API_INCLUDE_EXTENSION_H 1
@@ -13,6 +14,11 @@ namespace py = pybind11;
 PYBIND11_MODULE(graph, module) {
   module.doc() = "module for python bindings to the graph API";
 
+  py::enum_<VariableType>(module, "VariableType")
+      .value("SCALAR", VariableType::SCALAR)
+      .value("BROADCAST_MATRIX", VariableType::BROADCAST_MATRIX)
+      .value("ROW_SIMPLEX_MATRIX", VariableType::ROW_SIMPLEX_MATRIX);
+
   py::enum_<AtomicType>(module, "AtomicType")
       .value("BOOLEAN", AtomicType::BOOLEAN)
       .value("PROBABILITY", AtomicType::PROBABILITY)
@@ -21,10 +27,18 @@ PYBIND11_MODULE(graph, module) {
       .value("NATURAL", AtomicType::NATURAL)
       .value("TENSOR", AtomicType::TENSOR);
 
+  py::class_<ValueType>(module, "ValueType")
+      .def(py::init<VariableType, AtomicType>())
+      .def(
+          "to_string",
+          &ValueType::to_string,
+          "string representation of the type");
+
   py::class_<AtomicValue>(module, "AtomicValue")
       .def(py::init<bool>())
       .def(py::init<double>())
       .def(py::init<graph::natural_t>())
+      .def(py::init<Eigen::MatrixXd&>())
       .def(py::init<torch::Tensor>());
 
   py::enum_<OperatorType>(module, "OperatorType")
@@ -112,6 +126,26 @@ PYBIND11_MODULE(graph, module) {
           "add a Node with a constant positive real (>=0) value",
           py::arg("value"))
       .def(
+          "add_constant_matrix",
+          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_matrix,
+          "add a Node with a constant real-valued matrix",
+          py::arg("value"))
+      .def(
+          "add_constant_pos_matrix",
+          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_pos_matrix,
+          "add a Node with a constant element-wise positive valued matrix",
+          py::arg("value"))
+      .def(
+          "add_constant_row_simplex_matrix",
+          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_row_simplex_matrix,
+          "add a Node with a constant matrix with each row a simplex",
+          py::arg("value"))
+      .def(
+          "add_constant_probability_matrix",
+          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_probability_matrix,
+          "add a Node with a constant probability-valued matrix",
+          py::arg("value"))
+      .def(
           "add_distribution",
           &Graph::add_distribution,
           "add a probability distribution Node",
@@ -151,6 +185,12 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "observe",
           (void (Graph::*)(uint, torch::Tensor)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, Eigen::MatrixXd&)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))

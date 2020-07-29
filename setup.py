@@ -27,8 +27,10 @@ TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 EXTRA_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
 
-BOOST_HEADER = "/boost/math/special_functions/polygamma.hpp"
-
+BMG_DEP_HEADER = {
+    "boost": "/boost/math/special_functions/polygamma.hpp",
+    "eigen": "/Eigen/Dense",
+}
 
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
@@ -56,30 +58,42 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-def find_include_dirs():
-    inc_dir = {os.getcwd()}
-    if "--boost_include_dir" in sys.argv:
-        index = sys.argv.index("--boost_include_dir")
+def find_include_dir(dep):
+    dep_arg = "--" + dep + "_include_dir"
+    if dep_arg in sys.argv:
+        index = sys.argv.index(dep_arg)
         sys.argv.pop(index)
         dir_candidate = sys.argv.pop(index)
-        header_dir = dir_candidate + BOOST_HEADER
-        if os.path.isfile(header_dir):
-            inc_dir.add(dir_candidate)
-            return list(inc_dir)
-        raise FileNotFoundError("Boost is not found in the given directory.")
+        header_dir = dir_candidate + BMG_DEP_HEADER[dep]
+        if os.path.isfile(header_dir) or os.path.isdir(header_dir):
+            return dir_candidate
+        raise FileNotFoundError(dep + " is not found in the given directory.")
     if sys.platform == "win32":
-        raise ValueError("Please provide a valid --boost_include_dir.")
-    locs = os.popen("whereis boost").read().split(" ")
+        raise ValueError(
+            "Please provide a valid --boost_include_dir and --eigen_include_dir."
+        )
+    dep_search_cmd = "whereis " + ("eigen3" if dep == "eigen" else dep)
+    locs = os.popen(dep_search_cmd).read().split(" ")
     for loc in locs:
-        dir_candidate = os.path.dirname(loc)
-        header_dir = dir_candidate + BOOST_HEADER
-        if os.path.isfile(header_dir):
-            inc_dir.add(dir_candidate)
-            return list(inc_dir)
+        dir_candidate = os.path.dirname(loc) + ("/eigen3" if dep == "eigen" else "")
+        header_dir = dir_candidate + BMG_DEP_HEADER[dep]
+        if os.path.isfile(header_dir) or os.path.isdir(header_dir):
+            return dir_candidate
     raise FileNotFoundError(
-        "Boost is not found. Please install Boost first,"
-        + " then provide a valid --boost_include_dir."
+        dep
+        + " is not found. Please install "
+        + dep
+        + " first,"
+        + " then provide a valid "
+        + dep_arg
     )
+
+
+def find_include_dirs():
+    inc_dir = {os.getcwd()}
+    for dep in BMG_DEP_HEADER:
+        inc_dir.add(find_include_dir(dep))
+    return list(inc_dir)
 
 
 bmg_inc_dir = find_include_dirs()

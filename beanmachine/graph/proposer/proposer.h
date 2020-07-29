@@ -42,7 +42,7 @@ Returns a value for the specified type uniformly at random.
 */
 graph::AtomicValue uniform_initializer(
     std::mt19937& gen,
-    graph::AtomicType type);
+    graph::ValueType type);
 
 } // namespace proposer
 } // namespace beanmachine

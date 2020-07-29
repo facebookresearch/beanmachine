@@ -38,7 +38,7 @@ static void check_multiary_op(
         std::to_string(static_cast<int>(op_type)));
   }
   // all parent nodes should have the same value type
-  graph::AtomicType type0 = in_nodes[0]->value.type;
+  graph::AtomicType type0 = in_nodes[0]->value.type.atomic_type;
   for (const graph::Node* node : in_nodes) {
     if (node->value.type != type0) {
       throw std::invalid_argument(
@@ -57,7 +57,7 @@ Operator::Operator(
   if (in_nodes.size() < 1) {
     throw std::invalid_argument("operator requires a parent");
   }
-  graph::AtomicType type0 = in_nodes[0]->value.type;
+  graph::AtomicType type0 = in_nodes[0]->value.type.atomic_type;
   // now perform operator-specific checks and set the value type
   switch (op_type) {
     case graph::OperatorType::SAMPLE: {
@@ -191,7 +191,7 @@ Operator::Operator(
         throw std::invalid_argument(
             "operator IF_THEN_ELSE requires 3 args and arg2.type == arg3.type");
       }
-      value = graph::AtomicValue(in_nodes[1]->value.type);
+      value = graph::AtomicValue(in_nodes[1]->value.type.atomic_type);
       break;
     }
     default: {

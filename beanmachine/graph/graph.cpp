@@ -11,6 +11,47 @@
 namespace beanmachine {
 namespace graph {
 
+std::string ValueType::to_string() const {
+  std::string vtype;
+  std::string atype;
+  switch(atomic_type) {
+    case AtomicType::UNKNOWN:
+      atype = "unknown";
+      break;
+    case AtomicType::BOOLEAN:
+      atype = "boolean";
+      break;
+    case AtomicType::PROBABILITY:
+      atype = "probability";
+      break;
+    case AtomicType::REAL:
+      atype = "real";
+      break;
+    case AtomicType::POS_REAL:
+      atype = "positive real";
+      break;
+    case AtomicType::NATURAL:
+      atype = "natural";
+      break;
+    case AtomicType::TENSOR:
+      atype = "tensor";
+      break;
+  }
+  switch(variable_type) {
+    case VariableType::UNKNOWN:
+      return "unknown variable";
+    case VariableType::SCALAR:
+      return atype;
+    case VariableType::BROADCAST_MATRIX:
+      vtype = "matrix<";
+      break;
+    case VariableType::ROW_SIMPLEX_MATRIX:
+      vtype = "row_simplex_matrix<";
+      break;
+  }
+  return vtype + atype + ">";
+}
+
 AtomicValue::AtomicValue(AtomicType type, double value)
     : type(type), _double(value) {
   // don't allow constrained values to get too close to the boundary
@@ -34,7 +75,7 @@ AtomicValue::AtomicValue(AtomicType type, double value)
 }
 
 AtomicValue::AtomicValue(AtomicType type) : type(type) {
-  switch (type) {
+  switch (this->type.atomic_type) {
     case AtomicType::UNKNOWN:
       break;
     case AtomicType::BOOLEAN:
@@ -54,22 +95,80 @@ AtomicValue::AtomicValue(AtomicType type) : type(type) {
   }
 }
 
+AtomicValue::AtomicValue(ValueType type, uint nrow, uint ncol) : type(type) {
+  assert(nrow > 0 and ncol > 0);
+  if (type.variable_type == VariableType::BROADCAST_MATRIX) {
+    switch (type.atomic_type) {
+      case AtomicType::REAL:
+        _matrix = Eigen::MatrixXd::Zero(nrow, ncol);
+        break;
+      case AtomicType::POS_REAL:
+      case AtomicType::PROBABILITY:
+        _matrix = Eigen::MatrixXd::Ones(nrow, ncol) * PRECISION;
+        break;
+      default:
+        throw std::invalid_argument(
+            "Unsupported types for BROADCAST_MATRIX.");
+    }
+  } else if (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
+    assert(type.atomic_type == AtomicType::PROBABILITY);
+    _matrix = Eigen::MatrixXd::Ones(nrow, ncol) / ncol;
+  } else {
+    throw std::invalid_argument(
+        "Unsupported variable type.");
+  }
+}
+
 std::string AtomicValue::to_string() const {
   std::ostringstream os;
-  if (type == AtomicType::UNKNOWN) {
-    os << "unknown value "; // this is not an error, e.g. distribution node
-  } else if (type == AtomicType::BOOLEAN) {
-    os << "boolean value " << _bool;
-  } else if (type == AtomicType::PROBABILITY) {
-    os << "probability value " << _double;
-  } else if (type == AtomicType::REAL) {
-    os << "real value " << _double;
-  } else if (type == AtomicType::POS_REAL) {
-    os << "pos real value " << _double;
-  } else if (type == AtomicType::NATURAL) {
-    os << "natural value " << _natural;
-  } else if (type == AtomicType::TENSOR) {
-    os << "tensor value " << _tensor;
+  std::string type_str = type.to_string() + " ";
+  if (type.variable_type == VariableType::SCALAR) {
+    switch(type.atomic_type){
+      case AtomicType::UNKNOWN:
+        os << type_str;
+        break;
+      case AtomicType::BOOLEAN:
+        os << type_str << _bool;
+        break;
+      case AtomicType::NATURAL:
+        os << type_str << _natural;
+        break;
+      case AtomicType::REAL:
+      case AtomicType::POS_REAL:
+      case AtomicType::PROBABILITY:
+        os << type_str << _double;
+        break;
+      case AtomicType::TENSOR:
+        os << type_str << _tensor;
+        break;
+      default:
+        os << "BAD value";
+        break;
+    }
+  } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
+    switch(type.atomic_type){
+      case AtomicType::UNKNOWN:
+        os << type_str;
+        break;
+      case AtomicType::REAL:
+      case AtomicType::POS_REAL:
+      case AtomicType::PROBABILITY:
+        os << type_str << _matrix;
+        break;
+      default:
+        os << "BAD value";
+    }
+  } else if (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
+    switch(type.atomic_type){
+      case AtomicType::UNKNOWN:
+        os << type_str;
+        break;
+      case AtomicType::PROBABILITY:
+        os << type_str << _matrix;
+        break;
+      default:
+        os << "BAD value";
+    }
   } else {
     os << "BAD value";
   }
@@ -275,6 +374,41 @@ uint Graph::add_constant_pos_real(double value) {
   return add_constant(AtomicValue(AtomicType::POS_REAL, value));
 }
 
+uint Graph::add_constant_matrix(Eigen::MatrixXd& value) {
+  return add_constant(AtomicValue(value));
+}
+
+uint Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
+  if ((value.array() < 0).any()) {
+    throw std::invalid_argument("All elements in pos_matrix must be >=0");
+  }
+  return add_constant(AtomicValue(AtomicType::POS_REAL, value));
+}
+
+uint Graph::add_constant_row_simplex_matrix(Eigen::MatrixXd& value) {
+  if ((value.array() < 0).any()) {
+    throw std::invalid_argument(
+        "All elements in row_simplex_matrix must be >=0");
+  }
+  bool invalid_rowsum =
+      ((value.rowwise().sum().array() - 1.0).abs() > PRECISION * value.cols())
+          .any();
+  if (invalid_rowsum) {
+    throw std::invalid_argument("All rows in row_simplex_matrix must sum to 1");
+  }
+  return add_constant(AtomicValue(
+      ValueType(VariableType::ROW_SIMPLEX_MATRIX, AtomicType::PROBABILITY),
+      value));
+}
+
+uint Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
+  if ((value.array() < 0).any() or (value.array() > 1).any()) {
+    throw std::invalid_argument(
+        "All elements in probability_matrix must be between 0 and 1");
+  }
+  return add_constant(AtomicValue(AtomicType::PROBABILITY, value));
+}
+
 uint Graph::add_distribution(
     DistributionType dist_type,
     AtomicType sample_type,
@@ -312,7 +446,7 @@ void Graph::observe(uint node_id, bool val) {
 
 void Graph::observe(uint node_id, double val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, AtomicValue(node->value.type, val));
+  observe(node_id, AtomicValue(node->value.type.atomic_type, val));
 }
 
 void Graph::observe(uint node_id, natural_t val) {
@@ -321,6 +455,11 @@ void Graph::observe(uint node_id, natural_t val) {
 
 void Graph::observe(uint node_id, torch::Tensor val) {
   observe(node_id, AtomicValue(val));
+}
+
+void Graph::observe(uint node_id, Eigen::MatrixXd& val) {
+  Node* node = check_node(node_id, NodeType::OPERATOR);
+  observe(node_id, AtomicValue(node->value.type, val));
 }
 
 void Graph::observe(uint node_id, AtomicValue value) {
@@ -335,9 +474,8 @@ void Graph::observe(uint node_id, AtomicValue value) {
   }
   if (node->value.type != value.type) {
     throw std::invalid_argument(
-        "observe expected type " +
-        std::to_string(static_cast<int>(node->value.type)) + " instead got " +
-        std::to_string(static_cast<int>(value.type)));
+        "observe expected " + node->value.type.to_string() +
+        " instead got " + value.type.to_string());
   }
   node->value = value;
   node->is_observed = true;
