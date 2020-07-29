@@ -91,6 +91,46 @@ void Operator::compute_gradients() {
       grad2 = grad1 * in_nodes[0]->grad1 + exp_parent * in_nodes[0]->grad2;
       break;
     }
+
+    case graph::OperatorType::POW: {
+      // We wish to compute the first and second derivatives of x ** y.
+      // Let g = y log x
+      // Let f = exp g = x ** y
+      // f'  = g' f
+      // f'' = g'' f + g' f'
+      // So we must compute g' and g''.
+      // let m = y' log x
+      // let n = x' y / x
+      // g'  = m + n
+      // g'' = m' + n'
+      // m'  = y'' log x + x' y' / x
+      // n'  = x'' y / x +
+      //       x' y' / x -
+      //       x' x' y / (x x)
+
+      double f = value._double;
+      double x = in_nodes[0]->value._double;
+      double y = in_nodes[1]->value._double;
+      double x1 = in_nodes[0]->grad1;
+      double y1 = in_nodes[1]->grad1;
+      double x2 = in_nodes[0]->grad2;
+      double y2 = in_nodes[1]->grad2;
+      double logx = std::log(x);
+      double m = y1 * logx;
+      double n = x1 * y / x;
+      double g1 = m + n;
+      double f1 = g1 * f;
+      // m1 and n1 have a term in common; we can avoid computing it twice.
+      double c = x1 * y1 / x;
+      double m1 = y2 * logx + c;
+      double n1 = x2 * y / x + c - x1 * x1 * y / (x * x);
+      double g2 = m1 + n1;
+      double f2 = g2 * f + g1 * f1;
+      grad1 = f1;
+      grad2 = f2;
+      break;
+    }
+
     case graph::OperatorType::MULTIPLY: {
       // in general, computing the first and second derivatives of a product
       // would have a quadratic number of terms to add if we naively applied

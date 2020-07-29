@@ -81,5 +81,36 @@ void logsumexp(graph::Node* node) {
   }
 }
 
+void pow(graph::Node* node) {
+  assert(node->in_nodes.size() == 2);
+  const graph::AtomicValue& parent0 = node->in_nodes[0]->value;
+  const graph::AtomicValue& parent1 = node->in_nodes[1]->value;
+
+  if (parent0.type == graph::AtomicType::TENSOR or
+      parent1.type == graph::AtomicType::TENSOR) {
+    if (parent0.type != parent1.type) {
+      throw std::runtime_error(
+          "invalid type for POW operator at node_id " +
+          std::to_string(node->index));
+    }
+    node->value._tensor = parent0._tensor.pow(parent1._tensor);
+  } else if (
+      parent0.type == graph::AtomicType::REAL or
+      parent0.type == graph::AtomicType::POS_REAL or
+      parent0.type == graph::AtomicType::PROBABILITY) {
+    if (parent1.type != graph::AtomicType::REAL and
+        parent1.type != graph::AtomicType::POS_REAL) {
+      throw std::runtime_error(
+          "invalid type for POW operator at node_id " +
+          std::to_string(node->index));
+    }
+    node->value._double = std::pow(parent0._double, parent1._double);
+  } else {
+    throw std::runtime_error(
+        "invalid type for POW operator at node_id " +
+        std::to_string(node->index));
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

@@ -76,6 +76,14 @@ class TestOperators(unittest.TestCase):
             g.add_operator(bmg.OperatorType.ADD, [c1])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2, c3])
+        # test POW
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.POW, [])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.POW, [c1])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.POW, [c1, c1, c1])
+        g.add_operator(bmg.OperatorType.POW, [c1, c2])
 
     def test_arithmetic(self) -> None:
         g = bmg.Graph()
@@ -87,7 +95,8 @@ class TestOperators(unittest.TestCase):
         o4 = g.add_operator(bmg.OperatorType.MULTIPLY, [o3, o0])  # real
         o5 = g.add_operator(bmg.OperatorType.EXPM1, [o0])  # real
         o6 = g.add_operator(bmg.OperatorType.ADD, [o0, o4, o5])  # real
-        g.query(o6)
+        o7 = g.add_operator(bmg.OperatorType.POW, [o6, o0])  # real
+        g.query(o7)
         samples = g.infer(2)
         # both samples should have exactly the same value since we are doing
         # deterministic operators only
@@ -95,7 +104,7 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(samples[0][0], samples[1][0])
         # the result should be identical to doing this math directly on tensors
         const1 = 3.0
-        result = const1 + math.exp(-const1) * const1 + math.expm1(const1)
+        result = (const1 + math.exp(-const1) * const1 + math.expm1(const1)) ** const1
         self.assertAlmostEqual(samples[0][0], result, 3)
 
     def test_tensor_arithmetic(self) -> None:
@@ -108,14 +117,15 @@ class TestOperators(unittest.TestCase):
         o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2, c1])
         o4 = g.add_operator(bmg.OperatorType.EXPM1, [c1])
         o5 = g.add_operator(bmg.OperatorType.ADD, [c1, o3, o4])
-        g.query(o5)
+        o6 = g.add_operator(bmg.OperatorType.POW, [o5, c1])
+        g.query(o6)
         samples = g.infer(2)
         # both samples should have exactly the same value since we are doing
         # deterministic operators only
         self.assertEqual(type(samples[0][0]), torch.Tensor)
         self.assertTrue((samples[0][0] == samples[1][0]).all().item())
         # the result should be identical to doing this math directly on tensors
-        result = const1 + torch.exp(-const1) * const1 + torch.expm1(const1)
+        result = (const1 + torch.exp(-const1) * const1 + torch.expm1(const1)) ** const1
         self.assertTrue((samples[0][0] == result).all().item())
 
     def test_probability(self) -> None:

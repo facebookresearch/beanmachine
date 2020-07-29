@@ -116,6 +116,7 @@ enum class OperatorType {
   LOG1PEXP,
   LOGSUMEXP,
   LOG,
+  POW,
 };
 
 enum class DistributionType {
