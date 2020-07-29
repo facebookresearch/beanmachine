@@ -884,6 +884,60 @@ we generate a different node in BMG."""
         return (tensor(i).view(sr) for i in itertools.product(*([r] * prod(sr))))
 
 
+class Chi2Node(DistributionNode):
+    """The chi2 distribution is a distribution of positive
+real numbers; it is a special case of the gamma distribution."""
+
+    edges = ["df"]
+
+    def __init__(self, df: BMGNode):
+        DistributionNode.__init__(self, [df])
+
+    @property
+    def df(self) -> BMGNode:
+        return self.children[0]
+
+    @df.setter
+    def df(self, p: BMGNode) -> None:
+        self.children[0] = p
+
+    @property
+    def graph_type(self) -> type:
+        return PositiveReal
+
+    @property
+    def inf_type(self) -> type:
+        return PositiveReal
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [PositiveReal]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.df.size
+
+    @property
+    def label(self) -> str:
+        return "Chi2"
+
+    def __str__(self) -> str:
+        return f"Chi2({str(self.df)})"
+
+    def _supported_in_bmg(self) -> bool:
+        # Not supported directly; we replace it with a gamma, which is supported.
+        return False
+
+    def support(self) -> Iterator[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a Chi2.
+        raise ValueError("Chi2 distribution does not have finite support.")
+
+
 class DirichletNode(DistributionNode):
     """The Dirichlet distribution generates simplexs -- vectors
 whose members are probabilities that add to 1.0, and
