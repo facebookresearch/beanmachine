@@ -127,16 +127,32 @@ Operator::Operator(
       value.type = graph::AtomicType::PROBABILITY;
       break;
     }
-    case graph::OperatorType::EXPM1:
+    case graph::OperatorType::EXPM1: {
+      check_unary_op(op_type, in_nodes);
+      if (type0 != graph::AtomicType::REAL and
+          type0 != graph::AtomicType::POS_REAL and
+          type0 != graph::AtomicType::TENSOR) {
+        throw std::invalid_argument(
+            "operator EXPM1 requires real/pos_real/tensor parent");
+      }
+      // The output type of (e^x)-1 is the same as the input type.
+      value = graph::AtomicValue(type0);
+      break;
+    }
     case graph::OperatorType::EXP: {
       check_unary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
           type0 != graph::AtomicType::POS_REAL and
           type0 != graph::AtomicType::TENSOR) {
         throw std::invalid_argument(
-            "operator EXP/EXPM1 requires real/tensor parent");
+            "operator EXP requires real/pos_real/tensor parent");
       }
-      value = graph::AtomicValue(type0);
+      // The output of e^x is either tensor or positive real.
+      if (type0 == graph::AtomicType::TENSOR) {
+        value = graph::AtomicValue(graph::AtomicType::TENSOR);
+      } else {
+        value = graph::AtomicValue(graph::AtomicType::POS_REAL);
+      }
       break;
     }
     case graph::OperatorType::LOG1PEXP: {
@@ -186,7 +202,8 @@ Operator::Operator(
       check_multiary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
           type0 != graph::AtomicType::POS_REAL) {
-        throw std::invalid_argument("operator LOGSUMEXP requires real/pos_real parent");
+        throw std::invalid_argument(
+            "operator LOGSUMEXP requires real/pos_real parent");
       }
       value = graph::AtomicValue(graph::AtomicType::REAL);
       break;

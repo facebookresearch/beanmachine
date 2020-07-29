@@ -2221,23 +2221,25 @@ a model contains calls to Tensor.exp or math.exp."""
 
     @property
     def inf_type(self) -> type:
-        # TODO: In BMG the input type of exp is positive real, real or
-        # tensor, and the output type is the same as the input type.
-        # However, we could know that if the input type is real, then
-        # the output type is positive real. Consider fixing that in
-        # BMG, and then fix it here as well.
-        return supremum(self.operand.inf_type, PositiveReal)
+        if self.operand.inf_type == Tensor:
+            return Tensor
+        return PositiveReal
 
     @property
     def graph_type(self) -> type:
-        return self.operand.graph_type
+        ot = self.operand.graph_type
+        if ot == Tensor:
+            return Tensor
+        if ot == Real or ot == PositiveReal:
+            return PositiveReal
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
-        # Exp requires that the input type be exactly the same as the
-        # output type; the smallest possible output type is therefore
-        # the smallest possible input type.
-        return [self.inf_type]
+        # If the operand is a tensor or real, the requirement
+        # has been met; if not, we require that it be converted
+        # to positive real.
+        return [supremum(self.operand.inf_type, PositiveReal)]
 
     @property
     def size(self) -> torch.Size:
