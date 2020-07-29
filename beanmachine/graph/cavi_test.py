@@ -2,6 +2,7 @@
 import math
 import unittest
 
+import numpy as np
 import torch
 from beanmachine import graph
 
@@ -40,8 +41,8 @@ class TestCAVI(unittest.TestCase):
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c1]
         )
         o1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
-        c2 = g.add_constant(
-            torch.Tensor([[0.0, 1.0], [1 - math.exp(-1), math.exp(-1)]])
+        c2 = g.add_constant_row_simplex_matrix(
+            np.array([[0.0, 1.0], [1 - math.exp(-1), math.exp(-1)]])
         )
         d2 = g.add_distribution(
             graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c2, o1]
@@ -103,8 +104,8 @@ class TestCAVI(unittest.TestCase):
         y = g.add_operator(graph.OperatorType.SAMPLE, [d_prior])
         pos_x = g.add_operator(graph.OperatorType.TO_POS_REAL, [x])
         pos_y = g.add_operator(graph.OperatorType.TO_POS_REAL, [y])
-        c_m_log_pt01 = g.add_constant_pos_real(-math.log(0.01))
-        c_m_log_pt99 = g.add_constant_pos_real(-math.log(0.99))
+        c_m_log_pt01 = g.add_constant_pos_real(-(math.log(0.01)))
+        c_m_log_pt99 = g.add_constant_pos_real(-(math.log(0.99)))
         param = g.add_operator(
             graph.OperatorType.ADD,
             [

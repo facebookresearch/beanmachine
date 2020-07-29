@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import numpy as np
 import torch
 from beanmachine import graph
 
@@ -8,7 +9,7 @@ from beanmachine import graph
 class TestBayesNet(unittest.TestCase):
     def test_simple_dep(self):
         g = graph.Graph()
-        c1 = g.add_constant(torch.FloatTensor([0.8, 0.2]))
+        c1 = g.add_constant_row_simplex_matrix(np.array([[0.8, 0.2]]))
         d1 = g.add_distribution(
             graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c1]
         )
@@ -16,19 +17,17 @@ class TestBayesNet(unittest.TestCase):
 
     def test_tabular(self):
         g = graph.Graph()
-        c1 = g.add_constant(torch.FloatTensor([0.8, 0.2]))
+        c1 = g.add_constant_row_simplex_matrix(np.array([[0.8, 0.2]]))
 
         # negative test
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, []
             )
-        self.assertTrue(
-            "Tabular distribution first arg must be tensor" in str(cm.exception)
-        )
+        self.assertTrue("must be ROW_SIMPLEX" in str(cm.exception))
 
         g = graph.Graph()
-        c1 = g.add_constant(torch.FloatTensor([0.8, 0.2]))
+        c1 = g.add_constant_row_simplex_matrix(np.array([[0.8, 0.2]]))
         var1 = g.add_operator(
             graph.OperatorType.SAMPLE,
             [
@@ -59,9 +58,9 @@ class TestBayesNet(unittest.TestCase):
                     )
                 ],
             )
-        self.assertTrue("expected 3 dims got 1" in str(cm.exception))
+        self.assertTrue("expected 4 dims got 1" in str(cm.exception))
 
-        c2 = g.add_constant(torch.FloatTensor([[0.6, 0.4], [0.99, 0.01]]))
+        c2 = g.add_constant_row_simplex_matrix(np.array([[0.6, 0.4], [0.99, 0.01]]))
         g.add_distribution(
             graph.DistributionType.TABULAR,
             graph.AtomicType.BOOLEAN,
@@ -72,23 +71,23 @@ class TestBayesNet(unittest.TestCase):
             g.add_distribution(
                 graph.DistributionType.TABULAR,
                 graph.AtomicType.BOOLEAN,
-                [c2, g.add_constant(torch.tensor(1))],
+                [c2, g.add_constant(1)],
             )
         self.assertTrue("only supports boolean parents" in str(cm.exception))
 
-        c3 = g.add_constant(torch.FloatTensor([1.1, -0.1]))
+        c3 = g.add_constant_matrix(np.array([1.1, -0.1]))
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c3]
             )
-        self.assertTrue("must be positive" in str(cm.exception))
+        self.assertTrue("must be ROW_SIMPLEX" in str(cm.exception))
 
-        c4 = g.add_constant(torch.FloatTensor([0.9, 0.0999]))
+        c4 = g.add_constant_row_simplex_matrix(np.array([[0.6, 0.3, 0.1]]))
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c4]
             )
-        self.assertTrue("must add to 1" in str(cm.exception))
+        self.assertTrue("must have two columns" in str(cm.exception))
 
     def test_bernoulli(self):
         g = graph.Graph()
@@ -203,10 +202,10 @@ class TestBayesNet(unittest.TestCase):
 
     def _create_graph(self):
         g = graph.Graph()
-        c1 = g.add_constant(torch.FloatTensor([0.8, 0.2]))
-        c2 = g.add_constant(torch.FloatTensor([[0.6, 0.4], [0.99, 0.01]]))
-        c3 = g.add_constant(
-            torch.FloatTensor([[[1, 0], [0.2, 0.8]], [[0.1, 0.9], [0.01, 0.99]]])
+        c1 = g.add_constant_row_simplex_matrix(np.array([[0.8, 0.2]]))
+        c2 = g.add_constant_row_simplex_matrix(np.array([[0.6, 0.4], [0.99, 0.01]]))
+        c3 = g.add_constant_row_simplex_matrix(
+            np.array([[1, 0], [0.2, 0.8], [0.1, 0.9], [0.01, 0.99]])
         )
         Rain = g.add_operator(
             graph.OperatorType.SAMPLE,
