@@ -3,6 +3,7 @@
 #include <beanmachine/graph/graph.h>
 #include <beanmachine/graph/util.h>
 #include <cmath>
+#include <unordered_set>
 
 namespace beanmachine {
 namespace graph {

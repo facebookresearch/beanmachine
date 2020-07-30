@@ -2,12 +2,6 @@
 #pragma once
 #include <random>
 
-#ifndef TORCH_API_INCLUDE_EXTENSION_H
-#include <torch/torch.h>
-#else
-#include <torch/extension.h>
-#endif
-
 namespace beanmachine {
 namespace util {
 
