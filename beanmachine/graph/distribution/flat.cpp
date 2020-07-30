@@ -14,10 +14,6 @@ Flat::Flat(AtomicType sample_type, const std::vector<Node*>& in_nodes)
   if (in_nodes.size() != 0) {
     throw std::invalid_argument("Flat distribution has no parents");
   }
-  // almost all types are supported
-  if (sample_type == AtomicType::TENSOR) {
-    throw std::invalid_argument("Flat doesn't support Tensor samples");
-  }
 }
 
 AtomicValue Flat::sample(std::mt19937& gen) const {

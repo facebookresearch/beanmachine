@@ -218,8 +218,6 @@ TEST(testgraph, clone_graph) {
     graph::OperatorType::TO_REAL, std::vector<uint>{o_sample_pos});
   uint o_to_pos = g.add_operator(
     graph::OperatorType::TO_POS_REAL, std::vector<uint>{o_sample_prob});
-  uint o_to_tensor = g.add_operator(
-    graph::OperatorType::TO_TENSOR, std::vector<uint>{o_sample_real});
   uint o_complement = g.add_operator(
     graph::OperatorType::COMPLEMENT, std::vector<uint>{o_sample_prob});
   uint o_negate = g.add_operator(

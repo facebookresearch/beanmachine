@@ -306,10 +306,3 @@ class TestBayesNet(unittest.TestCase):
         self.assertAlmostEqual(means_all[0][1], 1.0)
         self.assertAlmostEqual(means_all[1][0], 1.0)
         self.assertAlmostEqual(means_all[1][1], 1.0)
-        # negative test, don't support aggregating tensors
-        c2 = g.add_constant(torch.tensor(0.5))
-        op2 = g.add_operator(graph.OperatorType.ADD, [c2, c2])
-        g.query(op2)
-        with self.assertRaises(RuntimeError):
-            g.infer_mean(100)
-        g.infer(100)  # infer should be fine though

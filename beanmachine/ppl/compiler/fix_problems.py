@@ -203,7 +203,7 @@ error is added to the error report."""
         # whose requirement is not met, and the requirement will be met.
 
         if requirement == Tensor:
-            return self.bmg.add_to_tensor(node)
+            raise ValueError("Unsupported type requirement: Tensor")
         if requirement == Real:
             return self.bmg.add_to_real(node)
         if requirement == PositiveReal:

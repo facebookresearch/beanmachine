@@ -33,9 +33,6 @@ std::string ValueType::to_string() const {
     case AtomicType::NATURAL:
       atype = "natural";
       break;
-    case AtomicType::TENSOR:
-      atype = "tensor";
-      break;
   }
   switch(variable_type) {
     case VariableType::UNKNOWN:
@@ -89,9 +86,6 @@ AtomicValue::AtomicValue(AtomicType type) : type(type) {
     case AtomicType::NATURAL:
       _natural = 0;
       break;
-    case AtomicType::TENSOR:
-      _tensor = torch::Tensor();
-      break;
   }
 }
 
@@ -137,9 +131,6 @@ std::string AtomicValue::to_string() const {
       case AtomicType::POS_REAL:
       case AtomicType::PROBABILITY:
         os << type_str << _double;
-        break;
-      case AtomicType::TENSOR:
-        os << type_str << _tensor;
         break;
       default:
         os << "BAD value";
@@ -350,10 +341,6 @@ uint Graph::add_constant(natural_t value) {
   return add_constant(AtomicValue(value));
 }
 
-uint Graph::add_constant(torch::Tensor value) {
-  return add_constant(AtomicValue(value));
-}
-
 uint Graph::add_constant(AtomicValue value) {
   std::unique_ptr<ConstNode> node = std::make_unique<ConstNode>(value);
   // constants don't have parents
@@ -450,10 +437,6 @@ void Graph::observe(uint node_id, double val) {
 }
 
 void Graph::observe(uint node_id, natural_t val) {
-  observe(node_id, AtomicValue(val));
-}
-
-void Graph::observe(uint node_id, torch::Tensor val) {
   observe(node_id, AtomicValue(val));
 }
 

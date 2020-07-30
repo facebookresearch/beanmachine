@@ -85,34 +85,23 @@ Operator::Operator(
     }
     case graph::OperatorType::TO_REAL: {
       check_unary_op(op_type, in_nodes);
-      if (type0 == graph::AtomicType::TENSOR) {
-        throw std::invalid_argument(
-            "operator TO_REAL doesn't support tensor parent");
-      }
       value = graph::AtomicValue(graph::AtomicType::REAL);
       break;
     }
     case graph::OperatorType::TO_POS_REAL: {
       check_unary_op(op_type, in_nodes);
-      if (type0 == graph::AtomicType::REAL or
-          type0 == graph::AtomicType::TENSOR) {
+      if (type0 == graph::AtomicType::REAL) {
         throw std::invalid_argument(
-            "operator TO_POS_REAL doesn't support real or tensor parent");
+            "operator TO_POS_REAL doesn't support real parent");
       }
       value = graph::AtomicValue(graph::AtomicType::POS_REAL);
       break;
     }
-    case graph::OperatorType::TO_TENSOR: {
-      check_unary_op(op_type, in_nodes);
-      value = graph::AtomicValue(graph::AtomicType::TENSOR);
-      break;
-    }
     case graph::OperatorType::NEGATE: {
       check_unary_op(op_type, in_nodes);
-      if (type0 != graph::AtomicType::REAL and
-          type0 != graph::AtomicType::TENSOR) {
+      if (type0 != graph::AtomicType::REAL) {
         throw std::invalid_argument(
-            "operator NEGATE only supports real/tensor parent");
+            "operator NEGATE only supports real parent");
       }
       value = graph::AtomicValue(type0);
       break;
@@ -131,10 +120,9 @@ Operator::Operator(
     case graph::OperatorType::EXP: {
       check_unary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
-          type0 != graph::AtomicType::POS_REAL and
-          type0 != graph::AtomicType::TENSOR) {
+          type0 != graph::AtomicType::POS_REAL) {
         throw std::invalid_argument(
-            "operator EXP/EXPM1 requires real/tensor parent");
+            "operator EXP/EXPM1 requires real/pos_real parent");
       }
       value = graph::AtomicValue(type0);
       break;
@@ -142,10 +130,9 @@ Operator::Operator(
     case graph::OperatorType::LOG1PEXP: {
       check_unary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
-          type0 != graph::AtomicType::POS_REAL and
-          type0 != graph::AtomicType::TENSOR) {
+          type0 != graph::AtomicType::POS_REAL) {
         throw std::invalid_argument(
-            "operator LOG1PEXP requires real/pos_real/tensor parent");
+            "operator LOG1PEXP requires real/pos_real parent");
       }
       value = graph::AtomicValue(graph::AtomicType::POS_REAL);
       break;
@@ -154,10 +141,9 @@ Operator::Operator(
       check_multiary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
           type0 != graph::AtomicType::POS_REAL and
-          type0 != graph::AtomicType::TENSOR and
           type0 != graph::AtomicType::PROBABILITY) {
         throw std::invalid_argument(
-            "operator MUTIPLY requires real/tensor/probability parent");
+            "operator MUTIPLY requires real/pos_real/probability parent");
       }
       value = graph::AtomicValue(type0);
       break;
@@ -165,9 +151,8 @@ Operator::Operator(
     case graph::OperatorType::ADD: {
       check_multiary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
-          type0 != graph::AtomicType::POS_REAL and
-          type0 != graph::AtomicType::TENSOR) {
-        throw std::invalid_argument("operator ADD requires real/tensor parent");
+          type0 != graph::AtomicType::POS_REAL) {
+        throw std::invalid_argument("operator ADD requires real/pos_real parent");
       }
       value = graph::AtomicValue(type0);
       break;
@@ -237,10 +222,6 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::TO_POS_REAL: {
       to_pos_real(this);
-      break;
-    }
-    case graph::OperatorType::TO_TENSOR: {
-      to_tensor(this);
       break;
     }
     case graph::OperatorType::NEGATE: {
