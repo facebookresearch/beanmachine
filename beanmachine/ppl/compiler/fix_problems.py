@@ -11,6 +11,7 @@ from typing import Optional
 
 from beanmachine.ppl.compiler.bmg_nodes import (
     BMGNode,
+    Chi2Node,
     ConstantNode,
     DistributionNode,
     DivisionNode,
@@ -320,12 +321,20 @@ requirement is given; the name of this edge is provided for error reporting."""
             return self.bmg.add_flat()
         return None
 
+    def _replace_chi2(self, node: Chi2Node) -> BMGNode:
+        # Chi2(x), which BMG does not support, is exactly equivalent
+        # to Gamma(x * 0.5, 0.5), which BMG does support.
+        half = self.bmg.add_constant_of_type(0.5, PositiveReal)
+        mult = self.bmg.add_multiplication(node.df, half)
+        return self.bmg.add_gamma(mult, half)
+
     def _replace_unsupported_node(self, node: BMGNode) -> Optional[BMGNode]:
         # TODO:
-        # Chi2 -> Gamma
         # Not -> Complement
         # Index/Map -> IfThenElse
         # Power -> Multiplication
+        if isinstance(node, Chi2Node):
+            return self._replace_chi2(node)
         if isinstance(node, DivisionNode):
             return self._replace_division(node)
         if isinstance(node, UniformNode):
