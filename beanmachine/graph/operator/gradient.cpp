@@ -14,8 +14,7 @@ void Operator::compute_gradients() {
       break;
     }
     case graph::OperatorType::TO_REAL:
-    case graph::OperatorType::TO_POS_REAL:
-    case graph::OperatorType::TO_TENSOR: {
+    case graph::OperatorType::TO_POS_REAL: {
       grad1 = in_nodes[0]->grad1;
       grad2 = in_nodes[0]->grad2;
       break;
