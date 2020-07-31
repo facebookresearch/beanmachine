@@ -16,7 +16,6 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
-
 # pyre-fixme[21]: Could not find name `tensorops` in `beanmachine.ppl.utils`.
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World

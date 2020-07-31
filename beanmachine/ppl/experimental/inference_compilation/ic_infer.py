@@ -9,7 +9,6 @@ import torch.distributions as dist
 import torch.nn as nn
 import torch.optim as optim
 from torch import Tensor, tensor
-
 # pyre-fixme[21]: Could not find name `tqdm` in `tqdm.auto`.
 from tqdm.auto import tqdm
 

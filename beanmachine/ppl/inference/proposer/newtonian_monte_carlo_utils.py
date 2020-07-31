@@ -1,7 +1,6 @@
 from typing import Optional, Tuple, Union
 
 import torch
-
 # pyre-fixme[21]: Could not find name `tensorops` in `beanmachine.ppl.utils`.
 from beanmachine.ppl.utils import tensorops
 from torch import Tensor, tensor
