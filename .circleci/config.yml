@@ -65,7 +65,7 @@ commands:
       - run:
           name: "Lint with isort"
           command: >
-            isort --check-only --diff --line-width=88 --multi-line=3
+            isort . --check-only --diff --line-width=88 --multi-line=3
             --trailing-comma --force-grid-wrap=0 --section-default=THIRDPARTY
             --lines-after-imports=2 --combine-as
 
