@@ -3,6 +3,8 @@ id: quick_start
 title: 'Quick Start'
 sidebar_label: 'Quick Start'
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <!-- @import "../../header.md" -->
 
 Let's quickly translate the model we discussed in the [Introduction](../introduction/introduction.md) into Bean Machine code! Although this will get you up-and-running, **it's important that you read through all of the pages in the Overview to have a complete understanding of Bean Machine**. Happy modeling!
@@ -26,7 +28,7 @@ There are a few things to notice here!
   * Most importantly, we've decorated this function with `@bm.random_variable`. This is how you tell Bean Machine to interpret this function probabilistically. `@bm.random_variable` functions are the building blocks of Bean Machine models, and let the framework explore different values that the function represents when fitting a good distribution for observed data that you'll provide later.
   * Next, notice that the function returns a [PyTorch distribution](https://pytorch.org/docs/stable/distributions.html?highlight=distribution#module-torch.distributions). This distribution encodes your prior belief about a particular random variable. In the case of $\text{Exponential}(10.0)$, our prior has this shape:
 
-    ![](../introduction/exponential_10.png)
+<img src={useBaseUrl("/img/exponential_10.png")} />
 
     As you can see, the prior encourages smaller values for the reproduction rate, averaging at a rate of 10%, but allows for the possibility of much larger spread rates.
   * Lastly, realize that although you've provided a prior distribution here, the framework will automatically "refine" this distribution, as it searches for values that represent observed data that you'll provide later. So, after we fit the model to observed data, the random variable will no longer look like the graph shown above!
@@ -35,7 +37,7 @@ The last piece of the model is how the reproduction rate relates to the new case
 
 Let's say, for this example, we observed a little over a million, 1087980, cases today. We use such a precise number here to remind you that this is a known value and not a random one. In this case, if the disease were to happen to have a reproduction rate of 0.1, this is what our $\text{Poisson}$ distribution for new cases would look like:
 
-![](poisson.png)
+<img src={useBaseUrl("/img/poisson.png")} />
 
 Let's write this up in Bean Machine. Using the syntax we've already seen, it's pretty simple:
 
@@ -114,7 +116,7 @@ plt.ylabel("Probability density")
 plt.legend();
 ```
 
-![](results.png)
+<img src={useBaseUrl("/img/results.png")} />
 
 This histogram represents our beliefs over the underlying reproduction rate, after observing the current day's worth of new cases. You'll note that it balancing our prior beliefs with rate that we learn just from looking at the new data. It also captures the uncertainty inherent in our estimate!
 

@@ -7,6 +7,9 @@
  * @format
  */
 
+// const remarkMath = require('remark-math');
+// const rehypeKatex = require('rehype-katex');
+
 module.exports = {
   title: 'BeanMachine',
   tagline:
@@ -23,7 +26,7 @@ module.exports = {
         alt: 'BeanMachine Logo',
         src: 'img/beanmachine.svg',
       },
-      links: [
+      items: [
         {
           to: 'docs/toc',
           // activeBasePath: '../',
@@ -41,6 +44,7 @@ module.exports = {
     },
     footer: {
       style: 'dark',
+      /* Commenting this section out while the fix a DS2 issue.
       links: [
         {
           title: 'Learn',
@@ -104,6 +108,8 @@ module.exports = {
           ],
         },
       ],
+      */
+
       logo: {
         alt: 'BeanMachine Logo',
         src: 'img/beanmachine.svg',
@@ -126,6 +132,8 @@ module.exports = {
           // Please change this to your repo.
           editUrl:
             'https://github.com/facebook/docusaurus/edit/master/website/',
+          // remarkPlugins: [remarkMath],
+          // rehypePlugins: [rehypeKatex],
         },
         blog: {
           showReadingTime: true,
