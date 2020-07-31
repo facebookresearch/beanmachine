@@ -150,6 +150,18 @@ Operator::Operator(
       value = graph::AtomicValue(graph::AtomicType::POS_REAL);
       break;
     }
+    case graph::OperatorType::LOG: {
+      // TODO: We could also add an operator NEG_LOG which has the
+      // TODO: semantics of -log(x), which accepts a probability or
+      // TODO: a positive real, and maps probability to positive
+      // TODO: real.
+      check_unary_op(op_type, in_nodes);
+      if (type0 != graph::AtomicType::POS_REAL) {
+        throw std::invalid_argument("operator LOG requires a pos_real parent");
+      }
+      value = graph::AtomicValue(graph::AtomicType::REAL);
+      break;
+    }
     case graph::OperatorType::MULTIPLY: {
       check_multiary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
@@ -176,7 +188,8 @@ Operator::Operator(
       check_multiary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
           type0 != graph::AtomicType::POS_REAL) {
-        throw std::invalid_argument("operator LOGSUMEXP requires real/pos_real parent");
+        throw std::invalid_argument(
+            "operator LOGSUMEXP requires real/pos_real parent");
       }
       value = graph::AtomicValue(graph::AtomicType::REAL);
       break;
@@ -257,6 +270,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::LOG1PEXP: {
       log1pexp(this);
+      break;
+    }
+    case graph::OperatorType::LOG: {
+      log(this);
       break;
     }
     case graph::OperatorType::EXP: {
