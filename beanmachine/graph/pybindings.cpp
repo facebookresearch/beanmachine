@@ -2,7 +2,6 @@
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#define TORCH_API_INCLUDE_EXTENSION_H 1
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/pybindings.h"
 

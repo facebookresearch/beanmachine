@@ -2,7 +2,6 @@
 import unittest
 
 import numpy as np
-import torch
 from beanmachine import graph
 
 
@@ -118,7 +117,7 @@ class TestBayesNet(unittest.TestCase):
         )
 
         # negative test on type of parent
-        c3 = g.add_constant(torch.scalar_tensor(1, dtype=torch.int))
+        c3 = g.add_constant(1)
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c3]
