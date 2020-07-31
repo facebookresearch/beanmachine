@@ -2556,45 +2556,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
         return True
 
 
-class ToTensorNode(UnaryOperatorNode):
-    operator_type = OperatorType.TO_TENSOR
-
-    def __init__(self, operand: BMGNode):
-        UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def label(self) -> str:
-        return "ToTensor"
-
-    @property
-    def inf_type(self) -> type:
-        # The output of a ToTensorNode is always a tensor.
-        return Tensor
-
-    @property
-    def graph_type(self) -> type:
-        return Tensor
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # A ToTensorNode's input must be Tensor or smaller.
-        return [upper_bound(Tensor)]
-
-    def __str__(self) -> str:
-        return "ToTensor(" + str(self.operand) + ")"
-
-    @property
-    def size(self) -> torch.Size:
-        # TODO: Is this correct?
-        return torch.Size([1])
-
-    def support(self) -> Iterator[Any]:
-        return SetOfTensors(torch.tensor(o) for o in self.operand.support())
-
-    def _supported_in_bmg(self) -> bool:
-        return True
-
-
 # ####
 # #### Marker nodes
 # ####

@@ -18,13 +18,6 @@ void multiply(graph::Node* node) {
       const auto& parenti = node->in_nodes[i]->value;
       node->value._double *= parenti._double;
     }
-  } else if (parent0.type == graph::AtomicType::TENSOR) {
-    node->value._tensor = parent0._tensor.clone();
-
-    for (uint i = 1; i < node->in_nodes.size(); i++) {
-      const auto& parenti = node->in_nodes[i]->value;
-      node->value._tensor.mul_(parenti._tensor);
-    }
   } else {
     throw std::runtime_error(
         "invalid type " + parent0.type.to_string() +
@@ -42,13 +35,6 @@ void add(graph::Node* node) {
     for (uint i = 1; i < node->in_nodes.size(); i++) {
       const auto& parenti = node->in_nodes[i]->value;
       node->value._double += parenti._double;
-    }
-  } else if (parent0.type == graph::AtomicType::TENSOR) {
-    node->value._tensor = parent0._tensor.clone();
-
-    for (uint i = 1; i < node->in_nodes.size(); i++) {
-      const auto& parenti = node->in_nodes[i]->value;
-      node->value._tensor.add_(parenti._tensor);
     }
   } else {
     throw std::runtime_error(
