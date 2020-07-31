@@ -14,9 +14,7 @@ from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import 
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
 from torch import Tensor
-
-# pyre-fixme[21]: Could not find name `tqdm` in `tqdm.auto`.
-from tqdm.auto import tqdm
+from tqdm.auto import tqdm  # pyre-ignore
 
 
 LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")

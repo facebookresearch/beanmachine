@@ -50,7 +50,7 @@ commands:
           command: sudo pip install --progress-bar off --upgrade pip
       - run:
           name: "Install lint packages"
-          command: sudo pip install --progress-bar off black==19.3b0 isort flake8
+          command: sudo pip install --progress-bar off black==19.3b0 isort==4.3.21 flake8
 
   lint_flake8:
     description: "Lint with flake8"
