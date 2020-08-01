@@ -40,9 +40,6 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
         case AtomicType::NATURAL: {
           return type_caster<int>::cast(src._natural, policy, parent);
         }
-        case AtomicType::TENSOR: {
-          return type_caster<torch::Tensor>::cast(src._tensor, policy, parent);
-        }
         default: {
           throw std::runtime_error("unexpected type for AtomicValue");
         }

@@ -2,7 +2,7 @@
 import math
 import unittest
 
-import torch
+import numpy as np
 from beanmachine import graph
 
 
@@ -178,14 +178,14 @@ class TestNMC(unittest.TestCase):
         SPEC_ALPHA = 9.5
         SPEC_BETA = 0.5
         NUM_LABELERS = 2
-        SCORES = torch.tensor([0.1, 0.2, 0.3])
+        SCORES = np.array([0.1, 0.2, 0.3])
         ITEM_LABELS = [[False, False], [False, True], [True, True]]
         # see https://mc-stan.org/docs/2_19/functions-reference/covariance.html for
         # a reference on this covariance function
-        covar = (
-            ALPHA ** 2 * (-((SCORES.unsqueeze(1) - SCORES) ** 2) / 2 / RHO ** 2).exp()
+        covar = ALPHA ** 2 * np.exp(
+            -((np.expand_dims(SCORES, 1) - SCORES) ** 2) / 2 / RHO ** 2
         )
-        tau = covar.inverse()  # the precision matrix
+        tau = np.linalg.inv(covar)  # the precision matrix
         g = graph.Graph()
         # first we will create f ~ GP
         flat = g.add_distribution(
@@ -193,10 +193,10 @@ class TestNMC(unittest.TestCase):
         )
         f = [g.add_operator(graph.OperatorType.SAMPLE, [flat]) for _ in SCORES]
         for i in range(len(SCORES)):
-            tau_i_i = g.add_constant(-0.5 * tau[i, i].item())
+            tau_i_i = g.add_constant(-0.5 * tau[i, i])
             g.add_factor(graph.FactorType.EXP_PRODUCT, [tau_i_i, f[i], f[i]])
             for j in range(i + 1, len(SCORES)):
-                tau_i_j = g.add_constant(-1.0 * tau[i, j].item())
+                tau_i_j = g.add_constant(-1.0 * tau[i, j])
                 g.add_factor(graph.FactorType.EXP_PRODUCT, [tau_i_j, f[i], f[j]])
         # for each labeler l:
         #     spec_l ~ Beta(SPEC_ALPHA, SPEC_BETA)
@@ -310,10 +310,10 @@ class TestNMC(unittest.TestCase):
     def create_GPfactor(cls, bmg, alpha, rho, scores, mu=0.0):
         # see https://mc-stan.org/docs/2_19/functions-reference/covariance.html for
         # a reference on this covariance function
-        covar = (
-            alpha ** 2 * (-((scores.unsqueeze(1) - scores) ** 2) / 2 / rho ** 2).exp()
+        covar = alpha ** 2 * np.exp(
+            -((np.expand_dims(scores, 1) - scores) ** 2) / 2 / rho ** 2
         )
-        tau = covar.inverse()  # the precision matrix
+        tau = np.linalg.inv(covar)  # the precision matrix
         neg_mu = bmg.add_constant(-mu)
         # f ~ GP
         flat = bmg.add_distribution(
@@ -327,12 +327,12 @@ class TestNMC(unittest.TestCase):
                 bmg.add_operator(graph.OperatorType.ADD, [fi, neg_mu]) for fi in f
             ]
         for i in range(len(scores)):
-            tau_i_i = bmg.add_constant(-0.5 * tau[i, i].item())
+            tau_i_i = bmg.add_constant(-0.5 * tau[i, i])
             bmg.add_factor(
                 graph.FactorType.EXP_PRODUCT, [tau_i_i, f_centered[i], f_centered[i]]
             )
             for j in range(i + 1, len(scores)):
-                tau_i_j = bmg.add_constant(-1.0 * tau[i, j].item())
+                tau_i_j = bmg.add_constant(-1.0 * tau[i, j])
                 bmg.add_factor(
                     graph.FactorType.EXP_PRODUCT,
                     [tau_i_j, f_centered[i], f_centered[j]],
@@ -379,7 +379,7 @@ class TestNMC(unittest.TestCase):
         SPEC_MU = 2.9  # logit(0.95)
         SENS_MU = 2.2  # logit(0.9)
         # NUM_LABELERS = 2
-        SCORES = torch.tensor([0.1, 0.2, 0.3])
+        SCORES = np.array([0.1, 0.2, 0.3])
         ITEM_LABELS = [[False, False], [False, True], [True, True]]
         # create f ~ GP
         g = graph.Graph()

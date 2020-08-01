@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import torch  # isort:skip  torch has to be imported before graph
 import math
 import unittest
 
@@ -13,9 +12,9 @@ class TestOperators(unittest.TestCase):
         We will test test number of arguments for each operator 0, 1, 2, 3 etc.
         """
         g = bmg.Graph()
-        c1 = g.add_constant(torch.FloatTensor([0, 1, -1]))
-        c2 = g.add_constant(torch.FloatTensor([0, 1, -1]))
-        c3 = g.add_constant(torch.FloatTensor([0, 1, -1]))
+        c1 = g.add_constant(2.5)
+        c2 = g.add_constant(-1.5)
+        c3 = g.add_constant_probability(0.5)
         c4 = g.add_constant_probability(0.6)
         c5 = g.add_constant_probability(0.7)
         c6 = g.add_constant(23)  # NATURAL
@@ -37,31 +36,20 @@ class TestOperators(unittest.TestCase):
         # test TO_REAL
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [])
-        with self.assertRaises(ValueError):
-            # can't convert tensor to real
-            g.add_operator(bmg.OperatorType.TO_REAL, [c1])
         g.add_operator(bmg.OperatorType.TO_REAL, [c4])
         g.add_operator(bmg.OperatorType.TO_REAL, [c6])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [c4, c5])
-        # test TO_TENSOR
-        with self.assertRaises(ValueError):
-            g.add_operator(bmg.OperatorType.TO_TENSOR, [])
-        g.add_operator(bmg.OperatorType.TO_TENSOR, [c1])
-        g.add_operator(bmg.OperatorType.TO_TENSOR, [c4])
-        g.add_operator(bmg.OperatorType.TO_TENSOR, [c6])
-        with self.assertRaises(ValueError):
-            g.add_operator(bmg.OperatorType.TO_TENSOR, [c1, c2])
         # test EXP
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.EXP, [])
-        g.add_operator(bmg.OperatorType.EXP, [c1])
+        g.add_operator(bmg.OperatorType.EXP, [c2])
         with self.assertRaises(ValueError):
-            g.add_operator(bmg.OperatorType.EXP, [c1, c2])
+            g.add_operator(bmg.OperatorType.EXP, [c4, c5])
         # test NEGATE
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.NEGATE, [])
-        g.add_operator(bmg.OperatorType.NEGATE, [c1])
+        g.add_operator(bmg.OperatorType.NEGATE, [c2])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.NEGATE, [c1, c2])
         # test COMPLEMENT
@@ -75,16 +63,16 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.MULTIPLY, [])
         with self.assertRaises(ValueError):
-            g.add_operator(bmg.OperatorType.MULTIPLY, [c1])
-        g.add_operator(bmg.OperatorType.MULTIPLY, [c1, c2])
-        g.add_operator(bmg.OperatorType.MULTIPLY, [c1, c2, c3])
+            g.add_operator(bmg.OperatorType.MULTIPLY, [c3])
+        g.add_operator(bmg.OperatorType.MULTIPLY, [c4, c5])
+        g.add_operator(bmg.OperatorType.MULTIPLY, [c3, c4, c5])
         # test ADD
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.ADD, [])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.ADD, [c1])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2])
-        g.add_operator(bmg.OperatorType.ADD, [c1, c2, c3])
+        g.add_operator(bmg.OperatorType.ADD, [c1, c2, c1])
 
     def test_arithmetic(self) -> None:
         g = bmg.Graph()
@@ -101,30 +89,10 @@ class TestOperators(unittest.TestCase):
         # deterministic operators only
         self.assertEqual(type(samples[0][0]), float)
         self.assertEqual(samples[0][0], samples[1][0])
-        # the result should be identical to doing this math directly on tensors
+        # the result should be identical to doing this math directly
         const1 = 3.0
         result = const1 + math.exp(-const1) * const1 + math.expm1(const1)
         self.assertAlmostEqual(samples[0][0], result, 3)
-
-    def test_tensor_arithmetic(self) -> None:
-        g = bmg.Graph()
-        const1 = torch.FloatTensor([0, 1, -1])
-        c1 = g.add_constant(const1)
-        o0 = g.add_operator(bmg.OperatorType.TO_TENSOR, [c1])
-        o1 = g.add_operator(bmg.OperatorType.NEGATE, [o0])
-        o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
-        o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2, c1])
-        o4 = g.add_operator(bmg.OperatorType.EXPM1, [c1])
-        o5 = g.add_operator(bmg.OperatorType.ADD, [c1, o3, o4])
-        g.query(o5)
-        samples = g.infer(2)
-        # both samples should have exactly the same value since we are doing
-        # deterministic operators only
-        self.assertEqual(type(samples[0][0]), torch.Tensor)
-        self.assertTrue((samples[0][0] == samples[1][0]).all().item())
-        # the result should be identical to doing this math directly on tensors
-        result = const1 + torch.exp(-const1) * const1 + torch.expm1(const1)
-        self.assertTrue((samples[0][0] == result).all().item())
 
     def test_probability(self) -> None:
         g = bmg.Graph()
@@ -148,7 +116,7 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             o1 = g.add_operator(bmg.OperatorType.EXP, [s1])
         self.assertTrue(
-            "operator EXP/EXPM1 requires real/tensor parent" in str(cm.exception)
+            "operator EXP/EXPM1 requires real/pos_real parent" in str(cm.exception)
         )
 
         # the proper way to do it is to convert to floating point first

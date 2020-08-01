@@ -38,11 +38,6 @@ TEST(testdistrib, flat) {
   auto natural_val =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{natural_dist});
   g.query(natural_val);
-  // negative test: Tensors are not supported
-  EXPECT_THROW(
-      g.add_distribution(
-          DistributionType::FLAT, AtomicType::TENSOR, std::vector<uint>{}),
-      std::invalid_argument);
   const std::vector<double>& means =
       g.infer_mean(100000, InferenceType::REJECTION);
   EXPECT_NEAR(means[0], 0.5, 0.01); // boolean

@@ -2,7 +2,6 @@
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#define TORCH_API_INCLUDE_EXTENSION_H 1
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/pybindings.h"
 
@@ -24,8 +23,7 @@ PYBIND11_MODULE(graph, module) {
       .value("PROBABILITY", AtomicType::PROBABILITY)
       .value("REAL", AtomicType::REAL)
       .value("POS_REAL", AtomicType::POS_REAL)
-      .value("NATURAL", AtomicType::NATURAL)
-      .value("TENSOR", AtomicType::TENSOR);
+      .value("NATURAL", AtomicType::NATURAL);
 
   py::class_<ValueType>(module, "ValueType")
       .def(py::init<VariableType, AtomicType>())
@@ -38,14 +36,12 @@ PYBIND11_MODULE(graph, module) {
       .def(py::init<bool>())
       .def(py::init<double>())
       .def(py::init<graph::natural_t>())
-      .def(py::init<Eigen::MatrixXd&>())
-      .def(py::init<torch::Tensor>());
+      .def(py::init<Eigen::MatrixXd&>());
 
   py::enum_<OperatorType>(module, "OperatorType")
       .value("SAMPLE", OperatorType::SAMPLE)
       .value("TO_REAL", OperatorType::TO_REAL)
       .value("TO_POS_REAL", OperatorType::TO_POS_REAL)
-      .value("TO_TENSOR", OperatorType::TO_TENSOR)
       .value("COMPLEMENT", OperatorType::COMPLEMENT)
       .value("NEGATE", OperatorType::NEGATE)
       .value("EXP", OperatorType::EXP)
@@ -104,11 +100,6 @@ PYBIND11_MODULE(graph, module) {
           "add_constant",
           (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
           "add a Node with a constant natural (integers >= 0) value",
-          py::arg("value"))
-      .def(
-          "add_constant",
-          (uint(Graph::*)(torch::Tensor)) & Graph::add_constant,
-          "add a Node with a constant tensor value",
           py::arg("value"))
       .def(
           "add_constant",
@@ -179,12 +170,6 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "observe",
           (void (Graph::*)(uint, natural_t)) & Graph::observe,
-          "observe a node",
-          py::arg("node_id"),
-          py::arg("val"))
-      .def(
-          "observe",
-          (void (Graph::*)(uint, torch::Tensor)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))

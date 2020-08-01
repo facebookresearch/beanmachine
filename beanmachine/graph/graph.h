@@ -9,11 +9,6 @@
 #include <tuple>
 #include <vector>
 #include <Eigen/Dense>
-#ifndef TORCH_API_INCLUDE_EXTENSION_H
-#include <torch/torch.h>
-#else
-#include <torch/extension.h>
-#endif
 
 namespace beanmachine {
 namespace graph {
@@ -34,7 +29,6 @@ enum class AtomicType {
   REAL,
   POS_REAL, // Real numbers greater than *or* equal to zero
   NATURAL, // note: NATURAL numbers include zero (ISO 80000-2)
-  TENSOR, // to be deprecated
 };
 
 struct ValueType {
@@ -95,7 +89,6 @@ class AtomicValue {
     double _double;
     natural_t _natural;
   };
-  torch::Tensor _tensor;
   Eigen::MatrixXd _matrix;
 
   AtomicValue() : type(AtomicType::UNKNOWN) {}
@@ -105,8 +98,6 @@ class AtomicValue {
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
   explicit AtomicValue(natural_t value)
       : type(AtomicType::NATURAL), _natural(value) {}
-  explicit AtomicValue(torch::Tensor value)
-      : type(AtomicType::TENSOR), _tensor(value.clone()) {}
   explicit AtomicValue(Eigen::MatrixXd& value)
       : type(ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL)),
         _matrix(value) {}
@@ -116,10 +107,6 @@ class AtomicValue {
   }
   AtomicValue(AtomicType type, natural_t value) : type(type), _natural(value) {
     assert(type == AtomicType::NATURAL);
-  }
-  AtomicValue(AtomicType type, torch::Tensor value)
-      : type(type), _tensor(value) {
-    assert(type == AtomicType::TENSOR);
   }
   AtomicValue(AtomicType type, Eigen::MatrixXd& value) : _matrix(value) {
     assert(
@@ -151,10 +138,6 @@ class AtomicValue {
         }
         case AtomicType::NATURAL: {
           _natural = other._natural;
-          break;
-        }
-        case AtomicType::TENSOR: {
-          _tensor = other._tensor.clone();
           break;
         }
         default: {
@@ -195,9 +178,7 @@ class AtomicValue {
            type.atomic_type == AtomicType::PROBABILITY) and
           _matrix.isApprox(other._matrix)) or
          (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX and
-          _matrix.isApprox(other._matrix)) or
-         (type == AtomicType::TENSOR and
-          _tensor.eq(other._tensor).all().item<uint8_t>()));
+          _matrix.isApprox(other._matrix)));
   }
   bool operator!=(const AtomicValue& other) const {
     return not(*this == other);
@@ -209,7 +190,6 @@ enum class OperatorType {
   SAMPLE = 1, // This is the ~ operator in models
   TO_REAL,
   TO_POS_REAL,
-  TO_TENSOR,
   COMPLEMENT,
   NEGATE,
   EXP,
@@ -312,7 +292,6 @@ struct Graph {
   uint add_constant(bool value);
   uint add_constant(double value);
   uint add_constant(natural_t value);
-  uint add_constant(torch::Tensor value);
   uint add_constant(AtomicValue value);
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
@@ -330,7 +309,6 @@ struct Graph {
   void observe(uint var, bool val);
   void observe(uint var, double val);
   void observe(uint var, natural_t val);
-  void observe(uint var, torch::Tensor val);
   void observe(uint var, Eigen::MatrixXd& val);
   void observe(uint var, AtomicValue val);
   uint query(uint var); // returns the index of the query in the samples

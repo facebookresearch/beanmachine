@@ -101,7 +101,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     TensorNode,
     ToPositiveRealNode,
     ToRealNode,
-    ToTensorNode,
     UniformNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
@@ -808,16 +807,6 @@ constant graph node of the stated type for it, and adds it to the builder"""
         if isinstance(operand, ConstantNode):
             return self.add_positive_real(float(operand.value))
         node = ToPositiveRealNode(operand)
-        self.add_node(node)
-        return node
-
-    @memoize
-    def add_to_tensor(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, TensorNode):
-            return operand
-        if isinstance(operand, ConstantNode):
-            return self.add_tensor(tensor(operand.value))
-        node = ToTensorNode(operand)
         self.add_node(node)
         return node
 
