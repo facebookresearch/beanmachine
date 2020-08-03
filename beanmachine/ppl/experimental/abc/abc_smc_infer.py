@@ -75,7 +75,9 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
         Default perturb kernel. Performs a sigle step gaussian random walk. Variance decays with stage
         :returns: perturbed sample
         """
-        proposer = SingleSiteRandomWalkProposer(step_size=10 ** (-stage))
+        proposer = SingleSiteRandomWalkProposer(
+            step_size=(0.01 * (torch.exp(-(torch.tensor(stage, dtype=torch.float32)))).item())
+        )
         perturbed_sample = {}
         for key, value in sample.items():
             key.function._wrapper(*key.arguments)
