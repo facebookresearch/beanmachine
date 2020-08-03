@@ -34,32 +34,49 @@ enum class AtomicType {
 struct ValueType {
   VariableType variable_type;
   AtomicType atomic_type;
+  uint rows;
+  uint cols;
 
   ValueType()
       : variable_type(VariableType::UNKNOWN),
-        atomic_type(AtomicType::UNKNOWN) {}
+        atomic_type(AtomicType::UNKNOWN),
+        rows(0),
+        cols(0) {}
   ValueType(const ValueType& other)
-      : variable_type(other.variable_type), atomic_type(other.atomic_type) {}
+      : variable_type(other.variable_type),
+        atomic_type(other.atomic_type),
+        rows(other.rows),
+        cols(other.cols) {}
   explicit ValueType(const AtomicType& other)
-      : variable_type(VariableType::SCALAR), atomic_type(other) {}
+      : variable_type(VariableType::SCALAR),
+        atomic_type(other),
+        rows(0),
+        cols(0) {}
 
-  ValueType(VariableType vtype, AtomicType atype)
-      : variable_type(vtype), atomic_type(atype) {
+  ValueType(VariableType vtype, AtomicType atype, uint rows, uint cols)
+      : variable_type(vtype), atomic_type(atype), rows(rows), cols(cols) {
     if (vtype == VariableType::ROW_SIMPLEX_MATRIX) {
       assert(atype == AtomicType::PROBABILITY);
     }
   }
 
   bool operator!=(const ValueType& other) const {
-    return variable_type != other.variable_type or
-        atomic_type != other.atomic_type;
+    if (variable_type != other.variable_type or
+        atomic_type != other.atomic_type) {
+      return true;
+    } else if (
+        variable_type == VariableType::SCALAR or
+        variable_type == VariableType::UNKNOWN) {
+      return false;
+    } else {
+      return rows != other.rows or cols != other.cols;
+    }
   }
   bool operator!=(const AtomicType& other) const {
     return variable_type != VariableType::SCALAR or atomic_type != other;
   }
   bool operator==(const ValueType& other) const {
-    return variable_type == other.variable_type and
-        atomic_type == other.atomic_type;
+    return not (*this != other);
   }
   bool operator==(const AtomicType& other) const {
     return variable_type == VariableType::SCALAR and atomic_type == other;
@@ -68,6 +85,8 @@ struct ValueType {
     if (this != &other) {
       variable_type = other.variable_type;
       atomic_type = other.atomic_type;
+      rows = other.rows;
+      cols = other.cols;
     }
     return *this;
   }
@@ -93,13 +112,17 @@ class AtomicValue {
 
   AtomicValue() : type(AtomicType::UNKNOWN) {}
   explicit AtomicValue(AtomicType type);
-  explicit AtomicValue(ValueType type, uint nrow, uint ncol);
+  explicit AtomicValue(ValueType type);
   explicit AtomicValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
   explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
   explicit AtomicValue(natural_t value)
       : type(AtomicType::NATURAL), _natural(value) {}
   explicit AtomicValue(Eigen::MatrixXd& value)
-      : type(ValueType(VariableType::BROADCAST_MATRIX, AtomicType::REAL)),
+      : type(ValueType(
+            VariableType::BROADCAST_MATRIX,
+            AtomicType::REAL,
+            value.rows(),
+            value.cols())),
         _matrix(value) {}
 
   AtomicValue(AtomicType type, bool value) : type(type), _bool(value) {
@@ -122,6 +145,7 @@ class AtomicValue {
     assert(
         type.atomic_type == AtomicType::REAL or type.atomic_type == AtomicType::POS_REAL or
         type.atomic_type == AtomicType::PROBABILITY);
+    assert(type.rows == value.rows() and type.cols == value.cols());
   }
   AtomicValue(AtomicType type, double value);
 
@@ -183,6 +207,9 @@ class AtomicValue {
   bool operator!=(const AtomicValue& other) const {
     return not(*this == other);
   }
+
+ private:
+  void init_scalar(AtomicType type);
 };
 
 enum class OperatorType {

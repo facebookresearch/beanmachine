@@ -71,8 +71,8 @@ AtomicValue::AtomicValue(AtomicType type, double value)
   }
 }
 
-AtomicValue::AtomicValue(AtomicType type) : type(type) {
-  switch (this->type.atomic_type) {
+void AtomicValue::init_scalar(AtomicType type) {
+  switch (type) {
     case AtomicType::UNKNOWN:
       break;
     case AtomicType::BOOLEAN:
@@ -89,24 +89,28 @@ AtomicValue::AtomicValue(AtomicType type) : type(type) {
   }
 }
 
-AtomicValue::AtomicValue(ValueType type, uint nrow, uint ncol) : type(type) {
-  assert(nrow > 0 and ncol > 0);
+AtomicValue::AtomicValue(AtomicType type) : type(type) {
+  this->init_scalar(type);
+}
+
+AtomicValue::AtomicValue(ValueType type) : type(type) {
   if (type.variable_type == VariableType::BROADCAST_MATRIX) {
     switch (type.atomic_type) {
       case AtomicType::REAL:
-        _matrix = Eigen::MatrixXd::Zero(nrow, ncol);
+        _matrix = Eigen::MatrixXd::Zero(type.rows, type.cols);
         break;
       case AtomicType::POS_REAL:
       case AtomicType::PROBABILITY:
-        _matrix = Eigen::MatrixXd::Ones(nrow, ncol) * PRECISION;
+        _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) * PRECISION;
         break;
       default:
         throw std::invalid_argument(
             "Unsupported types for BROADCAST_MATRIX.");
     }
   } else if (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
-    assert(type.atomic_type == AtomicType::PROBABILITY);
-    _matrix = Eigen::MatrixXd::Ones(nrow, ncol) / ncol;
+    _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) / type.cols;
+  } else if (type.variable_type == VariableType::SCALAR) {
+    this->init_scalar(type.atomic_type);
   } else {
     throw std::invalid_argument(
         "Unsupported variable type.");
@@ -384,7 +388,11 @@ uint Graph::add_constant_row_simplex_matrix(Eigen::MatrixXd& value) {
     throw std::invalid_argument("All rows in row_simplex_matrix must sum to 1");
   }
   return add_constant(AtomicValue(
-      ValueType(VariableType::ROW_SIMPLEX_MATRIX, AtomicType::PROBABILITY),
+      ValueType(
+          VariableType::ROW_SIMPLEX_MATRIX,
+          AtomicType::PROBABILITY,
+          value.rows(),
+          value.cols()),
       value));
 }
 
