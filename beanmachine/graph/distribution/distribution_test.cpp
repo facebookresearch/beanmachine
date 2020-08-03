@@ -84,7 +84,9 @@ TEST(testdistrib, tabular) {
   graph::ConstNode cnode1(graph::AtomicValue(
       graph::ValueType(
           graph::VariableType::ROW_SIMPLEX_MATRIX,
-          graph::AtomicType::PROBABILITY),
+          graph::AtomicType::PROBABILITY,
+          matrix.rows(),
+          matrix.cols()),
       matrix));
   graph::ConstNode cnode2(graph::AtomicValue{true});
   distribution::Tabular dnode1(

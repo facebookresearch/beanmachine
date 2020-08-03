@@ -26,7 +26,7 @@ PYBIND11_MODULE(graph, module) {
       .value("NATURAL", AtomicType::NATURAL);
 
   py::class_<ValueType>(module, "ValueType")
-      .def(py::init<VariableType, AtomicType>())
+      .def(py::init<VariableType, AtomicType, uint, uint>())
       .def(
           "to_string",
           &ValueType::to_string,
