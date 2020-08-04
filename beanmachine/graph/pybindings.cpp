@@ -52,7 +52,8 @@ PYBIND11_MODULE(graph, module) {
       .value("LOGISTIC", OperatorType::LOGISTIC)
       .value("LOG1PEXP", OperatorType::LOG1PEXP)
       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
-      .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE);
+      .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
+      .value("LOG", OperatorType::LOG);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)

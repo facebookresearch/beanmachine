@@ -46,6 +46,11 @@ class TestOperators(unittest.TestCase):
         g.add_operator(bmg.OperatorType.EXP, [c2])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.EXP, [c4, c5])
+        # test LOG
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.LOG, [])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.LOG, [c1, c2])
         # test NEGATE
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.NEGATE, [])

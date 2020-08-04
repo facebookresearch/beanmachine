@@ -57,6 +57,18 @@ void Operator::compute_gradients() {
           f_grad * in_nodes[0]->grad2;
       break;
     }
+    case graph::OperatorType::LOG: {
+      // f(x) = log(x)
+      // f'(x) = 1 / x
+      // f''(x) = -1 / (x^2) = -f'(x) * f'(x)
+      double x = in_nodes[0]->value._double;
+      double f_grad = 1.0 / x;
+      double f_grad2 = -f_grad * f_grad;
+      grad1 = f_grad * in_nodes[0]->grad1;
+      grad2 = f_grad2 * in_nodes[0]->grad1 * in_nodes[0]->grad1 +
+          f_grad * in_nodes[0]->grad2;
+      break;
+    }
     case graph::OperatorType::LOG1PEXP: {
       // f(x) = log (1 + exp(x))
       // f'(x) = exp(x) / (1 + exp(x)) = 1 - exp(-f)
@@ -123,7 +135,8 @@ void Operator::compute_gradients() {
       // grad2 = d(df/dx)/dx =
       // sum_i^n{ d(df/dgi)/dx * dgi/dx + df/dgi * d(dgi/dx)/dx }
       // where d(df/dgi)/dx = exp(gi - f) * (dgi/dx - df/dx)
-      // therefore, grad2 = sum_i^n{exp(gi - f) * [(dgi/dx - grad1)*dgi/dx + d(dgi/dx)/dx]}
+      // therefore, grad2 = sum_i^n{exp(gi - f) * [(dgi/dx - grad1)*dgi/dx +
+      // d(dgi/dx)/dx]}
       grad1 = grad2 = 0;
       const uint N = in_nodes.size();
       std::vector<double> f_grad;
@@ -136,7 +149,8 @@ void Operator::compute_gradients() {
       assert(f_grad.size() == N);
       for (uint i = 0; i < N; i++) {
         const auto node_i = in_nodes[i];
-        grad2 += f_grad[i] * (node_i->grad1 * (node_i->grad1 - grad1) + node_i->grad2);
+        grad2 += f_grad[i] *
+            (node_i->grad1 * (node_i->grad1 - grad1) + node_i->grad2);
       }
       break;
     }

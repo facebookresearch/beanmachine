@@ -228,6 +228,7 @@ enum class OperatorType {
   IF_THEN_ELSE,
   LOG1PEXP,
   LOGSUMEXP,
+  LOG,
 };
 
 enum class DistributionType {
