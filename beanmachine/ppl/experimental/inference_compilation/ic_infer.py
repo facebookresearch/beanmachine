@@ -125,9 +125,9 @@ class ICInference(AbstractMHInference):
     _optimizer: Optional[optim.Optimizer] = None
     _proposers: Optional[Callable[[RVIdentifier], ICProposer]] = None
     _NODE_ID_EMBEDDING_DIM: int = 0  # embedding dimension for RVIdentifier
-    _NODE_EMBEDDING_DIM: int = 32  # embedding dimension for node values
-    _OBS_EMBEDDING_DIM = 4  # embedding dimension for observations
-    _MB_EMBEDDING_DIM = 32  # embedding dimension for Markov blankets
+    _NODE_EMBEDDING_DIM: int = 4  # embedding dimension for node values
+    _OBS_EMBEDDING_DIM: int = 4  # embedding dimension for observations
+    _MB_EMBEDDING_DIM: int = 8  # embedding dimension for Markov blankets
 
     def find_best_single_site_proposer(
         self, node: RVIdentifier
@@ -147,7 +147,7 @@ class ICInference(AbstractMHInference):
         observation_keys: Sequence[RVIdentifier],
         num_worlds: int = 100,
         batch_size: int = 16,
-        optimizer_func=lambda parameters: optim.Adam(parameters, lr=1e-3),
+        optimizer_func=lambda parameters: optim.Adam(parameters),
         node_id_embedding_dim: Optional[int] = None,
     ) -> "ICInference":
         """
@@ -208,7 +208,7 @@ class ICInference(AbstractMHInference):
                     + self._OBS_EMBEDDING_DIM,
                     out_features=self._proposal_distribution_for_node(node)[0],
                 ),
-                nn.Tanh(),
+                nn.ELU(),
                 nn.Linear(
                     in_features=self._proposal_distribution_for_node(node)[0],
                     out_features=self._proposal_distribution_for_node(node)[0],
@@ -257,8 +257,12 @@ class ICInference(AbstractMHInference):
                             {
                                 "params": (
                                     list(node_embedding_nets(node).parameters())
-                                    + list(mb_embedding_nets(node).parameters())
                                     + list(node_proposal_param_nets(node).parameters())
+                                    + (
+                                        list(mb_embedding_nets(node).parameters())
+                                        if self._MB_EMBEDDING_DIM > 0
+                                        else []
+                                    )
                                 )
                             }
                         )
@@ -270,6 +274,7 @@ class ICInference(AbstractMHInference):
                 }
                 self.world_.set_observations(observations)
                 loss += self._compute_loss(self.world_, proposers)
+
             loss.backward()
             optimizer.step()
 
@@ -384,7 +389,7 @@ class ICInference(AbstractMHInference):
                     sorted(markov_blanket, key=str),
                 )
             )
-            if len(mb_nodes):
+            if len(mb_nodes) and self._MB_EMBEDDING_DIM > 0:
                 mb_embedding_nets = self._mb_embedding_nets
                 if mb_embedding_nets is None:
                     raise Exception("No Markov blanket embedding networks found!")
