@@ -7,8 +7,8 @@
  * @format
  */
 
-// const remarkMath = require('remark-math');
-// const rehypeKatex = require('rehype-katex');
+const remarkMath = require('remark-math');
+const rehypeKatex = require('rehype-katex');
 
 module.exports = {
   title: 'BeanMachine',
@@ -132,8 +132,8 @@ module.exports = {
           // Please change this to your repo.
           editUrl:
             'https://github.com/facebook/docusaurus/edit/master/website/',
-          // remarkPlugins: [remarkMath],
-          // rehypePlugins: [rehypeKatex],
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
         },
         blog: {
           showReadingTime: true,
