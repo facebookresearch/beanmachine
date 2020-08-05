@@ -63,8 +63,10 @@ class Predictive(object):
                 # predictives are jointly sampled
                 sampler.queries_ = queries
                 sampler.observations_ = obs
-                query_dict = sampler._infer(1, initialize_from_prior=True)
-                sampler.reset()
+                try:
+                    query_dict = sampler._infer(1, initialize_from_prior=True)
+                finally:
+                    sampler.reset()
                 for rvid, rv in query_dict.items():
                     if rv.dim() > 2:
                         query_dict[rvid] = rv.squeeze(0)
@@ -82,8 +84,10 @@ class Predictive(object):
                         }
                         sampler.queries_ = queries
                         sampler.observations_ = obs
-                        rv_dicts.append(sampler._infer(1, initialize_from_prior=True))
-                        sampler.reset()
+                        try:
+                            rv_dicts.append(sampler._infer(1, initialize_from_prior=True))
+                        finally:
+                            sampler.reset()
                     preds.append(_concat_rv_dicts(rv_dicts))
                 return MonteCarloSamples(preds)
         else:
@@ -94,9 +98,11 @@ class Predictive(object):
             for _ in range(num_samples):
                 sampler.queries_ = queries
                 sampler.observations_ = obs
-                query_dict = sampler._infer(1, initialize_from_prior=True)
+                try:
+                    query_dict = sampler._infer(1, initialize_from_prior=True)
+                finally:
+                    sampler.reset()
                 predictives.append(query_dict)
-                sampler.reset()
 
             rv_dict = defaultdict(list)
             for k in predictives:
