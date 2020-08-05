@@ -128,6 +128,8 @@ class ICInference(AbstractMHInference):
     _NODE_EMBEDDING_DIM: int = 4  # embedding dimension for node values
     _OBS_EMBEDDING_DIM: int = 4  # embedding dimension for observations
     _MB_EMBEDDING_DIM: int = 8  # embedding dimension for Markov blankets
+    _MB_NUM_LAYERS = 3  # num LSTM layers for Markov blankets
+    _NODE_PROPOSAL_NUM_LAYERS = 1  # num layers for node proposal parameter nets
 
     def find_best_single_site_proposer(
         self, node: RVIdentifier
@@ -149,6 +151,11 @@ class ICInference(AbstractMHInference):
         batch_size: int = 16,
         optimizer_func=lambda parameters: optim.Adam(parameters),
         node_id_embedding_dim: Optional[int] = None,
+        node_embedding_dim: Optional[int] = None,
+        obs_embedding_dim: Optional[int] = None,
+        mb_embedding_dim: Optional[int] = None,
+        mb_num_layers: Optional[int] = None,
+        node_proposal_num_layers: Optional[int] = None,
     ) -> "ICInference":
         """
         Trains neural network proposers for all unobserved variables encountered
@@ -170,6 +177,16 @@ class ICInference(AbstractMHInference):
 
         if node_id_embedding_dim:
             self._NODE_ID_EMBEDDING_DIM = node_id_embedding_dim
+        if node_embedding_dim:
+            self._NODE_EMBEDDING_DIM = node_embedding_dim
+        if obs_embedding_dim:
+            self._OBS_EMBEDDING_DIM = obs_embedding_dim
+        if mb_embedding_dim:
+            self._MB_EMBEDDING_DIM = mb_embedding_dim
+        if mb_num_layers:
+            self._MB_NUM_LAYERS = mb_num_layers
+        if node_proposal_num_layers:
+            self._NODE_PROPOSAL_NUM_LAYERS = node_proposal_num_layers
 
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
         AbstractInference.set_seed_for_chain(random_seed, 0)
@@ -193,27 +210,14 @@ class ICInference(AbstractMHInference):
         mb_embedding_nets = lru_cache(maxsize=None)(
             lambda _: nn.LSTM(
                 input_size=self._NODE_EMBEDDING_DIM + self._NODE_ID_EMBEDDING_DIM,
-                num_layers=3,
+                num_layers=self._MB_NUM_LAYERS,
                 hidden_size=self._MB_EMBEDDING_DIM,
             )
         )
         self._mb_embedding_nets = mb_embedding_nets
 
         node_proposal_param_nets = lru_cache(maxsize=None)(
-            lambda node: nn.Sequential(
-                nn.Linear(
-                    in_features=self._NODE_ID_EMBEDDING_DIM
-                    + self._NODE_EMBEDDING_DIM
-                    + self._MB_EMBEDDING_DIM
-                    + self._OBS_EMBEDDING_DIM,
-                    out_features=self._proposal_distribution_for_node(node)[0],
-                ),
-                nn.ELU(),
-                nn.Linear(
-                    in_features=self._proposal_distribution_for_node(node)[0],
-                    out_features=self._proposal_distribution_for_node(node)[0],
-                ),
-            )
+            self._build_node_proposal_param_network
         )
         self._node_proposal_param_nets = node_proposal_param_nets
 
@@ -346,6 +350,27 @@ class ICInference(AbstractMHInference):
 
         return NodeEmbedding(node_id_embedding, node_embedding_net)
 
+    def _build_node_proposal_param_network(self, node: RVIdentifier) -> nn.Module:
+        in_features = (
+            self._NODE_ID_EMBEDDING_DIM
+            + self._NODE_EMBEDDING_DIM
+            + self._MB_EMBEDDING_DIM
+            + self._OBS_EMBEDDING_DIM
+        )
+        layers = []
+        for _ in range(self._NODE_PROPOSAL_NUM_LAYERS):
+            # TODO: bottlenecking?
+            layers.extend(
+                [nn.Linear(in_features=in_features, out_features=in_features), nn.ELU()]
+            )
+        layers.append(
+            nn.Linear(
+                in_features=in_features,
+                out_features=self._proposal_distribution_for_node(node)[0],
+            )
+        )
+        return nn.Sequential(*layers)
+
     def _proposer_func_for_node(self, node: RVIdentifier):
         _, proposal_dist_constructor = self._proposal_distribution_for_node(node)
 
@@ -399,7 +424,7 @@ class ICInference(AbstractMHInference):
                 # torch.nn.utils.rnn.PackedSequence)
                 mb_vec = torch.stack(mb_nodes, dim=0).unsqueeze(1)
                 # TODO: try pooling rather than just slicing out last hidden
-                mb_embedding = (
+                mb_embedding = utils.ensure_1d(
                     mb_embedding_nets(node).forward(mb_vec)[0][-1, :, :].squeeze()
                 )
             node_proposal_param_nets = self._node_proposal_param_nets
