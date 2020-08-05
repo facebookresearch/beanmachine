@@ -10,13 +10,13 @@ LICENSE file in the root directory of this source tree.
 Bean Machine is a probabilistic programming language for inference over statistical models written in the Python language using a declarative syntax.
 
 # Installing Bean Machine
+On Linux distros using the `apt` package manager
 
+    apt-get install libboost-dev libeigen3-dev
+    pip install torch numpy
     git clone https://github.com/facebookincubator/BeanMachine.git
     cd BeanMachine
-    apt-get install libboost-all-dev
-    apt-get install libeigen3-dev
-    pip install numpy torch
-    python setup.py install
+    pip install .
 
 Further, if you would like to run the builtin unit tests:
 

@@ -22,6 +22,14 @@ commands:
           name: "Install beanmachine[dev]"
           command: sudo pip install -v -e .[dev]
 
+  pip_user_install:
+    description: "Install beanmachine as an ordinary user would via pip"
+    steps:
+      - run:
+          name: "Install beanmachine"
+          command: sudo pip install .
+
+
   apt_get_install_deps:
     description: "Install beanmachine graph dependencies via apt-get"
     steps:
@@ -29,18 +37,8 @@ commands:
           name: "Update package lists"
           command: sudo apt-get update
       - run:
-          name: "Install Boost"
-          command: sudo apt-get install libboost-all-dev
-      - run:
-          name: "Install Eigen"
-          command: sudo apt-get install libeigen3-dev
-
-  setup_py_install:
-    description: "Install beanmachine as an ordinary user would via setup.py install"
-    steps:
-      - run:
-          name: "Install beanmachine"
-          command: sudo python setup.py install
+          name: "Install Boost and Eigen"
+          command: sudo apt-get install libboost-dev libeigen3-dev
 
   pip_lint_install:
     description: "Install lint packages via pip"
@@ -100,9 +98,9 @@ jobs:
     docker:
       - image: circleci/python:3.6.9
     steps:
-      - checkout
-      - pip_install_deps
       - apt_get_install_deps
+      - pip_install_deps
+      - checkout
       - pip_dev_install
       - dev_unit_tests
 
@@ -110,10 +108,10 @@ jobs:
     docker:
       - image: circleci/python:3.6.9
     steps:
-      - checkout
-      - pip_install_deps
       - apt_get_install_deps
-      - setup_py_install
+      - pip_install_deps
+      - checkout
+      - pip_user_install
       - user_unit_tests
 
   lint_py36_pip:
