@@ -139,7 +139,14 @@ PYBIND11_MODULE(graph, module) {
           py::arg("value"))
       .def(
           "add_distribution",
-          &Graph::add_distribution,
+          (uint(Graph::*)(DistributionType, AtomicType, std::vector<uint>)) &Graph::add_distribution,
+          "add a probability distribution Node",
+          py::arg("dist_type"),
+          py::arg("sample_type"),
+          py::arg("parents"))
+      .def(
+          "add_distribution",
+          (uint(Graph::*)(DistributionType, ValueType, std::vector<uint>)) &Graph::add_distribution,
           "add a probability distribution Node",
           py::arg("dist_type"),
           py::arg("sample_type"),

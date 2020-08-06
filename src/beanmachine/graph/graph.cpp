@@ -411,6 +411,18 @@ uint Graph::add_distribution(
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   // create a distribution node
   std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
+      dist_type, ValueType(sample_type), parent_nodes);
+  // and add the node to the graph
+  return add_node(std::move(node), parent_ids);
+}
+
+uint Graph::add_distribution(
+    DistributionType dist_type,
+    ValueType sample_type,
+    std::vector<uint> parent_ids) {
+  std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
+  // create a distribution node
+  std::unique_ptr<Node> node = distribution::Distribution::new_distribution(
       dist_type, sample_type, parent_nodes);
   // and add the node to the graph
   return add_node(std::move(node), parent_ids);
