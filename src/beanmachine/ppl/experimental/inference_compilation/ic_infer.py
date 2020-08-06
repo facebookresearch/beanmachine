@@ -351,10 +351,7 @@ class ICInference(AbstractMHInference):
         return NodeEmbedding(node_id_embedding, node_embedding_net)
 
     def _build_node_proposal_param_network(self, node: RVIdentifier) -> nn.Module:
-        in_features = (
-            self._MB_EMBEDDING_DIM
-            + self._OBS_EMBEDDING_DIM
-        )
+        in_features = self._MB_EMBEDDING_DIM + self._OBS_EMBEDDING_DIM
         layers = []
         for _ in range(self._NODE_PROPOSAL_NUM_LAYERS):
             # TODO: bottlenecking?
