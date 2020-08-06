@@ -48,7 +48,7 @@ if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
 
 # get version string from module
 current_dir = os.path.dirname(__file__)
-init_file = os.path.join(current_dir, "beanmachine", "__init__.py")
+init_file = os.path.join(current_dir, "src", "beanmachine", "__init__.py")
 version_regexp = r"__version__ = ['\"]([^'\"]*)['\"]"
 with open(init_file, "r") as f:
     version = re.search(version_regexp, f.read(), re.M).group(1)
@@ -90,7 +90,7 @@ def find_include_dir(dep):
 
 
 def find_include_dirs():
-    inc_dir = {os.getcwd()}
+    inc_dir = {os.path.join(os.getcwd(), "src")}
     for dep in BMG_DEP_HEADER:
         inc_dir.add(find_include_dir(dep))
     return list(inc_dir)
@@ -139,21 +139,21 @@ setup(
         "astor>=0.7.1",
         "black>=19.3b0",
     ],
-    packages=find_packages(),
+    packages=find_packages("src/"),
+    package_dir={"beanmachine": "src/beanmachine"},
     ext_modules=[
         CppExtension(
             name="beanmachine.graph",
             sources=list(
-                set(glob("beanmachine/graph/**/*.cpp", recursive=True))
-                - set(glob("beanmachine/graph/**/*_test.cpp", recursive=True))
+                set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
+                - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
             include_dirs=bmg_inc_dir,
             extra_compile_args=EXTRA_COMPILE_ARGS,
         ),
         CppExtension(
             name="beanmachine.ppl.utils.tensorops",
-            sources=["beanmachine/ppl/utils/tensorops.cpp"],
-            include_dirs=[os.getcwd()],
+            sources=["src/beanmachine/ppl/utils/tensorops.cpp"],
             extra_compile_args=EXTRA_COMPILE_ARGS,
         ),
     ],
