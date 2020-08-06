@@ -18,7 +18,7 @@ Flat::Flat(AtomicType sample_type, const std::vector<Node*>& in_nodes)
 
 AtomicValue Flat::sample(std::mt19937& gen) const {
   AtomicValue value;
-  switch (sample_type) {
+  switch (sample_type.atomic_type) {
     case AtomicType::BOOLEAN: {
       std::bernoulli_distribution dist(0.5);
       value = AtomicValue(dist(gen));
