@@ -197,7 +197,9 @@ class ICInference(AbstractMHInference):
         if node_proposal_num_layers:
             self._NODE_PROPOSAL_NUM_LAYERS = node_proposal_num_layers
         if entropy_regularization_coefficient:
-            self._ENTROPY_REGULARIZATION_COEFFICIENT = entropy_regularization_coefficient
+            self._ENTROPY_REGULARIZATION_COEFFICIENT = (
+                entropy_regularization_coefficient
+            )
 
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
         AbstractInference.set_seed_for_chain(random_seed, 0)
@@ -312,11 +314,7 @@ class ICInference(AbstractMHInference):
                 .get_proposal_distribution(node, node_var, world, {})[0]
                 .proposal_distribution
             )
-            loss -= (
-                proposal_distribution
-                .log_prob(node_var.value)
-                .sum()
-            )
+            loss -= proposal_distribution.log_prob(node_var.value).sum()
             if self._ENTROPY_REGULARIZATION_COEFFICIENT > 0.0:
                 loss += (
                     self._ENTROPY_REGULARIZATION_COEFFICIENT
