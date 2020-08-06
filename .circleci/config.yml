@@ -15,20 +15,19 @@ commands:
           name: "Install pytorch"
           command: sudo pip install --progress-bar off torch==1.4.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
-  pip_dev_install:
+  dev_install:
     description: "Install beanmachine[dev] via pip"
     steps:
       - run:
           name: "Install beanmachine[dev]"
-          command: sudo pip install -v -e .[dev]
+          command: sudo pip install --progress-bar off -v -e .[dev]
 
-  pip_user_install:
+  user_install:
     description: "Install beanmachine as an ordinary user would via pip"
     steps:
       - run:
           name: "Install beanmachine"
-          command: sudo pip install .
-
+          command: sudo pip install --progress-bar off -v .
 
   apt_get_install_deps:
     description: "Install beanmachine graph dependencies via apt-get"
@@ -101,7 +100,7 @@ jobs:
       - apt_get_install_deps
       - pip_install_deps
       - checkout
-      - pip_dev_install
+      - dev_install
       - dev_unit_tests
 
   user_install_test_py36_pip:
@@ -111,7 +110,7 @@ jobs:
       - apt_get_install_deps
       - pip_install_deps
       - checkout
-      - pip_user_install
+      - user_install
       - user_unit_tests
 
   lint_py36_pip:
