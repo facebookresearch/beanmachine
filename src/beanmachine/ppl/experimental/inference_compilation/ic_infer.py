@@ -307,9 +307,11 @@ class ICInference(AbstractMHInference):
         for node, node_var in world.get_all_world_vars().items():
             if node in world.observations_:
                 continue
-            proposal_distribution = proposers(node)
+            proposal_distribution = (
+                proposers(node)
                 .get_proposal_distribution(node, node_var, world, {})[0]
                 .proposal_distribution
+            )
             loss -= (
                 proposal_distribution
                 .log_prob(node_var.value)
@@ -320,7 +322,7 @@ class ICInference(AbstractMHInference):
                     self._ENTROPY_REGULARIZATION_COEFFICIENT
                     * proposal_distribution.entropy()
                 )
-                
+
         return loss
 
     def _build_observation_embedding_network(
