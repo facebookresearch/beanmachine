@@ -19,7 +19,7 @@ enum class VariableType {
   UNKNOWN = 0,
   SCALAR = 1,
   BROADCAST_MATRIX,
-  ROW_SIMPLEX_MATRIX,
+  COL_SIMPLEX_MATRIX,
 };
 
 enum class AtomicType {
@@ -55,7 +55,7 @@ struct ValueType {
 
   ValueType(VariableType vtype, AtomicType atype, uint rows, uint cols)
       : variable_type(vtype), atomic_type(atype), rows(rows), cols(cols) {
-    if (vtype == VariableType::ROW_SIMPLEX_MATRIX) {
+    if (vtype == VariableType::COL_SIMPLEX_MATRIX) {
       assert(atype == AtomicType::PROBABILITY);
     }
   }
@@ -145,7 +145,7 @@ class AtomicValue {
   AtomicValue(ValueType type, Eigen::MatrixXd& value) : type(type), _matrix(value) {
     assert(
         type.variable_type == VariableType::BROADCAST_MATRIX or
-        type.variable_type == VariableType::ROW_SIMPLEX_MATRIX);
+        type.variable_type == VariableType::COL_SIMPLEX_MATRIX);
     assert(
         type.atomic_type == AtomicType::REAL or type.atomic_type == AtomicType::POS_REAL or
         type.atomic_type == AtomicType::PROBABILITY);
@@ -186,7 +186,7 @@ class AtomicValue {
               "Trying to copy a MATRIX AtomicValue of unsupported type.");
         }
       }
-    } else if (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
+    } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
       _matrix = other._matrix;
     } else {
        throw std::invalid_argument("Trying to copy a value of unknown VariableType");
@@ -205,7 +205,7 @@ class AtomicValue {
            type.atomic_type == AtomicType::POS_REAL or
            type.atomic_type == AtomicType::PROBABILITY) and
           _matrix.isApprox(other._matrix)) or
-         (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX and
+         (type.variable_type == VariableType::COL_SIMPLEX_MATRIX and
           _matrix.isApprox(other._matrix)));
   }
   bool operator!=(const AtomicValue& other) const {
@@ -330,7 +330,7 @@ struct Graph {
   uint add_constant_matrix(Eigen::MatrixXd& value);
   uint add_constant_pos_matrix(Eigen::MatrixXd& value);
   uint add_constant_probability_matrix(Eigen::MatrixXd& value);
-  uint add_constant_row_simplex_matrix(Eigen::MatrixXd& value);
+  uint add_constant_col_simplex_matrix(Eigen::MatrixXd& value);
   uint add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,

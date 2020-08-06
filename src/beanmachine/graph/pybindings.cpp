@@ -16,7 +16,7 @@ PYBIND11_MODULE(graph, module) {
   py::enum_<VariableType>(module, "VariableType")
       .value("SCALAR", VariableType::SCALAR)
       .value("BROADCAST_MATRIX", VariableType::BROADCAST_MATRIX)
-      .value("ROW_SIMPLEX_MATRIX", VariableType::ROW_SIMPLEX_MATRIX);
+      .value("COL_SIMPLEX_MATRIX", VariableType::COL_SIMPLEX_MATRIX);
 
   py::enum_<AtomicType>(module, "AtomicType")
       .value("BOOLEAN", AtomicType::BOOLEAN)
@@ -128,9 +128,9 @@ PYBIND11_MODULE(graph, module) {
           "add a Node with a constant element-wise positive valued matrix",
           py::arg("value"))
       .def(
-          "add_constant_row_simplex_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_row_simplex_matrix,
-          "add a Node with a constant matrix with each row a simplex",
+          "add_constant_col_simplex_matrix",
+          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_col_simplex_matrix,
+          "add a Node with a constant matrix with each column a simplex",
           py::arg("value"))
       .def(
           "add_constant_probability_matrix",

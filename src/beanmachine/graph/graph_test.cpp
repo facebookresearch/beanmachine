@@ -71,9 +71,10 @@ TEST(testgraph, infer_bn) {
   graph::Graph g;
   // classic sprinkler BN, see the diagram here:
   // https://upload.wikimedia.org/wikipedia/commons/0/0e/SimpleBayesNet.svg
-  Eigen::MatrixXd matrix1(1, 2);
-  matrix1 << 0.8, 0.2;
-  uint c1 = g.add_constant_row_simplex_matrix(matrix1);
+  Eigen::MatrixXd matrix1(2, 1);
+  matrix1 << 0.8,
+             0.2;
+  uint c1 = g.add_constant_col_simplex_matrix(matrix1);
   uint d1 = g.add_distribution(
       graph::DistributionType::TABULAR,
       graph::AtomicType::BOOLEAN,
@@ -81,21 +82,19 @@ TEST(testgraph, infer_bn) {
   uint RAIN =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
   Eigen::MatrixXd matrix2(2, 2);
-  matrix2 << 0.6, 0.4,
-             0.99, 0.01;
-  uint c2 = g.add_constant_row_simplex_matrix(matrix2);
+  matrix2 << 0.6, 0.99,
+             0.4, 0.01;
+  uint c2 = g.add_constant_col_simplex_matrix(matrix2);
   uint d2 = g.add_distribution(
       graph::DistributionType::TABULAR,
       graph::AtomicType::BOOLEAN,
       std::vector<uint>({c2, RAIN}));
   uint SPRINKLER =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
-  Eigen::MatrixXd matrix3(4, 2);
-  matrix3 << 1.0, 0.0,
-             0.2, 0.8,
-             0.1, 0.9,
-             0.01, 0.99;
-  uint c3 = g.add_constant_row_simplex_matrix(matrix3);
+  Eigen::MatrixXd matrix3(2, 4);
+  matrix3 << 1.0, 0.2, 0.1, 0.01,
+             0.0, 0.8, 0.9, 0.99;
+  uint c3 = g.add_constant_col_simplex_matrix(matrix3);
   uint d3 = g.add_distribution(
       graph::DistributionType::TABULAR,
       graph::AtomicType::BOOLEAN,
@@ -158,9 +157,10 @@ TEST(testgraph, clone_graph) {
   g.add_constant_pos_matrix(m1);
   Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(3, 3);
   g.add_constant_matrix(m2);
-  Eigen::MatrixXd m3(1, 2);
-  m3 << 0.2, 0.8;
-  g.add_constant_row_simplex_matrix(m3);
+  Eigen::MatrixXd m3(2, 1);
+  m3 << 0.2,
+        0.8;
+  g.add_constant_col_simplex_matrix(m3);
   // distributions
   uint d_bernoulli = g.add_distribution(
     graph::DistributionType::BERNOULLI,

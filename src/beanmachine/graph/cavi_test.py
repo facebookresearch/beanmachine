@@ -40,8 +40,8 @@ class TestCAVI(unittest.TestCase):
             graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c1]
         )
         o1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
-        c2 = g.add_constant_row_simplex_matrix(
-            np.array([[0.0, 1.0], [1 - math.exp(-1), math.exp(-1)]])
+        c2 = g.add_constant_col_simplex_matrix(
+            np.array([[0.0, 1 - math.exp(-1)], [1.0, math.exp(-1)]])
         )
         d2 = g.add_distribution(
             graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c2, o1]
