@@ -131,12 +131,16 @@ class AtomicValue {
   AtomicValue(AtomicType type, natural_t value) : type(type), _natural(value) {
     assert(type == AtomicType::NATURAL);
   }
-  AtomicValue(AtomicType type, Eigen::MatrixXd& value) : _matrix(value) {
+  AtomicValue(AtomicType type, Eigen::MatrixXd& value)
+      : type(ValueType(
+            VariableType::BROADCAST_MATRIX,
+            type,
+            value.rows(),
+            value.cols())),
+        _matrix(value) {
     assert(
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
         type == AtomicType::PROBABILITY);
-    this->type.variable_type = VariableType::BROADCAST_MATRIX;
-    this->type.atomic_type = type;
   }
   AtomicValue(ValueType type, Eigen::MatrixXd& value) : type(type), _matrix(value) {
     assert(
@@ -330,6 +334,10 @@ struct Graph {
   uint add_distribution(
       DistributionType dist_type,
       AtomicType sample_type,
+      std::vector<uint> parents);
+  uint add_distribution(
+      DistributionType dist_type,
+      ValueType sample_type,
       std::vector<uint> parents);
   uint add_operator(OperatorType op, std::vector<uint> parents);
   uint add_factor(FactorType fac_type, std::vector<uint> parents);

@@ -10,10 +10,14 @@ class Distribution : public graph::Node {
  public:
   static std::unique_ptr<Distribution> new_distribution(
       graph::DistributionType dist_type,
-      graph::AtomicType sample_type,
+      graph::ValueType sample_type,
       const std::vector<graph::Node*>& in_nodes);
 
   Distribution(graph::DistributionType dist_type, graph::AtomicType sample_type)
+      : graph::Node(graph::NodeType::DISTRIBUTION),
+        dist_type(dist_type),
+        sample_type(sample_type) {}
+  Distribution(graph::DistributionType dist_type, graph::ValueType sample_type)
       : graph::Node(graph::NodeType::DISTRIBUTION),
         dist_type(dist_type),
         sample_type(sample_type) {}
@@ -36,7 +40,7 @@ class Distribution : public graph::Node {
       double& grad1,
       double& grad2) const = 0;
   graph::DistributionType dist_type;
-  graph::AtomicType sample_type;
+  graph::ValueType sample_type;
 };
 
 } // namespace distribution
