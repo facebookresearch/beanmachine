@@ -285,7 +285,7 @@ class ICInference(AbstractMHInference):
             print_every = int(num_batches / 20)
             if (print_every == 0) or (i % print_every == 0):
                 # pyre-fixme
-                tqdm.write(f"Loss: {loss}")
+                tqdm.write(f"Loss: {loss}", end="")
         self.reset()
         return self
 
@@ -352,9 +352,7 @@ class ICInference(AbstractMHInference):
 
     def _build_node_proposal_param_network(self, node: RVIdentifier) -> nn.Module:
         in_features = (
-            self._NODE_ID_EMBEDDING_DIM
-            + self._NODE_EMBEDDING_DIM
-            + self._MB_EMBEDDING_DIM
+            self._MB_EMBEDDING_DIM
             + self._OBS_EMBEDDING_DIM
         )
         layers = []
@@ -399,10 +397,6 @@ class ICInference(AbstractMHInference):
             if node_embedding_nets is None:
                 raise Exception("No node embedding networks found!")
 
-            node_embedding = node_embedding_nets(node).forward(
-                utils.ensure_1d(world.get_node_in_world_raise_error(node).value)
-            )
-
             mb_embedding = torch.zeros(self._MB_EMBEDDING_DIM)
             mb_nodes = list(
                 map(
@@ -431,7 +425,7 @@ class ICInference(AbstractMHInference):
             if node_proposal_param_nets is None:
                 raise Exception("No node proposal parameter networks found!")
             param_vec = node_proposal_param_nets(node).forward(
-                torch.cat((node_embedding, mb_embedding, obs_embedding))
+                torch.cat((mb_embedding, obs_embedding))
             )
             return proposal_dist_constructor(param_vec)
 
