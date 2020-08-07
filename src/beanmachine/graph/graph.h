@@ -10,6 +10,10 @@
 #include <vector>
 #include <Eigen/Dense>
 
+namespace Eigen {
+  typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
+}
+
 namespace beanmachine {
 namespace graph {
 
@@ -109,6 +113,7 @@ class AtomicValue {
     natural_t _natural;
   };
   Eigen::MatrixXd _matrix;
+  Eigen::MatrixXb _bmatrix;
 
   AtomicValue() : type(AtomicType::UNKNOWN) {}
   explicit AtomicValue(AtomicType type);
@@ -124,6 +129,13 @@ class AtomicValue {
             value.rows(),
             value.cols())),
         _matrix(value) {}
+  explicit AtomicValue(Eigen::MatrixXb& value)
+      : type(ValueType(
+            VariableType::BROADCAST_MATRIX,
+            AtomicType::BOOLEAN,
+            value.rows(),
+            value.cols())),
+        _bmatrix(value) {}
 
   AtomicValue(AtomicType type, bool value) : type(type), _bool(value) {
     assert(type == AtomicType::BOOLEAN);
@@ -142,6 +154,15 @@ class AtomicValue {
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
         type == AtomicType::PROBABILITY);
   }
+  AtomicValue(AtomicType type, Eigen::MatrixXb& value)
+      : type(ValueType(
+            VariableType::BROADCAST_MATRIX,
+            type,
+            value.rows(),
+            value.cols())),
+        _bmatrix(value) {
+    assert(type == AtomicType::BOOLEAN);
+  }
   AtomicValue(ValueType type, Eigen::MatrixXd& value) : type(type), _matrix(value) {
     assert(
         type.variable_type == VariableType::BROADCAST_MATRIX or
@@ -149,6 +170,11 @@ class AtomicValue {
     assert(
         type.atomic_type == AtomicType::REAL or type.atomic_type == AtomicType::POS_REAL or
         type.atomic_type == AtomicType::PROBABILITY);
+    assert(type.rows == value.rows() and type.cols == value.cols());
+  }
+  AtomicValue(ValueType type, Eigen::MatrixXb& value) : type(type), _bmatrix(value) {
+    assert(type.variable_type == VariableType::BROADCAST_MATRIX);
+    assert(type.atomic_type == AtomicType::BOOLEAN);
     assert(type.rows == value.rows() and type.cols == value.cols());
   }
   AtomicValue(AtomicType type, double value);
@@ -175,6 +201,9 @@ class AtomicValue {
       }
     } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
       switch(type.atomic_type) {
+        case AtomicType::BOOLEAN:
+          _bmatrix = other._bmatrix;
+          break;
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
         case AtomicType::PROBABILITY: {
@@ -205,6 +234,9 @@ class AtomicValue {
            type.atomic_type == AtomicType::POS_REAL or
            type.atomic_type == AtomicType::PROBABILITY) and
           _matrix.isApprox(other._matrix)) or
+         (type.variable_type == VariableType::BROADCAST_MATRIX and
+          type.atomic_type == AtomicType::BOOLEAN and
+          _bmatrix == other._bmatrix) or
          (type.variable_type == VariableType::COL_SIMPLEX_MATRIX and
           _matrix.isApprox(other._matrix)));
   }
@@ -327,6 +359,7 @@ struct Graph {
   uint add_constant(AtomicValue value);
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
+  uint add_constant_matrix(Eigen::MatrixXb& value);
   uint add_constant_matrix(Eigen::MatrixXd& value);
   uint add_constant_pos_matrix(Eigen::MatrixXd& value);
   uint add_constant_probability_matrix(Eigen::MatrixXd& value);
@@ -345,6 +378,7 @@ struct Graph {
   void observe(uint var, bool val);
   void observe(uint var, double val);
   void observe(uint var, natural_t val);
+  void observe(uint var, Eigen::MatrixXb& val);
   void observe(uint var, Eigen::MatrixXd& val);
   void observe(uint var, AtomicValue val);
   uint query(uint var); // returns the index of the query in the samples

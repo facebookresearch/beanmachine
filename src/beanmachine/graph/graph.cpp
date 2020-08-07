@@ -365,6 +365,10 @@ uint Graph::add_constant_pos_real(double value) {
   return add_constant(AtomicValue(AtomicType::POS_REAL, value));
 }
 
+uint Graph::add_constant_matrix(Eigen::MatrixXb& value) {
+  return add_constant(AtomicValue(value));
+}
+
 uint Graph::add_constant_matrix(Eigen::MatrixXd& value) {
   return add_constant(AtomicValue(value));
 }
@@ -461,6 +465,11 @@ void Graph::observe(uint node_id, natural_t val) {
 }
 
 void Graph::observe(uint node_id, Eigen::MatrixXd& val) {
+  Node* node = check_node(node_id, NodeType::OPERATOR);
+  observe(node_id, AtomicValue(node->value.type, val));
+}
+
+void Graph::observe(uint node_id, Eigen::MatrixXb& val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
   observe(node_id, AtomicValue(node->value.type, val));
 }
