@@ -161,6 +161,9 @@ TEST(testgraph, clone_graph) {
   m3 << 0.2,
         0.8;
   g.add_constant_col_simplex_matrix(m3);
+  Eigen::MatrixXb m4(1, 2);
+  m4 << true, false;
+  g.add_constant_matrix(m4);
   // distributions
   uint d_bernoulli = g.add_distribution(
     graph::DistributionType::BERNOULLI,

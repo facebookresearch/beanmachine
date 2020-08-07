@@ -46,6 +46,8 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
       }
     } else if (src.type.variable_type == VariableType::BROADCAST_MATRIX) {
       switch(src.type.atomic_type){
+        case AtomicType::BOOLEAN:
+          return type_caster<Eigen::MatrixXb>::cast(src._bmatrix, policy, parent);
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
         case AtomicType::PROBABILITY:

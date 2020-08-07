@@ -20,6 +20,7 @@ class TestOperators(unittest.TestCase):
         c6 = g.add_constant(23)  # NATURAL
         c7 = g.add_constant(False)
         # add const matrices, operators on matrix to be added
+        g.add_constant_matrix(np.array([[True, False], [False, True]]))
         g.add_constant_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
         g.add_constant_pos_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
         g.add_constant_probability_matrix(np.array([0.1, 0.9]))

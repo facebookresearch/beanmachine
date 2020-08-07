@@ -36,6 +36,7 @@ PYBIND11_MODULE(graph, module) {
       .def(py::init<bool>())
       .def(py::init<double>())
       .def(py::init<graph::natural_t>())
+      .def(py::init<Eigen::MatrixXb&>())
       .def(py::init<Eigen::MatrixXd&>());
 
   py::enum_<OperatorType>(module, "OperatorType")
@@ -121,6 +122,11 @@ PYBIND11_MODULE(graph, module) {
           "add_constant_matrix",
           (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_matrix,
           "add a Node with a constant real-valued matrix",
+          py::arg("value"))
+      .def(
+          "add_constant_matrix",
+          (uint(Graph::*)(Eigen::MatrixXb&)) & Graph::add_constant_matrix,
+          "add a Node with a constant boolean-valued matrix",
           py::arg("value"))
       .def(
           "add_constant_pos_matrix",
