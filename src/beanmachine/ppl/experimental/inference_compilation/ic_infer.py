@@ -130,6 +130,7 @@ class ICInference(AbstractMHInference):
     _MB_EMBEDDING_DIM: int = 8  # embedding dimension for Markov blankets
     _MB_NUM_LAYERS = 3  # num LSTM layers for Markov blankets
     _NODE_PROPOSAL_NUM_LAYERS = 1  # num layers for node proposal parameter nets
+    _ENTROPY_REGULARIZATION_COEFFICIENT: float = 0.0
 
     def find_best_single_site_proposer(
         self, node: RVIdentifier
@@ -156,6 +157,7 @@ class ICInference(AbstractMHInference):
         mb_embedding_dim: Optional[int] = None,
         mb_num_layers: Optional[int] = None,
         node_proposal_num_layers: Optional[int] = None,
+        entropy_regularization_coefficient: Optional[float] = None,
     ) -> "ICInference":
         """
         Trains neural network proposers for all unobserved variables encountered
@@ -168,7 +170,14 @@ class ICInference(AbstractMHInference):
         :param batch_size: number of worlds used in each optimization step
         :param optimizer_func: callable returning a torch.optim to optimize
         model parameters with
-        :param node_id_embedding_dim: RVIdentifier embedding dimension
+        :param node_id_embedding_dim: RVIdentifier ID embedding dimension
+        :param node_embedding_dim: RVIdentifier embedding dimension
+        :param obs_embedding_dim: observations embedding dimension
+        :param mb_embedding_dim: Markov blanket embedding dimension
+        :param mb_num_layers: number of layers in Markov blanket embedding RNN
+        :param node_proposal_num_layers: number of layers in proposal parameter FFW NN
+        :param entropy_regularization_coefficient: coefficient for entropy regularization
+        term in training loss function
         """
         if len(observation_keys) == 0:
             raise Exception("Expected at least one observation RVIdentifier")
@@ -187,6 +196,10 @@ class ICInference(AbstractMHInference):
             self._MB_NUM_LAYERS = mb_num_layers
         if node_proposal_num_layers:
             self._NODE_PROPOSAL_NUM_LAYERS = node_proposal_num_layers
+        if entropy_regularization_coefficient:
+            self._ENTROPY_REGULARIZATION_COEFFICIENT = (
+                entropy_regularization_coefficient
+            )
 
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
         AbstractInference.set_seed_for_chain(random_seed, 0)
@@ -296,12 +309,18 @@ class ICInference(AbstractMHInference):
         for node, node_var in world.get_all_world_vars().items():
             if node in world.observations_:
                 continue
-            loss -= (
+            proposal_distribution = (
                 proposers(node)
                 .get_proposal_distribution(node, node_var, world, {})[0]
-                .proposal_distribution.log_prob(node_var.value)
-                .sum()
+                .proposal_distribution
             )
+            loss -= proposal_distribution.log_prob(node_var.value).sum()
+            if self._ENTROPY_REGULARIZATION_COEFFICIENT > 0.0:
+                loss += (
+                    self._ENTROPY_REGULARIZATION_COEFFICIENT
+                    * proposal_distribution.entropy()
+                )
+
         return loss
 
     def _build_observation_embedding_network(

@@ -155,7 +155,7 @@ class State:
             * true_one_hot,
         )
         ssum = score.sum()
-        grad, = torch.autograd.grad(
+        (grad,) = torch.autograd.grad(
             ssum, confusion, retain_graph=True, create_graph=True
         )
         # simulate the cost of computing a vector Hessian
@@ -169,7 +169,7 @@ class State:
     def propose_prevalence(self, prior, prevalence, labels):
         prevalence = prevalence.clone().requires_grad_(True)
         score = prior.log_prob(prevalence) + prevalence[labels].log().sum()
-        grad, = torch.autograd.grad(
+        (grad,) = torch.autograd.grad(
             score, prevalence, retain_graph=True, create_graph=True
         )
         # simulate the cost of computing a vector Hessian
