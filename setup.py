@@ -140,7 +140,7 @@ setup(
         "black>=19.3b0",
     ],
     packages=find_packages("src/"),
-    package_dir={"beanmachine": "src/beanmachine"},
+    package_dir={"": "src"},
     ext_modules=[
         CppExtension(
             name="beanmachine.graph",
