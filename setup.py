@@ -137,7 +137,6 @@ setup(
         "statsmodels>=0.8.0",
         "tqdm>=4.40.2",
         "astor>=0.7.1",
-        "black>=19.3b0",
     ],
     packages=find_packages("src/"),
     package_dir={"beanmachine": "src/beanmachine"},
