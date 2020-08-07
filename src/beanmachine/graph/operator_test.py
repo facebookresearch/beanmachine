@@ -23,14 +23,11 @@ class TestOperators(unittest.TestCase):
         g.add_constant_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
         g.add_constant_pos_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
         g.add_constant_probability_matrix(np.array([0.1, 0.9]))
-        g.add_constant_row_simplex_matrix(np.array([[0.1, 0.9], [1.0, 0.0]]))
+        g.add_constant_col_simplex_matrix(np.array([[0.1, 1.0], [0.9, 0.0]]))
         with self.assertRaises(ValueError):
             g.add_constant_pos_matrix(np.array([[0.1, 0.0], [2.0, -1.0]]))
         with self.assertRaises(ValueError):
-            g.add_constant_row_simplex_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
-        with self.assertRaises(ValueError):
-            # np.array([0.1, 0.9]) is by default a colum vector
-            g.add_constant_row_simplex_matrix(np.array([0.1, 0.9]))
+            g.add_constant_col_simplex_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
         with self.assertRaises(ValueError):
             g.add_constant_probability_matrix(np.array([1.1, 0.9]))
         # test TO_REAL

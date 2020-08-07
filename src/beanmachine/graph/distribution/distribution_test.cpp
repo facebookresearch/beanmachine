@@ -83,7 +83,7 @@ TEST(testdistrib, tabular) {
             0.1, 0.9;
   graph::ConstNode cnode1(graph::AtomicValue(
       graph::ValueType(
-          graph::VariableType::ROW_SIMPLEX_MATRIX,
+          graph::VariableType::COL_SIMPLEX_MATRIX,
           graph::AtomicType::PROBABILITY,
           matrix.rows(),
           matrix.cols()),

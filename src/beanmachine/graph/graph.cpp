@@ -42,8 +42,8 @@ std::string ValueType::to_string() const {
     case VariableType::BROADCAST_MATRIX:
       vtype = "matrix<";
       break;
-    case VariableType::ROW_SIMPLEX_MATRIX:
-      vtype = "row_simplex_matrix<";
+    case VariableType::COL_SIMPLEX_MATRIX:
+      vtype = "col_simplex_matrix<";
       break;
   }
   return vtype + atype + ">";
@@ -107,8 +107,8 @@ AtomicValue::AtomicValue(ValueType type) : type(type) {
         throw std::invalid_argument(
             "Unsupported types for BROADCAST_MATRIX.");
     }
-  } else if (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
-    _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) / type.cols;
+  } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
+    _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) / type.rows;
   } else if (type.variable_type == VariableType::SCALAR) {
     this->init_scalar(type.atomic_type);
   } else {
@@ -153,7 +153,7 @@ std::string AtomicValue::to_string() const {
       default:
         os << "BAD value";
     }
-  } else if (type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
+  } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
     switch(type.atomic_type){
       case AtomicType::UNKNOWN:
         os << type_str;
@@ -376,20 +376,20 @@ uint Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
   return add_constant(AtomicValue(AtomicType::POS_REAL, value));
 }
 
-uint Graph::add_constant_row_simplex_matrix(Eigen::MatrixXd& value) {
+uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
     throw std::invalid_argument(
-        "All elements in row_simplex_matrix must be >=0");
+        "All elements in col_simplex_matrix must be >=0");
   }
-  bool invalid_rowsum =
-      ((value.rowwise().sum().array() - 1.0).abs() > PRECISION * value.cols())
+  bool invalid_colsum =
+      ((value.colwise().sum().array() - 1.0).abs() > PRECISION * value.rows())
           .any();
-  if (invalid_rowsum) {
-    throw std::invalid_argument("All rows in row_simplex_matrix must sum to 1");
+  if (invalid_colsum) {
+    throw std::invalid_argument("All cols in col_simplex_matrix must sum to 1");
   }
   return add_constant(AtomicValue(
       ValueType(
-          VariableType::ROW_SIMPLEX_MATRIX,
+          VariableType::COL_SIMPLEX_MATRIX,
           AtomicType::PROBABILITY,
           value.rows(),
           value.cols()),

@@ -53,7 +53,7 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
         default:
           throw std::runtime_error("unexpected type for AtomicValue");
       }
-    } else if (src.type.variable_type == VariableType::ROW_SIMPLEX_MATRIX) {
+    } else if (src.type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
       return type_caster<Eigen::MatrixXd>::cast(src._matrix, policy, parent);
     } else {
       throw std::runtime_error("unexpected type for AtomicValue");

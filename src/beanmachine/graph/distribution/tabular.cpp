@@ -19,22 +19,22 @@ Tabular::Tabular(
   // extract the conditional probability vector from the first parent
   if (in_nodes.size() < 1 or
       in_nodes[0]->node_type != graph::NodeType::CONSTANT or
-      in_nodes[0]->value.type.variable_type != graph::VariableType::ROW_SIMPLEX_MATRIX) {
+      in_nodes[0]->value.type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
     throw std::invalid_argument(
-        "Tabular distribution's first arg must be ROW_SIMPLEX_MATRIX");
+        "Tabular distribution's first arg must be COL_SIMPLEX_MATRIX");
   }
   const Eigen::MatrixXd& matrix = in_nodes[0]->value._matrix;
-  // the matrix must have num_column = 2, since we only support BOOLEAN sample_type
-  if (matrix.cols() != 2) {
+  // the matrix must have num rows = 2, since we only support BOOLEAN sample_type
+  if (matrix.rows() != 2) {
     throw std::invalid_argument(
-        "Tabular distribution's first arg must have two columns.");
+        "Tabular distribution's first arg must have two rows.");
   }
-  // the n_rows should be equal to 2^{num_parents}, since all parents are boolean
-  if (matrix.rows() != std::pow(2.0, (float)(in_nodes.size() - 1))) {
+  // the n_cols should be equal to 2^{num_parents}, since all parents are boolean
+  if (matrix.cols() != std::pow(2.0, (float)(in_nodes.size() - 1))) {
     throw std::invalid_argument(
         "Tabular distribution's first arg expected " +
         std::to_string((uint)std::pow(2.0, (float)(in_nodes.size() - 1))) + " dims got " +
-        std::to_string(matrix.rows()));
+        std::to_string(matrix.cols()));
   }
   // go through each of the parents other than the matrix and verify its type
   for (uint paridx = 1; paridx < in_nodes.size(); paridx++) {
@@ -47,8 +47,8 @@ Tabular::Tabular(
 }
 
 double Tabular::get_probability() const {
-  uint col_id = 1;
-  uint row_id = 0;
+  uint col_id = 0;
+  uint row_id = 1;
   // map parents value to an index, starting from the last parent
   for (uint i = in_nodes.size() - 1, j = 0; i > 0; i--, j++) {
     const auto& parenti = in_nodes[i]->value;
@@ -58,12 +58,12 @@ double Tabular::get_probability() const {
           " expects boolean parents");
     }
     if (parenti._bool) {
-      row_id += (uint)std::pow(2.0, (float)j);
+      col_id += (uint)std::pow(2.0, (float)j);
     }
   }
   assert(
       in_nodes[0]->value.type.variable_type ==
-      graph::VariableType::ROW_SIMPLEX_MATRIX);
+      graph::VariableType::COL_SIMPLEX_MATRIX);
   const Eigen::MatrixXd& matrix = in_nodes[0]->value._matrix;
   assert(col_id < matrix.cols());
   assert(row_id < matrix.rows());
