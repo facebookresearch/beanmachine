@@ -120,6 +120,7 @@ module.exports = {
     },
   },
   plugins: ['docusaurus-plugin-internaldocs-fb'],
+  stylesheets: ['https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css'],
   presets: [
     [
       '@docusaurus/preset-classic',
