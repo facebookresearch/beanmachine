@@ -23,19 +23,17 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     RealNode,
     SampleNode,
     StudentTNode,
-    TensorNode,
     ToPositiveRealNode,
     ToRealNode,
-    ToTensorNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
+    Boolean,
     Natural,
     PositiveReal,
     Probability,
     Real,
     upper_bound,
 )
-from torch import Tensor, tensor
 
 
 class ASTToolsTest(unittest.TestCase):
@@ -57,23 +55,20 @@ class ASTToolsTest(unittest.TestCase):
         pos = PositiveRealNode(1.5)
         real = RealNode(-1.5)
         nat = NaturalNode(2)
-        t = TensorNode(tensor([1.0, 1.0]))
 
-        self.assertEqual(b.inf_type, bool)
+        self.assertEqual(b.inf_type, Boolean)
         self.assertEqual(prob.inf_type, Probability)
         self.assertEqual(pos.inf_type, PositiveReal)
         self.assertEqual(real.inf_type, Real)
         self.assertEqual(nat.inf_type, Natural)
-        self.assertEqual(t.inf_type, Tensor)
 
         # Constant infimum type depends on the value,
         # not the type of the container.
 
-        self.assertEqual(ProbabilityNode(1.0).inf_type, bool)
-        self.assertEqual(NaturalNode(1).inf_type, bool)
+        self.assertEqual(ProbabilityNode(1.0).inf_type, Boolean)
+        self.assertEqual(NaturalNode(1).inf_type, Boolean)
         self.assertEqual(PositiveRealNode(2.0).inf_type, Natural)
         self.assertEqual(RealNode(2.5).inf_type, PositiveReal)
-        self.assertEqual(TensorNode(tensor(1.5)).inf_type, PositiveReal)
 
         # Distributions
 
@@ -87,7 +82,7 @@ class ASTToolsTest(unittest.TestCase):
         norm = SampleNode(NormalNode(real, pos))
         stut = SampleNode(StudentTNode(pos, pos, pos))
 
-        self.assertEqual(bern.inf_type, bool)
+        self.assertEqual(bern.inf_type, Boolean)
         self.assertEqual(beta.inf_type, Probability)
         self.assertEqual(bino.inf_type, Natural)
         self.assertEqual(flat.inf_type, Probability)
@@ -115,271 +110,198 @@ class ASTToolsTest(unittest.TestCase):
         # that chooses between the other operand and a zero of that type, so they
         # are all possible.
 
-        # bool x bool -> bool
-        # bool x Probability -> Probability
-        # bool x Natural -> Natural
-        # bool x PositiveReal -> PositiveReal
-        # bool x Real -> Real
-        # bool x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(bern, bern).inf_type, bool)
+        # Boolean x Boolean -> Boolean
+        # Boolean x Probability -> Probability
+        # Boolean x Natural -> Natural
+        # Boolean x PositiveReal -> PositiveReal
+        # Boolean x Real -> Real
+        self.assertEqual(MultiplicationNode(bern, bern).inf_type, Boolean)
         self.assertEqual(MultiplicationNode(bern, beta).inf_type, Probability)
         self.assertEqual(MultiplicationNode(bern, bino).inf_type, Natural)
         self.assertEqual(MultiplicationNode(bern, half).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bern, norm).inf_type, Real)
-        self.assertEqual(MultiplicationNode(bern, t).inf_type, Tensor)
 
-        # Probability x bool -> Probability
+        # Probability x Boolean -> Probability
         # Probability x Probability -> Probability
         # Probability x Natural -> PositiveReal
         # Probability x PositiveReal -> PositiveReal
         # Probability x Real -> Real
-        # Probability x Tensor -> Tensor
         self.assertEqual(MultiplicationNode(beta, bern).inf_type, Probability)
         self.assertEqual(MultiplicationNode(beta, beta).inf_type, Probability)
         self.assertEqual(MultiplicationNode(beta, bino).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(beta, half).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(beta, norm).inf_type, Real)
-        self.assertEqual(MultiplicationNode(beta, t).inf_type, Tensor)
 
-        # Natural x bool -> Natural
+        # Natural x Boolean -> Natural
         # Natural x Probability -> PositiveReal
         # Natural x Natural -> PositiveReal
         # Natural x PositiveReal -> PositiveReal
         # Natural x Real -> Real
-        # Natural x Tensor -> Tensor
         self.assertEqual(MultiplicationNode(bino, bern).inf_type, Natural)
         self.assertEqual(MultiplicationNode(bino, beta).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, bino).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, half).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, norm).inf_type, Real)
-        self.assertEqual(MultiplicationNode(bino, t).inf_type, Tensor)
 
-        # PositiveReal x bool -> PositiveReal
+        # PositiveReal x Boolean -> PositiveReal
         # PositiveReal x Probability -> PositiveReal
         # PositiveReal x Natural -> PositiveReal
         # PositiveReal x PositiveReal -> PositiveReal
         # PositiveReal x Real -> Real
-        # PositiveReal x Tensor -> Tensor
         self.assertEqual(MultiplicationNode(half, bern).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(half, beta).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(half, bino).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(half, half).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(half, norm).inf_type, Real)
-        self.assertEqual(MultiplicationNode(half, t).inf_type, Tensor)
 
-        # Real x bool -> Real
+        # Real x Boolean -> Real
         # Real x Probability -> Real
         # Real x Natural -> Real
         # Real x PositiveReal -> Real
         # Real x Real -> Real
-        # Real x Tensor -> Tensor
         self.assertEqual(MultiplicationNode(norm, bern).inf_type, Real)
         self.assertEqual(MultiplicationNode(norm, beta).inf_type, Real)
         self.assertEqual(MultiplicationNode(norm, bino).inf_type, Real)
         self.assertEqual(MultiplicationNode(norm, half).inf_type, Real)
         self.assertEqual(MultiplicationNode(norm, norm).inf_type, Real)
-        self.assertEqual(MultiplicationNode(norm, t).inf_type, Tensor)
-
-        # Tensor x bool -> Tensor
-        # Tensor x Probability -> Tensor
-        # Tensor x Natural -> Tensor
-        # Tensor x PositiveReal -> Tensor
-        # Tensor x Real -> Tensor
-        # Tensor x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(t, bern).inf_type, Tensor)
-        self.assertEqual(MultiplicationNode(t, beta).inf_type, Tensor)
-        self.assertEqual(MultiplicationNode(t, bino).inf_type, Tensor)
-        self.assertEqual(MultiplicationNode(t, half).inf_type, Tensor)
-        self.assertEqual(MultiplicationNode(t, norm).inf_type, Tensor)
-        self.assertEqual(MultiplicationNode(t, t).inf_type, Tensor)
 
         # Addition
 
-        # bool + bool -> PositiveReal
-        # bool + Probability -> PositiveReal
-        # bool + Natural -> PositiveReal
-        # bool + PositiveReal -> PositiveReal
-        # bool + Real -> Real
-        # bool + Tensor -> Tensor
+        # Boolean + Boolean -> PositiveReal
+        # Boolean + Probability -> PositiveReal
+        # Boolean + Natural -> PositiveReal
+        # Boolean + PositiveReal -> PositiveReal
+        # Boolean + Real -> Real
         self.assertEqual(AdditionNode(bern, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bern, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bern, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bern, half).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bern, norm).inf_type, Real)
-        self.assertEqual(AdditionNode(bern, t).inf_type, Tensor)
 
-        # Probability + bool -> PositiveReal
+        # Probability + Boolean -> PositiveReal
         # Probability + Probability -> PositiveReal
         # Probability + Natural -> PositiveReal
         # Probability + PositiveReal -> PositiveReal
         # Probability + Real -> Real
-        # Probability + Tensor -> Tensor
         self.assertEqual(AdditionNode(beta, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(beta, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(beta, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(beta, half).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(beta, norm).inf_type, Real)
-        self.assertEqual(AdditionNode(beta, t).inf_type, Tensor)
 
-        # Natural + bool -> PositiveReal
+        # Natural + Boolean -> PositiveReal
         # Natural + Probability -> PositiveReal
         # Natural + Natural -> PositiveReal
         # Natural + PositiveReal -> PositiveReal
         # Natural + Real -> Real
-        # Natural + Tensor -> Tensor
         self.assertEqual(AdditionNode(bino, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bino, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bino, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bino, half).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bino, norm).inf_type, Real)
-        self.assertEqual(AdditionNode(bino, t).inf_type, Tensor)
 
-        # PositiveReal + bool -> PositiveReal
+        # PositiveReal + Boolean -> PositiveReal
         # PositiveReal + Probability -> PositiveReal
         # PositiveReal + Natural -> PositiveReal
         # PositiveReal + PositiveReal -> PositiveReal
         # PositiveReal + Real -> Real
-        # PositiveReal + Tensor -> Tensor
         self.assertEqual(AdditionNode(half, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(half, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(half, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(half, half).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(half, norm).inf_type, Real)
-        self.assertEqual(AdditionNode(half, t).inf_type, Tensor)
 
-        # Real + bool -> Real
+        # Real + Boolean -> Real
         # Real + Probability -> Real
         # Real + Natural -> Real
         # Real + PositiveReal -> Real
         # Real + Real -> Real
-        # Real + Tensor -> Tensor
         self.assertEqual(AdditionNode(norm, bern).inf_type, Real)
         self.assertEqual(AdditionNode(norm, beta).inf_type, Real)
         self.assertEqual(AdditionNode(norm, bino).inf_type, Real)
         self.assertEqual(AdditionNode(norm, half).inf_type, Real)
         self.assertEqual(AdditionNode(norm, norm).inf_type, Real)
-        self.assertEqual(AdditionNode(norm, t).inf_type, Tensor)
-
-        # Tensor + bool -> Tensor
-        # Tensor + Probability -> Tensor
-        # Tensor + Natural -> Tensor
-        # Tensor + PositiveReal -> Tensor
-        # Tensor + Real -> Tensor
-        # Tensor + Tensor -> Tensor
-        self.assertEqual(AdditionNode(t, bern).inf_type, Tensor)
-        self.assertEqual(AdditionNode(t, beta).inf_type, Tensor)
-        self.assertEqual(AdditionNode(t, bino).inf_type, Tensor)
-        self.assertEqual(AdditionNode(t, half).inf_type, Tensor)
-        self.assertEqual(AdditionNode(t, norm).inf_type, Tensor)
-        self.assertEqual(AdditionNode(t, t).inf_type, Tensor)
 
         # IfThenElse
 
-        # bool : bool -> bool
-        # bool : Probability -> Probability
-        # bool : Natural -> Natural
-        # bool : PositiveReal -> PositiveReal
-        # bool : Real -> Real
-        # bool : Tensor -> Tensor
-        self.assertEqual(IfThenElseNode(bern, bern, bern).inf_type, bool)
+        # Boolean : Boolean -> Boolean
+        # Boolean : Probability -> Probability
+        # Boolean : Natural -> Natural
+        # Boolean : PositiveReal -> PositiveReal
+        # Boolean : Real -> Real
+        self.assertEqual(IfThenElseNode(bern, bern, bern).inf_type, Boolean)
         self.assertEqual(IfThenElseNode(bern, bern, beta).inf_type, Probability)
         self.assertEqual(IfThenElseNode(bern, bern, bino).inf_type, Natural)
         self.assertEqual(IfThenElseNode(bern, bern, half).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, bern, norm).inf_type, Real)
-        self.assertEqual(IfThenElseNode(bern, bern, t).inf_type, Tensor)
 
-        # Probability : bool -> Probability
+        # Probability : Boolean -> Probability
         # Probability : Probability -> Probability
         # Probability : Natural -> PositiveReal
         # Probability : PositiveReal -> PositiveReal
         # Probability : Real -> Real
-        # Probability : Tensor -> Tensor
         self.assertEqual(IfThenElseNode(bern, beta, bern).inf_type, Probability)
         self.assertEqual(IfThenElseNode(bern, beta, beta).inf_type, Probability)
         self.assertEqual(IfThenElseNode(bern, beta, bino).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, beta, half).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, beta, norm).inf_type, Real)
-        self.assertEqual(IfThenElseNode(bern, beta, t).inf_type, Tensor)
 
-        # Natural : bool -> Natural
+        # Natural : Boolean -> Natural
         # Natural : Probability -> PositiveReal
         # Natural : Natural -> Natural
         # Natural : PositiveReal -> PositiveReal
         # Natural : Real -> Real
-        # Natural : Tensor -> Tensor
         self.assertEqual(IfThenElseNode(bern, bino, bern).inf_type, Natural)
         self.assertEqual(IfThenElseNode(bern, bino, beta).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, bino, bino).inf_type, Natural)
         self.assertEqual(IfThenElseNode(bern, bino, half).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, bino, norm).inf_type, Real)
-        self.assertEqual(IfThenElseNode(bern, bino, t).inf_type, Tensor)
 
-        # PositiveReal : bool -> PositiveReal
+        # PositiveReal : Boolean -> PositiveReal
         # PositiveReal : Probability -> PositiveReal
         # PositiveReal : Natural -> PositiveReal
         # PositiveReal : PositiveReal -> PositiveReal
         # PositiveReal : Real -> Real
-        # PositiveReal : Tensor -> Tensor
         self.assertEqual(IfThenElseNode(bern, half, bern).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, half, beta).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, half, bino).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, half, half).inf_type, PositiveReal)
         self.assertEqual(IfThenElseNode(bern, half, norm).inf_type, Real)
-        self.assertEqual(IfThenElseNode(bern, half, t).inf_type, Tensor)
 
-        # Real : bool -> Real
+        # Real : Boolean -> Real
         # Real : Probability -> Real
         # Real : Natural -> Real
         # Real : PositiveReal -> Real
         # Real : Real -> Real
-        # Real : Tensor -> Tensor
         self.assertEqual(IfThenElseNode(bern, norm, bern).inf_type, Real)
         self.assertEqual(IfThenElseNode(bern, norm, beta).inf_type, Real)
         self.assertEqual(IfThenElseNode(bern, norm, bino).inf_type, Real)
         self.assertEqual(IfThenElseNode(bern, norm, half).inf_type, Real)
         self.assertEqual(IfThenElseNode(bern, norm, norm).inf_type, Real)
-        self.assertEqual(IfThenElseNode(bern, norm, t).inf_type, Tensor)
-
-        # Tensor : bool -> Tensor
-        # Tensor : Probability -> Tensor
-        # Tensor : Natural -> Tensor
-        # Tensor : PositiveReal -> Tensor
-        # Tensor : Real -> Tensor
-        # Tensor : Tensor -> Tensor
-        self.assertEqual(IfThenElseNode(bern, t, bern).inf_type, Tensor)
-        self.assertEqual(IfThenElseNode(bern, t, beta).inf_type, Tensor)
-        self.assertEqual(IfThenElseNode(bern, t, bino).inf_type, Tensor)
-        self.assertEqual(IfThenElseNode(bern, t, half).inf_type, Tensor)
-        self.assertEqual(IfThenElseNode(bern, t, norm).inf_type, Tensor)
-        self.assertEqual(IfThenElseNode(bern, t, t).inf_type, Tensor)
 
         # Negate
-        # - bool -> Real
+        # - Boolean -> Real
         # - Probability -> Real
         # - Natural -> Real
         # - PositiveReal -> Real
         # - Real -> Real
-        # - Tensor -> Tensor
         self.assertEqual(NegateNode(bern).inf_type, Real)
         self.assertEqual(NegateNode(beta).inf_type, Real)
         self.assertEqual(NegateNode(bino).inf_type, Real)
         self.assertEqual(NegateNode(half).inf_type, Real)
         self.assertEqual(NegateNode(norm).inf_type, Real)
-        self.assertEqual(NegateNode(t).inf_type, Tensor)
 
         # Exp
-        # exp bool -> PositiveReal
+        # exp Boolean -> PositiveReal
         # exp Probability -> PositiveReal
         # exp Natural -> PositiveReal
         # exp PositiveReal -> PositiveReal
         # exp Real -> Real
-        # exp Tensor -> Tensor
         self.assertEqual(ExpNode(bern).inf_type, PositiveReal)
         self.assertEqual(ExpNode(beta).inf_type, PositiveReal)
         self.assertEqual(ExpNode(bino).inf_type, PositiveReal)
         self.assertEqual(ExpNode(half).inf_type, PositiveReal)
         self.assertEqual(ExpNode(norm).inf_type, Real)
-        self.assertEqual(ExpNode(t).inf_type, Tensor)
 
         # To Real
         self.assertEqual(ToRealNode(bern).inf_type, Real)
@@ -387,22 +309,12 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(ToRealNode(bino).inf_type, Real)
         self.assertEqual(ToRealNode(half).inf_type, Real)
         self.assertEqual(ToRealNode(norm).inf_type, Real)
-        # To Real is illegal on tensors
-
-        # To Tensor
-        self.assertEqual(ToTensorNode(bern).inf_type, Tensor)
-        self.assertEqual(ToTensorNode(beta).inf_type, Tensor)
-        self.assertEqual(ToTensorNode(bino).inf_type, Tensor)
-        self.assertEqual(ToTensorNode(half).inf_type, Tensor)
-        self.assertEqual(ToTensorNode(norm).inf_type, Tensor)
-        self.assertEqual(ToTensorNode(t).inf_type, Tensor)
 
         # To Positive Real
         self.assertEqual(ToPositiveRealNode(bern).inf_type, PositiveReal)
         self.assertEqual(ToPositiveRealNode(beta).inf_type, PositiveReal)
         self.assertEqual(ToPositiveRealNode(bino).inf_type, PositiveReal)
         self.assertEqual(ToPositiveRealNode(half).inf_type, PositiveReal)
-        # To Positive Real is illegal on reals and tensors
 
     def test_requirements(self) -> None:
         """test_requirements"""
@@ -426,14 +338,12 @@ class ASTToolsTest(unittest.TestCase):
         pos = PositiveRealNode(1.5)
         real = RealNode(-1.5)
         nat = NaturalNode(2)
-        t = TensorNode(tensor([1.0, 1.0]))
 
         self.assertEqual(b.requirements, [])
         self.assertEqual(prob.requirements, [])
         self.assertEqual(pos.requirements, [])
         self.assertEqual(real.requirements, [])
         self.assertEqual(nat.requirements, [])
-        self.assertEqual(t.requirements, [])
 
         # Distributions
 
@@ -480,29 +390,30 @@ class ASTToolsTest(unittest.TestCase):
         # so in that case we put a requirement on both operands that they be
         # positive reals.
 
-        # bool x bool -> bool
-        # bool x Probability -> Probability
-        # bool x Natural -> Natural
-        # bool x PositiveReal -> PositiveReal
-        # bool x Real -> Real
-        # bool x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(bern, bern).requirements, [bool, bool])
+        # Boolean x Boolean -> Boolean
+        # Boolean x Probability -> Probability
+        # Boolean x Natural -> Natural
+        # Boolean x PositiveReal -> PositiveReal
+        # Boolean x Real -> Real
         self.assertEqual(
-            MultiplicationNode(bern, beta).requirements, [bool, Probability]
+            MultiplicationNode(bern, bern).requirements, [Boolean, Boolean]
         )
-        self.assertEqual(MultiplicationNode(bern, bino).requirements, [bool, Natural])
         self.assertEqual(
-            MultiplicationNode(bern, half).requirements, [bool, PositiveReal]
+            MultiplicationNode(bern, beta).requirements, [Boolean, Probability]
         )
-        self.assertEqual(MultiplicationNode(bern, norm).requirements, [bool, Real])
-        self.assertEqual(MultiplicationNode(bern, t).requirements, [bool, Tensor])
+        self.assertEqual(
+            MultiplicationNode(bern, bino).requirements, [Boolean, Natural]
+        )
+        self.assertEqual(
+            MultiplicationNode(bern, half).requirements, [Boolean, PositiveReal]
+        )
+        self.assertEqual(MultiplicationNode(bern, norm).requirements, [Boolean, Real])
 
-        # Probability x bool -> Probability
+        # Probability x Boolean -> Probability
         # Probability x Probability -> Probability
         # Probability x Natural -> PositiveReal
         # Probability x PositiveReal -> PositiveReal
         # Probability x Real -> Real
-        # Probability x Tensor -> Tensor
         self.assertEqual(
             MultiplicationNode(beta, bern).requirements, [Probability, bool]
         )
@@ -516,15 +427,15 @@ class ASTToolsTest(unittest.TestCase):
             MultiplicationNode(beta, half).requirements, [PositiveReal, PositiveReal]
         )
         self.assertEqual(MultiplicationNode(beta, norm).requirements, [Real, Real])
-        self.assertEqual(MultiplicationNode(beta, t).requirements, [Tensor, Tensor])
 
-        # Natural x bool -> Natural
+        # Natural x Boolean -> Natural
         # Natural x Probability -> PositiveReal
         # Natural x Natural -> PositiveReal
         # Natural x PositiveReal -> PositiveReal
         # Natural x Real -> Real
-        # Natural x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(bino, bern).requirements, [Natural, bool])
+        self.assertEqual(
+            MultiplicationNode(bino, bern).requirements, [Natural, Boolean]
+        )
         self.assertEqual(
             MultiplicationNode(bino, beta).requirements, [PositiveReal, PositiveReal]
         )
@@ -535,16 +446,14 @@ class ASTToolsTest(unittest.TestCase):
             MultiplicationNode(bino, half).requirements, [PositiveReal, PositiveReal]
         )
         self.assertEqual(MultiplicationNode(bino, norm).requirements, [Real, Real])
-        self.assertEqual(MultiplicationNode(bino, t).requirements, [Tensor, Tensor])
 
-        # PositiveReal x bool -> PositiveReal
+        # PositiveReal x Boolean -> PositiveReal
         # PositiveReal x Probability -> PositiveReal
         # PositiveReal x Natural -> PositiveReal
         # PositiveReal x PositiveReal -> PositiveReal
         # PositiveReal x Real -> Real
-        # PositiveReal x Tensor -> Tensor
         self.assertEqual(
-            MultiplicationNode(half, bern).requirements, [PositiveReal, bool]
+            MultiplicationNode(half, bern).requirements, [PositiveReal, Boolean]
         )
         self.assertEqual(
             MultiplicationNode(half, beta).requirements, [PositiveReal, PositiveReal]
@@ -556,42 +465,25 @@ class ASTToolsTest(unittest.TestCase):
             MultiplicationNode(half, half).requirements, [PositiveReal, PositiveReal]
         )
         self.assertEqual(MultiplicationNode(half, norm).requirements, [Real, Real])
-        self.assertEqual(MultiplicationNode(half, t).requirements, [Tensor, Tensor])
 
-        # Real x bool -> Real
+        # Real x Boolean -> Real
         # Real x Probability -> Real
         # Real x Natural -> Real
         # Real x PositiveReal -> Real
         # Real x Real -> Real
-        # Real x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(norm, bern).requirements, [Real, bool])
+        self.assertEqual(MultiplicationNode(norm, bern).requirements, [Real, Boolean])
         self.assertEqual(MultiplicationNode(norm, beta).requirements, [Real, Real])
         self.assertEqual(MultiplicationNode(norm, bino).requirements, [Real, Real])
         self.assertEqual(MultiplicationNode(norm, half).requirements, [Real, Real])
         self.assertEqual(MultiplicationNode(norm, norm).requirements, [Real, Real])
-        self.assertEqual(MultiplicationNode(norm, t).requirements, [Tensor, Tensor])
-
-        # Tensor x bool -> Tensor
-        # Tensor x Probability -> Tensor
-        # Tensor x Natural -> Tensor
-        # Tensor x PositiveReal -> Tensor
-        # Tensor x Real -> Tensor
-        # Tensor x Tensor -> Tensor
-        self.assertEqual(MultiplicationNode(t, bern).requirements, [Tensor, bool])
-        self.assertEqual(MultiplicationNode(t, beta).requirements, [Tensor, Tensor])
-        self.assertEqual(MultiplicationNode(t, bino).requirements, [Tensor, Tensor])
-        self.assertEqual(MultiplicationNode(t, half).requirements, [Tensor, Tensor])
-        self.assertEqual(MultiplicationNode(t, norm).requirements, [Tensor, Tensor])
-        self.assertEqual(MultiplicationNode(t, t).requirements, [Tensor, Tensor])
 
         # Addition
 
-        # bool + bool -> PositiveReal
-        # bool + Probability -> PositiveReal
-        # bool + Natural -> PositiveReal
-        # bool + PositiveReal -> PositiveReal
-        # bool + Real -> Real
-        # bool + Tensor -> Tensor
+        # Boolean + Boolean -> PositiveReal
+        # Boolean + Probability -> PositiveReal
+        # Boolean + Natural -> PositiveReal
+        # Boolean + PositiveReal -> PositiveReal
+        # Boolean + Real -> Real
         self.assertEqual(
             AdditionNode(bern, bern).requirements, [PositiveReal, PositiveReal]
         )
@@ -605,14 +497,12 @@ class ASTToolsTest(unittest.TestCase):
             AdditionNode(bern, half).requirements, [PositiveReal, PositiveReal]
         )
         self.assertEqual(AdditionNode(bern, norm).requirements, [Real, Real])
-        self.assertEqual(AdditionNode(bern, t).requirements, [Tensor, Tensor])
 
-        # Probability + bool -> PositiveReal
+        # Probability + Boolean -> PositiveReal
         # Probability + Probability -> PositiveReal
         # Probability + Natural -> PositiveReal
         # Probability + PositiveReal -> PositiveReal
         # Probability + Real -> Real
-        # Probability + Tensor -> Tensor
         self.assertEqual(
             AdditionNode(beta, bern).requirements, [PositiveReal, PositiveReal]
         )
@@ -626,14 +516,12 @@ class ASTToolsTest(unittest.TestCase):
             AdditionNode(beta, half).requirements, [PositiveReal, PositiveReal]
         )
         self.assertEqual(AdditionNode(beta, norm).requirements, [Real, Real])
-        self.assertEqual(AdditionNode(beta, t).requirements, [Tensor, Tensor])
 
-        # Natural + bool -> PositiveReal
+        # Natural + Boolean -> PositiveReal
         # Natural + Probability -> PositiveReal
         # Natural + Natural -> PositiveReal
         # Natural + PositiveReal -> PositiveReal
         # Natural + Real -> Real
-        # Natural + Tensor -> Tensor
         self.assertEqual(
             AdditionNode(bino, bern).requirements, [PositiveReal, PositiveReal]
         )
@@ -647,14 +535,12 @@ class ASTToolsTest(unittest.TestCase):
             AdditionNode(bino, half).requirements, [PositiveReal, PositiveReal]
         )
         self.assertEqual(AdditionNode(bino, norm).requirements, [Real, Real])
-        self.assertEqual(AdditionNode(bino, t).requirements, [Tensor, Tensor])
 
-        # PositiveReal + bool -> PositiveReal
+        # PositiveReal + Boolean -> PositiveReal
         # PositiveReal + Probability -> PositiveReal
         # PositiveReal + Natural -> PositiveReal
         # PositiveReal + PositiveReal -> PositiveReal
         # PositiveReal + Real -> Real
-        # PositiveReal + Tensor -> Tensor
         self.assertEqual(
             AdditionNode(half, bern).requirements, [PositiveReal, PositiveReal]
         )
@@ -668,225 +554,160 @@ class ASTToolsTest(unittest.TestCase):
             AdditionNode(half, half).requirements, [PositiveReal, PositiveReal]
         )
         self.assertEqual(AdditionNode(half, norm).requirements, [Real, Real])
-        self.assertEqual(AdditionNode(half, t).requirements, [Tensor, Tensor])
 
-        # Real + bool -> Real
+        # Real + Boolean -> Real
         # Real + Probability -> Real
         # Real + Natural -> Real
         # Real + PositiveReal -> Real
         # Real + Real -> Real
-        # Real + Tensor -> Tensor
         self.assertEqual(AdditionNode(norm, bern).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, beta).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, bino).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, half).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, norm).requirements, [Real, Real])
-        self.assertEqual(AdditionNode(norm, t).requirements, [Tensor, Tensor])
-
-        # Tensor + bool -> Tensor
-        # Tensor + Probability -> Tensor
-        # Tensor + Natural -> Tensor
-        # Tensor + PositiveReal -> Tensor
-        # Tensor + Real -> Tensor
-        # Tensor + Tensor -> Tensor
-        self.assertEqual(AdditionNode(t, bern).requirements, [Tensor, Tensor])
-        self.assertEqual(AdditionNode(t, beta).requirements, [Tensor, Tensor])
-        self.assertEqual(AdditionNode(t, bino).requirements, [Tensor, Tensor])
-        self.assertEqual(AdditionNode(t, half).requirements, [Tensor, Tensor])
-        self.assertEqual(AdditionNode(t, norm).requirements, [Tensor, Tensor])
-        self.assertEqual(AdditionNode(t, t).requirements, [Tensor, Tensor])
 
         # IfThenElse
 
-        # bool : bool -> bool
-        # bool : Probability -> Probability
-        # bool : Natural -> Natural
-        # bool : PositiveReal -> PositiveReal
-        # bool : Real -> Real
-        # bool : Tensor -> Tensor
+        # Boolean : Boolean -> Boolean
+        # Boolean : Probability -> Probability
+        # Boolean : Natural -> Natural
+        # Boolean : PositiveReal -> PositiveReal
+        # Boolean : Real -> Real
         self.assertEqual(
-            IfThenElseNode(bern, bern, bern).requirements, [bool, bool, bool]
+            IfThenElseNode(bern, bern, bern).requirements, [Boolean, Boolean, Boolean]
         )
         self.assertEqual(
             IfThenElseNode(bern, bern, beta).requirements,
-            [bool, Probability, Probability],
+            [Boolean, Probability, Probability],
         )
         self.assertEqual(
-            IfThenElseNode(bern, bern, bino).requirements, [bool, Natural, Natural]
+            IfThenElseNode(bern, bern, bino).requirements, [Boolean, Natural, Natural]
         )
         self.assertEqual(
             IfThenElseNode(bern, bern, half).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
-            IfThenElseNode(bern, bern, norm).requirements, [bool, Real, Real]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, bern, t).requirements, [bool, Tensor, Tensor]
+            IfThenElseNode(bern, bern, norm).requirements, [Boolean, Real, Real]
         )
 
-        # Probability : bool -> Probability
+        # Probability : Boolean -> Probability
         # Probability : Probability -> Probability
         # Probability : Natural -> PositiveReal
         # Probability : PositiveReal -> PositiveReal
         # Probability : Real -> Real
-        # Probability : Tensor -> Tensor
         self.assertEqual(
             IfThenElseNode(bern, beta, bern).requirements,
-            [bool, Probability, Probability],
+            [Boolean, Probability, Probability],
         )
         self.assertEqual(
             IfThenElseNode(bern, beta, beta).requirements,
-            [bool, Probability, Probability],
+            [Boolean, Probability, Probability],
         )
         self.assertEqual(
             IfThenElseNode(bern, beta, bino).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
             IfThenElseNode(bern, beta, half).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
-            IfThenElseNode(bern, beta, norm).requirements, [bool, Real, Real]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, beta, t).requirements, [bool, Tensor, Tensor]
+            IfThenElseNode(bern, beta, norm).requirements, [Boolean, Real, Real]
         )
 
-        # Natural : bool -> Natural
+        # Natural : Boolean -> Natural
         # Natural : Probability -> PositiveReal
         # Natural : Natural -> Natural
         # Natural : PositiveReal -> PositiveReal
         # Natural : Real -> Real
-        # Natural : Tensor -> Tensor
         self.assertEqual(
-            IfThenElseNode(bern, bino, bern).requirements, [bool, Natural, Natural]
+            IfThenElseNode(bern, bino, bern).requirements, [Boolean, Natural, Natural]
         )
         self.assertEqual(
             IfThenElseNode(bern, bino, beta).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
-            IfThenElseNode(bern, bino, bino).requirements, [bool, Natural, Natural]
+            IfThenElseNode(bern, bino, bino).requirements, [Boolean, Natural, Natural]
         )
         self.assertEqual(
             IfThenElseNode(bern, bino, half).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
-            IfThenElseNode(bern, bino, norm).requirements, [bool, Real, Real]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, bino, t).requirements, [bool, Tensor, Tensor]
+            IfThenElseNode(bern, bino, norm).requirements, [Boolean, Real, Real]
         )
 
-        # PositiveReal : bool -> PositiveReal
+        # PositiveReal : Boolean -> PositiveReal
         # PositiveReal : Probability -> PositiveReal
         # PositiveReal : Natural -> PositiveReal
         # PositiveReal : PositiveReal -> PositiveReal
         # PositiveReal : Real -> Real
-        # PositiveReal : Tensor -> Tensor
         self.assertEqual(
             IfThenElseNode(bern, half, bern).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
             IfThenElseNode(bern, half, beta).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
             IfThenElseNode(bern, half, bino).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
             IfThenElseNode(bern, half, half).requirements,
-            [bool, PositiveReal, PositiveReal],
+            [Boolean, PositiveReal, PositiveReal],
         )
         self.assertEqual(
-            IfThenElseNode(bern, half, norm).requirements, [bool, Real, Real]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, half, t).requirements, [bool, Tensor, Tensor]
+            IfThenElseNode(bern, half, norm).requirements, [Boolean, Real, Real]
         )
 
-        # Real : bool -> Real
+        # Real : Boolean -> Real
         # Real : Probability -> Real
         # Real : Natural -> Real
         # Real : PositiveReal -> Real
         # Real : Real -> Real
-        # Real : Tensor -> Tensor
         self.assertEqual(
-            IfThenElseNode(bern, norm, bern).requirements, [bool, Real, Real]
+            IfThenElseNode(bern, norm, bern).requirements, [Boolean, Real, Real]
         )
         self.assertEqual(
-            IfThenElseNode(bern, norm, beta).requirements, [bool, Real, Real]
+            IfThenElseNode(bern, norm, beta).requirements, [Boolean, Real, Real]
         )
         self.assertEqual(
-            IfThenElseNode(bern, norm, bino).requirements, [bool, Real, Real]
+            IfThenElseNode(bern, norm, bino).requirements, [Boolean, Real, Real]
         )
         self.assertEqual(
-            IfThenElseNode(bern, norm, half).requirements, [bool, Real, Real]
+            IfThenElseNode(bern, norm, half).requirements, [Boolean, Real, Real]
         )
         self.assertEqual(
-            IfThenElseNode(bern, norm, norm).requirements, [bool, Real, Real]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, norm, t).requirements, [bool, Tensor, Tensor]
-        )
-
-        # Tensor : bool -> Tensor
-        # Tensor : Probability -> Tensor
-        # Tensor : Natural -> Tensor
-        # Tensor : PositiveReal -> Tensor
-        # Tensor : Real -> Tensor
-        # Tensor : Tensor -> Tensor
-        self.assertEqual(
-            IfThenElseNode(bern, t, bern).requirements, [bool, Tensor, Tensor]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, t, beta).requirements, [bool, Tensor, Tensor]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, t, bino).requirements, [bool, Tensor, Tensor]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, t, half).requirements, [bool, Tensor, Tensor]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, t, norm).requirements, [bool, Tensor, Tensor]
-        )
-        self.assertEqual(
-            IfThenElseNode(bern, t, t).requirements, [bool, Tensor, Tensor]
+            IfThenElseNode(bern, norm, norm).requirements, [Boolean, Real, Real]
         )
 
         # Negate
-        # - bool -> Real
+        # - Boolean -> Real
         # - Probability -> Real
         # - Natural -> Real
         # - PositiveReal -> Real
         # - Real -> Real
-        # - Tensor -> Tensor
         self.assertEqual(NegateNode(bern).requirements, [Real])
         self.assertEqual(NegateNode(beta).requirements, [Real])
         self.assertEqual(NegateNode(bino).requirements, [Real])
         self.assertEqual(NegateNode(half).requirements, [Real])
         self.assertEqual(NegateNode(norm).requirements, [Real])
-        self.assertEqual(NegateNode(t).requirements, [Tensor])
 
         # Exp
-        # exp bool -> PositiveReal
+        # exp Boolean -> PositiveReal
         # exp Probability -> PositiveReal
         # exp Natural -> PositiveReal
         # exp PositiveReal -> PositiveReal
         # exp Real -> Real
-        # exp Tensor -> Tensor
         self.assertEqual(ExpNode(bern).requirements, [PositiveReal])
         self.assertEqual(ExpNode(beta).requirements, [PositiveReal])
         self.assertEqual(ExpNode(bino).requirements, [PositiveReal])
         self.assertEqual(ExpNode(half).requirements, [PositiveReal])
         self.assertEqual(ExpNode(norm).requirements, [Real])
-        self.assertEqual(ExpNode(t).requirements, [Tensor])
 
         # To Real
         self.assertEqual(ToRealNode(bern).requirements, [upper_bound(Real)])
@@ -894,15 +715,6 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(ToRealNode(bino).requirements, [upper_bound(Real)])
         self.assertEqual(ToRealNode(half).requirements, [upper_bound(Real)])
         self.assertEqual(ToRealNode(norm).requirements, [upper_bound(Real)])
-        # To Real is illegal on tensors
-
-        # To Tensor
-        self.assertEqual(ToTensorNode(bern).requirements, [upper_bound(Tensor)])
-        self.assertEqual(ToTensorNode(beta).requirements, [upper_bound(Tensor)])
-        self.assertEqual(ToTensorNode(bino).requirements, [upper_bound(Tensor)])
-        self.assertEqual(ToTensorNode(half).requirements, [upper_bound(Tensor)])
-        self.assertEqual(ToTensorNode(norm).requirements, [upper_bound(Tensor)])
-        self.assertEqual(ToTensorNode(t).requirements, [upper_bound(Tensor)])
 
         # To Positive Real
         self.assertEqual(
@@ -917,4 +729,3 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(
             ToPositiveRealNode(half).requirements, [upper_bound(PositiveReal)]
         )
-        # To Positive Real is illegal on reals and tensors
