@@ -56,6 +56,9 @@ class Malformed:
 
 Real = float
 
+BMGLatticeType = Union[type]
+# Union is necessary to work around aliasing bugs in Pyre.
+# Eventually this will be its own class.
 
 """
 When converting from an accumulated graph that uses Python types, we
@@ -205,7 +208,7 @@ _lookup = {
 }
 
 
-def _supremum(t: type, u: type) -> type:
+def _supremum(t: BMGLatticeType, u: BMGLatticeType) -> BMGLatticeType:
     """Takes two BMG types; returns the smallest type that is
 greater than or equal to both."""
     if (t, u) in _lookup:
@@ -214,7 +217,7 @@ greater than or equal to both."""
 
 
 # We can extend the two-argument supremum function to any number of arguments:
-def supremum(*ts: type) -> type:
+def supremum(*ts: BMGLatticeType) -> BMGLatticeType:
     """Takes any number of BMG types; returns the smallest type that is
 greater than or equal to all of them."""
     result = bool
@@ -223,7 +226,7 @@ greater than or equal to all of them."""
     return result
 
 
-def type_of_value(v: Any) -> type:
+def type_of_value(v: Any) -> BMGLatticeType:
     """This computes the smallest BMG type that a given value fits into."""
     if isinstance(v, Tensor):
         if v.numel() == 1:
@@ -270,13 +273,13 @@ def type_of_value(v: Any) -> type:
 
 
 class UpperBound:
-    bound: type
+    bound: BMGLatticeType
 
-    def __init__(self, bound: type) -> None:
+    def __init__(self, bound: BMGLatticeType) -> None:
         self.bound = bound
 
 
-Requirement = Union[type, UpperBound]
+Requirement = Union[BMGLatticeType, UpperBound]
 
 
 @memoize
@@ -286,7 +289,7 @@ def upper_bound(bound: Requirement) -> UpperBound:
     return UpperBound(bound)
 
 
-def meets_requirement(t: type, r: Requirement) -> bool:
+def meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
     # A malformed node meets no requirements
     if t == Malformed:
         return False
@@ -316,11 +319,11 @@ _short_type_names = {
 }
 
 
-def name_of_type(t: type) -> str:
+def name_of_type(t: BMGLatticeType) -> str:
     return _type_names[t]
 
 
-def short_name_of_type(t: type) -> str:
+def short_name_of_type(t: BMGLatticeType) -> str:
     return _short_type_names[t]
 
 
