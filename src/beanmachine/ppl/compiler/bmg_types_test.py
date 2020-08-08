@@ -3,6 +3,7 @@
 import unittest
 
 from beanmachine.ppl.compiler.bmg_types import (
+    Boolean,
     Natural,
     PositiveReal,
     Probability,
@@ -20,33 +21,32 @@ class BMGTypesTest(unittest.TestCase):
     def test_supremum(self) -> None:
         """test_supremum"""
 
-        self.assertEqual(bool, supremum())
+        self.assertEqual(Boolean, supremum())
         self.assertEqual(Probability, supremum(Probability))
         self.assertEqual(PositiveReal, supremum(Probability, Natural))
         self.assertEqual(Real, supremum(Natural, Probability, Real))
-        self.assertEqual(Tensor, supremum(Real, Tensor, Natural, bool))
+        self.assertEqual(Tensor, supremum(Real, Tensor, Natural, Boolean))
 
     def test_type_of_value(self) -> None:
         """test_type_of_value"""
 
-        self.assertEqual(bool, type_of_value(True))
-        self.assertEqual(bool, type_of_value(False))
-        self.assertEqual(bool, type_of_value(0))
-        self.assertEqual(bool, type_of_value(1))
-        self.assertEqual(bool, type_of_value(0.0))
-        self.assertEqual(bool, type_of_value(1.0))
-        self.assertEqual(bool, type_of_value(tensor(True)))
-        self.assertEqual(bool, type_of_value(tensor(False)))
-        self.assertEqual(bool, type_of_value(tensor(0)))
-        self.assertEqual(bool, type_of_value(tensor(1)))
-        self.assertEqual(bool, type_of_value(tensor(0.0)))
-        self.assertEqual(bool, type_of_value(tensor(1.0)))
-        self.assertEqual(bool, type_of_value(tensor([[True]])))
-        self.assertEqual(bool, type_of_value(tensor([[False]])))
-        self.assertEqual(bool, type_of_value(tensor([[0]])))
-        self.assertEqual(bool, type_of_value(tensor([[1]])))
-        self.assertEqual(bool, type_of_value(tensor([[0.0]])))
-        self.assertEqual(bool, type_of_value(tensor([[1.0]])))
+        self.assertEqual(Boolean, type_of_value(True))
+        self.assertEqual(Boolean, type_of_value(False))
+        self.assertEqual(Boolean, type_of_value(0))
+        self.assertEqual(Boolean, type_of_value(1))
+        self.assertEqual(Boolean, type_of_value(0.0))
+        self.assertEqual(Boolean, type_of_value(1.0))
+        self.assertEqual(Boolean, type_of_value(tensor(False)))
+        self.assertEqual(Boolean, type_of_value(tensor(0)))
+        self.assertEqual(Boolean, type_of_value(tensor(1)))
+        self.assertEqual(Boolean, type_of_value(tensor(0.0)))
+        self.assertEqual(Boolean, type_of_value(tensor(1.0)))
+        self.assertEqual(Boolean, type_of_value(tensor([[True]])))
+        self.assertEqual(Boolean, type_of_value(tensor([[False]])))
+        self.assertEqual(Boolean, type_of_value(tensor([[0]])))
+        self.assertEqual(Boolean, type_of_value(tensor([[1]])))
+        self.assertEqual(Boolean, type_of_value(tensor([[0.0]])))
+        self.assertEqual(Boolean, type_of_value(tensor([[1.0]])))
         self.assertEqual(Natural, type_of_value(2))
         self.assertEqual(Natural, type_of_value(2.0))
         self.assertEqual(Natural, type_of_value(tensor(2)))
@@ -66,9 +66,9 @@ class BMGTypesTest(unittest.TestCase):
 
     def test_meets_requirement(self) -> None:
         """test_meets_requirement"""
-        self.assertFalse(meets_requirement(Natural, bool))
+        self.assertFalse(meets_requirement(Natural, Boolean))
         self.assertTrue(meets_requirement(Natural, Natural))
-        self.assertTrue(meets_requirement(bool, upper_bound(Natural)))
+        self.assertTrue(meets_requirement(Boolean, upper_bound(Natural)))
         self.assertTrue(meets_requirement(Natural, upper_bound(Natural)))
         self.assertFalse(meets_requirement(PositiveReal, upper_bound(Natural)))
 
