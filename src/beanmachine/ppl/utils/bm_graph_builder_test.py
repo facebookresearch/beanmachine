@@ -46,8 +46,10 @@ class BMGraphBuilderTest(unittest.TestCase):
             return tensor_equality(x, y)
         return super().assertEqual(x, y)
 
-    def test_graph_builder_1(self) -> None:
+    def disabled_test_graph_builder_1(self) -> None:
         """Test 1"""
+        # TODO: This test is disabled since we no longer support
+        # TODO: to_tensor nodes in BMG.  Redo this test case.
 
         t = tensor([[10, 20], [40, 50]])
         bmg = BMGraphBuilder()
