@@ -25,6 +25,8 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     UniformNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
+    BMGLatticeType,
+    Boolean,
     Malformed,
     Natural,
     PositiveReal,
@@ -127,7 +129,11 @@ error is added to the error report."""
         return node
 
     def _convert_malformed_multiplication(
-        self, node: MultiplicationNode, requirement: type, consumer: BMGNode, edge: str
+        self,
+        node: MultiplicationNode,
+        requirement: BMGLatticeType,
+        consumer: BMGNode,
+        edge: str,
     ) -> BMGNode:
         # We are given a malformed multiplication node which can be converted
         # to a semantically equivalent node that meets the given requirement.
@@ -162,11 +168,11 @@ error is added to the error report."""
         # * Therefore, for this node to be malformed, at least one of its operands
         #   must be bool.
 
-        assert lgt == bool or rgt == bool
+        assert lgt == Boolean or rgt == Boolean
 
         # * In that case, we can convert it to an if-then-else.
 
-        if lgt == bool:
+        if lgt == Boolean:
             zero = self.bmg.add_constant_of_type(0.0, rgt)
             if_then_else = self.bmg.add_if_then_else(node.left, node.right, zero)
             assert if_then_else.graph_type == rgt
@@ -186,7 +192,11 @@ error is added to the error report."""
         return self.meet_requirement(if_then_else, requirement, consumer, edge)
 
     def _convert_node(
-        self, node: OperatorNode, requirement: type, consumer: BMGNode, edge: str
+        self,
+        node: OperatorNode,
+        requirement: BMGLatticeType,
+        consumer: BMGNode,
+        edge: str,
     ) -> BMGNode:
         # We have been given a node which does not meet a requirement,
         # but it can be converted to a node which does meet the requirement
@@ -222,7 +232,7 @@ error is added to the error report."""
         # inf type of the node. The only inf type that meets that
         # condition is bool, so verify that.
 
-        assert node.inf_type == bool
+        assert node.inf_type == Boolean
 
         # There is no "to natural" or "to probability" but since we have
         # a bool in hand, we can use an if-then-else as a conversion.
