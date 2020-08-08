@@ -104,6 +104,8 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     UniformNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
+    BMGLatticeType,
+    Boolean,
     Natural,
     PositiveReal,
     Probability,
@@ -358,10 +360,12 @@ creates a constant graph node for it, and adds it to the builder"""
             return self.add_tensor(value)
         raise TypeError("value must be a bool, real or tensor")
 
-    def add_constant_of_type(self, value: Any, node_type: type) -> ConstantNode:
+    def add_constant_of_type(
+        self, value: Any, node_type: BMGLatticeType
+    ) -> ConstantNode:
         """This takes any constant value of a supported type and creates a
 constant graph node of the stated type for it, and adds it to the builder"""
-        if node_type == bool:
+        if node_type == Boolean:
             return self.add_boolean(bool(value))
         if node_type == Probability:
             return self.add_probability(float(value))
