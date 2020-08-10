@@ -33,11 +33,13 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         proposer=None,
         transform_type: TransformType = TransformType.NONE,
         transforms: Optional[List] = None,
+        skip_single_inference_run: bool = False,
     ):
         super().__init__()
         self.world_.set_all_nodes_proposer(proposer)
         self.world_.set_all_nodes_transform(transform_type, transforms)
         self.blocks_ = []
+        self.skip_single_inference_run = skip_single_inference_run
 
     def initialize_world(self, initialize_from_prior: bool = False):
         """
@@ -339,6 +341,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                         continue
 
                     proposer = self.find_best_single_site_proposer(node)
+
                     LOGGER_PROPOSER.log(
                         LogLevel.DEBUG_PROPOSER.value,
                         "=" * 30
@@ -346,10 +349,19 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                         + "Proposer info for node: {n}\n".format(n=node)
                         + "- Type: {pt}\n".format(pt=str(type(proposer))),
                     )
-                    is_accepted, acceptance_probability = self.single_inference_run(
-                        node, proposer
-                    )
+                    if (
+                        not self.skip_single_inference_run
+                        or iteration >= num_adaptive_samples
+                    ):
+                        is_accepted, acceptance_probability = self.single_inference_run(
+                            node, proposer
+                        )
+
                     if iteration < num_adaptive_samples:
+                        if self.skip_single_inference_run:
+                            is_accepted = True
+                            acceptance_probability = tensor(1.0)
+
                         proposer.do_adaptation(
                             node,
                             self.world_,

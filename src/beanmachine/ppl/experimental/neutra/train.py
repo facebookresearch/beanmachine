@@ -87,7 +87,6 @@ class IAFMap(nn.Module):
         x = dist.Normal(torch.zeros(shape_), torch.ones(shape_)).sample(
             sample_shape=(self.num_sample,)
         )
-        x = x.squeeze()
         z_f, elbo, log_jacobian = self.model_(x)
         loss = -(torch.sum(elbo)) / self.num_sample
         optimizer.zero_grad()
