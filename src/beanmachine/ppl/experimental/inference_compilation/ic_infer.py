@@ -292,8 +292,11 @@ class ICInference(AbstractMHInference):
                 self.world_.set_observations(observations)
                 loss += self._compute_loss(self.world_, proposers)
 
-            loss.backward()
-            optimizer.step()
+            # only back-propagate if backward() is available to handle corner case
+            # where no `queries` are present in this compilation
+            if loss.requires_grad:
+                loss.backward()
+                optimizer.step()
 
             print_every = int(num_batches / 20)
             if (print_every == 0) or (i % print_every == 0):
@@ -495,6 +498,6 @@ class ICInference(AbstractMHInference):
         elif isinstance(support, dist.constraints._Boolean) and isinstance(
             distribution, dist.Bernoulli
         ):
-            return (1, lambda x: dist.Bernoulli(logits=x))
+            return (1, lambda x: dist.Bernoulli(logits=x.item()))
         else:
             raise NotImplementedError
