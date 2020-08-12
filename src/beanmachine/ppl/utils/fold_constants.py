@@ -647,7 +647,9 @@ _fold_all_constants: Rule = many(
 
 _fold_unary_minus = _bottom_up(
     once(
-        PatternRule(unarysub(operand=constant_literal), lambda u: ast.Num(-u.operand.n))
+        PatternRule(
+            unarysub(operand=constant_literal), lambda u: ast.Num(-(u.operand.n))
+        )
     )
 )
 
