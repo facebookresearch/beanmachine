@@ -67,7 +67,8 @@ PYBIND11_MODULE(graph, module) {
       .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
       .value("STUDENT_T", DistributionType::STUDENT_T)
       .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
-      .value("GAMMA", DistributionType::GAMMA);
+      .value("GAMMA", DistributionType::GAMMA)
+      .value("BIMIXTURE", DistributionType::BIMIXTURE);
 
   py::enum_<FactorType>(module, "FactorType")
       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);

@@ -11,6 +11,7 @@
 #include "beanmachine/graph/distribution/student_t.h"
 #include "beanmachine/graph/distribution/bernoulli_logit.h"
 #include "beanmachine/graph/distribution/gamma.h"
+#include "beanmachine/graph/distribution/bimixture.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -19,13 +20,7 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     graph::DistributionType dist_type,
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes) {
-  // check parent nodes are of the correct type
-  for (graph::Node* parent : in_nodes) {
-    if (parent->node_type == graph::NodeType::DISTRIBUTION) {
-      throw std::invalid_argument("distribution parents can't be distribution");
-    }
-  }
-  // now simply call the appropriate distribution constructor
+  // call the appropriate distribution constructor
   if(sample_type.variable_type == graph::VariableType::SCALAR){
     auto atype = sample_type.atomic_type;
     switch(dist_type) {
@@ -61,6 +56,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
       case graph::DistributionType::GAMMA: {
         return std::make_unique<Gamma>(atype, in_nodes);
+      }
+      case graph::DistributionType::BIMIXTURE: {
+        return std::make_unique<Bimixture>(atype, in_nodes);
       }
       default: {
         throw std::invalid_argument(

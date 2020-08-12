@@ -96,12 +96,15 @@ AtomicValue::AtomicValue(AtomicType type) : type(type) {
 AtomicValue::AtomicValue(ValueType type) : type(type) {
   if (type.variable_type == VariableType::BROADCAST_MATRIX) {
     switch (type.atomic_type) {
+      case AtomicType::BOOLEAN:
+        _bmatrix = Eigen::MatrixXb::Constant(type.rows, type.cols, false);
+        break;
       case AtomicType::REAL:
         _matrix = Eigen::MatrixXd::Zero(type.rows, type.cols);
         break;
       case AtomicType::POS_REAL:
       case AtomicType::PROBABILITY:
-        _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) * PRECISION;
+        _matrix = Eigen::MatrixXd::Constant(type.rows, type.cols, PRECISION);
         break;
       default:
         throw std::invalid_argument(
