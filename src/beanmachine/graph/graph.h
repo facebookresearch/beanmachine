@@ -280,6 +280,7 @@ enum class DistributionType {
   STUDENT_T,
   BERNOULLI_LOGIT,
   GAMMA,
+  BIMIXTURE,
 };
 
 enum class FactorType {
