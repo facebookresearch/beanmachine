@@ -12,7 +12,7 @@ from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
 
 
-LOGGER_PROPOSER = logging.getLogger("beanmachine.debug.proposer")
+LOGGER_PROPOSER = logging.getLogger("beanmachine.proposer")
 
 
 class AbstractSingleSiteSingleStepProposer(

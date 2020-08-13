@@ -9,7 +9,7 @@ from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import Mode
 
 
-LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
+LOGGER = logging.getLogger("beanmachine")
 
 
 class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):

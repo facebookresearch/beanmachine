@@ -16,7 +16,7 @@ from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor, tensor
 
 
-LOGGER_WARNING = logging.getLogger("beanmachine.warning")
+LOGGER = logging.getLogger("beanmachine")
 
 
 class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -273,7 +273,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             -score, node_var.transformed_value, retain_graph=True
         )
         if not is_valid:
-            LOGGER_WARNING.warning(
+            LOGGER.warning(
                 "Gradient is invalid at node {n}: {nv}.\n".format(
                     n=str(node), nv=str(node_var)
                 )
@@ -305,7 +305,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         if not is_valid:
             self.runtime_error = True
             zero_grad(q_transformed)
-            LOGGER_WARNING.warning(
+            LOGGER.warning(
                 "Node {n} has invalid proposal solution. ".format(n=node)
                 + "Proposer falls back to SingleSiteAncestralProposer.\n"
             )
@@ -329,7 +329,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             if not is_valid:
                 self.runtime_error = True
                 zero_grad(q_transformed)
-                LOGGER_WARNING.warning(
+                LOGGER.warning(
                     "Node {n} has invalid proposal solution. ".format(n=node)
                     + "Proposer falls back to SingleSiteAncestralProposer.\n"
                 )

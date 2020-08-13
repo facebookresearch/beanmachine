@@ -17,8 +17,8 @@ from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
 
 
-LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
-LOGGER_ERROR = logging.getLogger("beanmachine.error")
+LOGGER_PROPOSER = logging.getLogger("beanmachine.proposer")
+LOGGER = logging.getLogger("beanmachine")
 
 
 class ApproximateBayesianComputationSequentialMonteCarlo(
@@ -207,7 +207,7 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
                 pbar.update(self._single_inference_step(stage))
                 total_attempted_samples += 1
             pbar.close()
-            LOGGER_UPDATES.log(
+            LOGGER_PROPOSER.log(
                 LogLevel.DEBUG_UPDATES.value,
                 f"Inference stage {stage} completed; accepted {num_samples} from \
                     {total_attempted_samples} attempted samples. \

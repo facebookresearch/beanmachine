@@ -17,9 +17,9 @@ from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
 
 
-LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
-LOGGER_PROPOSER = logging.getLogger("beanmachine.debug.proposer")
-LOGGER_GRAPH = logging.getLogger("beanmachine.debug.graph")
+LOGGER_INFERENCE = logging.getLogger("beanmachine.inference")
+LOGGER_PROPOSER = logging.getLogger("beanmachine.proposer")
+LOGGER_WORLD = logging.getLogger("beanmachine.world")
 
 
 class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
@@ -101,7 +101,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             tensor(1.0, dtype=log_update.dtype), torch.exp(log_update)
         )
 
-        LOGGER_UPDATES.log(
+        LOGGER_INFERENCE.log(
             LogLevel.DEBUG_UPDATES.value,
             "- Proposal log update: {pl}\n".format(pl=proposal_log_update)
             + "- Node log update: {nl}\n".format(nl=node_log_update)
@@ -129,7 +129,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             auxiliary_variables,
         ) = proposer.propose(node, self.world_)
 
-        LOGGER_UPDATES.log(
+        LOGGER_INFERENCE.log(
             LogLevel.DEBUG_UPDATES.value,
             "=" * 30
             + "\n"
@@ -205,7 +205,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                 ) = proposer.propose(node, self.world_)
                 neg_proposal_log_updates += negative_proposal_log_update
 
-                LOGGER_UPDATES.log(
+                LOGGER_INFERENCE.log(
                     LogLevel.DEBUG_UPDATES.value,
                     "Node: {n}\n".format(n=node)
                     + "- Node value: {nv}\n".format(
@@ -253,7 +253,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         :param block: the block of random variables to be resampled sequentially
         in this inference run
         """
-        LOGGER_UPDATES.log(
+        LOGGER_INFERENCE.log(
             LogLevel.DEBUG_UPDATES.value,
             "=" * 30 + "\n" + "Block: {b}\n".format(b=block.first_node),
         )
@@ -320,7 +320,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         self.initialize_world(initialize_from_prior)
         self.world_.set_initialize_from_prior(True)
         queries_sample = defaultdict()
-        LOGGER_GRAPH.log(
+        LOGGER_WORLD.log(
             LogLevel.DEBUG_GRAPH.value,
             "=" * 30 + "\n" + "Initialized graph:\n{g}\n".format(g=str(self.world_)),
         )
@@ -399,7 +399,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                         dim=0,
                     )
             self.world_.accept_diff()
-            LOGGER_GRAPH.log(
+            LOGGER_WORLD.log(
                 LogLevel.DEBUG_GRAPH.value,
                 "=" * 30 + "\n" + "Graph update:\n{g}\n".format(g=str(self.world_)),
             )
