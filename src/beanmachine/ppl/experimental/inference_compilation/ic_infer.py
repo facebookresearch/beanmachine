@@ -26,7 +26,7 @@ from . import utils
 
 LOGGER_IC = logging.getLogger("beanmachine.debug.ic")
 
-# World + Markov Blanket + Observations -> ProposalDistribution. We need to pass
+# World + Markov Blanket -> ProposalDistribution. We need to pass
 # Markov Blanket explicitly because the `World`s encountered during training
 # are sampled from the generative model i.e. without conditioning on any
 # `observations`
@@ -118,7 +118,6 @@ class ICInference(AbstractMHInference):
     Inference compilation
     """
 
-    _obs_embedding_net: Optional[nn.Module] = None
     _node_embedding_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
     _mb_embedding_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
     _node_proposal_param_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
@@ -126,7 +125,6 @@ class ICInference(AbstractMHInference):
     _proposers: Optional[Callable[[RVIdentifier], ICProposer]] = None
     _NODE_ID_EMBEDDING_DIM: int = 0  # embedding dimension for RVIdentifier
     _NODE_EMBEDDING_DIM: int = 4  # embedding dimension for node values
-    _OBS_EMBEDDING_DIM: int = 4  # embedding dimension for observations
     _MB_EMBEDDING_DIM: int = 8  # embedding dimension for Markov blankets
     _MB_NUM_LAYERS = 3  # num LSTM layers for Markov blankets
     _NODE_PROPOSAL_NUM_LAYERS = 1  # num layers for node proposal parameter nets
@@ -153,7 +151,6 @@ class ICInference(AbstractMHInference):
         optimizer_func=lambda parameters: optim.Adam(parameters),
         node_id_embedding_dim: Optional[int] = None,
         node_embedding_dim: Optional[int] = None,
-        obs_embedding_dim: Optional[int] = None,
         mb_embedding_dim: Optional[int] = None,
         mb_num_layers: Optional[int] = None,
         node_proposal_num_layers: Optional[int] = None,
@@ -172,7 +169,6 @@ class ICInference(AbstractMHInference):
         model parameters with
         :param node_id_embedding_dim: RVIdentifier ID embedding dimension
         :param node_embedding_dim: RVIdentifier embedding dimension
-        :param obs_embedding_dim: observations embedding dimension
         :param mb_embedding_dim: Markov blanket embedding dimension
         :param mb_num_layers: number of layers in Markov blanket embedding RNN
         :param node_proposal_num_layers: number of layers in proposal parameter FFW NN
@@ -188,8 +184,6 @@ class ICInference(AbstractMHInference):
             self._NODE_ID_EMBEDDING_DIM = node_id_embedding_dim
         if node_embedding_dim:
             self._NODE_EMBEDDING_DIM = node_embedding_dim
-        if obs_embedding_dim:
-            self._OBS_EMBEDDING_DIM = obs_embedding_dim
         if mb_embedding_dim:
             self._MB_EMBEDDING_DIM = mb_embedding_dim
         if mb_num_layers:
@@ -204,16 +198,10 @@ class ICInference(AbstractMHInference):
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
         AbstractInference.set_seed_for_chain(random_seed, 0)
 
-        # initialize once so observation embedding network can access RVIdentifiers
         self.reset()
         self.queries_ = {}
         self.observations_ = {obs_rv: None for obs_rv in observation_keys}
         self.initialize_world(initialize_from_prior=True)
-
-        # observation embedding is the only network that needs to be explicitly
-        # constructed (the rest are lazily built)
-        obs_embedding_net = self._build_observation_embedding_network(observation_keys)
-        self._obs_embedding_net = obs_embedding_net
 
         node_embedding_nets = lru_cache(maxsize=None)(
             self._build_node_embedding_network
@@ -234,7 +222,7 @@ class ICInference(AbstractMHInference):
         )
         self._node_proposal_param_nets = node_proposal_param_nets
 
-        optimizer = optimizer_func(obs_embedding_net.parameters())
+        optimizer = optimizer_func()
         if not optimizer:
             raise Exception("optimizer_func did not return a valid optimizer!")
         self._optimizer = optimizer
@@ -323,22 +311,6 @@ class ICInference(AbstractMHInference):
 
         return loss
 
-    def _build_observation_embedding_network(
-        self, observation_keys: Sequence[RVIdentifier]
-    ) -> nn.Module:
-        obs_vec = torch.stack(
-            list(
-                map(
-                    lambda node: node.function._wrapper(*node.arguments),
-                    sorted(observation_keys, key=str),
-                )
-            ),
-            dim=0,
-        ).flatten()
-        return nn.Linear(
-            in_features=obs_vec.shape[0], out_features=self._OBS_EMBEDDING_DIM
-        )
-
     def _build_node_embedding_network(self, node: RVIdentifier) -> nn.Module:
         node_var = self.world_.get_node_in_world_raise_error(node)
         node_vec = utils.ensure_1d(node_var.value)
@@ -370,7 +342,7 @@ class ICInference(AbstractMHInference):
         return NodeEmbedding(node_id_embedding, node_embedding_net)
 
     def _build_node_proposal_param_network(self, node: RVIdentifier) -> nn.Module:
-        in_features = self._MB_EMBEDDING_DIM + self._OBS_EMBEDDING_DIM
+        in_features = self._MB_EMBEDDING_DIM
         layers = []
         for _ in range(self._NODE_PROPOSAL_NUM_LAYERS):
             # TODO: bottlenecking?
@@ -393,22 +365,6 @@ class ICInference(AbstractMHInference):
             markov_blanket: Iterable[RVIdentifier],
             observations: Dict[RVIdentifier, Tensor],
         ) -> dist.Distribution:
-            obs_embedding = torch.zeros(self._OBS_EMBEDDING_DIM)
-            obs_nodes = list(
-                map(
-                    lambda x: x[1],
-                    sorted(observations.items(), key=lambda x: str(x[0])),
-                )
-            )
-            if len(obs_nodes):
-                obs_embedding_net = self._obs_embedding_net
-                if obs_embedding_net is None:
-                    raise Exception("No observation embedding network found!")
-
-                obs_vec = torch.stack(obs_nodes, dim=0).flatten()
-                # pyre-fixme
-                obs_embedding = obs_embedding_net.forward(obs_vec)
-
             node_embedding_nets = self._node_embedding_nets
             if node_embedding_nets is None:
                 raise Exception("No node embedding networks found!")
@@ -440,9 +396,7 @@ class ICInference(AbstractMHInference):
             node_proposal_param_nets = self._node_proposal_param_nets
             if node_proposal_param_nets is None:
                 raise Exception("No node proposal parameter networks found!")
-            param_vec = node_proposal_param_nets(node).forward(
-                torch.cat((mb_embedding, obs_embedding))
-            )
+            param_vec = node_proposal_param_nets(node).forward(mb_embedding)
             return proposal_dist_constructor(param_vec)
 
         return _proposer_func

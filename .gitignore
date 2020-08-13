@@ -49,6 +49,9 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Runtime logs
+beanmachine.log
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -83,6 +86,9 @@ ENV/
 
 # vim
 *.swp
+
+# vscode
+.vscode/
 
 # cython-generated C-code
 botorch/qmc/sobol.c*
