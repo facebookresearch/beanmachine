@@ -58,7 +58,10 @@ class Predictive(object):
         ) == 1, "Only one of posterior or num_samples should be set."
         sampler = SingleSiteAncestralMetropolisHastings()
         if posterior:
-            obs = posterior.data.rv_dict
+            n_warmup = posterior.num_adaptive_samples
+            post_dict = posterior.data.rv_dict
+            # drop the warm up samples
+            obs = {k: v[:, n_warmup:] for k, v in post_dict.items()}
             if vectorized:
                 # predictives are jointly sampled
                 sampler.queries_ = queries
@@ -132,7 +135,9 @@ class Predictive(object):
             (num_samples,)
         )
         for q in queries:
-            rv_dict[q] = samples.data.rv_dict[q][chain_indices, sample_indices]
+            rv_dict[q] = samples.get_variable(q, include_adapt_steps=False)[
+                chain_indices, sample_indices
+            ]
         return MonteCarloSamples([rv_dict])
 
 
