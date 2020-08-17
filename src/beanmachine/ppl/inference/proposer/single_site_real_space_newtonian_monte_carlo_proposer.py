@@ -15,14 +15,13 @@ from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils import tensorops  # pyre-ignore
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor, tensor
 
 
-LOGGER_ERROR = logging.getLogger("beanmachine.error")
-LOGGER_WARNING = logging.getLogger("beanmachine.warning")
+LOGGER = logging.getLogger("beanmachine")
 
 
 class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -114,7 +113,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         first_gradient, hessian = tensorops.gradients(score, node_val)
         zero_grad(node_val)
         if not is_valid(first_gradient) or not is_valid(hessian):
-            LOGGER_WARNING.warning(
+            LOGGER.warning(
                 "Gradient or Hessian is invalid at node {nv}.\n".format(
                     nv=str(node_var)
                 )
@@ -154,10 +153,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             _proposer = dist.MultivariateNormal(mean, scale_tril=L_inv)
             _arguments["scale_tril"] = L_inv
         except numpy.linalg.LinAlgError:
-            LOGGER_ERROR.log(
-                LogLevel.ERROR.value,
+            LOGGER.warning(
                 "Error: Cholesky decomposition failed. "
-                + "Falls back to Eigen decomposition.",
+                + "Falls back to Eigen decomposition."
             )
             # pyre-fixme
             eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
