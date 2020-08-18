@@ -215,11 +215,6 @@ class ICInference(AbstractMHInference):
                     out_features=self._MB_EMBEDDING_DIM,
                 ),
             )
-            # nn.LSTM(
-            #     input_size=self._NODE_EMBEDDING_DIM + self._NODE_ID_EMBEDDING_DIM,
-            #     num_layers=self._MB_NUM_LAYERS,
-            #     hidden_size=self._MB_EMBEDDING_DIM,
-            # )
         )
         self._mb_embedding_nets = mb_embedding_nets
 
