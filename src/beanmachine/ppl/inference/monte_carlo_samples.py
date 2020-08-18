@@ -77,9 +77,10 @@ class MonteCarloSamples(object):
         :returns: samples drawn during inference for the specified variable
         """
 
-        steps_start = self.num_adaptive_samples
         if include_adapt_steps:
             steps_start = 0
+        else:
+            steps_start = self.num_adaptive_samples
 
         if self.chain is None:
             return self.data.rv_dict[rv][:, steps_start:]
@@ -98,8 +99,11 @@ class MonteCarloSamples(object):
         """
         return self.data.num_chains
 
-    def get_num_samples(self) -> int:
+    def get_num_samples(self, include_adapt_steps=False) -> int:
         """
         :returns: the number of samples run during inference
         """
-        return next(iter(self.data.rv_dict.values())).shape[-1]
+        total = next(iter(self.data.rv_dict.values())).shape[-1]
+        if include_adapt_steps:
+            return total
+        return total - self.num_adaptive_samples
