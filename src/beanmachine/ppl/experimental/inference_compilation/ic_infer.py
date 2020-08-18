@@ -53,9 +53,7 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         auxiliary_variables: Dict,
     ) -> Tuple[ProposalDistribution, Dict]:
         observations = world.observations_
-        markov_blanket = filter(
-            lambda x: x not in observations, world.get_markov_blanket(node)
-        )
+        markov_blanket = world.get_markov_blanket(node)
         proposal_distribution = self._proposer_func(world, markov_blanket, observations)
         LOGGER_IC.log(
             logging.DEBUG,
@@ -209,11 +207,19 @@ class ICInference(AbstractMHInference):
         self._node_embedding_nets = node_embedding_nets
 
         mb_embedding_nets = lru_cache(maxsize=None)(
-            lambda _: nn.LSTM(
-                input_size=self._NODE_EMBEDDING_DIM + self._NODE_ID_EMBEDDING_DIM,
-                num_layers=self._MB_NUM_LAYERS,
-                hidden_size=self._MB_EMBEDDING_DIM,
+            lambda _: nn.Sequential(
+                nn.AdaptiveAvgPool1d(output_size=1),
+                nn.Flatten(),
+                nn.Linear(
+                    in_features=self._NODE_EMBEDDING_DIM + self._NODE_ID_EMBEDDING_DIM,
+                    out_features=self._MB_EMBEDDING_DIM,
+                ),
             )
+            # nn.LSTM(
+            #     input_size=self._NODE_EMBEDDING_DIM + self._NODE_ID_EMBEDDING_DIM,
+            #     num_layers=self._MB_NUM_LAYERS,
+            #     hidden_size=self._MB_EMBEDDING_DIM,
+            # )
         )
         self._mb_embedding_nets = mb_embedding_nets
 
@@ -222,7 +228,8 @@ class ICInference(AbstractMHInference):
         )
         self._node_proposal_param_nets = node_proposal_param_nets
 
-        optimizer = optimizer_func()
+        # HACK: dummy parameter because torch.optim needs it for initialization
+        optimizer = optimizer_func([torch.tensor(0.0)])
         if not optimizer:
             raise Exception("optimizer_func did not return a valid optimizer!")
         self._optimizer = optimizer
@@ -388,10 +395,10 @@ class ICInference(AbstractMHInference):
                 # NOTE: currently adds batch axis (at index 1) here, may need
                 # to change when we batch training (see
                 # torch.nn.utils.rnn.PackedSequence)
-                mb_vec = torch.stack(mb_nodes, dim=0).unsqueeze(1)
+                mb_vec = torch.stack(mb_nodes, dim=0).unsqueeze(2)
                 # TODO: try pooling rather than just slicing out last hidden
                 mb_embedding = utils.ensure_1d(
-                    mb_embedding_nets(node).forward(mb_vec)[0][-1, :, :].squeeze()
+                    mb_embedding_nets(node).forward(mb_vec)[0]
                 )
             node_proposal_param_nets = self._node_proposal_param_nets
             if node_proposal_param_nets is None:
