@@ -58,13 +58,18 @@ class Predictive(object):
         ) == 1, "Only one of posterior or num_samples should be set."
         sampler = SingleSiteAncestralMetropolisHastings()
         if posterior:
-            obs = posterior.data.rv_dict
+            n_warmup = posterior.num_adaptive_samples
+            post_dict = posterior.data.rv_dict
+            # drop the warm up samples
+            obs = {k: v[:, n_warmup:] for k, v in post_dict.items()}
             if vectorized:
                 # predictives are jointly sampled
                 sampler.queries_ = queries
                 sampler.observations_ = obs
-                query_dict = sampler._infer(1, initialize_from_prior=True)
-                sampler.reset()
+                try:
+                    query_dict = sampler._infer(1, initialize_from_prior=True)
+                finally:
+                    sampler.reset()
                 for rvid, rv in query_dict.items():
                     if rv.dim() > 2:
                         query_dict[rvid] = rv.squeeze(0)
@@ -82,8 +87,12 @@ class Predictive(object):
                         }
                         sampler.queries_ = queries
                         sampler.observations_ = obs
-                        rv_dicts.append(sampler._infer(1, initialize_from_prior=True))
-                        sampler.reset()
+                        try:
+                            rv_dicts.append(
+                                sampler._infer(1, initialize_from_prior=True)
+                            )
+                        finally:
+                            sampler.reset()
                     preds.append(_concat_rv_dicts(rv_dicts))
                 return MonteCarloSamples(preds)
         else:
@@ -94,9 +103,11 @@ class Predictive(object):
             for _ in range(num_samples):
                 sampler.queries_ = queries
                 sampler.observations_ = obs
-                query_dict = sampler._infer(1, initialize_from_prior=True)
+                try:
+                    query_dict = sampler._infer(1, initialize_from_prior=True)
+                finally:
+                    sampler.reset()
                 predictives.append(query_dict)
-                sampler.reset()
 
             rv_dict = defaultdict(list)
             for k in predictives:
@@ -132,7 +143,9 @@ class Predictive(object):
             (num_samples,)
         )
         for q in queries:
-            rv_dict[q] = samples.data.rv_dict[q][chain_indices, sample_indices]
+            rv_dict[q] = samples.get_variable(q, include_adapt_steps=False)[
+                chain_indices, sample_indices
+            ]
         return MonteCarloSamples([rv_dict])
 
 

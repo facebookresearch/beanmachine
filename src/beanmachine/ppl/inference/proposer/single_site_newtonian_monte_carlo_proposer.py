@@ -21,7 +21,7 @@ from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 
 
-LOGGER_WARNING = logging.getLogger("beanmachine.warning")
+LOGGER = logging.getLogger("beanmachine")
 
 
 class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
@@ -99,7 +99,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             ) or isinstance(node_var.distribution, dist.Beta):
                 self.proposers_[node] = SingleSiteSimplexNewtonianMonteCarloProposer()
             else:
-                LOGGER_WARNING.warning(
+                LOGGER.warning(
                     "Node {n} has unsupported constraints. ".format(n=node)
                     + "Proposer falls back to SingleSiteAncestralProposer.\n"
                 )

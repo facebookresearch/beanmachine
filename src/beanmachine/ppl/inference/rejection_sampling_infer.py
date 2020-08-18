@@ -12,8 +12,7 @@ from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
 
 
-LOGGER_UPDATES = logging.getLogger("beanmachine.debug.updates")
-LOGGER_ERROR = logging.getLogger("beanmachine.error")
+LOGGER_INFERENCE = logging.getLogger("beanmachine.inference")
 
 
 class RejectionSampling(AbstractInference, metaclass=ABCMeta):
@@ -62,7 +61,7 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
         :param node_key: the node which triggered the sample rejection. used for debug logging
         """
         self.attempts_per_sample += 1
-        LOGGER_UPDATES.log(
+        LOGGER_INFERENCE.log(
             LogLevel.DEBUG_UPDATES.value,
             f"sample {self.num_accepted_samples}, attempt {self.attempts_per_sample}"
             + f" failed\n rejected node: {node_key}",
@@ -141,7 +140,7 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
             pbar.update(self._single_inference_step())
             total_attempted_samples += 1
         pbar.close()
-        LOGGER_UPDATES.log(
+        LOGGER_INFERENCE.log(
             LogLevel.DEBUG_UPDATES.value,
             f"Inference completed; accepted {num_samples} from \
              {total_attempted_samples} attempted samples. \

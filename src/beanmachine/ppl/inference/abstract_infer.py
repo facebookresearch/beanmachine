@@ -26,7 +26,7 @@ class VerboseLevel(Enum):
     LOAD_BAR = 1
 
 
-LOGGER_ERROR = logging.getLogger("beanmachine.error")
+LOGGER = logging.getLogger("beanmachine")
 
 
 class AbstractInference(object, metaclass=ABCMeta):
@@ -78,7 +78,7 @@ class AbstractInference(object, metaclass=ABCMeta):
             string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
         except BaseException as x:
-            LOGGER_ERROR.log(
+            LOGGER.log(
                 LogLevel.ERROR.value, "Error: Parallel infererence chain failed."
             )
             queue.put((x, chain, {}))

@@ -23,8 +23,9 @@ DEV_REQUIRES = TEST_REQUIRES + [
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 
+TORCH_COMPILE_ARGS = ["-fopenmp"]
 
-EXTRA_COMPILE_ARGS = ["-std=c++14", "-Werror"]
+CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
 
 BMG_DEP_HEADER = {
@@ -129,7 +130,7 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=[
-        "torch>=1.4.0",
+        "torch>=1.6.0",
         "dataclasses>=0.6",
         "pandas>=0.24.2",
         "plotly>=2.2.1",
@@ -149,12 +150,12 @@ setup(
                 - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
             include_dirs=bmg_inc_dir,
-            extra_compile_args=EXTRA_COMPILE_ARGS,
+            extra_compile_args=CPP_COMPILE_ARGS,
         ),
         CppExtension(
             name="beanmachine.ppl.utils.tensorops",
             sources=["src/beanmachine/ppl/utils/tensorops.cpp"],
-            extra_compile_args=EXTRA_COMPILE_ARGS,
+            extra_compile_args=CPP_COMPILE_ARGS + TORCH_COMPILE_ARGS,
         ),
     ],
     cmdclass={"build_ext": BuildExtension},

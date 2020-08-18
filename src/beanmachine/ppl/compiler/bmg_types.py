@@ -55,7 +55,11 @@ class Malformed:
 
 
 Real = float
+Boolean = bool
 
+BMGLatticeType = Union[type]
+# Union is necessary to work around aliasing bugs in Pyre.
+# Eventually this will be its own class.
 
 """
 When converting from an accumulated graph that uses Python types, we
@@ -166,37 +170,37 @@ could possibly be: PositiveReal.
 
 # There are only 36 pairs; we can just list them.
 _lookup = {
-    (bool, bool): bool,
-    (bool, Natural): Natural,
-    (bool, Probability): Probability,
-    (bool, PositiveReal): PositiveReal,
-    (bool, Real): Real,
-    (bool, Tensor): Tensor,
-    (Natural, bool): Natural,
+    (Boolean, Boolean): Boolean,
+    (Boolean, Natural): Natural,
+    (Boolean, Probability): Probability,
+    (Boolean, PositiveReal): PositiveReal,
+    (Boolean, Real): Real,
+    (Boolean, Tensor): Tensor,
+    (Natural, Boolean): Natural,
     (Natural, Natural): Natural,
     (Natural, Probability): PositiveReal,
     (Natural, PositiveReal): PositiveReal,
     (Natural, Real): Real,
     (Natural, Tensor): Tensor,
-    (Probability, bool): Probability,
+    (Probability, Boolean): Probability,
     (Probability, Natural): PositiveReal,
     (Probability, Probability): Probability,
     (Probability, PositiveReal): PositiveReal,
     (Probability, Real): Real,
     (Probability, Tensor): Tensor,
-    (PositiveReal, bool): PositiveReal,
+    (PositiveReal, Boolean): PositiveReal,
     (PositiveReal, Natural): PositiveReal,
     (PositiveReal, Probability): PositiveReal,
     (PositiveReal, PositiveReal): PositiveReal,
     (PositiveReal, Real): Real,
     (PositiveReal, Tensor): Tensor,
-    (Real, bool): Real,
+    (Real, Boolean): Real,
     (Real, Natural): Real,
     (Real, Probability): Real,
     (Real, PositiveReal): Real,
     (Real, Real): Real,
     (Real, Tensor): Tensor,
-    (Tensor, bool): Tensor,
+    (Tensor, Boolean): Tensor,
     (Tensor, Natural): Tensor,
     (Tensor, Probability): Tensor,
     (Tensor, PositiveReal): Tensor,
@@ -205,7 +209,7 @@ _lookup = {
 }
 
 
-def _supremum(t: type, u: type) -> type:
+def _supremum(t: BMGLatticeType, u: BMGLatticeType) -> BMGLatticeType:
     """Takes two BMG types; returns the smallest type that is
 greater than or equal to both."""
     if (t, u) in _lookup:
@@ -214,26 +218,26 @@ greater than or equal to both."""
 
 
 # We can extend the two-argument supremum function to any number of arguments:
-def supremum(*ts: type) -> type:
+def supremum(*ts: BMGLatticeType) -> BMGLatticeType:
     """Takes any number of BMG types; returns the smallest type that is
 greater than or equal to all of them."""
-    result = bool
+    result = Boolean
     for t in ts:
         result = _supremum(result, t)
     return result
 
 
-def type_of_value(v: Any) -> type:
+def type_of_value(v: Any) -> BMGLatticeType:
     """This computes the smallest BMG type that a given value fits into."""
     if isinstance(v, Tensor):
         if v.numel() == 1:
             return type_of_value(float(v))  # pyre-fixme
         return Tensor
     if isinstance(v, bool):
-        return bool
+        return Boolean
     if isinstance(v, int):
         if v == 0 or v == 1:
-            return bool
+            return Boolean
         if v >= 2:
             return Natural
         return Real
@@ -270,13 +274,13 @@ def type_of_value(v: Any) -> type:
 
 
 class UpperBound:
-    bound: type
+    bound: BMGLatticeType
 
-    def __init__(self, bound: type) -> None:
+    def __init__(self, bound: BMGLatticeType) -> None:
         self.bound = bound
 
 
-Requirement = Union[type, UpperBound]
+Requirement = Union[BMGLatticeType, UpperBound]
 
 
 @memoize
@@ -286,7 +290,7 @@ def upper_bound(bound: Requirement) -> UpperBound:
     return UpperBound(bound)
 
 
-def meets_requirement(t: type, r: Requirement) -> bool:
+def meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
     # A malformed node meets no requirements
     if t == Malformed:
         return False
@@ -296,7 +300,7 @@ def meets_requirement(t: type, r: Requirement) -> bool:
 
 
 _type_names = {
-    bool: "bool",
+    Boolean: "bool",
     Malformed: "malformed",
     Natural: "natural",
     PositiveReal: "positive real",
@@ -306,7 +310,7 @@ _type_names = {
 }
 
 _short_type_names = {
-    bool: "B",
+    Boolean: "B",
     Malformed: "M",
     Natural: "N",
     PositiveReal: "R+",
@@ -316,11 +320,11 @@ _short_type_names = {
 }
 
 
-def name_of_type(t: type) -> str:
+def name_of_type(t: BMGLatticeType) -> str:
     return _type_names[t]
 
 
-def short_name_of_type(t: type) -> str:
+def short_name_of_type(t: BMGLatticeType) -> str:
     return _short_type_names[t]
 
 
