@@ -56,6 +56,15 @@ class InferenceCompilationTest(unittest.TestCase):
                     loc=mu, covariance_matrix=0.1 * torch.eye(self.d)
                 )
 
+    class IndependentBernoulliGaussian:
+        @bm.random_variable
+        def foo(self):
+            return dist.Normal(0, 1)
+
+        @bm.random_variable
+        def bar(self, i):
+            return dist.Bernoulli(0.5)
+
     def setUp(self):
         torch.manual_seed(42)
 
@@ -185,3 +194,19 @@ class InferenceCompilationTest(unittest.TestCase):
         )
 
         assert before_adaptation_kldiv > after_adaptation_kldiv
+
+    def test_independent_bernoulli_gaussian(self):
+        # this test exercises the following edge cases:
+        #  * IC on a leaf node with no latent parents
+        #  * IC proposer for Bernoulli
+        #  * Querying nodes not provided to `compile()`
+        model = self.IndependentBernoulliGaussian()
+        ic = ICInference()
+        ic.compile([model.bar(10)], num_worlds=10)
+
+        ic.infer(
+            [model.foo()] + [model.bar(i) for i in range(100)],
+            {model.bar(10): torch.tensor(1.0)},
+            num_samples=100,
+            num_chains=1,
+        )
