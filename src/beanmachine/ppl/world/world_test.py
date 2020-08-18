@@ -127,7 +127,7 @@ class WorldTest(unittest.TestCase):
         bar_markov_blanket = world.get_markov_blanket(bar_key)
         self.assertListEqual(list(bar_markov_blanket), [])
         foo_markov_blanket = world.get_markov_blanket(foo_key)
-        self.assertListEqual(list(foo_markov_blanket), [])
+        self.assertListEqual(list(foo_markov_blanket), [bar_key])
 
         (
             children_log_update,
