@@ -116,15 +116,26 @@ Operator::Operator(
       value.type = graph::AtomicType::PROBABILITY;
       break;
     }
-    case graph::OperatorType::EXPM1:
+    case graph::OperatorType::EXPM1: {
+      check_unary_op(op_type, in_nodes);
+      if (type0 != graph::AtomicType::REAL and
+          type0 != graph::AtomicType::POS_REAL) {
+        throw std::invalid_argument(
+            "operator EXPM1 requires real/pos_real parent");
+      }
+      // pos_real -> e^x - 1 -> pos_real
+      // real -> e^x - 1 -> real
+      value = graph::AtomicValue(type0);
+      break;
+    }
     case graph::OperatorType::EXP: {
       check_unary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
           type0 != graph::AtomicType::POS_REAL) {
         throw std::invalid_argument(
-            "operator EXP/EXPM1 requires real/pos_real parent");
+            "operator EXP requires real/pos_real parent");
       }
-      value = graph::AtomicValue(type0);
+      value = graph::AtomicValue(graph::AtomicType::POS_REAL);
       break;
     }
     case graph::OperatorType::LOG1PEXP: {

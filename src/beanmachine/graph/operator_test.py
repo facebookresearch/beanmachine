@@ -83,7 +83,8 @@ class TestOperators(unittest.TestCase):
         o0 = g.add_operator(bmg.OperatorType.TO_REAL, [c1])
         o1 = g.add_operator(bmg.OperatorType.NEGATE, [o0])
         o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
-        o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2, o0])
+        o2_real = g.add_operator(bmg.OperatorType.TO_REAL, [o2])
+        o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2_real, o0])
         o4 = g.add_operator(bmg.OperatorType.EXPM1, [o0])
         o5 = g.add_operator(bmg.OperatorType.ADD, [o0, o3, o4])
         g.query(o5)
@@ -119,7 +120,7 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             o1 = g.add_operator(bmg.OperatorType.EXP, [s1])
         self.assertTrue(
-            "operator EXP/EXPM1 requires real/pos_real parent" in str(cm.exception)
+            "operator EXP requires real/pos_real parent" in str(cm.exception)
         )
 
         # the proper way to do it is to convert to floating point first
@@ -133,8 +134,13 @@ class TestOperators(unittest.TestCase):
         # o2 and o3 both compute the same value
         o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
         o3 = g.add_operator(bmg.OperatorType.EXP, [o1])
-        o4 = g.add_operator(bmg.OperatorType.NEGATE, [o3])
-        o5 = g.add_operator(bmg.OperatorType.ADD, [o2, o4])
+        # NEGATE only supports REAL while EXP outputs POS_REAL
+        with self.assertRaises(ValueError):
+            o4 = g.add_operator(bmg.OperatorType.NEGATE, [o3])
+        o3_real = g.add_operator(bmg.OperatorType.TO_REAL, [o3])
+        o4 = g.add_operator(bmg.OperatorType.NEGATE, [o3_real])
+        o2_real = g.add_operator(bmg.OperatorType.TO_REAL, [o2])
+        o5 = g.add_operator(bmg.OperatorType.ADD, [o2_real, o4])
         # o5 should be 0 in all possible worlds
         g.query(o5)
         samples = g.infer(10)
