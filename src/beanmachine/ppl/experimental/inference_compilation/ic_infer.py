@@ -96,9 +96,7 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         :returns: nothing.
         """
         node_var = world.get_node_in_world_raise_error(node)
-        markov_blanket = filter(
-            lambda x: x not in world.observations_, world.get_markov_blanket(node)
-        )
+        markov_blanket = world.get_markov_blanket(node)
         proposal_distribution = self._proposer_func(
             world, markov_blanket, world.observations_
         )
@@ -106,6 +104,7 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         optimizer = self._optimizer
         # pyre-fixme
         loss = -(proposal_distribution.log_prob(node_var.value))
+        tqdm.write(f"Loss: {loss}", end="")
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
