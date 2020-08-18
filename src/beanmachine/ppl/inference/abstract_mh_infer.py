@@ -188,7 +188,9 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                 if self.world_.is_marked_node_for_delete(node):
                     continue
                 # We look up the node's current markov blanket before re-sampling
-                old_node_markov_blanket = self.world_.get_markov_blanket(node)
+                old_node_markov_blanket = (
+                    self.world_.get_markov_blanket(node) - self.observations_.keys()
+                )
                 proposer = self.find_best_single_site_proposer(node)
                 LOGGER_PROPOSER.log(
                     LogLevel.DEBUG_PROPOSER.value,
@@ -225,7 +227,9 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                     node, self.world_, auxiliary_variables
                 )
                 # We look up the updated markov blanket of the re-sampled node.
-                new_node_markov_blanket = self.world_.get_markov_blanket(node)
+                new_node_markov_blanket = (
+                    self.world_.get_markov_blanket(node) - self.observations_.keys()
+                )
                 all_node_markov_blanket = (
                     old_node_markov_blanket | new_node_markov_blanket
                 )
