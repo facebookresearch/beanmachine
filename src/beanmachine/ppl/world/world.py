@@ -435,11 +435,10 @@ class World(object):
         for child in node_var.children:
             if child is None:
                 raise ValueError("child is None")
-            if child not in self.observations_:
-                markov_blanket.add(child)
+            markov_blanket.add(child)
             child_var = self.get_node_in_world_raise_error(child, False)
             for parent in child_var.parent:
-                if parent not in self.observations_ and parent != node:
+                if parent != node:
                     markov_blanket.add(parent)
         return markov_blanket
 
