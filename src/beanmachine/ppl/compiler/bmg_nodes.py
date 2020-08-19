@@ -11,6 +11,8 @@ from typing import Any, Dict, Iterator, List
 
 from beanmachine.graph import AtomicType, DistributionType as dt, Graph, OperatorType
 from beanmachine.ppl.compiler.bmg_types import (
+    BMGLatticeType,
+    Boolean,
     Malformed,
     Natural,
     PositiveReal,
@@ -61,13 +63,13 @@ class BMGNode(ABC):
 
     @property
     @abstractmethod
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         """The type of the node in the graph type system."""
         pass
 
     @property
     @abstractmethod
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         """BMG nodes have type requirements on their inputs; the *infimum type* of
 a node is the *smallest* BMG type that a node may be converted to if required by
 an input."""
@@ -203,12 +205,12 @@ the "positive real" 1.0, the "probability" 1.0 and the
         BMGNode.__init__(self, [])
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # The infimum type of a constant is derived from the value,
         # not from the kind of constant node we have. For instance,
         # a NaturalNode containing zero and a TensorNode containing
-        # tensor([[[0.0]]]) both have infimum type "bool" because
-        # we can convert zero to False, and bool is the smallest type
+        # tensor([[[0.0]]]) both have infimum type "Boolean" because
+        # we can convert zero to False, and Boolean is the smallest type
         # in the lattice. Remember, the infimum type answers the question
         # "what types can this node be converted to?" and not "what is the
         # type of this node?"
@@ -253,8 +255,8 @@ class BooleanNode(ConstantNode):
         return str(self.value)
 
     @property
-    def graph_type(self) -> type:
-        return bool
+    def graph_type(self) -> BMGLatticeType:
+        return Boolean
 
     @property
     def size(self) -> torch.Size:
@@ -287,7 +289,7 @@ class NaturalNode(ConstantNode):
         return str(self.value)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Natural
 
     @property
@@ -328,7 +330,7 @@ class PositiveRealNode(ConstantNode):
         return str(self.value)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
@@ -369,7 +371,7 @@ class ProbabilityNode(ConstantNode):
         return str(self.value)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Probability
 
     @property
@@ -410,7 +412,7 @@ class RealNode(ConstantNode):
         return str(self.value)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Real
 
     @property
@@ -457,7 +459,7 @@ class TensorNode(ConstantNode):
         return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Tensor
 
     @property
@@ -523,12 +525,12 @@ we generate a different node in BMG."""
         self.children[0] = p
 
     @property
-    def graph_type(self) -> type:
-        return bool
+    def graph_type(self) -> BMGLatticeType:
+        return Boolean
 
     @property
-    def inf_type(self) -> type:
-        return bool
+    def inf_type(self) -> BMGLatticeType:
+        return Boolean
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -603,11 +605,11 @@ so is useful for creating probabilities."""
         self.children[1] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Probability
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return Probability
 
     @property
@@ -706,11 +708,11 @@ we generate a different node in BMG."""
         self.children[1] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Natural
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return Natural
 
     @property
@@ -851,11 +853,11 @@ we generate a different node in BMG."""
         self.children[0] = p
 
     @property
-    def graph_type(self) -> Any:
+    def graph_type(self) -> BMGLatticeType:
         return Natural
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return Natural
 
     @property
@@ -902,11 +904,11 @@ real numbers; it is a special case of the gamma distribution."""
         self.children[0] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
@@ -960,11 +962,11 @@ distribution."""
         self.children[0] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Tensor
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return Tensor
 
     @property
@@ -1006,11 +1008,11 @@ class FlatNode(DistributionNode):
         DistributionNode.__init__(self, [])
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Probability
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return Probability
 
     @property
@@ -1081,11 +1083,11 @@ parameters."""
         self.children[1] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
@@ -1164,11 +1166,11 @@ and a sample is a positive real number."""
         self.children[0] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
@@ -1247,11 +1249,11 @@ a given mean and standard deviation."""
         self.children[1] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Real
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return Real
 
     @property
@@ -1344,11 +1346,11 @@ and the true mean."""
         self.children[2] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Real
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return Real
 
     @property
@@ -1432,11 +1434,11 @@ between 0.0 and 1.0."""
         self.children[1] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Real
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: We will probably need to be smarter here
         # once this is implemented in BMG.
         return Real
@@ -1509,13 +1511,13 @@ the condition is a Boolean."""
         OperatorNode.__init__(self, [condition, consequence, alternative])
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         if self.consequence.graph_type == self.alternative.graph_type:
             return self.consequence.graph_type
         return Malformed
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return supremum(self.consequence.inf_type, self.alternative.inf_type)
 
     @property
@@ -1526,7 +1528,7 @@ the condition is a Boolean."""
         # require that the inputs each be of that type.
         # The condition input must be a bool.
         it = self.inf_type
-        return [bool, it, it]
+        return [Boolean, it, it]
 
     @property
     def condition(self) -> BMGNode:
@@ -1666,11 +1668,11 @@ class AdditionNode(BinaryOperatorNode):
         BinaryOperatorNode.__init__(self, left, right)
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         if self.left.graph_type == self.right.graph_type:
             return self.left.graph_type
         return Malformed
@@ -1737,14 +1739,14 @@ class DivisionNode(BinaryOperatorNode):
         )
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: We do not support division in BMG yet; when we do, implement
         # this correctly. Best guess so far: division is defined only on
         # positive reals, reals and tensors.
         return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         # TODO: We do not support division in BMG yet; when we do, implement
         # this correctly. Best guess so far: left, right and output types
         # must be the same, and must be PositiveReal, Real or tensor.
@@ -1834,7 +1836,7 @@ multiple control flows based on the value of a stochastic node."""
         self.edges = [str(x) for x in range(len(children))]
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # The inf type of a map is the supremum of the types of all
         # its inputs.
         return supremum(
@@ -1842,7 +1844,7 @@ multiple control flows based on the value of a stochastic node."""
         )
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         first = self.children[0].graph_type
         for i in range(len(self.children) // 2):
             if self.children[i * 2 + 1].graph_type != first:
@@ -1901,12 +1903,12 @@ choose an element from the map."""
         return "index"
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # The inf type of an index is that of its map.
         return self.left.inf_type
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.left.graph_type
 
     @property
@@ -1945,13 +1947,13 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         return "*"
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: We do not yet support matrix multiplication in BMG;
         # when we do, revisit this code.
         return supremum(self.left.inf_type, self.right.inf_type)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         if self.left.graph_type == self.right.graph_type:
             return self.left.graph_type
         return Malformed
@@ -1994,7 +1996,7 @@ class MultiplicationNode(BinaryOperatorNode):
         return "*"
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         # A multiplication node must have its left, right and output
         # types all the same, and that type must be Probability or
         # larger. If these conditions are not met then the node is malformed.
@@ -2005,12 +2007,12 @@ class MultiplicationNode(BinaryOperatorNode):
         lgt = self.left.graph_type
         if lgt != self.right.graph_type:
             return Malformed
-        if lgt == bool or lgt == Natural:
+        if lgt == Boolean or lgt == Natural:
             return Malformed
         return lgt
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # As noted above, we can multiply two probabilities, two positive
         # reals, two reals or two tensors and get the same type out. However
         # if we have a model in which a bool or natural is multiplied by a
@@ -2028,23 +2030,23 @@ class MultiplicationNode(BinaryOperatorNode):
 
         lit = self.left.inf_type
         rit = self.right.inf_type
-        if lit == bool:
+        if lit == Boolean:
             return rit
-        if rit == bool:
+        if rit == Boolean:
             return lit
 
-        # If neither type is bool then the best we can do is the sup
+        # If neither type is Boolean then the best we can do is the sup
         # of the left type, the right type, and Probability.
         return supremum(self.left.inf_type, self.right.inf_type, Probability)
 
     @property
     def requirements(self) -> List[Requirement]:
         # As noted above, we have special handling if an operand to a multiplication
-        # is a bool. In those cases, we can simply impose a requirement that can
+        # is a Boolean. In those cases, we can simply impose a requirement that can
         # always be met: that the operands be of their inf types.
         lit = self.left.inf_type
         rit = self.right.inf_type
-        if lit == bool or rit == bool:
+        if lit == Boolean or rit == Boolean:
             return [lit, rit]
         # If we're not in one of those special cases then we require that both
         # operands be the inf type, which, recall, is the sup of the left, right
@@ -2082,7 +2084,7 @@ class PowerNode(BinaryOperatorNode):
         return "**"
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: We do not yet support power nodes in BMG; when we
         # do, revisit this code.
 
@@ -2129,7 +2131,7 @@ class PowerNode(BinaryOperatorNode):
         return Real
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         if self.left.graph_type == self.right.graph_type:
             return self.left.graph_type
         return Malformed
@@ -2217,7 +2219,7 @@ a model contains calls to Tensor.exp or math.exp."""
         return "Exp"
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: In BMG the input type of exp is positive real, real or
         # tensor, and the output type is the same as the input type.
         # However, we could know that if the input type is real, then
@@ -2226,7 +2228,7 @@ a model contains calls to Tensor.exp or math.exp."""
         return supremum(self.operand.inf_type, PositiveReal)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
 
     @property
@@ -2259,12 +2261,12 @@ a model contains calls to Tensor.log or math.log."""
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: When we support this node in BMG, revisit this code.
         return supremum(self.operand.inf_type, Real)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
 
     @property
@@ -2360,11 +2362,11 @@ class NegateNode(UnaryOperatorNode):
         return "-"
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return supremum(self.operand.inf_type, Real)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
 
     @property
@@ -2398,12 +2400,12 @@ class NotNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: When we support this node in BMG, revisit this code.
-        return bool
+        return Boolean
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
 
     @property
@@ -2440,12 +2442,12 @@ values."""
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # The infimum type of a sample is that of its distribution.
         return self.operand.inf_type
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
 
     @property
@@ -2487,11 +2489,11 @@ class ToRealNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return Real
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # A ToRealNode's output is always real
         return Real
 
@@ -2525,11 +2527,11 @@ class ToPositiveRealNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # A ToPositiveRealNode's output is always PositiveReal
         return PositiveReal
 
@@ -2609,7 +2611,7 @@ should no loger be uniform."""
         self.children[0] = p
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         # TODO: Since an observation node is never consumed, it's not actually
         # meaningful to compute its type, but we can potentially use this
         # to check for errors; for example, if we have an observation with
@@ -2618,7 +2620,7 @@ should no loger be uniform."""
         return self.observed.inf_type
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.observed.graph_type
 
     @property
@@ -2687,11 +2689,11 @@ to have a query node accumulated into the graph builder.
         self.children[0] = p
 
     @property
-    def graph_type(self) -> type:
+    def graph_type(self) -> BMGLatticeType:
         return self.operator.graph_type
 
     @property
-    def inf_type(self) -> type:
+    def inf_type(self) -> BMGLatticeType:
         return self.operator.inf_type
 
     @property
