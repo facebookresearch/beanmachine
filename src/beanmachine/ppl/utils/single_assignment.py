@@ -689,7 +689,7 @@ class SingleAssignment:
             "_handle_assign_call_empty_regular_arg",
         )
 
-    def _handle_assign_call_empty_keyward_arg(self) -> Rule:
+    def _handle_assign_call_empty_keyword_arg(self) -> Rule:
         # Rewrite x = f(1) into x = f(1,**{})
         # Basically, ensure that any call has at least one ** argument
         # TODO: The identifier "dict" should be made global unique in target name space
@@ -779,7 +779,7 @@ class SingleAssignment:
                 self._handle_assign_call_single_double_star_arg(),
                 self._handle_assign_call_two_double_star_args(),
                 self._handle_assign_call_keyword_arg(),
-                self._handle_assign_call_empty_keyward_arg(),
+                self._handle_assign_call_empty_keyword_arg(),
             ]
         )
 
