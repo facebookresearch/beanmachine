@@ -2,7 +2,7 @@
 """Tools to transform Bean Machine programs to Bean Machine Graph"""
 
 import ast
-from typing import Callable, List, Tuple
+from typing import Any, Callable, List, Tuple
 
 from beanmachine.ppl.utils.ast_patterns import (
     assign,
@@ -13,6 +13,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_for,
     ast_if,
     ast_list,
+    ast_listComp,
     ast_return,
     ast_true,
     ast_while,
@@ -114,12 +115,28 @@ class SingleAssignment:
         self._count = self._count + 1
         return f"{prefix}{self._count}"
 
+    def freshName(
+        self, prefix: str, builder: Callable[[ast.Name, ast.Name], Any]
+    ) -> Any:
+        # TODO: In the type this function, both instances of the type Any should
+        # simply be the same type. It would be nice if there was a good way to use type variables
+        # with Python
+        # TODO: Automatic indenttion makes uses of this function hard to read. It might be good
+        # to try to make a version that takes a list of name and returns two lookup functions for the
+        # two different variable cases.
+        id = self._unique_id(prefix)
+        return builder(
+            ast.Name(id=id, ctx=ast.Store()), ast.Name(id=id, ctx=ast.Load())
+        )
+
     def _transform_with_name(
         self,
         prefix: str,
         extract_expr: Callable[[ast.AST], ast.expr],
         build_new_term: Callable[[ast.AST, ast.AST], ast.AST],
     ) -> Callable[[ast.AST], ListEdit]:
+        # Given its arguments (p,e,b) produces a term transformer
+        #   r -> p_i = e(r) ; b(r,p_i) where p_i is a new name
         def _do_it(r: ast.AST) -> ListEdit:
             id = self._unique_id(prefix)
             return ListEdit(
@@ -140,6 +157,8 @@ class SingleAssignment:
         extract_expr: Callable[[ast.AST], ast.expr],
         build_new_term: Callable[[ast.AST, ast.AST, ast.AST], ListEdit],
     ) -> Callable[[ast.AST], ListEdit]:
+        # Given its arguments (p,e,b) produces a term transformer
+        #   r -> b(r,p_i,p_i = e(r)) where p_i is a new name
         def _do_it(r: ast.AST) -> ListEdit:
             id = self._unique_id(prefix)
             new_assign = ast.Assign(
@@ -152,6 +171,8 @@ class SingleAssignment:
     def _transform_expr(
         self, prefix: str, extract_expr: Callable[[ast.AST], ast.expr]
     ) -> Callable[[ast.AST], ast.AST]:
+        # Given its arguments (p,e) produces a term transformer
+        #   r -> p_i = e(r) where p_i is a new name
         def _do_it(r: ast.AST) -> ast.AST:
             id = self._unique_id(prefix)
             return ast.Assign(
@@ -755,6 +776,96 @@ class SingleAssignment:
             "handle_assign_dictionary_values",
         )
 
+    def _nested_ifs_of(self, conditions: List[ast.expr], call: ast.AST) -> ast.AST:
+        # Turns a series of conditions into nested ifs
+        if conditions == []:
+            return call
+        else:
+            head, *tail = conditions
+            rest = self._nested_ifs_of(tail, call)
+            return ast.If(test=head, body=[rest], orelse=[])
+
+    def _nested_fors_and_ifs_of(
+        self, generators: List[ast.comprehension], call: ast.AST
+    ) -> ast.AST:
+        # Turns nested comprehension generators into a nesting for for+if statements
+        # for example [... for i in range(1,2) if odd(i)] into
+        # for i in range(1,2):
+        #    if odd(i):
+        #       ...
+        if generators == []:
+            return call
+        else:
+            head, *tail = generators
+            rest = self._nested_fors_and_ifs_of(tail, call)
+            return ast.For(
+                target=head.target,
+                iter=head.iter,
+                body=[self._nested_ifs_of(head.ifs, rest)],
+                orelse=[],
+                type_comment=None,
+            )
+
+    def _handle_assign_listComp(self) -> Rule:
+        # Rewrite y = [c for v_i in e_i if b_i] into
+        # def p():
+        #    r = []
+        #    for v_i in e_i
+        #       if b_i:
+        #          r.append(c)
+        #    return r
+        # y=p()
+        return PatternRule(
+            assign(value=ast_listComp()),
+            lambda term: ListEdit(
+                self.freshName(
+                    "p",
+                    lambda p_lhs, p_rhs: self.freshName(
+                        "r",
+                        lambda r_lhs, r_rhs: [
+                            ast.FunctionDef(
+                                name=p_lhs.id,
+                                args=ast.arguments(
+                                    args=[],
+                                    vararg=None,
+                                    kwonlyargs=[],
+                                    kw_defaults=[],
+                                    kwarg=None,
+                                    defaults=[],
+                                ),
+                                body=[
+                                    ast.Assign(
+                                        targets=[r_lhs], value=ast.List([], ast.Load())
+                                    ),
+                                    self._nested_fors_and_ifs_of(
+                                        term.value.generators,
+                                        ast.Call(
+                                            func=ast.Attribute(
+                                                value=r_lhs,
+                                                attr="append",
+                                                ctx=ast.Load(),
+                                            ),
+                                            args=[term.value.elt],
+                                            keywords=[],
+                                        ),
+                                    ),
+                                    ast.Return(r_rhs),
+                                ],
+                                decorator_list=[],
+                                returns=None,
+                                type_comment=None,
+                            ),
+                            ast.Assign(
+                                targets=term.targets,
+                                value=ast.Call(func=p_rhs, args=[], keywords=[]),
+                            ),
+                        ],
+                    ),
+                )
+            ),
+            "handle_assign_listComp",
+        )
+
     def _handle_assign(self) -> Rule:
         return first(
             [
@@ -780,6 +891,8 @@ class SingleAssignment:
                 self._handle_assign_call_two_double_star_args(),
                 self._handle_assign_call_keyword_arg(),
                 self._handle_assign_call_empty_keyword_arg(),
+                # Rules for comprehensions
+                self._handle_assign_listComp(),
             ]
         )
 
