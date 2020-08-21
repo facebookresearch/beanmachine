@@ -933,7 +933,7 @@ that has the receiver, if any, as its first member."""
         self.add_node(node)
         return node
 
-    def handle_sample(self, operand: Any) -> SampleNode:
+    def handle_sample(self, operand: Any) -> SampleNode:  # noqa
         """As we execute the lifted program, this method is called every
 time a model function decorated with @bm.random_variable returns; we verify that the
 returned value is a distribution that we know how to accumulate into the
