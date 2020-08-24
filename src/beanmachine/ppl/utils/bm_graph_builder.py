@@ -111,7 +111,6 @@ from beanmachine.ppl.compiler.bmg_types import (
     Probability,
     Real,
     short_name_of_requirement,
-    short_name_of_type,
 )
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
@@ -1084,9 +1083,9 @@ they were created."""
             n = to_id(index)
             node_label = node.label
             if graph_types:
-                node_label += ":" + short_name_of_type(node.graph_type)
+                node_label += ":" + node.graph_type.short_name
             if inf_types:
-                node_label += ">=" + short_name_of_type(node.inf_type)
+                node_label += ">=" + node.inf_type.short_name
             db.with_node(n, node_label)
             for (child, edge_name, req) in zip(
                 node.children, node.edges, node.requirements

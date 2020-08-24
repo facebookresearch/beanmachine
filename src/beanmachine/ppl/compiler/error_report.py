@@ -7,12 +7,7 @@ from abc import ABC
 from typing import List
 
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode
-from beanmachine.ppl.compiler.bmg_types import (
-    BMGLatticeType,
-    Requirement,
-    UpperBound,
-    name_of_type,
-)
+from beanmachine.ppl.compiler.bmg_types import BMGLatticeType, Requirement, UpperBound
 
 
 class BMGError(ABC):
@@ -39,8 +34,8 @@ class Violation(BMGError):
         assert isinstance(t, BMGLatticeType)
         msg = (
             f"The {self.edge} of a {self.consumer.label} "
-            + f"is required to be a {name_of_type(t)} "
-            + f"but is a {name_of_type(self.node.inf_type)}."
+            + f"is required to be a {t.long_name} "
+            + f"but is a {self.node.inf_type.long_name}."
         )
         return msg
 
