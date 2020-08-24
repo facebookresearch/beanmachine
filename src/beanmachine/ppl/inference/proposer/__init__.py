@@ -5,6 +5,9 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteNewtonianMonteCarloProposer,
 )
+from beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer import (
+    SingleSiteNoUTurnSamplerProposer,
+)
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
@@ -13,5 +16,6 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
 __all__ = [
     "SingleSiteAncestralProposer",
     "SingleSiteNewtonianMonteCarloProposer",
+    "SingleSiteNoUTurnSamplerProposer",
     "SingleSiteUniformProposer",
 ]
