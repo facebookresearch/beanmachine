@@ -272,7 +272,7 @@ error is added to the error report."""
         # * The requirement is an upper-bound requirement, and the inf type
         #   meets it. Convert the node to the inf type.
 
-        if isinstance(requirement, type):
+        if isinstance(requirement, BMGLatticeType):
             result = self._convert_node(node, requirement, consumer, edge)
         else:
             result = self._convert_node(node, it, consumer, edge)
