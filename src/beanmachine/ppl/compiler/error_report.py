@@ -7,7 +7,12 @@ from abc import ABC
 from typing import List
 
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode
-from beanmachine.ppl.compiler.bmg_types import Requirement, UpperBound, name_of_type
+from beanmachine.ppl.compiler.bmg_types import (
+    BMGLatticeType,
+    Requirement,
+    UpperBound,
+    name_of_type,
+)
 
 
 class BMGError(ABC):
@@ -29,12 +34,9 @@ class Violation(BMGError):
         self.edge = edge
 
     def __str__(self) -> str:
-        t = (
-            self.requirement.bound
-            if isinstance(self.requirement, UpperBound)
-            else self.requirement
-        )
-        assert isinstance(t, type)
+        r = self.requirement
+        t = r.bound if isinstance(r, UpperBound) else r
+        assert isinstance(t, BMGLatticeType)
         msg = (
             f"The {self.edge} of a {self.consumer.label} "
             + f"is required to be a {name_of_type(t)} "

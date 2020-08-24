@@ -8,13 +8,17 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
+    Tensor,
     meets_requirement,
     supremum,
     type_of_value,
     upper_bound,
 )
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
-from torch import Tensor, tensor
+from torch import tensor
+
+
+# TODO: Tensor type will be removed in favor of matrix types soon.
 
 
 class BMGTypesTest(unittest.TestCase):

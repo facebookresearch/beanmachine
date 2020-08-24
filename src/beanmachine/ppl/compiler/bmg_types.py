@@ -2,8 +2,8 @@
 
 from typing import Any, Union
 
+import torch
 from beanmachine.ppl.utils.memoize import memoize
-from torch import Tensor
 
 
 """This module contains type definitions used as markers
@@ -17,9 +17,9 @@ types in the BMG type system are:
 
 Unknown       -- we largely do not need to worry about this one,
                  and it is more "undefined" than "unknown"
-Boolean       -- we can just use bool
-Real          -- we can just use float, but we'll make an alias Real
-Tensor        -- we can just use Tensor
+Boolean
+Real
+Tensor        -- this will be removed in favor of matrix types
 Probability   -- a real between 0.0 and 1.0
 Positive Real -- what it says on the tin
 Natural       -- a non-negative integer
@@ -27,7 +27,7 @@ Natural       -- a non-negative integer
 The type definitions are the objects which represent the last three.
 
 During construction of a graph we may create nodes which need to be
-"fixed up" later; for example, a multiplication node with a tensor
+"fixed up" later; for example, a multiplication node with a probability
 on one side and a real on the other cannot be represented in the BMG
 type system. We will mark such nodes as having the "Malformed" type.
 """
@@ -38,28 +38,21 @@ type system. We will mark such nodes as having the "Malformed" type.
 #                      for the input to a categorical.
 
 
-class Probability:
+class BMGLatticeType:
     pass
 
 
-class PositiveReal:
-    pass
+Probability = BMGLatticeType()
+PositiveReal = BMGLatticeType()
+Natural = BMGLatticeType()
+Malformed = BMGLatticeType()
+Real = BMGLatticeType()
+Boolean = BMGLatticeType()
 
+# This will soon be eliminated in favour of types
+# matrix-of-real, matrix-of-positive-real, and so on.
+Tensor = BMGLatticeType()
 
-class Natural:
-    pass
-
-
-class Malformed:
-    pass
-
-
-Real = float
-Boolean = bool
-
-BMGLatticeType = Union[type]
-# Union is necessary to work around aliasing bugs in Pyre.
-# Eventually this will be its own class.
 
 """
 When converting from an accumulated graph that uses Python types, we
@@ -229,7 +222,7 @@ greater than or equal to all of them."""
 
 def type_of_value(v: Any) -> BMGLatticeType:
     """This computes the smallest BMG type that a given value fits into."""
-    if isinstance(v, Tensor):
+    if isinstance(v, torch.Tensor):
         if v.numel() == 1:
             return type_of_value(float(v))  # pyre-fixme
         return Tensor
@@ -331,12 +324,12 @@ def short_name_of_type(t: BMGLatticeType) -> str:
 def name_of_requirement(r: Requirement) -> str:
     if isinstance(r, UpperBound):
         return "<=" + name_of_requirement(r.bound)
-    assert isinstance(r, type)
+    assert isinstance(r, BMGLatticeType)
     return name_of_type(r)
 
 
 def short_name_of_requirement(r: Requirement) -> str:
     if isinstance(r, UpperBound):
         return "<=" + short_name_of_requirement(r.bound)
-    assert isinstance(r, type)
+    assert isinstance(r, BMGLatticeType)
     return short_name_of_type(r)
