@@ -483,7 +483,9 @@ class ICInference(AbstractMHInference):
                 def _func(x):
                     mix = dist.Categorical(logits=x[:k])
                     comp = dist.Independent(
-                        dist.Normal(loc=x[k : 2 * k], scale=x[2 * k : 3 * k],),
+                        dist.Normal(
+                            loc=x[k : 2 * k], scale=torch.exp(x[2 * k : 3 * k]),
+                        ),
                         reinterpreted_batch_ndims=0,
                     )
                     return dist.MixtureSameFamily(mix, comp)
@@ -499,7 +501,9 @@ class ICInference(AbstractMHInference):
                     comp = dist.Independent(
                         dist.Normal(
                             loc=x[k : k + 2 * k * d].reshape(k, d),
-                            scale=x[k + 2 * k * d : k + 3 * k * d].reshape(k, d),
+                            scale=torch.exp(x[k + 2 * k * d : k + 3 * k * d]).reshape(
+                                k, d
+                            ),
                         ),
                         reinterpreted_batch_ndims=1,
                     )
