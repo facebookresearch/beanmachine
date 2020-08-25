@@ -17,6 +17,10 @@ class ToplevelSmokeTest(unittest.TestCase):
         def foo_sum(n):
             return sum(foo(i) for i in range(n))
 
+        @bm.random_variable
+        def bar():
+            return dist.Normal(0, 1)
+
         # exercise invocation from top-level package directly
         # Compositional Inference
         samples = bm.CompositionalInference().infer(
@@ -26,4 +30,10 @@ class ToplevelSmokeTest(unittest.TestCase):
 
         # Rejection Sampling
         samples = bm.RejectionSampling().infer([foo_sum(2)], {foo(0): False}, 1000, 1)
+        bm.Diagnostics(samples)
+
+        # NUTS
+        samples = bm.SingleSiteNoUTurnSampler().infer(
+            [bar()], {foo(0): tensor(0.0)}, 500, 1, num_adaptive_samples=500
+        )
         bm.Diagnostics(samples)

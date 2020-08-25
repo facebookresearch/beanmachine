@@ -16,6 +16,8 @@ from beanmachine.ppl.inference.single_site_uniform_mh import (
     SingleSiteUniformMetropolisHastings,
 )
 
+from .single_site_no_u_turn_sampler import SingleSiteNoUTurnSampler
+
 
 __all__ = [
     "CompositionalInference",
@@ -23,6 +25,7 @@ __all__ = [
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
     "SingleSiteNewtonianMonteCarlo",
+    "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
     "Predictive",
