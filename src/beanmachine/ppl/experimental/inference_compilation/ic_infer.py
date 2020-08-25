@@ -30,9 +30,7 @@ LOGGER_IC = logging.getLogger("beanmachine.debug.ic")
 # Markov Blanket explicitly because the `World`s encountered during training
 # are sampled from the generative model i.e. without conditioning on any
 # `observations`
-ProposerFunc = Callable[
-    [World, Iterable[RVIdentifier], Dict[RVIdentifier, Tensor]], dist.Distribution
-]
+ProposerFunc = Callable[[World, Iterable[RVIdentifier]], dist.Distribution]
 
 
 class ICProposer(AbstractSingleSiteSingleStepProposer):
@@ -52,9 +50,8 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         world: World,
         auxiliary_variables: Dict,
     ) -> Tuple[ProposalDistribution, Dict]:
-        observations = world.observations_
         markov_blanket = world.get_markov_blanket(node)
-        proposal_distribution = self._proposer_func(world, markov_blanket, observations)
+        proposal_distribution = self._proposer_func(world, markov_blanket)
         LOGGER_IC.log(
             logging.DEBUG,
             f"{node}={node_var.value} proposing with {proposal_distribution}",
@@ -97,9 +94,7 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         """
         node_var = world.get_node_in_world_raise_error(node)
         markov_blanket = world.get_markov_blanket(node)
-        proposal_distribution = self._proposer_func(
-            world, markov_blanket, world.observations_
-        )
+        proposal_distribution = self._proposer_func(world, markov_blanket)
 
         optimizer = self._optimizer
         # pyre-fixme
@@ -362,9 +357,7 @@ class ICInference(AbstractMHInference):
         _, proposal_dist_constructor = self._proposal_distribution_for_node(node)
 
         def _proposer_func(
-            world: World,
-            markov_blanket: Iterable[RVIdentifier],
-            observations: Dict[RVIdentifier, Tensor],
+            world: World, markov_blanket: Iterable[RVIdentifier],
         ) -> dist.Distribution:
             node_embedding_nets = self._node_embedding_nets
             if node_embedding_nets is None:
