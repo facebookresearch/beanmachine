@@ -477,19 +477,41 @@ class ICInference(AbstractMHInference):
             or isinstance(support, dist.constraints._Simplex)
             or isinstance(support, dist.constraints._GreaterThan)
         ):
-            # TODO: use a GMM with compile-time configured # components
-            # TODO: try IAF density estimator
+            k = 1  # TODO: make configurable
             if ndim == 0:
-                return (2, lambda x: dist.Normal(loc=x[0], scale=torch.exp(x[1])))
+
+                def _func(x):
+                    mix = dist.Categorical(logits=x[:k])
+                    comp = dist.Independent(
+                        dist.Normal(loc=x[k : 2 * k], scale=x[2 * k : 3 * k],),
+                        reinterpreted_batch_ndims=0,
+                    )
+                    return dist.MixtureSameFamily(mix, comp)
+
+                return (3 * k, _func)
+                # return (2, lambda x: dist.Normal(loc=x[0], scale=torch.exp(x[1])))
             else:
                 # TODO: non-diagonal covariance matrix and/or 2D GMM
                 d = sample_val.shape[0]
-                return (
-                    2 * d,
-                    lambda x: dist.MultivariateNormal(
-                        loc=x[:d], covariance_matrix=torch.diag(torch.exp(x[d : 2 * d]))
-                    ),
-                )
+
+                def _func(x):
+                    mix = dist.Categorical(logits=x[:k])
+                    comp = dist.Independent(
+                        dist.Normal(
+                            loc=x[k : k + 2 * k * d].reshape(k, d),
+                            scale=x[k + 2 * k * d : k + 3 * k * d].reshape(k, d),
+                        ),
+                        reinterpreted_batch_ndims=1,
+                    )
+                    return dist.MixtureSameFamily(mix, comp)
+
+                return (k + 3 * k * d, _func)
+                # return (
+                #     2 * d,
+                #     lambda x: dist.MultivariateNormal(
+                #         loc=x[:d], covariance_matrix=torch.diag(torch.exp(x[d : 2 * d]))
+                #     ),
+                # )
         elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
             distribution, dist.Categorical
         ):
