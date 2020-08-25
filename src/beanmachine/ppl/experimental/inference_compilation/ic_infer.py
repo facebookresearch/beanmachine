@@ -357,7 +357,7 @@ class ICInference(AbstractMHInference):
         _, proposal_dist_constructor = self._proposal_distribution_for_node(node)
 
         def _proposer_func(
-            world: World, markov_blanket: Iterable[RVIdentifier],
+            world: World, markov_blanket: Iterable[RVIdentifier]
         ) -> dist.Distribution:
             node_embedding_nets = self._node_embedding_nets
             if node_embedding_nets is None:
