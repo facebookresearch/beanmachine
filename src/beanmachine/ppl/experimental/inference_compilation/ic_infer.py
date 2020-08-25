@@ -504,16 +504,14 @@ class ICInference(AbstractMHInference):
                     mix = dist.Categorical(logits=x[:k])
                     comp = dist.Independent(
                         dist.Normal(
-                            loc=x[k : k + 2 * k * d].reshape(k, d),
-                            scale=torch.exp(x[k + 2 * k * d : k + 3 * k * d]).reshape(
-                                k, d
-                            ),
+                            loc=x[k : k + k * d].reshape(k, d),
+                            scale=torch.exp(x[k + k * d : k + 2 * k * d]).reshape(k, d),
                         ),
                         reinterpreted_batch_ndims=1,
                     )
                     return dist.MixtureSameFamily(mix, comp)
 
-                return (k + 3 * k * d, _func)
+                return (k + 2 * k * d, _func)
         elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
             distribution, dist.Categorical
         ):
