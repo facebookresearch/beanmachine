@@ -489,7 +489,7 @@ class ICInference(AbstractMHInference):
                     mix = dist.Categorical(logits=x[:k])
                     comp = dist.Independent(
                         dist.Normal(
-                            loc=x[k : 2 * k], scale=torch.exp(x[2 * k : 3 * k]),
+                            loc=x[k : 2 * k], scale=torch.exp(x[2 * k : 3 * k])
                         ),
                         reinterpreted_batch_ndims=0,
                     )
