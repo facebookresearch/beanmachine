@@ -4,6 +4,7 @@ import unittest
 
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
+    BooleanMatrix,
     Natural,
     PositiveReal,
     Probability,
@@ -16,9 +17,6 @@ from beanmachine.ppl.compiler.bmg_types import (
 )
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import tensor
-
-
-# TODO: Tensor type will be removed in favor of matrix types soon.
 
 
 class BMGTypesTest(unittest.TestCase):
@@ -119,3 +117,15 @@ digraph "graph" {
   N07 -> N09[label="operand:B"];
 }"""
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_matrix_types(self) -> None:
+        """test_matrix_types"""
+        b22 = BooleanMatrix(2, 2)
+        b33 = BooleanMatrix(3, 3)
+
+        # Reference equality
+        self.assertEqual(b22, BooleanMatrix(2, 2))
+        self.assertNotEqual(b22, b33)
+
+        self.assertEqual(b22.short_name, "MB[2,2]")
+        self.assertEqual(b22.long_name, "2 x 2 bool matrix")

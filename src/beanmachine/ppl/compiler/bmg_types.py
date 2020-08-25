@@ -1,10 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from abc import abstractmethod
 from typing import Any, Union
 
 import torch
 from beanmachine.ppl.utils.memoize import memoize
 
+
+# TODO: Update this comment
 
 """This module contains type definitions used as markers
 for BMG types not represented in the Python type system.
@@ -34,8 +37,7 @@ type system. We will mark such nodes as having the "Malformed" type.
 
 # TODO: We might also need:
 # * Bounded natural -- a sample from a categorical
-# * Simplex         -- a vector of probabilities that adds to 1.0,
-#                      for the input to a categorical.
+# * Positive definite -- a real matrix with positive eigenvalues
 
 
 class BMGLatticeType:
@@ -47,17 +49,160 @@ class BMGLatticeType:
         self.long_name = long_name
 
 
+# I want to keep the marker values for "elements of this matrix are
+# R, R+, P, N, B" separate from the hierarchy that expresses "this is
+# a scalar R, R+, P, N, B" because in an upcoming diff I am going to
+# eliminate "scalar R, R+, P, N, B" entirely from our type analysis;
+# if we determine that a thing is a scalar probability, we will simply
+# express that as being a [1,1] matrix of probabilities. When two
+# types are freely convertible to each other and have all the same
+# operations, you might as well treat them as the same type and
+# simplify the whole system.
+
+
+class BMGElementType:
+    short_name: str
+    long_name: str
+
+    def __init__(self, short_name: str, long_name: str) -> None:
+        self.short_name = short_name
+        self.long_name = long_name
+
+
+bool_element = BMGElementType("B", "bool")
+natural_element = BMGElementType("N", "natural")
+probability_element = BMGElementType("P", "probability")
+positive_real_element = BMGElementType("R+", "positive real")
+real_element = BMGElementType("R", "real")
+
+
+class BMGMatrixType(BMGLatticeType):
+    element_type: BMGElementType
+    rows: int
+    columns: int
+
+    def __init__(
+        self,
+        element_type: BMGElementType,
+        short_name: str,
+        long_name: str,
+        rows: int,
+        columns: int,
+    ) -> None:
+        BMGLatticeType.__init__(self, short_name, long_name)
+        self.element_type = element_type
+        self.rows = rows
+        self.columns = columns
+
+    @abstractmethod
+    def with_dimensions(self, rows: int, columns: int) -> "BMGMatrixType":
+        pass
+
+
+class BroadcastMatrixType(BMGMatrixType):
+    def __init__(self, element_type: BMGElementType, rows: int, columns: int) -> None:
+        BMGMatrixType.__init__(
+            self,
+            bool_element,
+            f"M{element_type.short_name}[{rows},{columns}]",
+            f"{rows} x {columns} {element_type.long_name} matrix",
+            rows,
+            columns,
+        )
+
+
+# Note that all matrix type constructors are memoized in their initializer
+# arguments; that way we ensure that any two MR[2,2]s are reference equal,
+# which is a nice property to have.
+
+
+@memoize
+class BooleanMatrix(BroadcastMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BroadcastMatrixType.__init__(self, bool_element, rows, columns)
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return BooleanMatrix(rows, columns)
+
+
+@memoize
+class NaturalMatrix(BroadcastMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BroadcastMatrixType.__init__(self, natural_element, rows, columns)
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return NaturalMatrix(rows, columns)
+
+
+@memoize
+class ProbabilityMatrix(BroadcastMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BroadcastMatrixType.__init__(self, probability_element, rows, columns)
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return ProbabilityMatrix(rows, columns)
+
+
+@memoize
+class PositiveRealMatrix(BroadcastMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BroadcastMatrixType.__init__(self, positive_real_element, rows, columns)
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return PositiveRealMatrix(rows, columns)
+
+
+@memoize
+class RealMatrix(BroadcastMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BroadcastMatrixType.__init__(self, real_element, rows, columns)
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return RealMatrix(rows, columns)
+
+
+@memoize
+class SimplexMatrix(BMGMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BMGMatrixType.__init__(
+            self,
+            probability_element,
+            f"S[{rows},{columns}]",
+            f"{rows} x {columns} simplex matrix",
+            rows,
+            columns,
+        )
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return SimplexMatrix(rows, columns)
+
+
+@memoize
+class OneHotMatrix(BMGMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BMGMatrixType.__init__(
+            self,
+            bool_element,
+            f"OH[{rows},{columns}]",
+            f"{rows} x {columns} one-hot matrix",
+            rows,
+            columns,
+        )
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return OneHotMatrix(rows, columns)
+
+
 Probability = BMGLatticeType("P", "probability")
 PositiveReal = BMGLatticeType("R+", "positive real")
 Natural = BMGLatticeType("N", "natural")
 Malformed = BMGLatticeType("M", "malformed")
 Real = BMGLatticeType("R", "real")
 Boolean = BMGLatticeType("B", "bool")
-
-# This will soon be eliminated in favour of types
-# matrix-of-real, matrix-of-positive-real, and so on.
 Tensor = BMGLatticeType("T", "tensor")
 
+
+# TODO: Update this comment
 
 """
 When converting from an accumulated graph that uses Python types, we
@@ -164,6 +309,8 @@ the input types are the same, and the output type is the smallest type it
 could possibly be: PositiveReal.
 """
 
+# TODO: Update this algorithm
+
 # This computes the supremum of two types.
 
 # There are only 36 pairs; we can just list them.
@@ -223,6 +370,9 @@ greater than or equal to all of them."""
     for t in ts:
         result = _supremum(result, t)
     return result
+
+
+# TODO: Update this algorithm
 
 
 def type_of_value(v: Any) -> BMGLatticeType:
