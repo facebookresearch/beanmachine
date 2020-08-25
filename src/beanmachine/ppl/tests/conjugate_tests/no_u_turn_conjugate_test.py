@@ -4,9 +4,7 @@ import unittest
 from beanmachine.ppl.inference.single_site_no_u_turn_sampler import (
     SingleSiteNoUTurnSampler,
 )
-from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
-    AbstractConjugateTests,
-)
+from beanmachine.ppl.testlib.abstract_conjugate import AbstractConjugateTests
 
 
 class SingleSiteNoUTurnConjugateTest(unittest.TestCase, AbstractConjugateTests):
