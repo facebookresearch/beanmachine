@@ -4,10 +4,11 @@ from typing import Dict, List, Optional
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from beanmachine.ppl.inference.single_site_ancestral_mh import (
+    SingleSiteAncestralMetropolisHastings,
+)
 from beanmachine.ppl.model.utils import RVIdentifier
 from torch.distributions import Categorical
-
-from .single_site_ancestral_mh import SingleSiteAncestralMetropolisHastings
 
 
 def _concat_rv_dicts(rvdict: List) -> Dict:

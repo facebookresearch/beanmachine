@@ -1,7 +1,11 @@
-from . import experimental
-from .diagnostics import Diagnostics
-from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
-from .inference import (
+from beanmachine.ppl import experimental
+from beanmachine.ppl.diagnostics import Diagnostics
+from beanmachine.ppl.diagnostics.common_statistics import (
+    effective_sample_size,
+    r_hat,
+    split_r_hat,
+)
+from beanmachine.ppl.inference import (
     CompositionalInference,
     Predictive,
     RejectionSampling,
@@ -14,7 +18,7 @@ from .inference import (
     empirical,
     simulate,
 )
-from .model import functional, get_beanmachine_logger, random_variable
+from beanmachine.ppl.model import functional, get_beanmachine_logger, random_variable
 
 
 LOGGER = get_beanmachine_logger()

@@ -8,20 +8,19 @@ import torch
 import torch.distributions as dist
 import torch.nn as nn
 import torch.optim as optim
-from torch import Tensor, tensor
-from tqdm.auto import tqdm  # pyre-ignore
-
-from ...inference.abstract_infer import AbstractInference
-from ...inference.abstract_mh_infer import AbstractMHInference
-from ...inference.proposer.abstract_single_site_single_step_proposer import (
+from beanmachine.ppl.experimental.inference_compilation import utils
+from beanmachine.ppl.inference.abstract_infer import AbstractInference
+from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
+from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
 )
-from ...inference.proposer.single_site_ancestral_proposer import (
+from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from ...model.utils import RVIdentifier
-from ...world import ProposalDistribution, Variable, World
-from . import utils
+from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from torch import Tensor, tensor
+from tqdm.auto import tqdm  # pyre-ignore
 
 
 LOGGER_IC = logging.getLogger("beanmachine.debug.ic")

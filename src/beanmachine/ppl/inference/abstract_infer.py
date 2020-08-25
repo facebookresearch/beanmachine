@@ -7,13 +7,12 @@ from typing import ClassVar, Dict, List
 
 import torch
 import torch.multiprocessing as mp
+from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from beanmachine.ppl.model.statistical_model import StatisticalModel
+from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
+from beanmachine.ppl.world import World
 from torch import Tensor
 from torch.multiprocessing import Queue
-
-from ..model.statistical_model import StatisticalModel
-from ..model.utils import LogLevel, RVIdentifier
-from ..world import World
-from .monte_carlo_samples import MonteCarloSamples
 
 
 class VerboseLevel(Enum):

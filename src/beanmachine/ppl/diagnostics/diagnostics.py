@@ -8,12 +8,11 @@ from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import plotly
+from beanmachine.ppl.diagnostics import common_plots, common_statistics as common_stats
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.utils import RVIdentifier
 from plotly.subplots import make_subplots
 from torch import Tensor
-
-from . import common_plots, common_statistics as common_stats
 
 
 class BaseDiagnostics:

@@ -2,12 +2,11 @@
 from typing import List, Optional
 
 from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
-from beanmachine.ppl.model.utils import RVIdentifier
-from beanmachine.ppl.world.world import TransformType
-
-from .proposer.single_site_no_u_turn_sampler_proposer import (
+from beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer import (
     SingleSiteNoUTurnSamplerProposer,
 )
+from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.world.world import TransformType
 
 
 class SingleSiteNoUTurnSampler(AbstractMHInference):

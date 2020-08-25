@@ -3,8 +3,7 @@ from typing import NamedTuple
 
 import numpy as np
 import pandas as pd
-
-from .nmc import obtain_posterior
+from beanmachine.applications.clara.nmc import obtain_posterior
 
 
 logger = logging.getLogger(__name__)
