@@ -39,19 +39,24 @@ type system. We will mark such nodes as having the "Malformed" type.
 
 
 class BMGLatticeType:
-    pass
+    short_name: str
+    long_name: str
+
+    def __init__(self, short_name: str, long_name: str) -> None:
+        self.short_name = short_name
+        self.long_name = long_name
 
 
-Probability = BMGLatticeType()
-PositiveReal = BMGLatticeType()
-Natural = BMGLatticeType()
-Malformed = BMGLatticeType()
-Real = BMGLatticeType()
-Boolean = BMGLatticeType()
+Probability = BMGLatticeType("P", "probability")
+PositiveReal = BMGLatticeType("R+", "positive real")
+Natural = BMGLatticeType("N", "natural")
+Malformed = BMGLatticeType("M", "malformed")
+Real = BMGLatticeType("R", "real")
+Boolean = BMGLatticeType("B", "bool")
 
 # This will soon be eliminated in favour of types
 # matrix-of-real, matrix-of-positive-real, and so on.
-Tensor = BMGLatticeType()
+Tensor = BMGLatticeType("T", "tensor")
 
 
 """
@@ -292,44 +297,15 @@ def meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
     return t == r
 
 
-_type_names = {
-    Boolean: "bool",
-    Malformed: "malformed",
-    Natural: "natural",
-    PositiveReal: "positive real",
-    Real: "real",
-    Probability: "probability",
-    Tensor: "tensor",
-}
-
-_short_type_names = {
-    Boolean: "B",
-    Malformed: "M",
-    Natural: "N",
-    PositiveReal: "R+",
-    Real: "R",
-    Probability: "P",
-    Tensor: "T",
-}
-
-
-def name_of_type(t: BMGLatticeType) -> str:
-    return _type_names[t]
-
-
-def short_name_of_type(t: BMGLatticeType) -> str:
-    return _short_type_names[t]
-
-
 def name_of_requirement(r: Requirement) -> str:
     if isinstance(r, UpperBound):
         return "<=" + name_of_requirement(r.bound)
     assert isinstance(r, BMGLatticeType)
-    return name_of_type(r)
+    return r.long_name
 
 
 def short_name_of_requirement(r: Requirement) -> str:
     if isinstance(r, UpperBound):
         return "<=" + short_name_of_requirement(r.bound)
     assert isinstance(r, BMGLatticeType)
-    return short_name_of_type(r)
+    return r.short_name
