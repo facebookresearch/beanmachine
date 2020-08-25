@@ -273,9 +273,13 @@ def type_of_value(v: Any) -> BMGLatticeType:
 
 class UpperBound:
     bound: BMGLatticeType
+    short_name: str
+    long_name: str
 
     def __init__(self, bound: BMGLatticeType) -> None:
         self.bound = bound
+        self.short_name = f"<={bound.short_name}"
+        self.long_name = f"<={bound.long_name}"
 
 
 Requirement = Union[BMGLatticeType, UpperBound]
@@ -295,17 +299,3 @@ def meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
     if isinstance(r, UpperBound):
         return _supremum(t, r.bound) == r.bound
     return t == r
-
-
-def name_of_requirement(r: Requirement) -> str:
-    if isinstance(r, UpperBound):
-        return "<=" + name_of_requirement(r.bound)
-    assert isinstance(r, BMGLatticeType)
-    return r.long_name
-
-
-def short_name_of_requirement(r: Requirement) -> str:
-    if isinstance(r, UpperBound):
-        return "<=" + short_name_of_requirement(r.bound)
-    assert isinstance(r, BMGLatticeType)
-    return r.short_name

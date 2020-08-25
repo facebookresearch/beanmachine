@@ -110,7 +110,6 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
-    short_name_of_requirement,
 )
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
@@ -1092,7 +1091,7 @@ they were created."""
             ):
                 edge_label = edge_name
                 if edge_requirements:
-                    edge_label += ":" + short_name_of_requirement(req)
+                    edge_label += ":" + req.short_name
                 # Bayesian networks are typically drawn with the arrows
                 # in the direction of data flow, not in the direction
                 # of dependency.
