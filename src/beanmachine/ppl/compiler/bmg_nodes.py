@@ -19,6 +19,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Probability,
     Real,
     Requirement,
+    Tensor as BMGTensor,
     supremum,
     type_of_value,
     upper_bound,
@@ -27,6 +28,8 @@ from beanmachine.ppl.compiler.internal_error import InternalError
 from torch import Tensor, tensor
 from torch.distributions.utils import broadcast_all
 
+
+# TODO: BMGTensor will be eliminated soon in favor of matrix types.
 
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
@@ -460,7 +463,7 @@ class TensorNode(ConstantNode):
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        return Tensor
+        return BMGTensor
 
     @property
     def size(self) -> torch.Size:
@@ -866,7 +869,7 @@ we generate a different node in BMG."""
         # TODO: We do not yet support categoricals in BMG and when we do,
         # we will likely need to implement a simplex type rather than
         # a tensor. Fix this up when categoricals are implemented.
-        return [Tensor]
+        return [BMGTensor]
 
     @property
     def size(self) -> torch.Size:
@@ -963,11 +966,11 @@ distribution."""
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        return Tensor
+        return BMGTensor
 
     @property
     def inf_type(self) -> BMGLatticeType:
-        return Tensor
+        return BMGTensor
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -975,7 +978,7 @@ distribution."""
         # TODO: We do not yet support Dirichlet in BMG; when we do
         # verify that this is correct. Also, we may wish at that
         # time to also note that the sample type is a simplex.
-        return [Tensor]
+        return [BMGTensor]
 
     @property
     def size(self) -> torch.Size:
@@ -1753,7 +1756,7 @@ class DivisionNode(BinaryOperatorNode):
         lgt = self.left.graph_type
         if lgt != self.right.graph_type:
             return Malformed
-        if lgt != PositiveReal and lgt != Real and lgt != Tensor:
+        if lgt != PositiveReal and lgt != Real and lgt != BMGTensor:
             return Malformed
         return lgt
 
@@ -1856,7 +1859,7 @@ multiple control flows based on the value of a stochastic node."""
         it = self.inf_type
         # TODO: This isn't quite right; when we support this kind of node
         # in BMG, fix this.
-        return [upper_bound(Tensor), it] * (len(self.children) // 2)
+        return [upper_bound(BMGTensor), it] * (len(self.children) // 2)
 
     @property
     def size(self) -> torch.Size:
@@ -1916,7 +1919,7 @@ choose an element from the map."""
         it = self.inf_type
         # TODO: This isn't quite right; when we support this kind of node
         # in BMG, fix this.
-        return [upper_bound(Tensor), it]
+        return [upper_bound(BMGTensor), it]
 
     @property
     def size(self) -> torch.Size:

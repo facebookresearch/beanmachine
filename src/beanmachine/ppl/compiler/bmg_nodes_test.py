@@ -415,7 +415,7 @@ class ASTToolsTest(unittest.TestCase):
         # Probability x PositiveReal -> PositiveReal
         # Probability x Real -> Real
         self.assertEqual(
-            MultiplicationNode(beta, bern).requirements, [Probability, bool]
+            MultiplicationNode(beta, bern).requirements, [Probability, Boolean]
         )
         self.assertEqual(
             MultiplicationNode(beta, beta).requirements, [Probability, Probability]
