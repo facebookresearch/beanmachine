@@ -7,33 +7,51 @@ import torch
 from beanmachine.ppl.utils.memoize import memoize
 
 
-# TODO: Update this comment
-
-"""This module contains type definitions used as markers
-for BMG types not represented in the Python type system.
+"""This module contains class definitions and helper functions
+for describing the *types* of graph nodes and the *type restrictions*
+on graph edges.
 
 When we construct a graph we know all the "storage" types of
-the nodes -- Boolean, integer, float, tensor, and so on.
-But Bean Machine Graph requires that we ensure that "semantic"
-type associations are made to each node in the graph. The
-types in the BMG type system are:
+the nodes -- Boolean, integer, float, tensor -- as they were
+in the original Python program. BMG requires that we ensure
+that "semantic" type associations are made to each node in the graph.
+The types in the BMG type system are as follows:
 
-Unknown       -- we largely do not need to worry about this one,
-                 and it is more "undefined" than "unknown"
-Boolean
-Real
-Tensor        -- this will be removed in favor of matrix types
-Probability   -- a real between 0.0 and 1.0
-Positive Real -- what it says on the tin
-Natural       -- a non-negative integer
+* Unknown: a pseudo-type used as a marker when the type of
+  a node is undefined. We do not have to worry about this one.
 
-The type definitions are the objects which represent the last three.
+There are five "scalar" types:
 
-During construction of a graph we may create nodes which need to be
-"fixed up" later; for example, a multiplication node with a probability
-on one side and a real on the other cannot be represented in the BMG
-type system. We will mark such nodes as having the "Malformed" type.
+* Boolean (B)
+* Probability (P) -- a real between 0.0 and 1.0
+* Natural (N) -- a non-negative integer
+* Positive Real (R+)
+* Real (R)
+
+There are infinitely many "matrix" types, but they can be
+divided into the following kinds:
+
+* Matrix of booleans (MB[r, c])
+* Matrix of naturals (MN[r, c])
+* Matrix of probabilities (MP[r, c])
+* Matrix of positive reals (MR+[r, c])
+* Matrix of reals (MR[r, c])
+* Row simplex (S[r, c]): A restriction on MP[r, c] such that every row adds to 1.0.
+
+There are infinitely many because all matrix types track their number
+of rows and columns. All matrix types are two-dimensional, and the
+row and column counts are constants, not stochastic quantities.
+
+Because a scalar and a 1x1 matrix are effectively the same type,
+for the purposes of this analysis we will only consider matrix types.
+That is, we will make "Real" and "Probability" and so on aliases for
+"1x1 real matrix" and "1x1 probability matrix".
+
+To facilitate analysis, we organize the infinite set of types into a *lattice*.
+See below for further details.
 """
+
+# TODO: We have not yet made the scalar types into aliases for the 1x1 types.
 
 # TODO: We might also need:
 # * Bounded natural -- a sample from a categorical
@@ -201,8 +219,7 @@ Real = BMGLatticeType("R", "real")
 Boolean = BMGLatticeType("B", "bool")
 Tensor = BMGLatticeType("T", "tensor")
 
-
-# TODO: Update this comment
+# TODO: Add bottom type
 
 """
 When converting from an accumulated graph that uses Python types, we
@@ -220,19 +237,45 @@ lattice is a DAG which meets these conditions:
   (Right now we do not actually need this function in our
   type analysis so it is not implemented.)
 
-The type lattice of the BMG type system is:
+For matrix types with a single column and any number of rows r,
+and columns c, the type lattice is:
 
-          tensor
-            |
-          real
-            |
-         posreal
-         |     |
-        nat   prob
-          |   |
-          bool
+        M              (Malformed; the top type)
+        |
+        T              (Tensor unsupported by BMG)
+        |
+     MR[r,c]           (Real matrix)
+        |
+     MR+[r,c]          (Positive real matrix)
+     |      |
+MN[r,c]     |          (Natural matrix)
+     |   MP[r,c]       (Probability matrix)
+     |   |    |
+   MB[r,c]    |        (Boolean matrix)
+      |     S[r,c]     (Row-simplex matrix)
+      |     |
+      OH[r,c]          (One-hot matrix)
+        |
+      BOTTOM           (the bottom type)
 
-where bool is the smallest type and tensor is the largest.
+OH -- one-hot -- is not a type in the BMG type system; we use
+it only when analyzing the accumulated graph. The OH type is
+used to track the situation where a constant matrix can be
+converted to both a Boolean and a simplex matrix; if the
+rows are "one hot" -- all false (or 0) except for one true
+(or 1) -- then the matrix is convertable to both Boolean and
+simplex.
+
+Similarly, T (tensor) and M (malformed -- the top type) are not
+found in the BMG type system; we use these marker types for error
+reporting when a graph cannot be represented in BMG. The top type
+is the type more general than all other types, and is used for
+situations such as malformed arithmetic nodes. The semantics here
+are "no more specific valid type could be found".
+
+The BOTTOM type is the type that has no values; it is similarly
+used as a convenience when you need a type more specific than any
+other type; it is not in the BMG type system.
 
 Why is this useful?
 
@@ -256,13 +299,13 @@ to be met.
 
 How do we compute the requirements for an edge? It depends on the kind
 of graph node that the edge is attached to. A Bernoulli node, for example,
-requires that its input be "exactly Probability". A "to real" node requires
-that its input be "real or smaller".
+requires that its input be "exactly P". A "to real" node requires
+that its input be "R or smaller".
 
 Some nodes however introduce more complex requirements. The requirements
 of a multiplication node, for instance, are:
 
-* the input types must be greater than or equal to Probability
+* the input types must be greater than or equal to P
 * the input types must be exactly the same
 
 We do not have a requirement object for either "greater than or equal", or
@@ -274,7 +317,7 @@ input types so that the multiplication's type is minimized.
 (That is: if we have a multiplication of a natural by a probability, we do
 not wish to require that both be converted to reals, because then the
 multiplication node could not be used in a context where a positive real
-was required.)
+was required. We want the smallest type that works: positive real.)
 
 How are we going to do this?
 
