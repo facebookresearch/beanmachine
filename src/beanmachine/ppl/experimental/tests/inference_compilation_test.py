@@ -210,3 +210,37 @@ class InferenceCompilationTest(unittest.TestCase):
             num_samples=100,
             num_chains=1,
         )
+
+    def test_multiple_component_1d_gmm_density_estimator(self):
+        model = self.GMM(K=2)
+        ic = ICInference()
+        observations = {
+            model.x(0): tensor(1.0),
+            model.x(1): tensor(-1.0),
+            model.x(2): tensor(1.0),
+            model.x(3): tensor(-1.0),
+        }
+        ic.compile(observations.keys(), num_worlds=100, gmm_num_components=3)
+        queries = [model.mu(i) for i in range(model.K)]
+        ic_samples = ic.infer(queries, observations, num_samples=200, num_chains=1)
+
+        posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+
+    def test_multiple_component_2d_gmm_density_estimator(self):
+        model = self.GMM(K=2, d=2)
+        ic = ICInference()
+        observations = {
+            model.x(0): tensor([0.0, 1.0]),
+            model.x(1): tensor([0.0, -1.0]),
+            model.x(2): tensor([0.0, 1.0]),
+            model.x(3): tensor([0.0, -1.0]),
+        }
+        ic.compile(observations.keys(), num_worlds=500, gmm_num_components=3)
+        queries = [model.mu(i) for i in range(model.K)]
+        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+
+        posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)

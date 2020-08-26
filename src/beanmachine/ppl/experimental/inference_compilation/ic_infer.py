@@ -124,6 +124,7 @@ class ICInference(AbstractMHInference):
     _node_proposal_param_nets: Optional[Callable[[RVIdentifier], nn.Module]] = None
     _optimizer: Optional[optim.Optimizer] = None
     _proposers: Optional[Callable[[RVIdentifier], ICProposer]] = None
+    _GMM_NUM_COMPONENTS: int = 1  # number of components in GMM density estimators
     _NODE_ID_EMBEDDING_DIM: int = 0  # embedding dimension for RVIdentifier
     _NODE_EMBEDDING_DIM: int = 4  # embedding dimension for node values
     _OBS_EMBEDDING_DIM: int = 4  # embedding dimension for observations
@@ -158,6 +159,7 @@ class ICInference(AbstractMHInference):
         mb_num_layers: Optional[int] = None,
         node_proposal_num_layers: Optional[int] = None,
         entropy_regularization_coefficient: Optional[float] = None,
+        gmm_num_components: Optional[int] = None,
     ) -> "ICInference":
         """
         Trains neural network proposers for all unobserved variables encountered
@@ -178,6 +180,7 @@ class ICInference(AbstractMHInference):
         :param node_proposal_num_layers: number of layers in proposal parameter FFW NN
         :param entropy_regularization_coefficient: coefficient for entropy regularization
         term in training loss function
+        :param gmm_num_components: number of components in GMM density estimators
         """
         if len(observation_keys) == 0:
             raise Exception("Expected at least one observation RVIdentifier")
@@ -200,6 +203,8 @@ class ICInference(AbstractMHInference):
             self._ENTROPY_REGULARIZATION_COEFFICIENT = (
                 entropy_regularization_coefficient
             )
+        if gmm_num_components:
+            self._GMM_NUM_COMPONENTS = gmm_num_components
 
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
         AbstractInference.set_seed_for_chain(random_seed, 0)
@@ -477,19 +482,36 @@ class ICInference(AbstractMHInference):
             or isinstance(support, dist.constraints._Simplex)
             or isinstance(support, dist.constraints._GreaterThan)
         ):
-            # TODO: use a GMM with compile-time configured # components
-            # TODO: try IAF density estimator
+            k = self._GMM_NUM_COMPONENTS
             if ndim == 0:
-                return (2, lambda x: dist.Normal(loc=x[0], scale=torch.exp(x[1])))
+
+                def _func(x):
+                    mix = dist.Categorical(logits=x[:k])
+                    comp = dist.Independent(
+                        dist.Normal(
+                            loc=x[k : 2 * k], scale=torch.exp(x[2 * k : 3 * k])
+                        ),
+                        reinterpreted_batch_ndims=0,
+                    )
+                    return dist.MixtureSameFamily(mix, comp)
+
+                return (3 * k, _func)
             else:
-                # TODO: non-diagonal covariance matrix and/or 2D GMM
+                # TODO: non-diagonal covariance
                 d = sample_val.shape[0]
-                return (
-                    2 * d,
-                    lambda x: dist.MultivariateNormal(
-                        loc=x[:d], covariance_matrix=torch.diag(torch.exp(x[d : 2 * d]))
-                    ),
-                )
+
+                def _func(x):
+                    mix = dist.Categorical(logits=x[:k])
+                    comp = dist.Independent(
+                        dist.Normal(
+                            loc=x[k : k + k * d].reshape(k, d),
+                            scale=torch.exp(x[k + k * d : k + 2 * k * d]).reshape(k, d),
+                        ),
+                        reinterpreted_batch_ndims=1,
+                    )
+                    return dist.MixtureSameFamily(mix, comp)
+
+                return (k + 2 * k * d, _func)
         elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
             distribution, dist.Categorical
         ):
