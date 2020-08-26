@@ -93,9 +93,9 @@ commands:
 
 jobs:
 
-  dev_install_test_py36_pip:
+  dev_install_test_py37_pip:
     docker:
-      - image: circleci/python:3.6.9
+      - image: circleci/python:3.7
     steps:
       - apt_get_install_deps
       - pip_install_deps
@@ -103,9 +103,9 @@ jobs:
       - dev_install
       - dev_unit_tests
 
-  user_install_test_py36_pip:
+  user_install_test_py37_pip:
     docker:
-      - image: circleci/python:3.6.9
+      - image: circleci/python:3.7
     steps:
       - apt_get_install_deps
       - pip_install_deps
@@ -113,9 +113,9 @@ jobs:
       - user_install
       - user_unit_tests
 
-  lint_py36_pip:
+  lint_py37_pip:
     docker:
-      - image: circleci/python:3.6.9
+      - image: circleci/python:3.7
     steps:
       - checkout
       - pip_lint_install
@@ -137,11 +137,11 @@ workflows:
 
   lint_and_test:
     jobs:
-      - lint_py36_pip:
+      - lint_py37_pip:
           filters: *exclude_ghpages_fbconfig
 
-      - dev_install_test_py36_pip:
+      - dev_install_test_py37_pip:
           filters: *exclude_ghpages_fbconfig
 
-      - user_install_test_py36_pip:
+      - user_install_test_py37_pip:
           filters: *exclude_ghpages_fbconfig

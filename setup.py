@@ -128,10 +128,9 @@ setup(
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         "torch>=1.6.0",
-        "dataclasses>=0.6",
         "pandas>=0.24.2",
         "plotly>=2.2.1",
         "scipy>=0.16",
