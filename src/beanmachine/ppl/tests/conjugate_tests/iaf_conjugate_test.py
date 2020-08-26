@@ -4,9 +4,7 @@ import unittest
 import torch
 from beanmachine.ppl.experimental.neutra.iafmcmc_infer import IAFMCMCinference
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
-from beanmachine.ppl.tests.conjugate_tests.abstract_conjugate import (
-    AbstractConjugateTests,
-)
+from beanmachine.ppl.testlib.abstract_conjugate import AbstractConjugateTests
 from torch import nn
 
 
