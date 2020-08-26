@@ -115,19 +115,25 @@ class SingleAssignment:
         self._count = self._count + 1
         return f"{prefix}{self._count}"
 
-    def freshName(
-        self, prefix: str, builder: Callable[[ast.Name, ast.Name], Any]
+    def fresh_names(
+        self,
+        prefix_list: List[str],
+        builder: Callable[[Callable[[str, str], ast.Name]], Any],
     ) -> Any:
+        # This function gives us a way to treat a list of new local variables by their
+        # original name, while giving them fresh names in the generated code to avoid name clashes
         # TODO: In the type this function, both instances of the type Any should
         # simply be the same type. It would be nice if there was a good way to use type variables
         # with Python
-        # TODO: Automatic indenttion makes uses of this function hard to read. It might be good
-        # to try to make a version that takes a list of name and returns two lookup functions for the
-        # two different variable cases.
-        id = self._unique_id(prefix)
-        return builder(
-            ast.Name(id=id, ctx=ast.Store()), ast.Name(id=id, ctx=ast.Load())
-        )
+        id = {prefix: self._unique_id(prefix) for prefix in prefix_list}
+        new_name_store = {
+            (p, "store"): ast.Name(id=id[p], ctx=ast.Store()) for p in prefix_list
+        }
+        new_name_load = {
+            (p, "load"): ast.Name(id=id[p], ctx=ast.Load()) for p in prefix_list
+        }
+        new_name = {**new_name_store, **new_name_load}
+        return builder(lambda prefix, hand_side: new_name[(prefix, hand_side)])
 
     def _transform_with_name(
         self,
@@ -815,52 +821,48 @@ class SingleAssignment:
         #          r.append(c)
         #    return r
         # y=p()
+        _empty_ast_arguments = ast.arguments(
+            args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
+        )
         return PatternRule(
             assign(value=ast_listComp()),
             lambda term: ListEdit(
-                self.freshName(
-                    "p",
-                    lambda p_lhs, p_rhs: self.freshName(
-                        "r",
-                        lambda r_lhs, r_rhs: [
-                            ast.FunctionDef(
-                                name=p_lhs.id,
-                                args=ast.arguments(
-                                    args=[],
-                                    vararg=None,
-                                    kwonlyargs=[],
-                                    kw_defaults=[],
-                                    kwarg=None,
-                                    defaults=[],
+                self.fresh_names(
+                    ["p", "r"],
+                    lambda new_name: [
+                        ast.FunctionDef(
+                            name=new_name("p", "store").id,
+                            args=_empty_ast_arguments,
+                            body=[
+                                ast.Assign(
+                                    targets=[new_name("r", "store")],
+                                    value=ast.List([], ast.Load()),
                                 ),
-                                body=[
-                                    ast.Assign(
-                                        targets=[r_lhs], value=ast.List([], ast.Load())
-                                    ),
-                                    self._nested_fors_and_ifs_of(
-                                        term.value.generators,
-                                        ast.Call(
-                                            func=ast.Attribute(
-                                                value=r_lhs,
-                                                attr="append",
-                                                ctx=ast.Load(),
-                                            ),
-                                            args=[term.value.elt],
-                                            keywords=[],
+                                self._nested_fors_and_ifs_of(
+                                    term.value.generators,
+                                    ast.Call(
+                                        func=ast.Attribute(
+                                            value=new_name("r", "load"),
+                                            attr="append",
+                                            ctx=ast.Load(),
                                         ),
+                                        args=[term.value.elt],
+                                        keywords=[],
                                     ),
-                                    ast.Return(r_rhs),
-                                ],
-                                decorator_list=[],
-                                returns=None,
-                                type_comment=None,
+                                ),
+                                ast.Return(new_name("r", "load")),
+                            ],
+                            decorator_list=[],
+                            returns=None,
+                            type_comment=None,
+                        ),
+                        ast.Assign(
+                            targets=term.targets,
+                            value=ast.Call(
+                                func=new_name("p", "load"), args=[], keywords=[]
                             ),
-                            ast.Assign(
-                                targets=term.targets,
-                                value=ast.Call(func=p_rhs, args=[], keywords=[]),
-                            ),
-                        ],
-                    ),
+                        ),
+                    ],
                 )
             ),
             "handle_assign_listComp",
