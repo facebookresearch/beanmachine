@@ -3,7 +3,6 @@
 #include <random>
 
 #include "beanmachine/graph/distribution/tabular.h"
-#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace distribution {
