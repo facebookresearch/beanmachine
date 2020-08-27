@@ -7,6 +7,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     BooleanMatrix,
     Natural,
     NaturalMatrix,
+    One,
     PositiveReal,
     PositiveRealMatrix,
     Probability,
@@ -58,23 +59,23 @@ class BMGTypesTest(unittest.TestCase):
     def test_type_of_value(self) -> None:
         """test_type_of_value"""
 
-        self.assertEqual(Boolean, type_of_value(True))
+        self.assertEqual(One, type_of_value(True))
         self.assertEqual(Boolean, type_of_value(False))
         self.assertEqual(Boolean, type_of_value(0))
-        self.assertEqual(Boolean, type_of_value(1))
+        self.assertEqual(One, type_of_value(1))
         self.assertEqual(Boolean, type_of_value(0.0))
-        self.assertEqual(Boolean, type_of_value(1.0))
+        self.assertEqual(One, type_of_value(1.0))
         self.assertEqual(Boolean, type_of_value(tensor(False)))
         self.assertEqual(Boolean, type_of_value(tensor(0)))
-        self.assertEqual(Boolean, type_of_value(tensor(1)))
+        self.assertEqual(One, type_of_value(tensor(1)))
         self.assertEqual(Boolean, type_of_value(tensor(0.0)))
-        self.assertEqual(Boolean, type_of_value(tensor(1.0)))
-        self.assertEqual(Boolean, type_of_value(tensor([[True]])))
+        self.assertEqual(One, type_of_value(tensor(1.0)))
+        self.assertEqual(One, type_of_value(tensor([[True]])))
         self.assertEqual(Boolean, type_of_value(tensor([[False]])))
         self.assertEqual(Boolean, type_of_value(tensor([[0]])))
-        self.assertEqual(Boolean, type_of_value(tensor([[1]])))
+        self.assertEqual(One, type_of_value(tensor([[1]])))
         self.assertEqual(Boolean, type_of_value(tensor([[0.0]])))
-        self.assertEqual(Boolean, type_of_value(tensor([[1.0]])))
+        self.assertEqual(One, type_of_value(tensor([[1.0]])))
         self.assertEqual(Natural, type_of_value(2))
         self.assertEqual(Natural, type_of_value(2.0))
         self.assertEqual(Natural, type_of_value(tensor(2)))
@@ -119,7 +120,7 @@ class BMGTypesTest(unittest.TestCase):
         observed = bmg.to_dot(True, True, True, True)
         expected = """
 digraph "graph" {
-  N00[label="1.0:T>=B"];
+  N00[label="1.0:T>=OH"];
   N01[label="2.0:T>=N"];
   N02[label="0.5:T>=P"];
   N03[label="Beta:P>=P"];

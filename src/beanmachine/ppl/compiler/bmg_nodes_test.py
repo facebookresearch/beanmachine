@@ -29,6 +29,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     Natural,
+    One,
     PositiveReal,
     Probability,
     Real,
@@ -51,12 +52,14 @@ class ASTToolsTest(unittest.TestCase):
         # Constants
 
         b = BooleanNode(True)
+        bf = BooleanNode(False)
         prob = ProbabilityNode(0.5)
         pos = PositiveRealNode(1.5)
         real = RealNode(-1.5)
         nat = NaturalNode(2)
 
-        self.assertEqual(b.inf_type, Boolean)
+        self.assertEqual(b.inf_type, One)
+        self.assertEqual(bf.inf_type, Boolean)
         self.assertEqual(prob.inf_type, Probability)
         self.assertEqual(pos.inf_type, PositiveReal)
         self.assertEqual(real.inf_type, Real)
@@ -65,8 +68,8 @@ class ASTToolsTest(unittest.TestCase):
         # Constant infimum type depends on the value,
         # not the type of the container.
 
-        self.assertEqual(ProbabilityNode(1.0).inf_type, Boolean)
-        self.assertEqual(NaturalNode(1).inf_type, Boolean)
+        self.assertEqual(ProbabilityNode(1.0).inf_type, One)
+        self.assertEqual(NaturalNode(1).inf_type, One)
         self.assertEqual(PositiveRealNode(2.0).inf_type, Natural)
         self.assertEqual(RealNode(2.5).inf_type, PositiveReal)
 
