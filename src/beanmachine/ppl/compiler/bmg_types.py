@@ -356,64 +356,77 @@ the input types are the same, and the output type is the smallest type it
 could possibly be: PositiveReal.
 """
 
-# TODO: Update this algorithm
 
-# This computes the supremum of two types.
+def _matrix_supremum(t: BMGMatrixType, u: BMGMatrixType) -> BMGMatrixType:  # noqa
+    # If we've made it here, they are unequal types but have the
+    # same dimensions, and both are matrix types.
+    assert t != u
+    assert t.rows == u.rows
+    assert t.columns == u.columns
+    r = t.rows
+    c = t.columns
+    if t == RealMatrix(r, c):
+        return t
+    if u == RealMatrix(r, c):
+        return u
+    if t == PositiveRealMatrix(r, c):
+        return t
+    if u == PositiveRealMatrix(r, c):
+        return u
+    if t == NaturalMatrix(r, c) and u == ProbabilityMatrix(r, c):
+        return PositiveRealMatrix(r, c)
+    if t == ProbabilityMatrix(r, c) and u == NaturalMatrix(r, c):
+        return PositiveRealMatrix(r, c)
+    if t == NaturalMatrix(r, c) and u == SimplexMatrix(r, c):
+        return PositiveRealMatrix(r, c)
+    if t == SimplexMatrix(r, c) and u == NaturalMatrix(r, c):
+        return PositiveRealMatrix(r, c)
+    if t == ProbabilityMatrix(r, c):
+        return t
+    if u == ProbabilityMatrix(r, c):
+        return u
+    if t == NaturalMatrix(r, c):
+        return t
+    if u == NaturalMatrix(r, c):
+        return u
+    if t == BooleanMatrix(r, c) and u == SimplexMatrix(r, c):
+        return ProbabilityMatrix(r, c)
+    if t == SimplexMatrix(r, c) and u == BooleanMatrix(r, c):
+        return ProbabilityMatrix(r, c)
+    if t == BooleanMatrix(r, c):
+        assert u == OneHotMatrix(r, c)
+        return t
+    assert t == OneHotMatrix(r, c)
+    assert u == BooleanMatrix(r, c)
+    return u
 
-# There are only 36 pairs; we can just list them.
-_lookup = {
-    (Boolean, Boolean): Boolean,
-    (Boolean, Natural): Natural,
-    (Boolean, Probability): Probability,
-    (Boolean, PositiveReal): PositiveReal,
-    (Boolean, Real): Real,
-    (Boolean, Tensor): Tensor,
-    (Natural, Boolean): Natural,
-    (Natural, Natural): Natural,
-    (Natural, Probability): PositiveReal,
-    (Natural, PositiveReal): PositiveReal,
-    (Natural, Real): Real,
-    (Natural, Tensor): Tensor,
-    (Probability, Boolean): Probability,
-    (Probability, Natural): PositiveReal,
-    (Probability, Probability): Probability,
-    (Probability, PositiveReal): PositiveReal,
-    (Probability, Real): Real,
-    (Probability, Tensor): Tensor,
-    (PositiveReal, Boolean): PositiveReal,
-    (PositiveReal, Natural): PositiveReal,
-    (PositiveReal, Probability): PositiveReal,
-    (PositiveReal, PositiveReal): PositiveReal,
-    (PositiveReal, Real): Real,
-    (PositiveReal, Tensor): Tensor,
-    (Real, Boolean): Real,
-    (Real, Natural): Real,
-    (Real, Probability): Real,
-    (Real, PositiveReal): Real,
-    (Real, Real): Real,
-    (Real, Tensor): Tensor,
-    (Tensor, Boolean): Tensor,
-    (Tensor, Natural): Tensor,
-    (Tensor, Probability): Tensor,
-    (Tensor, PositiveReal): Tensor,
-    (Tensor, Real): Tensor,
-    (Tensor, Tensor): Tensor,
-}
 
-
+@memoize
 def _supremum(t: BMGLatticeType, u: BMGLatticeType) -> BMGLatticeType:
     """Takes two BMG types; returns the smallest type that is
 greater than or equal to both."""
-    if (t, u) in _lookup:
-        return _lookup[(t, u)]
-    raise ValueError("Invalid arguments to _supremum")
+    if t == u:
+        return t
+    if t == bottom:
+        return u
+    if u == bottom:
+        return t
+    if t == top or u == top:
+        return top
+    if t == Tensor or u == Tensor:
+        return Tensor
+    assert isinstance(t, BMGMatrixType)
+    assert isinstance(u, BMGMatrixType)
+    if t.rows != u.rows or t.columns != u.columns:
+        return Tensor
+    return _matrix_supremum(t, u)
 
 
 # We can extend the two-argument supremum function to any number of arguments:
 def supremum(*ts: BMGLatticeType) -> BMGLatticeType:
     """Takes any number of BMG types; returns the smallest type that is
 greater than or equal to all of them."""
-    result = Boolean
+    result = bottom
     for t in ts:
         result = _supremum(result, t)
     return result
