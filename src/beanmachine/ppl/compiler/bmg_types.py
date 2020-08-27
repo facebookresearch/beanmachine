@@ -201,20 +201,20 @@ class SimplexMatrix(BMGMatrixType):
 @memoize
 class OneHotMatrix(BMGMatrixType):
     def __init__(self, rows: int, columns: int) -> None:
-        BMGMatrixType.__init__(
-            self,
-            bool_element,
-            f"OH[{rows},{columns}]",
-            f"{rows} x {columns} one-hot matrix",
-            rows,
-            columns,
+        short_name = "OH" if rows == 1 and columns == 1 else f"OH[{rows},{columns}]"
+        long_name = (
+            "one-hot"
+            if rows == 1 and columns == 1
+            else f"{rows} x {columns} one-hot matrix"
         )
+        BMGMatrixType.__init__(self, bool_element, short_name, long_name, rows, columns)
 
     def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
         return OneHotMatrix(rows, columns)
 
 
 bottom = BMGLatticeType("bottom", "bottom")
+One = OneHotMatrix(1, 1)
 Boolean = BooleanMatrix(1, 1)
 Natural = NaturalMatrix(1, 1)
 Probability = ProbabilityMatrix(1, 1)
@@ -432,20 +432,20 @@ greater than or equal to all of them."""
     return result
 
 
-# TODO: Update this algorithm
-
-
 def type_of_value(v: Any) -> BMGLatticeType:
     """This computes the smallest BMG type that a given value fits into."""
     if isinstance(v, torch.Tensor):
+        # TODO: Update this algorithm to support 2-dimensional matrices
         if v.numel() == 1:
             return type_of_value(float(v))  # pyre-fixme
         return Tensor
     if isinstance(v, bool):
-        return Boolean
+        return One if v else Boolean
     if isinstance(v, int):
-        if v == 0 or v == 1:
+        if v == 0:
             return Boolean
+        if v == 1:
+            return One
         if v >= 2:
             return Natural
         return Real
