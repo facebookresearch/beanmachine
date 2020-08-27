@@ -119,14 +119,17 @@ class BMGMatrixType(BMGLatticeType):
 
 class BroadcastMatrixType(BMGMatrixType):
     def __init__(self, element_type: BMGElementType, rows: int, columns: int) -> None:
-        BMGMatrixType.__init__(
-            self,
-            bool_element,
-            f"M{element_type.short_name}[{rows},{columns}]",
-            f"{rows} x {columns} {element_type.long_name} matrix",
-            rows,
-            columns,
+        short_name = (
+            element_type.short_name
+            if rows == 1 and columns == 1
+            else f"M{element_type.short_name}[{rows},{columns}]"
         )
+        long_name = (
+            element_type.long_name
+            if rows == 1 and columns == 1
+            else f"{rows} x {columns} {element_type.long_name} matrix"
+        )
+        BMGMatrixType.__init__(self, bool_element, short_name, long_name, rows, columns)
 
 
 # Note that all matrix type constructors are memoized in their initializer
@@ -211,15 +214,16 @@ class OneHotMatrix(BMGMatrixType):
         return OneHotMatrix(rows, columns)
 
 
-Probability = BMGLatticeType("P", "probability")
-PositiveReal = BMGLatticeType("R+", "positive real")
-Natural = BMGLatticeType("N", "natural")
-Malformed = BMGLatticeType("M", "malformed")
-Real = BMGLatticeType("R", "real")
-Boolean = BMGLatticeType("B", "bool")
+bottom = BMGLatticeType("bottom", "bottom")
+Boolean = BooleanMatrix(1, 1)
+Natural = NaturalMatrix(1, 1)
+Probability = ProbabilityMatrix(1, 1)
+PositiveReal = PositiveRealMatrix(1, 1)
+Real = RealMatrix(1, 1)
 Tensor = BMGLatticeType("T", "tensor")
+Malformed = BMGLatticeType("M", "malformed")
+top = Malformed
 
-# TODO: Add bottom type
 
 """
 When converting from an accumulated graph that uses Python types, we
