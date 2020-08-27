@@ -84,11 +84,11 @@ commands:
     description: "Run unit tests when as an ordinary user would"
     steps:
       - run:
-          name: "Install pytest"
-          command: pip install pytest
+          name: "Install test dependencies"
+          command: pip install pytest gpytorch
       - run:
           name: "Run unit tests"
-          command: pytest --pyargs beanmachine
+          command: pytest -ra --import-mode=importlib
 
 
 jobs:
