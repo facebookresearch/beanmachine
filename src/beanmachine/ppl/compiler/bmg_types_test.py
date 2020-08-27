@@ -6,10 +6,16 @@ from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     BooleanMatrix,
     Natural,
+    NaturalMatrix,
     PositiveReal,
+    PositiveRealMatrix,
     Probability,
+    ProbabilityMatrix,
     Real,
+    RealMatrix,
+    SimplexMatrix,
     Tensor,
+    bottom,
     meets_requirement,
     supremum,
     type_of_value,
@@ -23,11 +29,31 @@ class BMGTypesTest(unittest.TestCase):
     def test_supremum(self) -> None:
         """test_supremum"""
 
-        self.assertEqual(Boolean, supremum())
+        # Degenerate case -- supremum of no types is bottom because it
+        # is the smallest type that is larger than every type in the
+        # empty list.
+        self.assertEqual(bottom, supremum())
+
+        # Supremum of one type is that type
         self.assertEqual(Probability, supremum(Probability))
+
+        # A few cases for single-valued types.
         self.assertEqual(PositiveReal, supremum(Probability, Natural))
         self.assertEqual(Real, supremum(Natural, Probability, Real))
         self.assertEqual(Tensor, supremum(Real, Tensor, Natural, Boolean))
+
+        # Supremum of any two types with different matrix dimensions is Tensor
+        self.assertEqual(Tensor, supremum(RealMatrix(1, 2), RealMatrix(2, 1)))
+
+        # A few cases for matrices
+
+        self.assertEqual(
+            ProbabilityMatrix(1, 2), supremum(BooleanMatrix(1, 2), SimplexMatrix(1, 2))
+        )
+
+        self.assertEqual(
+            PositiveRealMatrix(1, 2), supremum(NaturalMatrix(1, 2), SimplexMatrix(1, 2))
+        )
 
     def test_type_of_value(self) -> None:
         """test_type_of_value"""
