@@ -8,6 +8,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Natural,
     NaturalMatrix,
     One,
+    OneHotMatrix,
     PositiveReal,
     PositiveRealMatrix,
     Probability,
@@ -91,7 +92,28 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(Real, type_of_value(-1.5))
         self.assertEqual(Real, type_of_value(tensor(-1.5)))
         self.assertEqual(Real, type_of_value(tensor([[-1.5]])))
-        self.assertEqual(Tensor, type_of_value(tensor([[0, 0]])))
+        # 1-d tensor is matrix
+        self.assertEqual(BooleanMatrix(1, 2), type_of_value(tensor([0, 0])))
+        # 2-d tensor is matrix
+        self.assertEqual(OneHotMatrix(2, 2), type_of_value(tensor([[1, 0], [1, 0]])))
+        self.assertEqual(BooleanMatrix(2, 2), type_of_value(tensor([[1, 1], [1, 0]])))
+        self.assertEqual(NaturalMatrix(2, 2), type_of_value(tensor([[1, 3], [1, 0]])))
+        self.assertEqual(
+            SimplexMatrix(2, 2), type_of_value(tensor([[0.5, 0.5], [0.5, 0.5]]))
+        )
+        self.assertEqual(
+            ProbabilityMatrix(2, 2), type_of_value(tensor([[0.75, 0.5], [0.5, 0.5]]))
+        )
+        self.assertEqual(
+            PositiveRealMatrix(2, 2), type_of_value(tensor([[1.75, 0.5], [0.5, 0.5]]))
+        )
+        self.assertEqual(
+            RealMatrix(2, 2), type_of_value(tensor([[1.75, 0.5], [0.5, -0.5]]))
+        )
+        # 3-d tensor is Tensor
+        self.assertEqual(
+            Tensor, type_of_value(tensor([[[0, 0], [0, 0]], [[0, 0], [0, 0]]]))
+        )
 
     def test_meets_requirement(self) -> None:
         """test_meets_requirement"""
