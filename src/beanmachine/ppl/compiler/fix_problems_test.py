@@ -399,11 +399,16 @@ The unsupported node is the mu of a Normal.
         norm = bmg.add_normal(q, one)
         bmg.add_sample(norm)
 
-        observed = bmg.to_dot(True, True, True, True)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:R>=B"];
+  N0[label="1.0:R>=OH"];
   N1[label="2.5:R>=R+"];
   N2[label="HalfCauchy:R+>=R+"];
   N3[label="Sample:R+>=R+"];
@@ -430,7 +435,7 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N00[label="1.0:R>=B"];
+  N00[label="1.0:R>=OH"];
   N01[label="2.5:R>=R+"];
   N02[label="HalfCauchy:R+>=R+"];
   N03[label="Sample:R+>=R+"];
@@ -439,7 +444,7 @@ digraph "graph" {
   N06[label="Sample:R>=R"];
   N07[label="0.4:R>=P"];
   N08[label="*:R+>=R+"];
-  N09[label="1.0:R+>=B"];
+  N09[label="1.0:R+>=OH"];
   N10[label="0.4:R+>=P"];
   N11[label="ToReal:R>=R"];
   N01 -> N04[label="right:R+"];
@@ -522,7 +527,7 @@ The unsupported node is the operand of a Sample.
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:R>=B"];
+  N0[label="1.0:R>=OH"];
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
   N3[label="Chi2:R+>=R+"];
@@ -549,7 +554,7 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:R>=B"];
+  N0[label="1.0:R>=OH"];
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
   N3[label="Chi2:R+>=R+"];
@@ -557,7 +562,7 @@ digraph "graph" {
   N5[label="0.5:R+>=P"];
   N6[label="*:R+>=R+"];
   N7[label="Gamma:R+>=R+"];
-  N8[label="1.0:R+>=B"];
+  N8[label="1.0:R+>=OH"];
   N1 -> N2[label="operand:R+"];
   N2 -> N3[label="df:R+"];
   N2 -> N6[label="left:R+"];
