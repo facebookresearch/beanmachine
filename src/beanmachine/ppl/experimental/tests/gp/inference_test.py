@@ -145,7 +145,7 @@ class InferenceTests(unittest.TestCase):
         likelihood = gpytorch.likelihoods.GaussianLikelihood()
         for i in range(n_samples):
             pred_gp = EvalRegression(
-                x, y, likelihood, lengthscale=torch.tensor(samples[i])
+                x, y, likelihood, lengthscale=samples[i].detach().clone()
             )
             pred_gp.eval()
             pred_mean = pred_gp.likelihood(pred_gp(test_x)).mean

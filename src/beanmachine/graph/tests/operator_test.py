@@ -107,7 +107,7 @@ class TestOperators(unittest.TestCase):
         g.query(o2)
         samples = g.infer(2)
         self.assertTrue(type(samples[0][0]), float)
-        self.assertAlmostEquals(samples[0][0], 0.14, 3)
+        self.assertAlmostEqual(samples[0][0], 0.14, 3)
 
     def test_sample(self) -> None:
         # negative test we can't exponentiate the sample from a Bernoulli

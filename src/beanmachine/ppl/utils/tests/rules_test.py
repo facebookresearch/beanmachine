@@ -471,7 +471,7 @@ def toss(i):
         self.maxDiff = None
 
         d = ignore_div_zero(PatternRule([int, int], lambda l: l[0] / l[1]))
-        self.assertEquals(d([10, 5]).expect_success(), 2)
+        self.assertEqual(d([10, 5]).expect_success(), 2)
         self.assertTrue(d([10, 0]).is_fail())
 
         n = ignore_runtime_error(PatternRule(int, always_throws))
