@@ -432,13 +432,63 @@ greater than or equal to all of them."""
     return result
 
 
+simplex_precision = 1e-10
+
+
+def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
+    # There is more than one element. Can we represent this as a
+    # two-dimensional matrix?
+    if v.numel() == 1:
+        return type_of_value(float(v))  # pyre-fixme
+    shape = v.shape
+    dimensions = len(shape)
+    if dimensions > 2:
+        return Tensor
+    r = 1 if dimensions == 1 else shape[0]
+    c = shape[0] if dimensions == 1 else shape[1]
+    v = v.view(r, c)
+
+    # We've got the shape. What is the smallest type
+    # that is greater than or equal to the smallest type of
+    # all the elements?
+
+    sup = supremum(
+        *[type_of_value(element) for row in v for element in row]  # pyre-fixme
+    )
+
+    # We should get a 1x1 matrix out; there should be no way to get
+    # top or bottom out.
+
+    assert isinstance(sup, BMGMatrixType)
+    assert sup.rows == 1
+    assert sup.columns == 1
+
+    if sup == Real or sup == PositiveReal or sup == Natural:
+        return sup.with_dimensions(r, c)
+
+    # The only remaining possibilities are:
+    #
+    # * Every element was 1 -- sup is One
+    # * Every element was 0 or 1 -- sup is Boolean
+    # * At least one element was between 0 and 1 -- sup is Probability
+    #
+    # In the first two cases, we might have a one-hot.
+    # In the third case, it is possible that we have a simplex.
+
+    assert sup == Boolean or sup == One or sup == Probability
+
+    sums_to_one = all(abs(float(row.sum()) - 1.0) <= simplex_precision for row in v)
+    if sums_to_one:
+        if sup == Probability:
+            return SimplexMatrix(r, c)
+        return OneHotMatrix(r, c)
+    return sup.with_dimensions(r, c)
+
+
 def type_of_value(v: Any) -> BMGLatticeType:
     """This computes the smallest BMG type that a given value fits into."""
     if isinstance(v, torch.Tensor):
-        # TODO: Update this algorithm to support 2-dimensional matrices
-        if v.numel() == 1:
-            return type_of_value(float(v))  # pyre-fixme
-        return Tensor
+        return _type_of_matrix(v)
     if isinstance(v, bool):
         return One if v else Boolean
     if isinstance(v, int):
