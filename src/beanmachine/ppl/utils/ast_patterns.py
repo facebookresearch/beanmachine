@@ -179,6 +179,10 @@ def ast_listComp(elt: Pattern = _any, generators: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.ListComp, {"elt": elt, "generators": generators})
 
 
+def ast_setComp(elt: Pattern = _any, generators: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.SetComp, {"elt": elt, "generators": generators})
+
+
 def ast_boolop(op: Pattern = _any, values: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.BoolOp, {"op": op, "values": values})
 
@@ -311,10 +315,9 @@ ast_true: Pattern = name_constant(True)
 
 ast_false: Pattern = name_constant(False)
 
-# TODO: Rename this constant_bool for consistency
-bool_constant: Pattern = match_any(ast_true, ast_false)
+constant_bool: Pattern = match_any(ast_true, ast_false)
 
-constant_literal: Pattern = match_any(number_constant, bool_constant)
+constant_literal: Pattern = match_any(number_constant, constant_bool)
 
 any_list: Pattern = ast.List
 
@@ -357,7 +360,7 @@ constant_tensor_any: Pattern = call_to(
 
 # int, float, bool or tensor
 constant_numeric: Pattern = match_any(
-    number_constant, bool_constant, constant_tensor_any
+    number_constant, constant_bool, constant_tensor_any
 )
 
 
@@ -380,7 +383,7 @@ def ast_to_constant_value(x: ast.AST) -> Any:
     if match(number_constant, x).is_success():
         assert isinstance(x, ast.Num)
         return x.n
-    if match(bool_constant, x).is_success():
+    if match(constant_bool, x).is_success():
         assert isinstance(x, ast.NameConstant)
         return x.value
     if match(constant_tensor_any, x).is_success():
