@@ -17,6 +17,7 @@ class LikelihoodTest(unittest.TestCase):
 
     def test_forward_smoke(self):
         n = gpytorch.distributions.MultivariateNormal(torch.zeros(2), torch.eye(2))
-        assert isinstance(likelihoods.GaussianLikelihood().marginal(n), RVIdentifier)
         assert isinstance(likelihoods.GaussianLikelihood().forward(n), RVIdentifier)
-        assert isinstance(likelihoods.GaussianLikelihood()(n), RVIdentifier)
+        assert isinstance(
+            likelihoods.GaussianLikelihood().forward(torch.zeros(2)), RVIdentifier
+        )
