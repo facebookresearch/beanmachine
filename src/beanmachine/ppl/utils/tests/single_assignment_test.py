@@ -1505,3 +1505,168 @@ y = p1(*r5, **r9)
 """
 
         self.check_rewrite(source, expected)
+
+    def test_single_assignment_dictComp(self) -> None:
+        """Test the assign rule for desugaring dictComps"""
+        # TODO: We should add some tests to check that we
+        # handle nested function definitions correctly
+
+        source = """
+x = {i:i for i in range(0,j) if even(i+j)}
+"""
+        expected = """
+def p1():
+    r2 = {}
+    for i in range(0, j):
+        if even(i + j):r2.__setitem__(i, i)
+    return r2
+
+
+x = p1()
+"""
+
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_assign_dictComp())
+        )
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign_dictComp()))
+        )
+
+        expected = """
+def p1():
+    r2 = {}
+    a12 = 0
+    a10 = [a12]
+    a13 = [j]
+    r8 = a10 + a13
+    r14 = {}
+    f3 = range(*r8, **r14)
+    for i in f3:
+        a9 = i + j
+        r6 = [a9]
+        r11 = {}
+        r4 = even(*r6, **r11)
+        if r4:r2.__setitem__(i, i)
+    return r2
+
+
+r5 = []
+r7 = {}
+x = p1(*r5, **r7)
+"""
+        self.check_rewrite(source, expected)
+
+        source = """
+y = {x:y for x in range(0,10) for y in range (x,10) if y == 2*x}
+"""
+        expected = """
+def p1():
+    r2 = {}
+    for x in range(0, 10):
+        for y in range(x, 10):
+            if y == 2 * x:r2.__setitem__(x, y)
+    return r2
+
+
+y = p1()
+"""
+
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_assign_dictComp())
+        )
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign_dictComp()))
+        )
+
+        expected = """
+def p1():
+    r2 = {}
+    a13 = 0
+    a11 = [a13]
+    a17 = 10
+    a14 = [a17]
+    r9 = a11 + a14
+    r15 = {}
+    f3 = range(*r9, **r15)
+    for x in f3:
+        a16 = [x]
+        a20 = 10
+        a18 = [a20]
+        r12 = a16 + a18
+        r19 = {}
+        f4 = range(*r12, **r19)
+        for y in f4:
+            a10 = 2
+            a7 = a10 * x
+            r6 = y == a7
+            if r6:r2.__setitem__(x, y)
+    return r2
+
+
+r5 = []
+r8 = {}
+y = p1(*r5, **r8)
+"""
+
+        self.check_rewrite(source, expected)
+
+        source = """
+y = {x:y for x in range(0,10) if x>0 for y in range (x,10) if y == 2*x}
+"""
+        expected = """
+def p1():
+    r2 = {}
+    for x in range(0, 10):
+        if x > 0:
+            for y in range(x, 10):
+                if y == 2 * x:r2.__setitem__(x, y)
+    return r2
+
+
+y = p1()
+"""
+
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_assign_dictComp())
+        )
+
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_assign_dictComp()))
+        )
+
+        expected = """
+def p1():
+    r2 = {}
+    a14 = 0
+    a12 = [a14]
+    a18 = 10
+    a15 = [a18]
+    r10 = a12 + a15
+    r16 = {}
+    f3 = range(*r10, **r16)
+    for x in f3:
+        a6 = 0
+        r4 = x > a6
+        if r4:
+            a19 = [x]
+            a22 = 10
+            a20 = [a22]
+            r17 = a19 + a20
+            r21 = {}
+            f7 = range(*r17, **r21)
+            for y in f7:
+                a13 = 2
+                a11 = a13 * x
+                r8 = y == a11
+                if r8:r2.__setitem__(x, y)
+    return r2
+
+
+r5 = []
+r9 = {}
+y = p1(*r5, **r9)
+"""
+
+        self.check_rewrite(source, expected)

@@ -183,6 +183,14 @@ def ast_setComp(elt: Pattern = _any, generators: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.SetComp, {"elt": elt, "generators": generators})
 
 
+def ast_dictComp(
+    key: Pattern = _any, value: Pattern = _any, generators: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.DictComp, {"key": key, "value": value, "generators": generators}
+    )
+
+
 def ast_boolop(op: Pattern = _any, values: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.BoolOp, {"op": op, "values": values})
 

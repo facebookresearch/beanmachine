@@ -9,6 +9,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_boolop,
     ast_compare,
     ast_dict,
+    ast_dictComp,
     ast_domain,
     ast_for,
     ast_if,
@@ -929,6 +930,62 @@ class SingleAssignment:
             "handle_assign_setComp",
         )
 
+    def _handle_assign_dictComp(self) -> Rule:
+        # Rewrite y = {c:d for v_i in e_i if b_i} into
+        # def p():
+        #    r = {}
+        #    for v_i in e_i
+        #       if b_i:
+        #          r.__setitem__(c,d)
+        #    return r
+        # y=p()
+        _empty_ast_arguments = ast.arguments(
+            args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
+        )
+        return PatternRule(
+            assign(value=ast_dictComp()),
+            lambda term: ListEdit(
+                self.fresh_names(
+                    ["p", "r"],
+                    lambda new_name: [
+                        ast.FunctionDef(
+                            name=new_name("p", "store").id,
+                            args=_empty_ast_arguments,
+                            body=[
+                                ast.Assign(
+                                    targets=[new_name("r", "store")],
+                                    value=ast.Dict(keys=[], values=[]),
+                                ),
+                                self._nested_fors_and_ifs_of(
+                                    term.value.generators,
+                                    ast.Call(
+                                        func=ast.Attribute(
+                                            value=new_name("r", "load"),
+                                            attr="__setitem__",
+                                            ctx=ast.Load(),
+                                        ),
+                                        args=[term.value.key, term.value.value],
+                                        keywords=[],
+                                    ),
+                                ),
+                                ast.Return(new_name("r", "load")),
+                            ],
+                            decorator_list=[],
+                            returns=None,
+                            type_comment=None,
+                        ),
+                        ast.Assign(
+                            targets=term.targets,
+                            value=ast.Call(
+                                func=new_name("p", "load"), args=[], keywords=[]
+                            ),
+                        ),
+                    ],
+                )
+            ),
+            "handle_assign_dictComp",
+        )
+
     def _handle_assign(self) -> Rule:
         return first(
             [
@@ -957,6 +1014,7 @@ class SingleAssignment:
                 # Rules for comprehensions
                 self._handle_assign_listComp(),
                 self._handle_assign_setComp(),
+                self._handle_assign_dictComp(),
             ]
         )
 
