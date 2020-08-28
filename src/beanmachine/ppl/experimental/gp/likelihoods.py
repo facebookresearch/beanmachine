@@ -1,6 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from functools import partial
-
 import beanmachine.ppl as bm
 import gpytorch.likelihoods as likelihoods
 
@@ -14,16 +12,9 @@ class GpytorchMixin(object):
     @bm.random_variable
     def forward(self, prior_sample, *args, **kwargs):
         """
-        A `random_variable` annotated callable. Returns a pointer to the callable
-        that returns a torch distribution
+        Returns a sample from the likelihood given a prior random variable.
         """
-        fn = partial(super().forward, prior_sample())
-        return fn(*args, **kwargs)
-
-    @bm.random_variable
-    def marginal(self, *args, **kwargs):
-        # TODO this will work after predictive sampling is implemented
-        return super().marginal(*args, **kwargs)
+        return super().forward(prior_sample())
 
 
 all_likelihoods = []
