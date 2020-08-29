@@ -1602,6 +1602,9 @@ the condition is a Boolean."""
             + f"  std::vector<uint>({{n{i}, n{t}, n{e}}}));"
         )
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 # ####
 # #### Binary operators
@@ -2252,29 +2255,34 @@ a model contains calls to Tensor.exp or math.exp."""
         # TODO: Not always a tensor.
         return SetOfTensors(torch.exp(o) for o in self.operand.support())
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
 
 class LogNode(UnaryOperatorNode):
-
     """This represents a log operation; it is generated when
 a model contains calls to Tensor.log or math.log."""
 
-    # TODO: We do not support LOG in BMG yet; when we do, update this:
+    operator_type = OperatorType.LOG
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
+    # The log node only takes a positive real and only produces a real.
+
+    # TODO: We might consider adding a -log(x) node which takes a
+    # probability and produces a positive real.
+
     @property
     def inf_type(self) -> BMGLatticeType:
-        # TODO: When we support this node in BMG, revisit this code.
-        return supremum(self.operand.inf_type, Real)
+        return Real
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        return self.operand.graph_type
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
-        # TODO: When we support this node in BMG, revisit this code.
         return [PositiveReal]
 
     @property
@@ -2291,6 +2299,9 @@ a model contains calls to Tensor.log or math.log."""
     def support(self) -> Iterator[Any]:
         # TODO: Not always a tensor.
         return SetOfTensors(torch.log(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 # BMG supports three different kinds of negation:

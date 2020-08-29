@@ -346,7 +346,6 @@ digraph "graph" {
         #
         # * No support for power yet
         # * No support for division yet
-        # * No support for log yet
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -374,8 +373,6 @@ The model uses a ** operation unsupported by Bean Machine Graph.
 The unsupported node is the operand of a Log.
 The model uses a / operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a **.
-The model uses a Log operation unsupported by Bean Machine Graph.
-The unsupported node is the mu of a Normal.
 """
         self.assertEqual(observed.strip(), expected.strip())
 
