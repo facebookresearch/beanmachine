@@ -135,7 +135,7 @@ setup(
         "plotly>=2.2.1",
         "scipy>=0.16",
         "statsmodels>=0.8.0",
-        "tqdm>=4.40.2",
+        "tqdm>=4.46.0",
         "astor>=0.7.1",
         "black>=19.3b0",
     ],

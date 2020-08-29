@@ -145,10 +145,10 @@ class TestNMC(unittest.TestCase):
         g.query(phi_x_sq)
         means = g.infer_mean(10000, graph.InferenceType.NMC)
         post_var = means[1] - means[0] ** 2
-        self.assertAlmostEquals(
+        self.assertAlmostEqual(
             means[0], 2 / (2 + 1), 2, f"posterior mean {means[0]} is not accurate"
         )
-        self.assertAlmostEquals(
+        self.assertAlmostEqual(
             post_var,
             2 * 1 / (2 + 1) ** 2 / (2 + 1 + 1),
             2,

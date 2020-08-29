@@ -165,8 +165,8 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         h0 = d.log_prob(theta0) - (r0 * r0).sum() / 2
         dH = h1 - h0
 
-        n1 = tensor(u <= dH)
-        s1 = tensor(u < proposer.delta_max + dH)
+        n1 = (u <= dH).detach().clone()
+        s1 = (u < proposer.delta_max + dH).detach().clone()
         accept_ratio = torch.min(tensor(1.0), torch.exp(dH))
 
         self.assertAlmostEqual(output[0], theta1)
@@ -229,7 +229,7 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         h1 = d.log_prob(theta1) - (r1 * r1).sum() / 2
         h0 = d.log_prob(theta0) - (r0 * r0).sum() / 2
         dH = h1 - h0
-        n1 = tensor(u <= dH)
+        n1 = (u <= dH).detach().clone()
         accept_ratio_1 = torch.min(tensor(1.0), torch.exp(dH)).detach()
 
         # right subtree
@@ -241,8 +241,8 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         r2 = r1_next - step_size * grad_U / 2
         h1 = d.log_prob(theta2) - (r2 * r2).sum() / 2
         dH = h1 - h0
-        n2 = tensor(u <= dH)
-        s2 = tensor(u < proposer.delta_max + dH)
+        n2 = (u <= dH).detach().clone()
+        s2 = (u < proposer.delta_max + dH).detach().clone()
         accept_ratio_2 = torch.min(tensor(1.0), torch.exp(dH)).detach()
 
         neg_turn = ((theta2 - theta1) * r1).sum() >= 0

@@ -196,7 +196,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
             mh = bm.SingleSiteRandomWalk()
             p_key = model.p()
             queries = [p_key]
-            observations = {model.q(): torch.tensor(evidence)}
+            observations = {model.q(): evidence.detach().clone()}
             predictions = mh.infer(queries, observations, 20)
             predictions = predictions.get_chain()[p_key]
             """
