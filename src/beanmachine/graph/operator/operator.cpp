@@ -175,7 +175,8 @@ Operator::Operator(
       check_multiary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::REAL and
           type0 != graph::AtomicType::POS_REAL) {
-        throw std::invalid_argument("operator ADD requires real/pos_real parent");
+        throw std::invalid_argument(
+            "operator ADD requires real/pos_real parent");
       }
       value = graph::AtomicValue(type0);
       break;
