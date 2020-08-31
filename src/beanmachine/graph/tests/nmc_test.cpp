@@ -285,8 +285,8 @@ TEST(testnmc, infinite_grad) {
         g.add_operator(OperatorType::EXP, std::vector<uint>({fere}));
     uint yhat_pos_real =
         g.add_operator(OperatorType::TO_REAL, std::vector<uint>({yhat_pos}));
-    uint yhat_neg =
-        g.add_operator(OperatorType::NEGATE, std::vector<uint>({yhat_pos_real}));
+    uint yhat_neg = g.add_operator(
+        OperatorType::NEGATE, std::vector<uint>({yhat_pos_real}));
     uint yhat = g.add_operator(
         OperatorType::IF_THEN_ELSE,
         std::vector<uint>({sign, yhat_pos_real, yhat_neg}));
