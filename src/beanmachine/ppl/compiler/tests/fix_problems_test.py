@@ -344,7 +344,6 @@ digraph "graph" {
 
         # This test has some problems that cannot be fixed.
         #
-        # * No support for power yet
         # * No support for division yet
 
         self.maxDiff = None
@@ -369,8 +368,6 @@ digraph "graph" {
         error_report = fix_problems(bmg)
         observed = str(error_report)
         expected = """
-The model uses a ** operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Log.
 The model uses a / operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a **.
 """

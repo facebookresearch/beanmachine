@@ -2079,8 +2079,7 @@ class MultiplicationNode(BinaryOperatorNode):
 class PowerNode(BinaryOperatorNode):
     """This represents an x-to-the-y operation."""
 
-    # TODO: We haven't added power to the C++ implementation of BMG yet.
-    # TODO: When we do, update this.
+    operator_type = OperatorType.POW
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -2091,63 +2090,106 @@ class PowerNode(BinaryOperatorNode):
 
     @property
     def inf_type(self) -> BMGLatticeType:
-        # TODO: We do not yet support power nodes in BMG; when we
-        # do, revisit this code.
+        # Given the inf types of the operands, what is the smallest
+        # possible type we could make the result?
+        #
+        # BMG supports a power node that has these possible combinations of
+        # base and exponent type:
+        #
+        # P ** R+  --> P
+        # P ** R   --> R+
+        # R+ ** R+ --> R+
+        # R+ ** R  --> R+
+        # R ** R+  --> R
+        # R ** R   --> R
+        #
+        # Note that P ** R is the only case where the type of the result is not
+        # equal to the type of the base.
+        #
+        # The smallest type we can make the return is:
+        # * treat the base type as the larger of its inf type and Probability
+        # * treat the exp type as the larger of its inf type and Positive Real.
+        # * return the best match from the table above.
+        #
+        # TODO: We could support x ** b where b is a bool by generating it
+        # as "if b then x else 1", and that's of the same type as x. This
+        # would allow us to generate:
+        # B ** B --> B
+        # N ** B --> N
+        #
+        # TODO: We could support b ** n where b is bool and n is a natural
+        # constant. If n is the constant zero then the result is just
+        # the Boolean constant true; if n is a non-zero constant then
+        # b ** n is simply b.
+        #
+        # NOTE: We CANNOT support b ** n where b is bool and n is a
+        # non-constant natural and the result is bool. That would
+        # have the semantics of "if b then true else n == 0" but we do
+        # not have an equality operator on naturals in BMG.
+        #
+        # NOTE: We CANNOT support n1 ** n2 where both are naturals, where
+        # n2 is a constant and where the result is natural, because we
+        # do not have a multiplication operation on naturals. The best
+        # we can do is convert both to R+, which is what we'd have to
+        # do for the multiplication.
 
-        # What could the rules be?
-        #
-        # Proposal 1: Implement a log node, and then implement power as
-        # x ** y --> exp( y * log x)
-        #
-        # Type analysis is then whatever type analysis is for that.
-        #
-        # Note: If x is a constant then we can do this today because we can
-        # compute log x during graph rewriting.
-        #
-        # Note: if y is a constant natural then we can implement power
-        # as multiplication of x by itself.
-        #
-        # Pro: No need to create a new node in BMG.
-        #
-        # Con: We might be able to get tighter bounds on typing if
-        # we have a custom node.
-        #
-        # Proposal 2: Make a custom node. What should its typing rules be?
-        #
-        # If we have x ** y then let X and Y be their types.
-        #
-        # * If X or Y is tensor then x ** y is a tensor; convert both
-        #   operands to tensor if necessary.
-        # * otherwise, if Y is bool then x ** y is "if y then x else 1", so
-        #   it is of type X.
-        # * otherwise:
-        #
-        #   * let Y = sup(Y, posreal)
-        #   * if X is bool or natural then let X = posreal
-        #
-        # That then leaves us only six more cases:
-        #
-        # prob ** posreal --> prob
-        # prob ** real --> posreal
-        # posreal ** posreal --> posreal
-        # posreal ** real --> posreal
-        # real ** posreal --> real
-        # real ** real --> real
+        inf_base = supremum(self.left.inf_type, Probability)
+        inf_exp = supremum(self.right.inf_type, PositiveReal)
 
-        return Real
+        if inf_base == Tensor or inf_exp == Tensor:
+            return Tensor
+        if inf_base == Probability and inf_exp == Real:
+            return PositiveReal
+        return inf_base
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        if self.left.graph_type == self.right.graph_type:
-            return self.left.graph_type
-        return Malformed
+        # Figure out which of these seven cases we are in; otherwise
+        # return Malformed.
+
+        # T ** T   --> T
+        # P ** R+  --> P
+        # P ** R   --> R+
+        # R+ ** R+ --> R+
+        # R+ ** R  --> R+
+        # R ** R+  --> R
+        # R ** R   --> R
+        lt = self.left.graph_type
+        rt = self.right.graph_type
+        if lt == Tensor and rt == Tensor:
+            return Tensor
+        if lt == Tensor or rt == Tensor:
+            return Malformed
+        if lt != Probability and lt != PositiveReal and lt != Real:
+            return Malformed
+        if rt != PositiveReal and rt != Real:
+            return Malformed
+        if lt == Probability and rt == Real:
+            return PositiveReal
+        return lt
 
     @property
     def requirements(self) -> List[Requirement]:
-        # TODO: We do not yet support power nodes in BMG; when we
-        # do, revisit this code.
-        it = self.inf_type
-        return [it, it]
+        # T ** T
+        # P ** R+
+        # P ** R
+        # R+ ** R+
+        # R+ ** R
+        # R ** R+
+        # R ** R
+
+        # TODO: We could support x ** b where b is a bool by generating it
+        # as "if b then x else 1", and that's of the same type as x.
+
+        inf_base = supremum(self.left.inf_type, Probability)
+        inf_exp = supremum(self.right.inf_type, PositiveReal)
+
+        if inf_base == Tensor or inf_exp == Tensor:
+            return [Tensor, Tensor]
+        return [inf_base, inf_exp]
 
     @property
     def size(self) -> torch.Size:
