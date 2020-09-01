@@ -16,6 +16,7 @@ void phi(graph::Node* node);
 void logistic(graph::Node* node);
 void log1pexp(graph::Node* node);
 void log(graph::Node* node);
+void negative_log(graph::Node* node);
 
 } // namespace oper
 } // namespace beanmachine

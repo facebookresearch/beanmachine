@@ -4,6 +4,7 @@
 #include <pybind11/stl.h>
 #include "beanmachine/graph/pybindings.h"
 
+
 namespace beanmachine {
 namespace graph {
 
@@ -54,7 +55,8 @@ PYBIND11_MODULE(graph, module) {
       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
       .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
       .value("LOG", OperatorType::LOG)
-      .value("POW", OperatorType::POW);
+      .value("POW", OperatorType::POW)
+      .value("NEGATIVE_LOG", OperatorType::NEGATIVE_LOG);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)
