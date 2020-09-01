@@ -144,5 +144,19 @@ void log(graph::Node* node) {
   }
 }
 
+void negative_log(graph::Node* node) {
+  assert(node->in_nodes.size() == 1);
+  const graph::AtomicValue& parent = node->in_nodes[0]->value;
+  if (parent.type == graph::AtomicType::POS_REAL or
+      parent.type == graph::AtomicType::PROBABILITY) {
+    node->value._double = -std::log(parent._double);
+  } else {
+    throw std::runtime_error(
+        "invalid parent type " +
+        std::to_string(static_cast<int>(parent.type.atomic_type)) +
+        " for NEGATIVE_LOG operator at node_id " + std::to_string(node->index));
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

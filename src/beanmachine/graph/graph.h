@@ -266,6 +266,7 @@ enum class OperatorType {
   LOGSUMEXP,
   LOG,
   POW,
+  NEGATIVE_LOG,
 };
 
 enum class DistributionType {

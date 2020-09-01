@@ -149,15 +149,23 @@ Operator::Operator(
       break;
     }
     case graph::OperatorType::LOG: {
-      // TODO: We could also add an operator NEG_LOG which has the
-      // TODO: semantics of -log(x), which accepts a probability or
-      // TODO: a positive real, and maps probability to positive
-      // TODO: real.
       check_unary_op(op_type, in_nodes);
       if (type0 != graph::AtomicType::POS_REAL) {
         throw std::invalid_argument("operator LOG requires a pos_real parent");
       }
       value = graph::AtomicValue(graph::AtomicType::REAL);
+      break;
+    }
+    case graph::OperatorType::NEGATIVE_LOG: {
+      check_unary_op(op_type, in_nodes);
+      if (type0 == graph::AtomicType::POS_REAL) {
+        value = graph::AtomicValue(graph::AtomicType::REAL);
+      } else if (type0 == graph::AtomicType::PROBABILITY) {
+        value = graph::AtomicValue(graph::AtomicType::POS_REAL);
+      } else {
+        throw std::invalid_argument(
+            "operator NEG_LOG requires a pos_real/probability parent");
+      }
       break;
     }
     case graph::OperatorType::MULTIPLY: {
@@ -301,6 +309,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::LOG: {
       log(this);
+      break;
+    }
+    case graph::OperatorType::NEGATIVE_LOG: {
+      negative_log(this);
       break;
     }
     case graph::OperatorType::EXP: {
