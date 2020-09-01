@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
+#include "beanmachine/graph/graph.h"
 
 // to keep the linter happy this template specialization has been declared here
 // in a header file that is only meant to be included by pybindings.cpp
@@ -45,13 +46,15 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
         }
       }
     } else if (src.type.variable_type == VariableType::BROADCAST_MATRIX) {
-      switch(src.type.atomic_type){
+      switch (src.type.atomic_type) {
         case AtomicType::BOOLEAN:
-          return type_caster<Eigen::MatrixXb>::cast(src._bmatrix, policy, parent);
+          return type_caster<Eigen::MatrixXb>::cast(
+              src._bmatrix, policy, parent);
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
         case AtomicType::PROBABILITY:
-          return type_caster<Eigen::MatrixXd>::cast(src._matrix, policy, parent);
+          return type_caster<Eigen::MatrixXd>::cast(
+              src._matrix, policy, parent);
         default:
           throw std::runtime_error("unexpected type for AtomicValue");
       }
