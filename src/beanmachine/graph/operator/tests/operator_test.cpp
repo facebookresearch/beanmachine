@@ -285,7 +285,7 @@ TEST(testoperator, logsumexp) {
   //   in_nodes.logsumexp(dim=0),
   //   tensor(1.0)).log_prob(tensor(0.0))
   // f_grad = torch.autograd.grad(f_xz, x, create_graph=True) # -0.4582
-  // f_grad2 = torch.autograd.grad(f_grad, x) # -1.4543
+  // f_grad2 = torch.autograd.grad(f_grad, x) #-1.4543
   // f_grad = torch.autograd.grad(f_xz, z, create_graph=True) # -0.2362
   // f_grad2 = torch.autograd.grad(f_grad, z) # 0.7464
   double grad1 = 0;
@@ -345,4 +345,59 @@ TEST(testoperator, log) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, 5.5452, 1e-3);
   EXPECT_NEAR(grad2, -27.0904, 1e-3);
+}
+
+TEST(testoperator, pow) {
+  Graph g;
+  // There must be exactly two operands.
+  EXPECT_THROW(
+      g.add_operator(OperatorType::POW, std::vector<uint>{}),
+      std::invalid_argument);
+  auto prob1 = g.add_constant_probability(0.5);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  auto pos225 = g.add_constant_pos_real(2.25);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::POW, std::vector<uint>{pos1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::POW, std::vector<uint>{pos1, pos225, pos1}),
+      std::invalid_argument);
+  // Base must be prob/pos/real.
+  // Power must be pos/real.
+  EXPECT_THROW(
+      g.add_operator(OperatorType::POW, std::vector<uint>{pos1, prob1}),
+      std::invalid_argument);
+
+  // y ~ Normal(x^2.25, 1)
+  // If we observe x = 0.5 then the mean should be 0.21
+  auto prior = g.add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto x_pow = g.add_operator(OperatorType::POW, std::vector<uint>{x, pos225});
+  auto x_pow_real =
+      g.add_operator(OperatorType::TO_REAL, std::vector<uint>{x_pow});
+  auto likelihood = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{x_pow_real, pos1});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
+  g.query(y);
+  g.observe(x, 0.5);
+  const auto& means = g.infer_mean(10000, InferenceType::NMC);
+  EXPECT_NEAR(means[0], 0.21, 0.01);
+  g.observe(y, 0.0);
+  // check gradient:
+  // Verified in pytorch using the following code:
+  //
+  // x = tensor(0.5, requires_grad=True)
+  // fx = Normal(x ** 2.25, tensor(1.0)).log_prob(tensor(0.0))
+  // f1x = grad(fx, x, create_graph=True)
+  // f2x = grad(f1x, x)
+  //
+  // f1x -> -0.1989 and f2x -> -1.3921
+  double grad1 = 0;
+  double grad2 = 0;
+  g.gradient_log_prob(x, grad1, grad2);
+  EXPECT_NEAR(grad1, -0.1989, 1e-3);
+  EXPECT_NEAR(grad2, -1.3921, 1e-3);
 }

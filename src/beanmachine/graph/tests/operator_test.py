@@ -76,6 +76,14 @@ class TestOperators(unittest.TestCase):
             g.add_operator(bmg.OperatorType.ADD, [c1])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2, c1])
+        # test POW
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.POW, [])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.POW, [c1])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.POW, [c1, c1, c1])
+        g.add_operator(bmg.OperatorType.POW, [c1, c2])
 
     def test_arithmetic(self) -> None:
         g = bmg.Graph()
@@ -87,7 +95,8 @@ class TestOperators(unittest.TestCase):
         o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2_real, o0])
         o4 = g.add_operator(bmg.OperatorType.EXPM1, [o0])
         o5 = g.add_operator(bmg.OperatorType.ADD, [o0, o3, o4])
-        g.query(o5)
+        o6 = g.add_operator(bmg.OperatorType.POW, [o5, o0])  # real
+        g.query(o6)
         samples = g.infer(2)
         # both samples should have exactly the same value since we are doing
         # deterministic operators only
@@ -95,7 +104,7 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(samples[0][0], samples[1][0])
         # the result should be identical to doing this math directly
         const1 = 3.0
-        result = const1 + math.exp(-const1) * const1 + math.expm1(const1)
+        result = (const1 + math.exp(-const1) * const1 + math.expm1(const1)) ** const1
         self.assertAlmostEqual(samples[0][0], result, 3)
 
     def test_probability(self) -> None:

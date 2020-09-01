@@ -53,7 +53,8 @@ PYBIND11_MODULE(graph, module) {
       .value("LOG1PEXP", OperatorType::LOG1PEXP)
       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
       .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
-      .value("LOG", OperatorType::LOG);
+      .value("LOG", OperatorType::LOG)
+      .value("POW", OperatorType::POW);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)
@@ -135,24 +136,28 @@ PYBIND11_MODULE(graph, module) {
           py::arg("value"))
       .def(
           "add_constant_col_simplex_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_col_simplex_matrix,
+          (uint(Graph::*)(Eigen::MatrixXd&)) &
+              Graph::add_constant_col_simplex_matrix,
           "add a Node with a constant matrix with each column a simplex",
           py::arg("value"))
       .def(
           "add_constant_probability_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_probability_matrix,
+          (uint(Graph::*)(Eigen::MatrixXd&)) &
+              Graph::add_constant_probability_matrix,
           "add a Node with a constant probability-valued matrix",
           py::arg("value"))
       .def(
           "add_distribution",
-          (uint(Graph::*)(DistributionType, AtomicType, std::vector<uint>)) &Graph::add_distribution,
+          (uint(Graph::*)(DistributionType, AtomicType, std::vector<uint>)) &
+              Graph::add_distribution,
           "add a probability distribution Node",
           py::arg("dist_type"),
           py::arg("sample_type"),
           py::arg("parents"))
       .def(
           "add_distribution",
-          (uint(Graph::*)(DistributionType, ValueType, std::vector<uint>)) &Graph::add_distribution,
+          (uint(Graph::*)(DistributionType, ValueType, std::vector<uint>)) &
+              Graph::add_distribution,
           "add a probability distribution Node",
           py::arg("dist_type"),
           py::arg("sample_type"),

@@ -204,6 +204,40 @@ Operator::Operator(
       value = graph::AtomicValue(in_nodes[1]->value.type.atomic_type);
       break;
     }
+    case graph::OperatorType::POW: {
+      if (in_nodes.size() != 2) {
+        throw std::invalid_argument("operator POW requires 2 args");
+      }
+      if (type0 != graph::AtomicType::PROBABILITY and
+          type0 != graph::AtomicType::POS_REAL and
+          type0 != graph::AtomicType::REAL) {
+        throw std::invalid_argument(
+            "operator POW requires a prob/pos_real/real base");
+      }
+      graph::AtomicType type1 = in_nodes[1]->value.type.atomic_type;
+      if (type1 != graph::AtomicType::POS_REAL and
+          type1 != graph::AtomicType::REAL) {
+        throw std::invalid_argument(
+            "operator POW requires a pos_real/real exponent");
+      }
+
+      // These are all the legal operand types and the result type:
+      //
+      // R  **  R  -->  R
+      // R  **  R+ -->  R
+      // R+ **  R  -->  R+
+      // R+ **  R+ -->  R+
+      // P  **  R  -->  R+  <-- only case where result != type0
+      // P  **  R+ -->  P
+
+      graph::AtomicType result = (type0 == graph::AtomicType::PROBABILITY and
+                                  type1 == graph::AtomicType::REAL)
+          ? graph::AtomicType::POS_REAL
+          : type0;
+      value = graph::AtomicValue(result);
+      break;
+    }
+
     default: {
       throw std::invalid_argument(
           "Unknown operator " + std::to_string(static_cast<int>(op_type)));
@@ -291,6 +325,10 @@ void Operator::eval(std::mt19937& gen) {
     }
     case graph::OperatorType::IF_THEN_ELSE: {
       if_then_else(this);
+      break;
+    }
+    case graph::OperatorType::POW: {
+      pow(this);
       break;
     }
     default: {

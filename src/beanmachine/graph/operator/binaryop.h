@@ -8,6 +8,7 @@ namespace oper {
 void multiply(graph::Node* node);
 void add(graph::Node* node);
 void logsumexp(graph::Node* node);
+void pow(graph::Node* node);
 
 } // namespace oper
 } // namespace beanmachine
