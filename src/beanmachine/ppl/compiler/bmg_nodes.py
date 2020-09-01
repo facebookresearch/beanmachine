@@ -2106,16 +2106,18 @@ class PowerNode(BinaryOperatorNode):
         # Note that P ** R is the only case where the type of the result is not
         # equal to the type of the base.
         #
-        # The smallest type we can make the return is:
+        # The smallest type we can make the return if we generate a BMG power
+        # node can be found by:
+        #
         # * treat the base type as the larger of its inf type and Probability
         # * treat the exp type as the larger of its inf type and Positive Real.
         # * return the best match from the table above.
         #
-        # TODO: We could support x ** b where b is a bool by generating it
-        # as "if b then x else 1", and that's of the same type as x. This
-        # would allow us to generate:
-        # B ** B --> B
-        # N ** B --> N
+        # However, there are some cases where we can generate a smaller
+        # result type:
+        #
+        # * We generate x ** b where b is bool as "if b then x else 1", which
+        #   is of the same type as x.
         #
         # TODO: We could support b ** n where b is bool and n is a natural
         # constant. If n is the constant zero then the result is just
@@ -2133,13 +2135,20 @@ class PowerNode(BinaryOperatorNode):
         # we can do is convert both to R+, which is what we'd have to
         # do for the multiplication.
 
-        inf_base = supremum(self.left.inf_type, Probability)
-        inf_exp = supremum(self.right.inf_type, PositiveReal)
+        inf_base = self.left.inf_type
+        inf_exp = self.right.inf_type
 
         if inf_base == Tensor or inf_exp == Tensor:
             return Tensor
+
+        if supremum(inf_exp, Boolean) == Boolean:
+            return inf_base
+
+        inf_base = supremum(inf_base, Probability)
+
         if inf_base == Probability and inf_exp == Real:
             return PositiveReal
+
         return inf_base
 
     def _supported_in_bmg(self) -> bool:
@@ -2181,15 +2190,16 @@ class PowerNode(BinaryOperatorNode):
         # R ** R+
         # R ** R
 
-        # TODO: We could support x ** b where b is a bool by generating it
-        # as "if b then x else 1", and that's of the same type as x.
-
-        inf_base = supremum(self.left.inf_type, Probability)
-        inf_exp = supremum(self.right.inf_type, PositiveReal)
+        inf_base = self.left.inf_type
+        inf_exp = supremum(Boolean, self.right.inf_type)
 
         if inf_base == Tensor or inf_exp == Tensor:
             return [Tensor, Tensor]
-        return [inf_base, inf_exp]
+
+        if inf_exp == Boolean:
+            return [inf_base, inf_exp]
+
+        return [supremum(inf_base, Probability), supremum(inf_exp, PositiveReal)]
 
     @property
     def size(self) -> torch.Size:
