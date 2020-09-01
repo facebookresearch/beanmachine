@@ -462,6 +462,10 @@ def pos(n):
 @bm.random_variable
 def math():
   return Normal(pos(0).log(), pos(1).exp())
+
+@bm.random_variable
+def math2():
+  return HalfCauchy(pos(2) ** pos(3))
 """
 
 expected_python_4 = """
@@ -482,6 +486,14 @@ n6 = g.add_distribution(
   graph.AtomicType.REAL,
   [n4, n5])
 n7 = g.add_operator(graph.OperatorType.SAMPLE, [n6])
+n8 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n9 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n10 = g.add_operator(graph.OperatorType.POW, [n8, n9])
+n11 = g.add_distribution(
+  graph.DistributionType.HALF_CAUCHY,
+  graph.AtomicType.POS_REAL,
+  [n10])
+n12 = g.add_operator(graph.OperatorType.SAMPLE, [n11])
 """
 
 expected_cpp_4 = """
@@ -505,17 +517,34 @@ uint n6 = g.add_distribution(
   std::vector<uint>({n4, n5}));
 uint n7 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n6}));
+uint n8 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n9 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n10 = g.add_operator(
+  graph::OperatorType::POW, std::vector<uint>({n8, n9}));
+uint n11 = g.add_distribution(
+  graph::DistributionType::HALF_CAUCHY,
+  graph::AtomicType::POS_REAL,
+  std::vector<uint>({n10}));
+uint n12 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n11}));
 """
 
 expected_bmg_4 = """
 Node 0 type 1 parents [ ] children [ 1 ] positive real 1
-Node 1 type 2 parents [ 0 ] children [ 2 3 ] unknown
+Node 1 type 2 parents [ 0 ] children [ 2 3 8 9 ] unknown
 Node 2 type 3 parents [ 1 ] children [ 4 ] positive real 0
 Node 3 type 3 parents [ 1 ] children [ 5 ] positive real 0
 Node 4 type 3 parents [ 2 ] children [ 6 ] real 0
 Node 5 type 3 parents [ 3 ] children [ 6 ] positive real 0
 Node 6 type 2 parents [ 4 5 ] children [ 7 ] unknown
 Node 7 type 3 parents [ 6 ] children [ ] real 0
+Node 8 type 3 parents [ 1 ] children [ 10 ] positive real 0
+Node 9 type 3 parents [ 1 ] children [ 10 ] positive real 0
+Node 10 type 3 parents [ 8 9 ] children [ 11 ] positive real 0
+Node 11 type 2 parents [ 10 ] children [ 12 ] unknown
+Node 12 type 3 parents [ 11 ] children [ ] positive real 0
 """
 
 
