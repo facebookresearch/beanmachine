@@ -9,6 +9,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BinomialNode,
     BooleanNode,
     Chi2Node,
+    ComplementNode,
     ExpNode,
     FlatNode,
     GammaNode,
@@ -294,6 +295,13 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(NegateNode(bino).inf_type, Real)
         self.assertEqual(NegateNode(half).inf_type, Real)
         self.assertEqual(NegateNode(norm).inf_type, Real)
+
+        # Complement
+        # - Boolean -> Boolean
+        # - Probability -> Probability
+        # Everything else is illegal
+        self.assertEqual(ComplementNode(bern).inf_type, Boolean)
+        self.assertEqual(ComplementNode(beta).inf_type, Probability)
 
         # Exp
         # exp Boolean -> PositiveReal
@@ -741,6 +749,10 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(NegateNode(bino).requirements, [Real])
         self.assertEqual(NegateNode(half).requirements, [Real])
         self.assertEqual(NegateNode(norm).requirements, [Real])
+
+        # Complement requires that its operand be probability or Boolean
+        self.assertEqual(ComplementNode(bern).requirements, [Boolean])
+        self.assertEqual(ComplementNode(beta).requirements, [Probability])
 
         # Exp requires that its operand be positive real or real.
 
