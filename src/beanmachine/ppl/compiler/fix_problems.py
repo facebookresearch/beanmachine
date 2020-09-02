@@ -20,6 +20,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     MultiplicationNode,
     Observation,
     OperatorNode,
+    PowerNode,
     Query,
     SampleNode,
     UniformNode,
@@ -191,6 +192,45 @@ error is added to the error report."""
 
         return self.meet_requirement(if_then_else, requirement, consumer, edge)
 
+    def _convert_malformed_power(
+        self, node: PowerNode, requirement: BMGLatticeType, consumer: BMGNode, edge: str
+    ) -> BMGNode:
+        # We are given a malformed power node which can be converted
+        # to a semantically equivalent node that meets the given requirement.
+        # Verify these preconditions.
+
+        assert node.graph_type == Malformed
+        assert supremum(node.inf_type, requirement) == requirement
+
+        # The only condition in which a power node can be malformed is
+        # if the exponent is bool; since we visit the nodes in topological
+        # order, we have already converted the operands to well-formed
+        # nodes.
+
+        lgt = node.left.graph_type
+        rgt = node.right.graph_type
+
+        assert lgt != Malformed
+        assert rgt == Boolean
+
+        # Therefore this can be made an if-then-else.
+        # x ** b --> if b then x else 1
+
+        one = self.bmg.add_constant_of_type(1.0, lgt)
+        if_then_else = self.bmg.add_if_then_else(node.right, node.left, one)
+
+        assert if_then_else.graph_type == lgt
+
+        # We have met the requirements of the if-then-else; the condition
+        # is bool and the consequence and alternative are of the same type.
+        # However, we might not yet have met the original requirement, which
+        # we have not yet used in this method. We might need to put a to_real
+        # on top of it, for instance.
+        #
+        # Recurse to ensure that is met.
+
+        return self.meet_requirement(if_then_else, requirement, consumer, edge)
+
     def _convert_node(
         self,
         node: OperatorNode,
@@ -208,6 +248,9 @@ error is added to the error report."""
             return self._convert_malformed_multiplication(
                 node, requirement, consumer, edge
             )
+
+        if isinstance(node, PowerNode) and node.graph_type == Malformed:
+            return self._convert_malformed_power(node, requirement, consumer, edge)
 
         # Converting anything to tensor, real or positive real is easy;
         # there's already a node for that so just insert it on the edge
@@ -342,14 +385,12 @@ requirement is given; the name of this edge is provided for error reporting."""
         # TODO:
         # Not -> Complement
         # Index/Map -> IfThenElse
-        # Power -> Multiplication
         if isinstance(node, Chi2Node):
             return self._replace_chi2(node)
         if isinstance(node, DivisionNode):
             return self._replace_division(node)
         if isinstance(node, UniformNode):
             return self._replace_uniform(node)
-
         return None
 
     def _fix_unsupported_nodes(self) -> None:

@@ -325,11 +325,9 @@ class ASTToolsTest(unittest.TestCase):
         # * If the base is P or B and the exponent is R, the output is R+.
         # * If the base is B the output is P.
         # * If the base is N the output is R+.
-        # TODO: We can do a slightly better job than this; see comments
-        # in bmg_nodes.py for details.
 
         # Base is B
-        self.assertEqual(PowerNode(bern, bern).inf_type, Probability)
+        self.assertEqual(PowerNode(bern, bern).inf_type, Boolean)
         self.assertEqual(PowerNode(bern, beta).inf_type, Probability)
         self.assertEqual(PowerNode(bern, bino).inf_type, Probability)
         self.assertEqual(PowerNode(bern, half).inf_type, Probability)
@@ -343,7 +341,7 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(PowerNode(beta, norm).inf_type, PositiveReal)
 
         # Base is N
-        self.assertEqual(PowerNode(bino, bern).inf_type, PositiveReal)
+        self.assertEqual(PowerNode(bino, bern).inf_type, Natural)
         self.assertEqual(PowerNode(bino, beta).inf_type, PositiveReal)
         self.assertEqual(PowerNode(bino, bino).inf_type, PositiveReal)
         self.assertEqual(PowerNode(bino, half).inf_type, PositiveReal)
@@ -776,15 +774,11 @@ class ASTToolsTest(unittest.TestCase):
 
         # Power
         #
-        # For non-tensor cases we require that the base be P, R+, R and the
-        # exponent be R+ or R.
-        #
-        # TODO: We can do a slightly better job than this; see comments
-        # in bmg_nodes.py for details.
+        # We require that the base be P, R+, R and the exponent be R+ or R.
+        # However, if the exponent is bool then the base can be any type
+        # because we can rewrite the whole thing into an if-then-else.
 
-        self.assertEqual(
-            PowerNode(bern, bern).requirements, [Probability, PositiveReal]
-        )
+        self.assertEqual(PowerNode(bino, bern).requirements, [Natural, Boolean])
         self.assertEqual(
             PowerNode(beta, beta).requirements, [Probability, PositiveReal]
         )

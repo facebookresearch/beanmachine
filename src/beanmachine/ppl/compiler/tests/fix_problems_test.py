@@ -569,3 +569,104 @@ digraph "graph" {
 """
 
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_9(self) -> None:
+        """test_fix_problems_9"""
+
+        # The problem we have here is that natural raised to bool
+        # is not supported in BMG without converting both to
+        # positive real, but natural raised to bool is plainly
+        # natural. We generate an if-then-else.
+
+        # @rv def berns():
+        #   return Bernoulli(0.5)
+        # @rv def nats():
+        #   return Binomial(2, 0.5)
+        # @rv def bino():
+        #   return Binomial(nats() ** berns(), 0.5)
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        two = bmg.add_natural(2)
+        half = bmg.add_probability(0.5)
+        bern = bmg.add_bernoulli(half)
+        berns = bmg.add_sample(bern)
+        nat = bmg.add_binomial(two, half)
+        nats = bmg.add_sample(nat)
+        powr = bmg.add_power(nats, berns)
+        bino = bmg.add_binomial(powr, half)
+        bmg.add_sample(bino)
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        expected = """
+digraph "graph" {
+  N0[label="2:N>=N"];
+  N1[label="0.5:P>=P"];
+  N2[label="Bernoulli:B>=B"];
+  N3[label="Sample:B>=B"];
+  N4[label="Binomial:N>=N"];
+  N5[label="Sample:N>=N"];
+  N6[label="**:M>=N"];
+  N7[label="Binomial:N>=N"];
+  N8[label="Sample:N>=N"];
+  N0 -> N4[label="count:N"];
+  N1 -> N2[label="probability:P"];
+  N1 -> N4[label="probability:P"];
+  N1 -> N7[label="probability:P"];
+  N2 -> N3[label="operand:B"];
+  N3 -> N6[label="right:B"];
+  N4 -> N5[label="operand:N"];
+  N5 -> N6[label="left:N"];
+  N6 -> N7[label="count:N"];
+  N7 -> N8[label="operand:N"];
+}"""
+
+        self.assertEqual(observed.strip(), expected.strip())
+
+        error_report = fix_problems(bmg)
+
+        self.assertEqual("", str(error_report).strip())
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        expected = """
+digraph "graph" {
+  N00[label="2:N>=N"];
+  N01[label="0.5:P>=P"];
+  N02[label="Bernoulli:B>=B"];
+  N03[label="Sample:B>=B"];
+  N04[label="Binomial:N>=N"];
+  N05[label="Sample:N>=N"];
+  N06[label="**:M>=N"];
+  N07[label="Binomial:N>=N"];
+  N08[label="Sample:N>=N"];
+  N09[label="1:N>=OH"];
+  N10[label="if:N>=N"];
+  N00 -> N04[label="count:N"];
+  N01 -> N02[label="probability:P"];
+  N01 -> N04[label="probability:P"];
+  N01 -> N07[label="probability:P"];
+  N02 -> N03[label="operand:B"];
+  N03 -> N06[label="right:B"];
+  N03 -> N10[label="condition:B"];
+  N04 -> N05[label="operand:N"];
+  N05 -> N06[label="left:N"];
+  N05 -> N10[label="consequence:N"];
+  N07 -> N08[label="operand:N"];
+  N09 -> N10[label="alternative:N"];
+  N10 -> N07[label="count:N"];
+}"""
+
+        self.assertEqual(observed.strip(), expected.strip())
