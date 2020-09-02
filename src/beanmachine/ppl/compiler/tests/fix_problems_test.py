@@ -342,9 +342,7 @@ digraph "graph" {
     def test_fix_problems_5(self) -> None:
         """test_fix_problems_5"""
 
-        # This test has some problems that cannot be fixed.
-        #
-        # * No support for division yet
+        # Division becomes power.
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -367,9 +365,49 @@ digraph "graph" {
 
         error_report = fix_problems(bmg)
         observed = str(error_report)
+        expected = ""
+        self.assertEqual(observed.strip(), expected.strip())
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
         expected = """
-The model uses a / operation unsupported by Bean Machine Graph.
-The unsupported node is the right of a **.
+digraph "graph" {
+  N00[label="1.0:R>=OH"];
+  N01[label="HalfCauchy:R+>=R+"];
+  N02[label="Sample:R+>=R+"];
+  N03[label="Sample:R+>=R+"];
+  N04[label="Sample:R+>=R+"];
+  N05[label="/:R+>=R+"];
+  N06[label="**:R+>=R+"];
+  N07[label="Log:R>=R"];
+  N08[label="Normal:R>=R"];
+  N09[label="Sample:R>=R"];
+  N10[label="-1.0:R>=R"];
+  N11[label="**:R+>=R+"];
+  N12[label="*:R+>=R+"];
+  N13[label="1.0:R+>=OH"];
+  N01 -> N02[label="operand:R+"];
+  N01 -> N03[label="operand:R+"];
+  N01 -> N04[label="operand:R+"];
+  N02 -> N05[label="left:R+"];
+  N02 -> N12[label="left:R+"];
+  N03 -> N05[label="right:R+"];
+  N03 -> N11[label="left:R+"];
+  N04 -> N06[label="left:R+"];
+  N06 -> N07[label="operand:R+"];
+  N07 -> N08[label="mu:R"];
+  N08 -> N09[label="operand:R"];
+  N10 -> N11[label="right:R"];
+  N11 -> N12[label="right:R+"];
+  N12 -> N06[label="right:R+"];
+  N13 -> N01[label="scale:R+"];
+  N13 -> N08[label="sigma:R+"];
+}
 """
         self.assertEqual(observed.strip(), expected.strip())
 

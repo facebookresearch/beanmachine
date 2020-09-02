@@ -348,12 +348,16 @@ requirement is given; the name of this edge is provided for error reporting."""
         raise AssertionError("Unexpected node type")
 
     def _replace_division(self, node: DivisionNode) -> Optional[BMGNode]:
+        # x / const --> x * (1 / const)
+        # x / y --> x * (y ** (-1))
         r = node.right
         if isinstance(r, ConstantNode):
             return self.bmg.add_multiplication(
                 node.left, self.bmg.add_constant(1.0 / r.value)
             )
-        return None
+        neg1 = self.bmg.add_constant(-1.0)
+        powr = self.bmg.add_power(r, neg1)
+        return self.bmg.add_multiplication(node.left, powr)
 
     def _replace_uniform(self, node: UniformNode) -> Optional[BMGNode]:
         # TODO: Suppose we have something like Uniform(1.0, 2.0).  Can we replace that
