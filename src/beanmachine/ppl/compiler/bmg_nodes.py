@@ -1715,14 +1715,9 @@ class AdditionNode(BinaryOperatorNode):
 class DivisionNode(BinaryOperatorNode):
     """This represents a division."""
 
-    # TODO: There is no division node in BMG, and it is not clear how
-    # we will represent it; obviously divisions by constants can be
-    # turned into multiplications easily enough, but division by a
-    # stochastic node has no representation.
-    # We could add a division node, or we could add a power node
-    # and generate c/d as Multiply(c, Power(d, -1.0))
-    # Either way, when we decide, implement the transformation to
-    # BMG nodes accordingly.
+    # There is no division node in BMG; we will replace
+    # x / y with x * (y ** (-1)) during the "fix problems"
+    # phase.
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -1746,16 +1741,14 @@ class DivisionNode(BinaryOperatorNode):
 
     @property
     def inf_type(self) -> BMGLatticeType:
-        # TODO: We do not support division in BMG yet; when we do, implement
-        # this correctly. Best guess so far: division is defined only on
-        # positive reals, reals and tensors.
+        # Both operands must be R, R+ or T, they must be the same,
+        # and the result type is that type.
         return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        # TODO: We do not support division in BMG yet; when we do, implement
-        # this correctly. Best guess so far: left, right and output types
-        # must be the same, and must be PositiveReal, Real or tensor.
+        # Both operands must be R, R+ or T, they must be the same,
+        # and the result type is that type.
         lgt = self.left.graph_type
         if lgt != self.right.graph_type:
             return Malformed
@@ -1765,8 +1758,7 @@ class DivisionNode(BinaryOperatorNode):
 
     @property
     def requirements(self) -> List[Requirement]:
-        # TODO: We do not support division in BMG yet; when we do, implement
-        # this correctly.
+        # We require that both inputs be the same as the output.
         it = self.inf_type
         return [it, it]
 
@@ -2156,10 +2148,9 @@ class PowerNode(BinaryOperatorNode):
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        # Figure out which of these seven cases we are in; otherwise
+        # Figure out which of these cases we are in; otherwise
         # return Malformed.
 
-        # T ** T   --> T
         # P ** R+  --> P
         # P ** R   --> R+
         # R+ ** R+ --> R+
@@ -2168,10 +2159,6 @@ class PowerNode(BinaryOperatorNode):
         # R ** R   --> R
         lt = self.left.graph_type
         rt = self.right.graph_type
-        if lt == Tensor and rt == Tensor:
-            return Tensor
-        if lt == Tensor or rt == Tensor:
-            return Malformed
         if lt != Probability and lt != PositiveReal and lt != Real:
             return Malformed
         if rt != PositiveReal and rt != Real:
@@ -2182,7 +2169,6 @@ class PowerNode(BinaryOperatorNode):
 
     @property
     def requirements(self) -> List[Requirement]:
-        # T ** T
         # P ** R+
         # P ** R
         # R+ ** R+
