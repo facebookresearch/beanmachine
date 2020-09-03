@@ -225,36 +225,75 @@ void Graph::eval_and_grad(
   }
 }
 
-void Graph::gradient_log_prob(uint src_idx, double& grad1, double& grad2) {
+void set_value(Eigen::MatrixXd& variable, double value) {
+  variable.setConstant(value);
+}
+void set_value(double& variable, double value) {
+  variable = value;
+}
+
+template <class T>
+void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
     throw std::runtime_error(
         "gradient_log_prob only supported on stochastic nodes");
   }
+  uint size = src_node->value.type.cols * src_node->value.type.rows;
+  bool is_src_scalar = (size == 0);
   // start gradient
+  if (!is_src_scalar) {
+    assert(size = grad1.size() and size == grad2.size());
+    src_node->Grad1 = Eigen::MatrixXd::Ones(size, 1);
+    src_node->Grad2 = Eigen::MatrixXd::Zero(size, 1);
+  }
   src_node->grad1 = 1;
   src_node->grad2 = 0;
+
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
   auto supp = compute_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
   std::tie(det_nodes, sto_nodes) = compute_descendants(src_idx, supp);
+  if (!is_src_scalar and det_nodes.size() > 0) {
+    throw std::runtime_error(
+        "compute_gradients has not been implemented for vector source node");
+  }
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     node->eval(generator);
     node->compute_gradients();
   }
-  grad1 = grad2 = 0;
+  set_value(grad1, 0.0);
+  set_value(grad2, 0.0);
   for (auto node_id : sto_nodes) {
     Node* node = nodes[node_id].get();
     node->gradient_log_prob(grad1, grad2);
   }
-  src_node->grad1 = 0; // end gradient computation reset grads
+
+  // end gradient computation reset grads
+  if (!is_src_scalar) {
+      src_node->Grad1.setZero();
+  }
+  src_node->grad1 = 0;
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
-    node->grad1 = node->grad2 = 0;
+    if (!is_src_scalar) {
+      node->Grad1.setZero(1, 1);
+      node->Grad2.setZero(1, 1);
+    } else {
+      node->grad1 = node->grad2 = 0;
+    }
   }
 }
+
+template void
+Graph::gradient_log_prob<double>(uint src_idx, double& grad1, double& grad2);
+
+template void Graph::gradient_log_prob<Eigen::MatrixXd>(
+    uint src_idx,
+    Eigen::MatrixXd& grad1,
+    Eigen::MatrixXd& grad2);
 
 double Graph::log_prob(uint src_idx) {
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
@@ -480,7 +519,7 @@ void Graph::observe(uint node_id, Eigen::MatrixXb& val) {
 void Graph::observe(uint node_id, AtomicValue value) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
   oper::Operator* op = static_cast<oper::Operator*>(node);
-  if (op->op_type != OperatorType::SAMPLE) {
+  if (op->op_type != OperatorType::SAMPLE and op->op_type != OperatorType::IID_SAMPLE) {
     throw std::invalid_argument("only sample nodes may be observed");
   }
   if (observed.find(node_id) != observed.end()) {

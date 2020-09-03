@@ -251,6 +251,7 @@ class AtomicValue {
 enum class OperatorType {
   UNKNOWN = 0,
   SAMPLE = 1, // This is the ~ operator in models
+  IID_SAMPLE,
   TO_REAL,
   TO_POS_REAL,
   COMPLEMENT,
@@ -315,6 +316,9 @@ class Node {
   AtomicValue value;
   double grad1;
   double grad2;
+  Eigen::MatrixXd Grad1;
+  Eigen::MatrixXd Grad2;
+
   virtual bool is_stochastic() const {
     return false;
   }
@@ -326,6 +330,9 @@ class Node {
   // this function adds the gradients to the passed in gradients
   virtual void gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
       const {}
+  virtual void gradient_log_prob(
+      Eigen::MatrixXd& /* grad1 */,
+      Eigen::MatrixXd& /* grad2_diag */) const {}
   Node() {}
   explicit Node(NodeType node_type)
       : node_type(node_type), grad1(0), grad2(0) {}
@@ -334,7 +341,7 @@ class Node {
   // evaluate the node and store the result in `value` if appropriate
   // eval may involve sampling and that's why we need the random number engine
   virtual void eval(std::mt19937& gen) = 0;
-  // populate the grad1 and grad2 fields
+  // populate the derivatives
   virtual void compute_gradients() {}
   virtual ~Node() {}
 };
@@ -473,11 +480,16 @@ struct Graph {
   Evaluate the deterministic descendants of the source node and compute
   the logprob_gradient of all stochastic descendants in the support including
   the source node.
-  :param src_idx: The index of the node to evaluate the gradients w.r.t.
-  :param grad1: Output value of first gradient.
-  :param grad2: Output value of second gradient.
+  :param src_idx: The index of the node to evaluate the gradients w.r.t., must
+  be a vector valued node.
+  :param grad1: Output value of first gradient
+  (double), or gradient vector (Eigen::MatrixXd)
+  :param grad2: Output value of
+  the second gradient (double), or the diagonal terms of the gradient matrix
+  (Eigen::MatrixXd).
   */
-  void gradient_log_prob(uint src_idx, double& grad1, double& grad2);
+  template <class T>
+  void gradient_log_prob(uint src_idx, T& grad1, T& grad2);
   /*
   Evaluate the deterministic descendants of the source node and compute
   the sum of logprob of all stochastic descendants in the support including

@@ -3,7 +3,6 @@
 
 #include "beanmachine/graph/distribution/bernoulli.h"
 #include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
-#include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/distribution/binomial.h"
 #include "beanmachine/graph/distribution/tabular.h"
 #include "beanmachine/graph/graph.h"
@@ -102,21 +101,6 @@ TEST(testdistrib, tabular) {
   cnode2.value = graph::AtomicValue(false);
   EXPECT_NEAR(LOG_ZERO_PT_9, dnode1.log_prob(zero), 1e-3);
   EXPECT_NEAR(LOG_ZERO_PT_1, dnode1.log_prob(one), 1e-3);
-}
-
-TEST(testdistrib, beta) {
-  auto a = graph::AtomicValue(graph::AtomicType::POS_REAL, 1.1);
-  auto b = graph::AtomicValue(graph::AtomicType::POS_REAL, 5.0);
-  graph::ConstNode cnode_a(a);
-  graph::ConstNode cnode_b(b);
-  distribution::Beta dnode1(
-      graph::AtomicType::PROBABILITY,
-      std::vector<graph::Node*>{&cnode_a, &cnode_b});
-  dnode1.in_nodes.push_back(&cnode_a);
-  dnode1.in_nodes.push_back(&cnode_b);
-  auto prob = graph::AtomicValue(graph::AtomicType::PROBABILITY, 0.2);
-  // This value of 0.7773 was checked from PyTorch
-  EXPECT_NEAR(0.7773, dnode1.log_prob(prob), 1e-3);
 }
 
 TEST(testdistrib, binomial) {
