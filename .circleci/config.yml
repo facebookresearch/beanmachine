@@ -78,7 +78,7 @@ commands:
     steps:
       - run:
           name: "Run unit tests"
-          command: pytest -ra --cov=. --cov-report term-missing --import-mode=importlib
+          command: pytest --cov=. --cov-report term-missing
 
   user_unit_tests:
     description: "Run unit tests when as an ordinary user would"
@@ -88,7 +88,17 @@ commands:
           command: pip install pytest gpytorch
       - run:
           name: "Run unit tests"
-          command: pytest -ra --import-mode=importlib
+          command: pytest
+
+  nightly_tests:
+    description: "Run nightly tests as an ordinary user"
+    steps:
+      - run:
+          name: "Install test dependencies"
+          command: pip install pytest gpytorch
+      - run:
+          name: "Run nightly tests"
+          command: pytest -o python_files="*_nightly.py"
 
 
 jobs:
@@ -123,6 +133,16 @@ jobs:
       - lint_isort
       - lint_black
 
+  nightly_test_py37_pip:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - apt_get_install_deps
+      - pip_install_deps
+      - checkout
+      - user_install
+      - nightly_tests
+
 
 aliases:
 
@@ -145,3 +165,14 @@ workflows:
 
       - user_install_test_py37_pip:
           filters: *exclude_ghpages_fbconfig
+
+  nightly_test:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - nightly_test_py37_pip
