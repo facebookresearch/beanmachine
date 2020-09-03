@@ -2388,19 +2388,17 @@ a model contains calls to Tensor.log or math.log."""
 #       -(p + -1)
 #       -(-1 + p)
 #
-#       and replace them with "complement" nodes.
+#       and replace them with "complement" nodes (where p is a probability or
+#       Boolean expression).
 #
 #   (4) Other usages of binary + and unary - in the Python model will
 #       be converted to BMG following the rules for addition and negation
-#       in BMG: negation must be real or tensor valued, and so on.
+#       in BMG: negation must be real valued, and so on.
 
 
 class NegateNode(UnaryOperatorNode):
 
     """This represents a unary minus."""
-
-    # TODO: Add notes about the semantics of the various BMG
-    # negation nodes.
 
     operator_type = OperatorType.NEGATE
 
@@ -2476,6 +2474,67 @@ class NotNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(not o for o in self.operand.support())
+
+
+class ComplementNode(UnaryOperatorNode):
+    """This represents a complement of a Boolean or probability
+value."""
+
+    # See notes above NegateNode for details
+
+    operator_type = OperatorType.COMPLEMENT
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def inf_type(self) -> type:
+        # Note that we should not be generating complement nodes in the graph
+        # unless we can type them correctly. The inf type should always
+        # be probability or bool. If somehow it is not -- perhaps because
+        # we are running a unit test -- then treat the inf type as probability
+        # if the operand type is not correct. The inf type should always be
+        # a genuine type, not Malformed.
+        it = self.operand.inf_type
+        if supremum(it, Boolean) == Boolean:
+            return Boolean
+        return Probability
+
+    @property
+    def graph_type(self) -> type:
+        # Note that we should not be generating complement nodes in the graph
+        # unless we can type them correctly. The graph type should always
+        # be probability or bool. If somehow it is not -- perhaps because
+        # we are running a unit test -- then treat the node as malformed.
+        it = self.operand.graph_type
+        if it == Boolean or it == Probability:
+            return it
+        return Malformed
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        # We require that the input type be the same as the output type.
+        return [self.inf_type]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.operand.size
+
+    @property
+    def label(self) -> str:
+        return "complement"
+
+    def __str__(self) -> str:
+        return "complement " + str(self.operand)
+
+    def support(self) -> Iterator[Any]:
+        # This should never be called because we never generate
+        # a complement node while executing the model to accumulate
+        # the graph.
+        return [1 - p for p in self.operand.support]
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 class SampleNode(UnaryOperatorNode):
