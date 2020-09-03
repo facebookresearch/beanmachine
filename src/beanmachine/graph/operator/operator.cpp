@@ -20,7 +20,8 @@ static void check_unary_op(
   }
   // if the parent node's value type has not been initialized then we
   // can't define an operator here
-  if (in_nodes[0]->value.type == graph::AtomicType::UNKNOWN) {
+  if (in_nodes[0]->value.type.atomic_type == graph::AtomicType::UNKNOWN or
+      in_nodes[0]->value.type.variable_type == graph::VariableType::UNKNOWN) {
     throw std::invalid_argument(
         "unexpected parent node of type " +
         std::to_string(static_cast<int>(in_nodes[0]->node_type)) +
@@ -37,13 +38,14 @@ static void check_multiary_op(
         "expecting at least two parents for operator " +
         std::to_string(static_cast<int>(op_type)));
   }
-  // all parent nodes should have the same value type
+  // all parent nodes should have the same atomic type
   graph::AtomicType type0 = in_nodes[0]->value.type.atomic_type;
   for (const graph::Node* node : in_nodes) {
-    if (node->value.type != type0) {
+    if (node->value.type.atomic_type != type0) {
       throw std::invalid_argument(
           "all parents of operator " +
-          std::to_string(static_cast<int>(op_type)) + " should have same type");
+          std::to_string(static_cast<int>(op_type)) +
+          " should have the same atomic type");
     }
   }
 }
@@ -57,7 +59,7 @@ Operator::Operator(
   if (in_nodes.size() < 1) {
     throw std::invalid_argument("operator requires a parent");
   }
-  graph::AtomicType type0 = in_nodes[0]->value.type.atomic_type;
+  graph::ValueType type0 = in_nodes[0]->value.type;
   // now perform operator-specific checks and set the value type
   switch (op_type) {
     case graph::OperatorType::SAMPLE: {
@@ -71,6 +73,51 @@ Operator::Operator(
       // the type of value of a SAMPLE node is obviously the sample type
       // of the distribution parent
       value = graph::AtomicValue(dist->sample_type);
+      break;
+    }
+    case graph::OperatorType::IID_SAMPLE: {
+      if (in_nodes.size() != 2 ) {
+        throw std::invalid_argument(
+            "iid sample operator requires exactly 2 parent nodes");
+      }
+      if (in_nodes[0]->node_type != graph::NodeType::DISTRIBUTION) {
+        throw std::invalid_argument(
+          "for iid sample, the 1st parent must be a distribution node");
+      }
+      if (in_nodes[1]->node_type != graph::NodeType::CONSTANT or
+          in_nodes[1]->value.type != graph::AtomicType::NATURAL) {
+        throw std::invalid_argument(
+          "for iid sample, the 2nd parent must be a constant natural-valued node");
+      }
+      if (in_nodes[1]->value._natural < 2) {
+        throw std::invalid_argument(
+          "for iid sample, the 2nd parent must have value >= 2");
+      }
+      const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
+      if (dist->dist_type != graph::DistributionType::BETA) {
+        throw std::invalid_argument(
+          "currently iid sample only supports Beta distribution");
+      }
+      // determine the value type
+      graph::ValueType vtype;
+      switch (dist->sample_type.variable_type) {
+        case graph::VariableType::SCALAR:
+          vtype = graph::ValueType(
+              graph::VariableType::BROADCAST_MATRIX,
+              dist->sample_type.atomic_type,
+              in_nodes[1]->value._natural,
+              1);
+          break;
+        case graph::VariableType::BROADCAST_MATRIX:
+        case graph::VariableType::COL_SIMPLEX_MATRIX:
+          //TODO(ddeng): add IID_SAMPLE_COL after refactoring Operator class
+          throw std::invalid_argument(
+              "For matrix sample types, use IID_SAMPLE_COL. ");
+        default:
+          throw std::invalid_argument(
+              "Invalid sample type for for iid sample. ");
+      }
+      value = graph::AtomicValue(vtype);
       break;
     }
     case graph::OperatorType::COMPLEMENT: {
@@ -241,7 +288,7 @@ Operator::Operator(
       graph::AtomicType result = (type0 == graph::AtomicType::PROBABILITY and
                                   type1 == graph::AtomicType::REAL)
           ? graph::AtomicType::POS_REAL
-          : type0;
+          : type0.atomic_type;
       value = graph::AtomicValue(result);
       break;
     }
@@ -254,20 +301,24 @@ Operator::Operator(
 }
 
 double Operator::log_prob() const {
-  assert(op_type == graph::OperatorType::SAMPLE);
-  return static_cast<const distribution::Distribution*>(in_nodes[0])
-      ->log_prob(value);
+  if (op_type == graph::OperatorType::SAMPLE or
+      op_type == graph::OperatorType::IID_SAMPLE) {
+    return static_cast<const distribution::Distribution*>(in_nodes[0])
+        ->log_prob(value);
+  } else {
+    throw std::invalid_argument(
+        "log_prob is only defined for sample or iid sample");
+  }
 }
 
 void Operator::gradient_log_prob(double& first_grad, double& second_grad)
     const {
-  assert(op_type == graph::OperatorType::SAMPLE);
-  const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
-  if (grad1 != 0.0) {
-    dist->gradient_log_prob_value(value, first_grad, second_grad);
-  } else {
-    dist->gradient_log_prob_param(value, first_grad, second_grad);
-  }
+  _gradient_lob_prob<double>(first_grad, second_grad, this);
+}
+
+void Operator::gradient_log_prob(Eigen::MatrixXd& first_grad, Eigen::MatrixXd& second_grad)
+    const {
+  _gradient_lob_prob<Eigen::MatrixXd>(first_grad, second_grad, this);
 }
 
 void Operator::eval(std::mt19937& gen) {
@@ -275,6 +326,12 @@ void Operator::eval(std::mt19937& gen) {
     distribution::Distribution* dist =
         static_cast<distribution::Distribution*>(in_nodes[0]);
     value = dist->sample(gen);
+    return;
+  }
+  if (op_type == graph::OperatorType::IID_SAMPLE) {
+    const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
+    // TODO(ddeng): add sample(gen, value) to all dist tyes.
+    dist->sample(gen, value);
     return;
   }
 

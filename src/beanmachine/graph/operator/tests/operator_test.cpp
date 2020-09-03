@@ -1,11 +1,14 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <gtest/gtest.h>
 
+#include "beanmachine/graph/distribution/bernoulli.h"
+#include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
 
 using namespace beanmachine;
 using namespace beanmachine::graph;
+using namespace beanmachine::distribution;
 
 TEST(testoperator, complement) {
   // negative test num args can't be zero
@@ -448,4 +451,75 @@ TEST(testoperator, pow) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, -0.1989, 1e-3);
   EXPECT_NEAR(grad2, -1.3921, 1e-3);
+}
+
+TEST(testoperator, iid_sample) {
+  auto prob_value = AtomicValue(AtomicType::PROBABILITY, 0.1);
+  auto prob_node = ConstNode(prob_value);
+  auto bern_dist =
+      Bernoulli(AtomicType::BOOLEAN, std::vector<Node*>{&prob_node});
+  auto int_value = AtomicValue(AtomicType::NATURAL, (natural_t)2);
+  auto int_node = ConstNode(int_value);
+  // negative tests on the number and types of parents
+  EXPECT_THROW(
+      oper::Operator node1(OperatorType::IID_SAMPLE, std::vector<Node*>{}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      oper::Operator node1(
+          OperatorType::IID_SAMPLE, std::vector<Node*>{&bern_dist, &bern_dist}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      oper::Operator node1(
+          OperatorType::IID_SAMPLE, std::vector<Node*>{&int_node, &prob_node}),
+      std::invalid_argument);
+  // currently only supports Beta distribution
+  EXPECT_THROW(
+      oper::Operator node1(
+        OperatorType::IID_SAMPLE, std::vector<Node*>{&bern_dist, &int_node}),
+      std::invalid_argument);
+
+  // test initialization
+  auto pos_real_value = AtomicValue(AtomicType::POS_REAL, 2.0);
+  auto pos_real_node = ConstNode(pos_real_value);
+  auto beta_dist = Beta(
+      AtomicType::PROBABILITY,
+      std::vector<Node*>{&pos_real_node, &pos_real_node});
+  beta_dist.in_nodes.push_back(&pos_real_node);
+  beta_dist.in_nodes.push_back(&pos_real_node);
+  auto beta_samples = oper::Operator(
+      OperatorType::IID_SAMPLE, std::vector<Node*>{&beta_dist, &int_node});
+  beta_samples.in_nodes.push_back(&beta_dist);
+  beta_samples.in_nodes.push_back(&int_node);
+  auto vtype =
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::PROBABILITY, 2, 1);
+  EXPECT_TRUE(beta_samples.value.type == vtype);
+
+  // test log_prob
+  Eigen::MatrixXd matrix1(2, 1);
+  matrix1 << 0.6,
+             0.5;
+  auto matrix_value = AtomicValue(vtype, matrix1);
+  beta_samples.value = matrix_value;
+  EXPECT_NEAR(beta_samples.log_prob(), 0.7701, 1e-3);
+
+  // test eval
+  std::mt19937 generator(1234);
+  uint n_samples = 10000;
+  double x0, x1;
+  double mean_x0 = 0.0, mean_x1 = 0.0;
+  double mean_x0sq = 0.0, mean_x1sq = 0.0;
+  for (uint i = 0; i < n_samples; i++) {
+      beta_samples.eval(generator);
+      x0 = *(beta_samples.value._matrix.data());
+      x1 = *(beta_samples.value._matrix.data() + 1);
+      mean_x0 += x0 / n_samples;
+      mean_x1 += x1 / n_samples;
+      mean_x0sq += x0 * x0 / n_samples;
+      mean_x1sq += x1 * x1 / n_samples;
+  }
+  EXPECT_NEAR(mean_x0, 0.5, 0.01);
+  EXPECT_NEAR(mean_x1, 0.5, 0.01);
+  EXPECT_NEAR(mean_x0sq - mean_x0 * mean_x0, 1.0 / 20.0, 0.001);
+  EXPECT_NEAR(mean_x1sq - mean_x1 * mean_x1, 1.0 / 20.0, 0.001);
+  // log_prob_grad to be tested in each distribution test
 }

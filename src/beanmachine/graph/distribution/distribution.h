@@ -22,6 +22,12 @@ class Distribution : public graph::Node {
         dist_type(dist_type),
         sample_type(sample_type) {}
   virtual graph::AtomicValue sample(std::mt19937& gen) const = 0;
+  virtual void sample(
+      std::mt19937& /* gen */,
+      graph::AtomicValue& /* sample_value */) const {
+    throw std::invalid_argument(
+        "this method has not been implemented for this distribution.");
+  }
   void eval(std::mt19937& /* */) override {
     throw std::runtime_error(
         "internal error: eval() is not implemented for distribution");
@@ -35,10 +41,24 @@ class Distribution : public graph::Node {
       const graph::AtomicValue& value,
       double& grad1,
       double& grad2) const = 0;
+  virtual void gradient_log_prob_value(
+      const graph::AtomicValue& /* value */,
+      Eigen::MatrixXd& /* grad1 */,
+      Eigen::MatrixXd& /* grad2_diag */) const {
+        throw std::invalid_argument(
+            "this method has not been implemented for this distribution.");
+      }
   virtual void gradient_log_prob_param(
       const graph::AtomicValue& value,
       double& grad1,
       double& grad2) const = 0;
+  virtual void gradient_log_prob_param(
+      const graph::AtomicValue& /* value */,
+      Eigen::MatrixXd& /* grad1 */,
+      Eigen::MatrixXd& /* grad2_diag */) const {
+        throw std::invalid_argument(
+            "this method has not been implemented for this distribution.");
+      }
   graph::DistributionType dist_type;
   graph::ValueType sample_type;
 };
