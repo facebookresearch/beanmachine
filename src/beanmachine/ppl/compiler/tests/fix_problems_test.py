@@ -708,3 +708,38 @@ digraph "graph" {
 }"""
 
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_10(self) -> None:
+        """test_fix_problems_10"""
+
+        # This test shows that right now we cannot turn 1-p into a
+        # probability; this becomes 1+(-p), and the negate operator
+        # is only defined on real numbers, so this expression becomes
+        # real-valued.
+        #
+        # We will eventually write a problem fixer that turns this into
+        # a complement operator; this test will be rewritten then.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        # @rv def beta():
+        #   return Beta(2.0, 2.0)
+        # @rv def bern():
+        #   return Bernoulli(1 - beta()) # BAD
+
+        one = bmg.add_constant(1.0)
+        two = bmg.add_constant(2.0)
+        beta = bmg.add_beta(two, two)
+        betas = bmg.add_sample(beta)
+        negate = bmg.add_negate(betas)
+        complement = bmg.add_addition(one, negate)
+        bern = bmg.add_bernoulli(complement)
+        bmg.add_sample(bern)
+
+        error_report = fix_problems(bmg)
+        observed = str(error_report)
+        expected = """
+The probability of a Bernoulli is required to be a probability but is a real.
+"""
+        self.assertEqual(observed.strip(), expected.strip())
