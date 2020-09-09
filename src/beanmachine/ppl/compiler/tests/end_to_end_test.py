@@ -547,6 +547,69 @@ Node 11 type 2 parents [ 10 ] children [ 12 ] unknown
 Node 12 type 3 parents [ 11 ] children [ ] positive real 0
 """
 
+# Demonstrate that we generate 1-p as a complement
+
+source_5 = """
+import beanmachine.ppl as bm
+import torch
+from torch.distributions import Bernoulli, Beta
+
+@bm.random_variable
+def beta():
+  return Beta(2.0, 2.0)
+
+@bm.random_variable
+def flip():
+  return Bernoulli(1.0 - beta())
+
+"""
+
+expected_python_5 = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_pos_real(2.0)
+n1 = g.add_distribution(
+  graph.DistributionType.BETA,
+  graph.AtomicType.PROBABILITY,
+  [n0, n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_operator(graph.OperatorType.COMPLEMENT, [n2])
+n4 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n3])
+n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+"""
+
+expected_cpp_5 = """
+graph::Graph g;
+uint n0 = g.add_constant_pos_real(2.0);
+uint n1 = g.add_distribution(
+  graph::DistributionType::BETA,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({n0, n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n3 = g.add_operator(
+  graph::OperatorType::COMPLEMENT, std::vector<uint>({n2}));
+uint n4 = g.add_distribution(
+  graph::DistributionType::BERNOULLI,
+  graph::AtomicType::BOOLEAN,
+  std::vector<uint>({n3}));
+uint n5 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
+"""
+
+expected_bmg_5 = """
+Node 0 type 1 parents [ ] children [ 1 1 ] positive real 2
+Node 1 type 2 parents [ 0 0 ] children [ 2 ] unknown
+Node 2 type 3 parents [ 1 ] children [ 3 ] probability 0
+Node 3 type 3 parents [ 2 ] children [ 4 ] probability 0
+Node 4 type 2 parents [ 3 ] children [ 5 ] unknown
+Node 5 type 3 parents [ 4 ] children [ ] boolean 0
+"""
+
 
 class EndToEndTest(unittest.TestCase):
     def test_to_cpp_1(self) -> None:
@@ -608,3 +671,21 @@ class EndToEndTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_bmg(source_4).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_4))
+
+    def test_to_python_(self) -> None:
+        """test_to_python_5 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_python(source_5)
+        self.assertEqual(observed.strip(), expected_python_5.strip())
+
+    def test_to_cpp_5(self) -> None:
+        """test_to_cpp_5 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_cpp(source_5)
+        self.assertEqual(observed.strip(), expected_cpp_5.strip())
+
+    def test_to_bmg_5(self) -> None:
+        """test_to_bmg_5 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_bmg(source_5).to_string()
+        self.assertEqual(tidy(observed), tidy(expected_bmg_5))
