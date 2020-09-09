@@ -172,6 +172,18 @@ class ASTToolsTest(unittest.TestCase):
 
         # Addition
 
+        # Special case: 1 + (-P) -> P
+        # Special case: 1 + (-B) -> B
+        # Special case: (-P) + 1 -> P
+        # Special case: (-B) + 1 -> B
+        nb = NegateNode(bern)
+        np = NegateNode(beta)
+        one = RealNode(1.0)
+        self.assertEqual(AdditionNode(np, one).inf_type, Probability)
+        self.assertEqual(AdditionNode(nb, one).inf_type, Boolean)
+        self.assertEqual(AdditionNode(one, np).inf_type, Probability)
+        self.assertEqual(AdditionNode(one, nb).inf_type, Boolean)
+
         # Boolean + Boolean -> PositiveReal
         # Boolean + Probability -> PositiveReal
         # Boolean + Natural -> PositiveReal
