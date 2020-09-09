@@ -255,18 +255,25 @@ error is added to the error report."""
         if isinstance(node, PowerNode) and node.graph_type == Malformed:
             return self._convert_malformed_power(node, requirement, consumer, edge)
 
-        # Converting anything to tensor, real or positive real is easy;
-        # there's already a node for that so just insert it on the edge
-        # whose requirement is not met, and the requirement will be met.
+        # TODO: We no longer support Tensor as a type in BMG.  We must
+        # detect, and produce a good error message, for situations
+        # where we have deduced that the only possible type of a node is
+        # a >2-dimension tensor; we must correctly support cases where
+        # the type of the node is a 1- or 2-dimensional tensor.
 
         if requirement == Tensor:
             raise ValueError("Unsupported type requirement: Tensor")
+
+        # Converting anything to real or positive real is easy;
+        # there's already a node for that so just insert it on the edge
+        # whose requirement is not met, and the requirement will be met.
+
         if requirement == Real:
             return self.bmg.add_to_real(node)
         if requirement == PositiveReal:
             return self.bmg.add_to_positive_real(node)
 
-        # We are not converting to tensor, float and positive real.
+        # We are not converting to real or positive real.
         # Our precondition is that the requirement is larger than
         # *something*, which means that it cannot be bool.
         # That means the requirement must be either natural or
@@ -275,10 +282,9 @@ error is added to the error report."""
         assert requirement == Natural or requirement == Probability
 
         # Our precondition is that the requirement is larger than the
-        # inf type of the node. The only inf type that meets that
-        # condition is bool, so verify that.
+        # inf type of the node.
 
-        assert node.inf_type == Boolean
+        assert supremum(node.inf_type, Boolean) == Boolean
 
         # There is no "to natural" or "to probability" but since we have
         # a bool in hand, we can use an if-then-else as a conversion.
