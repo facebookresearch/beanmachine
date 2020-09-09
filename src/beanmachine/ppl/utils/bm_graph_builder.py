@@ -71,6 +71,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BooleanNode,
     CategoricalNode,
     Chi2Node,
+    ComplementNode,
     ConstantNode,
     DirichletNode,
     DistributionNode,
@@ -761,6 +762,14 @@ constant graph node of the stated type for it, and adds it to the builder"""
         if isinstance(input, ConstantNode):
             return -input.value
         return self.add_negate(input)
+
+    @memoize
+    def add_complement(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(1 - operand.value)
+        node = ComplementNode(operand)
+        self.add_node(node)
+        return node
 
     # TODO: What should the result of NOT on a tensor be?
     # TODO: Should it be legal at all in the graph?

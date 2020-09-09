@@ -15,6 +15,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     Malformed,
     Natural,
+    One,
     PositiveReal,
     Probability,
     Real,
@@ -1674,17 +1675,66 @@ class AdditionNode(BinaryOperatorNode):
         BinaryOperatorNode.__init__(self, left, right)
 
     @property
+    def can_be_complement(self) -> bool:
+        if self.left.inf_type == One:
+            other = self.right
+            if isinstance(other, NegateNode):
+                it = other.operand.inf_type
+                if supremum(it, Probability) == Probability:
+                    return True
+        if self.right.inf_type == One:
+            other = self.left
+            if isinstance(other, NegateNode):
+                it = other.operand.inf_type
+                if supremum(it, Probability) == Probability:
+                    return True
+        return False
+
+    @property
     def inf_type(self) -> BMGLatticeType:
+        # The BMG addition node requires:
+        # * the operands and the result type to be the same
+        # * that type must be R+ or R.
+        #
+        # However, we can make transformations during the problem-fixing phase
+        # that enable other combinations of types:
+        #
+        # * If one operand is the constant 1.0 and the other is
+        #   a negate operator applied to a B or P, then we can turn
+        #   the whole thing into a complement node of type B or P.
+        #
+        # TODO:
+        # * If one operand is a constant N or B and the other is
+        #   any B, we can generate an if-then-else of type N.
+
+        if self.can_be_complement:
+            if self.left.inf_type == One:
+                other = self.right
+            else:
+                other = self.left
+            assert isinstance(other, NegateNode)
+            return other.operand.inf_type
+
         return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        if self.left.graph_type == self.right.graph_type:
-            return self.left.graph_type
-        return Malformed
+        if self.left.graph_type != self.right.graph_type:
+            return Malformed
+        t = self.left.graph_type
+        if supremum(PositiveReal, t) != t:
+            return Malformed
+        return t
 
     @property
     def requirements(self) -> List[Requirement]:
+        # If we have 1 + (-P), 1 + (-B), (-P) + 1 or (-B) + 1, then
+        # the nodes already meet their requirements and we will convert
+        # this to a complement.
+
+        if self.can_be_complement:
+            return [self.left.inf_type, self.right.inf_type]
+
         # We require that the input types of an addition be exactly the same.
         # In order to minimize the output type of the node we will take the
         # supremum of the infimums of the input types, and then require that

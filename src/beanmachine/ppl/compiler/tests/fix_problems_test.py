@@ -712,13 +712,13 @@ digraph "graph" {
     def test_fix_problems_10(self) -> None:
         """test_fix_problems_10"""
 
-        # This test shows that right now we cannot turn 1-p into a
-        # probability; this becomes 1+(-p), and the negate operator
-        # is only defined on real numbers, so this expression becomes
-        # real-valued.
-        #
-        # We will eventually write a problem fixer that turns this into
-        # a complement operator; this test will be rewritten then.
+        # Demonstrate that we can rewrite 1 - p for probability p into
+        # complement(p) -- which is of type P -- instead of
+        # add(1, negate(p)) which is of type R.
+
+        # TODO: Also demonstrate that this works for 1 b
+        # TODO: Get this working for the "not" operator, since 1 b
+        # and "not b" are the same thing for bool b.
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -726,7 +726,7 @@ digraph "graph" {
         # @rv def beta():
         #   return Beta(2.0, 2.0)
         # @rv def bern():
-        #   return Bernoulli(1 - beta()) # BAD
+        #   return Bernoulli(1 - beta()) # good!
 
         one = bmg.add_constant(1.0)
         two = bmg.add_constant(2.0)
@@ -737,9 +737,69 @@ digraph "graph" {
         bern = bmg.add_bernoulli(complement)
         bmg.add_sample(bern)
 
-        error_report = fix_problems(bmg)
-        observed = str(error_report)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
         expected = """
-The probability of a Bernoulli is required to be a probability but is a real.
+digraph "graph" {
+  N0[label="1.0:R>=OH"];
+  N1[label="2.0:R>=N"];
+  N2[label="Beta:P>=P"];
+  N3[label="Sample:P>=P"];
+  N4[label="-:P>=R"];
+  N5[label="+:M>=P"];
+  N6[label="Bernoulli:B>=B"];
+  N7[label="Sample:B>=B"];
+  N0 -> N5[label="left:OH"];
+  N1 -> N2[label="alpha:R+"];
+  N1 -> N2[label="beta:R+"];
+  N2 -> N3[label="operand:P"];
+  N3 -> N4[label="operand:R"];
+  N4 -> N5[label="right:R"];
+  N5 -> N6[label="probability:P"];
+  N6 -> N7[label="operand:B"];
+}
 """
+
+        self.assertEqual(observed.strip(), expected.strip())
+
+        error_report = fix_problems(bmg)
+
+        self.assertEqual("", str(error_report).strip())
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        expected = """
+digraph "graph" {
+  N0[label="1.0:R>=OH"];
+  N1[label="2.0:R>=N"];
+  N2[label="Beta:P>=P"];
+  N3[label="Sample:P>=P"];
+  N4[label="-:P>=R"];
+  N5[label="+:M>=P"];
+  N6[label="Bernoulli:B>=B"];
+  N7[label="Sample:B>=B"];
+  N8[label="complement:P>=P"];
+  N9[label="2.0:R+>=N"];
+  N0 -> N5[label="left:OH"];
+  N2 -> N3[label="operand:P"];
+  N3 -> N4[label="operand:R"];
+  N3 -> N8[label="operand:P"];
+  N4 -> N5[label="right:R"];
+  N6 -> N7[label="operand:B"];
+  N8 -> N6[label="probability:P"];
+  N9 -> N2[label="alpha:R+"];
+  N9 -> N2[label="beta:R+"];
+}
+"""
+
         self.assertEqual(observed.strip(), expected.strip())

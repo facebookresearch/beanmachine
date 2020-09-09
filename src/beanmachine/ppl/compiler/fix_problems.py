@@ -10,6 +10,7 @@ returned."""
 from typing import Optional
 
 from beanmachine.ppl.compiler.bmg_nodes import (
+    AdditionNode,
     BMGNode,
     Chi2Node,
     ConstantNode,
@@ -18,6 +19,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     IndexNode,
     MapNode,
     MultiplicationNode,
+    NegateNode,
     Observation,
     OperatorNode,
     PowerNode,
@@ -30,6 +32,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     Malformed,
     Natural,
+    One,
     PositiveReal,
     Probability,
     Real,
@@ -433,7 +436,45 @@ requirement is given; the name of this edge is provided for error reporting."""
                     node.children[i], requirements[i], node, node.edges[i]
                 )
 
+    def _addition_to_complement(self, node: AdditionNode) -> BMGNode:
+        assert node.can_be_complement
+        # We have 1+(-x) or (-x)+1 where x is either P or B, and require
+        # a P or B. Complement(x) is of the same type as x if x is P or B.
+        if node.left.inf_type == One:
+            other = node.right
+        else:
+            assert node.right.inf_type == One
+            other = node.left
+        assert isinstance(other, NegateNode)
+        return self.bmg.add_complement(other.operand)
+
+    def _additions_to_complements(self) -> None:
+        # This pass has to run before general requirement checking. Why?
+        # The requirement fixing pass runs from leaves to roots, inserting
+        # conversions as it goes. If we have add(1, negate(p)) then we need
+        # to turn that into complement(p), but if we process the add *after*
+        # we process the negate(p) then we will already have generated
+        # add(1, negate(to_real(p)).  Better to turn it into complement(p)
+        # and orphan the negate(p) early.
+        replacements = {}
+        nodes = self.bmg._traverse_from_roots()
+        for node in nodes:
+            for i in range(len(node.children)):
+                c = node.children[i]
+                if not isinstance(c, AdditionNode):
+                    continue
+                assert isinstance(c, AdditionNode)
+                if not c.can_be_complement:
+                    continue
+                if c in replacements:
+                    node.children[i] = replacements[c]
+                    continue
+                replacement = self._addition_to_complement(c)
+                node.children[i] = replacement
+                replacements[c] = replacement
+
     def fix_all_problems(self) -> None:
+        self._additions_to_complements()
         self._fix_unsupported_nodes()
         if self.errors.any():
             return
