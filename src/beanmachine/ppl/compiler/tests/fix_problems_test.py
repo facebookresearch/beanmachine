@@ -803,3 +803,34 @@ digraph "graph" {
 """
 
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_11(self) -> None:
+        """test_fix_problems_11"""
+
+        # Here we demonstrate that currently we cannot treat
+        # the negative log of a probability as a positive real.
+        # In an upcoming change we will fix this, and update the
+        # test accordingly.
+
+        # @rv def beta1():
+        #   return Beta(2.0, 2.0)
+        # @rv def beta2():
+        #   return Beta(-beta1.log(), 2.0)
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        two = bmg.add_constant(2.0)
+        beta1 = bmg.add_beta(two, two)
+        beta1s = bmg.add_sample(beta1)
+        logprob = bmg.add_log(beta1s)
+        neglogprob = bmg.add_negate(logprob)
+        beta2 = bmg.add_beta(neglogprob, two)
+
+        bmg.add_sample(beta2)
+        error_report = fix_problems(bmg)
+        observed = str(error_report)
+        expected = """
+The alpha of a Beta is required to be a positive real but is a real.
+        """
+        self.assertEqual(observed.strip(), expected.strip())
