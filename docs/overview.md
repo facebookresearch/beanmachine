@@ -15,4 +15,4 @@ Methods like neural networks offer excellent insights on **massive datasets** wh
 2. **Expressivity.**  Bayesian modeling allows a developer to write out a causal or graphical probabilistic model directly in source code. This allows them to match the structure of their model to the structure of problem they’re trying to solve.
 3. **Interpretability.**  Because the model matches the domain, developers can query intermediate properties (latent variables) within the model. This can be used to interpret *why* a particular prediction was made, and can aid the model development process.
 
-You can find more documentation on BeanMachine on the left. You can check out source code documetation under API above, and you can you can find interactive examples in the Tutorials section. 
+You can find more documentation on Bean Machine on the left. You can check out source code documetation under API above, and you can you can find interactive examples in the Tutorials section.

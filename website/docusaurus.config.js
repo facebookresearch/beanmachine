@@ -11,7 +11,7 @@ const remarkMath = require('remark-math');
 const rehypeKatex = require('rehype-katex');
 
 module.exports = {
-  title: 'BeanMachine',
+  title: 'Bean Machine',
   tagline:
     'A universal probabilistic programming language to enable fast and accurate Bayesian analysis',
   url: 'https://home.fburl.com/ppl', // Change to path for release.
@@ -21,9 +21,9 @@ module.exports = {
   projectName: 'beanmachine', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'BeanMachine',
+      title: 'Bean Machine',
       logo: {
-        alt: 'BeanMachine Logo',
+        alt: 'Bean Machine Logo',
         src: 'img/beanmachine.svg',
       },
       items: [
@@ -111,7 +111,7 @@ module.exports = {
       */
 
       logo: {
-        alt: 'BeanMachine Logo',
+        alt: 'Bean Machine Logo',
         src: 'img/beanmachine.svg',
         href: 'https://opensource.facebook.com',
       },

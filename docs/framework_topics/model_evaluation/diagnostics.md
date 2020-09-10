@@ -1,6 +1,6 @@
-# Model Evaluation in BeanMachine: Diagnostics Module
+# Model Evaluation in Bean Machine: Diagnostics Module
 
-This notebook introduces the Diagnostics class in BeanMachine (BM) which aims to assist the modeler to get insights about the model performance. Diagnostics currently supports two main components: 1) General Summary Statistics module and 2) Visualizer module.
+This notebook introduces the Diagnostics class in Bean Machine (BM) which aims to assist the modeler to get insights about the model performance. Diagnostics currently supports two main components: 1) General Summary Statistics module and 2) Visualizer module.
 
 **General Summary Statistics module** aggregates the statistics of all or a subset of queries over a specific chain or all chains.
 

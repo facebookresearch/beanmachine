@@ -1,7 +1,7 @@
 ---
 id: bean_machine_advantages
-title: BeanMachine Advantages
-sidebar_label: BeanMachine Advantages
+title: Bean Machine Advantages
+sidebar_label: Bean Machine Advantages
 ---
 
 <!-- @import "../header.md" -->

@@ -21,8 +21,8 @@ const features = [
     // imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
-        Clean, intuitive syntax that lets you focus on the model
-        and leave performance to the framework.
+        Clean, intuitive syntax that lets you focus on the model and leave
+        performance to the framework.
       </>
     ),
   },
@@ -31,8 +31,8 @@ const features = [
     // imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
-        Mix-and-match inference methods, proposers, and
-        inference strategies to achieve maximum efficiency.
+        Mix-and-match inference methods, proposers, and inference strategies to
+        achieve maximum efficiency.
       </>
     ),
   },
@@ -41,13 +41,12 @@ const features = [
     // imageUrl: 'img/undraw_docusaurus_react.svg',
     description: (
       <>
-        Leverage native GPU and autograd support and
-        integrate seamlessly with the PyTorch ecosystem.
+        Leverage native GPU and autograd support and integrate seamlessly with
+        the PyTorch ecosystem.
       </>
     ),
   },
 ];
-
 
 function Feature({imageUrl, title, description}) {
   const imgUrl = useBaseUrl(imageUrl);
@@ -68,12 +67,15 @@ function Home() {
   const context = useDocusaurusContext();
   const {siteConfig = {}} = context;
   return (
-    <Layout
-      title={`${siteConfig.title}`}
-      description="BeanMachine">
+    <Layout title={`${siteConfig.title}`} description="Bean Machine">
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">
-        <img className={styles.heroLogo} src='img/beanmachine.svg' alt="BeanMachine Logo." width="100"/>
+          <img
+            className={styles.heroLogo}
+            src="img/beanmachine.svg"
+            alt="Bean Machine Logo."
+            width="100"
+          />
           <img className="imgUrl">{siteConfig.imgUrl}</img>
           <h1 className="hero__title">{siteConfig.title}</h1>
           <p className="hero__subtitle">{siteConfig.tagline}</p>
@@ -90,11 +92,10 @@ function Home() {
         </div>
       </header>
       <main>
-
         {features && features.length > 0 && (
           <section className={styles.features}>
-            <div className='container'>
-              <div className='row'>
+            <div className="container">
+              <div className="row">
                 {features.map(({title, imageUrl, description}) => (
                   <Feature
                     key={title}
