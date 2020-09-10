@@ -17,6 +17,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DistributionNode,
     DivisionNode,
     IndexNode,
+    LogNode,
     MapNode,
     MultiplicationNode,
     NegateNode,
@@ -479,7 +480,36 @@ requirement is given; the name of this edge is provided for error reporting."""
                 node.children[i] = replacement
                 replacements[c] = replacement
 
+    def _fix_negative_logs(self) -> None:
+        # This pass has to run before general requirement checking. Why?
+        # The requirement fixing pass runs from leaves to roots, inserting
+        # conversions as it goes. If we have negate(log(p)) for probability p
+        # then we need to turn that into negative_log(p), but if we process
+        # the negate *after* we process the log(p) then we will already have
+        # generated negate(log(to_pos_real(p)). It is better to get rid of
+        # the neg(log(p)) first, before introducing the to_pos_real.
+
+        replacements = {}
+        nodes = self.bmg._traverse_from_roots()
+        for node in nodes:
+            for i in range(len(node.children)):
+                c = node.children[i]
+                if not isinstance(c, NegateNode):
+                    continue
+                assert isinstance(c, NegateNode)
+                o = c.operand
+                if not isinstance(o, LogNode):
+                    continue
+                assert isinstance(o, LogNode)
+                if c in replacements:
+                    node.children[i] = replacements[c]
+                    continue
+                replacement = self.bmg.add_negative_log(o.operand)
+                node.children[i] = replacement
+                replacements[c] = replacement
+
     def fix_all_problems(self) -> None:
+        self._fix_negative_logs()
         self._additions_to_complements()
         self._fix_unsupported_nodes()
         if self.errors.any():

@@ -88,6 +88,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     MultiplicationNode,
     NaturalNode,
     NegateNode,
+    NegativeLogNode,
     NormalNode,
     NotNode,
     Observation,
@@ -822,7 +823,7 @@ constant graph node of the stated type for it, and adds it to the builder"""
         return node
 
     @memoize
-    def add_exp(self, operand: BMGNode) -> ExpNode:
+    def add_exp(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, TensorNode):
             return self.add_constant(torch.exp(operand.value))
         if isinstance(operand, ConstantNode):
@@ -843,12 +844,22 @@ constant graph node of the stated type for it, and adds it to the builder"""
         return self.add_exp(input)
 
     @memoize
-    def add_log(self, operand: BMGNode) -> ExpNode:
+    def add_log(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, TensorNode):
             return self.add_constant(torch.log(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.log(operand.value))
         node = LogNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_negative_log(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, TensorNode):
+            return self.add_constant(-(torch.log(operand.value)))
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(-(math.log(operand.value)))
+        node = NegativeLogNode(operand)
         self.add_node(node)
         return node
 
