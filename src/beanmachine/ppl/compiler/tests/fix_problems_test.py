@@ -750,8 +750,8 @@ digraph "graph" {
   N1[label="2.0:R>=N"];
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
-  N4[label="-:P>=R"];
-  N5[label="+:M>=P"];
+  N4[label="-:R>=R"];
+  N5[label="+:R>=P"];
   N6[label="Bernoulli:B>=B"];
   N7[label="Sample:B>=B"];
   N0 -> N5[label="left:OH"];
@@ -784,8 +784,8 @@ digraph "graph" {
   N1[label="2.0:R>=N"];
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
-  N4[label="-:P>=R"];
-  N5[label="+:M>=P"];
+  N4[label="-:R>=R"];
+  N5[label="+:R>=P"];
   N6[label="Bernoulli:B>=B"];
   N7[label="Sample:B>=B"];
   N8[label="complement:P>=P"];
@@ -807,10 +807,8 @@ digraph "graph" {
     def test_fix_problems_11(self) -> None:
         """test_fix_problems_11"""
 
-        # Here we demonstrate that currently we cannot treat
+        # Here we demonstrate that we can generate a node to treat
         # the negative log of a probability as a positive real.
-        # In an upcoming change we will fix this, and update the
-        # test accordingly.
 
         # @rv def beta1():
         #   return Beta(2.0, 2.0)
@@ -826,11 +824,66 @@ digraph "graph" {
         logprob = bmg.add_log(beta1s)
         neglogprob = bmg.add_negate(logprob)
         beta2 = bmg.add_beta(neglogprob, two)
-
         bmg.add_sample(beta2)
-        error_report = fix_problems(bmg)
-        observed = str(error_report)
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
         expected = """
-The alpha of a Beta is required to be a positive real but is a real.
-        """
+digraph "graph" {
+  N0[label="2.0:R>=N"];
+  N1[label="Beta:P>=P"];
+  N2[label="Sample:P>=P"];
+  N3[label="Log:R>=R"];
+  N4[label="-:R>=R+"];
+  N5[label="Beta:P>=P"];
+  N6[label="Sample:P>=P"];
+  N0 -> N1[label="alpha:R+"];
+  N0 -> N1[label="beta:R+"];
+  N0 -> N5[label="beta:R+"];
+  N1 -> N2[label="operand:P"];
+  N2 -> N3[label="operand:R+"];
+  N3 -> N4[label="operand:R"];
+  N4 -> N5[label="alpha:R+"];
+  N5 -> N6[label="operand:P"];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+        error_report = fix_problems(bmg)
+        self.assertEqual(str(error_report).strip(), "")
+
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        expected = """
+digraph "graph" {
+  N0[label="2.0:R>=N"];
+  N1[label="Beta:P>=P"];
+  N2[label="Sample:P>=P"];
+  N3[label="Log:R>=R"];
+  N4[label="-:R>=R+"];
+  N5[label="Beta:P>=P"];
+  N6[label="Sample:P>=P"];
+  N7[label="NegLog:R+>=R+"];
+  N8[label="2.0:R+>=N"];
+  N1 -> N2[label="operand:P"];
+  N2 -> N3[label="operand:R+"];
+  N2 -> N7[label="operand:P"];
+  N3 -> N4[label="operand:R"];
+  N5 -> N6[label="operand:P"];
+  N7 -> N5[label="alpha:R+"];
+  N8 -> N1[label="alpha:R+"];
+  N8 -> N1[label="beta:R+"];
+  N8 -> N5[label="beta:R+"];
+}
+"""
         self.assertEqual(observed.strip(), expected.strip())

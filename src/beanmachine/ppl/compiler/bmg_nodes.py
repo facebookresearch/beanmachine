@@ -2511,18 +2511,22 @@ class NegateNode(UnaryOperatorNode):
 
     @property
     def inf_type(self) -> BMGLatticeType:
-        return supremum(self.operand.inf_type, Real)
+        # Special case: if the operand is log(P) then we can
+        # turn this into a NegativeLog which is R+. Otherwise,
+        # negate is R.
+        o = self.operand
+        if isinstance(o, LogNode):
+            if supremum(o.operand.inf_type, Probability) == Probability:
+                return PositiveReal
+        return Real
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        return self.operand.graph_type
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
-        # We require that the input type be identical to the output type,
-        # and the smallest possible output type is the infimum type of
-        # the input.
-        return [self.inf_type]
+        return [Real]
 
     @property
     def size(self) -> torch.Size:
