@@ -2356,9 +2356,6 @@ a model contains calls to Tensor.log or math.log."""
 
     # The log node only takes a positive real and only produces a real.
 
-    # TODO: We might consider adding a -log(x) node which takes a
-    # probability and produces a positive real.
-
     @property
     def inf_type(self) -> BMGLatticeType:
         return Real
@@ -2383,8 +2380,61 @@ a model contains calls to Tensor.log or math.log."""
         return "Log(" + str(self.operand) + ")"
 
     def support(self) -> Iterator[Any]:
-        # TODO: Not always a tensor.
         return SetOfTensors(torch.log(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+
+class NegativeLogNode(UnaryOperatorNode):
+    """BMG supports a node with the semantics of -log(x), so that we can
+take advantage in the type system that -log(P) for probability P is
+known to be a positive real."""
+
+    operator_type = OperatorType.NEGATIVE_LOG
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    # The typing rules are:
+    # * if input is P, output is R+
+    # * if input is R+, output is R
+    # Nothing else is legal
+
+    @property
+    def inf_type(self) -> BMGLatticeType:
+        if supremum(self.operand.inf_type, Probability) == Probability:
+            return PositiveReal
+        return Real
+
+    @property
+    def graph_type(self) -> BMGLatticeType:
+        t = self.operand.graph_type
+        if t == Probability:
+            return PositiveReal
+        if t == PositiveReal:
+            return Real
+        return Malformed
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        if supremum(self.operand.inf_type, Probability) == Probability:
+            return [Probability]
+        return [PositiveReal]
+
+    @property
+    def label(self) -> str:
+        return "NegLog"
+
+    @property
+    def size(self) -> torch.Size:
+        return self.operand.size
+
+    def __str__(self) -> str:
+        return "NegLog(" + str(self.operand) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(-(torch.log(o)) for o in self.operand.support())
 
     def _supported_in_bmg(self) -> bool:
         return True
