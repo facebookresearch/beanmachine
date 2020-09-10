@@ -15,9 +15,11 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     GammaNode,
     HalfCauchyNode,
     IfThenElseNode,
+    LogNode,
     MultiplicationNode,
     NaturalNode,
     NegateNode,
+    NegativeLogNode,
     NormalNode,
     PositiveRealNode,
     PowerNode,
@@ -326,6 +328,19 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(ExpNode(bino).inf_type, PositiveReal)
         self.assertEqual(ExpNode(half).inf_type, PositiveReal)
         self.assertEqual(ExpNode(norm).inf_type, PositiveReal)
+
+        # Log of anything is Real
+        self.assertEqual(LogNode(bern).inf_type, Real)
+        self.assertEqual(LogNode(beta).inf_type, Real)
+        self.assertEqual(LogNode(bino).inf_type, Real)
+        self.assertEqual(LogNode(half).inf_type, Real)
+
+        # Negative Log of probability or smaller is Positive Real;
+        # otherwise Real.
+        self.assertEqual(NegativeLogNode(bern).inf_type, PositiveReal)
+        self.assertEqual(NegativeLogNode(beta).inf_type, PositiveReal)
+        self.assertEqual(NegativeLogNode(bino).inf_type, Real)
+        self.assertEqual(NegativeLogNode(half).inf_type, Real)
 
         # To Real
         self.assertEqual(ToRealNode(bern).inf_type, Real)
@@ -773,6 +788,18 @@ class ASTToolsTest(unittest.TestCase):
         self.assertEqual(ExpNode(bino).requirements, [PositiveReal])
         self.assertEqual(ExpNode(half).requirements, [PositiveReal])
         self.assertEqual(ExpNode(norm).requirements, [Real])
+
+        # Log requires that its operand be positive real.
+        self.assertEqual(LogNode(bern).requirements, [PositiveReal])
+        self.assertEqual(LogNode(beta).requirements, [PositiveReal])
+        self.assertEqual(LogNode(bino).requirements, [PositiveReal])
+        self.assertEqual(LogNode(half).requirements, [PositiveReal])
+
+        # Negative Log requires that its operand be positive real or probability.
+        self.assertEqual(NegativeLogNode(bern).requirements, [Probability])
+        self.assertEqual(NegativeLogNode(beta).requirements, [Probability])
+        self.assertEqual(NegativeLogNode(bino).requirements, [PositiveReal])
+        self.assertEqual(NegativeLogNode(half).requirements, [PositiveReal])
 
         # To Real
         self.assertEqual(ToRealNode(bern).requirements, [upper_bound(Real)])
