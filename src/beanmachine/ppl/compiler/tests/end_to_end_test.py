@@ -611,6 +611,69 @@ Node 5 type 3 parents [ 4 ] children [ ] boolean 0
 """
 
 
+# Demonstrate that we generate -log(prob) as a positive real.
+
+source_6 = """
+import beanmachine.ppl as bm
+import torch
+from torch.distributions import Beta
+
+@bm.random_variable
+def beta1():
+  return Beta(2.0, 2.0)
+
+@bm.random_variable
+def beta2():
+  return Beta(-beta1().log(), 2.0)
+"""
+
+expected_python_6 = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_pos_real(2.0)
+n1 = g.add_distribution(
+  graph.DistributionType.BETA,
+  graph.AtomicType.PROBABILITY,
+  [n0, n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_operator(graph.OperatorType.NEGATIVE_LOG, [n2])
+n4 = g.add_distribution(
+  graph.DistributionType.BETA,
+  graph.AtomicType.PROBABILITY,
+  [n3, n0])
+n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+"""
+
+expected_cpp_6 = """
+graph::Graph g;
+uint n0 = g.add_constant_pos_real(2.0);
+uint n1 = g.add_distribution(
+  graph::DistributionType::BETA,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({n0, n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n3 = g.add_operator(
+  graph::OperatorType::NEGATIVE_LOG, std::vector<uint>({n2}));
+uint n4 = g.add_distribution(
+  graph::DistributionType::BETA,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({n3, n0}));
+uint n5 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
+"""
+
+expected_bmg_6 = """
+Node 0 type 1 parents [ ] children [ 1 1 4 ] positive real 2
+Node 1 type 2 parents [ 0 0 ] children [ 2 ] unknown
+Node 2 type 3 parents [ 1 ] children [ 3 ] probability 0
+Node 3 type 3 parents [ 2 ] children [ 4 ] positive real 0
+Node 4 type 2 parents [ 3 0 ] children [ 5 ] unknown
+Node 5 type 3 parents [ 4 ] children [ ] probability 0
+"""
+
+
 class EndToEndTest(unittest.TestCase):
     def test_to_cpp_1(self) -> None:
         """test_to_cpp_1 from end_to_end_test.py"""
@@ -672,7 +735,7 @@ class EndToEndTest(unittest.TestCase):
         observed = to_bmg(source_4).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_4))
 
-    def test_to_python_(self) -> None:
+    def test_to_python_5(self) -> None:
         """test_to_python_5 from end_to_end_test.py"""
         self.maxDiff = None
         observed = to_python(source_5)
@@ -689,3 +752,21 @@ class EndToEndTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_bmg(source_5).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_5))
+
+    def test_to_python_6(self) -> None:
+        """test_to_python_6 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_python(source_6)
+        self.assertEqual(observed.strip(), expected_python_6.strip())
+
+    def test_to_cpp_6(self) -> None:
+        """test_to_cpp_6 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_cpp(source_6)
+        self.assertEqual(observed.strip(), expected_cpp_6.strip())
+
+    def test_to_bmg_6(self) -> None:
+        """test_to_bmg_6 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_bmg(source_6).to_string()
+        self.assertEqual(tidy(observed), tidy(expected_bmg_6))
