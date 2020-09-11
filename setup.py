@@ -5,7 +5,7 @@ import re
 import sys
 from glob import glob
 
-from setuptools import find_packages, setup
+from setuptools import Extension, find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 
 
@@ -27,11 +27,6 @@ TORCH_COMPILE_ARGS = ["-fopenmp"]
 
 CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
-
-BMG_DEP_HEADER = {
-    "boost": "/boost/math/special_functions/polygamma.hpp",
-    "eigen": "/Eigen/Dense",
-}
 
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
@@ -57,47 +52,6 @@ with open(init_file, "r") as f:
 # read in README.md as the long description
 with open("README.md", "r") as fh:
     long_description = fh.read()
-
-
-def find_include_dir(dep):
-    dep_arg = "--" + dep + "_include_dir"
-    if dep_arg in sys.argv:
-        index = sys.argv.index(dep_arg)
-        sys.argv.pop(index)
-        dir_candidate = sys.argv.pop(index)
-        header_dir = dir_candidate + BMG_DEP_HEADER[dep]
-        if os.path.isfile(header_dir) or os.path.isdir(header_dir):
-            return dir_candidate
-        raise FileNotFoundError(dep + " is not found in the given directory.")
-    if sys.platform == "win32":
-        raise ValueError(
-            "Please provide a valid --boost_include_dir and --eigen_include_dir."
-        )
-    dep_search_cmd = "whereis " + ("eigen3" if dep == "eigen" else dep)
-    locs = os.popen(dep_search_cmd).read().split(" ")
-    for loc in locs:
-        dir_candidate = os.path.dirname(loc) + ("/eigen3" if dep == "eigen" else "")
-        header_dir = dir_candidate + BMG_DEP_HEADER[dep]
-        if os.path.isfile(header_dir) or os.path.isdir(header_dir):
-            return dir_candidate
-    raise FileNotFoundError(
-        dep
-        + " is not found. Please install "
-        + dep
-        + " first,"
-        + " then provide a valid "
-        + dep_arg
-    )
-
-
-def find_include_dirs():
-    inc_dir = {os.path.join(os.getcwd(), "src")}
-    for dep in BMG_DEP_HEADER:
-        inc_dir.add(find_include_dir(dep))
-    return list(inc_dir)
-
-
-bmg_inc_dir = find_include_dirs()
 
 setup(
     name="BeanMachine",
@@ -142,13 +96,13 @@ setup(
     packages=find_packages("src/"),
     package_dir={"": "src"},
     ext_modules=[
-        CppExtension(
+        Extension(
             name="beanmachine.graph",
             sources=list(
                 set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
-            include_dirs=bmg_inc_dir,
+            include_dirs=["src", "/usr/include/eigen3"],
             extra_compile_args=CPP_COMPILE_ARGS,
         ),
         CppExtension(

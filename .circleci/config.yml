@@ -16,7 +16,7 @@ commands:
           command: sudo pip install --progress-bar off torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
   dev_install:
-    description: "Install beanmachine[dev] via pip"
+    description: "Install beanmachine[dev] in editable mode via pip"
     steps:
       - run:
           name: "Install beanmachine[dev]"
@@ -36,8 +36,8 @@ commands:
           name: "Update package lists"
           command: sudo apt-get update
       - run:
-          name: "Install Boost and Eigen"
-          command: sudo apt-get install libboost-dev libeigen3-dev
+          name: "Install Boost, Eigen, and PyBind11"
+          command: sudo apt-get install libboost-dev libeigen3-dev pybind11-dev
 
   pip_lint_install:
     description: "Install lint packages via pip"
