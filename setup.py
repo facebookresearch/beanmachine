@@ -85,10 +85,11 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         "torch>=1.6.0",
+        "numpy>=1.18.1",
         "pandas>=0.24.2",
         "plotly>=2.2.1",
         "scipy>=0.16",
-        "statsmodels>=0.8.0",
+        "statsmodels>=0.12.0",
         "tqdm>=4.46.0",
         "astor>=0.7.1",
         "black>=19.3b0",
