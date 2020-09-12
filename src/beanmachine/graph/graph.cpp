@@ -477,7 +477,7 @@ uint Graph::add_distribution(
 uint Graph::add_operator(OperatorType op_type, std::vector<uint> parent_ids) {
   std::vector<Node*> parent_nodes = convert_parent_ids(parent_ids);
   std::unique_ptr<Node> node =
-      std::make_unique<oper::Operator>(op_type, parent_nodes);
+      oper::OperatorFactory::create_op(op_type, parent_nodes);
   return add_node(std::move(node), parent_ids);
 }
 

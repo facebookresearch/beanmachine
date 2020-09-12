@@ -5,6 +5,8 @@
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/operator/stochasticop.h"
+#include "beanmachine/graph/operator/unaryop.h"
 
 using namespace beanmachine;
 using namespace beanmachine::graph;
@@ -13,23 +15,22 @@ using namespace beanmachine::distribution;
 TEST(testoperator, complement) {
   // negative test num args can't be zero
   EXPECT_THROW(
-      oper::Operator onode1(OperatorType::COMPLEMENT, std::vector<Node*>{}),
+      oper::Complement onode1(std::vector<Node*>{}),
       std::invalid_argument);
   auto p1 = AtomicValue(AtomicType::PROBABILITY, 0.1);
   ConstNode cnode1(p1);
   // negative test num args can't be two
   EXPECT_THROW(
-      oper::Operator(
-          OperatorType::COMPLEMENT, std::vector<Node*>{&cnode1, &cnode1}),
+      oper::Complement(std::vector<Node*>{&cnode1, &cnode1}),
       std::invalid_argument);
   auto r1 = AtomicValue(AtomicType::REAL, 0.1);
   ConstNode cnode2(r1);
   // negative test arg can't be real
   EXPECT_THROW(
-      oper::Operator(OperatorType::COMPLEMENT, std::vector<Node*>{&cnode2}),
+      oper::Complement(std::vector<Node*>{&cnode2}),
       std::invalid_argument);
   // complement of prob is 1-prob
-  oper::Operator onode1(OperatorType::COMPLEMENT, std::vector<Node*>{&cnode1});
+  oper::Complement onode1(std::vector<Node*>{&cnode1});
   EXPECT_EQ(onode1.value.type, AtomicType::PROBABILITY);
   onode1.in_nodes.push_back(&cnode1);
   std::mt19937 generator(31245);
@@ -38,7 +39,7 @@ TEST(testoperator, complement) {
   // complement of bool is logical_not(bool)
   auto b1 = AtomicValue(false);
   ConstNode cnode3(b1);
-  oper::Operator onode2(OperatorType::COMPLEMENT, std::vector<Node*>{&cnode3});
+  oper::Complement onode2(std::vector<Node*>{&cnode3});
   EXPECT_EQ(onode2.value.type, AtomicType::BOOLEAN);
   onode2.in_nodes.push_back(&cnode3);
   onode2.eval(generator);
@@ -462,20 +463,17 @@ TEST(testoperator, iid_sample) {
   auto int_node = ConstNode(int_value);
   // negative tests on the number and types of parents
   EXPECT_THROW(
-      oper::Operator node1(OperatorType::IID_SAMPLE, std::vector<Node*>{}),
+      oper::IIdSample(std::vector<Node*>{}),
       std::invalid_argument);
   EXPECT_THROW(
-      oper::Operator node1(
-          OperatorType::IID_SAMPLE, std::vector<Node*>{&bern_dist, &bern_dist}),
+      oper::IIdSample(std::vector<Node*>{&bern_dist, &bern_dist}),
       std::invalid_argument);
   EXPECT_THROW(
-      oper::Operator node1(
-          OperatorType::IID_SAMPLE, std::vector<Node*>{&int_node, &prob_node}),
+      oper::IIdSample(std::vector<Node*>{&int_node, &prob_node}),
       std::invalid_argument);
   // currently only supports Beta distribution
   EXPECT_THROW(
-      oper::Operator node1(
-        OperatorType::IID_SAMPLE, std::vector<Node*>{&bern_dist, &int_node}),
+      oper::IIdSample(std::vector<Node*>{&bern_dist, &int_node}),
       std::invalid_argument);
 
   // test initialization
@@ -486,8 +484,7 @@ TEST(testoperator, iid_sample) {
       std::vector<Node*>{&pos_real_node, &pos_real_node});
   beta_dist.in_nodes.push_back(&pos_real_node);
   beta_dist.in_nodes.push_back(&pos_real_node);
-  auto beta_samples = oper::Operator(
-      OperatorType::IID_SAMPLE, std::vector<Node*>{&beta_dist, &int_node});
+  auto beta_samples = oper::IIdSample(std::vector<Node*>{&beta_dist, &int_node});
   beta_samples.in_nodes.push_back(&beta_dist);
   beta_samples.in_nodes.push_back(&int_node);
   auto vtype =
