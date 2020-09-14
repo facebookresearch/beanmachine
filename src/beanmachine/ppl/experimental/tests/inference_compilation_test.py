@@ -143,7 +143,7 @@ class InferenceCompilationTest(unittest.TestCase):
         }
         ic.compile(observations.keys(), num_worlds=500)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=300, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
         self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
