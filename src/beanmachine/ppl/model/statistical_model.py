@@ -39,8 +39,10 @@ class StatisticalModel(object):
         """
         Resets the world at the beginning of inference
         """
+        # pyre-fixme[8]: Attribute has type `None`; used as `World`.
         StatisticalModel.__world_ = World()
         StatisticalModel.__mode_ = Mode.INITIALIZE
+        # pyre-fixme[7]: Expected `World` but got `None`.
         return StatisticalModel.__world_
 
     @staticmethod
@@ -48,6 +50,7 @@ class StatisticalModel(object):
         """
         :returns: __world_
         """
+        # pyre-fixme[7]: Expected `World` but got `None`.
         return StatisticalModel.__world_
 
     @staticmethod

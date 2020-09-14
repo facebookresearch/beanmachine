@@ -188,13 +188,17 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
             )
         old_sample_mean = self.sample_mean
         self.sample_mean = (
-            self.sample_mean + (sample_vector - self.sample_mean) / iteration
+            # pyre-fixme[6]: `+` is not supported for operand types `None` and `Any`.
+            self.sample_mean
+            + (sample_vector - self.sample_mean) / iteration
         )
         x_term = (sample_vector - old_sample_mean).unsqueeze(0).T
         y_term = (sample_vector - self.sample_mean).unsqueeze(0)
+        # pyre-fixme[6]: `+` is not supported for operand types `None` and `Any`.
         self.co_moment = self.co_moment + torch.matmul(x_term, y_term)
 
         if iteration > 1:
+            # pyre-fixme[6]: `/` is not supported for operand types `None` and `int`.
             covariance = self.co_moment / (iteration - 1)
             # smoothing the covariance matrix
             delta = tensor(1e-3, dtype=sample.dtype)

@@ -76,4 +76,5 @@ class MaskedLinear(nn.Linear):
         # pyre-fixme
         self.masked_weight = self.weight * self.mask
 
+        # pyre-fixme[6]: Expected `Tensor` for 2nd param but got `None`.
         return F.linear(input_, self.masked_weight, self.bias)
