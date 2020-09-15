@@ -399,9 +399,10 @@ def to_dot(
     inf_types: bool = False,
     edge_requirements: bool = False,
     point_at_input: bool = False,
+    after_transform: bool = False,
 ) -> str:
     return to_graph_builder(source).to_dot(
-        graph_types, inf_types, edge_requirements, point_at_input
+        graph_types, inf_types, edge_requirements, point_at_input, after_transform
     )
 
 
