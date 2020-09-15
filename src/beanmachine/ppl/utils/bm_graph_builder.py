@@ -1077,8 +1077,11 @@ graph, and add a sample node to the graph."""
     # graph as a DOT graph description.
     #
     # Note that there is a slight difference here; the DOT dump
-    # gives the entire graph that we have accumulated, including
-    # any orphaned nodes. The other output formats do a topological
+    # can give the entire graph that we have accumulated, including
+    # any orphaned nodes, or just the graph as it would be generated
+    # in BMG, depending on the value of the after_transform flag.
+
+    # The other output formats do a topological
     # sort of the graph nodes and only output the nodes which are
     # inputs into samples, queries, and observations.
 
@@ -1088,17 +1091,27 @@ graph, and add a sample node to the graph."""
         inf_types: bool = False,
         edge_requirements: bool = False,
         point_at_input: bool = False,
+        after_transform: bool = False,
     ) -> str:
         """This dumps the entire accumulated graph state, including
 orphans, as a DOT graph description; nodes are enumerated in the order
 they were created."""
         db = DotBuilder()
-        max_length = len(str(len(self.nodes) - 1))
+
+        if after_transform:
+            from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+            fix_problems(self).raise_errors()
+            nodes = self._resort_nodes()
+        else:
+            nodes = self.nodes
+
+        max_length = len(str(len(nodes) - 1))
 
         def to_id(index) -> str:
             return "N" + str(index).zfill(max_length)
 
-        for node, index in self.nodes.items():
+        for node, index in nodes.items():
             n = to_id(index)
             node_label = node.label
             if graph_types:
@@ -1115,8 +1128,8 @@ they were created."""
                 # Bayesian networks are typically drawn with the arrows
                 # in the direction of data flow, not in the direction
                 # of dependency.
-                start_node = to_id(self.nodes[child]) if point_at_input else n
-                end_node = n if point_at_input else to_id(self.nodes[child])
+                start_node = to_id(nodes[child]) if point_at_input else n
+                end_node = n if point_at_input else to_id(nodes[child])
                 db.with_edge(start_node, end_node, edge_label)
         return str(db)
 
