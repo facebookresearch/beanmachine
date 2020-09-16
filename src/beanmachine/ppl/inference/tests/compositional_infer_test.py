@@ -19,13 +19,17 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.model.statistical_model import sample
+from beanmachine.ppl.model.statistical_model import StatisticalModel, sample
 from beanmachine.ppl.world.utils import BetaDimensionTransform
 from beanmachine.ppl.world.variable import TransformType, Variable
 from beanmachine.ppl.world.world import World
 
 
 class CompositionalInferenceTest(unittest.TestCase):
+    def tearDown(self) -> None:
+        # reset the StatisticalModel to prevent subsequent tests from failing
+        StatisticalModel.reset()
+
     class SampleModel(object):
         @bm.random_variable
         def foo(self):

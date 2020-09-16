@@ -13,12 +13,17 @@ from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_propose
 from beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer import (
     SingleSiteHalfSpaceNewtonianMonteCarloProposer,
 )
+from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.world.world import TransformType
 
 
 class SingleSiteCustomProposerTest(unittest.TestCase):
+    def tearDown(self) -> None:
+        # reset the StatisticalModel to prevent subsequent tests from failing
+        StatisticalModel.reset()
+
     class CustomProposer(AbstractSingleSiteSingleStepProposer):
         def get_proposal_distribution(
             self,
