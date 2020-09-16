@@ -44,7 +44,6 @@ class Sample : public oper::StochasticOperator {
     return std::make_unique<Sample>(in_nodes);
   }
 
- private:
   static bool is_registered;
 };
 
