@@ -19,12 +19,6 @@ Sample::Sample(const std::vector<graph::Node*>& in_nodes)
   value = graph::AtomicValue(dist->sample_type);
 }
 
-void Sample::eval(std::mt19937& gen) {
-  const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
-  value = dist->sample(gen);
-  return;
-}
-
 IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
     : StochasticOperator(graph::OperatorType::IID_SAMPLE) {
   if (in_nodes.size() != 2 ) {
@@ -69,13 +63,6 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
           "Invalid sample type for for iid sample. ");
   }
   value = graph::AtomicValue(vtype);
-  return;
-}
-
-void IIdSample::eval(std::mt19937& gen) {
-  const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
-  // TODO(ddeng): add sample(gen, value) to all dist tyes.
-  dist->sample(gen, value);
   return;
 }
 

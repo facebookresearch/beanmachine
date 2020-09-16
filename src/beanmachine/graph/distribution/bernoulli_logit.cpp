@@ -30,9 +30,9 @@ BernoulliLogit::BernoulliLogit(
   }
 }
 
-AtomicValue BernoulliLogit::sample(std::mt19937& gen) const {
+bool BernoulliLogit::_bool_sampler(std::mt19937& gen) const {
   double logodds = in_nodes[0]->value._double;
-  return AtomicValue((bool)util::sample_logodds(gen, logodds));
+  return (bool)util::sample_logodds(gen, logodds);
 }
 
 // log_prob of a BernoulliLogit with parameter l (logodds)

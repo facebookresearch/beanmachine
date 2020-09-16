@@ -11,7 +11,7 @@ class Binomial : public Distribution {
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Binomial() override {}
-  graph::AtomicValue sample(std::mt19937& gen) const override;
+  graph::natural_t _natural_sampler(std::mt19937& gen) const override;
   double log_prob(const graph::AtomicValue& value) const override;
   virtual void gradient_log_prob_value(
       const graph::AtomicValue& value,

@@ -6,6 +6,22 @@
 #include "beanmachine/graph/distribution/bimixture.h"
 #include "beanmachine/graph/util.h"
 
+/*
+A MACRO function that impletments the generic logic of sampling from
+a bi-mixture distribution.
+:param dtype_sampler: A method that takes a std::mt19937
+                      reference and returns a dtype sample.
+*/
+#define GENERIC_DTYPE_SAMPLER(dtype_sampler) \
+  auto bern_dist = std::bernoulli_distribution(in_nodes[0]->value._double); \
+  auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);    \
+  auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);    \
+  if (bern_dist(gen)) {                                                     \
+    return d1->dtype_sampler(gen);                                          \
+  } else {                                                                  \
+    return d2->dtype_sampler(gen);                                          \
+  }                                                                         \
+
 namespace beanmachine {
 namespace distribution {
 
@@ -44,15 +60,16 @@ Bimixture::Bimixture(
     : Bimixture(ValueType(sample_type), in_nodes) {
 }
 
-AtomicValue Bimixture::sample(std::mt19937& gen) const {
-  auto bern_dist = std::bernoulli_distribution(in_nodes[0]->value._double);
-  auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);
-  auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);
-  if (bern_dist(gen)) {
-    return d1->sample(gen);
-  } else {
-    return d2->sample(gen);
-  }
+bool Bimixture::_bool_sampler(std::mt19937& gen) const {
+  GENERIC_DTYPE_SAMPLER(_bool_sampler)
+}
+
+double Bimixture::_double_sampler(std::mt19937& gen) const {
+  GENERIC_DTYPE_SAMPLER(_double_sampler)
+}
+
+natural_t Bimixture::_natural_sampler(std::mt19937& gen) const {
+  GENERIC_DTYPE_SAMPLER(_natural_sampler)
 }
 
 // log_prob(x | p, f1, f2) i.e. log(f) = logsumexp(log(p) + log(f1), log(1-p) + log(f2))

@@ -30,13 +30,12 @@ HalfCauchy::HalfCauchy(
   }
 }
 
-AtomicValue HalfCauchy::sample(std::mt19937& gen) const {
+double HalfCauchy::_double_sampler(std::mt19937& gen) const {
   // the cdf of a standard HalfCauchy is  F(x) = (2/pi) arctan(x)
   // therefore we will sample w ~ uniformly [0, pi/2] and compute tan(w)
   // finally we will multiply the scale to get the required value
   std::uniform_real_distribution<double> dist(0.0, M_PI_2);
-  double value = in_nodes[0]->value._double * std::tan(dist(gen));
-  return AtomicValue(AtomicType::POS_REAL, value);
+  return in_nodes[0]->value._double * std::tan(dist(gen));
 }
 
 // log_prob of a HalfCauchy is f(x; s) =  -log(pi/2) -log(s) -log(1 + (x/s)^2)

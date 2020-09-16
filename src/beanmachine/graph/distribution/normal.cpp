@@ -30,10 +30,10 @@ Normal::Normal(AtomicType sample_type, const std::vector<Node*>& in_nodes)
   }
 }
 
-AtomicValue Normal::sample(std::mt19937& gen) const {
+double Normal::_double_sampler(std::mt19937& gen) const {
   std::normal_distribution<double> dist(
       in_nodes[0]->value._double, in_nodes[1]->value._double);
-  return AtomicValue(dist(gen));
+  return dist(gen);
 }
 
 // log_prob of a normal: - log(s) -0.5 log(2*pi) - 0.5 (x - m)^2 / s^2

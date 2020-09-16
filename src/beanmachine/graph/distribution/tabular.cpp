@@ -75,10 +75,10 @@ double Tabular::get_probability() const {
   return prob;
 }
 
-graph::AtomicValue Tabular::sample(std::mt19937& gen) const {
+bool Tabular::_bool_sampler(std::mt19937& gen) const {
   double prob_true = get_probability();
-  std::bernoulli_distribution distrib(prob_true);
-  return graph::AtomicValue((bool)distrib(gen));
+  std::bernoulli_distribution dist(prob_true);
+  return (bool)dist(gen);
 }
 
 double Tabular::log_prob(const graph::AtomicValue& value) const {

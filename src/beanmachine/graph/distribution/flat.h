@@ -11,7 +11,9 @@ class Flat : public Distribution {
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Flat() override {}
-  graph::AtomicValue sample(std::mt19937& gen) const override;
+  bool _bool_sampler(std::mt19937& gen) const override;
+  double _double_sampler(std::mt19937& gen) const override;
+  graph::natural_t _natural_sampler(std::mt19937& gen) const override;
   double log_prob(const graph::AtomicValue& value) const override;
   void gradient_log_prob_value(
       const graph::AtomicValue& value,

@@ -32,12 +32,12 @@ StudentT::StudentT(AtomicType sample_type, const std::vector<Node*>& in_nodes)
   }
 }
 
-AtomicValue StudentT::sample(std::mt19937& gen) const {
+double StudentT::_double_sampler(std::mt19937& gen) const {
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
   std::student_t_distribution<double> dist(n);
-  return AtomicValue(l + dist(gen) * s);
+  return l + dist(gen) * s;
 }
 
 // log_prob of a student-t with parameters n, l, s

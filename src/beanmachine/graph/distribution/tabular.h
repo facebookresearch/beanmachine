@@ -11,7 +11,7 @@ class Tabular : public Distribution {
       graph::AtomicType sample_type,
       const std::vector<graph::Node*>& in_nodes);
   ~Tabular() override {}
-  graph::AtomicValue sample(std::mt19937& gen) const override;
+  bool _bool_sampler(std::mt19937& gen) const override;
   double log_prob(const graph::AtomicValue& value) const override;
   void gradient_log_prob_value(
       const graph::AtomicValue& value,

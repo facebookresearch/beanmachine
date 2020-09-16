@@ -25,9 +25,9 @@ Bernoulli::Bernoulli(
   }
 }
 
-graph::AtomicValue Bernoulli::sample(std::mt19937& gen) const {
+bool Bernoulli::_bool_sampler(std::mt19937& gen) const {
   std::bernoulli_distribution distrib(in_nodes[0]->value._double);
-  return graph::AtomicValue((bool)distrib(gen));
+  return (bool)distrib(gen);
 }
 
 double Bernoulli::log_prob(const graph::AtomicValue& value) const {

@@ -41,11 +41,11 @@ BernoulliNoisyOr::BernoulliNoisyOr(
   }
 }
 
-graph::AtomicValue BernoulliNoisyOr::sample(std::mt19937& gen) const {
+bool BernoulliNoisyOr::_bool_sampler(std::mt19937& gen) const {
   double param = in_nodes[0]->value._double;
   double prob = 1 - exp(-param);
   std::bernoulli_distribution distrib(prob);
-  return graph::AtomicValue((bool)distrib(gen));
+  return (bool)distrib(gen);
 }
 
 double BernoulliNoisyOr::log_prob(const graph::AtomicValue& value) const {

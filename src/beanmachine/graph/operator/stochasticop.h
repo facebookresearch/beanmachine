@@ -12,8 +12,10 @@ class StochasticOperator : public Operator {
       : Operator(op_type) {}
   ~StochasticOperator() override {}
 
-  void eval(std::mt19937& /* gen */) override {}
-
+  void eval(std::mt19937& gen) override {
+    const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
+    dist->sample(gen, value);
+  }
   double log_prob() const override {
     return static_cast<const distribution::Distribution*>(in_nodes[0])
         ->log_prob(value);
@@ -38,8 +40,6 @@ class Sample : public oper::StochasticOperator {
   explicit Sample(const std::vector<graph::Node*>& in_nodes);
   ~Sample() override {}
 
-  void eval(std::mt19937& gen) override;
-
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Sample>(in_nodes);
   }
@@ -51,8 +51,6 @@ class IIdSample : public oper::StochasticOperator {
  public:
   explicit IIdSample(const std::vector<graph::Node*>& in_nodes);
   ~IIdSample() override {}
-
-  void eval(std::mt19937& gen) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<IIdSample>(in_nodes);

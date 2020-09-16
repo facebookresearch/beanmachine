@@ -25,29 +25,9 @@ Beta::Beta(
   }
 }
 
-graph::AtomicValue Beta::sample(std::mt19937& gen) const {
-  auto sample_value = graph::AtomicValue(sample_type);
-  this->sample(gen, sample_value);
-  return sample_value;
-}
-
-void Beta::sample(std::mt19937& gen, graph::AtomicValue& sample_value) const {
-  assert(sample_value.type.atomic_type == graph::AtomicType::PROBABILITY);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
-  if (sample_value.type.variable_type == graph::VariableType::SCALAR) {
-    sample_value._double = util::sample_beta(gen, param_a, param_b);
-    return;
-  }
-  assert(
-      sample_value.type.variable_type ==
-          graph::VariableType::BROADCAST_MATRIX and
-      sample_value.type.cols == 1 and sample_value.type.rows > 1);
-  uint size = sample_value.type.rows;
-  for (uint i = 0; i < size; i++) {
-    *(sample_value._matrix.data() + i) = util::sample_beta(gen, param_a, param_b);
-  }
-  return;
+double Beta::_double_sampler(std::mt19937& gen) const {
+  return util::sample_beta(
+      gen, in_nodes[0]->value._double, in_nodes[1]->value._double);
 }
 
 double Beta::log_prob(const graph::AtomicValue& value) const {

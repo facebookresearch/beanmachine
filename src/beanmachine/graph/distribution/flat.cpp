@@ -16,43 +16,37 @@ Flat::Flat(AtomicType sample_type, const std::vector<Node*>& in_nodes)
   }
 }
 
-AtomicValue Flat::sample(std::mt19937& gen) const {
-  AtomicValue value;
+bool Flat::_bool_sampler(std::mt19937& gen) const {
+  std::bernoulli_distribution dist(0.5);
+  return (bool)dist(gen);
+}
+
+double Flat::_double_sampler(std::mt19937& gen) const {
+  std::uniform_real_distribution<double> dist;
   switch (sample_type.atomic_type) {
-    case AtomicType::BOOLEAN: {
-      std::bernoulli_distribution dist(0.5);
-      value = AtomicValue(dist(gen));
-      break;
-    }
-    case AtomicType::PROBABILITY: {
-      std::uniform_real_distribution<double> dist(0, 1);
-      value = AtomicValue(AtomicType::PROBABILITY, dist(gen));
-      break;
-    }
-    case AtomicType::REAL: {
-      std::uniform_real_distribution<double> dist(
+    case graph::AtomicType::REAL:
+      dist = std::uniform_real_distribution<double>(
           std::numeric_limits<double>::lowest(),
           std::numeric_limits<double>::max());
-      value = AtomicValue(dist(gen));
       break;
-    }
-    case AtomicType::POS_REAL: {
-      std::uniform_real_distribution<double> dist(
+    case graph::AtomicType::POS_REAL:
+      dist = std::uniform_real_distribution<double>(
           0, std::numeric_limits<double>::max());
-      value = AtomicValue(AtomicType::POS_REAL, dist(gen));
       break;
-    }
-    case AtomicType::NATURAL: {
-      std::uniform_int_distribution<natural_t> dist(
-          0, std::numeric_limits<natural_t>::max());
-      value = AtomicValue((natural_t)dist(gen));
+    case graph::AtomicType::PROBABILITY:
+      dist = std::uniform_real_distribution<double>(0, 1);
       break;
-    }
-    default: {
-      assert(false);
-    }
+    default:
+      throw std::runtime_error(
+          "Unsupported sample type for _double_sampler of Flat.");
   }
-  return value;
+  return dist(gen);
+}
+
+natural_t Flat::_natural_sampler(std::mt19937& gen) const {
+  std::uniform_int_distribution<natural_t> dist(
+      0, std::numeric_limits<natural_t>::max());
+  return (natural_t)dist(gen);
 }
 
 // A Flat distribution is really easy in terms of computing the log_prob and the
