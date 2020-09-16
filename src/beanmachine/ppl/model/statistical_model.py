@@ -103,6 +103,7 @@ class StatisticalModel(object):
         Decorator to be used for every stochastic random variable defined in
         all statistical models.
         """
+        import inspect
 
         @wraps(f)
         def wrapper(*args):
@@ -112,7 +113,11 @@ class StatisticalModel(object):
             world = StatisticalModel.__world_
             return world.update_graph(func_key)
 
-        f._wrapper = wrapper
+        if inspect.ismethod(f):
+            meth_name = f.__name__ + "_wrapper"
+            setattr(f.__self__, meth_name, wrapper)
+        else:
+            f._wrapper = wrapper
         return wrapper
 
     @staticmethod
@@ -127,6 +132,7 @@ class StatisticalModel(object):
         """
         Decorator to be used for every query defined in statistical model.
         """
+        import inspect
 
         @wraps(f)
         def wrapper(*args):
@@ -137,7 +143,11 @@ class StatisticalModel(object):
                 return world.update_cached_functionals(f, *args)
             return f(*args)
 
-        f._wrapper = wrapper
+        if inspect.ismethod(f):
+            meth_name = f.__name__ + "_wrapper"
+            setattr(f.__self__, meth_name, wrapper)
+        else:
+            f._wrapper = wrapper
         return wrapper
 
 

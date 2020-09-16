@@ -8,6 +8,7 @@ def probabilistic(bmg: BMGraphBuilder):
     """
     Decorator to be used to make sample function probabilistic
     """
+    import inspect
 
     def inner(f):
         @wraps(f)
@@ -28,7 +29,11 @@ def probabilistic(bmg: BMGraphBuilder):
             # If we got here, there were no distribution arguments.
             return f(*args)
 
-        f._wrapper = wrapper
+        if inspect.ismethod(f):
+            meth_name = f.__name__ + "_wrapper"
+            setattr(f.__self__, meth_name, wrapper)
+        else:
+            f._wrapper = wrapper
         return wrapper
 
     return inner

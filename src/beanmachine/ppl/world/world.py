@@ -3,7 +3,7 @@ import copy
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
@@ -163,7 +163,7 @@ class World(object):
         :param node: the node to look up
         :returns: whether the node has transform enabled or not
         """
-        return self.transforms_[node.function._wrapper]
+        return self.transforms_[get_wrapper(node.function)]
 
     def set_proposer(self, func_wrapper, proposer):
         """
@@ -201,7 +201,7 @@ class World(object):
         :param node: the node to look up
         :returns: the associate proposer
         """
-        return self.proposer_[node.function._wrapper]
+        return self.proposer_[get_wrapper(node.function)]
 
     def __str__(self) -> str:
         return (

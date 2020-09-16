@@ -13,7 +13,7 @@ from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_propos
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
 
 
 class CompositionalInference(AbstractMHInference):
@@ -71,8 +71,9 @@ class CompositionalInference(AbstractMHInference):
         if node in self.proposers_per_rv_:
             return self.proposers_per_rv_[node]
 
-        if node.function._wrapper in self.proposers_per_family_:
-            proposer_inst = self.proposers_per_family_[node.function._wrapper]
+        wrapped_fn = get_wrapper(node.function)
+        if wrapped_fn in self.proposers_per_family_:
+            proposer_inst = self.proposers_per_family_[wrapped_fn]
             self.proposers_per_rv_[node] = copy.deepcopy(proposer_inst)
             return self.proposers_per_rv_[node]
 

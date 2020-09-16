@@ -23,6 +23,7 @@ def memoize(f):
     """
     Decorator to be used to memoize arbitrary functions.
     """
+    import inspect
 
     cache: Dict[Any, Any] = {}
     # TODO: Can we use a more efficient type than a list? We don't know
@@ -44,5 +45,9 @@ def memoize(f):
                 in_flight.pop()
         return cache[key]
 
-    f._wrapper = wrapper
+    if inspect.ismethod(f):
+        meth_name = f.__name__ + "_wrapper"
+        setattr(f.__self__, meth_name, wrapper)
+    else:
+        f._wrapper = wrapper
     return wrapper
