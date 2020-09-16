@@ -41,10 +41,12 @@ from beanmachine.ppl.compiler.bmg_types import (
     UpperBound,
     meets_requirement,
     supremum,
+    type_of_value,
     upper_bound,
 )
 from beanmachine.ppl.compiler.error_report import (
     ErrorReport,
+    ImpossibleObservation,
     UnsupportedNode,
     Violation,
 )
@@ -508,6 +510,26 @@ requirement is given; the name of this edge is provided for error reporting."""
                 node.children[i] = replacement
                 replacements[c] = replacement
 
+    def _fix_observations(self) -> None:
+        for o in self.bmg.all_observations():
+            v = o.value
+            inf = type_of_value(v)
+            gt = o.operand.graph_type
+            if supremum(inf, gt) != gt:
+                self.errors.add_error(ImpossibleObservation(o))
+            elif gt == Boolean:
+                o.value = bool(v)
+            elif gt == Natural:
+                o.value = int(v)
+            elif gt in {Probability, PositiveReal, Real}:
+                o.value = float(v)
+            else:
+                # TODO: How should we deal with observations of
+                # TODO: matrix-valued samples?
+                pass
+            # TODO: Handle the case where there are two inconsistent
+            # TODO: observations of the same sample
+
     def fix_all_problems(self) -> None:
         self._fix_negative_logs()
         self._additions_to_complements()
@@ -515,6 +537,9 @@ requirement is given; the name of this edge is provided for error reporting."""
         if self.errors.any():
             return
         self._fix_unmet_requirements()
+        if self.errors.any():
+            return
+        self._fix_observations()
 
 
 def fix_problems(bmg: BMGraphBuilder) -> ErrorReport:

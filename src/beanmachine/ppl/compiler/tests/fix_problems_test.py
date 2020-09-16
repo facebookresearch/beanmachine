@@ -887,3 +887,114 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_12(self) -> None:
+        """test_fix_problems_12"""
+
+        # We flag impossible observations as errors.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        # @rv def bern():
+        #   return Bernoulli(0.5)
+        # @rv def bino():
+        #   return Binomial(2, 0.5)
+        # @rv def norm():
+        #   return Normal(0, 1)
+
+        zero = bmg.add_constant(0.0)
+        one = bmg.add_constant(1.0)
+        two = bmg.add_constant(2.0)
+        half = bmg.add_constant(0.5)
+        bern = bmg.add_bernoulli(half)
+        berns = bmg.add_sample(bern)
+        bino = bmg.add_binomial(two, half)
+        binos = bmg.add_sample(bino)
+        norm = bmg.add_normal(zero, one)
+        norms = bmg.add_sample(norm)
+
+        bmg.add_observation(berns, -1.5)  # Bad
+        bmg.add_observation(binos, 5.25)  # Bad
+        bmg.add_observation(norms, True)  # OK; can be converted to 1.0
+
+        error_report = fix_problems(bmg)
+        observed = str(error_report)
+        expected = """
+A Bernoulli distribution is observed to have value -1.5 but only produces samples of type bool.
+A Binomial distribution is observed to have value 5.25 but only produces samples of type natural.
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_13(self) -> None:
+        """test_fix_problems_13"""
+
+        # Observations of the wrong type are fixed up.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        # @rv def bern():
+        #   return Bernoulli(0.5)
+        # @rv def bino():
+        #   return Binomial(2, 0.5)
+        # @rv def norm():
+        #   return Normal(0, 1)
+
+        zero = bmg.add_constant(0.0)
+        one = bmg.add_constant(1.0)
+        two = bmg.add_constant(2.0)
+        half = bmg.add_constant(0.5)
+        bern = bmg.add_bernoulli(half)
+        berns = bmg.add_sample(bern)
+        bino = bmg.add_binomial(two, half)
+        binos = bmg.add_sample(bino)
+        norm = bmg.add_normal(zero, one)
+        norms = bmg.add_sample(norm)
+
+        bmg.add_observation(berns, 0.0)  # Should be bool
+        bmg.add_observation(binos, 5.0)  # Should be int
+        bmg.add_observation(norms, True)  # Should be real
+
+        error_report = fix_problems(bmg)
+        self.assertEqual(str(error_report).strip(), "")
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        # The observations have been converted to the correct types:
+        expected = """
+digraph "graph" {
+  N00[label="0.0:R>=B"];
+  N01[label="1.0:R>=OH"];
+  N02[label="2.0:R>=N"];
+  N03[label="0.5:R>=P"];
+  N04[label="Bernoulli:B>=B"];
+  N05[label="Sample:B>=B"];
+  N06[label="Binomial:N>=N"];
+  N07[label="Sample:N>=N"];
+  N08[label="Normal:R>=R"];
+  N09[label="Sample:R>=R"];
+  N10[label="Observation False:B>=B"];
+  N11[label="Observation 5:N>=N"];
+  N12[label="Observation 1.0:R>=R"];
+  N13[label="0.5:P>=P"];
+  N14[label="2:N>=N"];
+  N15[label="1.0:R+>=OH"];
+  N00 -> N08[label="mu:R"];
+  N04 -> N05[label="operand:B"];
+  N05 -> N10[label="operand:B"];
+  N06 -> N07[label="operand:N"];
+  N07 -> N11[label="operand:N"];
+  N08 -> N09[label="operand:R"];
+  N09 -> N12[label="operand:R"];
+  N13 -> N04[label="probability:P"];
+  N13 -> N06[label="probability:P"];
+  N14 -> N06[label="count:N"];
+  N15 -> N08[label="sigma:R+"];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())

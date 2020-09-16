@@ -6,7 +6,7 @@ when compiling Bean Machine models to Bean Machine Graph."""
 from abc import ABC
 from typing import List
 
-from beanmachine.ppl.compiler.bmg_nodes import BMGNode
+from beanmachine.ppl.compiler.bmg_nodes import BMGNode, Observation
 from beanmachine.ppl.compiler.bmg_types import BMGLatticeType, Requirement, UpperBound
 
 
@@ -36,6 +36,23 @@ class Violation(BMGError):
             f"The {self.edge} of a {self.consumer.label} "
             + f"is required to be a {t.long_name} "
             + f"but is a {self.node.inf_type.long_name}."
+        )
+        return msg
+
+
+class ImpossibleObservation(BMGError):
+    node: Observation
+
+    def __init__(self, node: Observation) -> None:
+        self.node = node
+
+    def __str__(self) -> str:
+        v = self.node.value
+        d = self.node.operand.operand.label
+        t = self.node.inf_type.long_name
+        msg = (
+            f"A {d} distribution is observed to have value {v} "
+            + f"but only produces samples of type {t}."
         )
         return msg
 
