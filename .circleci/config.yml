@@ -80,25 +80,25 @@ commands:
           name: "Run unit tests"
           command: pytest --cov=. --cov-report term-missing
 
-  user_unit_tests:
-    description: "Run unit tests when as an ordinary user would"
+  user_par_unit_tests:
+    description: "Run unit tests in parallel as an ordinary user"
     steps:
       - run:
           name: "Install test dependencies"
-          command: pip install pytest gpytorch
+          command: pip install pytest gpytorch pytest-xdist
       - run:
-          name: "Run unit tests"
-          command: pytest
+          name: "Run unit tests in parallel"
+          command: pytest -n 20 -vv
 
   nightly_tests:
     description: "Run nightly tests as an ordinary user"
     steps:
       - run:
           name: "Install test dependencies"
-          command: pip install pytest gpytorch
+          command: pip install pytest gpytorch pytest-xdist
       - run:
-          name: "Run nightly tests"
-          command: pytest -o python_files="*_nightly.py"
+          name: "Run nightly tests and report overall runtimes"
+          command: pytest -n auto -o python_files="*_nightly.py" --durations=0
 
 
 jobs:
@@ -113,7 +113,7 @@ jobs:
       - dev_install
       - dev_unit_tests
 
-  user_install_test_py37_pip:
+  user_par_install_test_py37_pip:
     docker:
       - image: circleci/python:3.7
     steps:
@@ -121,7 +121,7 @@ jobs:
       - pip_install_deps
       - checkout
       - user_install
-      - user_unit_tests
+      - user_par_unit_tests
 
   lint_py37_pip:
     docker:
@@ -163,7 +163,7 @@ workflows:
       - dev_install_test_py37_pip:
           filters: *exclude_ghpages_fbconfig
 
-      - user_install_test_py37_pip:
+      - user_par_install_test_py37_pip:
           filters: *exclude_ghpages_fbconfig
 
   nightly_test:
