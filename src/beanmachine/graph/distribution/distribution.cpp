@@ -78,5 +78,60 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
   }
 }
 
+graph::AtomicValue Distribution::sample(std::mt19937& gen) const {
+  auto sample_value = graph::AtomicValue(sample_type);
+  this->sample(gen, sample_value);
+  return sample_value;
+}
+
+void Distribution::sample(std::mt19937& gen, graph::AtomicValue& sample_value)
+    const {
+  // sample a single SCALAR
+  if (sample_value.type.variable_type == graph::VariableType::SCALAR) {
+    switch (sample_value.type.atomic_type) {
+      case graph::AtomicType::BOOLEAN:
+        sample_value._bool = _bool_sampler(gen);
+        break;
+      case graph::AtomicType::REAL:
+      case graph::AtomicType::POS_REAL:
+      case graph::AtomicType::PROBABILITY:
+        sample_value._double = _double_sampler(gen);
+        break;
+      case graph::AtomicType::NATURAL:
+        sample_value._natural = _natural_sampler(gen);
+        break;
+      default:
+        throw std::runtime_error("Unsupported sample type.");
+        break;
+    }
+    return;
+  }
+  // iid sample SCALARs
+  if (sample_value.type.variable_type ==
+          graph::VariableType::BROADCAST_MATRIX and
+      sample_value.type.cols == 1 and sample_value.type.rows > 1) {
+    uint size = sample_value.type.rows;
+    switch (sample_value.type.atomic_type) {
+      case graph::AtomicType::BOOLEAN:
+        for (uint i = 0; i < size; i++) {
+          *(sample_value._bmatrix.data() + i) = _bool_sampler(gen);
+        }
+        break;
+      case graph::AtomicType::REAL:
+      case graph::AtomicType::POS_REAL:
+      case graph::AtomicType::PROBABILITY:
+        for (uint i = 0; i < size; i++) {
+          *(sample_value._matrix.data() + i) = _double_sampler(gen);
+        }
+        break;
+      default:
+        throw std::runtime_error("Unsupported sample type.");
+        break;
+    }
+    return;
+  }
+  throw std::runtime_error("Unsupported sample type.");
+}
+
 } // namespace distribution
 } // namespace beanmachine

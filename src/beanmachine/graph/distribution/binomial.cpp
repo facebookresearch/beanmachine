@@ -25,11 +25,11 @@ Binomial::Binomial(
   }
 }
 
-graph::AtomicValue Binomial::sample(std::mt19937& gen) const {
+graph::natural_t Binomial::_natural_sampler(std::mt19937& gen) const {
   graph::natural_t param_n = in_nodes[0]->value._natural;
   double param_p = in_nodes[1]->value._double;
   std::binomial_distribution<graph::natural_t> distrib(param_n, param_p);
-  return graph::AtomicValue(distrib(gen));
+  return distrib(gen);
 }
 
 double Binomial::log_prob(const graph::AtomicValue& value) const {

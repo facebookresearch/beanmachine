@@ -21,13 +21,8 @@ class Distribution : public graph::Node {
       : graph::Node(graph::NodeType::DISTRIBUTION),
         dist_type(dist_type),
         sample_type(sample_type) {}
-  virtual graph::AtomicValue sample(std::mt19937& gen) const = 0;
-  virtual void sample(
-      std::mt19937& /* gen */,
-      graph::AtomicValue& /* sample_value */) const {
-    throw std::invalid_argument(
-        "this method has not been implemented for this distribution.");
-  }
+  graph::AtomicValue sample(std::mt19937& gen) const;
+  void sample(std::mt19937& gen, graph::AtomicValue& sample_value) const;
   void eval(std::mt19937& /* */) override {
     throw std::runtime_error(
         "internal error: eval() is not implemented for distribution");
@@ -45,7 +40,7 @@ class Distribution : public graph::Node {
       const graph::AtomicValue& /* value */,
       Eigen::MatrixXd& /* grad1 */,
       Eigen::MatrixXd& /* grad2_diag */) const {
-        throw std::invalid_argument(
+        throw std::runtime_error(
             "this method has not been implemented for this distribution.");
       }
   virtual void gradient_log_prob_param(
@@ -56,11 +51,24 @@ class Distribution : public graph::Node {
       const graph::AtomicValue& /* value */,
       Eigen::MatrixXd& /* grad1 */,
       Eigen::MatrixXd& /* grad2_diag */) const {
-        throw std::invalid_argument(
+        throw std::runtime_error(
             "this method has not been implemented for this distribution.");
       }
   graph::DistributionType dist_type;
   graph::ValueType sample_type;
+
+  virtual double _double_sampler(std::mt19937& /* gen */) const {
+    throw std::runtime_error(
+        "_double_sampler has not been implemented for this distribution.");
+  }
+  virtual bool _bool_sampler(std::mt19937& /* gen */) const {
+    throw std::runtime_error(
+        "_bool_sampler has not been implemented for this distribution.");
+  }
+  virtual graph::natural_t _natural_sampler(std::mt19937& /* gen */) const {
+    throw std::runtime_error(
+        "_natural_sampler has not been implemented for this distribution.");
+  }
 };
 
 } // namespace distribution

@@ -30,10 +30,10 @@ Gamma::Gamma(
   }
 }
 
-AtomicValue Gamma::sample(std::mt19937& gen) const {
+double Gamma::_double_sampler(std::mt19937& gen) const {
   std::gamma_distribution<double> dist(
-    in_nodes[0]->value._double, 1/in_nodes[1]->value._double);
-  return AtomicValue(AtomicType::POS_REAL, dist(gen));
+      in_nodes[0]->value._double, 1 / in_nodes[1]->value._double);
+  return dist(gen);
 }
 
 // Note: log_prob(x | a, b) = a * log(b) - log G(a) + (a - 1) * log(x) - b * x
