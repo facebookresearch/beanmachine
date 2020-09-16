@@ -57,7 +57,9 @@ std::unique_ptr<Operator> OperatorFactory::create_op(
     const std::vector<graph::Node*>& in_nodes) {
   int op_id = static_cast<int>(op_type);
   auto iter = OperatorFactory::op_map().find(op_id);
-  if (iter != OperatorFactory::op_map().end()) {
+  // Check Sample::is_registered here to deactivate compiler optimization on
+  // unused static is_registered variables.
+  if (iter != OperatorFactory::op_map().end() and Sample::is_registered) {
     return iter->second(in_nodes);
   }
   throw std::runtime_error(
