@@ -2825,11 +2825,11 @@ should no loger be uniform."""
 
     @property
     def inf_type(self) -> BMGLatticeType:
-        # TODO: Since an observation node is never consumed, it's not actually
-        # meaningful to compute its type, but we can potentially use this
-        # to check for errors; for example, if we have an observation with
-        # value 0.5 on an operation known to be of type Natural then we can
-        # flag that as a likely error.
+        # Since an observation node is never consumed it is not actually
+        # meaningful to compute its type. However, we can use this to check for
+        # errors; for example, if we have an observation with value 0.5 on
+        # an operation known to be of type Natural then we flag that as an
+        # error.
         return self.observed.inf_type
 
     @property

@@ -1223,3 +1223,9 @@ the "right"."""
         for r in roots:
             visit(r)
         return result
+
+    def all_observations(self) -> List[Observation]:
+        return sorted(
+            (n for n in self.nodes if isinstance(n, Observation)),
+            key=lambda n: self.nodes[n],
+        )
