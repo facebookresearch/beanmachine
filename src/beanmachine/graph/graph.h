@@ -10,8 +10,11 @@
 #include <vector>
 #include <Eigen/Dense>
 
+#define NATURAL_TYPE unsigned long long int
+
 namespace Eigen {
   typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
+  typedef Matrix<NATURAL_TYPE, Dynamic, Dynamic> MatrixXn;
 }
 
 namespace beanmachine {
@@ -102,7 +105,7 @@ struct ValueType {
   std::string to_string() const;
 };
 
-typedef unsigned long long int natural_t;
+typedef NATURAL_TYPE natural_t;
 
 class AtomicValue {
  public:
@@ -114,6 +117,7 @@ class AtomicValue {
   };
   Eigen::MatrixXd _matrix;
   Eigen::MatrixXb _bmatrix;
+  Eigen::MatrixXn _nmatrix;
 
   AtomicValue() : type(AtomicType::UNKNOWN) {}
   explicit AtomicValue(AtomicType type);
@@ -136,6 +140,13 @@ class AtomicValue {
             value.rows(),
             value.cols())),
         _bmatrix(value) {}
+  explicit AtomicValue(Eigen::MatrixXn& value)
+      : type(ValueType(
+            VariableType::BROADCAST_MATRIX,
+            AtomicType::NATURAL,
+            value.rows(),
+            value.cols())),
+        _nmatrix(value) {}
 
   AtomicValue(AtomicType type, bool value) : type(type), _bool(value) {
     assert(type == AtomicType::BOOLEAN);
@@ -154,14 +165,11 @@ class AtomicValue {
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
         type == AtomicType::PROBABILITY);
   }
-  AtomicValue(AtomicType type, Eigen::MatrixXb& value)
-      : type(ValueType(
-            VariableType::BROADCAST_MATRIX,
-            type,
-            value.rows(),
-            value.cols())),
-        _bmatrix(value) {
+  AtomicValue(AtomicType /* type */, Eigen::MatrixXb& value) : AtomicValue(value) {
     assert(type == AtomicType::BOOLEAN);
+  }
+  AtomicValue(AtomicType /* type */, Eigen::MatrixXn& value) : AtomicValue(value) {
+    assert(type == AtomicType::NATURAL);
   }
   AtomicValue(ValueType type, Eigen::MatrixXd& value) : type(type), _matrix(value) {
     assert(
@@ -175,6 +183,11 @@ class AtomicValue {
   AtomicValue(ValueType type, Eigen::MatrixXb& value) : type(type), _bmatrix(value) {
     assert(type.variable_type == VariableType::BROADCAST_MATRIX);
     assert(type.atomic_type == AtomicType::BOOLEAN);
+    assert(type.rows == value.rows() and type.cols == value.cols());
+  }
+  AtomicValue(ValueType type, Eigen::MatrixXn& value) : type(type), _nmatrix(value) {
+    assert(type.variable_type == VariableType::BROADCAST_MATRIX);
+    assert(type.atomic_type == AtomicType::NATURAL);
     assert(type.rows == value.rows() and type.cols == value.cols());
   }
   AtomicValue(AtomicType type, double value);
@@ -206,10 +219,12 @@ class AtomicValue {
           break;
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
-        case AtomicType::PROBABILITY: {
+        case AtomicType::PROBABILITY:
           _matrix = other._matrix;
           break;
-        }
+        case AtomicType::NATURAL:
+          _nmatrix = other._nmatrix;
+          break;
         default: {
           throw std::invalid_argument(
               "Trying to copy a MATRIX AtomicValue of unsupported type.");
@@ -237,6 +252,9 @@ class AtomicValue {
          (type.variable_type == VariableType::BROADCAST_MATRIX and
           type.atomic_type == AtomicType::BOOLEAN and
           _bmatrix == other._bmatrix) or
+         (type.variable_type == VariableType::BROADCAST_MATRIX and
+          type.atomic_type == AtomicType::NATURAL and
+          _nmatrix == other._nmatrix) or
          (type.variable_type == VariableType::COL_SIMPLEX_MATRIX and
           _matrix.isApprox(other._matrix)));
   }
@@ -371,6 +389,7 @@ struct Graph {
   uint add_constant_pos_real(double value);
   uint add_constant_matrix(Eigen::MatrixXb& value);
   uint add_constant_matrix(Eigen::MatrixXd& value);
+  uint add_constant_matrix(Eigen::MatrixXn& value);
   uint add_constant_pos_matrix(Eigen::MatrixXd& value);
   uint add_constant_probability_matrix(Eigen::MatrixXd& value);
   uint add_constant_col_simplex_matrix(Eigen::MatrixXd& value);
@@ -390,6 +409,7 @@ struct Graph {
   void observe(uint var, natural_t val);
   void observe(uint var, Eigen::MatrixXb& val);
   void observe(uint var, Eigen::MatrixXd& val);
+  void observe(uint var, Eigen::MatrixXn& val);
   void observe(uint var, AtomicValue val);
   uint query(uint var); // returns the index of the query in the samples
   /*

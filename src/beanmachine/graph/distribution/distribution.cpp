@@ -107,10 +107,11 @@ void Distribution::sample(std::mt19937& gen, graph::AtomicValue& sample_value)
     return;
   }
   // iid sample SCALARs
-  if (sample_value.type.variable_type ==
-          graph::VariableType::BROADCAST_MATRIX and
-      sample_value.type.cols == 1 and sample_value.type.rows > 1) {
-    uint size = sample_value.type.rows;
+  if (sample_type.variable_type == graph::VariableType::SCALAR and
+      sample_value.type.variable_type ==
+          graph::VariableType::BROADCAST_MATRIX) {
+    uint size = sample_value.type.cols * sample_value.type.rows;
+    assert(size > 1);
     switch (sample_value.type.atomic_type) {
       case graph::AtomicType::BOOLEAN:
         for (uint i = 0; i < size; i++) {
@@ -122,6 +123,11 @@ void Distribution::sample(std::mt19937& gen, graph::AtomicValue& sample_value)
       case graph::AtomicType::PROBABILITY:
         for (uint i = 0; i < size; i++) {
           *(sample_value._matrix.data() + i) = _double_sampler(gen);
+        }
+        break;
+      case graph::AtomicType::NATURAL:
+        for (uint i = 0; i < size; i++) {
+          *(sample_value._nmatrix.data() + i) = _natural_sampler(gen);
         }
         break;
       default:

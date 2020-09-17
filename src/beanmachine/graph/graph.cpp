@@ -106,6 +106,9 @@ AtomicValue::AtomicValue(ValueType type) : type(type) {
       case AtomicType::PROBABILITY:
         _matrix = Eigen::MatrixXd::Constant(type.rows, type.cols, PRECISION);
         break;
+      case AtomicType::NATURAL:
+        _nmatrix = Eigen::MatrixXn::Constant(type.rows, type.cols, (natural_t)0);
+        break;
       default:
         throw std::invalid_argument(
             "Unsupported types for BROADCAST_MATRIX.");
@@ -415,6 +418,10 @@ uint Graph::add_constant_matrix(Eigen::MatrixXd& value) {
   return add_constant(AtomicValue(value));
 }
 
+uint Graph::add_constant_matrix(Eigen::MatrixXn& value) {
+  return add_constant(AtomicValue(value));
+}
+
 uint Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
     throw std::invalid_argument("All elements in pos_matrix must be >=0");
@@ -512,6 +519,11 @@ void Graph::observe(uint node_id, Eigen::MatrixXd& val) {
 }
 
 void Graph::observe(uint node_id, Eigen::MatrixXb& val) {
+  Node* node = check_node(node_id, NodeType::OPERATOR);
+  observe(node_id, AtomicValue(node->value.type, val));
+}
+
+void Graph::observe(uint node_id, Eigen::MatrixXn& val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
   observe(node_id, AtomicValue(node->value.type, val));
 }
