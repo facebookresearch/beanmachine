@@ -61,7 +61,7 @@ from typing import Any, Callable, Dict, List
 # Consider renaming it to NativeGraph or some other more descriptive
 # name that tells the reader that this is a really-truly BMG graph
 # that we are constructing in memory.
-from beanmachine.graph import Graph
+from beanmachine.graph import Graph, InferenceType
 from beanmachine.ppl.compiler.bmg_nodes import (
     AdditionNode,
     BernoulliNode,
@@ -1229,3 +1229,33 @@ the "right"."""
             (n for n in self.nodes if isinstance(n, Observation)),
             key=lambda n: self.nodes[n],
         )
+
+    def infer(
+        self,
+        queries: List[OperatorNode],
+        observations: Dict[SampleNode, Any],
+        num_samples: int,
+    ) -> Dict[Any, List[Any]]:
+
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+        # TODO: Error checking; verify that all observations are samples
+        # TODO: and all queries are operators.
+
+        # TODO: Do not automatically insert query nodes based on
+        # TODO: source code annotations.
+
+        for node, val in observations.items():
+            self.add_observation(node, val)
+
+        for q in queries:
+            self.add_query(q)
+
+        fix_problems(self).raise_errors()
+        g = Graph()
+
+        d: Dict[BMGNode, int] = {}
+        for node in self._traverse_from_roots():
+            d[node] = node._add_to_graph(g, d)
+
+        return g.infer(num_samples, InferenceType.NMC)
