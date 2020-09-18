@@ -2,7 +2,7 @@
 """End-to-end test of realistic logistic regression model"""
 import unittest
 
-from beanmachine.ppl.utils.bm_to_bmg import to_bmg, to_dot
+from beanmachine.ppl.compiler.bm_to_bmg import to_bmg, to_dot
 
 
 def tidy(s: str) -> str:

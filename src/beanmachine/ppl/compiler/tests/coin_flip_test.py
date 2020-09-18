@@ -2,7 +2,7 @@
 """End-to-end test of realistic coin flip model"""
 import unittest
 
-from beanmachine.ppl.utils.bm_to_bmg import infer
+from beanmachine.ppl.compiler.bm_to_bmg import infer
 
 
 source = """
