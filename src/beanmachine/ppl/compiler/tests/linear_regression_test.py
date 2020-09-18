@@ -2,7 +2,7 @@
 """End-to-end test of realistic linear regression model"""
 import unittest
 
-from beanmachine.ppl.utils.bm_to_bmg import to_bmg, to_cpp, to_dot, to_python
+from beanmachine.ppl.compiler.bm_to_bmg import to_bmg, to_cpp, to_dot, to_python
 
 
 def tidy(s: str) -> str:

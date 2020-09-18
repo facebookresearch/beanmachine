@@ -2,7 +2,7 @@
 """Tests for bm_to_bmg.py"""
 import unittest
 
-from beanmachine.ppl.utils.bm_to_bmg import to_bmg, to_cpp, to_python
+from beanmachine.ppl.compiler.bm_to_bmg import to_bmg, to_cpp, to_python
 
 
 def tidy(s: str) -> str:
