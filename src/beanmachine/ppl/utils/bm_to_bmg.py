@@ -4,7 +4,7 @@
 import ast
 import sys
 import types
-from typing import List
+from typing import Any, Dict, List
 
 import astor
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
@@ -368,7 +368,10 @@ def to_python_raw(source: str) -> str:
     return p
 
 
-def to_graph_builder(source: str) -> BMGraphBuilder:
+# Transform a model, compile the transformed state
+# execute the resulting program, and return the global
+# module.
+def _execute(source: str) -> Dict[str, Any]:
     # TODO: Make the name unique so that if this happens more than
     # TODO: once, we're not overwriting existing work.
     filename = "<BMGAST>"
@@ -381,8 +384,11 @@ def to_graph_builder(source: str) -> BMGraphBuilder:
     sys.modules[filename] = new_module
     mod_globals = new_module.__dict__
     exec(compiled, mod_globals)
-    bmg = mod_globals["bmg"]
-    return bmg
+    return mod_globals
+
+
+def to_graph_builder(source: str) -> BMGraphBuilder:
+    return _execute(source)["bmg"]
 
 
 def to_python(source: str) -> str:
@@ -408,3 +414,11 @@ def to_dot(
 
 def to_bmg(source: str):
     return to_graph_builder(source).to_bmg()
+
+
+def infer(source: str, num_samples: int = 1000) -> List[Any]:
+    mod_globals = _execute(source)
+    bmg = mod_globals["bmg"]
+    observations = mod_globals["observations"] if "observations" in mod_globals else {}
+    queries = mod_globals["queries"] if "queries" in mod_globals else []
+    return bmg.infer(queries, observations, num_samples)
