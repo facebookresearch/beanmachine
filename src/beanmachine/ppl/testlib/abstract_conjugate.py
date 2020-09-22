@@ -193,7 +193,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
             #  `assertAlmostEqual`.
             self.assertAlmostEqual(
-                abs((mean - expected_mean).sum().item()), 0, delta=delta
+                torch.abs(mean - expected_mean).sum().item(), 0, delta=delta
             )
 
     def beta_binomial_conjugate_run(
