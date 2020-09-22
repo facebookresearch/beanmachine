@@ -459,6 +459,7 @@ TEST(testoperator, iid_sample) {
   auto prob_node = ConstNode(prob_value);
   auto bern_dist =
       Bernoulli(AtomicType::BOOLEAN, std::vector<Node*>{&prob_node});
+  bern_dist.in_nodes.push_back(&prob_node);
   auto int_value = AtomicValue(AtomicType::NATURAL, (natural_t)2);
   auto int_node = ConstNode(int_value);
   // negative tests on the number and types of parents
@@ -470,10 +471,6 @@ TEST(testoperator, iid_sample) {
       std::invalid_argument);
   EXPECT_THROW(
       oper::IIdSample(std::vector<Node*>{&int_node, &prob_node}),
-      std::invalid_argument);
-  // currently only supports Beta distribution
-  EXPECT_THROW(
-      oper::IIdSample(std::vector<Node*>{&bern_dist, &int_node}),
       std::invalid_argument);
 
   // test initialization
@@ -490,6 +487,15 @@ TEST(testoperator, iid_sample) {
   auto vtype =
       ValueType(VariableType::BROADCAST_MATRIX, AtomicType::PROBABILITY, 2, 1);
   EXPECT_TRUE(beta_samples.value.type == vtype);
+
+  auto bernoulli_samples =
+      oper::IIdSample(std::vector<Node*>{&bern_dist, &int_node, &int_node});
+  bernoulli_samples.in_nodes.push_back(&bern_dist);
+  bernoulli_samples.in_nodes.push_back(&int_node);
+  bernoulli_samples.in_nodes.push_back(&int_node);
+  auto vtype2 =
+      ValueType(VariableType::BROADCAST_MATRIX, AtomicType::BOOLEAN, 2, 2);
+  EXPECT_TRUE(bernoulli_samples.value.type == vtype2);
 
   // test log_prob
   Eigen::MatrixXd matrix1(2, 1);
@@ -518,5 +524,15 @@ TEST(testoperator, iid_sample) {
   EXPECT_NEAR(mean_x1, 0.5, 0.01);
   EXPECT_NEAR(mean_x0sq - mean_x0 * mean_x0, 1.0 / 20.0, 0.001);
   EXPECT_NEAR(mean_x1sq - mean_x1 * mean_x1, 1.0 / 20.0, 0.001);
+
+  Eigen::Matrix2i m0 = Eigen::Matrix2i::Zero();
+  for (uint i = 0; i < n_samples; i++) {
+    bernoulli_samples.eval(generator);
+    m0 = m0.array() + bernoulli_samples.value._bmatrix.cast<int>().array();
+  }
+  EXPECT_NEAR(m0.coeff(0, 0) / (double)n_samples, 0.1, 0.01);
+  EXPECT_NEAR(m0.coeff(0, 1) / (double)n_samples, 0.1, 0.01);
+  EXPECT_NEAR(m0.coeff(1, 0) / (double)n_samples, 0.1, 0.01);
+  EXPECT_NEAR(m0.coeff(1, 1) / (double)n_samples, 0.1, 0.01);
   // log_prob_grad to be tested in each distribution test
 }
