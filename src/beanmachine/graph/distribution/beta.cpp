@@ -110,6 +110,18 @@ void Beta::gradient_log_prob_param(
     const graph::AtomicValue& value,
     double& grad1,
     double& grad2) const {
+  Eigen::Matrix<double, 1, 2> jacobian;
+  Eigen::Matrix2d hessian;
+  Eigen::MatrixXd pseudo_input;
+  compute_jacobian_hessian(value, jacobian, hessian);
+  gradient_propagation_scalar_to_scalar(
+      true, jacobian, hessian, grad1, grad2, pseudo_input, pseudo_input);
+}
+
+void Beta::compute_jacobian_hessian(
+    const graph::AtomicValue& value,
+    Eigen::Matrix<double, 1, 2>& jacobian,
+    Eigen::Matrix2d& hessian) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double digamma_a_p_b = util::polygamma(0, param_a + param_b); // digamma(a+b)
@@ -117,32 +129,26 @@ void Beta::gradient_log_prob_param(
   double digamma_diff_b = digamma_a_p_b - util::polygamma(0, param_b);
   double poly1_a_p_b =
       util::polygamma(1, param_a + param_b); // polygamma(1, a+b)
-  double grad2_a2 = poly1_a_p_b - util::polygamma(1, param_a);
-  double grad2_b2 = poly1_a_p_b - util::polygamma(1, param_b);
-  double grad2_init = grad2_a2 * in_nodes[0]->grad1 * in_nodes[0]->grad1 +
-      grad2_b2 * in_nodes[1]->grad1 * in_nodes[1]->grad1;
 
-  double grad_a, grad_b;
-  auto update_grad = [&](double val) {
-    // first compute gradients w.r.t. a and b
-    grad_a = std::log(val) + digamma_diff_a;
-    grad_b = std::log(1 - val) + digamma_diff_b;
-    grad1 += grad_a * in_nodes[0]->grad1 + grad_b * in_nodes[1]->grad1;
-    grad2 += grad_a * in_nodes[0]->grad2 + grad_b * in_nodes[1]->grad2;
-  };
+  *hessian.data() = poly1_a_p_b - util::polygamma(1, param_a);
+  *(hessian.data() + 1) = *(hessian.data() + 2) = poly1_a_p_b;
+  *(hessian.data() + 3) = poly1_a_p_b - util::polygamma(1, param_b);
+
   if (value.type.variable_type == graph::VariableType::SCALAR) {
-    update_grad(value._double);
-    grad2 += grad2_init;
+    *jacobian.data() = std::log(value._double) + digamma_diff_a;
+    *(jacobian.data() + 1) = std::log(1 - value._double) + digamma_diff_b;
     return;
   }
 
-  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  assert(value.type.rows * value.type.cols > 1);
   uint size = value._matrix.size();
+  assert(size > 1);
+  *jacobian.data() = size * digamma_diff_a;
+  *(jacobian.data() + 1) = size * digamma_diff_b;
   for (uint i = 0; i < size; i++) {
-    update_grad(*(value._matrix.data() + i));
+    *jacobian.data() += std::log(*(value._matrix.data() + i));
+    *(jacobian.data() + 1) += std::log(1 - *(value._matrix.data() + i));
   }
-  grad2 += size * grad2_init;
+  hessian *= size;
 }
 
 } // namespace distribution
