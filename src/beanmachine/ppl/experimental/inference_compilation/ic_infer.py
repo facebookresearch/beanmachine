@@ -19,7 +19,7 @@ from ...inference.proposer.abstract_single_site_single_step_proposer import (
 from ...inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from ...model.utils import RVIdentifier
+from ...model.utils import RVIdentifier, get_wrapper
 from ...world import ProposalDistribution, Variable, World
 from . import utils
 
@@ -337,7 +337,7 @@ class ICInference(AbstractMHInference):
         obs_vec = torch.stack(
             list(
                 map(
-                    lambda node: node.function._wrapper(*node.arguments),
+                    lambda node: get_wrapper(node.function)(*node.arguments),
                     sorted(observation_keys, key=str),
                 )
             ),

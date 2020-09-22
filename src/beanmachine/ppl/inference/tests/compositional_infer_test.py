@@ -20,6 +20,7 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
 )
 from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.statistical_model import StatisticalModel, sample
+from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.utils import BetaDimensionTransform
 from beanmachine.ppl.world.variable import TransformType, Variable
 from beanmachine.ppl.world.world import World
@@ -272,7 +273,7 @@ class CompositionalInferenceTest(unittest.TestCase):
                 first_nodes.append(block.first_node)
                 self.assertEqual(
                     block.block,
-                    [foo_0_key.function._wrapper, bar_0_key.function._wrapper],
+                    list(map(get_wrapper, [foo_0_key.function, bar_0_key.function])),
                 )
             if block.type == BlockType.SINGLENODE:
                 self.assertEqual(block.block, [])
@@ -285,7 +286,7 @@ class CompositionalInferenceTest(unittest.TestCase):
             Block(
                 first_node=foo_0_key,
                 type=BlockType.SEQUENTIAL,
-                block=[foo_0_key.function._wrapper, bar_0_key.function._wrapper],
+                block=list(map(get_wrapper, [foo_0_key.function, bar_0_key.function])),
             )
         )
 

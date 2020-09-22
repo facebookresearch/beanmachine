@@ -6,7 +6,7 @@ from typing import Callable, Dict, Union
 import torch
 from beanmachine.ppl.inference.rejection_sampling_infer import RejectionSampling
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode
+from beanmachine.ppl.model.utils import Mode, get_wrapper
 
 
 LOGGER = logging.getLogger("beanmachine")
@@ -63,7 +63,7 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
             # makes the call for the summary statistic node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world, as well as computing it's value
-            computed_summary = summary_statistic.function._wrapper(
+            computed_summary = get_wrapper(summary_statistic.function)(
                 *summary_statistic.arguments
             )
             if self.simulate:

@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import inspect
 from functools import wraps
 
 from beanmachine.ppl.utils.bm_graph_builder import BMGNode, BMGraphBuilder
@@ -28,7 +29,11 @@ def probabilistic(bmg: BMGraphBuilder):
             # If we got here, there were no distribution arguments.
             return f(*args)
 
-        f._wrapper = wrapper
+        if inspect.ismethod(f):
+            meth_name = f.__name__ + "_wrapper"
+            setattr(f.__self__, meth_name, wrapper)
+        else:
+            f._wrapper = wrapper
         return wrapper
 
     return inner

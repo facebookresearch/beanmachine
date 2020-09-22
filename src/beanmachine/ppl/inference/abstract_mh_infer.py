@@ -11,7 +11,7 @@ import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
 from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier, get_wrapper
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
@@ -55,12 +55,12 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             # makes the call for the observation node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world
-            node.function._wrapper(*node.arguments)
+            get_wrapper(node.function)(*node.arguments)
         for node in self.queries_:
             # makes the call for the query node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world.
-            node.function._wrapper(*node.arguments)
+            get_wrapper(node.function)(*node.arguments)
 
         self.world_.accept_diff()
 
@@ -171,7 +171,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         """
         markov_blanket = set({block.first_node})
         markov_blanket_func = {}
-        markov_blanket_func[block.first_node.function._wrapper] = [block.first_node]
+        markov_blanket_func[get_wrapper(block.first_node.function)] = [block.first_node]
         pos_proposal_log_updates, neg_proposal_log_updates = tensor(0.0), tensor(0.0)
         children_log_updates, nodes_log_updates = tensor(0.0), tensor(0.0)
         # We will go through all family of random variable in the block. Note
@@ -242,9 +242,9 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                     # We create a dictionary from node family to the node itself
                     # as the match with block happens at the family level and
                     # this makes the lookup much faster.
-                    if new_node.function._wrapper not in markov_blanket_func:
-                        markov_blanket_func[new_node.function._wrapper] = []
-                    markov_blanket_func[new_node.function._wrapper].append(new_node)
+                    if get_wrapper(new_node.function) not in markov_blanket_func:
+                        markov_blanket_func[get_wrapper(new_node.function)] = []
+                    markov_blanket_func[get_wrapper(new_node.function)].append(new_node)
                 markov_blanket |= new_nodes_to_be_added
 
         proposal_log_updates = pos_proposal_log_updates + neg_proposal_log_updates
@@ -386,7 +386,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                 # along which we'll be adding samples generated at each iteration
                 if query not in queries_sample:
                     queries_sample[query] = (
-                        query.function._wrapper(*query.arguments)
+                        get_wrapper(query.function)(*query.arguments)
                         .unsqueeze(0)
                         .clone()
                         .detach()
@@ -395,7 +395,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                     queries_sample[query] = torch.cat(
                         [
                             queries_sample[query],
-                            query.function._wrapper(*query.arguments)
+                            get_wrapper(query.function)(*query.arguments)
                             .unsqueeze(0)
                             .clone()
                             .detach(),

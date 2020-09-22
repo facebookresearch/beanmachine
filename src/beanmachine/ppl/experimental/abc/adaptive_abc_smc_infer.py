@@ -14,7 +14,7 @@ from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import 
 )
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier, get_wrapper
 from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
 
@@ -89,7 +89,7 @@ class AdaptiveApproximateBayesianComputationSequentialMonteCarlo(
         """
         proposer = SingleSiteRandomWalkProposer(step_size=self.step_size)
         for key, value in sample.items():
-            key.function._wrapper(*key.arguments)
+            get_wrapper(key.function)(*key.arguments)
 
             node_var = self.world_.get_node_in_world(key)
             # pyre-fixme
@@ -172,7 +172,7 @@ class AdaptiveApproximateBayesianComputationSequentialMonteCarlo(
             # makes the call for the summary statistic node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world, as well as computing it's value
-            computed_summary = summary_statistic.function._wrapper(
+            computed_summary = get_wrapper(summary_statistic.function)(
                 *summary_statistic.arguments
             )
             # check if passed observation is a tensor, if not, cast it
