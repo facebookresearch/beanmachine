@@ -147,15 +147,18 @@ TEST(testgraph, clone_graph) {
   // types of nodes to test the copy constructor.
   graph::Graph g;
   // constants
-  graph::natural_t a{2};
   uint c_bool = g.add_constant(true);
   uint c_real = g.add_constant(-2.5);
-  uint c_natural = g.add_constant(a);
+  uint c_natural_1 = g.add_constant((graph::natural_t)1);
+  uint c_natural_2 = g.add_constant((graph::natural_t)2);
   uint c_prob = g.add_constant_probability(0.5);
   uint c_pos = g.add_constant_pos_real(2.5);
-  Eigen::MatrixXd m1 = Eigen::MatrixXd::Identity(3, 3);
+
+  Eigen::MatrixXd m0 = Eigen::MatrixXd::Constant(2, 1, 0.6);
+  g.add_constant_probability_matrix(m0);
+  Eigen::MatrixXd m1 = Eigen::MatrixXd::Identity(2, 2);
   g.add_constant_pos_matrix(m1);
-  Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(3, 3);
+  Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(2, 2);
   g.add_constant_matrix(m2);
   Eigen::MatrixXd m3(2, 1);
   m3 << 0.2,
@@ -164,6 +167,10 @@ TEST(testgraph, clone_graph) {
   Eigen::MatrixXb m4(1, 2);
   m4 << true, false;
   g.add_constant_matrix(m4);
+  Eigen::MatrixXn m5(2, 1);
+  m5 << 1,
+        2;
+  g.add_constant_matrix(m5);
   // distributions
   uint d_bernoulli = g.add_distribution(
     graph::DistributionType::BERNOULLI,
@@ -184,7 +191,7 @@ TEST(testgraph, clone_graph) {
   uint d_binomial = g.add_distribution(
     graph::DistributionType::BINOMIAL,
     graph::AtomicType::NATURAL,
-    std::vector<uint>{c_natural, c_prob});
+    std::vector<uint>{c_natural_2, c_prob});
   uint d_flat = g.add_distribution(
     graph::DistributionType::FLAT,
     graph::AtomicType::POS_REAL,
@@ -217,6 +224,22 @@ TEST(testgraph, clone_graph) {
   uint o_sample_pos = g.add_operator(
     graph::OperatorType::SAMPLE, std::vector<uint>{d_gamma});
 
+  uint o_iidsample_bool = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_bernoulli, c_natural_1, c_natural_2});
+  uint o_iidsample_real = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_normal, c_natural_2, c_natural_2});
+  uint o_iidsample_natural = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_binomial, c_natural_2});
+  uint o_iidsample_prob = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_beta, c_natural_2, c_natural_1});
+  uint o_iidsample_pos = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_gamma, c_natural_2, c_natural_2});
+
   uint o_to_real = g.add_operator(
     graph::OperatorType::TO_REAL, std::vector<uint>{o_sample_pos});
   uint o_to_pos = g.add_operator(
@@ -247,6 +270,13 @@ TEST(testgraph, clone_graph) {
   // observe and query
   g.observe(o_sample_real, 1.5);
   g.observe(o_sample_prob, 0.1);
+
+  g.observe(o_iidsample_prob, m0);
+  g.observe(o_iidsample_pos, m1);
+  g.observe(o_iidsample_real, m2);
+  g.observe(o_iidsample_bool, m4);
+  g.observe(o_iidsample_natural, m5);
+
   g.query(o_multiply);
   g.query(o_add);
   g.query(o_ifelse);

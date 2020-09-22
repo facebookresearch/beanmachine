@@ -55,6 +55,9 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
         case AtomicType::PROBABILITY:
           return type_caster<Eigen::MatrixXd>::cast(
               src._matrix, policy, parent);
+        case AtomicType::NATURAL:
+          return type_caster<Eigen::MatrixXn>::cast(
+              src._nmatrix, policy, parent);
         default:
           throw std::runtime_error("unexpected type for AtomicValue");
       }

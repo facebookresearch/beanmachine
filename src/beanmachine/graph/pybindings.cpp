@@ -132,6 +132,11 @@ PYBIND11_MODULE(graph, module) {
           "add a Node with a constant boolean-valued matrix",
           py::arg("value"))
       .def(
+          "add_constant_matrix",
+          (uint(Graph::*)(Eigen::MatrixXn&)) & Graph::add_constant_matrix,
+          "add a Node with a constant natural_t-valued matrix",
+          py::arg("value"))
+      .def(
           "add_constant_pos_matrix",
           (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_pos_matrix,
           "add a Node with a constant element-wise positive valued matrix",
@@ -197,6 +202,18 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "observe",
           (void (Graph::*)(uint, Eigen::MatrixXd&)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, Eigen::MatrixXb&)) & Graph::observe,
+          "observe a node",
+          py::arg("node_id"),
+          py::arg("val"))
+      .def(
+          "observe",
+          (void (Graph::*)(uint, Eigen::MatrixXn&)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))
