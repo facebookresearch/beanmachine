@@ -8,6 +8,8 @@
 namespace beanmachine {
 namespace oper {
 
+void _to_scalar(graph::AtomicValue& value);
+
 class Operator : public graph::Node {
  public:
   explicit Operator(graph::OperatorType op_type)
@@ -21,7 +23,7 @@ class Operator : public graph::Node {
   void gradient_log_prob(Eigen::MatrixXd& grad1, Eigen::MatrixXd& grad2_diag)
       const override;
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
   graph::OperatorType op_type;
 };
 

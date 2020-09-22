@@ -25,6 +25,10 @@ class Beta : public Distribution {
       const graph::AtomicValue& value,
       double& grad1,
       double& grad2) const override;
+  void gradient_log_prob_param(
+      const graph::AtomicValue& value,
+      Eigen::MatrixXd& grad1,
+      Eigen::MatrixXd& grad2_diag) const override;
 
   void compute_jacobian_hessian(
       const graph::AtomicValue& value,

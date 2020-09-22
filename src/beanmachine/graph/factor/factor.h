@@ -17,7 +17,7 @@ class Factor : public graph::Node {
     return true;
   }
   void eval(std::mt19937& /* gen */) override {}
-  void compute_gradients() override {}
+  void compute_gradients(bool /* is_source_scalar */) override {}
   graph::FactorType fac_type;
 };
 

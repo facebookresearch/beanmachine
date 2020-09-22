@@ -30,7 +30,7 @@ class MultiaryOperator : public Operator {
   }
   ~MultiaryOperator() override {}
   void eval(std::mt19937& /* gen */) override {}
-  void compute_gradients() override {}
+  void compute_gradients(bool /* is_source_scalar */) override {}
 };
 
 class Add : public MultiaryOperator {
@@ -39,7 +39,7 @@ class Add : public MultiaryOperator {
   ~Add() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Add>(in_nodes);
@@ -55,7 +55,7 @@ class Multiply : public MultiaryOperator {
   ~Multiply() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Multiply>(in_nodes);
@@ -71,7 +71,7 @@ class LogSumExp : public MultiaryOperator {
   ~LogSumExp() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<LogSumExp>(in_nodes);
@@ -89,7 +89,7 @@ class Pow : public Operator {
   ~Pow() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Pow>(in_nodes);

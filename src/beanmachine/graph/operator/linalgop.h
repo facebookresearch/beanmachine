@@ -6,16 +6,16 @@
 namespace beanmachine {
 namespace oper {
 
-class IfThenElse : public Operator {
+class MatrixMultiply : public Operator {
  public:
-  explicit IfThenElse(const std::vector<graph::Node*>& in_nodes);
-  ~IfThenElse() override {}
+  explicit MatrixMultiply(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixMultiply() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients(bool /* is_source_scalar */) override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
-    return std::make_unique<IfThenElse>(in_nodes);
+    return std::make_unique<MatrixMultiply>(in_nodes);
   }
 
  private:

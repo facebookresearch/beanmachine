@@ -314,8 +314,8 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   // start gradient
   if (!is_src_scalar) {
     assert(size = grad1.size() and size == grad2.size());
-    src_node->Grad1 = Eigen::MatrixXd::Ones(size, 1);
-    src_node->Grad2 = Eigen::MatrixXd::Zero(size, 1);
+    src_node->Grad1 = Eigen::MatrixXd::Identity(size, size);
+    src_node->Grad2 = Eigen::MatrixXd::Zero(size, size);
   }
   src_node->grad1 = 1;
   src_node->grad2 = 0;
@@ -325,14 +325,15 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
   std::tie(det_nodes, sto_nodes) = compute_descendants(src_idx, supp);
-  if (!is_src_scalar and det_nodes.size() > 0) {
-    throw std::runtime_error(
-        "compute_gradients has not been implemented for vector source node");
-  }
+
   for (auto node_id : det_nodes) {
-    Node* node = nodes[node_id].get();
+    oper::Operator* node = static_cast<oper::Operator*>(nodes[node_id].get());
+    if (!is_src_scalar and node->op_type != OperatorType::MATRIX_MULTIPLY) {
+      throw std::runtime_error(
+        "This operator does not support gradient propagation w.r.t. a vector source node.");
+    }
     node->eval(generator);
-    node->compute_gradients();
+    node->compute_gradients(is_src_scalar);
   }
   set_value(grad1, 0.0);
   set_value(grad2, 0.0);
@@ -343,14 +344,15 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
 
   // end gradient computation reset grads
   if (!is_src_scalar) {
-      src_node->Grad1.setZero();
+      src_node->Grad1.setZero(0, 0);
+      src_node->Grad2.setZero(0, 0);
   }
   src_node->grad1 = 0;
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     if (!is_src_scalar) {
-      node->Grad1.setZero(1, 1);
-      node->Grad2.setZero(1, 1);
+      node->Grad1.setZero(0, 0);
+      node->Grad2.setZero(0, 0);
     } else {
       node->grad1 = node->grad2 = 0;
     }

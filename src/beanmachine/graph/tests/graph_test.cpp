@@ -155,22 +155,22 @@ TEST(testgraph, clone_graph) {
   uint c_pos = g.add_constant_pos_real(2.5);
 
   Eigen::MatrixXd m0 = Eigen::MatrixXd::Constant(2, 1, 0.6);
-  g.add_constant_probability_matrix(m0);
+  uint cm_prob = g.add_constant_probability_matrix(m0);
   Eigen::MatrixXd m1 = Eigen::MatrixXd::Identity(2, 2);
-  g.add_constant_pos_matrix(m1);
+  uint cm_pos = g.add_constant_pos_matrix(m1);
   Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(2, 2);
-  g.add_constant_matrix(m2);
+  uint cm_real = g.add_constant_matrix(m2);
   Eigen::MatrixXd m3(2, 1);
   m3 << 0.2,
         0.8;
-  g.add_constant_col_simplex_matrix(m3);
+  uint cm_simplex = g.add_constant_col_simplex_matrix(m3);
   Eigen::MatrixXb m4(1, 2);
   m4 << true, false;
-  g.add_constant_matrix(m4);
+  uint cm_bool = g.add_constant_matrix(m4);
   Eigen::MatrixXn m5(2, 1);
   m5 << 1,
         2;
-  g.add_constant_matrix(m5);
+  uint cm_natural = g.add_constant_matrix(m5);
   // distributions
   uint d_bernoulli = g.add_distribution(
     graph::DistributionType::BERNOULLI,
@@ -263,6 +263,9 @@ TEST(testgraph, clone_graph) {
   uint o_ifelse = g.add_operator(
     graph::OperatorType::IF_THEN_ELSE,
     std::vector<uint>{o_sample_bool, o_sample_pos, c_pos});
+  uint o_matrix_multiply = g.add_operator(
+    graph::OperatorType::MATRIX_MULTIPLY,
+    std::vector<uint>{cm_pos, o_iidsample_pos});
   // factors
   uint f_expprod = g.add_factor(
     graph::FactorType::EXP_PRODUCT,

@@ -9,6 +9,28 @@
 namespace beanmachine {
 namespace oper {
 
+void _to_scalar(graph::AtomicValue& value) {
+  switch(value.type.atomic_type){
+    case graph::AtomicType::BOOLEAN:
+      value._bool = *(value._bmatrix.data());
+      value._bmatrix.setZero(0, 0);
+      break;
+    case graph::AtomicType::NATURAL:
+      value._natural = *(value._nmatrix.data());
+      value._nmatrix.setZero(0, 0);
+      break;
+    case graph::AtomicType::REAL:
+    case graph::AtomicType::POS_REAL:
+    case graph::AtomicType::PROBABILITY:
+      value._double = *(value._matrix.data());
+      value._matrix.setZero(0, 0);
+      break;
+    default:
+      throw std::runtime_error(
+          "unsupported AtomicType to cast to scalar");
+  }
+}
+
 double Operator::log_prob() const {
   throw std::runtime_error("log_prob is only defined for sample or iid sample");
 }
@@ -32,7 +54,7 @@ void Operator::eval(std::mt19937& /* gen */) {
       std::to_string(index));
 }
 
-void Operator::compute_gradients() {
+void Operator::compute_gradients(bool /* is_source_scalar */) {
   throw std::runtime_error(
       "internal error: unexpected operator type " +
       std::to_string(static_cast<int>(op_type)) + " at node_id " +

@@ -32,7 +32,7 @@ class StochasticOperator : public Operator {
   bool is_stochastic() const override {
     return true;
   }
-  void compute_gradients() override {}
+  void compute_gradients(bool /* is_source_scalar */) override {}
 };
 
 class Sample : public oper::StochasticOperator {

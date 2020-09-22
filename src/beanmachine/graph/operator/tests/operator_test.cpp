@@ -7,6 +7,7 @@
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/operator/unaryop.h"
+#include "beanmachine/graph/operator/linalgop.h"
 
 using namespace beanmachine;
 using namespace beanmachine::graph;
@@ -535,4 +536,124 @@ TEST(testoperator, iid_sample) {
   EXPECT_NEAR(m0.coeff(1, 0) / (double)n_samples, 0.1, 0.01);
   EXPECT_NEAR(m0.coeff(1, 1) / (double)n_samples, 0.1, 0.01);
   // log_prob_grad to be tested in each distribution test
+}
+
+TEST(testoperator, matrix_multiply) {
+  Graph g;
+  // negative tests: take exactly two parents
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1 = Eigen::MatrixXd::Constant(2, 3, 0.5);
+  auto m1_node = g.add_constant_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{m1_node}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_MULTIPLY,
+          std::vector<uint>{m1_node, m1_node, m1_node}),
+      std::invalid_argument);
+  // negative tests: two parents must be BROADCAST_MATRIX
+  auto natural_2 = g.add_constant((graph::natural_t)2);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{m1_node, natural_2}),
+      std::invalid_argument);
+  // negative tests: two parents must have the same AtomicType:
+  // real, pos_real, or probability
+  Eigen::MatrixXn m2 = Eigen::MatrixXn::Constant(3, 1, (graph::natural_t)2);
+  auto m2_node = g.add_constant_matrix(m2);
+  auto m3_node = g.add_constant_probability_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{m1_node, m2_node}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{m1_node, m3_node}),
+      std::invalid_argument);
+  // negative tests: two parents must have compatible dimensions:
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{m1_node, m1_node}),
+      std::invalid_argument);
+
+  // test eval
+  Eigen::MatrixXd mat_a(2, 3);
+  mat_a << 1.3, 0.5, 0.1,
+           1.2, -0.9, -0.3;
+  Eigen::MatrixXd mat_b(3, 2);
+  mat_b << -3.0, 0.8,
+           -2.1, -1.1,
+           -1.8, -0.1;
+  Eigen::MatrixXd mat_c(2, 2);
+  mat_c << -5.13, 0.48,
+           -1.17, 1.98;
+  auto real_matrix_A = ConstNode(AtomicValue(mat_a));
+  auto real_matrix_B = ConstNode(AtomicValue(mat_b));
+  auto AmmB = oper::MatrixMultiply(std::vector<Node*>{&real_matrix_A, &real_matrix_B});
+  AmmB.in_nodes.push_back(&real_matrix_A);
+  AmmB.in_nodes.push_back(&real_matrix_B);
+  std::mt19937 generator(1234);
+  AmmB.eval(generator);
+  EXPECT_EQ(AmmB.value.type.variable_type, graph::VariableType::BROADCAST_MATRIX);
+  EXPECT_TRUE(AmmB.value._matrix.isApprox(mat_c));
+
+  // test auto conversion to scalar
+  Eigen::MatrixXd row0 = mat_a.row(0);
+  Eigen::MatrixXd col0 = mat_b.col(0);
+  auto row_vec = ConstNode(AtomicValue(row0));
+  auto col_vec = ConstNode(AtomicValue(col0));
+  auto inner_prod = oper::MatrixMultiply(std::vector<Node*>{&row_vec, &col_vec});
+  inner_prod.in_nodes.push_back(&row_vec);
+  inner_prod.in_nodes.push_back(&col_vec);
+  inner_prod.eval(generator);
+  EXPECT_EQ(inner_prod.value.type.variable_type, graph::VariableType::SCALAR);
+  EXPECT_EQ(inner_prod.value._double, -5.13);
+
+  // test gradient
+  // a = torch.tensor([[0.4, 0.6]])
+  // b = torch.tensor([[0.8, 0.2]])
+  // x = torch.tensor([[0.8], [0.7]], requires_grad=True)
+  // prior = dist.Beta(2.0, 1.0).log_prob(x).sum()
+  // likelihood = dist.Beta(
+  //     torch.mm(a, x).item(), torch.mm(b, x).item()).log_prob(torch.tensor(0.6))
+  // f_x = likelihood + prior
+  // f_grad_x = torch.autograd.grad(f_x, x, create_graph=True)[0]
+  // torch.autograd.grad(f_grad_x[0][0], x)[0]
+  // torch.autograd.grad(f_grad_x[1][0], x)[0]
+  auto pos1 = g.add_constant_pos_real(2.0);
+  auto pos2 = g.add_constant_pos_real(1.0);
+  auto beta_prior = g.add_distribution(
+      DistributionType::BETA, AtomicType::PROBABILITY, std::vector<uint>{pos1, pos2});
+  auto x = g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{beta_prior, natural_2});
+  Eigen::MatrixXd col_x(2, 1);
+  col_x << 0.8,
+           0.7;
+  g.observe(x, col_x);
+  Eigen::MatrixXd row_a(1, 2);
+  row_a << 0.4, 0.6;
+  Eigen::MatrixXd row_b(1, 2);
+  row_b << 0.8, 0.2;
+  auto row_A = g.add_constant_probability_matrix(row_a);
+  auto row_B = g.add_constant_probability_matrix(row_b);
+
+  auto Ax = g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{row_A, x});
+  auto Bx = g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{row_B, x});
+  auto beta_likelihood = g.add_distribution(
+      DistributionType::BETA, AtomicType::PROBABILITY, std::vector<uint>{Ax, Bx});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta_likelihood});
+  g.observe(y, 0.6);
+  g.query(y);
+  // eval from the src to initialize the graph
+  g.log_prob(x);
+
+  Eigen::MatrixXd Grad1 = Eigen::MatrixXd::Zero(1, 2);
+  Eigen::MatrixXd Grad2 = Eigen::MatrixXd::Zero(1, 2);
+  g.gradient_log_prob(x, Grad1, Grad2);
+  EXPECT_NEAR(Grad1.coeff(0), 1.2500, 0.001);
+  EXPECT_NEAR(Grad1.coeff(1), 1.4286, 0.001);
+  EXPECT_NEAR(Grad2.coeff(0), -1.5625, 0.001);
+  EXPECT_NEAR(Grad2.coeff(1), -2.0408, 0.001);
 }

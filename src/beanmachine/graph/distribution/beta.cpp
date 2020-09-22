@@ -118,6 +118,18 @@ void Beta::gradient_log_prob_param(
       true, jacobian, hessian, grad1, grad2, pseudo_input, pseudo_input);
 }
 
+void Beta::gradient_log_prob_param(
+    const graph::AtomicValue& value,
+    Eigen::MatrixXd& grad1,
+    Eigen::MatrixXd& grad2_diag) const {
+  Eigen::Matrix<double, 1, 2> jacobian;
+  Eigen::Matrix2d hessian;
+  double pseudo_input;
+  compute_jacobian_hessian(value, jacobian, hessian);
+  gradient_propagation_scalar_to_scalar(
+      true, jacobian, hessian, pseudo_input, pseudo_input, grad1, grad2_diag);
+}
+
 void Beta::compute_jacobian_hessian(
     const graph::AtomicValue& value,
     Eigen::Matrix<double, 1, 2>& jacobian,

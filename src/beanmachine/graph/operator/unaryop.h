@@ -29,7 +29,7 @@ class UnaryOperator : public Operator {
   }
   ~UnaryOperator() override {}
   void eval(std::mt19937& /* gen */) override {}
-  void compute_gradients() override {}
+  void compute_gradients(bool /* is_source_scalar */) override {}
 };
 
 class Complement : public UnaryOperator {
@@ -38,7 +38,7 @@ class Complement : public UnaryOperator {
   ~Complement() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Complement>(in_nodes);
@@ -54,7 +54,7 @@ class ToReal : public UnaryOperator {
   ~ToReal() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToReal>(in_nodes);
@@ -70,7 +70,7 @@ class ToPosReal : public UnaryOperator {
   ~ToPosReal() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToPosReal>(in_nodes);
@@ -86,7 +86,7 @@ class Negate : public UnaryOperator {
   ~Negate() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Negate>(in_nodes);
@@ -102,7 +102,7 @@ class Exp : public UnaryOperator {
   ~Exp() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Exp>(in_nodes);
@@ -118,7 +118,7 @@ class ExpM1 : public UnaryOperator {
   ~ExpM1() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ExpM1>(in_nodes);
@@ -134,7 +134,7 @@ class Phi : public UnaryOperator {
   ~Phi() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Phi>(in_nodes);
@@ -150,7 +150,7 @@ class Logistic : public UnaryOperator {
   ~Logistic() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Logistic>(in_nodes);
@@ -166,7 +166,7 @@ class Log1pExp : public UnaryOperator {
   ~Log1pExp() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log1pExp>(in_nodes);
@@ -182,7 +182,7 @@ class Log : public UnaryOperator {
   ~Log() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log>(in_nodes);
@@ -198,7 +198,7 @@ class NegativeLog : public UnaryOperator {
   ~NegativeLog() override {}
 
   void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
+  void compute_gradients(bool is_source_scalar) override;
 
   static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<NegativeLog>(in_nodes);

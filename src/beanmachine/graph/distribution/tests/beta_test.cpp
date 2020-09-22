@@ -186,4 +186,8 @@ TEST(testdistrib, beta2) {
   g2.gradient_log_prob(b, grad1, grad2);
   EXPECT_NEAR(grad1, 0.48468, 0.001);
   EXPECT_NEAR(grad2, -3.2886, 0.001);
+
+  // test gradients of the parameters w.r.t a vector source is implemented in
+  // testoperator.matrix_multiply, as MATRIX_MULTIPLY is the first and only
+  // operator that supports gradient propagation w.r.t a vector source.
 }

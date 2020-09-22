@@ -286,6 +286,7 @@ enum class OperatorType {
   LOG,
   POW,
   NEGATIVE_LOG,
+  MATRIX_MULTIPLY,
 };
 
 enum class DistributionType {
@@ -360,7 +361,7 @@ class Node {
   // eval may involve sampling and that's why we need the random number engine
   virtual void eval(std::mt19937& gen) = 0;
   // populate the derivatives
-  virtual void compute_gradients() {}
+  virtual void compute_gradients(bool is_source_scalar = true) {}
   virtual ~Node() {}
 
   /*
