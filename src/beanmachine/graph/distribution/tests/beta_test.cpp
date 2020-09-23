@@ -4,7 +4,6 @@
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/graph.h"
 
-using namespace beanmachine;
 using namespace beanmachine::graph;
 
 TEST(testdistrib, beta1) {
