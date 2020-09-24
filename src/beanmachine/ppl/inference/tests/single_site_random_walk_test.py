@@ -285,12 +285,12 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
     def test_single_site_random_walk_interval_support_rate(self):
         model = BetaBinomialModel(
-            alpha=torch.ones(1) * 2.0, beta=torch.ones(1), trials=torch.ones(1) * 10.0
+            alpha=torch.ones(1) * 2.0, beta=torch.ones(1), n=torch.ones(1) * 10.0
         )
         mh = bm.SingleSiteRandomWalk(step_size=0.3)
-        p_key = model.beta()
+        p_key = model.theta()
         queries = [p_key]
-        observations = {model.binomial(): torch.tensor([10.0])}
+        observations = {model.x(): torch.tensor([10.0])}
         predictions = mh.infer(queries, observations, 50)
         predictions = predictions.get_chain()[p_key]
         """
