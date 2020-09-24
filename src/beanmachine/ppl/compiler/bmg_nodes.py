@@ -27,6 +27,7 @@ from beanmachine.ppl.compiler.bmg_types import (
 )
 from beanmachine.ppl.compiler.internal_error import InternalError
 from torch import Tensor, tensor
+from torch.distributions import Normal
 from torch.distributions.utils import broadcast_all
 
 
@@ -2636,6 +2637,48 @@ value."""
         # a complement node while executing the model to accumulate
         # the graph.
         return [1 - p for p in self.operand.support]
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+
+class PhiNode(UnaryOperatorNode):
+    """This represents a phi operation; that is, the cumulative
+distribution function of the standard normal."""
+
+    operator_type = OperatorType.PHI
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    # The log node only takes a real and only produces a probability
+
+    @property
+    def inf_type(self) -> BMGLatticeType:
+        return Probability
+
+    @property
+    def graph_type(self) -> BMGLatticeType:
+        return Probability
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [Real]
+
+    @property
+    def label(self) -> str:
+        return "Phi"
+
+    @property
+    def size(self) -> torch.Size:
+        return self.operand.size
+
+    def __str__(self) -> str:
+        return "Phi(" + str(self.operand) + ")"
+
+    def support(self) -> Iterator[Any]:
+        cdf = Normal(0.0, 1.0).cdf
+        return SetOfTensors(cdf(o) for o in self.operand.support())
 
     def _supported_in_bmg(self) -> bool:
         return True

@@ -14,6 +14,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     NegateNode,
     NegativeLogNode,
     NormalNode,
+    PhiNode,
     PositiveRealNode,
     ProbabilityNode,
     RealNode,
@@ -98,6 +99,12 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(NegativeLogNode(bino).inf_type, Real)
         self.assertEqual(NegativeLogNode(half).inf_type, Real)
 
+        # Phi of anything is Probability
+        self.assertEqual(PhiNode(bern).inf_type, Probability)
+        self.assertEqual(PhiNode(beta).inf_type, Probability)
+        self.assertEqual(PhiNode(bino).inf_type, Probability)
+        self.assertEqual(PhiNode(half).inf_type, Probability)
+
         # To Real
         self.assertEqual(ToRealNode(bern).inf_type, Real)
         self.assertEqual(ToRealNode(beta).inf_type, Real)
@@ -167,6 +174,12 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(NegativeLogNode(beta).requirements, [Probability])
         self.assertEqual(NegativeLogNode(bino).requirements, [PositiveReal])
         self.assertEqual(NegativeLogNode(half).requirements, [PositiveReal])
+
+        # Phi requires that its operand be real.
+        self.assertEqual(PhiNode(bern).requirements, [Real])
+        self.assertEqual(PhiNode(beta).requirements, [Real])
+        self.assertEqual(PhiNode(bino).requirements, [Real])
+        self.assertEqual(PhiNode(half).requirements, [Real])
 
         # To Real
         self.assertEqual(ToRealNode(bern).requirements, [upper_bound(Real)])
