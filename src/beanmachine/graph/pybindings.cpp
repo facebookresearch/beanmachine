@@ -223,6 +223,10 @@ PYBIND11_MODULE(graph, module) {
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))
+      .def(
+          "remove_observations",
+          (void (Graph::*)()) & Graph::remove_observations,
+          "remove all observations from the graph")
       .def("query", &Graph::query, "query a node", py::arg("node_id"))
       .def(
           "infer_mean",

@@ -106,6 +106,8 @@ class TestNMC(unittest.TestCase):
         g.query(y)
         g.query(y_sq)
         g.query(x_y)
+        # note: there are no observsations, so this next line should have no effect
+        g.remove_observations()
         means = g.infer_mean(10000, graph.InferenceType.NMC)
         print("means", means)  # only printed on error
         self.assertTrue(abs(means[0] - 0.0) < 0.2, "mean of x should be 0")
@@ -126,6 +128,7 @@ class TestNMC(unittest.TestCase):
         x ~ Normal(0, 1)
         y ~ Bernoulli(Phi(x))
         P(Phi(x) | y = true) ~ Beta(2, 1)
+        P(Phi(x) | y = false) ~ Beta(1, 2)
         """
         g = graph.Graph()
         zero = g.add_constant(0.0)
@@ -151,6 +154,20 @@ class TestNMC(unittest.TestCase):
         self.assertAlmostEqual(
             post_var,
             2 * 1 / (2 + 1) ** 2 / (2 + 1 + 1),
+            2,
+            f"posterior variance {post_var} is not accurate",
+        )
+        # now test P(Phi(x) | y = false) ~ Beta(1, 2)
+        g.remove_observations()
+        g.observe(y, False)
+        means = g.infer_mean(10000, graph.InferenceType.NMC)
+        post_var = means[1] - means[0] ** 2
+        self.assertAlmostEqual(
+            means[0], 1 / (1 + 2), 2, f"posterior mean {means[0]} is not accurate"
+        )
+        self.assertAlmostEqual(
+            post_var,
+            1 * 2 / (1 + 2) ** 2 / (1 + 2 + 1),
             2,
             f"posterior variance {post_var} is not accurate",
         )
