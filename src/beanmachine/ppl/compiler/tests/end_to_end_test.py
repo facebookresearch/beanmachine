@@ -453,7 +453,7 @@ source_4 = """
 import beanmachine.ppl as bm
 import torch
 from torch import tensor
-from torch.distributions import HalfCauchy, Normal
+from torch.distributions import HalfCauchy, Normal, Bernoulli
 
 @bm.random_variable
 def pos(n):
@@ -466,6 +466,11 @@ def math():
 @bm.random_variable
 def math2():
   return HalfCauchy(pos(2) ** pos(3))
+
+@bm.random_variable
+def math3():
+  # PHI
+  return Bernoulli(Normal(0.0, 1.0).cdf(pos(4)))
 """
 
 expected_python_4 = """
@@ -494,6 +499,14 @@ n11 = g.add_distribution(
   graph.AtomicType.POS_REAL,
   [n10])
 n12 = g.add_operator(graph.OperatorType.SAMPLE, [n11])
+n13 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n14 = g.add_operator(graph.OperatorType.TO_REAL, [n13])
+n15 = g.add_operator(graph.OperatorType.PHI, [n14])
+n16 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n15])
+n17 = g.add_operator(graph.OperatorType.SAMPLE, [n16])
 """
 
 expected_cpp_4 = """
@@ -529,11 +542,23 @@ uint n11 = g.add_distribution(
   std::vector<uint>({n10}));
 uint n12 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n11}));
+uint n13 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n14 = g.add_operator(
+  graph::OperatorType::TO_REAL, std::vector<uint>({n13}));
+uint n15 = g.add_operator(
+  graph::OperatorType::PHI, std::vector<uint>({n14}));
+uint n16 = g.add_distribution(
+  graph::DistributionType::BERNOULLI,
+  graph::AtomicType::BOOLEAN,
+  std::vector<uint>({n15}));
+uint n17 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n16}));
 """
 
 expected_bmg_4 = """
 Node 0 type 1 parents [ ] children [ 1 ] positive real 1
-Node 1 type 2 parents [ 0 ] children [ 2 3 8 9 ] unknown
+Node 1 type 2 parents [ 0 ] children [ 2 3 8 9 13 ] unknown
 Node 2 type 3 parents [ 1 ] children [ 4 ] positive real 0
 Node 3 type 3 parents [ 1 ] children [ 5 ] positive real 0
 Node 4 type 3 parents [ 2 ] children [ 6 ] real 0
@@ -545,6 +570,11 @@ Node 9 type 3 parents [ 1 ] children [ 10 ] positive real 0
 Node 10 type 3 parents [ 8 9 ] children [ 11 ] positive real 0
 Node 11 type 2 parents [ 10 ] children [ 12 ] unknown
 Node 12 type 3 parents [ 11 ] children [ ] positive real 0
+Node 13 type 3 parents [ 1 ] children [ 14 ] positive real 0
+Node 14 type 3 parents [ 13 ] children [ 15 ] real 0
+Node 15 type 3 parents [ 14 ] children [ 16 ] probability 0
+Node 16 type 2 parents [ 15 ] children [ 17 ] unknown
+Node 17 type 3 parents [ 16 ] children [ ] boolean 0
 """
 
 # Demonstrate that we generate 1-p as a complement
