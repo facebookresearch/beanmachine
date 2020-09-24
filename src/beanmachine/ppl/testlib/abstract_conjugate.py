@@ -52,7 +52,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         beta = beta - obs + trials
         expected_mean = alpha / (alpha + beta)
         expected_std = (
-            (alpha * beta) / (alpha + beta).pow(2.0) * (alpha + beta + 1.0)
+            (alpha * beta) / ((alpha + beta).pow(2.0) * (alpha + beta + 1.0))
         ).pow(0.5)
 
         return (expected_mean, expected_std, queries, observations)
