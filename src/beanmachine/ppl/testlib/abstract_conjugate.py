@@ -21,6 +21,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
      Computes the posterior mean and standard deviation of some of the conjugate
      distributions included below.
      https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions
+
+     Note: Whenever possible, we will use same variable names as on that page.
     """
 
     def compute_statistics(self, predictions: Tensor) -> Tuple[Tensor, Tensor]:
@@ -43,19 +45,20 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         alpha = tensor([2.0, 2.0])
         beta = tensor([1.0, 1.0])
-        trials = tensor([1.0, 1.0])
+        n = tensor([1.0, 1.0])
         obs = tensor([1.0, 0.0])
-        model = BetaBinomialModel(alpha, beta, trials)
-        queries = [model.beta()]
-        observations = {model.binomial(): obs}
-        alpha = alpha + obs
-        beta = beta - obs + trials
-        expected_mean = alpha / (alpha + beta)
-        expected_std = (
-            (alpha * beta) / ((alpha + beta).pow(2.0) * (alpha + beta + 1.0))
+        model = BetaBinomialModel(alpha, beta, n)
+        queries = [model.theta()]
+        observations = {model.x(): obs}
+        alpha_prime = alpha + obs
+        beta_prime = beta - obs + n
+        mean_prime = alpha_prime / (alpha_prime + beta_prime)
+        std_prime = (
+            (alpha_prime * beta_prime)
+            / ((alpha_prime + beta_prime).pow(2.0) * (alpha_prime + beta + 1.0))
         ).pow(0.5)
 
-        return (expected_mean, expected_std, queries, observations)
+        return (mean_prime, std_prime, queries, observations)
 
     def compute_gamma_gamma_moments(
         self,

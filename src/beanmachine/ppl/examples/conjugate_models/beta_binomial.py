@@ -5,15 +5,26 @@ from torch import Tensor
 
 
 class BetaBinomialModel(object):
-    def __init__(self, alpha: Tensor, beta: Tensor, trials: Tensor):
+    """ This Bean Machine model is an example of conjugacy, where
+    the prior and the likelihood are the Beta and the Binomial
+    distributions respectively. Conjugacy means the posterior
+    will also be in the same family as the prior, Beta.
+    The random variable names theta and x follow the
+    typical presentation of the conjugate prior relation in the
+    form of p(theta|x) = p(x|theta) * p(theta)/p(x).
+    Note: Variable names here follow those used on:
+    https://en.wikipedia.org/wiki/Conjugate_prior
+    """
+
+    def __init__(self, alpha: Tensor, beta: Tensor, n: Tensor):
         self.alpha_ = alpha
         self.beta_ = beta
-        self.trials_ = trials
+        self.n_ = n
 
     @bm.random_variable
-    def beta(self):
+    def theta(self):
         return dist.Beta(self.alpha_, self.beta_)
 
     @bm.random_variable
-    def binomial(self):
-        return dist.Binomial(self.trials_, self.beta())
+    def x(self):
+        return dist.Binomial(self.n_, self.theta())
