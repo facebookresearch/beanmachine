@@ -25,9 +25,9 @@ class KernelTests(unittest.TestCase):
         assert not kernel.has_lengthscale
         kernel = kernels.RBFKernel()
         assert kernel.has_lengthscale
-        assert isinstance(kernel.lengthscale, torch.Tensor), type(kernel.lengthscale)
+        assert isinstance(kernel.lengthscale, torch.Tensor)
         kernel = kernels.RBFKernel(lengthscale_prior=normal)
-        assert isinstance(kernel.lengthscale, RVIdentifier), type(kernel.lengthscale)
+        assert isinstance(kernel.lengthscale, RVIdentifier)
 
     def test_covar(self):
         @bm.random_variable
@@ -38,3 +38,24 @@ class KernelTests(unittest.TestCase):
         lazy_covar = kernel(torch.zeros(1))
         # kernel.evaluate() can only be called within inference
         self.assertRaises(AttributeError, lazy_covar.evaluate)
+
+    def test_setter(self):
+        @bm.random_variable
+        def normal():
+            return dist.base_distributions.Normal(0.0, 1.0)
+
+        kernel = kernels.MaternKernel(lengthscale_prior=normal)
+        assert isinstance(kernel.lengthscale, RVIdentifier)
+        # Convert to gpytorch kernel
+        kernel.eval()
+        kernel.lengthscale = torch.ones(1)
+        assert isinstance(kernel.lengthscale, torch.Tensor)
+        kernel.train()
+        assert isinstance(kernel.lengthscale, RVIdentifier)
+
+        kernel = kernels.CylindricalKernel(5, kernel, alpha_prior=normal)
+        assert isinstance(kernel.alpha, RVIdentifier)
+        # Convert to gpytorch kernel
+        kernel.eval()
+        kernel.alpha = torch.ones(1)
+        assert isinstance(kernel.alpha, torch.Tensor)
