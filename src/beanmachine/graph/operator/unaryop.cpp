@@ -159,7 +159,7 @@ Phi::Phi(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::REAL) {
     throw std::invalid_argument("Phi require a real-valued parent");
   }
-  value.type = graph::AtomicType::PROBABILITY;
+  value = graph::AtomicValue(graph::AtomicType::PROBABILITY);
 }
 
 void Phi::eval(std::mt19937& /* gen */) {
@@ -179,7 +179,7 @@ Logistic::Logistic(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::REAL) {
     throw std::invalid_argument("logistic require a real-valued parent");
   }
-  value.type = graph::AtomicType::PROBABILITY;
+  value = graph::AtomicValue(graph::AtomicType::PROBABILITY);
 }
 
 void Logistic::eval(std::mt19937& /* gen */) {
