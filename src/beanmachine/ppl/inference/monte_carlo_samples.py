@@ -39,7 +39,6 @@ class MonteCarloSamples(object):
 
     def _specific_chain_copy(self, chain: int):
         new_mcs = copy.copy(self)
-        # pyre-fixme[8]: Attribute has type `None`; used as `int`.
         new_mcs.chain = chain
         return new_mcs
 

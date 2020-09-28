@@ -105,7 +105,6 @@ class IAFMCMCProposer(AbstractSingleSiteProposer):
 
         """
         if iteration_number == 1:
-            # pyre-fixme[8]: Attribute has type `None`; used as `IAFMap`.
             self.model = IAFMap(
                 node,
                 world,
@@ -115,9 +114,7 @@ class IAFMCMCProposer(AbstractSingleSiteProposer):
                 self.stable,
                 self.training_sample_size,
             )
-            # pyre-fixme[16]: `None` has no attribute `model_`.
             self.optimizer = self.optimizer_func(self.model.model_.parameters())
-        # pyre-fixme[16]: `None` has no attribute `train_iaf`.
         self.model.train_iaf(world, self.optimizer)
 
         if iteration_number == num_adaptive_samples - 1:
@@ -137,7 +134,6 @@ class IAFMCMCProposer(AbstractSingleSiteProposer):
         x = dist.Normal(torch.zeros(shape_), torch.ones(shape_)).sample()
         x = x.unsqueeze(0)
 
-        # pyre-fixme[29]: `None` is not a function.
         f_z, elbo, ja = self.mapping(x)
         self.sample_list_.append((f_z[-1], x, ja))
         proposed_value = node_var.inverse_transform_value(f_z[-1])

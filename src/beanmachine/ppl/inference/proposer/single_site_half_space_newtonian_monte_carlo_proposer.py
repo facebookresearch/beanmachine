@@ -53,7 +53,8 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         # pyre-fixme
         predicted_alpha = (1 - hessian_diag * (node_val_reshaped * node_val_reshaped)).T
         predicted_beta = -1 * node_val_reshaped * hessian_diag - first_gradient
-        # pyre-fixme[6]: `&` is not supported for operand types `bool` and `ByteTensor`.
+        # pyre-fixme[58]: `&` is not supported for operand types `bool` and
+        #  `ByteTensor`.
         condition = (predicted_alpha > 0) & (predicted_beta > 0)
         predicted_alpha = torch.where(
             condition, predicted_alpha, tensor(1.0).to(dtype=predicted_beta.dtype)
