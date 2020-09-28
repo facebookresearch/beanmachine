@@ -93,6 +93,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     NotNode,
     Observation,
     OperatorNode,
+    PhiNode,
     PositiveRealNode,
     PowerNode,
     ProbabilityNode,
@@ -202,6 +203,26 @@ def is_ordinary_call(f, args, kwargs) -> bool:
     if any(isinstance(arg, BMGNode) for arg in kwargs.values()):
         return False
     return True
+
+
+def _is_phi(f: Any) -> bool:
+    if not isinstance(f, Callable):
+        return False
+    s = f.__self__
+    if not isinstance(s, Normal):
+        return False
+    if s.mean != 0.0:
+        return False
+    if s.stddev != 1.0:
+        return False
+    return True
+
+
+standard_normal = Normal(0.0, 1.0)
+
+
+def phi(x: Any) -> Any:
+    return standard_normal.cdf(x)
 
 
 class BMGraphBuilder:
@@ -844,6 +865,21 @@ constant graph node of the stated type for it, and adds it to the builder"""
         return self.add_exp(input)
 
     @memoize
+    def add_phi(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(phi(operand.value))
+        node = PhiNode(operand)
+        self.add_node(node)
+        return node
+
+    def handle_phi(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            return phi(input)
+        if isinstance(input, ConstantNode):
+            return phi(input.value)
+        return self.add_phi(input)
+
+    @memoize
     def add_log(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, TensorNode):
             return self.add_constant(torch.log(operand.value))
@@ -922,6 +958,10 @@ that has the receiver, if any, as its first member."""
         # TODO: a more informative error.
         if f in self.function_map:
             return self.function_map[f](*args, **kwargs)
+
+        if _is_phi(f):
+            return self.handle_phi(*args, **kwargs)
+
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
 
     @memoize
