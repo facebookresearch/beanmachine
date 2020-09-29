@@ -703,6 +703,52 @@ Node 4 type 2 parents [ 3 0 ] children [ 5 ] unknown
 Node 5 type 3 parents [ 4 ] children [ ] probability 0
 """
 
+# Demonstrate that identity additions and multiplications
+# are removed from the graph.  Here we are computing
+# 0 + 0 * hc(0) + 1 * hc(1) + 2 * hc(2)
+# but as you can see, in the final program we generate
+# the code as though we had written hc(1) + 2 * hc(2).
+
+source_7 = """
+import beanmachine.ppl as bm
+import torch
+from torch.distributions import Beta, HalfCauchy
+
+@bm.random_variable
+def hc(n):
+  return HalfCauchy(3.0)
+
+@bm.random_variable
+def beta2():
+  s = 0.0
+  for i in [0, 1, 2]:
+    s = s + i * hc(i)
+  return Beta(s, 4.0)
+"""
+
+expected_python_7 = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_pos_real(3.0)
+n1 = g.add_distribution(
+  graph.DistributionType.HALF_CAUCHY,
+  graph.AtomicType.POS_REAL,
+  [n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n4 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n5 = g.add_constant_pos_real(2.0)
+n6 = g.add_operator(graph.OperatorType.MULTIPLY, [n5, n4])
+n7 = g.add_operator(graph.OperatorType.ADD, [n3, n6])
+n8 = g.add_constant_pos_real(4.0)
+n9 = g.add_distribution(
+  graph.DistributionType.BETA,
+  graph.AtomicType.PROBABILITY,
+  [n7, n8])
+n10 = g.add_operator(graph.OperatorType.SAMPLE, [n9])
+"""
+
 
 class EndToEndTest(unittest.TestCase):
     def test_to_cpp_1(self) -> None:
@@ -800,3 +846,9 @@ class EndToEndTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_bmg(source_6).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_6))
+
+    def test_to_python_7(self) -> None:
+        """test_to_python_7 from end_to_end_test.py"""
+        self.maxDiff = None
+        observed = to_python(source_7)
+        self.assertEqual(observed.strip(), expected_python_7.strip())
