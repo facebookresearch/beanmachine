@@ -260,6 +260,11 @@ class TestBayesNet(unittest.TestCase):
             g.observe(o1, True)
         self.assertTrue("only sample nodes may be observed" in str(cm.exception))
         g.observe(o2, True)  # ok to observe this node
+        with self.assertRaises(ValueError) as cm:
+            g.observe(o2, False)
+        self.assertTrue("duplicate observe" in str(cm.exception))
+        g.remove_observations()
+        g.observe(o2, False)
 
     def test_inference(self):
         g, Rain, Sprinkler, GrassWet = self._create_graph()

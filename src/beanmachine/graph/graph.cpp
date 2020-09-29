@@ -548,6 +548,20 @@ void Graph::observe(uint node_id, AtomicValue value) {
   observed.insert(node_id);
 }
 
+void Graph::remove_observations() {
+  // note that Factor nodes although technically observations are not
+  // user-created observations and so these are not removed by this API
+  for (auto itr=observed.begin(); itr != observed.end(); ) {
+    Node* node = nodes[*itr].get();
+    if (node->node_type != NodeType::FACTOR) {
+      node->is_observed = false;
+      itr = observed.erase(itr);
+    } else {
+      itr ++;
+    }
+  }
+}
+
 uint Graph::query(uint node_id) {
   check_node(node_id, NodeType::OPERATOR);
   if (queried.find(node_id) != queried.end()) {

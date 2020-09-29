@@ -412,6 +412,10 @@ struct Graph {
   void observe(uint var, Eigen::MatrixXd& val);
   void observe(uint var, Eigen::MatrixXn& val);
   void observe(uint var, AtomicValue val);
+  /*
+  Removes all observations added to the graph.
+  */
+  void remove_observations();
   uint query(uint var); // returns the index of the query in the samples
   /*
   Draw Monte Carlo samples from the posterior distribution using a single chain.
