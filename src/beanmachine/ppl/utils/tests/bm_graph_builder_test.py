@@ -711,8 +711,10 @@ digraph "graph" {
         # Graph nodes
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
+        gr2 = bmg.add_real(2.0)
         gt1 = bmg.add_tensor(t1)
         self.assertTrue(isinstance(gt1, TensorNode))
+        gt2 = bmg.add_tensor(t2)
 
         # torch defines a "static" mul method that takes two values.
         # Calling torch.mul(x, y) should be logically the same as x * y
@@ -731,6 +733,7 @@ digraph "graph" {
         self.assertEqual(bmg.handle_dot_get(t1, "mul"), ta1)
 
         gta1 = bmg.handle_dot_get(gt1, "mul")
+        gta2 = bmg.handle_dot_get(gt2, "mul")
 
         ta2 = torch.Tensor.mul
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mul"), ta2)
@@ -810,26 +813,26 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta, [t2, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(sa, [2.0]), n))
         self.assertTrue(isinstance(bmg.handle_function(sa, [t2]), n))
-        self.assertTrue(isinstance(bmg.handle_function(gta1, [s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(gta2, [s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, 2.0]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s, t2]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [t2, s]), n))
 
         # Sample times graph node produces node
-        self.assertTrue(isinstance(bmg.handle_multiplication(s, gr1), n))
-        self.assertTrue(isinstance(bmg.handle_multiplication(s, gt1), n))
-        self.assertTrue(isinstance(bmg.handle_multiplication(gr1, s), n))
-        self.assertTrue(isinstance(bmg.handle_multiplication(gt1, s), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gr1]), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt1]), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta, [gr1, s]), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta, [gt1, s]), n))
-        self.assertTrue(isinstance(bmg.handle_function(sa, [gr1]), n))
-        self.assertTrue(isinstance(bmg.handle_function(sa, [gt1]), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr1]), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt1]), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
-        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1], {"other": s}), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(s, gr2), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(s, gt2), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(gr2, s), n))
+        self.assertTrue(isinstance(bmg.handle_multiplication(gt2, s), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gr2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [s, gt2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gr2, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta, [gt2, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gr2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(sa, [gt2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gr2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [s, gt2]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt2, s]), n))
+        self.assertTrue(isinstance(bmg.handle_function(ta2, [gt2], {"other": s}), n))
 
     def test_matrix_multiplication(self) -> None:
         """Test matrix_multiplication"""
