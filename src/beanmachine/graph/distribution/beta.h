@@ -25,6 +25,17 @@ class Beta : public Distribution {
       const graph::AtomicValue& value,
       double& grad1,
       double& grad2) const override;
+
+  void compute_jacobian_hessian(
+      const graph::AtomicValue& value,
+      Eigen::Matrix<double, 1, 2>& jacobian,
+      Eigen::Matrix2d& hessian) const;
+  void _gradient_log_prob_value(
+      const double& val,
+      double& grad1,
+      double& grad2,
+      const double& param_a,
+      const double& param_b) const;
 };
 
 } // namespace distribution

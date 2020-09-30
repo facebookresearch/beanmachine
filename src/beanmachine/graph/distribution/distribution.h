@@ -40,9 +40,9 @@ class Distribution : public graph::Node {
       const graph::AtomicValue& /* value */,
       Eigen::MatrixXd& /* grad1 */,
       Eigen::MatrixXd& /* grad2_diag */) const {
-        throw std::runtime_error(
-            "this method has not been implemented for this distribution.");
-      }
+    throw std::runtime_error(
+        "gradient_log_prob_value has not been implemented for this distribution.");
+  }
   virtual void gradient_log_prob_param(
       const graph::AtomicValue& value,
       double& grad1,
@@ -51,9 +51,9 @@ class Distribution : public graph::Node {
       const graph::AtomicValue& /* value */,
       Eigen::MatrixXd& /* grad1 */,
       Eigen::MatrixXd& /* grad2_diag */) const {
-        throw std::runtime_error(
-            "this method has not been implemented for this distribution.");
-      }
+    throw std::runtime_error(
+        "gradient_log_prob_param has not been implemented for this distribution.");
+  }
   graph::DistributionType dist_type;
   graph::ValueType sample_type;
 
