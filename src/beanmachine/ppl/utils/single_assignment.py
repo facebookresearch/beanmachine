@@ -784,7 +784,7 @@ class SingleAssignment:
             "handle_assign_dictionary_values",
         )
 
-    def _nested_ifs_of(self, conditions: List[ast.expr], call: ast.AST) -> ast.AST:
+    def _nested_ifs_of(self, conditions: List[ast.expr], call: ast.stmt) -> ast.stmt:
         # Turns a series of conditions into nested ifs
         if conditions == []:
             return call
@@ -794,8 +794,8 @@ class SingleAssignment:
             return ast.If(test=head, body=[rest], orelse=[])
 
     def _nested_fors_and_ifs_of(
-        self, generators: List[ast.comprehension], call: ast.AST
-    ) -> ast.AST:
+        self, generators: List[ast.comprehension], call: ast.stmt
+    ) -> ast.stmt:
         # Turns nested comprehension generators into a nesting for for+if statements
         # for example [... for i in range(1,2) if odd(i)] into
         # for i in range(1,2):
@@ -842,14 +842,16 @@ class SingleAssignment:
                                 ),
                                 self._nested_fors_and_ifs_of(
                                     term.value.generators,
-                                    ast.Call(
-                                        func=ast.Attribute(
-                                            value=new_name("r", "load"),
-                                            attr="append",
-                                            ctx=ast.Load(),
-                                        ),
-                                        args=[term.value.elt],
-                                        keywords=[],
+                                    ast.Expr(
+                                        ast.Call(
+                                            func=ast.Attribute(
+                                                value=new_name("r", "load"),
+                                                attr="append",
+                                                ctx=ast.Load(),
+                                            ),
+                                            args=[term.value.elt],
+                                            keywords=[],
+                                        )
                                     ),
                                 ),
                                 ast.Return(new_name("r", "load")),
@@ -902,14 +904,16 @@ class SingleAssignment:
                                 ),
                                 self._nested_fors_and_ifs_of(
                                     term.value.generators,
-                                    ast.Call(
-                                        func=ast.Attribute(
-                                            value=new_name("r", "load"),
-                                            attr="add",
-                                            ctx=ast.Load(),
-                                        ),
-                                        args=[term.value.elt],
-                                        keywords=[],
+                                    ast.Expr(
+                                        ast.Call(
+                                            func=ast.Attribute(
+                                                value=new_name("r", "load"),
+                                                attr="add",
+                                                ctx=ast.Load(),
+                                            ),
+                                            args=[term.value.elt],
+                                            keywords=[],
+                                        )
                                     ),
                                 ),
                                 ast.Return(new_name("r", "load")),
@@ -958,14 +962,16 @@ class SingleAssignment:
                                 ),
                                 self._nested_fors_and_ifs_of(
                                     term.value.generators,
-                                    ast.Call(
-                                        func=ast.Attribute(
-                                            value=new_name("r", "load"),
-                                            attr="__setitem__",
-                                            ctx=ast.Load(),
-                                        ),
-                                        args=[term.value.key, term.value.value],
-                                        keywords=[],
+                                    ast.Expr(
+                                        ast.Call(
+                                            func=ast.Attribute(
+                                                value=new_name("r", "load"),
+                                                attr="__setitem__",
+                                                ctx=ast.Load(),
+                                            ),
+                                            args=[term.value.key, term.value.value],
+                                            keywords=[],
+                                        )
                                     ),
                                 ),
                                 ast.Return(new_name("r", "load")),
