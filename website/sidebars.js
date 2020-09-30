@@ -11,6 +11,6 @@ module.exports = {
   someSidebar: {
     Documentation: ['toc', 'overview/introduction/introduction',
     'overview/quick_start/quick_start', 'overview/modeling/modeling',
-    'overview/inference/inference', 'overview/analysis/analysis']
+    'overview/inference/inference', 'overview/analysis/analysis', 'contributing']
   },
 };
