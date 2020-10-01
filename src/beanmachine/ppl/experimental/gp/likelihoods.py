@@ -10,7 +10,20 @@ from beanmachine.ppl.model.utils import RVIdentifier
 class GpytorchMixin(torch.nn.Module):
     """
     Wrapper that registers the ``forward()`` call of GPyTorch likelihoods
-    with Bean Machine
+    with Bean Machine. Priors for likelihood parameters can be registered
+    similarly, as with kernels::
+
+       from bm.experimental.likelihoods import GaussianLikelihood
+
+       @bm.random_variable
+       def noise_prior():
+           return dist.Uniform(torch.tensor(0.01), torch.tensor(1.))
+
+       likelihood = GaussianLikelihood(noise_prior=noise_prior)
+       gp = SimpleGP(...)
+       gp_prior = partial(gp, train_x)  # bind gp prior to train data
+       obs = {likelihood(gp_prior): train_y}
+       samples = nuts.infer([noise_prior()], obs, num_samples=100)
     """
 
     def _validate_args(self, prior):
@@ -48,6 +61,12 @@ class GpytorchMixin(torch.nn.Module):
         return super().__call__(prior_sample())
 
     def train(self, mode=True):
+        """
+        In `train()` mode, parameters and the forward method are
+        lifted to BM random variables.
+        In `eval()` mode, this acts as a Gpytorch likelihood, ie
+        all methods conform to the parent class's function signatures.
+        """
         if mode:
             self._strict(True)
             if hasattr(self, "_priors"):

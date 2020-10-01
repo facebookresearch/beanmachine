@@ -85,7 +85,7 @@ commands:
     steps:
       - run:
           name: "Install test dependencies"
-          command: pip install pytest gpytorch pytest-xdist
+          command: pip install pytest botorch pytest-xdist
       - run:
           name: "Run unit tests in parallel"
           command: pytest -n 20 -vv
@@ -95,7 +95,7 @@ commands:
     steps:
       - run:
           name: "Install test dependencies"
-          command: pip install pytest gpytorch pytest-xdist
+          command: pip install pytest botorch pytest-xdist
       - run:
           name: "Run nightly tests and report overall runtimes"
           command: pytest -n auto -o python_files="*_nightly.py" --durations=0
