@@ -30,6 +30,9 @@ std::string ValueType::to_string() const {
     case AtomicType::POS_REAL:
       atype = "positive real";
       break;
+    case AtomicType::NEG_REAL:
+      atype = "negative real";
+      break;
     case AtomicType::NATURAL:
       atype = "natural";
       break;
@@ -56,6 +59,10 @@ AtomicValue::AtomicValue(AtomicType type, double value)
     if (_double < PRECISION) {
       _double = PRECISION;
     }
+  } else if (type == AtomicType::NEG_REAL) {
+    if (_double > -PRECISION) {
+      _double = -PRECISION;
+    }
   } else if (type == AtomicType::PROBABILITY) {
     if (_double < PRECISION) {
       _double = PRECISION;
@@ -63,10 +70,10 @@ AtomicValue::AtomicValue(AtomicType type, double value)
       _double = 1 - PRECISION;
     }
   } else {
-    // this API is only meant for POS_REAL, REAL and PROBABILITY values
+    // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY values
     if (type != AtomicType::REAL) {
       throw std::invalid_argument(
-          "expect probability, pos_real, or real type with floating point value");
+          "expect probability, pos_real, neg_real or real type with floating point value");
     }
   }
 }
@@ -82,6 +89,9 @@ void AtomicValue::init_scalar(AtomicType type) {
     case AtomicType::REAL:
     case AtomicType::POS_REAL:
       _double = PRECISION;
+      break;
+    case AtomicType::NEG_REAL:
+      _double = -PRECISION;
       break;
     case AtomicType::NATURAL:
       _natural = 0;
@@ -105,6 +115,9 @@ AtomicValue::AtomicValue(ValueType type) : type(type) {
       case AtomicType::POS_REAL:
       case AtomicType::PROBABILITY:
         _matrix = Eigen::MatrixXd::Constant(type.rows, type.cols, PRECISION);
+        break;
+      case AtomicType::NEG_REAL:
+        _matrix = Eigen::MatrixXd::Constant(type.rows, type.cols, -PRECISION);
         break;
       case AtomicType::NATURAL:
         _nmatrix = Eigen::MatrixXn::Constant(type.rows, type.cols, (natural_t)0);
@@ -139,6 +152,7 @@ std::string AtomicValue::to_string() const {
         break;
       case AtomicType::REAL:
       case AtomicType::POS_REAL:
+      case AtomicType::NEG_REAL:
       case AtomicType::PROBABILITY:
         os << type_str << _double;
         break;
@@ -153,6 +167,7 @@ std::string AtomicValue::to_string() const {
         break;
       case AtomicType::REAL:
       case AtomicType::POS_REAL:
+      case AtomicType::NEG_REAL:
       case AtomicType::PROBABILITY:
         os << type_str << _matrix;
         break;
@@ -477,6 +492,13 @@ uint Graph::add_constant_pos_real(double value) {
   return add_constant(AtomicValue(AtomicType::POS_REAL, value));
 }
 
+uint Graph::add_constant_neg_real(double value) {
+  if (value > 0) {
+    throw std::invalid_argument("neg_real must be <=0");
+  }
+  return add_constant(AtomicValue(AtomicType::NEG_REAL, value));
+}
+
 uint Graph::add_constant_matrix(Eigen::MatrixXb& value) {
   return add_constant(AtomicValue(value));
 }
@@ -667,6 +689,7 @@ void Graph::collect_sample() {
       } else if (
           value.type == AtomicType::REAL or
           value.type == AtomicType::POS_REAL or
+          value.type == AtomicType::NEG_REAL or
           value.type == AtomicType::PROBABILITY) {
         mean_collector[pos] += value._double / agg_samples;
       } else if (value.type == AtomicType::NATURAL) {
