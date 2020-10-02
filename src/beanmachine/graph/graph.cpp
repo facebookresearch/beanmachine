@@ -81,7 +81,7 @@ void AtomicValue::init_scalar(AtomicType type) {
     case AtomicType::PROBABILITY:
     case AtomicType::REAL:
     case AtomicType::POS_REAL:
-      _double = 0.0;
+      _double = PRECISION;
       break;
     case AtomicType::NATURAL:
       _natural = 0;
