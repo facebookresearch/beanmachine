@@ -60,71 +60,71 @@ expected_bmg = """
 Node 0 type 1 parents [ ] children [ 2 ] real 0
 Node 1 type 1 parents [ ] children [ 2 ] positive real 1
 Node 2 type 2 parents [ 0 1 ] children [ 3 4 5 ] unknown
-Node 3 type 3 parents [ 2 ] children [ 8 16 24 32 40 48 56 64 ] real 0
-Node 4 type 3 parents [ 2 ] children [ 7 15 23 31 39 47 55 63 ] real 0
-Node 5 type 3 parents [ 2 ] children [ 10 18 26 34 42 50 58 66 ] real 0
+Node 3 type 3 parents [ 2 ] children [ 8 16 24 32 40 48 56 64 ] real 1e-10
+Node 4 type 3 parents [ 2 ] children [ 7 15 23 31 39 47 55 63 ] real 1e-10
+Node 5 type 3 parents [ 2 ] children [ 10 18 26 34 42 50 58 66 ] real 1e-10
 Node 6 type 1 parents [ ] children [ 7 ] real 7.6483
-Node 7 type 3 parents [ 6 4 ] children [ 8 ] real 0
-Node 8 type 3 parents [ 3 7 ] children [ 11 ] real 0
+Node 7 type 3 parents [ 6 4 ] children [ 8 ] real 1e-10
+Node 8 type 3 parents [ 3 7 ] children [ 11 ] real 1e-10
 Node 9 type 1 parents [ ] children [ 10 ] real 5.6988
-Node 10 type 3 parents [ 9 5 ] children [ 11 ] real 0
-Node 11 type 3 parents [ 8 10 ] children [ 12 ] real 0
+Node 10 type 3 parents [ 9 5 ] children [ 11 ] real 1e-10
+Node 11 type 3 parents [ 8 10 ] children [ 12 ] real 1e-10
 Node 12 type 2 parents [ 11 ] children [ 13 ] unknown
 Node 13 type 3 parents [ 12 ] children [ ] boolean 0
 Node 14 type 1 parents [ ] children [ 15 ] real -6.2928
-Node 15 type 3 parents [ 14 4 ] children [ 16 ] real 0
-Node 16 type 3 parents [ 3 15 ] children [ 19 ] real 0
+Node 15 type 3 parents [ 14 4 ] children [ 16 ] real 1e-10
+Node 16 type 3 parents [ 3 15 ] children [ 19 ] real 1e-10
 Node 17 type 1 parents [ ] children [ 18 ] real 1.1692
-Node 18 type 3 parents [ 17 5 ] children [ 19 ] real 0
-Node 19 type 3 parents [ 16 18 ] children [ 20 ] real 0
+Node 18 type 3 parents [ 17 5 ] children [ 19 ] real 1e-10
+Node 19 type 3 parents [ 16 18 ] children [ 20 ] real 1e-10
 Node 20 type 2 parents [ 19 ] children [ 21 ] unknown
 Node 21 type 3 parents [ 20 ] children [ ] boolean 0
 Node 22 type 1 parents [ ] children [ 23 ] real 1.6583
-Node 23 type 3 parents [ 22 4 ] children [ 24 ] real 0
-Node 24 type 3 parents [ 3 23 ] children [ 27 ] real 0
+Node 23 type 3 parents [ 22 4 ] children [ 24 ] real 1e-10
+Node 24 type 3 parents [ 3 23 ] children [ 27 ] real 1e-10
 Node 25 type 1 parents [ ] children [ 26 ] real -4.7142
-Node 26 type 3 parents [ 25 5 ] children [ 27 ] real 0
-Node 27 type 3 parents [ 24 26 ] children [ 28 ] real 0
+Node 26 type 3 parents [ 25 5 ] children [ 27 ] real 1e-10
+Node 27 type 3 parents [ 24 26 ] children [ 28 ] real 1e-10
 Node 28 type 2 parents [ 27 ] children [ 29 ] unknown
 Node 29 type 3 parents [ 28 ] children [ ] boolean 0
 Node 30 type 1 parents [ ] children [ 31 ] real -7.7588
-Node 31 type 3 parents [ 30 4 ] children [ 32 ] real 0
-Node 32 type 3 parents [ 3 31 ] children [ 35 ] real 0
+Node 31 type 3 parents [ 30 4 ] children [ 32 ] real 1e-10
+Node 32 type 3 parents [ 3 31 ] children [ 35 ] real 1e-10
 Node 33 type 1 parents [ ] children [ 34 ] real 7.9859
-Node 34 type 3 parents [ 33 5 ] children [ 35 ] real 0
-Node 35 type 3 parents [ 32 34 ] children [ 36 ] real 0
+Node 34 type 3 parents [ 33 5 ] children [ 35 ] real 1e-10
+Node 35 type 3 parents [ 32 34 ] children [ 36 ] real 1e-10
 Node 36 type 2 parents [ 35 ] children [ 37 ] unknown
 Node 37 type 3 parents [ 36 ] children [ ] boolean 0
 Node 38 type 1 parents [ ] children [ 39 ] real -1.2421
-Node 39 type 3 parents [ 38 4 ] children [ 40 ] real 0
-Node 40 type 3 parents [ 3 39 ] children [ 43 ] real 0
+Node 39 type 3 parents [ 38 4 ] children [ 40 ] real 1e-10
+Node 40 type 3 parents [ 3 39 ] children [ 43 ] real 1e-10
 Node 41 type 1 parents [ ] children [ 42 ] real 5.4628
-Node 42 type 3 parents [ 41 5 ] children [ 43 ] real 0
-Node 43 type 3 parents [ 40 42 ] children [ 44 ] real 0
+Node 42 type 3 parents [ 41 5 ] children [ 43 ] real 1e-10
+Node 43 type 3 parents [ 40 42 ] children [ 44 ] real 1e-10
 Node 44 type 2 parents [ 43 ] children [ 45 ] unknown
 Node 45 type 3 parents [ 44 ] children [ ] boolean 0
 Node 46 type 1 parents [ ] children [ 47 ] real 6.4529
-Node 47 type 3 parents [ 46 4 ] children [ 48 ] real 0
-Node 48 type 3 parents [ 3 47 ] children [ 51 ] real 0
+Node 47 type 3 parents [ 46 4 ] children [ 48 ] real 1e-10
+Node 48 type 3 parents [ 3 47 ] children [ 51 ] real 1e-10
 Node 49 type 1 parents [ ] children [ 50 ] real 2.3994
-Node 50 type 3 parents [ 49 5 ] children [ 51 ] real 0
-Node 51 type 3 parents [ 48 50 ] children [ 52 ] real 0
+Node 50 type 3 parents [ 49 5 ] children [ 51 ] real 1e-10
+Node 51 type 3 parents [ 48 50 ] children [ 52 ] real 1e-10
 Node 52 type 2 parents [ 51 ] children [ 53 ] unknown
 Node 53 type 3 parents [ 52 ] children [ ] boolean 0
 Node 54 type 1 parents [ ] children [ 55 ] real -4.9269
-Node 55 type 3 parents [ 54 4 ] children [ 56 ] real 0
-Node 56 type 3 parents [ 3 55 ] children [ 59 ] real 0
+Node 55 type 3 parents [ 54 4 ] children [ 56 ] real 1e-10
+Node 56 type 3 parents [ 3 55 ] children [ 59 ] real 1e-10
 Node 57 type 1 parents [ ] children [ 58 ] real 7.8679
-Node 58 type 3 parents [ 57 5 ] children [ 59 ] real 0
-Node 59 type 3 parents [ 56 58 ] children [ 60 ] real 0
+Node 58 type 3 parents [ 57 5 ] children [ 59 ] real 1e-10
+Node 59 type 3 parents [ 56 58 ] children [ 60 ] real 1e-10
 Node 60 type 2 parents [ 59 ] children [ 61 ] unknown
 Node 61 type 3 parents [ 60 ] children [ ] boolean 0
 Node 62 type 1 parents [ ] children [ 63 ] real 4.213
-Node 63 type 3 parents [ 62 4 ] children [ 64 ] real 0
-Node 64 type 3 parents [ 3 63 ] children [ 67 ] real 0
+Node 63 type 3 parents [ 62 4 ] children [ 64 ] real 1e-10
+Node 64 type 3 parents [ 3 63 ] children [ 67 ] real 1e-10
 Node 65 type 1 parents [ ] children [ 66 ] real 2.6175
-Node 66 type 3 parents [ 65 5 ] children [ 67 ] real 0
-Node 67 type 3 parents [ 64 66 ] children [ 68 ] real 0
+Node 66 type 3 parents [ 65 5 ] children [ 67 ] real 1e-10
+Node 67 type 3 parents [ 64 66 ] children [ 68 ] real 1e-10
 Node 68 type 2 parents [ 67 ] children [ 69 ] unknown
 Node 69 type 3 parents [ 68 ] children [ ] boolean 0
 """
