@@ -34,7 +34,7 @@
     "prettier": "^2.0.2",
     "stylelint": "^13.2.1",
     "classnames": "^2.2.6",
-    "docusaurus-plugin-internaldocs-fb": "^0.3.6",
+    "docusaurus-plugin-internaldocs-fb": "^0.4.0",
     "react-docgen": "^5.2.1"
   },
   "browserslist": {
