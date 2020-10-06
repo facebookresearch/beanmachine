@@ -92,10 +92,10 @@ Node 3 type 3 parents [ 2 ] children [ 9 15 ] real 0
 Node 4 type 3 parents [ 2 ] children [ 8 14 ] real 0
 Node 5 type 3 parents [ 2 ] children [ 8 ] real 0
 Node 6 type 2 parents [ ] children [ 7 ] unknown
-Node 7 type 3 parents [ 6 ] children [ 10 ] probability 0
+Node 7 type 3 parents [ 6 ] children [ 10 ] probability 1e-10
 Node 8 type 3 parents [ 4 5 ] children [ 9 ] real 0
 Node 9 type 3 parents [ 3 8 ] children [ 11 ] real 0
-Node 10 type 3 parents [ 7 ] children [ 11 16 ] positive real 0
+Node 10 type 3 parents [ 7 ] children [ 11 16 ] positive real 1e-10
 Node 11 type 2 parents [ 9 10 ] children [ 12 ] unknown
 Node 12 type 3 parents [ 11 ] children [ ] real 0
 Node 13 type 3 parents [ 2 ] children [ 14 ] real 0

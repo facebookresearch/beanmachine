@@ -14,7 +14,7 @@ namespace graph {
 std::string ValueType::to_string() const {
   std::string vtype;
   std::string atype;
-  switch(atomic_type) {
+  switch (atomic_type) {
     case AtomicType::UNKNOWN:
       atype = "unknown";
       break;
@@ -34,7 +34,7 @@ std::string ValueType::to_string() const {
       atype = "natural";
       break;
   }
-  switch(variable_type) {
+  switch (variable_type) {
     case VariableType::UNKNOWN:
       return "unknown variable";
     case VariableType::SCALAR:
@@ -78,10 +78,12 @@ void AtomicValue::init_scalar(AtomicType type) {
     case AtomicType::BOOLEAN:
       _bool = false;
       break;
-    case AtomicType::PROBABILITY:
     case AtomicType::REAL:
-    case AtomicType::POS_REAL:
       _double = 0.0;
+      break;
+    case AtomicType::PROBABILITY:
+    case AtomicType::POS_REAL:
+      _double = PRECISION;
       break;
     case AtomicType::NATURAL:
       _natural = 0;
@@ -107,19 +109,18 @@ AtomicValue::AtomicValue(ValueType type) : type(type) {
         _matrix = Eigen::MatrixXd::Constant(type.rows, type.cols, PRECISION);
         break;
       case AtomicType::NATURAL:
-        _nmatrix = Eigen::MatrixXn::Constant(type.rows, type.cols, (natural_t)0);
+        _nmatrix =
+            Eigen::MatrixXn::Constant(type.rows, type.cols, (natural_t)0);
         break;
       default:
-        throw std::invalid_argument(
-            "Unsupported types for BROADCAST_MATRIX.");
+        throw std::invalid_argument("Unsupported types for BROADCAST_MATRIX.");
     }
   } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
     _matrix = Eigen::MatrixXd::Ones(type.rows, type.cols) / type.rows;
   } else if (type.variable_type == VariableType::SCALAR) {
     this->init_scalar(type.atomic_type);
   } else {
-    throw std::invalid_argument(
-        "Unsupported variable type.");
+    throw std::invalid_argument("Unsupported variable type.");
   }
 }
 
@@ -127,7 +128,7 @@ std::string AtomicValue::to_string() const {
   std::ostringstream os;
   std::string type_str = type.to_string() + " ";
   if (type.variable_type == VariableType::SCALAR) {
-    switch(type.atomic_type){
+    switch (type.atomic_type) {
       case AtomicType::UNKNOWN:
         os << type_str;
         break;
@@ -147,7 +148,7 @@ std::string AtomicValue::to_string() const {
         break;
     }
   } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
-    switch(type.atomic_type){
+    switch (type.atomic_type) {
       case AtomicType::UNKNOWN:
         os << type_str;
         break;
@@ -160,7 +161,7 @@ std::string AtomicValue::to_string() const {
         os << "BAD value";
     }
   } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
-    switch(type.atomic_type){
+    switch (type.atomic_type) {
       case AtomicType::UNKNOWN:
         os << type_str;
         break;
@@ -343,7 +344,7 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
 
   // end gradient computation reset grads
   if (!is_src_scalar) {
-      src_node->Grad1.setZero();
+    src_node->Grad1.setZero();
   }
   src_node->grad1 = 0;
   for (auto node_id : det_nodes) {
@@ -598,7 +599,8 @@ void Graph::observe(uint node_id, Eigen::MatrixXn& val) {
 void Graph::observe(uint node_id, AtomicValue value) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
   oper::Operator* op = static_cast<oper::Operator*>(node);
-  if (op->op_type != OperatorType::SAMPLE and op->op_type != OperatorType::IID_SAMPLE) {
+  if (op->op_type != OperatorType::SAMPLE and
+      op->op_type != OperatorType::IID_SAMPLE) {
     throw std::invalid_argument("only sample nodes may be observed");
   }
   if (observed.find(node_id) != observed.end()) {
@@ -607,8 +609,8 @@ void Graph::observe(uint node_id, AtomicValue value) {
   }
   if (node->value.type != value.type) {
     throw std::invalid_argument(
-        "observe expected " + node->value.type.to_string() +
-        " instead got " + value.type.to_string());
+        "observe expected " + node->value.type.to_string() + " instead got " +
+        value.type.to_string());
   }
   node->value = value;
   node->is_observed = true;
@@ -618,13 +620,13 @@ void Graph::observe(uint node_id, AtomicValue value) {
 void Graph::remove_observations() {
   // note that Factor nodes although technically observations are not
   // user-created observations and so these are not removed by this API
-  for (auto itr=observed.begin(); itr != observed.end(); ) {
+  for (auto itr = observed.begin(); itr != observed.end();) {
     Node* node = nodes[*itr].get();
     if (node->node_type != NodeType::FACTOR) {
       node->is_observed = false;
       itr = observed.erase(itr);
     } else {
-      itr ++;
+      itr++;
     }
   }
 }
@@ -708,8 +710,11 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   return samples;
 }
 
-std::vector<std::vector<std::vector<AtomicValue>>>&
-Graph::infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains) {
+std::vector<std::vector<std::vector<AtomicValue>>>& Graph::infer(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    uint n_chains) {
   agg_type = AggregationType::NONE;
   samples.clear();
   samples_allchains.clear();
@@ -719,7 +724,10 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains
 }
 
 void Graph::_infer_parallel(
-    uint num_samples, InferenceType algorithm, uint seed, uint n_chains) {
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    uint n_chains) {
   if (n_chains < 1) {
     throw std::runtime_error("n_chains can't be zero");
   }
@@ -743,7 +751,8 @@ void Graph::_infer_parallel(
   // start threads
   std::vector<std::thread> threads;
   for (uint i = 0; i < n_chains; i++) {
-    std::thread infer_thread(&Graph::_infer, graph_copies[i], num_samples, algorithm, seedvec[i]);
+    std::thread infer_thread(
+        &Graph::_infer, graph_copies[i], num_samples, algorithm, seedvec[i]);
     threads.push_back(std::move(infer_thread));
   }
   assert(threads.size() == n_chains);
@@ -769,8 +778,11 @@ Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
   return means;
 }
 
-std::vector<std::vector<double>>&
-Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed, uint n_chains) {
+std::vector<std::vector<double>>& Graph::infer_mean(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    uint n_chains) {
   agg_type = AggregationType::MEAN;
   agg_samples = num_samples;
   means.clear();
@@ -803,7 +815,8 @@ std::vector<std::vector<double>>& Graph::variational(
   return variational_params;
 }
 
-std::vector<uint> Graph::get_parent_ids(const std::vector<Node*>& parent_nodes) const {
+std::vector<uint> Graph::get_parent_ids(
+    const std::vector<Node*>& parent_nodes) const {
   std::vector<uint> parent_ids;
   for (auto node : parent_nodes) {
     parent_ids.push_back(node->index);
@@ -817,14 +830,15 @@ Graph::Graph(const Graph& other) {
   for (uint i = 0; i < other.nodes.size(); i++) {
     Node* node = other.nodes[i].get();
     std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
-    switch(node->node_type) {
+    switch (node->node_type) {
       case NodeType::CONSTANT: {
         AtomicValue value_copy = AtomicValue(node->value);
         add_constant(value_copy);
         break;
       }
       case NodeType::DISTRIBUTION: {
-        distribution::Distribution* dist = static_cast<distribution::Distribution*>(node);
+        distribution::Distribution* dist =
+            static_cast<distribution::Distribution*>(node);
         add_distribution(dist->dist_type, dist->sample_type, parent_ids);
         break;
       }
