@@ -23,7 +23,8 @@ PYBIND11_MODULE(graph, module) {
       .value("PROBABILITY", AtomicType::PROBABILITY)
       .value("REAL", AtomicType::REAL)
       .value("POS_REAL", AtomicType::POS_REAL)
-      .value("NATURAL", AtomicType::NATURAL);
+      .value("NATURAL", AtomicType::NATURAL)
+      .value("NEG_REAL", AtomicType::NEG_REAL);
 
   py::class_<ValueType>(module, "ValueType")
       .def(py::init<VariableType, AtomicType, uint, uint>())
@@ -120,6 +121,11 @@ PYBIND11_MODULE(graph, module) {
           "add_constant_pos_real",
           (uint(Graph::*)(double)) & Graph::add_constant_pos_real,
           "add a Node with a constant positive real (>=0) value",
+          py::arg("value"))
+      .def(
+          "add_constant_neg_real",
+          (uint(Graph::*)(double)) & Graph::add_constant_neg_real,
+          "add a Node with a constant negative real (<=0) value",
           py::arg("value"))
       .def(
           "add_constant_matrix",

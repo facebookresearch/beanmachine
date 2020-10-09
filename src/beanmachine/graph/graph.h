@@ -36,6 +36,7 @@ enum class AtomicType {
   REAL,
   POS_REAL, // Real numbers greater than *or* equal to zero
   NATURAL, // note: NATURAL numbers include zero (ISO 80000-2)
+  NEG_REAL, // Real numbers less than *or* equal to zero
 };
 
 struct ValueType {
@@ -163,7 +164,7 @@ class AtomicValue {
         _matrix(value) {
     assert(
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
-        type == AtomicType::PROBABILITY);
+        type == AtomicType::NEG_REAL or type == AtomicType::PROBABILITY);
   }
   AtomicValue(AtomicType /* type */, Eigen::MatrixXb& value)
       : AtomicValue(value) {}
@@ -221,6 +222,7 @@ class AtomicValue {
           break;
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
+        case AtomicType::NEG_REAL:
         case AtomicType::PROBABILITY:
           _matrix = other._matrix;
           break;
@@ -243,11 +245,13 @@ class AtomicValue {
         ((type == AtomicType::BOOLEAN and _bool == other._bool) or
          (type == AtomicType::REAL and _double == other._double) or
          (type == AtomicType::POS_REAL and _double == other._double) or
+         (type == AtomicType::NEG_REAL and _double == other._double) or
          (type == AtomicType::PROBABILITY and _double == other._double) or
          (type == AtomicType::NATURAL and _natural == other._natural) or
          (type.variable_type == VariableType::BROADCAST_MATRIX and
           (type.atomic_type == AtomicType::REAL or
            type.atomic_type == AtomicType::POS_REAL or
+           type.atomic_type == AtomicType::NEG_REAL or
            type.atomic_type == AtomicType::PROBABILITY) and
           _matrix.isApprox(other._matrix)) or
          (type.variable_type == VariableType::BROADCAST_MATRIX and
@@ -287,6 +291,7 @@ enum class OperatorType {
   LOG,
   POW,
   NEGATIVE_LOG,
+  // TODO: We can remove NEGATIVE_LOG once we have a NEG_REAL type implemented.
 };
 
 enum class DistributionType {
@@ -412,6 +417,7 @@ struct Graph {
   uint add_constant(AtomicValue value);
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
+  uint add_constant_neg_real(double value);
   uint add_constant_matrix(Eigen::MatrixXb& value);
   uint add_constant_matrix(Eigen::MatrixXd& value);
   uint add_constant_matrix(Eigen::MatrixXn& value);

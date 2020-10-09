@@ -310,3 +310,14 @@ class TestBayesNet(unittest.TestCase):
         self.assertAlmostEqual(means_all[0][1], 1.0)
         self.assertAlmostEqual(means_all[1][0], 1.0)
         self.assertAlmostEqual(means_all[1][1], 1.0)
+
+    def test_neg_real(self):
+        g = graph.Graph()
+        with self.assertRaises(ValueError) as cm:
+            g.add_constant_neg_real(1.25)
+        self.assertTrue("neg_real must be <=0" in str(cm.exception))
+        g.add_constant_neg_real(-1.25)
+        expected = """
+Node 0 type 1 parents [ ] children [ ] negative real -1.25
+"""
+        self.assertEqual(g.to_string().strip(), expected.strip())
