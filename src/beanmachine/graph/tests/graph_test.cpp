@@ -127,7 +127,7 @@ TEST(testgraph, infer_bn) {
   for (int i = 0; i < n_iter; i++) {
     const auto& s0 = all_samples[0][i].front();
     const auto& s1 = all_samples[1][i].front();
-    // @lint-ignore HOWTOEVEN
+    // @lint-ignore HOWTOEVEN CLANGTIDY
     eqsum += (s0._bool == s1._bool) ? 1 : 0;
   }
   ASSERT_LT(eqsum, n_iter);
