@@ -13,7 +13,7 @@ Complement::Complement(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::PROBABILITY and
       type0 != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument(
-        "operator COMPLEMENT only supports boolean/probability parent");
+        "operator COMPLEMENT requires a boolean or probability parent");
   }
   value = graph::AtomicValue(type0);
 }
@@ -59,9 +59,13 @@ void ToReal::eval(std::mt19937& /* gen */) {
 ToPosReal::ToPosReal(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::TO_POS_REAL, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
-  if (type0 == graph::AtomicType::REAL) {
+  if (type0 != graph::AtomicType::PROBABILITY and
+      type0 != graph::AtomicType::POS_REAL and
+      type0 != graph::AtomicType::NATURAL and
+      type0 != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument(
-        "operator TO_POS_REAL doesn't support real parent");
+        "operator TO_POS_REAL requires a "
+        "pos_real, probability, natural or boolean parent");
   }
   value = graph::AtomicValue(graph::AtomicType::POS_REAL);
 }
@@ -88,7 +92,7 @@ Negate::Negate(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::NEGATE, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL) {
-    throw std::invalid_argument("operator NEGATE only supports real parent");
+    throw std::invalid_argument("operator NEGATE requires a real parent");
   }
   value = graph::AtomicValue(type0);
 }
@@ -110,7 +114,8 @@ Exp::Exp(const std::vector<graph::Node*>& in_nodes)
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL and
       type0 != graph::AtomicType::POS_REAL) {
-    throw std::invalid_argument("operator EXP requires real/pos_real parent");
+    throw std::invalid_argument(
+        "operator EXP requires a real or pos_real parent");
   }
   value = graph::AtomicValue(graph::AtomicType::POS_REAL);
 }
@@ -133,7 +138,8 @@ ExpM1::ExpM1(const std::vector<graph::Node*>& in_nodes)
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL and
       type0 != graph::AtomicType::POS_REAL) {
-    throw std::invalid_argument("operator EXPM1 requires real/pos_real parent");
+    throw std::invalid_argument(
+        "operator EXPM1 requires a real or pos_real parent");
   }
   // pos_real -> e^x - 1 -> pos_real
   // real -> e^x - 1 -> real
@@ -157,7 +163,7 @@ Phi::Phi(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::PHI, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL) {
-    throw std::invalid_argument("Phi require a real-valued parent");
+    throw std::invalid_argument("operator PHI requires a real parent");
   }
   value = graph::AtomicValue(graph::AtomicType::PROBABILITY);
 }
@@ -177,7 +183,7 @@ Logistic::Logistic(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::LOGISTIC, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL) {
-    throw std::invalid_argument("logistic require a real-valued parent");
+    throw std::invalid_argument("operator LOGISTIC requires a real parent");
   }
   value = graph::AtomicValue(graph::AtomicType::PROBABILITY);
 }
@@ -199,7 +205,7 @@ Log1pExp::Log1pExp(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::REAL and
       type0 != graph::AtomicType::POS_REAL) {
     throw std::invalid_argument(
-        "operator LOG1PEXP requires real/pos_real parent");
+        "operator LOG1PEXP requires a real or pos_real parent");
   }
   value = graph::AtomicValue(graph::AtomicType::POS_REAL);
 }
@@ -248,7 +254,7 @@ NegativeLog::NegativeLog(const std::vector<graph::Node*>& in_nodes)
     value = graph::AtomicValue(graph::AtomicType::POS_REAL);
   } else {
     throw std::invalid_argument(
-        "operator NEG_LOG requires a pos_real/probability parent");
+        "operator NEG_LOG requires a pos_real or probability parent");
   }
 }
 

@@ -130,7 +130,7 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             o1 = g.add_operator(bmg.OperatorType.EXP, [s1])
         self.assertTrue(
-            "operator EXP requires real/pos_real parent" in str(cm.exception)
+            "operator EXP requires a real or pos_real parent" in str(cm.exception)
         )
 
         # the proper way to do it is to convert to floating point first
