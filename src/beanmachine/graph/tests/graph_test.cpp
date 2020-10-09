@@ -153,6 +153,7 @@ TEST(testgraph, clone_graph) {
   uint c_natural_2 = g.add_constant((graph::natural_t)2);
   uint c_prob = g.add_constant_probability(0.5);
   uint c_pos = g.add_constant_pos_real(2.5);
+  uint c_neg = g.add_constant_neg_real(-1.5);
 
   Eigen::MatrixXd m0 = Eigen::MatrixXd::Constant(2, 1, 0.6);
   g.add_constant_probability_matrix(m0);
@@ -252,8 +253,16 @@ TEST(testgraph, clone_graph) {
     graph::OperatorType::EXP, std::vector<uint>{c_real});
   uint o_expm1 = g.add_operator(
     graph::OperatorType::EXPM1, std::vector<uint>{o_sample_pos});
+  uint o_log = g.add_operator(
+    graph::OperatorType::LOG, std::vector<uint> {o_to_pos});
+  uint o_log1pexp = g.add_operator(
+    graph::OperatorType::LOG1PEXP, std::vector<uint> {o_log});
+  uint o_log1mexp = g.add_operator(
+    graph::OperatorType::LOG1MEXP, std::vector<uint> {c_neg});
+  uint o_logsumexp = g.add_operator(
+    graph::OperatorType::LOGSUMEXP, std::vector<uint> {c_real, o_sample_real});
   uint o_multiply = g.add_operator(
-    graph::OperatorType::MULTIPLY, std::vector<uint>{c_real, o_sample_real});
+    graph::OperatorType::MULTIPLY, std::vector<uint>{c_real, o_sample_real, o_logsumexp});
   uint o_add = g.add_operator(
     graph::OperatorType::ADD, std::vector<uint>{c_real, o_sample_real, o_to_real});
   uint o_phi = g.add_operator(
@@ -262,7 +271,7 @@ TEST(testgraph, clone_graph) {
     graph::OperatorType::LOGISTIC, std::vector<uint>{c_real});
   uint o_ifelse = g.add_operator(
     graph::OperatorType::IF_THEN_ELSE,
-    std::vector<uint>{o_sample_bool, o_sample_pos, c_pos});
+    std::vector<uint>{o_sample_bool, o_sample_pos, o_log1pexp});
   // factors
   uint f_expprod = g.add_factor(
     graph::FactorType::EXP_PRODUCT,
@@ -280,6 +289,7 @@ TEST(testgraph, clone_graph) {
   g.query(o_multiply);
   g.query(o_add);
   g.query(o_ifelse);
+  g.query(o_log1mexp);
   // copy and test
   graph::Graph g_copy(g);
   ASSERT_EQ(g.to_string(), g_copy.to_string());

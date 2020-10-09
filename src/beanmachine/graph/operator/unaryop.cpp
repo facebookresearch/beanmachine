@@ -45,6 +45,7 @@ void ToReal::eval(std::mt19937& /* gen */) {
   } else if (
       parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL or
+      parent.type == graph::AtomicType::NEG_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
     value._double = parent._double;
   } else if (parent.type == graph::AtomicType::NATURAL) {
@@ -91,16 +92,26 @@ void ToPosReal::eval(std::mt19937& /* gen */) {
 Negate::Negate(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::NEGATE, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
-  if (type0 != graph::AtomicType::REAL) {
-    throw std::invalid_argument("operator NEGATE requires a real parent");
+  graph::ValueType new_type;
+  if (type0 == graph::AtomicType::REAL) {
+    new_type = type0;
+  } else if (type0 == graph::AtomicType::POS_REAL) {
+    new_type = graph::AtomicType::NEG_REAL;
+  } else if (type0 == graph::AtomicType::NEG_REAL) {
+    new_type = graph::AtomicType::POS_REAL;
+  } else {
+    throw std::invalid_argument(
+        "operator NEGATE only supports real/pos_real/neg_real parent");
   }
-  value = graph::AtomicValue(type0);
+  value = graph::AtomicValue(new_type);
 }
 
 void Negate::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::AtomicValue& parent = in_nodes[0]->value;
-  if (parent.type == graph::AtomicType::REAL) {
+  if (parent.type == graph::AtomicType::REAL or
+      parent.type == graph::AtomicType::POS_REAL or
+      parent.type == graph::AtomicType::NEG_REAL) {
     value._double = -parent._double;
   } else {
     throw std::runtime_error(
@@ -269,6 +280,28 @@ void NegativeLog::eval(std::mt19937& /* gen */) {
         "invalid parent type " +
         std::to_string(static_cast<int>(parent.type.atomic_type)) +
         " for NEGATIVE_LOG operator at node_id " + std::to_string(index));
+  }
+}
+
+Log1mExp::Log1mExp(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::LOG1MEXP, in_nodes) {
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  if (type0 != graph::AtomicType::NEG_REAL) {
+    throw std::invalid_argument(
+        "operator LOG1MEXP requires neg_real parent");
+  }
+  value = graph::AtomicValue(graph::AtomicType::NEG_REAL);
+}
+
+void Log1mExp::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::AtomicValue& parent = in_nodes[0]->value;
+  if (parent.type == graph::AtomicType::NEG_REAL) {
+    value._double = util::log1mexp(parent._double);
+  } else {
+    throw std::runtime_error(
+        "invalid parent type " + parent.type.to_string() +
+        " for LOG1MEXP operator at node_id " + std::to_string(index));
   }
 }
 
