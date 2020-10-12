@@ -91,5 +91,13 @@ See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
 */
 double log1pexp(double x);
 
+/*
+Compute `log(1 - exp(x))` with numerical stability.
+See: https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+:param x:
+:returns: log(1 - exp(x))
+*/
+double log1mexp(double x);
+
 } // namespace util
 } // namespace beanmachine

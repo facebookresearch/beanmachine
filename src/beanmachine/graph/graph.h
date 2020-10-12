@@ -292,6 +292,7 @@ enum class OperatorType {
   POW,
   NEGATIVE_LOG,
   // TODO: We can remove NEGATIVE_LOG once we have a NEG_REAL type implemented.
+  LOG1MEXP,
 };
 
 enum class DistributionType {

@@ -88,5 +88,14 @@ double log1pexp(double x) {
   }
 }
 
+double log1mexp(double x) {
+  assert(x <= 0);
+  if (x < -0.693) {
+    return std::log1p(-std::exp(x));
+  } else {
+    return std::log(-std::expm1(x));
+  }
+}
+
 } // namespace util
 } // namespace beanmachine

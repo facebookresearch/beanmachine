@@ -208,5 +208,21 @@ class NegativeLog : public UnaryOperator {
   static bool is_registered;
 };
 
+class Log1mExp : public UnaryOperator {
+ public:
+  explicit Log1mExp(const std::vector<graph::Node*>& in_nodes);
+  ~Log1mExp() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<Log1mExp>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 } // namespace oper
 } // namespace beanmachine

@@ -53,6 +53,7 @@ PYBIND11_MODULE(graph, module) {
       .value("PHI", OperatorType::PHI)
       .value("LOGISTIC", OperatorType::LOGISTIC)
       .value("LOG1PEXP", OperatorType::LOG1PEXP)
+      .value("LOG1MEXP", OperatorType::LOG1MEXP)
       .value("LOGSUMEXP", OperatorType::LOGSUMEXP)
       .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
       .value("LOG", OperatorType::LOG)

@@ -144,9 +144,9 @@ class TestOperators(unittest.TestCase):
         # o2 and o3 both compute the same value
         o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
         o3 = g.add_operator(bmg.OperatorType.EXP, [o1])
-        # NEGATE only supports REAL while EXP outputs POS_REAL
-        with self.assertRaises(ValueError):
-            o4 = g.add_operator(bmg.OperatorType.NEGATE, [o3])
+        # direcly negating o3 results in a NEG_REAL value
+        g.add_operator(bmg.OperatorType.NEGATE, [o3])
+        # converting o3 to REAL then applying negate results in REAL value
         o3_real = g.add_operator(bmg.OperatorType.TO_REAL, [o3])
         o4 = g.add_operator(bmg.OperatorType.NEGATE, [o3_real])
         o2_real = g.add_operator(bmg.OperatorType.TO_REAL, [o2])
