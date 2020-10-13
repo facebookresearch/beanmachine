@@ -114,6 +114,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
+    Zero,
 )
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
@@ -644,11 +645,10 @@ constant graph node of the stated type for it, and adds it to the builder"""
         if isinstance(left, ConstantNode):
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value + right.value)
-            if left.inf_type == Boolean:
-                # Must be a zero; otherwise we'd return One.
+            if left.inf_type == Zero:
                 return right
         if isinstance(right, ConstantNode):
-            if right.inf_type == Boolean:
+            if right.inf_type == Zero:
                 return left
 
         node = AdditionNode(left, right)
@@ -674,14 +674,13 @@ constant graph node of the stated type for it, and adds it to the builder"""
             t = left.inf_type
             if t == One:
                 return right
-            if t == Boolean:
-                # It must be a zero.
+            if t == Zero:
                 return left
         if isinstance(right, ConstantNode):
             t = right.inf_type
             if t == One:
                 return left
-            if t == Boolean:
+            if t == Zero:
                 return right
         node = MultiplicationNode(left, right)
         self.add_node(node)

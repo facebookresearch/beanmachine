@@ -22,10 +22,12 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     Natural,
+    NegativeReal,
     One,
     PositiveReal,
     Probability,
     Real,
+    Zero,
 )
 
 
@@ -46,10 +48,10 @@ class BMGNodesTest(unittest.TestCase):
         nat = NaturalNode(2)
 
         self.assertEqual(b.inf_type, One)
-        self.assertEqual(bf.inf_type, Boolean)
+        self.assertEqual(bf.inf_type, Zero)
         self.assertEqual(prob.inf_type, Probability)
         self.assertEqual(pos.inf_type, PositiveReal)
-        self.assertEqual(real.inf_type, Real)
+        self.assertEqual(real.inf_type, NegativeReal)
         self.assertEqual(nat.inf_type, Natural)
 
         # Constant infimum type depends on the value,

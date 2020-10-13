@@ -8,6 +8,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Natural,
     NaturalMatrix,
     NegativeReal,
+    NegativeRealMatrix,
     One,
     OneHotMatrix,
     PositiveReal,
@@ -19,6 +20,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     SimplexMatrix,
     Tensor,
     Zero,
+    ZeroMatrix,
     bottom,
     meets_requirement,
     supremum,
@@ -65,21 +67,21 @@ class BMGTypesTest(unittest.TestCase):
         """test_type_of_value"""
 
         self.assertEqual(One, type_of_value(True))
-        self.assertEqual(Boolean, type_of_value(False))
-        self.assertEqual(Boolean, type_of_value(0))
+        self.assertEqual(Zero, type_of_value(False))
+        self.assertEqual(Zero, type_of_value(0))
         self.assertEqual(One, type_of_value(1))
-        self.assertEqual(Boolean, type_of_value(0.0))
+        self.assertEqual(Zero, type_of_value(0.0))
         self.assertEqual(One, type_of_value(1.0))
-        self.assertEqual(Boolean, type_of_value(tensor(False)))
-        self.assertEqual(Boolean, type_of_value(tensor(0)))
+        self.assertEqual(Zero, type_of_value(tensor(False)))
+        self.assertEqual(Zero, type_of_value(tensor(0)))
         self.assertEqual(One, type_of_value(tensor(1)))
-        self.assertEqual(Boolean, type_of_value(tensor(0.0)))
+        self.assertEqual(Zero, type_of_value(tensor(0.0)))
         self.assertEqual(One, type_of_value(tensor(1.0)))
         self.assertEqual(One, type_of_value(tensor([[True]])))
-        self.assertEqual(Boolean, type_of_value(tensor([[False]])))
-        self.assertEqual(Boolean, type_of_value(tensor([[0]])))
+        self.assertEqual(Zero, type_of_value(tensor([[False]])))
+        self.assertEqual(Zero, type_of_value(tensor([[0]])))
         self.assertEqual(One, type_of_value(tensor([[1]])))
-        self.assertEqual(Boolean, type_of_value(tensor([[0.0]])))
+        self.assertEqual(Zero, type_of_value(tensor([[0.0]])))
         self.assertEqual(One, type_of_value(tensor([[1.0]])))
         self.assertEqual(Natural, type_of_value(2))
         self.assertEqual(Natural, type_of_value(2.0))
@@ -93,11 +95,13 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(PositiveReal, type_of_value(1.5))
         self.assertEqual(PositiveReal, type_of_value(tensor(1.5)))
         self.assertEqual(PositiveReal, type_of_value(tensor([[1.5]])))
-        self.assertEqual(Real, type_of_value(-1.5))
-        self.assertEqual(Real, type_of_value(tensor(-1.5)))
-        self.assertEqual(Real, type_of_value(tensor([[-1.5]])))
+        self.assertEqual(NegativeReal, type_of_value(-1.5))
+        self.assertEqual(NegativeReal, type_of_value(tensor(-1.5)))
+        self.assertEqual(NegativeReal, type_of_value(tensor([[-1.5]])))
         # 1-d tensor is matrix
-        self.assertEqual(BooleanMatrix(1, 2), type_of_value(tensor([0, 0])))
+        self.assertEqual(ZeroMatrix(1, 2), type_of_value(tensor([0, 0])))
+        self.assertEqual(BooleanMatrix(1, 3), type_of_value(tensor([0, 1, 1])))
+        self.assertEqual(BooleanMatrix(1, 2), type_of_value(tensor([1, 1])))
         # 2-d tensor is matrix
         self.assertEqual(OneHotMatrix(2, 2), type_of_value(tensor([[1, 0], [1, 0]])))
         self.assertEqual(BooleanMatrix(2, 2), type_of_value(tensor([[1, 1], [1, 0]])))
@@ -113,6 +117,10 @@ class BMGTypesTest(unittest.TestCase):
         )
         self.assertEqual(
             RealMatrix(2, 2), type_of_value(tensor([[1.75, 0.5], [0.5, -0.5]]))
+        )
+        self.assertEqual(
+            NegativeRealMatrix(2, 2),
+            type_of_value(tensor([[-1.75, -0.5], [-0.5, -0.5]])),
         )
         # 3-d tensor is Tensor
         self.assertEqual(
