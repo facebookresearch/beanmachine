@@ -7,6 +7,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     BooleanMatrix,
     Natural,
     NaturalMatrix,
+    NegativeReal,
     One,
     OneHotMatrix,
     PositiveReal,
@@ -17,6 +18,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     RealMatrix,
     SimplexMatrix,
     Tensor,
+    Zero,
     bottom,
     meets_requirement,
     supremum,
@@ -43,6 +45,8 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(PositiveReal, supremum(Probability, Natural))
         self.assertEqual(Real, supremum(Natural, Probability, Real))
         self.assertEqual(Tensor, supremum(Real, Tensor, Natural, Boolean))
+        self.assertEqual(Real, supremum(NegativeReal, PositiveReal))
+        self.assertEqual(Boolean, supremum(One, Zero))
 
         # Supremum of any two types with different matrix dimensions is Tensor
         self.assertEqual(Tensor, supremum(RealMatrix(1, 2), RealMatrix(2, 1)))
