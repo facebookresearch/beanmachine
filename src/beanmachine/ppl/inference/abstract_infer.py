@@ -51,6 +51,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_from_prior: bool = False,
+        retry: int = 3,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Abstract method to be implemented by classes that inherit from
@@ -70,11 +71,14 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_samples: int,
         random_seed: int,
         num_adaptive_samples: int,
+        retry: int,
         verbose: VerboseLevel,
     ):
         try:
             AbstractInference.set_seed_for_chain(random_seed, chain)
-            rv_dict = self._infer(num_samples, num_adaptive_samples, verbose)
+            rv_dict = self._infer(
+                num_samples, num_adaptive_samples, verbose, retry=retry
+            )
             string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
         except BaseException as x:
@@ -93,6 +97,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_from_prior: bool = False,
+        retry: int = 3,
     ) -> MonteCarloSamples:
         """
         Run inference algorithms and reset the world/mode at the end.
@@ -118,7 +123,14 @@ class AbstractInference(object, metaclass=ABCMeta):
                 for chain in range(num_chains):
                     p = mp.Process(
                         target=self._parallel_infer,
-                        args=(q, chain, num_samples, random_seed),
+                        args=(
+                            q,
+                            chain,
+                            num_samples,
+                            random_seed,
+                            num_adaptive_samples,
+                            retry,
+                        ),
                     )
                     p.start()
 
@@ -138,6 +150,7 @@ class AbstractInference(object, metaclass=ABCMeta):
                         num_adaptive_samples,
                         verbose,
                         initialize_from_prior,
+                        retry,
                     )
                     chain_queries.append(rv_dicts)
 

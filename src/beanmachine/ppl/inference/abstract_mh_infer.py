@@ -311,6 +311,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_from_prior: bool = False,
+        retry: int = 3,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Run inference algorithms.
@@ -336,50 +337,74 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         ):
             blocks = self.process_blocks()
             shuffle(blocks)
-            for block in blocks:
-                if block.type == BlockType.SINGLENODE:
-                    node = block.first_node
-                    if node in self.observations_ or not self.world_.contains_in_world(
-                        node
-                    ):
+            while retry > 0:
+                try:
+                    for block in blocks:
+                        if block.type == BlockType.SINGLENODE:
+                            node = block.first_node
+                            if (
+                                node in self.observations_
+                                or not self.world_.contains_in_world(node)
+                            ):
+                                continue
+
+                            proposer = self.find_best_single_site_proposer(node)
+
+                            LOGGER_PROPOSER.log(
+                                LogLevel.DEBUG_PROPOSER.value,
+                                "=" * 30
+                                + "\n"
+                                + "Proposer info for node: {n}\n".format(n=node)
+                                + "- Type: {pt}\n".format(pt=str(type(proposer))),
+                            )
+                            if (
+                                not self.skip_single_inference_run
+                                or iteration >= num_adaptive_samples
+                            ):
+                                (
+                                    is_accepted,
+                                    acceptance_probability,
+                                ) = self.single_inference_run(node, proposer)
+
+                            if iteration < num_adaptive_samples:
+                                if self.skip_single_inference_run:
+                                    is_accepted = True
+                                    acceptance_probability = tensor(1.0)
+
+                                proposer.do_adaptation(
+                                    node,
+                                    self.world_,
+                                    acceptance_probability,
+                                    iteration,
+                                    num_adaptive_samples,
+                                    is_accepted,
+                                )
+
+                        if (
+                            block.type == BlockType.SEQUENTIAL
+                            and iteration >= num_adaptive_samples
+                        ):
+                            self.single_inference_run_with_sequential_block_update(
+                                block
+                            )
+                except RuntimeError as e:
+                    # retry on p.d. erors.
+                    # this would mostly help if the source was from sampler variance
+                    # not in cases of model misspecification, since we are not learning
+                    # from bad samples
+                    if retry and "singular" in str(e).lower():
+                        LOGGER_INFERENCE.log(
+                            LogLevel.DEBUG_UPDATES.value,
+                            "Matrix was singular during inference, retrying...",
+                        )
+                        raise RuntimeWarning(
+                            "Matrix was singular during inference, retrying..."
+                        )
+                        retry -= 1
                         continue
-
-                    proposer = self.find_best_single_site_proposer(node)
-
-                    LOGGER_PROPOSER.log(
-                        LogLevel.DEBUG_PROPOSER.value,
-                        "=" * 30
-                        + "\n"
-                        + "Proposer info for node: {n}\n".format(n=node)
-                        + "- Type: {pt}\n".format(pt=str(type(proposer))),
-                    )
-                    if (
-                        not self.skip_single_inference_run
-                        or iteration >= num_adaptive_samples
-                    ):
-                        is_accepted, acceptance_probability = self.single_inference_run(
-                            node, proposer
-                        )
-
-                    if iteration < num_adaptive_samples:
-                        if self.skip_single_inference_run:
-                            is_accepted = True
-                            acceptance_probability = tensor(1.0)
-
-                        proposer.do_adaptation(
-                            node,
-                            self.world_,
-                            acceptance_probability,
-                            iteration,
-                            num_adaptive_samples,
-                            is_accepted,
-                        )
-
-                if (
-                    block.type == BlockType.SEQUENTIAL
-                    and iteration >= num_adaptive_samples
-                ):
-                    self.single_inference_run_with_sequential_block_update(block)
+                    else:
+                        raise e
+                break
 
             for query in self.queries_:
                 # unsqueeze the sampled value tensor, which adds an extra dimension

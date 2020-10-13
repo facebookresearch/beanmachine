@@ -120,6 +120,7 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_from_prior: bool = False,
+        retry: int = 3,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Run rejection sampling inference algorithm

@@ -177,6 +177,7 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
         initialize_from_prior: bool = True,
+        retry: int = 3,
     ) -> Dict[RVIdentifier, Tensor]:
         """
             Run ABC-SMC inference algorithm
