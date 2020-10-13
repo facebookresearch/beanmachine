@@ -16,5 +16,5 @@ class ErrorReportTest(unittest.TestCase):
         e = ErrorReport()
         e.add_error(v)
         expected = """
-The probability of a Bernoulli is required to be a probability but is a real."""
+The probability of a Bernoulli is required to be a probability but is a negative real."""
         self.assertEqual(expected.strip(), str(e).strip())

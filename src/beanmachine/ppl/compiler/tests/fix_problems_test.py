@@ -238,7 +238,7 @@ digraph "graph" {
 The count of a Binomial is required to be a natural but is a positive real.
 The probability of a Bernoulli is required to be a probability but is a 1 x 2 simplex matrix.
 The probability of a Binomial is required to be a probability but is a positive real.
-The sigma of a Normal is required to be a positive real but is a real.
+The sigma of a Normal is required to be a positive real but is a negative real.
         """
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -319,7 +319,7 @@ digraph "graph" {
   N06[label="*:M>=N"];
   N07[label="Binomial:N>=N"];
   N08[label="Sample:N>=N"];
-  N09[label="0:N>=B"];
+  N09[label="0:N>=Z"];
   N10[label="if:N>=N"];
   N00 -> N04[label="count:N"];
   N01 -> N02[label="probability:P"];
@@ -387,7 +387,7 @@ digraph "graph" {
   N07[label="Log:R>=R"];
   N08[label="Normal:R>=R"];
   N09[label="Sample:R>=R"];
-  N10[label="-1.0:R>=R"];
+  N10[label="-1.0:R>=R-"];
   N11[label="**:R+>=R+"];
   N12[label="*:R+>=R+"];
   N13[label="1.0:R+>=OH"];
@@ -968,7 +968,7 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
         # The observations have been converted to the correct types:
         expected = """
 digraph "graph" {
-  N00[label="0.0:R>=B"];
+  N00[label="0.0:R>=Z"];
   N01[label="1.0:R>=OH"];
   N02[label="2.0:R>=N"];
   N03[label="0.5:R>=P"];

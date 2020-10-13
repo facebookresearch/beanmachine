@@ -556,11 +556,12 @@ def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
     assert sup.rows == 1
     assert sup.columns == 1
 
-    if sup == Real or sup == PositiveReal or sup == Natural:
+    if sup in {Real, PositiveReal, NegativeReal, Natural}:
         return sup.with_dimensions(r, c)
 
     # The only remaining possibilities are:
     #
+    # * Every element was 0 -- sup is Zero
     # * Every element was 1 -- sup is One
     # * Every element was 0 or 1 -- sup is Boolean
     # * At least one element was between 0 and 1 -- sup is Probability
@@ -568,14 +569,36 @@ def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
     # In the first two cases, we might have a one-hot.
     # In the third case, it is possible that we have a simplex.
 
-    assert sup == Boolean or sup == One or sup == Probability
+    assert sup in {Boolean, Zero, One, Probability}
 
     sums_to_one = all(abs(float(row.sum()) - 1.0) <= simplex_precision for row in v)
     if sums_to_one:
         if sup == Probability:
             return SimplexMatrix(r, c)
         return OneHotMatrix(r, c)
-    return sup.with_dimensions(r, c)
+
+    # It is not a simplex or a one-hot. Is it a matrix of probabilities that
+    # do not sum to one?
+
+    if sup == Probability:
+        return sup.with_dimensions(r, c)
+
+    # The only remaining possibilities are all zeros, all ones,
+    # or some mixture of zero and one.
+    #
+    # If we have all zeros then this could be treated as either a matrix
+    # of Booleans or a matrix of negative reals, and we do not know which
+    # we will need; matrix of zeros is the type smaller than both those,
+    # so return it:
+
+    if sup == Zero:
+        return sup.with_dimensions(r, c)
+
+    # The only remaining possibility is matrix of all ones, or matrix
+    # of some zeros and some ones. Either way, the smallest type
+    # left is matrix of Booleans.
+
+    return BooleanMatrix(r, c)
 
 
 def type_of_value(v: Any) -> BMGLatticeType:
@@ -583,15 +606,15 @@ def type_of_value(v: Any) -> BMGLatticeType:
     if isinstance(v, torch.Tensor):
         return _type_of_matrix(v)
     if isinstance(v, bool):
-        return One if v else Boolean
+        return One if v else Zero
     if isinstance(v, int):
         if v == 0:
-            return Boolean
+            return Zero
         if v == 1:
             return One
         if v >= 2:
             return Natural
-        return Real
+        return NegativeReal
     if isinstance(v, float):
         if v == int(v):
             return type_of_value(int(v))
@@ -599,7 +622,7 @@ def type_of_value(v: Any) -> BMGLatticeType:
             if v <= 1.0:
                 return Probability
             return PositiveReal
-        return Real
+        return NegativeReal
     raise ValueError("Unexpected value passed to type_of_value")
 
 
