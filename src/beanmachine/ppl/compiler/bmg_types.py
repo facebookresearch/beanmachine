@@ -26,6 +26,7 @@ There are five "scalar" types:
 * Probability (P) -- a real between 0.0 and 1.0
 * Natural (N) -- a non-negative integer
 * Positive Real (R+)
+* Negative Real (R-)
 * Real (R)
 
 There are infinitely many "matrix" types, but they can be
@@ -35,6 +36,7 @@ divided into the following kinds:
 * Matrix of naturals (MN[r, c])
 * Matrix of probabilities (MP[r, c])
 * Matrix of positive reals (MR+[r, c])
+* Matrix of negative reals (MR-[r, c])
 * Matrix of reals (MR[r, c])
 * Row simplex (S[r, c]): A restriction on MP[r, c] such that every row adds to 1.0.
 
@@ -68,9 +70,9 @@ class BMGLatticeType:
 
 
 # I want to keep the marker values for "elements of this matrix are
-# R, R+, P, N, B" separate from the hierarchy that expresses "this is
-# a scalar R, R+, P, N, B" because in an upcoming diff I am going to
-# eliminate "scalar R, R+, P, N, B" entirely from our type analysis;
+# R, R+, R-, P, N, B" separate from the hierarchy that expresses "this is
+# a scalar R, R+, R-, P, N, B" because in an upcoming diff I am going to
+# eliminate "scalar R, R+, R-, P, N, B" entirely from our type analysis;
 # if we determine that a thing is a scalar probability, we will simply
 # express that as being a [1,1] matrix of probabilities. When two
 # types are freely convertible to each other and have all the same
@@ -91,6 +93,7 @@ bool_element = BMGElementType("B", "bool")
 natural_element = BMGElementType("N", "natural")
 probability_element = BMGElementType("P", "probability")
 positive_real_element = BMGElementType("R+", "positive real")
+negative_real_element = BMGElementType("R-", "negative real")
 real_element = BMGElementType("R", "real")
 
 
@@ -174,6 +177,15 @@ class PositiveRealMatrix(BroadcastMatrixType):
 
 
 @memoize
+class NegativeRealMatrix(BroadcastMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        BroadcastMatrixType.__init__(self, negative_real_element, rows, columns)
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return NegativeRealMatrix(rows, columns)
+
+
+@memoize
 class RealMatrix(BroadcastMatrixType):
     def __init__(self, rows: int, columns: int) -> None:
         BroadcastMatrixType.__init__(self, real_element, rows, columns)
@@ -213,12 +225,27 @@ class OneHotMatrix(BMGMatrixType):
         return OneHotMatrix(rows, columns)
 
 
+@memoize
+class ZeroMatrix(BMGMatrixType):
+    def __init__(self, rows: int, columns: int) -> None:
+        short_name = "Z" if rows == 1 and columns == 1 else f"Z[{rows},{columns}]"
+        long_name = (
+            "zero" if rows == 1 and columns == 1 else f"{rows} x {columns} zero matrix"
+        )
+        BMGMatrixType.__init__(self, bool_element, short_name, long_name, rows, columns)
+
+    def with_dimensions(self, rows: int, columns: int) -> BMGMatrixType:
+        return ZeroMatrix(rows, columns)
+
+
 bottom = BMGLatticeType("bottom", "bottom")
 One = OneHotMatrix(1, 1)
+Zero = ZeroMatrix(1, 1)
 Boolean = BooleanMatrix(1, 1)
 Natural = NaturalMatrix(1, 1)
 Probability = ProbabilityMatrix(1, 1)
 PositiveReal = PositiveRealMatrix(1, 1)
+NegativeReal = NegativeRealMatrix(1, 1)
 Real = RealMatrix(1, 1)
 Tensor = BMGLatticeType("T", "tensor")
 Malformed = BMGLatticeType("M", "malformed")
@@ -244,23 +271,26 @@ lattice is a DAG which meets these conditions:
 For matrix types with a single column and any number of rows r,
 and columns c, the type lattice is:
 
-        M              (Malformed; the top type)
-        |
-        T              (Tensor unsupported by BMG)
-        |
-     MR[r,c]           (Real matrix)
-        |
-     MR+[r,c]          (Positive real matrix)
-     |      |
-MN[r,c]     |          (Natural matrix)
-     |   MP[r,c]       (Probability matrix)
-     |   |    |
-   MB[r,c]    |        (Boolean matrix)
-      |     S[r,c]     (Row-simplex matrix)
-      |     |
-      OH[r,c]          (One-hot matrix)
-        |
-      BOTTOM           (the bottom type)
+      M                      (Malformed; the top type)
+      |
+      T                      (Tensor unsupported by BMG)
+      |
+    MR[r,c]                  (Real matrix)
+    |     |
+    |      MR+[r,c]          (Positive real matrix)
+MR-[r,c]   |     |           (Negative real matrix)
+    |      |     |
+    | MN[r,c]    |           (Natural matrix)
+    |      |   MP[r,c]       (Probability matrix)
+    |      |   |    |
+    |    MB[r,c]    |        (Boolean matrix)
+    |    |    |   S[r,c]     (Row-simplex matrix)
+    |    |    |   |
+    |    |  OH[r,c]          (One-hot matrix)
+    |    |    |
+    Z[r,c]    |              (All-zero matrix)
+         |    |
+         BOTTOM              (the bottom type)
 
 OH -- one-hot -- is not a type in the BMG type system; we use
 it only when analyzing the accumulated graph. The OH type is
@@ -269,6 +299,10 @@ converted to both a Boolean and a simplex matrix; if the
 rows are "one hot" -- all false (or 0) except for one true
 (or 1) -- then the matrix is convertable to both Boolean and
 simplex.
+
+Similarly, Z -- the all-zero matrix -- is not a type in the BMG
+type system. We use it to track cases where a matrix is convertible
+to both Boolean and negative real.
 
 Similarly, T (tensor) and M (malformed -- the top type) are not
 found in the BMG type system; we use these marker types for error
@@ -356,49 +390,106 @@ the input types are the same, and the output type is the smallest type it
 could possibly be: PositiveReal.
 """
 
+# This is a map from (class, class) to (int, int)=>BMGMatrix
+_lookup_table = None
 
-def _matrix_supremum(t: BMGMatrixType, u: BMGMatrixType) -> BMGMatrixType:  # noqa
-    # If we've made it here, they are unequal types but have the
-    # same dimensions, and both are matrix types.
-    assert t != u
-    assert t.rows == u.rows
-    assert t.columns == u.columns
-    r = t.rows
-    c = t.columns
-    if t == RealMatrix(r, c):
-        return t
-    if u == RealMatrix(r, c):
-        return u
-    if t == PositiveRealMatrix(r, c):
-        return t
-    if u == PositiveRealMatrix(r, c):
-        return u
-    if t == NaturalMatrix(r, c) and u == ProbabilityMatrix(r, c):
-        return PositiveRealMatrix(r, c)
-    if t == ProbabilityMatrix(r, c) and u == NaturalMatrix(r, c):
-        return PositiveRealMatrix(r, c)
-    if t == NaturalMatrix(r, c) and u == SimplexMatrix(r, c):
-        return PositiveRealMatrix(r, c)
-    if t == SimplexMatrix(r, c) and u == NaturalMatrix(r, c):
-        return PositiveRealMatrix(r, c)
-    if t == ProbabilityMatrix(r, c):
-        return t
-    if u == ProbabilityMatrix(r, c):
-        return u
-    if t == NaturalMatrix(r, c):
-        return t
-    if u == NaturalMatrix(r, c):
-        return u
-    if t == BooleanMatrix(r, c) and u == SimplexMatrix(r, c):
-        return ProbabilityMatrix(r, c)
-    if t == SimplexMatrix(r, c) and u == BooleanMatrix(r, c):
-        return ProbabilityMatrix(r, c)
-    if t == BooleanMatrix(r, c):
-        assert u == OneHotMatrix(r, c)
-        return t
-    assert t == OneHotMatrix(r, c)
-    assert u == BooleanMatrix(r, c)
-    return u
+
+def _lookup():
+    global _lookup_table
+    if _lookup_table is None:
+        R = Real.__class__
+        RP = PositiveReal.__class__
+        RN = NegativeReal.__class__
+        P = Probability.__class__
+        S = SimplexMatrix(1, 1).__class__
+        N = Natural.__class__
+        B = Boolean.__class__
+        OH = One.__class__
+        Z = Zero.__class__
+        _lookup_table = {
+            (R, R): RealMatrix,
+            (R, RP): RealMatrix,
+            (R, RN): RealMatrix,
+            (R, P): RealMatrix,
+            (R, S): RealMatrix,
+            (R, N): RealMatrix,
+            (R, B): RealMatrix,
+            (R, OH): RealMatrix,
+            (R, Z): RealMatrix,
+            (RP, R): RealMatrix,
+            (RP, RP): PositiveRealMatrix,
+            (RP, RN): RealMatrix,
+            (RP, P): PositiveRealMatrix,
+            (RP, S): PositiveRealMatrix,
+            (RP, N): PositiveRealMatrix,
+            (RP, B): PositiveRealMatrix,
+            (RP, OH): PositiveRealMatrix,
+            (RP, Z): PositiveRealMatrix,
+            (RN, R): RealMatrix,
+            (RN, RP): RealMatrix,
+            (RN, RN): NegativeRealMatrix,
+            (RN, P): RealMatrix,
+            (RN, S): RealMatrix,
+            (RN, N): RealMatrix,
+            (RN, B): RealMatrix,
+            (RN, OH): RealMatrix,
+            (RN, Z): NegativeRealMatrix,
+            (P, R): RealMatrix,
+            (P, RP): PositiveRealMatrix,
+            (P, RN): RealMatrix,
+            (P, P): ProbabilityMatrix,
+            (P, S): ProbabilityMatrix,
+            (P, N): PositiveRealMatrix,
+            (P, B): ProbabilityMatrix,
+            (P, OH): ProbabilityMatrix,
+            (P, Z): ProbabilityMatrix,
+            (S, R): RealMatrix,
+            (S, RP): PositiveRealMatrix,
+            (S, RN): RealMatrix,
+            (S, P): ProbabilityMatrix,
+            (S, S): SimplexMatrix,
+            (S, N): PositiveRealMatrix,
+            (S, B): PositiveRealMatrix,
+            (S, OH): SimplexMatrix,
+            (S, Z): RealMatrix,
+            (N, R): RealMatrix,
+            (N, RP): PositiveRealMatrix,
+            (N, RN): RealMatrix,
+            (N, P): PositiveRealMatrix,
+            (N, S): PositiveRealMatrix,
+            (N, N): NaturalMatrix,
+            (N, B): NaturalMatrix,
+            (N, OH): NaturalMatrix,
+            (N, Z): NaturalMatrix,
+            (B, R): RealMatrix,
+            (B, RP): PositiveRealMatrix,
+            (B, RN): RealMatrix,
+            (B, P): ProbabilityMatrix,
+            (B, S): ProbabilityMatrix,
+            (B, N): NaturalMatrix,
+            (B, B): BooleanMatrix,
+            (B, OH): BooleanMatrix,
+            (B, Z): BooleanMatrix,
+            (OH, R): RealMatrix,
+            (OH, RP): PositiveRealMatrix,
+            (OH, RN): RealMatrix,
+            (OH, P): ProbabilityMatrix,
+            (OH, S): SimplexMatrix,
+            (OH, N): NaturalMatrix,
+            (OH, B): BooleanMatrix,
+            (OH, OH): OneHotMatrix,
+            (OH, Z): BooleanMatrix,
+            (Z, R): RealMatrix,
+            (Z, RP): PositiveRealMatrix,
+            (Z, RN): NegativeRealMatrix,
+            (Z, P): ProbabilityMatrix,
+            (Z, S): SimplexMatrix,
+            (Z, N): NaturalMatrix,
+            (Z, B): BooleanMatrix,
+            (Z, OH): BooleanMatrix,
+            (Z, Z): ZeroMatrix,
+        }
+    return _lookup_table
 
 
 @memoize
@@ -419,7 +510,9 @@ greater than or equal to both."""
     assert isinstance(u, BMGMatrixType)
     if t.rows != u.rows or t.columns != u.columns:
         return Tensor
-    return _matrix_supremum(t, u)
+    # If we've made it here, they are unequal types but have the
+    # same dimensions, and both are matrix types.
+    return _lookup()[(t.__class__, u.__class__)](t.rows, t.columns)
 
 
 # We can extend the two-argument supremum function to any number of arguments:
