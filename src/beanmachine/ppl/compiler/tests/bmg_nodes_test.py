@@ -12,6 +12,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     GammaNode,
     HalfCauchyNode,
     NaturalNode,
+    NegativeRealNode,
     NormalNode,
     PositiveRealNode,
     ProbabilityNode,
@@ -44,6 +45,7 @@ class BMGNodesTest(unittest.TestCase):
         bf = BooleanNode(False)
         prob = ProbabilityNode(0.5)
         pos = PositiveRealNode(1.5)
+        neg = NegativeRealNode(-1.5)
         real = RealNode(-1.5)
         nat = NaturalNode(2)
 
@@ -51,6 +53,7 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(bf.inf_type, Zero)
         self.assertEqual(prob.inf_type, Probability)
         self.assertEqual(pos.inf_type, PositiveReal)
+        self.assertEqual(neg.inf_type, NegativeReal)
         self.assertEqual(real.inf_type, NegativeReal)
         self.assertEqual(nat.inf_type, Natural)
 
@@ -104,12 +107,14 @@ class BMGNodesTest(unittest.TestCase):
         b = BooleanNode(True)
         prob = ProbabilityNode(0.5)
         pos = PositiveRealNode(1.5)
+        neg = NegativeRealNode(-1.5)
         real = RealNode(-1.5)
         nat = NaturalNode(2)
 
         self.assertEqual(b.requirements, [])
         self.assertEqual(prob.requirements, [])
         self.assertEqual(pos.requirements, [])
+        self.assertEqual(neg.requirements, [])
         self.assertEqual(real.requirements, [])
         self.assertEqual(nat.requirements, [])
 
@@ -121,6 +126,7 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(GammaNode(pos, pos).requirements, [PositiveReal, PositiveReal])
         self.assertEqual(Chi2Node(pos).requirements, [PositiveReal])
         self.assertEqual(HalfCauchyNode(pos).requirements, [PositiveReal])
+        self.assertEqual(NormalNode(neg, pos).requirements, [Real, PositiveReal])
         self.assertEqual(NormalNode(real, pos).requirements, [Real, PositiveReal])
         self.assertEqual(
             StudentTNode(pos, pos, pos).requirements, [PositiveReal, Real, PositiveReal]

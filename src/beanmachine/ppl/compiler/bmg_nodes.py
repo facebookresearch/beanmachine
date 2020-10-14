@@ -15,6 +15,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     Malformed,
     Natural,
+    NegativeReal,
     One,
     PositiveReal,
     Probability,
@@ -361,6 +362,47 @@ class PositiveRealNode(ConstantNode):
         n = d[self]
         v = self._value_to_python()
         return f"n{n} = g.add_constant_pos_real({v})"
+
+
+class NegativeRealNode(ConstantNode):
+    """A real constant restricted to non-positive values"""
+
+    value: float
+
+    def __init__(self, value: float):
+        ConstantNode.__init__(self)
+        self.value = value
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    @property
+    def graph_type(self) -> BMGLatticeType:
+        return NegativeReal
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    @property
+    def label(self) -> str:
+        return str(self.value)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_constant_neg_real(float(self.value))
+
+    def _value_to_python(self) -> str:
+        return str(float(self.value))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp(self.value)
+        return f"uint n{n} = g.add_constant_neg_real({v});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_python()
+        return f"n{n} = g.add_constant_neg_real({v})"
 
 
 class ProbabilityNode(ConstantNode):
