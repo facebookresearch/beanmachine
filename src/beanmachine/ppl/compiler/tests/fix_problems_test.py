@@ -998,3 +998,44 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_fix_problems_14(self) -> None:
+        """test_fix_problems_14"""
+
+        # Fixes for problems involving negative reals.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+
+        # Right now the only node we have of type negative real is
+        # a constant; if we force a scenario where a negative real
+        # constant is used in a context where a real is needed,
+        # we generate a new real constant.
+
+        m = bmg.add_neg_real(-1.0)
+        s = bmg.add_pos_real(1.0)
+        norm = bmg.add_normal(m, s)
+        bmg.add_sample(norm)
+
+        error_report = fix_problems(bmg)
+        self.assertEqual(str(error_report).strip(), "")
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=False,
+            edge_requirements=True,
+            point_at_input=True,
+        )
+
+        expected = """
+digraph "graph" {
+  N0[label="-1.0:R-"];
+  N1[label="1.0:R+"];
+  N2[label="Normal:R"];
+  N3[label="Sample:R"];
+  N4[label="-1.0:R"];
+  N1 -> N2[label="sigma:R+"];
+  N2 -> N3[label="operand:R"];
+  N4 -> N2[label="mu:R"];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
