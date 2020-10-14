@@ -89,6 +89,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     NaturalNode,
     NegateNode,
     NegativeLogNode,
+    NegativeRealNode,
     NormalNode,
     NotNode,
     Observation,
@@ -110,6 +111,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
     Boolean,
     Natural,
+    NegativeReal,
     One,
     PositiveReal,
     Probability,
@@ -396,6 +398,8 @@ constant graph node of the stated type for it, and adds it to the builder"""
             return self.add_natural(int(value))
         if node_type == PositiveReal:
             return self.add_pos_real(float(value))
+        if node_type == NegativeReal:
+            return self.add_neg_real(float(value))
         if node_type == Real:
             return self.add_real(float(value))
         if node_type == Tensor:
@@ -419,6 +423,12 @@ constant graph node of the stated type for it, and adds it to the builder"""
     @memoize
     def add_pos_real(self, value: float) -> PositiveRealNode:
         node = PositiveRealNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_neg_real(self, value: float) -> NegativeRealNode:
+        node = NegativeRealNode(value)
         self.add_node(node)
         return node
 
