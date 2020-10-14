@@ -19,6 +19,7 @@ class TestOperators(unittest.TestCase):
         c5 = g.add_constant_probability(0.7)
         c6 = g.add_constant(23)  # NATURAL
         c7 = g.add_constant(False)
+        c8 = g.add_constant_neg_real(-1.25)
         # add const matrices, operators on matrix to be added
         g.add_constant_matrix(np.array([[True, False], [False, True]]))
         g.add_constant_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
@@ -37,6 +38,7 @@ class TestOperators(unittest.TestCase):
             g.add_operator(bmg.OperatorType.TO_REAL, [])
         g.add_operator(bmg.OperatorType.TO_REAL, [c4])
         g.add_operator(bmg.OperatorType.TO_REAL, [c6])
+        g.add_operator(bmg.OperatorType.TO_REAL, [c8])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [c4, c5])
         # test EXP
