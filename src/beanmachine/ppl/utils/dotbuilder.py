@@ -25,22 +25,22 @@ def print_graph(
     to_label: Callable[[Any], str] = _to_string,
 ) -> str:
     """
-This function converts an object representing a graph into a string
-in the DOT graph display language.
+    This function converts an object representing a graph into a string
+    in the DOT graph display language.
 
-The roots are a set of nodes in the graph; the final graph description will
-contain the transitive closure of the children of all roots.
+    The roots are a set of nodes in the graph; the final graph description will
+    contain the transitive closure of the children of all roots.
 
-get_children returns a list of (edge_label, node) pairs; if no argument
-is supplied then a default function that can handle lists, tuples and
-dictionaries is used.
+    get_children returns a list of (edge_label, node) pairs; if no argument
+    is supplied then a default function that can handle lists, tuples and
+    dictionaries is used.
 
-to_node_name returns a *unique* string used to identify the node in the
-graph.
+    to_node_name returns a *unique* string used to identify the node in the
+    graph.
 
-to_label gives a *not necessarily unique* label for a node in a graph.
-Again if not supplied, a default that can handle dictionaries, lists and
-tuples is used.
+    to_label gives a *not necessarily unique* label for a node in a graph.
+    Again if not supplied, a default that can handle dictionaries, lists and
+    tuples is used.
     """
 
     tnn = make_namer(to_node_name, "N")

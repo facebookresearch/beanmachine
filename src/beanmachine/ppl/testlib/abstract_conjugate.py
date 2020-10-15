@@ -18,11 +18,11 @@ from torch import Tensor
 
 class AbstractConjugateTests(metaclass=ABCMeta):
     """
-     Computes the posterior mean and standard deviation of some of the conjugate
-     distributions included below.
-     https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions
+    Computes the posterior mean and standard deviation of some of the conjugate
+    distributions included below.
+    https://en.wikipedia.org/wiki/Conjugate_prior#Table_of_conjugate_distributions
 
-     Note: Whenever possible, we will use same variable names as on that page.
+    Note: Whenever possible, we will use same variable names as on that page.
     """
 
     def compute_statistics(self, predictions: Tensor) -> Tuple[Tensor, Tensor]:

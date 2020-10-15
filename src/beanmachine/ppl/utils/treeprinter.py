@@ -64,17 +64,17 @@ def print_tree(
     unicode: bool = True,
 ) -> str:
     """
-Renders an arbitrary Python object as a tree. This is handy for debugging.
+    Renders an arbitrary Python object as a tree. This is handy for debugging.
 
-If you have a specific tree structure imposed on an object, you can pass
-in your own get_children method; if omitted, a function that handles Python
-dictionaries, tuples, named tuples and lists is the default.
+    If you have a specific tree structure imposed on an object, you can pass
+    in your own get_children method; if omitted, a function that handles Python
+    dictionaries, tuples, named tuples and lists is the default.
 
-The text of each node is determined by the to_string argument; if omitted
-a default function is used.
+    The text of each node is determined by the to_string argument; if omitted
+    a default function is used.
 
-The tree produced uses the Unicode box-drawing characters by default; to
-use straight ASCII characters, pass False for the unicode parameter.
+    The tree produced uses the Unicode box-drawing characters by default; to
+    use straight ASCII characters, pass False for the unicode parameter.
     """
 
     def pt(node, indent):

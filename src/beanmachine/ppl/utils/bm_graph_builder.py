@@ -231,7 +231,7 @@ def phi(x: Any) -> Any:
 
 class BMGraphBuilder:
     """A graph builder which accumulates stochastic graph nodes as a model executes,
-and then transforms that into a valid Bean Machine Graph."""
+    and then transforms that into a valid Bean Machine Graph."""
 
     # ####
     # #### State and initialization
@@ -351,7 +351,7 @@ and then transforms that into a valid Bean Machine Graph."""
 
     def add_node(self, node: BMGNode) -> None:
         """This adds a node we've recently created to the node set;
-it maintains the invariant that all the input nodes are also added."""
+        it maintains the invariant that all the input nodes are also added."""
         if node not in self.nodes:
             for child in node.children:
                 self.add_node(child)
@@ -374,7 +374,7 @@ it maintains the invariant that all the input nodes are also added."""
 
     def add_constant(self, value: Any) -> ConstantNode:
         """This takes any constant value of a supported type,
-creates a constant graph node for it, and adds it to the builder"""
+        creates a constant graph node for it, and adds it to the builder"""
         if isinstance(value, bool):
             return self.add_boolean(value)
         if isinstance(value, int):
@@ -389,7 +389,7 @@ creates a constant graph node for it, and adds it to the builder"""
         self, value: Any, node_type: BMGLatticeType
     ) -> ConstantNode:
         """This takes any constant value of a supported type and creates a
-constant graph node of the stated type for it, and adds it to the builder"""
+        constant graph node of the stated type for it, and adds it to the builder"""
         if node_type == Boolean:
             return self.add_boolean(bool(value))
         if node_type == Probability:
@@ -945,12 +945,12 @@ constant graph node of the stated type for it, and adds it to the builder"""
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
     ):
         """The purpose of this helper method is to uniformly handle all
-possibility for function calls. That is, the receiver can be stochastic,
-normal, or missing, and the arguments can be stochastic or normal values,
-and can be positional or named. We take in an object representing the function
-(possibly a KnownFunction helper that is bound to a receiver), and the arguments.
-We produce a function object that requires no receiver, and an argument list
-that has the receiver, if any, as its first member."""
+        possibility for function calls. That is, the receiver can be stochastic,
+        normal, or missing, and the arguments can be stochastic or normal values,
+        and can be positional or named. We take in an object representing the function
+        (possibly a KnownFunction helper that is bound to a receiver), and the arguments.
+        We produce a function object that requires no receiver, and an argument list
+        that has the receiver, if any, as its first member."""
         if kwargs is None:
             kwargs = {}
         if isinstance(function, KnownFunction):
@@ -1024,9 +1024,9 @@ that has the receiver, if any, as its first member."""
 
     def handle_sample(self, operand: Any) -> SampleNode:  # noqa
         """As we execute the lifted program, this method is called every
-time a model function decorated with @bm.random_variable returns; we verify that the
-returned value is a distribution that we know how to accumulate into the
-graph, and add a sample node to the graph."""
+        time a model function decorated with @bm.random_variable returns; we verify that the
+        returned value is a distribution that we know how to accumulate into the
+        graph, and add a sample node to the graph."""
         if isinstance(operand, DistributionNode):
             return self.add_sample(operand)
         if isinstance(operand, Bernoulli):
@@ -1165,8 +1165,8 @@ graph, and add a sample node to the graph."""
         after_transform: bool = False,
     ) -> str:
         """This dumps the entire accumulated graph state, including
-orphans, as a DOT graph description; nodes are enumerated in the order
-they were created."""
+        orphans, as a DOT graph description; nodes are enumerated in the order
+        they were created."""
         db = DotBuilder()
 
         if after_transform:
@@ -1206,7 +1206,7 @@ they were created."""
 
     def to_bmg(self) -> Graph:
         """This transforms the accumulated graph into a BMG type system compliant
-graph and then creates the graph nodes in memory."""
+        graph and then creates the graph nodes in memory."""
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 
         fix_problems(self).raise_errors()
@@ -1218,7 +1218,7 @@ graph and then creates the graph nodes in memory."""
 
     def _resort_nodes(self) -> Dict[BMGNode, int]:
         """This renumbers the nodes so that the ids are in topological order;
-it returns a dictionary mapping nodes to integers."""
+        it returns a dictionary mapping nodes to integers."""
         sorted_nodes = {}
         for index, node in enumerate(self._traverse_from_roots()):
             sorted_nodes[node] = index
@@ -1226,7 +1226,7 @@ it returns a dictionary mapping nodes to integers."""
 
     def to_python(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
-graph and then creates a Python program which creates the graph."""
+        graph and then creates a Python program which creates the graph."""
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 
         fix_problems(self).raise_errors()
@@ -1240,7 +1240,7 @@ g = graph.Graph()
 
     def to_cpp(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
-graph and then creates a C++ program which creates the graph."""
+        graph and then creates a C++ program which creates the graph."""
 
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 
@@ -1252,12 +1252,12 @@ graph and then creates a C++ program which creates the graph."""
 
     def _traverse_from_roots(self) -> List[BMGNode]:
         """This returns a list of the reachable graph nodes
-in topologically sorted order. The ordering invariants are
-(1) all sample, observation and query nodes are enumerated
-in the order they were added, and
-(2) all inputs are enumerated before their outputs, and
-(3) inputs to the "left" are enumerated before those to
-the "right"."""
+        in topologically sorted order. The ordering invariants are
+        (1) all sample, observation and query nodes are enumerated
+        in the order they were added, and
+        (2) all inputs are enumerated before their outputs, and
+        (3) inputs to the "left" are enumerated before those to
+        the "right"."""
 
         # That we require here that the graph is acyclic.
 

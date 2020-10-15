@@ -68,7 +68,7 @@ class InternalError(Exception):
 
 class LiftedCompilationError(InternalError):
     """An exception class for internal compiler errors when
-compiling the lifted code."""
+    compiling the lifted code."""
 
     source: str
     ast: AST

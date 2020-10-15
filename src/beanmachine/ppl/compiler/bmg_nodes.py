@@ -77,31 +77,31 @@ class BMGNode(ABC):
     @abstractmethod
     def inf_type(self) -> BMGLatticeType:
         """BMG nodes have type requirements on their inputs; the *infimum type* of
-a node is the *smallest* BMG type that a node may be converted to if required by
-an input."""
+        a node is the *smallest* BMG type that a node may be converted to if required by
+        an input."""
         pass
 
     @property
     @abstractmethod
     def requirements(self) -> List[Requirement]:
         """BMG nodes have type requirements on their inputs; this property
-produces a list of Requirements; a type indicates an exact Requirement;
-an UpperBound indicates that the input must be smaller than or equal to
-the Requirement."""
+        produces a list of Requirements; a type indicates an exact Requirement;
+        an UpperBound indicates that the input must be smaller than or equal to
+        the Requirement."""
         pass
 
     @property
     @abstractmethod
     def size(self) -> torch.Size:
         """The tensor size associated with this node.
-If the node represents a scalar value then produce Size([])."""
+        If the node represents a scalar value then produce Size([])."""
         pass
 
     @property
     @abstractmethod
     def label(self) -> str:
         """This gives the label of the node When generating a DOT file
-for graph visualization and debugging."""
+        for graph visualization and debugging."""
         pass
 
     # Many of the node types defined in this module have no direct counterparts
@@ -114,30 +114,30 @@ for graph visualization and debugging."""
 
     def _add_to_graph(self, g: Graph, d: Dict["BMGNode", int]) -> int:
         """This adds a node to an in-memory BMG instance. Each node
-in BMG is associated with an integer handle; this returns
-the handle for this node assigned by BMG."""
+        in BMG is associated with an integer handle; this returns
+        the handle for this node assigned by BMG."""
         raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         """We can emit the graph as a Python program which, when executed,
-builds a BMG instance. This method returns a string of Python
-code to construct this node. The dictionary associates a unique
-integer with each node that can be used to construct an identifier."""
+        builds a BMG instance. This method returns a string of Python
+        code to construct this node. The dictionary associates a unique
+        integer with each node that can be used to construct an identifier."""
         raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         """We can emit the graph as a C++ program which, when executed,
-builds a BMG instance. This method returns a string of C++
-code to construct this node. The dictionary associates a unique
-integer with each node that can be used to construct an identifier."""
+        builds a BMG instance. This method returns a string of C++
+        code to construct this node. The dictionary associates a unique
+        integer with each node that can be used to construct an identifier."""
         raise InternalError(f"{str(type(self))} is not supported in BMG.")
 
     @abstractmethod
     def support(self) -> Iterator[Any]:
         """To build the graph of all possible control flows through
-the model we need to know for any given node what are
-all the possible values it could attain; we require that
-the set be finite and will throw an exception if it is not."""
+        the model we need to know for any given node what are
+        all the possible values it could attain; we require that
+        the set be finite and will throw an exception if it is not."""
         pass
 
 
@@ -150,7 +150,7 @@ the set be finite and will throw an exception if it is not."""
 def _value_to_cpp(value: Any) -> str:
 
     """Generate the program text of an expression
-representing a constant value in the C++ output."""
+    representing a constant value in the C++ output."""
 
     if isinstance(value, Tensor):
         # TODO: What if the tensor is not made of floats?
@@ -170,8 +170,8 @@ representing a constant value in the C++ output."""
 
 class SetOfTensors(collections.abc.Set):
     """Tensors cannot be put into a normal set because tensors that compare as
-     equal do not hash to equal hashes. This is a linear-time set implementation.
-     Most of the time the sets will be very small. """
+    equal do not hash to equal hashes. This is a linear-time set implementation.
+    Most of the time the sets will be very small."""
 
     elements: List[Tensor]
 
@@ -199,10 +199,10 @@ class SetOfTensors(collections.abc.Set):
 
 class ConstantNode(BMGNode, metaclass=ABCMeta):
     """This is the base type for all nodes representing constants.
-Note that every constant node has an associated type in the
-BMG type system; nodes that represent the "real" 1.0,
-the "positive real" 1.0, the "probability" 1.0 and the
-"natural" 1 are all different nodes and are NOT deduplicated."""
+    Note that every constant node has an associated type in the
+    BMG type system; nodes that represent the "real" 1.0,
+    the "positive real" 1.0, the "probability" 1.0 and the
+    "natural" 1 are all different nodes and are NOT deduplicated."""
 
     edges = []
     value: Any
@@ -535,7 +535,7 @@ class TensorNode(ConstantNode):
 
 class DistributionNode(BMGNode, metaclass=ABCMeta):
     """This is the base class for all nodes that represent
-probability distributions."""
+    probability distributions."""
 
     def __init__(self, children: List[BMGNode]):
         BMGNode.__init__(self, children)
@@ -543,18 +543,18 @@ probability distributions."""
 
 class BernoulliNode(DistributionNode):
     """The Bernoulli distribution is a coin flip; it takes
-a probability and each sample is either 0.0 or 1.0.
+    a probability and each sample is either 0.0 or 1.0.
 
-The probability can be expressed either as a normal
-probability between 0.0 and 1.0, or as log-odds, which
-is any real number. That is, to represent, say,
-13 heads for every 17 tails, the logits would be log(13/17).
+    The probability can be expressed either as a normal
+    probability between 0.0 and 1.0, or as log-odds, which
+    is any real number. That is, to represent, say,
+    13 heads for every 17 tails, the logits would be log(13/17).
 
-If the model gave the probability as a value when executing
-the program then torch will automatically translate
-logits to normal probabilities. If however the model gives
-a stochastic node as the argument and uses logits, then
-we generate a different node in BMG."""
+    If the model gave the probability as a value when executing
+    the program then torch will automatically translate
+    logits to normal probabilities. If however the model gives
+    a stochastic node as the argument and uses logits, then
+    we generate a different node in BMG."""
 
     edges = ["probability"]
     is_logits: bool
@@ -628,7 +628,7 @@ we generate a different node in BMG."""
 
 class BetaNode(DistributionNode):
     """The beta distribution samples are values between 0.0 and 1.0, and
-so is useful for creating probabilities."""
+    so is useful for creating probabilities."""
 
     edges = ["alpha", "beta"]
 
@@ -711,21 +711,21 @@ so is useful for creating probabilities."""
 
 class BinomialNode(DistributionNode):
     """The Binomial distribution is the extension of the
-Bernoulli distribution to multiple flips. The input
-is the count of flips and the probability of each
-coming up heads; each sample is the number of heads
-after "count" flips.
+    Bernoulli distribution to multiple flips. The input
+    is the count of flips and the probability of each
+    coming up heads; each sample is the number of heads
+    after "count" flips.
 
-The probability can be expressed either as a normal
-probability between 0.0 and 1.0, or as log-odds, which
-is any real number. That is, to represent, say,
-13 heads for every 17 tails, the logits would be log(13/17).
+    The probability can be expressed either as a normal
+    probability between 0.0 and 1.0, or as log-odds, which
+    is any real number. That is, to represent, say,
+    13 heads for every 17 tails, the logits would be log(13/17).
 
-If the model gave the probability as a value when executing
-the program then torch will automatically translate
-logits to normal probabilities. If however the model gives
-a stochastic node as the argument and uses logits, then
-we generate a different node in BMG."""
+    If the model gave the probability as a value when executing
+    the program then torch will automatically translate
+    logits to normal probabilities. If however the model gives
+    a stochastic node as the argument and uses logits, then
+    we generate a different node in BMG."""
 
     # TODO: We do not yet have a BMG node for Binomial
     # with logits. When we do, add support for it as we
@@ -857,23 +857,23 @@ we generate a different node in BMG."""
 
 class CategoricalNode(DistributionNode):
     """The categorical distribution is the extension of the
-Bernoulli distribution to multiple outcomes; rather
-than flipping an unfair coin, this is rolling an unfair
-n-sided die.
+    Bernoulli distribution to multiple outcomes; rather
+    than flipping an unfair coin, this is rolling an unfair
+    n-sided die.
 
-The input is the probability of each of n possible outcomes,
-and each sample is drawn from 0, 1, 2, ... n-1.
+    The input is the probability of each of n possible outcomes,
+    and each sample is drawn from 0, 1, 2, ... n-1.
 
-The probability can be expressed either as a normal
-probability between 0.0 and 1.0, or as log-odds, which
-is any real number. That is, to represent, say,
-13 heads for every 17 tails, the logits would be log(13/17).
+    The probability can be expressed either as a normal
+    probability between 0.0 and 1.0, or as log-odds, which
+    is any real number. That is, to represent, say,
+    13 heads for every 17 tails, the logits would be log(13/17).
 
-If the model gave the probability as a value when executing
-the program then torch will automatically translate
-logits to normal probabilities. If however the model gives
-a stochastic node as the argument and uses logits, then
-we generate a different node in BMG."""
+    If the model gave the probability as a value when executing
+    the program then torch will automatically translate
+    logits to normal probabilities. If however the model gives
+    a stochastic node as the argument and uses logits, then
+    we generate a different node in BMG."""
 
     # Note that a vector of n probabilities that adds to 1.0 is
     # called a simplex.
@@ -935,7 +935,7 @@ we generate a different node in BMG."""
 
 class Chi2Node(DistributionNode):
     """The chi2 distribution is a distribution of positive
-real numbers; it is a special case of the gamma distribution."""
+    real numbers; it is a special case of the gamma distribution."""
 
     edges = ["df"]
 
@@ -989,9 +989,9 @@ real numbers; it is a special case of the gamma distribution."""
 
 class DirichletNode(DistributionNode):
     """The Dirichlet distribution generates simplexs -- vectors
-whose members are probabilities that add to 1.0, and
-so it is useful for generating inputs to the categorical
-distribution."""
+    whose members are probabilities that add to 1.0, and
+    so it is useful for generating inputs to the categorical
+    distribution."""
 
     # TODO: We do not yet have a BMG node for Dirichlet
     # distributions; when we do, finish this implementation.
@@ -1105,8 +1105,8 @@ class FlatNode(DistributionNode):
 
 class GammaNode(DistributionNode):
     """The gamma distribution is a distribution of positive
-real numbers characterized by positive real concentration and rate
-parameters."""
+    real numbers characterized by positive real concentration and rate
+    parameters."""
 
     edges = ["concentration", "rate"]
 
@@ -1188,14 +1188,14 @@ parameters."""
 
 class HalfCauchyNode(DistributionNode):
     """The Cauchy distribution is a bell curve with zero mean
-and a heavier tail than the normal distribution; it is useful
-for generating samples that are not as clustered around
-the mean as a normal.
+    and a heavier tail than the normal distribution; it is useful
+    for generating samples that are not as clustered around
+    the mean as a normal.
 
-The half Cauchy distribution is just the distribution you
-get when you take the absolute value of the samples from
-a Cauchy distribution. The input is a positive scale factor
-and a sample is a positive real number."""
+    The half Cauchy distribution is just the distribution you
+    get when you take the absolute value of the samples from
+    a Cauchy distribution. The input is a positive scale factor
+    and a sample is a positive real number."""
 
     # TODO: Add support for the Cauchy distribution as well.
 
@@ -1272,7 +1272,7 @@ and a sample is a positive real number."""
 class NormalNode(DistributionNode):
 
     """The normal (or "Gaussian") distribution is a bell curve with
-a given mean and standard deviation."""
+    a given mean and standard deviation."""
 
     edges = ["mu", "sigma"]
 
@@ -1356,12 +1356,12 @@ a given mean and standard deviation."""
 
 class StudentTNode(DistributionNode):
     """The Student T distribution is a bell curve with zero mean
-and a heavier tail than the normal distribution. It is
-useful in statistical analysis because a common situation
-is to have observations of a normal process but to not
-know the true mean. Samples from the T distribution can
-be used to represent the difference between an observed mean
-and the true mean."""
+    and a heavier tail than the normal distribution. It is
+    useful in statistical analysis because a common situation
+    is to have observations of a normal process but to not
+    know the true mean. Samples from the T distribution can
+    be used to represent the difference between an observed mean
+    and the true mean."""
 
     edges = ["df", "loc", "scale"]
 
@@ -1453,7 +1453,7 @@ and the true mean."""
 class UniformNode(DistributionNode):
 
     """The Uniform distribution is a "flat" distribution of values
-between 0.0 and 1.0."""
+    between 0.0 and 1.0."""
 
     # TODO: We do not yet have an implementation of the uniform
     # distribution as a BMG node. When we do, implement the
@@ -1526,7 +1526,7 @@ between 0.0 and 1.0."""
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
     """This is the base class for all operators.
-The children are the operands of each operator."""
+    The children are the operands of each operator."""
 
     def __init__(self, children: List[BMGNode]):
         BMGNode.__init__(self, children)
@@ -1539,7 +1539,7 @@ The children are the operands of each operator."""
 
 class IfThenElseNode(OperatorNode):
     """This class represents a stochastic choice between two options, where
-the condition is a Boolean."""
+    the condition is a Boolean."""
 
     # This node will only be generated when tranforming the Python version of
     # the graph into the BMG format; for instance, if we have a multiplication
@@ -1859,7 +1859,7 @@ class DivisionNode(BinaryOperatorNode):
 class MapNode(BMGNode):
 
     """This class represents a point in a program where there are
-multiple control flows based on the value of a stochastic node."""
+    multiple control flows based on the value of a stochastic node."""
 
     # For example, suppose we have this contrived model:
     #
@@ -1981,8 +1981,8 @@ multiple control flows based on the value of a stochastic node."""
 
 class IndexNode(BinaryOperatorNode):
     """This represents a stochastic choice of multiple options; the left
-operand must be a map, and the right is the stochastic value used to
-choose an element from the map."""
+    operand must be a map, and the right is the stochastic value used to
+    choose an element from the map."""
 
     # See notes on MapNode for an explanation of this code.
 
@@ -2344,7 +2344,7 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
 class ExpNode(UnaryOperatorNode):
     """This represents an exponentiation operation; it is generated when
-a model contains calls to Tensor.exp or math.exp."""
+    a model contains calls to Tensor.exp or math.exp."""
 
     operator_type = OperatorType.EXP
 
@@ -2390,7 +2390,7 @@ a model contains calls to Tensor.exp or math.exp."""
 
 class LogNode(UnaryOperatorNode):
     """This represents a log operation; it is generated when
-a model contains calls to Tensor.log or math.log."""
+    a model contains calls to Tensor.log or math.log."""
 
     operator_type = OperatorType.LOG
 
@@ -2431,8 +2431,8 @@ a model contains calls to Tensor.log or math.log."""
 
 class NegativeLogNode(UnaryOperatorNode):
     """BMG supports a node with the semantics of -log(x), so that we can
-take advantage in the type system that -log(P) for probability P is
-known to be a positive real."""
+    take advantage in the type system that -log(P) for probability P is
+    known to be a positive real."""
 
     operator_type = OperatorType.NEGATIVE_LOG
 
@@ -2625,7 +2625,7 @@ class NotNode(UnaryOperatorNode):
 
 class ComplementNode(UnaryOperatorNode):
     """This represents a complement of a Boolean or probability
-value."""
+    value."""
 
     # See notes above NegateNode for details
 
@@ -2686,7 +2686,7 @@ value."""
 
 class PhiNode(UnaryOperatorNode):
     """This represents a phi operation; that is, the cumulative
-distribution function of the standard normal."""
+    distribution function of the standard normal."""
 
     operator_type = OperatorType.PHI
 
@@ -2728,11 +2728,11 @@ distribution function of the standard normal."""
 
 class SampleNode(UnaryOperatorNode):
     """This represents a single unique sample from a distribution;
-if a graph has two sample nodes both taking input from the same
-distribution, each sample is logically distinct. But if a graph
-has two nodes that both input from the same sample node, we must
-treat those two uses of the sample as though they had identical
-values."""
+    if a graph has two sample nodes both taking input from the same
+    distribution, each sample is logically distinct. But if a graph
+    has two nodes that both input from the same sample node, we must
+    treat those two uses of the sample as though they had identical
+    values."""
 
     operator_type = OperatorType.SAMPLE
 
@@ -2865,12 +2865,12 @@ class ToPositiveRealNode(UnaryOperatorNode):
 
 class Observation(BMGNode):
     """This represents an observed value of a sample. For example
-we might have a prior that a mint produces a coin that is
-uniformly unfair. We could then observe a flip of the coin
-and if heads, that is small but not zero evidence that
-the coin is unfair in the heads direction. Given that
-observation, our belief in the true unfairness of the coin
-should no loger be uniform."""
+    we might have a prior that a mint produces a coin that is
+    uniformly unfair. We could then observe a flip of the coin
+    and if heads, that is small but not zero evidence that
+    the coin is unfair in the heads direction. Given that
+    observation, our belief in the true unfairness of the coin
+    should no loger be uniform."""
 
     # TODO: Here we treat an observation as node which takes input
     # from a sample and has an associated value. This implementation
@@ -2958,14 +2958,13 @@ should no loger be uniform."""
 
 class Query(BMGNode):
     """A query is a marker on a node in the graph that indicates
-to the inference engine that the user is interested in
-getting a distribution of values of that node. It always
-points to an operator node.
+    to the inference engine that the user is interested in
+    getting a distribution of values of that node. It always
+    points to an operator node.
 
-We represent queries in models with the @bm.functional annotation;
-the compiler causes the returned nodes of such models
-to have a query node accumulated into the graph builder.
-"""
+    We represent queries in models with the @bm.functional annotation;
+    the compiler causes the returned nodes of such models
+    to have a query node accumulated into the graph builder."""
 
     # TODO: As with observations, properly speaking there is no
     # need to represent a query as a *node*, and BMG does not

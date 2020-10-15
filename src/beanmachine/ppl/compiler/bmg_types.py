@@ -495,7 +495,7 @@ def _lookup():
 @memoize
 def _supremum(t: BMGLatticeType, u: BMGLatticeType) -> BMGLatticeType:
     """Takes two BMG types; returns the smallest type that is
-greater than or equal to both."""
+    greater than or equal to both."""
     if t == u:
         return t
     if t == bottom:
@@ -518,7 +518,7 @@ greater than or equal to both."""
 # We can extend the two-argument supremum function to any number of arguments:
 def supremum(*ts: BMGLatticeType) -> BMGLatticeType:
     """Takes any number of BMG types; returns the smallest type that is
-greater than or equal to all of them."""
+    greater than or equal to all of them."""
     result = bottom
     for t in ts:
         result = _supremum(result, t)

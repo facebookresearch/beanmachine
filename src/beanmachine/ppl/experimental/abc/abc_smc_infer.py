@@ -179,14 +179,14 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
         initialize_from_prior: bool = True,
     ) -> Dict[RVIdentifier, Tensor]:
         """
-            Run ABC-SMC inference algorithm
+        Run ABC-SMC inference algorithm
 
-            :param num_samples: number of samples excluding adaptation.
-            :param num_adapt_steps: not used in rejection sampling
-            :param verbose: Integer indicating how much output to print to stdio
-            :param initialize_from_prior: boolean to initialize samples from prior
-            :returns: samples for the query
-            """
+        :param num_samples: number of samples excluding adaptation.
+        :param num_adapt_steps: not used in rejection sampling
+        :param verbose: Integer indicating how much output to print to stdio
+        :param initialize_from_prior: boolean to initialize samples from prior
+        :returns: samples for the query
+        """
         if isinstance(self.tolerance_schedule, dict):
             num_stages = len(
                 # pyre-fixme

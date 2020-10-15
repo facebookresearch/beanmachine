@@ -23,7 +23,7 @@ def _get_name(node: Any) -> str:
 
 def print_tree(node: AST, unicode: bool = True) -> str:
     """Takes an AST and produces a string containing a hierarchical
-view of the tree structure."""
+    view of the tree structure."""
 
     def get_children(node: Any) -> List[Any]:
         if isinstance(node, list):
@@ -37,7 +37,7 @@ view of the tree structure."""
 
 def print_graph(node: AST) -> str:
     """Takes an AST and produces a string containing a DOT
-representation of the tree as a graph."""
+    representation of the tree as a graph."""
 
     def get_children(node: Any) -> List[Tuple[str, Any]]:
         if isinstance(node, list):
@@ -51,5 +51,5 @@ representation of the tree as a graph."""
 
 def print_python(node: AST) -> str:
     """Takes an AST and produces a string containing a human-readable
-Python expression that builds the AST node."""
+    Python expression that builds the AST node."""
     return black.format_str(ast.dump(node), mode=black.FileMode())

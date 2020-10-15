@@ -5,7 +5,7 @@ from torch import Tensor
 
 
 class BetaBinomialModel(object):
-    """ This Bean Machine model is an example of conjugacy, where
+    """This Bean Machine model is an example of conjugacy, where
     the prior and the likelihood are the Beta and the Binomial
     distributions respectively. Conjugacy means the posterior
     will also be in the same family as the prior, Beta.

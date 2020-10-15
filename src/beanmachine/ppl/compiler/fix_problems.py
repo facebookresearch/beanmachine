@@ -56,16 +56,16 @@ from torch import Tensor
 
 class Fixer:
     """This class takes a Bean Machine Graph builder and attempts to
-fix all the problems which prevent it from being a legal Bean Machine
-Graph, such as violations of type system requirements or use of
-unsupported operators.
+    fix all the problems which prevent it from being a legal Bean Machine
+    Graph, such as violations of type system requirements or use of
+    unsupported operators.
 
-The basic idea is that every *edge* in the graph has a *requirement*, such as
-"the type of the input must be Probability".  We do a traversal of the input
-edges of every node in the graph; if the input node meets the requirement,
-it is unchanged. If it does not, then a new node that has the same semantics
-that meets the requirement is returned. If there is no such node then an
-error is added to the error report."""
+    The basic idea is that every *edge* in the graph has a *requirement*, such as
+    "the type of the input must be Probability".  We do a traversal of the input
+    edges of every node in the graph; if the input node meets the requirement,
+    it is unchanged. If it does not, then a new node that has the same semantics
+    that meets the requirement is returned. If there is no such node then an
+    error is added to the error report."""
 
     errors: ErrorReport
     bmg: BMGraphBuilder
@@ -339,7 +339,7 @@ error is added to the error report."""
         self, node: BMGNode, requirement: Requirement, consumer: BMGNode, edge: str
     ) -> BMGNode:
         """The consumer node consumes the value of the input node. The consumer's
-requirement is given; the name of this edge is provided for error reporting."""
+        requirement is given; the name of this edge is provided for error reporting."""
 
         if isinstance(node, Observation):
             raise AssertionError(
