@@ -1,5 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
+#include <pybind11/eigen.h>
+
 #include "beanmachine/graph/graph.h"
 
 // to keep the linter happy this template specialization has been declared here
