@@ -15,8 +15,7 @@ using namespace beanmachine::distribution;
 TEST(testoperator, complement) {
   // negative test num args can't be zero
   EXPECT_THROW(
-      oper::Complement onode1(std::vector<Node*>{}),
-      std::invalid_argument);
+      oper::Complement onode1(std::vector<Node*>{}), std::invalid_argument);
   auto p1 = AtomicValue(AtomicType::PROBABILITY, 0.1);
   ConstNode cnode1(p1);
   // negative test num args can't be two
@@ -27,8 +26,7 @@ TEST(testoperator, complement) {
   ConstNode cnode2(r1);
   // negative test arg can't be real
   EXPECT_THROW(
-      oper::Complement(std::vector<Node*>{&cnode2}),
-      std::invalid_argument);
+      oper::Complement(std::vector<Node*>{&cnode2}), std::invalid_argument);
   // complement of prob is 1-prob
   oper::Complement onode1(std::vector<Node*>{&cnode1});
   EXPECT_EQ(onode1.value.type, AtomicType::PROBABILITY);
@@ -268,8 +266,8 @@ TEST(testoperator, log1mexp) {
   auto neg_x_sq = g.add_operator(OperatorType::NEGATE, std::vector<uint>{x_sq});
   auto log1mexp_neg_x_sq =
       g.add_operator(OperatorType::LOG1MEXP, std::vector<uint>{neg_x_sq});
-  auto log1mexp_neg_x_sq_real =
-      g.add_operator(OperatorType::TO_REAL, std::vector<uint>{log1mexp_neg_x_sq});
+  auto log1mexp_neg_x_sq_real = g.add_operator(
+      OperatorType::TO_REAL, std::vector<uint>{log1mexp_neg_x_sq});
   auto likelihood = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
@@ -284,8 +282,11 @@ TEST(testoperator, log1mexp) {
   // Verified in pytorch using the following code:
   // x = tensor([0.5], requires_grad=True)
   // neg_x_sq = -x * x
-  // f_x = dist.Normal(neg_x_sq.exp().neg().log1p(), tensor(1.0)).log_prob(tensor(0.0))
-  // f_grad = torch.autograd.grad(f_x, x, create_graph=True)
+  // f_x = dist.Normal(
+  //   neg_x_sq.exp().neg().log1p(),
+  //   tensor(1.0)).log_prob(tensor(0.0))
+  // f_grad = torch.autograd.grad(
+  //   f_x, x, create_graph=True)
   // f_grad2 = torch.autograd.grad(f_grad, x)
   // f_grad -> 5.3118 and f_grad2 -> -25.7862
   double grad1 = 0;
@@ -516,9 +517,7 @@ TEST(testoperator, iid_sample) {
   auto int_value = AtomicValue(AtomicType::NATURAL, (natural_t)2);
   auto int_node = ConstNode(int_value);
   // negative tests on the number and types of parents
-  EXPECT_THROW(
-      oper::IIdSample(std::vector<Node*>{}),
-      std::invalid_argument);
+  EXPECT_THROW(oper::IIdSample(std::vector<Node*>{}), std::invalid_argument);
   EXPECT_THROW(
       oper::IIdSample(std::vector<Node*>{&bern_dist, &bern_dist}),
       std::invalid_argument);
@@ -534,7 +533,8 @@ TEST(testoperator, iid_sample) {
       std::vector<Node*>{&pos_real_node, &pos_real_node});
   beta_dist.in_nodes.push_back(&pos_real_node);
   beta_dist.in_nodes.push_back(&pos_real_node);
-  auto beta_samples = oper::IIdSample(std::vector<Node*>{&beta_dist, &int_node});
+  auto beta_samples =
+      oper::IIdSample(std::vector<Node*>{&beta_dist, &int_node});
   beta_samples.in_nodes.push_back(&beta_dist);
   beta_samples.in_nodes.push_back(&int_node);
   auto vtype =
@@ -552,8 +552,7 @@ TEST(testoperator, iid_sample) {
 
   // test log_prob
   Eigen::MatrixXd matrix1(2, 1);
-  matrix1 << 0.6,
-             0.5;
+  matrix1 << 0.6, 0.5;
   auto matrix_value = AtomicValue(vtype, matrix1);
   beta_samples.value = matrix_value;
   EXPECT_NEAR(beta_samples.log_prob(), 0.7701, 1e-3);
@@ -565,13 +564,13 @@ TEST(testoperator, iid_sample) {
   double mean_x0 = 0.0, mean_x1 = 0.0;
   double mean_x0sq = 0.0, mean_x1sq = 0.0;
   for (uint i = 0; i < n_samples; i++) {
-      beta_samples.eval(generator);
-      x0 = *(beta_samples.value._matrix.data());
-      x1 = *(beta_samples.value._matrix.data() + 1);
-      mean_x0 += x0 / n_samples;
-      mean_x1 += x1 / n_samples;
-      mean_x0sq += x0 * x0 / n_samples;
-      mean_x1sq += x1 * x1 / n_samples;
+    beta_samples.eval(generator);
+    x0 = *(beta_samples.value._matrix.data());
+    x1 = *(beta_samples.value._matrix.data() + 1);
+    mean_x0 += x0 / n_samples;
+    mean_x1 += x1 / n_samples;
+    mean_x0sq += x0 * x0 / n_samples;
+    mean_x1sq += x1 * x1 / n_samples;
   }
   EXPECT_NEAR(mean_x0, 0.5, 0.01);
   EXPECT_NEAR(mean_x1, 0.5, 0.01);
