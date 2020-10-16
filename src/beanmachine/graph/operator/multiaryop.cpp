@@ -43,7 +43,7 @@ Multiply::Multiply(const std::vector<graph::Node*>& in_nodes)
       type0 != graph::AtomicType::POS_REAL and
       type0 != graph::AtomicType::PROBABILITY) {
     throw std::invalid_argument(
-        "operator MUTIPLY requires real/pos_real/probability parent");
+        "operator MUTIPLY requires a real, pos_real or probability parent");
   }
   value = graph::AtomicValue(type0);
 }
@@ -74,7 +74,7 @@ LogSumExp::LogSumExp(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::REAL and
       type0 != graph::AtomicType::POS_REAL) {
     throw std::invalid_argument(
-        "operator LOGSUMEXP requires real/pos_real parent");
+        "operator LOGSUMEXP requires a real or pos_real parent");
   }
   value = graph::AtomicValue(graph::AtomicType::REAL);
 }
@@ -107,20 +107,20 @@ void LogSumExp::eval(std::mt19937& /* gen */) {
 Pow::Pow(const std::vector<graph::Node*>& in_nodes)
     : Operator(graph::OperatorType::POW)  {
   if (in_nodes.size() != 2) {
-    throw std::invalid_argument("operator POW requires 2 args");
+    throw std::invalid_argument("operator POW requires 2 parents");
   }
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::PROBABILITY and
       type0 != graph::AtomicType::POS_REAL and
       type0 != graph::AtomicType::REAL) {
     throw std::invalid_argument(
-        "operator POW requires a prob/pos_real/real base");
+        "operator POW requires a probability, pos_real or real base");
   }
   graph::ValueType type1 = in_nodes[1]->value.type;
   if (type1 != graph::AtomicType::POS_REAL and
       type1 != graph::AtomicType::REAL) {
     throw std::invalid_argument(
-        "operator POW requires a pos_real/real exponent");
+        "operator POW requires a pos_real or real exponent");
   }
 
   // These are all the legal operand types and the result type:
