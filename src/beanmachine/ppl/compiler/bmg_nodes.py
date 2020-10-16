@@ -2397,18 +2397,36 @@ class LogNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    # The log node only takes a positive real and only produces a real.
+    # The log node can either:
+    # * Take a positive real and produce a real
+    # * Take a probability and produce a negative real
 
     @property
     def inf_type(self) -> BMGLatticeType:
+        # If the operand is convertible to probability then
+        # the smallest we can make the log is negative real.
+        ot = supremum(self.operand.inf_type, Probability)
+        if ot == Probability:
+            return NegativeReal
         return Real
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        return Real
+        ot = self.operand.graph_type
+        if ot == Probability:
+            return NegativeReal
+        if ot == PositiveReal:
+            return Real
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
+        # If the operand is less than or equal to probability,
+        # require that it be converted to probability. Otherwise,
+        # convert it to positive real.
+        ot = supremum(self.operand.inf_type, Probability)
+        if ot == Probability:
+            return [Probability]
         return [PositiveReal]
 
     @property
