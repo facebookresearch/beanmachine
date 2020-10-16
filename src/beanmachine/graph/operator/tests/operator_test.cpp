@@ -361,12 +361,15 @@ TEST(testoperator, logsumexp) {
 TEST(testoperator, log) {
   Graph g;
   // negative tests: exactly one pos_real should be the input
+  // or one probability should be the input.
   EXPECT_THROW(
       g.add_operator(OperatorType::LOG, std::vector<uint>{}),
       std::invalid_argument);
   auto prob1 = g.add_constant_probability(0.5);
+  g.add_operator(OperatorType::LOG, std::vector<uint>{prob1});
+  auto real1 = g.add_constant(-0.5);
   EXPECT_THROW(
-      g.add_operator(OperatorType::LOG, std::vector<uint>{prob1}),
+      g.add_operator(OperatorType::LOG, std::vector<uint>{real1}),
       std::invalid_argument);
   auto pos1 = g.add_constant_pos_real(1.0);
   EXPECT_THROW(

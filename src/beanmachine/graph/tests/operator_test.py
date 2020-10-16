@@ -48,10 +48,21 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.EXP, [c4, c5])
         # test LOG
+        # Log needs exactly one operand:
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.LOG, [])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.LOG, [c1, c2])
+        # That operand must be positive real or probability:
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.LOG, [c2])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.LOG, [c6])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.LOG, [c7])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.LOG, [c8])
+        g.add_operator(bmg.OperatorType.LOG, [c3])
         # test NEGATE
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.NEGATE, [])
