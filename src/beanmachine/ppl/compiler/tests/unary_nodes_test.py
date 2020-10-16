@@ -25,6 +25,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     Natural,
+    NegativeReal,
     PositiveReal,
     Probability,
     Real,
@@ -86,9 +87,9 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ExpNode(half).inf_type, PositiveReal)
         self.assertEqual(ExpNode(norm).inf_type, PositiveReal)
 
-        # Log of anything is Real
-        self.assertEqual(LogNode(bern).inf_type, Real)
-        self.assertEqual(LogNode(beta).inf_type, Real)
+        # Log of prob is negative real, otherwise real.
+        self.assertEqual(LogNode(bern).inf_type, NegativeReal)
+        self.assertEqual(LogNode(beta).inf_type, NegativeReal)
         self.assertEqual(LogNode(bino).inf_type, Real)
         self.assertEqual(LogNode(half).inf_type, Real)
 
@@ -163,9 +164,9 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ExpNode(half).requirements, [PositiveReal])
         self.assertEqual(ExpNode(norm).requirements, [Real])
 
-        # Log requires that its operand be positive real.
-        self.assertEqual(LogNode(bern).requirements, [PositiveReal])
-        self.assertEqual(LogNode(beta).requirements, [PositiveReal])
+        # Log requires that its operand be probability or positive real.
+        self.assertEqual(LogNode(bern).requirements, [Probability])
+        self.assertEqual(LogNode(beta).requirements, [Probability])
         self.assertEqual(LogNode(bino).requirements, [PositiveReal])
         self.assertEqual(LogNode(half).requirements, [PositiveReal])
 
