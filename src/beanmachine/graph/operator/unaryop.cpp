@@ -101,7 +101,7 @@ Negate::Negate(const std::vector<graph::Node*>& in_nodes)
     new_type = graph::AtomicType::POS_REAL;
   } else {
     throw std::invalid_argument(
-        "operator NEGATE only supports real/pos_real/neg_real parent");
+        "operator NEGATE requires a real, pos_real or neg_real parent");
   }
   value = graph::AtomicValue(new_type);
 }
@@ -294,8 +294,7 @@ Log1mExp::Log1mExp(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::LOG1MEXP, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::NEG_REAL) {
-    throw std::invalid_argument(
-        "operator LOG1MEXP requires neg_real parent");
+    throw std::invalid_argument("operator LOG1MEXP requires a neg_real parent");
   }
   value = graph::AtomicValue(graph::AtomicType::NEG_REAL);
 }
