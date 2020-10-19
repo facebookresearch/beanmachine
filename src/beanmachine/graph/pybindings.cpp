@@ -31,7 +31,7 @@ PYBIND11_MODULE(graph, module) {
           &ValueType::to_string,
           "string representation of the type");
 
-  py::class_<AtomicValue>(module, "AtomicValue")
+  py::class_<NodeValue>(module, "NodeValue")
       .def(py::init<bool>())
       .def(py::init<double>())
       .def(py::init<graph::natural_t>())
@@ -108,7 +108,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("value"))
       .def(
           "add_constant",
-          (uint(Graph::*)(AtomicValue)) & Graph::add_constant,
+          (uint(Graph::*)(NodeValue)) & Graph::add_constant,
           "add a Node with a constant value",
           py::arg("value"))
       .def(
@@ -224,7 +224,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("val"))
       .def(
           "observe",
-          (void (Graph::*)(uint, AtomicValue)) & Graph::observe,
+          (void (Graph::*)(uint, NodeValue)) & Graph::observe,
           "observe a node",
           py::arg("node_id"),
           py::arg("val"))
@@ -253,7 +253,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("n_chains"))
       .def(
           "infer",
-          (std::vector<std::vector<AtomicValue>> &
+          (std::vector<std::vector<NodeValue>> &
            (Graph::*)(uint, InferenceType, uint)) &
               Graph::infer,
           "infer the empirical distribution of the queried nodes",
@@ -262,7 +262,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("seed") = 5123401)
       .def(
           "infer",
-          (std::vector<std::vector<std::vector<AtomicValue>>> &
+          (std::vector<std::vector<std::vector<NodeValue>>> &
            (Graph::*)(uint, InferenceType, uint, uint)) &
               Graph::infer,
           "infer the empirical distribution of the queried nodes using multiple chains",

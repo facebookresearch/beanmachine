@@ -8,7 +8,7 @@
 namespace beanmachine {
 namespace proposer {
 
-graph::AtomicValue Mixture::sample(std::mt19937& gen) const {
+graph::NodeValue Mixture::sample(std::mt19937& gen) const {
   // we need to pick one of the proposers proportional to their weight
   // so we sample a target value between 0 and sum(i=1..n, w_i)
   // then we pick the index j s.t. sum(i=1..j-1, w_i) <= target < sum(i=1..j,
@@ -31,7 +31,7 @@ graph::AtomicValue Mixture::sample(std::mt19937& gen) const {
   return proposers[index]->sample(gen);
 }
 
-double Mixture::log_prob(graph::AtomicValue& value) const {
+double Mixture::log_prob(graph::NodeValue& value) const {
   std::vector<double> log_probs;
   for (std::vector<double>::size_type index = 0; index < weights.size();
        index++) {

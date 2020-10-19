@@ -18,7 +18,7 @@ const double MAIN_PROPOSER_WEIGHT = 1.0;
 const double RANDOM_WALK_WEIGHT = 0.01;
 
 std::unique_ptr<Proposer>
-nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
+nmc_proposer(const graph::NodeValue& value, double grad1, double grad2) {
   bool is_valid_grad = std::isfinite(grad1) && std::isfinite(grad2);
   std::vector<double> weights;
   std::vector<std::unique_ptr<Proposer>> proposers;
@@ -28,10 +28,10 @@ nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2) {
   if (value.type == graph::AtomicType::BOOLEAN) {
     weights.push_back(0.99);
     proposers.push_back(
-        std::make_unique<Delta>(graph::AtomicValue(not value._bool)));
+        std::make_unique<Delta>(graph::NodeValue(not value._bool)));
     weights.push_back(0.01);
     proposers.push_back(
-        std::make_unique<Delta>(graph::AtomicValue(value._bool)));
+        std::make_unique<Delta>(graph::NodeValue(value._bool)));
   }
   // For continuous-valued variables we will mix multiple proposers with various
   // weights with a small probability always given to a random walk proposer.

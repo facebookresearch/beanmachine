@@ -32,7 +32,7 @@ graph::natural_t Binomial::_natural_sampler(std::mt19937& gen) const {
   return distrib(gen);
 }
 
-double Binomial::log_prob(const graph::AtomicValue& value) const {
+double Binomial::log_prob(const graph::NodeValue& value) const {
   graph::natural_t n = in_nodes[0]->value._natural;
   double p = in_nodes[1]->value._double;
   graph::natural_t k = value._natural;
@@ -56,7 +56,7 @@ double Binomial::log_prob(const graph::AtomicValue& value) const {
 // grad1 is  (log(p) - log(1-p))
 // grad2 is  0
 void Binomial::gradient_log_prob_value(
-    const graph::AtomicValue& /* value */,
+    const graph::NodeValue& /* value */,
     double& grad1,
     double& /* grad2 */) const {
   // nothing to do here since the value is a natural number and we can't
@@ -71,7 +71,7 @@ void Binomial::gradient_log_prob_value(
 // grad2 is -(k/p^2) * p'^2 + (k/p) * p'' - ((n-k)/(1-p)^2) * p'^2 -
 // ((n-k)/(1-p)) * p''
 void Binomial::gradient_log_prob_param(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
   double n = (double)in_nodes[0]->value._natural;

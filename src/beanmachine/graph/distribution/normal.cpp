@@ -43,7 +43,7 @@ double Normal::_double_sampler(std::mt19937& gen) const {
 // grad2 w.r.t. s : 1/s^2 - 3 (x-m)^2 / s^4
 // grad  w.r.t. m : (x - m) / s^2
 // grad2 w.r.t. m : -1 / s^2
-double Normal::log_prob(const AtomicValue& value) const {
+double Normal::log_prob(const NodeValue& value) const {
   double x = value._double;
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
@@ -52,7 +52,7 @@ double Normal::log_prob(const AtomicValue& value) const {
 }
 
 void Normal::gradient_log_prob_value(
-    const AtomicValue& value,
+    const NodeValue& value,
     double& grad1,
     double& grad2) const {
   double x = value._double;
@@ -64,7 +64,7 @@ void Normal::gradient_log_prob_value(
 }
 
 void Normal::gradient_log_prob_param(
-    const AtomicValue& value,
+    const NodeValue& value,
     double& grad1,
     double& grad2) const {
   double x = value._double;

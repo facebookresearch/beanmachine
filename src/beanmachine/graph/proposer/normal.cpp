@@ -7,12 +7,12 @@
 namespace beanmachine {
 namespace proposer {
 
-graph::AtomicValue Normal::sample(std::mt19937& gen) const {
+graph::NodeValue Normal::sample(std::mt19937& gen) const {
   std::normal_distribution<double> dist(mu, sigma);
-  return graph::AtomicValue(graph::AtomicType::REAL, dist(gen));
+  return graph::NodeValue(graph::AtomicType::REAL, dist(gen));
 }
 
-double Normal::log_prob(graph::AtomicValue& value) const {
+double Normal::log_prob(graph::NodeValue& value) const {
   return -std::log(sigma) - 0.5 * std::log(2 * M_PI) -
       0.5 * (value._double - mu) * (value._double - mu) / (sigma * sigma);
 }

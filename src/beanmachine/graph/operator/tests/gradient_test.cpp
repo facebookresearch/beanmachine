@@ -7,7 +7,7 @@ using namespace beanmachine::graph;
 
 TEST(testgradient, operators) {
   Graph g;
-  AtomicValue value;
+  NodeValue value;
   double grad1;
   double grad2;
   // test operators on real numbers

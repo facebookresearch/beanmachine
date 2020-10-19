@@ -44,7 +44,7 @@ double Gamma::_double_sampler(std::mt19937& gen) const {
 // grad2 w.r.t. params = - polygamma(1, a) * (a')^2
 //                       + [log(b) - digamma(a) + log(x)] * a''
 //                       - a / b^2 * (b')^2 + (a / b - x) * b''
-double Gamma::log_prob(const graph::AtomicValue& value) const {
+double Gamma::log_prob(const graph::NodeValue& value) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double ret_val = param_a * std::log(param_b) - lgamma(param_a);
@@ -53,7 +53,7 @@ double Gamma::log_prob(const graph::AtomicValue& value) const {
 }
 
 void Gamma::gradient_log_prob_value(
-    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+    const graph::NodeValue& value, double& grad1, double& grad2) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   grad1 += (param_a - 1.0) / value._double - param_b;
@@ -61,7 +61,7 @@ void Gamma::gradient_log_prob_value(
 }
 
 void Gamma::gradient_log_prob_param(
-    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+    const graph::NodeValue& value, double& grad1, double& grad2) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double digamma_a = util::polygamma(0, param_a); // digamma(a)

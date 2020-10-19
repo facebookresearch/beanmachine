@@ -46,14 +46,14 @@ bool BernoulliLogit::_bool_sampler(std::mt19937& gen) const {
 //         = -1 /[(1 + exp(-l)) (1 + exp(l))]
 //         = -1 / (2 + exp(-l) + exp(l))
 
-double BernoulliLogit::log_prob(const AtomicValue& value) const {
+double BernoulliLogit::log_prob(const NodeValue& value) const {
   bool x = value._bool;
   double l = in_nodes[0]->value._double;
   return x ? -util::log1pexp(-l) : -util::log1pexp(l);
 }
 
 void BernoulliLogit::gradient_log_prob_value(
-    const AtomicValue& /* value */,
+    const NodeValue& /* value */,
     double& grad1,
     double& /* grad2 */) const {
   double l = in_nodes[0]->value._double;
@@ -62,7 +62,7 @@ void BernoulliLogit::gradient_log_prob_value(
 }
 
 void BernoulliLogit::gradient_log_prob_param(
-    const AtomicValue& value,
+    const NodeValue& value,
     double& grad1,
     double& grad2) const {
   bool x = value._bool;

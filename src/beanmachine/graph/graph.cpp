@@ -52,7 +52,7 @@ std::string ValueType::to_string() const {
   return vtype + atype + ">";
 }
 
-AtomicValue::AtomicValue(AtomicType type, double value)
+NodeValue::NodeValue(AtomicType type, double value)
     : type(type), _double(value) {
   // don't allow constrained values to get too close to the boundary
   if (type == AtomicType::POS_REAL) {
@@ -78,7 +78,7 @@ AtomicValue::AtomicValue(AtomicType type, double value)
   }
 }
 
-void AtomicValue::init_scalar(AtomicType type) {
+void NodeValue::init_scalar(AtomicType type) {
   switch (type) {
     case AtomicType::UNKNOWN:
       break;
@@ -101,11 +101,11 @@ void AtomicValue::init_scalar(AtomicType type) {
   }
 }
 
-AtomicValue::AtomicValue(AtomicType type) : type(type) {
+NodeValue::NodeValue(AtomicType type) : type(type) {
   this->init_scalar(type);
 }
 
-AtomicValue::AtomicValue(ValueType type) : type(type) {
+NodeValue::NodeValue(ValueType type) : type(type) {
   if (type.variable_type == VariableType::BROADCAST_MATRIX) {
     switch (type.atomic_type) {
       case AtomicType::BOOLEAN:
@@ -137,7 +137,7 @@ AtomicValue::AtomicValue(ValueType type) : type(type) {
   }
 }
 
-std::string AtomicValue::to_string() const {
+std::string NodeValue::to_string() const {
   std::ostringstream os;
   std::string type_str = type.to_string() + " ";
   if (type.variable_type == VariableType::SCALAR) {
@@ -280,7 +280,7 @@ void Graph::eval_and_grad(
     uint tgt_idx,
     uint src_idx,
     uint seed,
-    AtomicValue& value,
+    NodeValue& value,
     double& grad1,
     double& grad2) {
   if (src_idx >= nodes.size()) {
@@ -462,18 +462,18 @@ Node* Graph::check_node(uint node_id, NodeType node_type) {
 }
 
 uint Graph::add_constant(bool value) {
-  return add_constant(AtomicValue(value));
+  return add_constant(NodeValue(value));
 }
 
 uint Graph::add_constant(double value) {
-  return add_constant(AtomicValue(value));
+  return add_constant(NodeValue(value));
 }
 
 uint Graph::add_constant(natural_t value) {
-  return add_constant(AtomicValue(value));
+  return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant(AtomicValue value) {
+uint Graph::add_constant(NodeValue value) {
   std::unique_ptr<ConstNode> node = std::make_unique<ConstNode>(value);
   // constants don't have parents
   return add_node(std::move(node), std::vector<uint>());
@@ -483,40 +483,40 @@ uint Graph::add_constant_probability(double value) {
   if (value < 0 or value > 1) {
     throw std::invalid_argument("probability must be between 0 and 1");
   }
-  return add_constant(AtomicValue(AtomicType::PROBABILITY, value));
+  return add_constant(NodeValue(AtomicType::PROBABILITY, value));
 }
 
 uint Graph::add_constant_pos_real(double value) {
   if (value < 0) {
     throw std::invalid_argument("pos_real must be >=0");
   }
-  return add_constant(AtomicValue(AtomicType::POS_REAL, value));
+  return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
 uint Graph::add_constant_neg_real(double value) {
   if (value > 0) {
     throw std::invalid_argument("neg_real must be <=0");
   }
-  return add_constant(AtomicValue(AtomicType::NEG_REAL, value));
+  return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
 uint Graph::add_constant_matrix(Eigen::MatrixXb& value) {
-  return add_constant(AtomicValue(value));
+  return add_constant(NodeValue(value));
 }
 
 uint Graph::add_constant_matrix(Eigen::MatrixXd& value) {
-  return add_constant(AtomicValue(value));
+  return add_constant(NodeValue(value));
 }
 
 uint Graph::add_constant_matrix(Eigen::MatrixXn& value) {
-  return add_constant(AtomicValue(value));
+  return add_constant(NodeValue(value));
 }
 
 uint Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
     throw std::invalid_argument("All elements in pos_matrix must be >=0");
   }
-  return add_constant(AtomicValue(AtomicType::POS_REAL, value));
+  return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
 uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
@@ -530,7 +530,7 @@ uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
   if (invalid_colsum) {
     throw std::invalid_argument("All cols in col_simplex_matrix must sum to 1");
   }
-  return add_constant(AtomicValue(
+  return add_constant(NodeValue(
       ValueType(
           VariableType::COL_SIMPLEX_MATRIX,
           AtomicType::PROBABILITY,
@@ -544,7 +544,7 @@ uint Graph::add_constant_probability_matrix(Eigen::MatrixXd& value) {
     throw std::invalid_argument(
         "All elements in probability_matrix must be between 0 and 1");
   }
-  return add_constant(AtomicValue(AtomicType::PROBABILITY, value));
+  return add_constant(NodeValue(AtomicType::PROBABILITY, value));
 }
 
 uint Graph::add_distribution(
@@ -591,34 +591,34 @@ uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
 }
 
 void Graph::observe(uint node_id, bool val) {
-  observe(node_id, AtomicValue(val));
+  observe(node_id, NodeValue(val));
 }
 
 void Graph::observe(uint node_id, double val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, AtomicValue(node->value.type.atomic_type, val));
+  observe(node_id, NodeValue(node->value.type.atomic_type, val));
 }
 
 void Graph::observe(uint node_id, natural_t val) {
-  observe(node_id, AtomicValue(val));
+  observe(node_id, NodeValue(val));
 }
 
 void Graph::observe(uint node_id, Eigen::MatrixXd& val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, AtomicValue(node->value.type, val));
+  observe(node_id, NodeValue(node->value.type, val));
 }
 
 void Graph::observe(uint node_id, Eigen::MatrixXb& val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, AtomicValue(node->value.type, val));
+  observe(node_id, NodeValue(node->value.type, val));
 }
 
 void Graph::observe(uint node_id, Eigen::MatrixXn& val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, AtomicValue(node->value.type, val));
+  observe(node_id, NodeValue(node->value.type, val));
 }
 
-void Graph::observe(uint node_id, AtomicValue value) {
+void Graph::observe(uint node_id, NodeValue value) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
   oper::Operator* op = static_cast<oper::Operator*>(node);
   if (op->op_type != OperatorType::SAMPLE and
@@ -673,7 +673,7 @@ void Graph::collect_sample() {
       ? this->means
       : master_graph->means_allchains[thread_index];
   if (agg_type == AggregationType::NONE) {
-    std::vector<AtomicValue> sample;
+    std::vector<NodeValue> sample;
     for (uint node_id : queries) {
       sample.push_back(nodes[node_id]->value);
     }
@@ -685,7 +685,7 @@ void Graph::collect_sample() {
     assert(mean_collector.size() == queries.size());
     uint pos = 0;
     for (uint node_id : queries) {
-      AtomicValue value = nodes[node_id]->value;
+      NodeValue value = nodes[node_id]->value;
       if (value.type == AtomicType::BOOLEAN) {
         mean_collector[pos] += double(value._bool) / agg_samples;
       } else if (
@@ -725,7 +725,7 @@ void Graph::_infer(uint num_samples, InferenceType algorithm, uint seed) {
   }
 }
 
-std::vector<std::vector<AtomicValue>>&
+std::vector<std::vector<NodeValue>>&
 Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   agg_type = AggregationType::NONE;
   samples.clear();
@@ -733,7 +733,7 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   return samples;
 }
 
-std::vector<std::vector<std::vector<AtomicValue>>>& Graph::infer(
+std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
     uint num_samples,
     InferenceType algorithm,
     uint seed,
@@ -741,7 +741,7 @@ std::vector<std::vector<std::vector<AtomicValue>>>& Graph::infer(
   agg_type = AggregationType::NONE;
   samples.clear();
   samples_allchains.clear();
-  samples_allchains.resize(n_chains, std::vector<std::vector<AtomicValue>>());
+  samples_allchains.resize(n_chains, std::vector<std::vector<NodeValue>>());
   _infer_parallel(num_samples, algorithm, seed, n_chains);
   return samples_allchains;
 }
@@ -855,7 +855,7 @@ Graph::Graph(const Graph& other) {
     std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
     switch (node->node_type) {
       case NodeType::CONSTANT: {
-        AtomicValue value_copy = AtomicValue(node->value);
+        NodeValue value_copy = NodeValue(node->value);
         add_constant(value_copy);
         break;
       }
@@ -868,7 +868,7 @@ Graph::Graph(const Graph& other) {
       case NodeType::OPERATOR: {
         add_operator(static_cast<oper::Operator*>(node)->op_type, parent_ids);
         if (node->is_observed) {
-          observe(node->index, AtomicValue(node->value));
+          observe(node->index, NodeValue(node->value));
         }
         break;
       }

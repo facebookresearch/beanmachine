@@ -30,7 +30,7 @@ bool Bernoulli::_bool_sampler(std::mt19937& gen) const {
   return (bool)distrib(gen);
 }
 
-double Bernoulli::log_prob(const graph::AtomicValue& value) const {
+double Bernoulli::log_prob(const graph::NodeValue& value) const {
   double prob = in_nodes[0]->value._double;
   return value._bool ? std::log(prob) : std::log(1 - prob);
 }
@@ -42,7 +42,7 @@ double Bernoulli::log_prob(const graph::AtomicValue& value) const {
 // grad2 w.r.t. p is -(x/p^2) * p'^2 + (x/p) * p'' - ((1-x)/(1-p)^2) * p'^2 -
 // ((1-x)/(1-p)) * p''
 void Bernoulli::gradient_log_prob_value(
-    const graph::AtomicValue& /* value */,
+    const graph::NodeValue& /* value */,
     double& grad1,
     double& /* grad2 */) const {
   double prob = in_nodes[0]->value._double;
@@ -51,7 +51,7 @@ void Bernoulli::gradient_log_prob_value(
 }
 
 void Bernoulli::gradient_log_prob_param(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
   double val = value._bool ? 1.0 : 0.0;

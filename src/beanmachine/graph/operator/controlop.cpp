@@ -17,7 +17,7 @@ IfThenElse::IfThenElse(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator IF_THEN_ELSE requires boolean first argument");
   }
-  value = graph::AtomicValue(in_nodes[1]->value.type.atomic_type);
+  value = graph::NodeValue(in_nodes[1]->value.type.atomic_type);
 }
 
 void IfThenElse::eval(std::mt19937& /* gen */) {

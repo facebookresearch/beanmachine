@@ -10,16 +10,16 @@ namespace pybind11 {
 namespace detail {
 using namespace beanmachine::graph;
 
-// We want AtomicValues output from C++ to show up as native Python types
+// We want NodeValues output from C++ to show up as native Python types
 // such as floats, ints, bool etc. Hence we have the specific `cast` function
 // in pybindings.cpp. However from Python to C++ we want to use the simple
-// mappings that we will define below with `py::class_<AtomicValue>` hence we
+// mappings that we will define below with `py::class_<NodeValue>` hence we
 // create a super class and delegate the Python to C++ load to the base class as
 // explained in this link:
 // https://github.com/pybind/pybind11/issues/1176#issuecomment-343312352
 template <>
-struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
-  using base = type_caster_base<AtomicValue>;
+struct type_caster<NodeValue> : public type_caster_base<NodeValue> {
+  using base = type_caster_base<NodeValue>;
 
  public:
   bool load(handle src, bool convert) {
@@ -28,7 +28,7 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
   }
 
   static handle
-  cast(AtomicValue src, return_value_policy policy, handle parent) {
+  cast(NodeValue src, return_value_policy policy, handle parent) {
     // for C++ -> Python condition the return object on the type
     if (src.type.variable_type == VariableType::SCALAR) {
       switch (src.type.atomic_type) {
@@ -44,7 +44,7 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
           return type_caster<int>::cast(src._natural, policy, parent);
         }
         default: {
-          throw std::runtime_error("unexpected type for AtomicValue");
+          throw std::runtime_error("unexpected type for NodeValue");
         }
       }
     } else if (src.type.variable_type == VariableType::BROADCAST_MATRIX) {
@@ -61,12 +61,12 @@ struct type_caster<AtomicValue> : public type_caster_base<AtomicValue> {
           return type_caster<Eigen::MatrixXn>::cast(
               src._nmatrix, policy, parent);
         default:
-          throw std::runtime_error("unexpected type for AtomicValue");
+          throw std::runtime_error("unexpected type for NodeValue");
       }
     } else if (src.type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
       return type_caster<Eigen::MatrixXd>::cast(src._matrix, policy, parent);
     } else {
-      throw std::runtime_error("unexpected type for AtomicValue");
+      throw std::runtime_error("unexpected type for NodeValue");
     }
   }
 };

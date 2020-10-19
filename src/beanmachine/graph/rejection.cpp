@@ -15,7 +15,7 @@ void Graph::rejection(uint num_samples, std::mt19937& gen) {
         // parents are evaluated before it.
         // Note: evaluation may result in sampling if there is a sample
         // operator in the graph.
-        AtomicValue old_value;
+        NodeValue old_value;
         if (node->node_type == NodeType::OPERATOR) {
           old_value = node->value;
           node->eval(gen);

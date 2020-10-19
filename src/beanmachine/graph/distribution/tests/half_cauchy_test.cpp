@@ -48,7 +48,7 @@ TEST(testdistrib, half_cauchy) {
   auto pos_val =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{half_cauchy_dist});
   g.query(pos_val);
-  std::vector<std::vector<AtomicValue>>& samples =
+  std::vector<std::vector<NodeValue>>& samples =
       g.infer(10000, InferenceType::REJECTION);
   std::vector<double> values;
   for (const auto& sample : samples) {
