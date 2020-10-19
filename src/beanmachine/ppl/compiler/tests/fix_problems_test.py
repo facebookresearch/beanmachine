@@ -712,12 +712,12 @@ digraph "graph" {
     def test_fix_problems_10(self) -> None:
         """test_fix_problems_10"""
 
-        # Demonstrate that we can rewrite 1 - p for probability p into
+        # Demonstrate that we can rewrite 1-p for probability p into
         # complement(p) -- which is of type P -- instead of
         # add(1, negate(p)) which is of type R.
 
-        # TODO: Also demonstrate that this works for 1 b
-        # TODO: Get this working for the "not" operator, since 1 b
+        # TODO: Also demonstrate that this works for 1-b
+        # TODO: Get this working for the "not" operator, since 1-b
         # and "not b" are the same thing for bool b.
 
         self.maxDiff = None
@@ -750,16 +750,16 @@ digraph "graph" {
   N1[label="2.0:R>=N"];
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
-  N4[label="-:R>=R"];
-  N5[label="+:R>=P"];
+  N4[label="-:M>=R-"];
+  N5[label="+:M>=P"];
   N6[label="Bernoulli:B>=B"];
   N7[label="Sample:B>=B"];
   N0 -> N5[label="left:OH"];
   N1 -> N2[label="alpha:R+"];
   N1 -> N2[label="beta:R+"];
   N2 -> N3[label="operand:P"];
-  N3 -> N4[label="operand:R"];
-  N4 -> N5[label="right:R"];
+  N3 -> N4[label="operand:R+"];
+  N4 -> N5[label="right:R-"];
   N5 -> N6[label="probability:P"];
   N6 -> N7[label="operand:B"];
 }
@@ -784,17 +784,17 @@ digraph "graph" {
   N1[label="2.0:R>=N"];
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
-  N4[label="-:R>=R"];
-  N5[label="+:R>=P"];
+  N4[label="-:M>=R-"];
+  N5[label="+:M>=P"];
   N6[label="Bernoulli:B>=B"];
   N7[label="Sample:B>=B"];
   N8[label="complement:P>=P"];
   N9[label="2.0:R+>=N"];
   N0 -> N5[label="left:OH"];
   N2 -> N3[label="operand:P"];
-  N3 -> N4[label="operand:R"];
+  N3 -> N4[label="operand:R+"];
   N3 -> N8[label="operand:P"];
-  N4 -> N5[label="right:R"];
+  N4 -> N5[label="right:R-"];
   N6 -> N7[label="operand:B"];
   N8 -> N6[label="probability:P"];
   N9 -> N2[label="alpha:R+"];

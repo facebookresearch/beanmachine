@@ -2509,8 +2509,9 @@ class NegativeLogNode(UnaryOperatorNode):
 # * The "complement" node with a probability operand has the semantics
 #   of (1 - p). The input and output are both probability.
 #
-# * The "negate" node has the semantics of (0 - x). The input and output
-#   are both real or both tensor.
+# * The "negate" node has the semantics of (0 - x). The input must be
+#   real, positive real or negative real, and the output is
+#   real, negative real or positive real respectively.
 #
 # Note that there is no subtraction operator in BMG; to express x - y
 # we generate nodes as though (x + (-y)) was written; that is, the
@@ -2572,21 +2573,33 @@ class NegateNode(UnaryOperatorNode):
 
     @property
     def inf_type(self) -> BMGLatticeType:
-        # Special case: if the operand is log(P) then we can
-        # turn this into a NegativeLog which is R+. Otherwise,
-        # negate is R.
-        o = self.operand
-        if isinstance(o, LogNode):
-            if supremum(o.operand.inf_type, Probability) == Probability:
-                return PositiveReal
+        ot = self.operand.inf_type
+        if supremum(ot, PositiveReal) == PositiveReal:
+            return NegativeReal
+        if supremum(ot, NegativeReal) == NegativeReal:
+            return PositiveReal
         return Real
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        return Real
+        ot = self.operand.graph_type
+        if ot == PositiveReal:
+            return NegativeReal
+        if ot == NegativeReal:
+            return PositiveReal
+        if ot == Real:
+            return Real
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
+        # Find the smallest type that can be used as an
+        # input requirement.
+        ot = self.operand.inf_type
+        if supremum(ot, PositiveReal) == PositiveReal:
+            return [PositiveReal]
+        if supremum(ot, NegativeReal) == NegativeReal:
+            return [NegativeReal]
         return [Real]
 
     @property
