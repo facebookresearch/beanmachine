@@ -64,11 +64,21 @@ class TestOperators(unittest.TestCase):
             g.add_operator(bmg.OperatorType.LOG, [c8])
         g.add_operator(bmg.OperatorType.LOG, [c3])
         # test NEGATE
+        # Negate needs exactly one operand
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.NEGATE, [])
         g.add_operator(bmg.OperatorType.NEGATE, [c2])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.NEGATE, [c1, c2])
+        # Negate can take a real, negative real or positive real.
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.NEGATE, [c3])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.NEGATE, [c6])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.NEGATE, [c7])
+        g.add_operator(bmg.OperatorType.NEGATE, [c1])
+        g.add_operator(bmg.OperatorType.NEGATE, [c8])
         # test COMPLEMENT
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.COMPLEMENT, [])
