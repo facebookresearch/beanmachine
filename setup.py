@@ -15,7 +15,7 @@ REQUIRED_MINOR = 6
 
 TEST_REQUIRES = ["pytest", "pytest-cov", "botorch"]
 DEV_REQUIRES = TEST_REQUIRES + [
-    "black==19.3b0",
+    "black==20.8b1",
     "isort",
     "flake8",
     "sphinx",
