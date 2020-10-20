@@ -81,7 +81,7 @@ bool Tabular::_bool_sampler(std::mt19937& gen) const {
   return (bool)dist(gen);
 }
 
-double Tabular::log_prob(const graph::AtomicValue& value) const {
+double Tabular::log_prob(const graph::NodeValue& value) const {
   double prob_true = get_probability();
   if (value.type != graph::AtomicType::BOOLEAN) {
     throw std::runtime_error(
@@ -93,7 +93,7 @@ double Tabular::log_prob(const graph::AtomicValue& value) const {
 }
 
 void Tabular::gradient_log_prob_value(
-    const graph::AtomicValue& /* value */,
+    const graph::NodeValue& /* value */,
     double& /* grad1 */,
     double& /* grad2 */) const {
   throw std::runtime_error(
@@ -101,7 +101,7 @@ void Tabular::gradient_log_prob_value(
 }
 
 void Tabular::gradient_log_prob_param(
-    const graph::AtomicValue& /* value */,
+    const graph::NodeValue& /* value */,
     double& /* grad1 */,
     double& /* grad2 */) const {
   throw std::runtime_error(

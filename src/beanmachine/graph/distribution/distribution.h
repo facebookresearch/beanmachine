@@ -21,8 +21,8 @@ class Distribution : public graph::Node {
       : graph::Node(graph::NodeType::DISTRIBUTION),
         dist_type(dist_type),
         sample_type(sample_type) {}
-  graph::AtomicValue sample(std::mt19937& gen) const;
-  void sample(std::mt19937& gen, graph::AtomicValue& sample_value) const;
+  graph::NodeValue sample(std::mt19937& gen) const;
+  void sample(std::mt19937& gen, graph::NodeValue& sample_value) const;
   void eval(std::mt19937& /* */) override {
     throw std::runtime_error(
         "internal error: eval() is not implemented for distribution");
@@ -30,25 +30,25 @@ class Distribution : public graph::Node {
   // tell the compiler that we want the base class log_prob method
   // as well as the new one in this class
   using graph::Node::log_prob;
-  virtual double log_prob(const graph::AtomicValue& value) const = 0;
+  virtual double log_prob(const graph::NodeValue& value) const = 0;
   // these function add the gradients to the passed in gradients
   virtual void gradient_log_prob_value(
-      const graph::AtomicValue& value,
+      const graph::NodeValue& value,
       double& grad1,
       double& grad2) const = 0;
   virtual void gradient_log_prob_value(
-      const graph::AtomicValue& /* value */,
+      const graph::NodeValue& /* value */,
       Eigen::MatrixXd& /* grad1 */,
       Eigen::MatrixXd& /* grad2_diag */) const {
     throw std::runtime_error(
         "gradient_log_prob_value has not been implemented for this distribution.");
   }
   virtual void gradient_log_prob_param(
-      const graph::AtomicValue& value,
+      const graph::NodeValue& value,
       double& grad1,
       double& grad2) const = 0;
   virtual void gradient_log_prob_param(
-      const graph::AtomicValue& /* value */,
+      const graph::NodeValue& /* value */,
       Eigen::MatrixXd& /* grad1 */,
       Eigen::MatrixXd& /* grad2_diag */) const {
     throw std::runtime_error(

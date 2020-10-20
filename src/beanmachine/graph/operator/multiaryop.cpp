@@ -14,12 +14,12 @@ Add::Add(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator ADD requires real/pos_real parent");
   }
-  value = graph::AtomicValue(type0);
+  value = graph::NodeValue(type0);
 }
 
 void Add::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() > 1);
-  const graph::AtomicValue& parent0 = in_nodes[0]->value;
+  const graph::NodeValue& parent0 = in_nodes[0]->value;
   if (parent0.type == graph::AtomicType::REAL or
       parent0.type == graph::AtomicType::POS_REAL) {
     value._double = parent0._double;
@@ -45,12 +45,12 @@ Multiply::Multiply(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator MUTIPLY requires a real, pos_real or probability parent");
   }
-  value = graph::AtomicValue(type0);
+  value = graph::NodeValue(type0);
 }
 
 void Multiply::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() > 1);
-  const graph::AtomicValue& parent0 = in_nodes[0]->value;
+  const graph::NodeValue& parent0 = in_nodes[0]->value;
   if (parent0.type == graph::AtomicType::REAL or
       parent0.type == graph::AtomicType::POS_REAL or
       parent0.type == graph::AtomicType::PROBABILITY) {
@@ -76,12 +76,12 @@ LogSumExp::LogSumExp(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator LOGSUMEXP requires a real or pos_real parent");
   }
-  value = graph::AtomicValue(graph::AtomicType::REAL);
+  value = graph::NodeValue(graph::AtomicType::REAL);
 }
 
 void LogSumExp::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() > 1);
-  const graph::AtomicValue& parent0 = in_nodes[0]->value;
+  const graph::NodeValue& parent0 = in_nodes[0]->value;
   if (parent0.type == graph::AtomicType::REAL or
       parent0.type == graph::AtomicType::POS_REAL) {
     double max_val = parent0._double;
@@ -136,13 +136,13 @@ Pow::Pow(const std::vector<graph::Node*>& in_nodes)
                               type1 == graph::AtomicType::REAL)
       ? graph::AtomicType::POS_REAL
       : type0.atomic_type;
-  value = graph::AtomicValue(result);
+  value = graph::NodeValue(result);
 }
 
 void Pow::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
-  const graph::AtomicValue& parent0 = in_nodes[0]->value;
-  const graph::AtomicValue& parent1 = in_nodes[1]->value;
+  const graph::NodeValue& parent0 = in_nodes[0]->value;
+  const graph::NodeValue& parent1 = in_nodes[1]->value;
 
   if ((parent0.type != graph::AtomicType::REAL and
        parent0.type != graph::AtomicType::POS_REAL and

@@ -48,7 +48,7 @@ bool BernoulliNoisyOr::_bool_sampler(std::mt19937& gen) const {
   return (bool)distrib(gen);
 }
 
-double BernoulliNoisyOr::log_prob(const graph::AtomicValue& value) const {
+double BernoulliNoisyOr::log_prob(const graph::NodeValue& value) const {
   double param = in_nodes[0]->value._double;
   if (not value._bool) {
     return -param;
@@ -65,7 +65,7 @@ double BernoulliNoisyOr::log_prob(const graph::AtomicValue& value) const {
 //             f'' = [- x exp(-y) /(1 - exp(-y))^2] y'^2 + [x / (1 - exp(-y)) -
 //             1] y''
 void BernoulliNoisyOr::gradient_log_prob_value(
-    const graph::AtomicValue& /* value */,
+    const graph::NodeValue& /* value */,
     double& grad1,
     double& /* grad2 */) const {
   double param = in_nodes[0]->value._double;
@@ -74,7 +74,7 @@ void BernoulliNoisyOr::gradient_log_prob_value(
 }
 
 void BernoulliNoisyOr::gradient_log_prob_param(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
   double param = in_nodes[0]->value._double;

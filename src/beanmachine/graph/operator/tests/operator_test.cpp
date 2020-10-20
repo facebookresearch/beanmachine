@@ -15,14 +15,15 @@ using namespace beanmachine::distribution;
 TEST(testoperator, complement) {
   // negative test num args can't be zero
   EXPECT_THROW(
-      oper::Complement onode1(std::vector<Node*>{}), std::invalid_argument);
-  auto p1 = AtomicValue(AtomicType::PROBABILITY, 0.1);
+      oper::Complement onode1(std::vector<Node*>{}),
+      std::invalid_argument);
+  auto p1 = NodeValue(AtomicType::PROBABILITY, 0.1);
   ConstNode cnode1(p1);
   // negative test num args can't be two
   EXPECT_THROW(
       oper::Complement(std::vector<Node*>{&cnode1, &cnode1}),
       std::invalid_argument);
-  auto r1 = AtomicValue(AtomicType::REAL, 0.1);
+  auto r1 = NodeValue(AtomicType::REAL, 0.1);
   ConstNode cnode2(r1);
   // negative test arg can't be real
   EXPECT_THROW(
@@ -35,7 +36,7 @@ TEST(testoperator, complement) {
   onode1.eval(generator);
   EXPECT_NEAR(onode1.value._double, 0.9, 0.001);
   // complement of bool is logical_not(bool)
-  auto b1 = AtomicValue(false);
+  auto b1 = NodeValue(false);
   ConstNode cnode3(b1);
   oper::Complement onode2(std::vector<Node*>{&cnode3});
   EXPECT_EQ(onode2.value.type, AtomicType::BOOLEAN);
@@ -512,12 +513,12 @@ TEST(testoperator, pow) {
 }
 
 TEST(testoperator, iid_sample) {
-  auto prob_value = AtomicValue(AtomicType::PROBABILITY, 0.1);
+  auto prob_value = NodeValue(AtomicType::PROBABILITY, 0.1);
   auto prob_node = ConstNode(prob_value);
   auto bern_dist =
       Bernoulli(AtomicType::BOOLEAN, std::vector<Node*>{&prob_node});
   bern_dist.in_nodes.push_back(&prob_node);
-  auto int_value = AtomicValue(AtomicType::NATURAL, (natural_t)2);
+  auto int_value = NodeValue(AtomicType::NATURAL, (natural_t)2);
   auto int_node = ConstNode(int_value);
   // negative tests on the number and types of parents
   EXPECT_THROW(oper::IIdSample(std::vector<Node*>{}), std::invalid_argument);
@@ -529,7 +530,7 @@ TEST(testoperator, iid_sample) {
       std::invalid_argument);
 
   // test initialization
-  auto pos_real_value = AtomicValue(AtomicType::POS_REAL, 2.0);
+  auto pos_real_value = NodeValue(AtomicType::POS_REAL, 2.0);
   auto pos_real_node = ConstNode(pos_real_value);
   auto beta_dist = Beta(
       AtomicType::PROBABILITY,
@@ -555,8 +556,9 @@ TEST(testoperator, iid_sample) {
 
   // test log_prob
   Eigen::MatrixXd matrix1(2, 1);
-  matrix1 << 0.6, 0.5;
-  auto matrix_value = AtomicValue(vtype, matrix1);
+  matrix1 << 0.6,
+             0.5;
+  auto matrix_value = NodeValue(vtype, matrix1);
   beta_samples.value = matrix_value;
   EXPECT_NEAR(beta_samples.log_prob(), 0.7701, 1e-3);
 

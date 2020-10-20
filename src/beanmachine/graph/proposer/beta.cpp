@@ -7,12 +7,12 @@
 namespace beanmachine {
 namespace proposer {
 
-graph::AtomicValue Beta::sample(std::mt19937& gen) const {
-  return graph::AtomicValue(
+graph::NodeValue Beta::sample(std::mt19937& gen) const {
+  return graph::NodeValue(
       graph::AtomicType::PROBABILITY, util::sample_beta(gen, a, b));
 }
 
-double Beta::log_prob(graph::AtomicValue& value) const {
+double Beta::log_prob(graph::NodeValue& value) const {
   double ret_val =
       (a - 1) * log(value._double) + (b - 1) * log(1 - value._double);
   ret_val += lgamma(a + b) - lgamma(a) - lgamma(b);

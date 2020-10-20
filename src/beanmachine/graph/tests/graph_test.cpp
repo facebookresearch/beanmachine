@@ -36,7 +36,7 @@ TEST(testgraph, infer_arithmetic) {
   // P(o5=T,o1=F) = 0.08564 and P(o1=T | o5=T) = 0.4093
   g.observe(o5, true);
   g.query(o1);
-  std::vector<std::vector<graph::AtomicValue>> samples =
+  std::vector<std::vector<graph::NodeValue>> samples =
       g.infer(100, graph::InferenceType::GIBBS);
   int sum = 0;
   for (const auto& sample : samples) {
@@ -51,7 +51,7 @@ TEST(testgraph, infer_arithmetic) {
   std::vector<double> means = g.infer_mean(100, graph::InferenceType::GIBBS);
   EXPECT_TRUE(std::abs(sum - int(means[0] * 100)) <= 1);
   // repeat the test with rejection sampling
-  std::vector<std::vector<graph::AtomicValue>> samples2 =
+  std::vector<std::vector<graph::NodeValue>> samples2 =
       g.infer(100, graph::InferenceType::REJECTION);
   sum = 0;
   for (const auto& sample : samples2) {
@@ -104,7 +104,7 @@ TEST(testgraph, infer_bn) {
   g.observe(GRASSWET, true);
   g.query(RAIN);
   uint n_iter = 100;
-  const std::vector<std::vector<graph::AtomicValue>>& samples =
+  const std::vector<std::vector<graph::NodeValue>>& samples =
       g.infer(n_iter, graph::InferenceType::REJECTION);
   ASSERT_EQ(samples.size(), n_iter);
   uint sum = 0;

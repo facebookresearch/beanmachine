@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
+#include <algorithm>
 #include <list>
 #include <map>
 #include <memory>
@@ -108,7 +109,7 @@ struct ValueType {
 
 typedef NATURAL_TYPE natural_t;
 
-class AtomicValue {
+class NodeValue {
  public:
   ValueType type;
   union {
@@ -120,28 +121,28 @@ class AtomicValue {
   Eigen::MatrixXb _bmatrix;
   Eigen::MatrixXn _nmatrix;
 
-  AtomicValue() : type(AtomicType::UNKNOWN) {}
-  explicit AtomicValue(AtomicType type);
-  explicit AtomicValue(ValueType type);
-  explicit AtomicValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
-  explicit AtomicValue(double value) : type(AtomicType::REAL), _double(value) {}
-  explicit AtomicValue(natural_t value)
+  NodeValue() : type(AtomicType::UNKNOWN) {}
+  explicit NodeValue(AtomicType type);
+  explicit NodeValue(ValueType type);
+  explicit NodeValue(bool value) : type(AtomicType::BOOLEAN), _bool(value) {}
+  explicit NodeValue(double value) : type(AtomicType::REAL), _double(value) {}
+  explicit NodeValue(natural_t value)
       : type(AtomicType::NATURAL), _natural(value) {}
-  explicit AtomicValue(Eigen::MatrixXd& value)
+  explicit NodeValue(Eigen::MatrixXd& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::REAL,
             value.rows(),
             value.cols())),
         _matrix(value) {}
-  explicit AtomicValue(Eigen::MatrixXb& value)
+  explicit NodeValue(Eigen::MatrixXb& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::BOOLEAN,
             value.rows(),
             value.cols())),
         _bmatrix(value) {}
-  explicit AtomicValue(Eigen::MatrixXn& value)
+  explicit NodeValue(Eigen::MatrixXn& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::NATURAL,
@@ -149,13 +150,13 @@ class AtomicValue {
             value.cols())),
         _nmatrix(value) {}
 
-  AtomicValue(AtomicType type, bool value) : type(type), _bool(value) {
+  NodeValue(AtomicType type, bool value) : type(type), _bool(value) {
     assert(type == AtomicType::BOOLEAN);
   }
-  AtomicValue(AtomicType type, natural_t value) : type(type), _natural(value) {
+  NodeValue(AtomicType type, natural_t value) : type(type), _natural(value) {
     assert(type == AtomicType::NATURAL);
   }
-  AtomicValue(AtomicType type, Eigen::MatrixXd& value)
+  NodeValue(AtomicType type, Eigen::MatrixXd& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             type,
@@ -166,11 +167,11 @@ class AtomicValue {
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
         type == AtomicType::NEG_REAL or type == AtomicType::PROBABILITY);
   }
-  AtomicValue(AtomicType /* type */, Eigen::MatrixXb& value)
-      : AtomicValue(value) {}
-  AtomicValue(AtomicType /* type */, Eigen::MatrixXn& value)
-      : AtomicValue(value) {}
-  AtomicValue(ValueType type, Eigen::MatrixXd& value)
+  NodeValue(AtomicType /* type */, Eigen::MatrixXb& value)
+      : NodeValue(value) {}
+  NodeValue(AtomicType /* type */, Eigen::MatrixXn& value)
+      : NodeValue(value) {}
+  NodeValue(ValueType type, Eigen::MatrixXd& value)
       : type(type), _matrix(value) {
     assert(
         type.variable_type == VariableType::BROADCAST_MATRIX or
@@ -178,29 +179,30 @@ class AtomicValue {
     assert(
         type.atomic_type == AtomicType::REAL or
         type.atomic_type == AtomicType::POS_REAL or
+        type.atomic_type == AtomicType::NEG_REAL or
         type.atomic_type == AtomicType::PROBABILITY);
     assert(type.rows == value.rows() and type.cols == value.cols());
   }
-  AtomicValue(ValueType type, Eigen::MatrixXb& value)
+  NodeValue(ValueType type, Eigen::MatrixXb& value)
       : type(type), _bmatrix(value) {
     assert(type.variable_type == VariableType::BROADCAST_MATRIX);
     assert(type.atomic_type == AtomicType::BOOLEAN);
     assert(type.rows == value.rows() and type.cols == value.cols());
   }
-  AtomicValue(ValueType type, Eigen::MatrixXn& value)
+  NodeValue(ValueType type, Eigen::MatrixXn& value)
       : type(type), _nmatrix(value) {
     assert(type.variable_type == VariableType::BROADCAST_MATRIX);
     assert(type.atomic_type == AtomicType::NATURAL);
     assert(type.rows == value.rows() and type.cols == value.cols());
   }
-  AtomicValue(AtomicType type, double value);
+  NodeValue(AtomicType type, double value);
 
-  AtomicValue(const AtomicValue& other): type(other.type) {
+  NodeValue(const NodeValue& other): type(other.type) {
     if (type.variable_type == VariableType::SCALAR) {
       switch (type.atomic_type) {
         case AtomicType::UNKNOWN: {
           throw std::invalid_argument(
-              "Trying to copy an AtomicValue of unknown type.");
+              "Trying to copy an NodeValue of unknown type.");
         }
         case AtomicType::BOOLEAN: {
           _bool = other._bool;
@@ -231,7 +233,7 @@ class AtomicValue {
           break;
         default:
           throw std::invalid_argument(
-              "Trying to copy a MATRIX AtomicValue of unsupported type.");
+              "Trying to copy a MATRIX NodeValue of unsupported type.");
       }
     } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
       _matrix = other._matrix;
@@ -239,8 +241,10 @@ class AtomicValue {
        throw std::invalid_argument("Trying to copy a value of unknown VariableType");
     }
   }
+  NodeValue& operator=(const NodeValue& other) = default;
+
   std::string to_string() const;
-  bool operator==(const AtomicValue& other) const {
+  bool operator==(const NodeValue& other) const {
     return type == other.type and
         ((type == AtomicType::BOOLEAN and _bool == other._bool) or
          (type == AtomicType::REAL and _double == other._double) or
@@ -263,7 +267,7 @@ class AtomicValue {
          (type.variable_type == VariableType::COL_SIMPLEX_MATRIX and
           _matrix.isApprox(other._matrix)));
   }
-  bool operator!=(const AtomicValue& other) const {
+  bool operator!=(const NodeValue& other) const {
     return not(*this == other);
   }
 
@@ -338,7 +342,7 @@ class Node {
   std::vector<Node*> out_nodes;
   std::vector<uint> det_anc; // deterministic (operator) ancestors
   std::vector<uint> sto_anc; // stochastic ancestors
-  AtomicValue value;
+  NodeValue value;
   double grad1;
   double grad2;
   Eigen::MatrixXd Grad1;
@@ -361,7 +365,7 @@ class Node {
   Node() {}
   explicit Node(NodeType node_type)
       : node_type(node_type), grad1(0), grad2(0) {}
-  Node(NodeType node_type, AtomicValue value)
+  Node(NodeType node_type, NodeValue value)
       : node_type(node_type), value(value), grad1(0), grad2(0) {}
   // evaluate the node and store the result in `value` if appropriate
   // eval may involve sampling and that's why we need the random number engine
@@ -397,7 +401,7 @@ class Node {
 
 class ConstNode : public Node {
  public:
-  explicit ConstNode(AtomicValue value) : Node(NodeType::CONSTANT, value) {}
+  explicit ConstNode(NodeValue value) : Node(NodeType::CONSTANT, value) {}
   void eval(std::mt19937& /* unused */) override {}
   ~ConstNode() override {}
 };
@@ -415,7 +419,7 @@ struct Graph {
   uint add_constant(bool value);
   uint add_constant(double value);
   uint add_constant(natural_t value);
-  uint add_constant(AtomicValue value);
+  uint add_constant(NodeValue value);
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
   uint add_constant_neg_real(double value);
@@ -442,7 +446,7 @@ struct Graph {
   void observe(uint var, Eigen::MatrixXb& val);
   void observe(uint var, Eigen::MatrixXd& val);
   void observe(uint var, Eigen::MatrixXn& val);
-  void observe(uint var, AtomicValue val);
+  void observe(uint var, NodeValue val);
   /*
   Removes all observations added to the graph.
   */
@@ -455,7 +459,7 @@ struct Graph {
   :param seed: The seed provided to the random number generator.
   :returns: The posterior samples.
   */
-  std::vector<std::vector<AtomicValue>>&
+  std::vector<std::vector<NodeValue>>&
   infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   /*
   Draw Monte Carlo samples from the posterior distribution using multiple chains.
@@ -465,7 +469,7 @@ struct Graph {
   :param n_chains: The number of MCMC chains.
   :returns: The posterior samples from all chains.
   */
-  std::vector<std::vector<std::vector<AtomicValue>>>&
+  std::vector<std::vector<std::vector<NodeValue>>>&
   infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
   std::vector<double>&
   /*
@@ -529,7 +533,7 @@ struct Graph {
       uint tgt_idx,
       uint src_idx,
       uint seed,
-      AtomicValue& value,
+      NodeValue& value,
       double& grad1,
       double& grad2);
   /*
@@ -570,8 +574,8 @@ struct Graph {
   // queried
   std::vector<uint> queries; // list of queried nodenums
   std::set<uint> queried; // set of queried nodes
-  std::vector<std::vector<AtomicValue>> samples;
-  std::vector<std::vector<std::vector<AtomicValue>>> samples_allchains;
+  std::vector<std::vector<NodeValue>> samples;
+  std::vector<std::vector<std::vector<NodeValue>>> samples_allchains;
   std::vector<double> means;
   std::vector<std::vector<double>> means_allchains;
   Graph* master_graph = nullptr;

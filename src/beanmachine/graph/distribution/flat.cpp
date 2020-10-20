@@ -52,17 +52,17 @@ natural_t Flat::_natural_sampler(std::mt19937& gen) const {
 // A Flat distribution is really easy in terms of computing the log_prob and the
 // gradients of the log_prob. These are all zero!
 
-double Flat::log_prob(const AtomicValue& /* value */) const {
+double Flat::log_prob(const NodeValue& /* value */) const {
   return 0;
 }
 
 void Flat::gradient_log_prob_value(
-    const AtomicValue& /* value */,
+    const NodeValue& /* value */,
     double& /* grad1 */,
     double& /* grad2 */) const {}
 
 void Flat::gradient_log_prob_param(
-    const AtomicValue& /* value */,
+    const NodeValue& /* value */,
     double& /* grad1 */,
     double& /* grad2 */) const {}
 

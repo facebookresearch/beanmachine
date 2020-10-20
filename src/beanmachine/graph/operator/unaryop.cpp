@@ -15,12 +15,12 @@ Complement::Complement(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator COMPLEMENT requires a boolean or probability parent");
   }
-  value = graph::AtomicValue(type0);
+  value = graph::NodeValue(type0);
 }
 
 void Complement::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::BOOLEAN) {
     value._bool = !parent._bool;
   } else if (parent.type == graph::AtomicType::PROBABILITY) {
@@ -34,12 +34,12 @@ void Complement::eval(std::mt19937& /* gen */) {
 
 ToReal::ToReal(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::TO_REAL, in_nodes) {
-  value = graph::AtomicValue(graph::AtomicType::REAL);
+  value = graph::NodeValue(graph::AtomicType::REAL);
 }
 
 void ToReal::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::BOOLEAN) {
     value._double = parent._bool ? 1.0 : 0.0;
   } else if (
@@ -68,12 +68,12 @@ ToPosReal::ToPosReal(const std::vector<graph::Node*>& in_nodes)
         "operator TO_POS_REAL requires a "
         "pos_real, probability, natural or boolean parent");
   }
-  value = graph::AtomicValue(graph::AtomicType::POS_REAL);
+  value = graph::NodeValue(graph::AtomicType::POS_REAL);
 }
 
 void ToPosReal::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::BOOLEAN) {
     value._double = parent._bool ? 1.0 : 0.0;
   } else if (
@@ -103,12 +103,12 @@ Negate::Negate(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator NEGATE requires a real, pos_real or neg_real parent");
   }
-  value = graph::AtomicValue(new_type);
+  value = graph::NodeValue(new_type);
 }
 
 void Negate::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::NEG_REAL) {
@@ -128,12 +128,12 @@ Exp::Exp(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator EXP requires a real or pos_real parent");
   }
-  value = graph::AtomicValue(graph::AtomicType::POS_REAL);
+  value = graph::NodeValue(graph::AtomicType::POS_REAL);
 }
 
 void Exp::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL) {
     value._double = std::exp(parent._double);
@@ -154,12 +154,12 @@ ExpM1::ExpM1(const std::vector<graph::Node*>& in_nodes)
   }
   // pos_real -> e^x - 1 -> pos_real
   // real -> e^x - 1 -> real
-  value = graph::AtomicValue(type0);
+  value = graph::NodeValue(type0);
 }
 
 void ExpM1::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL) {
     value._double = std::expm1(parent._double);
@@ -176,17 +176,17 @@ Phi::Phi(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::REAL) {
     throw std::invalid_argument("operator PHI requires a real parent");
   }
-  value = graph::AtomicValue(graph::AtomicType::PROBABILITY);
+  value = graph::NodeValue(graph::AtomicType::PROBABILITY);
 }
 
 void Phi::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   assert(parent.type == graph::AtomicType::REAL);
-  // note: we have to cast it to an AtomicValue object rather than directly
+  // note: we have to cast it to an NodeValue object rather than directly
   // assigning to ensure that the usual boundary checks for probabilities
   // are made
-  value = graph::AtomicValue(
+  value = graph::NodeValue(
       graph::AtomicType::PROBABILITY, util::Phi(parent._double));
 }
 
@@ -196,17 +196,17 @@ Logistic::Logistic(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::REAL) {
     throw std::invalid_argument("operator LOGISTIC requires a real parent");
   }
-  value = graph::AtomicValue(graph::AtomicType::PROBABILITY);
+  value = graph::NodeValue(graph::AtomicType::PROBABILITY);
 }
 
 void Logistic::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   assert(parent.type == graph::AtomicType::REAL);
-  // note: we have to cast it to an AtomicValue object rather than directly
+  // note: we have to cast it to an NodeValue object rather than directly
   // assigning to ensure that the usual boundary checks for probabilities
   // are made
-  value = graph::AtomicValue(
+  value = graph::NodeValue(
       graph::AtomicType::PROBABILITY, util::logistic(parent._double));
 }
 
@@ -218,12 +218,12 @@ Log1pExp::Log1pExp(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "operator LOG1PEXP requires a real or pos_real parent");
   }
-  value = graph::AtomicValue(graph::AtomicType::POS_REAL);
+  value = graph::NodeValue(graph::AtomicType::POS_REAL);
 }
 
 void Log1pExp::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::REAL or
       parent.type == graph::AtomicType::POS_REAL) {
     value._double = util::log1pexp(parent._double);
@@ -238,9 +238,9 @@ Log::Log(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::LOG, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 == graph::AtomicType::POS_REAL) {
-    value = graph::AtomicValue(graph::AtomicType::REAL);
+    value = graph::NodeValue(graph::AtomicType::REAL);
   } else if (type0 == graph::AtomicType::PROBABILITY) {
-    value = graph::AtomicValue(graph::AtomicType::NEG_REAL);
+    value = graph::NodeValue(graph::AtomicType::NEG_REAL);
   } else {
     throw std::invalid_argument(
         "operator LOG requires a pos_real or probability parent");
@@ -249,7 +249,7 @@ Log::Log(const std::vector<graph::Node*>& in_nodes)
 
 void Log::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
     value._double = std::log(parent._double);
@@ -267,9 +267,9 @@ NegativeLog::NegativeLog(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::NEGATIVE_LOG, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 == graph::AtomicType::POS_REAL) {
-    value = graph::AtomicValue(graph::AtomicType::REAL);
+    value = graph::NodeValue(graph::AtomicType::REAL);
   } else if (type0 == graph::AtomicType::PROBABILITY) {
-    value = graph::AtomicValue(graph::AtomicType::POS_REAL);
+    value = graph::NodeValue(graph::AtomicType::POS_REAL);
   } else {
     throw std::invalid_argument(
         "operator NEG_LOG requires a pos_real or probability parent");
@@ -278,7 +278,7 @@ NegativeLog::NegativeLog(const std::vector<graph::Node*>& in_nodes)
 
 void NegativeLog::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
     value._double = -std::log(parent._double);
@@ -296,12 +296,12 @@ Log1mExp::Log1mExp(const std::vector<graph::Node*>& in_nodes)
   if (type0 != graph::AtomicType::NEG_REAL) {
     throw std::invalid_argument("operator LOG1MEXP requires a neg_real parent");
   }
-  value = graph::AtomicValue(graph::AtomicType::NEG_REAL);
+  value = graph::NodeValue(graph::AtomicType::NEG_REAL);
 }
 
 void Log1mExp::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
-  const graph::AtomicValue& parent = in_nodes[0]->value;
+  const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::NEG_REAL) {
     value._double = util::log1mexp(parent._double);
   } else {

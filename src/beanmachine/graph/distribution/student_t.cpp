@@ -62,7 +62,7 @@ double StudentT::_double_sampler(std::mt19937& gen) const {
 // = 1/s^2 -(n+1)( n / (n s^2 + (x-l)^2) - 2 n^2 s^2 / (n s^2 + (x-l)^2)^2  +
 // 1/s^2)
 
-double StudentT::log_prob(const AtomicValue& value) const {
+double StudentT::log_prob(const NodeValue& value) const {
   double x = value._double;
   double n = in_nodes[0]->value._double;
   double l = in_nodes[1]->value._double;
@@ -74,7 +74,7 @@ double StudentT::log_prob(const AtomicValue& value) const {
 }
 
 void StudentT::gradient_log_prob_value(
-    const AtomicValue& value,
+    const NodeValue& value,
     double& grad1,
     double& grad2) const {
   double x = value._double;
@@ -89,7 +89,7 @@ void StudentT::gradient_log_prob_value(
 }
 
 void StudentT::gradient_log_prob_param(
-    const AtomicValue& value,
+    const NodeValue& value,
     double& grad1,
     double& grad2) const {
   const double x = value._double;

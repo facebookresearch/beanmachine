@@ -42,6 +42,6 @@ TEST(testproposer, mixture) {
       (WT0 * MU0 * MU0 + WT1 * MU1 * MU1) / (WT0 + WT1) - exp_mean * exp_mean;
   EXPECT_NEAR(mean, exp_mean, 0.1);
   EXPECT_NEAR(var, exp_var, 0.1);
-  AtomicValue val(4.5);
+  NodeValue val(4.5);
   EXPECT_NEAR(dist->log_prob(val), -2.989, 0.01); // calculated in PyTorch
 }

@@ -30,7 +30,7 @@ double Beta::_double_sampler(std::mt19937& gen) const {
       gen, in_nodes[0]->value._double, in_nodes[1]->value._double);
 }
 
-double Beta::log_prob(const graph::AtomicValue& value) const {
+double Beta::log_prob(const graph::NodeValue& value) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double ret_val = 0.0;
@@ -75,7 +75,7 @@ void Beta::_gradient_log_prob_value(
 }
 
 void Beta::gradient_log_prob_value(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
@@ -88,7 +88,7 @@ void Beta::gradient_log_prob_value(
 }
 
 void Beta::gradient_log_prob_value(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     Eigen::MatrixXd& grad1,
     Eigen::MatrixXd& grad2_diag) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
@@ -107,7 +107,7 @@ void Beta::gradient_log_prob_value(
 }
 
 void Beta::gradient_log_prob_param(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
   Eigen::Matrix<double, 1, 2> jacobian;
@@ -119,7 +119,7 @@ void Beta::gradient_log_prob_param(
 }
 
 void Beta::compute_jacobian_hessian(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     Eigen::Matrix<double, 1, 2>& jacobian,
     Eigen::Matrix2d& hessian) const {
   double param_a = in_nodes[0]->value._double;

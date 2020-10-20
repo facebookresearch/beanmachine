@@ -78,13 +78,13 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
   }
 }
 
-graph::AtomicValue Distribution::sample(std::mt19937& gen) const {
-  auto sample_value = graph::AtomicValue(sample_type);
+graph::NodeValue Distribution::sample(std::mt19937& gen) const {
+  auto sample_value = graph::NodeValue(sample_type);
   this->sample(gen, sample_value);
   return sample_value;
 }
 
-void Distribution::sample(std::mt19937& gen, graph::AtomicValue& sample_value)
+void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
     const {
   // sample a single SCALAR
   if (sample_value.type.variable_type == graph::VariableType::SCALAR) {

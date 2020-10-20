@@ -51,7 +51,7 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
       node->eval(gen); // evaluate the value of non-observed operator nodes
     }
   }
-  std::vector<AtomicValue> old_values = std::vector<AtomicValue>(nodes.size());
+  std::vector<NodeValue> old_values = std::vector<NodeValue>(nodes.size());
   assert(old_values.size() > 0); // keep linter happy
   // sampling outer loop
   for (uint snum = 0; snum < num_samples; snum++) {
@@ -91,7 +91,7 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
       // new value
       std::unique_ptr<proposer::Proposer> old_prop =
           proposer::nmc_proposer(tgt_node->value, old_grad1, old_grad2);
-      graph::AtomicValue old_value = tgt_node->value;
+      graph::NodeValue old_value = tgt_node->value;
       tgt_node->value = old_prop->sample(gen);
       // similar to the above process we will go through all the children and
       // - compute new value of deterministic nodes

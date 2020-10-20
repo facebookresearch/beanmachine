@@ -17,10 +17,10 @@ void Graph::cavi(
   // for faster access
   std::vector<Node*> node_ptrs;
   // store all the sampled values for each node
-  std::vector<std::vector<AtomicValue>> var_samples;
+  std::vector<std::vector<NodeValue>> var_samples;
   for (uint node_id = 0; node_id < nodes.size(); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
-    var_samples.push_back(std::vector<AtomicValue>());
+    var_samples.push_back(std::vector<NodeValue>());
   }
   assert(node_ptrs.size() > 0); // keep linter happy
   std::set<uint> supp = compute_support();
@@ -47,7 +47,7 @@ void Graph::cavi(
       auto& samples = var_samples[node_id];
       std::bernoulli_distribution distrib(param_probability[node_id]);
       for (uint step = 0; step < steps_per_iter; step++) {
-        samples.push_back(AtomicValue(bool(distrib(gen))));
+        samples.push_back(NodeValue(bool(distrib(gen))));
       }
       // For each node in the pool we need its stochastic descendants
       // because those are the nodes for which we will compute the expected
@@ -107,7 +107,7 @@ void Graph::cavi(
           node_ptrs[node_id]->value = var_samples[node_id][step];
         }
         for (uint val = 0; val < 2; val++) {
-          tgt_node->value = AtomicValue(bool(val));
+          tgt_node->value = NodeValue(bool(val));
           for (uint node_id : eval_nodes) {
             node_ptrs[node_id]->eval(gen);
           }
@@ -127,7 +127,7 @@ void Graph::cavi(
       auto& samples = var_samples[tgt_node_id];
       std::bernoulli_distribution distrib(param_probability[tgt_node_id]);
       for (uint step = 0; step < steps_per_iter; step++) {
-        samples[step] = AtomicValue(bool(distrib(gen)));
+        samples[step] = NodeValue(bool(distrib(gen)));
       }
     }
     if (elbo_samples > 0) {
@@ -148,7 +148,7 @@ void Graph::cavi(
             if (not node->is_observed) {
               double prob = param_probability[node_id];
               std::bernoulli_distribution distrib(prob);
-              node->value = AtomicValue(bool(distrib(gen)));
+              node->value = NodeValue(bool(distrib(gen)));
               // subtract the log_prob of the variational distribution
               elbo -= node->value._bool ? log(prob) : log(1 - prob);
             }

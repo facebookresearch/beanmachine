@@ -17,13 +17,13 @@ TruncatedCauchy::TruncatedCauchy(double loc, double scale)
   log_pdf_constant = -std::log(M_PI_2 - atan_0);
 }
 
-graph::AtomicValue TruncatedCauchy::sample(std::mt19937& gen) const {
+graph::NodeValue TruncatedCauchy::sample(std::mt19937& gen) const {
   std::uniform_real_distribution<double> dist(atan_0, M_PI_2);
-  return graph::AtomicValue(
+  return graph::NodeValue(
       graph::AtomicType::POS_REAL, loc + scale * std::tan(dist(gen)));
 }
 
-double TruncatedCauchy::log_prob(graph::AtomicValue& value) const {
+double TruncatedCauchy::log_prob(graph::NodeValue& value) const {
   return log_pdf_constant - std::log(scale) -
       log(1 + std::pow((value._double - loc) / scale, 2));
 }

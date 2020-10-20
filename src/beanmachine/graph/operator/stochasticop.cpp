@@ -16,7 +16,7 @@ Sample::Sample(const std::vector<graph::Node*>& in_nodes)
       static_cast<distribution::Distribution*>(in_nodes[0]);
   // the type of value of a SAMPLE node is obviously the sample type
   // of the distribution parent
-  value = graph::AtomicValue(dist->sample_type);
+  value = graph::NodeValue(dist->sample_type);
 }
 
 IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
@@ -71,7 +71,7 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
       throw std::invalid_argument(
           "Invalid sample type for for iid sample. ");
   }
-  value = graph::AtomicValue(vtype);
+  value = graph::NodeValue(vtype);
   return;
 }
 

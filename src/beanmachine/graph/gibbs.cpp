@@ -69,7 +69,7 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
       }
     }
   }
-  std::vector<AtomicValue> old_values = std::vector<AtomicValue>(nodes.size());
+  std::vector<NodeValue> old_values = std::vector<NodeValue>(nodes.size());
   assert(old_values.size() > 0); // keep linter happy
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access

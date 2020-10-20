@@ -45,14 +45,14 @@ double HalfCauchy::_double_sampler(std::mt19937& gen) const {
 // df/ds = 1/s -2s/(s^2 + x^2)
 // d2f/ds2 = - 1/s^2 - 2/(s^2 + x^2) + 4s^2/(s^2 + x^2)^2
 
-double HalfCauchy::log_prob(const AtomicValue& value) const {
+double HalfCauchy::log_prob(const NodeValue& value) const {
   double x = value._double;
   double s = in_nodes[0]->value._double;
   return -std::log(M_PI_2) - std::log(s) - std::log1p(std::pow(x / s, 2));
 }
 
 void HalfCauchy::gradient_log_prob_value(
-    const AtomicValue& value,
+    const NodeValue& value,
     double& grad1,
     double& grad2) const {
   double x = value._double;
@@ -63,7 +63,7 @@ void HalfCauchy::gradient_log_prob_value(
 }
 
 void HalfCauchy::gradient_log_prob_param(
-    const AtomicValue& value,
+    const NodeValue& value,
     double& grad1,
     double& grad2) const {
   // gradients of s should be non-zero before computing gradients w.r.t. s

@@ -12,13 +12,13 @@ class BernoulliLogit : public Distribution {
       const std::vector<graph::Node*>& in_nodes);
   ~BernoulliLogit() override {}
   bool _bool_sampler(std::mt19937& gen) const override;
-  double log_prob(const graph::AtomicValue& value) const override;
+  double log_prob(const graph::NodeValue& value) const override;
   void gradient_log_prob_value(
-      const graph::AtomicValue& value,
+      const graph::NodeValue& value,
       double& grad1,
       double& grad2) const override;
   void gradient_log_prob_param(
-      const graph::AtomicValue& value,
+      const graph::NodeValue& value,
       double& grad1,
       double& grad2) const override;
 };

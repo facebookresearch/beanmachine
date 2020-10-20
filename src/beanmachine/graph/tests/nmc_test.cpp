@@ -25,7 +25,7 @@ TEST(testnmc, beta_binomial) {
   g.query(prob);
   // Note: the posterior is p ~ Beta(13, 5).
   int num_samples = 10000;
-  std::vector<std::vector<AtomicValue>> samples =
+  std::vector<std::vector<NodeValue>> samples =
       g.infer(num_samples, InferenceType::NMC);
   double sum = 0;
   double sumsq = 0;
@@ -302,7 +302,7 @@ TEST(testnmc, infinite_grad) {
   g.query(re_scale);
 
   int num_samples = 1000;
-  std::vector<std::vector<AtomicValue>> samples =
+  std::vector<std::vector<NodeValue>> samples =
       g.infer(num_samples, InferenceType::NMC);
   double sum = 0;
   double sumsq = 0;

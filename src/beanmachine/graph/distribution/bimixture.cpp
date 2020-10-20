@@ -73,7 +73,7 @@ natural_t Bimixture::_natural_sampler(std::mt19937& gen) const {
 }
 
 // log_prob(x | p, f1, f2) i.e. log(f) = logsumexp(log(p) + log(f1), log(1-p) + log(f2))
-double Bimixture::log_prob(const graph::AtomicValue& value) const {
+double Bimixture::log_prob(const graph::NodeValue& value) const {
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);
   double z1 = std::log(in_nodes[0]->value._double) + d1->log_prob(value);
@@ -88,7 +88,7 @@ double Bimixture::log_prob(const graph::AtomicValue& value) const {
 // grad1 w.r.t. x: log(f)' = f'/f
 // grad2 w.r.t. x: log(f)'' = f''/f - (f'/f)^2 = f''/f - (log(f)')^2
 void Bimixture::gradient_log_prob_value(
-    const graph::AtomicValue& value,
+    const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);
@@ -124,7 +124,7 @@ void Bimixture::gradient_log_prob_value(
 //       f1 / f - p * f1 * (f1 - f2) / f^2, p * f1 / f - (p * f1 / f)^2,
 // - f2 / f - (1-p) * f2 * (f1 - f2) / f^2, - p * f1 * (1-p) * f2 / f^2, (1-p) * f2 / f - ((1-p) * f2 / f)^2
 void Bimixture::gradient_log_prob_param(
-    const graph::AtomicValue& value, double& grad1, double& grad2) const {
+    const graph::NodeValue& value, double& grad1, double& grad2) const {
   auto d1 = static_cast<const distribution::Distribution*>(in_nodes[1]);
   auto d2 = static_cast<const distribution::Distribution*>(in_nodes[2]);
   double p = in_nodes[0]->value._double;

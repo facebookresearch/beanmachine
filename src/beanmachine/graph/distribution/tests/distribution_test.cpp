@@ -13,14 +13,14 @@ using namespace beanmachine;
 #define LOG_ZERO_PT_1 ((double)-2.3025850929940455)
 
 TEST(testdistrib, bernoulli) {
-  auto p1 = graph::AtomicValue(graph::AtomicType::PROBABILITY, 0.1);
+  auto p1 = graph::NodeValue(graph::AtomicType::PROBABILITY, 0.1);
   graph::ConstNode cnode1(p1);
   // positive test
   distribution::Bernoulli dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
   dnode1.in_nodes.push_back(&cnode1);
-  auto zero = graph::AtomicValue(false);
-  auto one = graph::AtomicValue(true);
+  auto zero = graph::NodeValue(false);
+  auto one = graph::NodeValue(true);
   EXPECT_NEAR(LOG_ZERO_PT_9, dnode1.log_prob(zero), 1e-3);
   EXPECT_NEAR(LOG_ZERO_PT_1, dnode1.log_prob(one), 1e-3);
   // negative test for return type
@@ -39,7 +39,7 @@ TEST(testdistrib, bernoulli) {
           std::vector<graph::Node*>{&cnode1, &cnode1}),
       std::invalid_argument);
   // negative test on datatype of parents
-  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, 0.1);
+  auto p2 = graph::NodeValue(graph::AtomicType::POS_REAL, 0.1);
   graph::ConstNode cnode2(p2);
   EXPECT_THROW(
       distribution::Bernoulli(
@@ -54,19 +54,19 @@ TEST(testdistrib, bernoulli_noisy_or) {
   // We will use the above facts in this test
 
   // first distribution
-  auto p1 = graph::AtomicValue(graph::AtomicType::POS_REAL, 1e-10);
+  auto p1 = graph::NodeValue(graph::AtomicType::POS_REAL, 1e-10);
   graph::ConstNode cnode1(p1);
   distribution::BernoulliNoisyOr dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
   dnode1.in_nodes.push_back(&cnode1);
-  auto zero = graph::AtomicValue(false);
-  auto one = graph::AtomicValue(true);
+  auto zero = graph::NodeValue(false);
+  auto one = graph::NodeValue(true);
 
   EXPECT_EQ(-1e-10, dnode1.log_prob(zero));
   EXPECT_NEAR(-23.02, dnode1.log_prob(one), 0.01);
 
   // second distribution
-  auto p2 = graph::AtomicValue(graph::AtomicType::POS_REAL, 40.0);
+  auto p2 = graph::NodeValue(graph::AtomicType::POS_REAL, 40.0);
   graph::ConstNode cnode2(p2);
   distribution::BernoulliNoisyOr dnode2(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1});
@@ -80,32 +80,32 @@ TEST(testdistrib, tabular) {
   Eigen::MatrixXd matrix(2, 2);
   matrix << 0.9, 0.1,
             0.1, 0.9;
-  graph::ConstNode cnode1(graph::AtomicValue(
+  graph::ConstNode cnode1(graph::NodeValue(
       graph::ValueType(
           graph::VariableType::COL_SIMPLEX_MATRIX,
           graph::AtomicType::PROBABILITY,
           matrix.rows(),
           matrix.cols()),
       matrix));
-  graph::ConstNode cnode2(graph::AtomicValue{true});
+  graph::ConstNode cnode2(graph::NodeValue{true});
   distribution::Tabular dnode1(
       graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode1, &cnode2});
   dnode1.in_nodes.push_back(&cnode1);
   dnode1.in_nodes.push_back(&cnode2);
-  auto zero = graph::AtomicValue(false);
-  auto one = graph::AtomicValue(true);
+  auto zero = graph::NodeValue(false);
+  auto one = graph::NodeValue(true);
 
   EXPECT_NEAR(LOG_ZERO_PT_1, dnode1.log_prob(zero), 1e-3);
   EXPECT_NEAR(LOG_ZERO_PT_9, dnode1.log_prob(one), 1e-3);
 
-  cnode2.value = graph::AtomicValue(false);
+  cnode2.value = graph::NodeValue(false);
   EXPECT_NEAR(LOG_ZERO_PT_9, dnode1.log_prob(zero), 1e-3);
   EXPECT_NEAR(LOG_ZERO_PT_1, dnode1.log_prob(one), 1e-3);
 }
 
 TEST(testdistrib, binomial) {
-  auto n = graph::AtomicValue((graph::natural_t)10);
-  auto p = graph::AtomicValue(graph::AtomicType::PROBABILITY, 0.5);
+  auto n = graph::NodeValue((graph::natural_t)10);
+  auto p = graph::NodeValue(graph::AtomicType::PROBABILITY, 0.5);
   graph::ConstNode cnode_n(n);
   graph::ConstNode cnode_p(p);
   distribution::Binomial dnode1(
@@ -113,9 +113,9 @@ TEST(testdistrib, binomial) {
       std::vector<graph::Node*>{&cnode_n, &cnode_p});
   dnode1.in_nodes.push_back(&cnode_n);
   dnode1.in_nodes.push_back(&cnode_p);
-  auto k0 = graph::AtomicValue((graph::natural_t)0);
-  auto k5 = graph::AtomicValue((graph::natural_t)5);
-  auto k11 = graph::AtomicValue((graph::natural_t)11);
+  auto k0 = graph::NodeValue((graph::natural_t)0);
+  auto k5 = graph::NodeValue((graph::natural_t)5);
+  auto k11 = graph::NodeValue((graph::natural_t)11);
   EXPECT_TRUE(!std::isfinite(dnode1.log_prob(k11)));
   EXPECT_NEAR(10 * log(0.5), dnode1.log_prob(k0), 1e-2);
   // This value of -1.4020 was checked from PyTorch
@@ -132,7 +132,7 @@ TEST(testdistrib, binomial) {
           graph::AtomicType::NATURAL, std::vector<graph::Node*>{&cnode_n}),
       std::invalid_argument);
   // negative test on data type of parents
-  auto p2 = graph::AtomicValue(graph::AtomicType::REAL, 0.5);
+  auto p2 = graph::NodeValue(graph::AtomicType::REAL, 0.5);
   graph::ConstNode cnode_p2(p2);
   EXPECT_THROW(
       distribution::Binomial(

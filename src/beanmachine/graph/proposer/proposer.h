@@ -13,13 +13,13 @@ class Proposer {
   :param gen: Random number generator.
   :returns: A value.
   */
-  virtual graph::AtomicValue sample(std::mt19937& gen) const = 0;
+  virtual graph::NodeValue sample(std::mt19937& gen) const = 0;
   /*
   Compute the log_prob of a value.
   :param value: The value to evaluate the distribution.
   :returns: log probability of value.
   */
-  virtual double log_prob(graph::AtomicValue& value) const = 0;
+  virtual double log_prob(graph::NodeValue& value) const = 0;
   // Destructor for Proposer
   virtual ~Proposer() {}
 };
@@ -32,7 +32,7 @@ Return a unique pointer to a Proposer object.
 :returns: A proposer object pointer.
 */
 std::unique_ptr<Proposer>
-nmc_proposer(const graph::AtomicValue& value, double grad1, double grad2);
+nmc_proposer(const graph::NodeValue& value, double grad1, double grad2);
 
 /*
 Returns a value for the specified type uniformly at random.
@@ -40,7 +40,7 @@ Returns a value for the specified type uniformly at random.
 :param type: The desired type
 :returns: A value of this type
 */
-graph::AtomicValue uniform_initializer(
+graph::NodeValue uniform_initializer(
     std::mt19937& gen,
     graph::ValueType type);
 
