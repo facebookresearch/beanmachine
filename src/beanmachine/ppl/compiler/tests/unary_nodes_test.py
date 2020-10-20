@@ -58,14 +58,15 @@ class UnaryNodesTest(unittest.TestCase):
 
         # Negate
         # - Boolean -> Real
-        # - Probability -> Real
-        # - Natural -> Real
-        # - PositiveReal -> Real
+        # - Probability -> NegativeReal
+        # - Natural -> NegativeReal
+        # - PositiveReal -> NegativeReal
+        # - TODO: Add a test for NegativeReal -> PositiveReal
         # - Real -> Real
-        self.assertEqual(NegateNode(bern).inf_type, Real)
-        self.assertEqual(NegateNode(beta).inf_type, Real)
-        self.assertEqual(NegateNode(bino).inf_type, Real)
-        self.assertEqual(NegateNode(half).inf_type, Real)
+        self.assertEqual(NegateNode(bern).inf_type, NegativeReal)
+        self.assertEqual(NegateNode(beta).inf_type, NegativeReal)
+        self.assertEqual(NegateNode(bino).inf_type, NegativeReal)
+        self.assertEqual(NegateNode(half).inf_type, NegativeReal)
         self.assertEqual(NegateNode(norm).inf_type, Real)
 
         # Complement
@@ -140,16 +141,11 @@ class UnaryNodesTest(unittest.TestCase):
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
 
-        # Negate
-        # - Boolean -> Real
-        # - Probability -> Real
-        # - Natural -> Real
-        # - PositiveReal -> Real
-        # - Real -> Real
-        self.assertEqual(NegateNode(bern).requirements, [Real])
-        self.assertEqual(NegateNode(beta).requirements, [Real])
-        self.assertEqual(NegateNode(bino).requirements, [Real])
-        self.assertEqual(NegateNode(half).requirements, [Real])
+        # Negate requires its operand be positive real, negative real or real.
+        self.assertEqual(NegateNode(bern).requirements, [PositiveReal])
+        self.assertEqual(NegateNode(beta).requirements, [PositiveReal])
+        self.assertEqual(NegateNode(bino).requirements, [PositiveReal])
+        self.assertEqual(NegateNode(half).requirements, [PositiveReal])
         self.assertEqual(NegateNode(norm).requirements, [Real])
 
         # Complement requires that its operand be probability or Boolean
