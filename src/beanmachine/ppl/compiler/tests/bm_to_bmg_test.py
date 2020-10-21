@@ -384,10 +384,6 @@ digraph "graph" {
 }
 """
 
-# As mentioned in the comment above, we will need a way to represent indexed
-# samples, but until we have that, I've implemented a simple loop unroller
-# that we can use to experiment with these sorts of distributions:
-
 source3 = """
 import beanmachine.ppl as bm
 import torch
@@ -414,6 +410,7 @@ from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
+import beanmachine.ppl as bm
 import torch
 from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
@@ -422,20 +419,25 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a27 = 0.5
-    r25 = [a27]
-    a15 = bmg.handle_function(tensor, [*r25], {})
-    a40 = 0.1
-    r38 = [a40]
-    a36 = bmg.handle_function(tensor, [*r38], {})
-    a34 = bmg.handle_multiplication(n, a36)
-    r32 = [a34]
-    a29 = bmg.handle_function(exp, [*r32], {})
-    r28 = [a29]
-    a21 = bmg.handle_function(log, [*r28], {})
-    a13 = bmg.handle_addition(a15, a21)
+    a33 = 0.5
+    r27 = [a33]
+    r35 = {}
+    a15 = bmg.handle_function(tensor, [*r27], r35)
+    a50 = 0.1
+    r48 = [a50]
+    r52 = {}
+    a45 = bmg.handle_function(tensor, [*r48], r52)
+    a43 = bmg.handle_multiplication(n, a45)
+    r40 = [a43]
+    r46 = {}
+    a36 = bmg.handle_function(exp, [*r40], r46)
+    r34 = [a36]
+    r38 = {}
+    a23 = bmg.handle_function(log, [*r34], r38)
+    a13 = bmg.handle_addition(a15, a23)
     r7 = [a13]
-    r1 = bmg.handle_function(Bernoulli, [*r7], {})
+    r16 = {}
+    r1 = bmg.handle_function(Bernoulli, [*r7], r16)
     return bmg.handle_sample(r1)
 
 
@@ -445,34 +447,41 @@ def z():
     sum = 0.0
     n = 0
     a8 = bmg.handle_dot_get(torch, 'tensor')
-    a22 = -4.605170249938965
-    r16 = [a22]
-    a5 = bmg.handle_function(a8, [*r16], {})
-    r17 = [n]
-    a9 = bmg.handle_function(x, [*r17], {})
+    a24 = -4.605170249938965
+    r17 = [a24]
+    r28 = {}
+    a5 = bmg.handle_function(a8, [*r17], r28)
+    r18 = [n]
+    r29 = {}
+    a9 = bmg.handle_function(x, [*r18], r29)
     a2 = bmg.handle_multiplication(a5, a9)
     sum = bmg.handle_addition(sum, a2)
     n = 1
     a10 = bmg.handle_dot_get(torch, 'tensor')
-    a23 = -4.605170249938965
-    r18 = [a23]
-    a6 = bmg.handle_function(a10, [*r18], {})
-    r19 = [n]
-    a11 = bmg.handle_function(x, [*r19], {})
+    a25 = -4.605170249938965
+    r19 = [a25]
+    r30 = {}
+    a6 = bmg.handle_function(a10, [*r19], r30)
+    r20 = [n]
+    r31 = {}
+    a11 = bmg.handle_function(x, [*r20], r31)
     a3 = bmg.handle_multiplication(a6, a11)
     sum = bmg.handle_addition(sum, a3)
-    a20 = 1
-    a35 = bmg.handle_dot_get(torch, 'tensor')
-    a39 = -0.010050326585769653
+    a21 = 1
+    a44 = bmg.handle_dot_get(torch, 'tensor')
+    a49 = -0.010050326585769653
+    r47 = [a49]
+    r51 = {}
+    a41 = bmg.handle_function(a44, [*r47], r51)
+    a39 = bmg.handle_addition(a41, sum)
     r37 = [a39]
-    a33 = bmg.handle_function(a35, [*r37], {})
-    a31 = bmg.handle_addition(a33, sum)
-    r30 = [a31]
-    a26 = bmg.handle_function(exp, [*r30], {})
-    a24 = bmg.handle_negate(a26)
-    a14 = bmg.handle_addition(a20, a24)
+    r42 = {}
+    a32 = bmg.handle_function(exp, [*r37], r42)
+    a26 = bmg.handle_negate(a32)
+    a14 = bmg.handle_addition(a21, a26)
     r12 = [a14]
-    r4 = bmg.handle_function(Bernoulli, [*r12], {})
+    r22 = {}
+    r4 = bmg.handle_function(Bernoulli, [*r12], r22)
     return bmg.handle_sample(r4)
 
 
@@ -487,40 +496,37 @@ digraph "graph" {
   N03[label=-4.605170249938965];
   N04[label="*"];
   N05[label=0.0];
-  N06[label="+"];
-  N07[label=0.6000000238418579];
-  N08[label=Bernoulli];
-  N09[label=Sample];
-  N10[label="*"];
-  N11[label="+"];
-  N12[label=-0.010050326585769653];
-  N13[label="+"];
-  N14[label=Exp];
-  N15[label="-"];
-  N16[label=1];
-  N17[label="+"];
-  N18[label=Bernoulli];
-  N19[label=Sample];
+  N06[label=0.6000000238418579];
+  N07[label=Bernoulli];
+  N08[label=Sample];
+  N09[label="*"];
+  N10[label="+"];
+  N11[label=-0.010050326585769653];
+  N12[label="+"];
+  N13[label=Exp];
+  N14[label="-"];
+  N15[label=1];
+  N16[label="+"];
+  N17[label=Bernoulli];
+  N18[label=Sample];
   N01 -> N00[label=probability];
   N02 -> N01[label=operand];
   N04 -> N02[label=right];
   N04 -> N03[label=left];
-  N06 -> N04[label=right];
-  N06 -> N05[label=left];
-  N08 -> N07[label=probability];
-  N09 -> N08[label=operand];
-  N10 -> N03[label=left];
+  N07 -> N06[label=probability];
+  N08 -> N07[label=operand];
+  N09 -> N03[label=left];
+  N09 -> N08[label=right];
+  N10 -> N04[label=left];
   N10 -> N09[label=right];
-  N11 -> N06[label=left];
-  N11 -> N10[label=right];
-  N13 -> N11[label=right];
-  N13 -> N12[label=left];
+  N12 -> N10[label=right];
+  N12 -> N11[label=left];
+  N13 -> N12[label=operand];
   N14 -> N13[label=operand];
-  N15 -> N14[label=operand];
-  N17 -> N15[label=right];
-  N17 -> N16[label=left];
-  N18 -> N17[label=probability];
-  N19 -> N18[label=operand];
+  N16 -> N14[label=right];
+  N16 -> N15[label=left];
+  N17 -> N16[label=probability];
+  N18 -> N17[label=operand];
 }
 """
 
@@ -552,6 +558,7 @@ from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
+import beanmachine.ppl as bm
 import torch
 from torch import exp, log, tensor, neg
 from torch.distributions import Bernoulli
@@ -560,20 +567,25 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a22 = 0.5
-    r19 = [a22]
-    a13 = bmg.handle_function(tensor, [*r19], {})
-    a35 = 0.1
-    r33 = [a35]
-    a31 = bmg.handle_function(tensor, [*r33], {})
-    a29 = bmg.handle_multiplication(n, a31)
-    r27 = [a29]
-    a24 = bmg.handle_function(exp, [*r27], {})
-    r23 = [a24]
-    a15 = bmg.handle_function(log, [*r23], {})
-    a9 = bmg.handle_addition(a13, a15)
+    a24 = 0.5
+    r21 = [a24]
+    r28 = {}
+    a13 = bmg.handle_function(tensor, [*r21], r28)
+    a43 = 0.1
+    r41 = [a43]
+    r45 = {}
+    a38 = bmg.handle_function(tensor, [*r41], r45)
+    a36 = bmg.handle_multiplication(n, a38)
+    r33 = [a36]
+    r39 = {}
+    a29 = bmg.handle_function(exp, [*r33], r39)
+    r25 = [a29]
+    r31 = {}
+    a17 = bmg.handle_function(log, [*r25], r31)
+    a9 = bmg.handle_addition(a13, a17)
     r6 = [a9]
-    r1 = bmg.handle_function(Bernoulli, [*r6], {})
+    r14 = {}
+    r1 = bmg.handle_function(Bernoulli, [*r6], r14)
     return bmg.handle_sample(r1)
 
 
@@ -587,25 +599,30 @@ def z():
     f2 = [a, a4]
     for n in f2:
         a10 = bmg.handle_dot_get(torch, 'tensor')
-        a20 = -4.605170249938965
-        r16 = [a20]
-        a7 = bmg.handle_function(a10, [*r16], {})
-        r17 = [n]
-        a11 = bmg.handle_function(x, [*r17], {})
+        a22 = -4.605170249938965
+        r18 = [a22]
+        r26 = {}
+        a7 = bmg.handle_function(a10, [*r18], r26)
+        r19 = [n]
+        r27 = {}
+        a11 = bmg.handle_function(x, [*r19], r27)
         a5 = bmg.handle_multiplication(a7, a11)
         sum = bmg.handle_addition(sum, a5)
-    a14 = 1
-    a30 = bmg.handle_dot_get(torch, 'tensor')
-    a34 = -0.010050326585769653
-    r32 = [a34]
-    a28 = bmg.handle_function(a30, [*r32], {})
-    a26 = bmg.handle_addition(a28, sum)
-    r25 = [a26]
-    a21 = bmg.handle_function(exp, [*r25], {})
-    a18 = bmg.handle_negate(a21)
-    a12 = bmg.handle_addition(a14, a18)
+    a15 = 1
+    a37 = bmg.handle_dot_get(torch, 'tensor')
+    a42 = -0.010050326585769653
+    r40 = [a42]
+    r44 = {}
+    a34 = bmg.handle_function(a37, [*r40], r44)
+    a32 = bmg.handle_addition(a34, sum)
+    r30 = [a32]
+    r35 = {}
+    a23 = bmg.handle_function(exp, [*r30], r35)
+    a20 = bmg.handle_negate(a23)
+    a12 = bmg.handle_addition(a15, a20)
     r8 = [a12]
-    r3 = bmg.handle_function(Bernoulli, [*r8], {})
+    r16 = {}
+    r3 = bmg.handle_function(Bernoulli, [*r8], r16)
     return bmg.handle_sample(r3)
 
 
@@ -619,11 +636,11 @@ import beanmachine.ppl as bm
 import torch
 from torch.distributions import Bernoulli
 
-# NOTE NO SAMPLE HERE
+# NOTE NO RV HERE
 def q(a, b):
   return (a + b) * 0.5
 
-# NOTE NO SAMPLE HERE
+# NOTE NO RV HERE
 def r(p):
   return Bernoulli(p)
 
@@ -642,6 +659,7 @@ from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
+import beanmachine.ppl as bm
 import torch
 from torch.distributions import Bernoulli
 
@@ -655,7 +673,8 @@ def q(a, b):
 
 def r(p):
     r7 = [p]
-    r2 = bmg.handle_function(Bernoulli, [*r7], {})
+    r12 = {}
+    r2 = bmg.handle_function(Bernoulli, [*r7], r12)
     return r2
 
 
@@ -664,30 +683,34 @@ def r(p):
 def x(n):
     a10 = 0.5
     r8 = [a10]
-    r3 = bmg.handle_function(Bernoulli, [*r8], {})
+    r13 = {}
+    r3 = bmg.handle_function(Bernoulli, [*r8], r13)
     return bmg.handle_sample(r3)
 
 
 @probabilistic(bmg)
 @memoize
 def z():
-    a18 = 0
-    r17 = [a18]
-    a14 = bmg.handle_function(x, [*r17], {})
-    a13 = [a14]
-    a20 = 1
-    r19 = [a20]
-    a16 = bmg.handle_function(x, [*r19], {})
-    a15 = [a16]
-    r12 = bmg.handle_addition(a13, a15)
-    a11 = bmg.handle_function(q, [*r12], {})
+    a22 = 0
+    r21 = [a22]
+    r24 = {}
+    a17 = bmg.handle_function(x, [*r21], r24)
+    a16 = [a17]
+    a25 = 1
+    r23 = [a25]
+    r26 = {}
+    a20 = bmg.handle_function(x, [*r23], r26)
+    a18 = [a20]
+    r15 = bmg.handle_addition(a16, a18)
+    r19 = {}
+    a11 = bmg.handle_function(q, [*r15], r19)
     r9 = [a11]
-    r4 = bmg.handle_function(r, [*r9], {})
+    r14 = {}
+    r4 = bmg.handle_function(r, [*r9], r14)
     return bmg.handle_sample(r4)
 
 
-roots = [z()]
-"""
+roots = [z()]"""
 
 expected_dot_5 = """
 digraph "graph" {
@@ -743,6 +766,7 @@ from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
+import beanmachine.ppl as bm
 import torch
 from torch.distributions import Bernoulli
 
@@ -750,12 +774,13 @@ from torch.distributions import Bernoulli
 @probabilistic(bmg)
 @memoize
 def x(n):
-    a11 = 0.5
-    a10 = bmg.handle_multiplication(n, a11)
-    a12 = 0.25
-    a7 = bmg.handle_addition(a10, a12)
+    a14 = 0.5
+    a10 = bmg.handle_multiplication(n, a14)
+    a15 = 0.25
+    a7 = bmg.handle_addition(a10, a15)
     r4 = [a7]
-    r1 = bmg.handle_function(Bernoulli, [*r4], {})
+    r11 = {}
+    r1 = bmg.handle_function(Bernoulli, [*r4], r11)
     return bmg.handle_sample(r1)
 
 
@@ -764,18 +789,23 @@ def x(n):
 def y():
     a8 = 0.5
     r5 = [a8]
-    r2 = bmg.handle_function(Bernoulli, [*r5], {})
+    r12 = {}
+    r2 = bmg.handle_function(Bernoulli, [*r5], r12)
     return bmg.handle_sample(r2)
 
 
 @probabilistic(bmg)
 @memoize
 def z():
-    a14 = bmg.handle_function(y, [], {})
-    r13 = [a14]
-    a9 = bmg.handle_function(x, [*r13], {})
+    r19 = []
+    r20 = {}
+    a17 = bmg.handle_function(y, [*r19], r20)
+    r16 = [a17]
+    r18 = {}
+    a9 = bmg.handle_function(x, [*r16], r18)
     r6 = [a9]
-    r3 = bmg.handle_function(Bernoulli, [*r6], {})
+    r13 = {}
+    r3 = bmg.handle_function(Bernoulli, [*r6], r13)
     return bmg.handle_sample(r3)
 
 
@@ -915,27 +945,32 @@ from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
+import beanmachine.ppl as bm
 from torch.distributions import Beta, Bernoulli
 
 
 @probabilistic(bmg)
 @memoize
 def mint():
-    a7 = 1.0
-    a6 = [a7]
     a9 = 1.0
-    a8 = [a9]
-    r5 = bmg.handle_addition(a6, a8)
-    r1 = bmg.handle_function(Beta, [*r5], {})
+    a7 = [a9]
+    a12 = 1.0
+    a10 = [a12]
+    r5 = bmg.handle_addition(a7, a10)
+    r11 = {}
+    r1 = bmg.handle_function(Beta, [*r5], r11)
     return bmg.handle_sample(r1)
 
 
 @probabilistic(bmg)
 @memoize
 def toss():
-    a4 = bmg.handle_function(mint, [], {})
+    r8 = []
+    r13 = {}
+    a4 = bmg.handle_function(mint, [*r8], r13)
     r3 = [a4]
-    r2 = bmg.handle_function(Bernoulli, [*r3], {})
+    r6 = {}
+    r2 = bmg.handle_function(Bernoulli, [*r3], r6)
     return bmg.handle_sample(r2)
 
 
@@ -1946,87 +1981,180 @@ digraph "graph" {
 
 
 class CompilerTest(unittest.TestCase):
-    def disabled_test_to_python_raw(self) -> None:
-        """Tests for to_python_raw from bm_to_bmg.py"""
+    def disabled_test_to_python_raw_1(self) -> None:
+        # TODO: Something is wrong with the lowering of the named
+        # TODO: argument.
         self.maxDiff = None
         observed = to_python_raw(source1)
         self.assertEqual(observed.strip(), expected_raw_1.strip())
+
+    def disabled_test_to_python_raw_2(self) -> None:
+        self.maxDiff = None
         observed = to_python_raw(source2)
         self.assertEqual(observed.strip(), expected_raw_2.strip())
+
+    def test_to_python_raw_3(self) -> None:
+        self.maxDiff = None
         observed = to_python_raw(source3)
         self.assertEqual(observed.strip(), expected_raw_3.strip())
+
+    def test_to_python_raw_4(self) -> None:
+        self.maxDiff = None
         observed = to_python_raw(source4)
         self.assertEqual(observed.strip(), expected_raw_4.strip())
+
+    def test_to_python_raw_5(self) -> None:
+        self.maxDiff = None
         observed = to_python_raw(source5)
         self.assertEqual(observed.strip(), expected_raw_5.strip())
+
+    def test_to_python_raw_6(self) -> None:
+        self.maxDiff = None
         observed = to_python_raw(source6)
         self.assertEqual(observed.strip(), expected_raw_6.strip())
+
+    def disabled_test_to_python_raw_7(self) -> None:
+        # TODO: This crashes the compiler; figure out why
+        self.maxDiff = None
         observed = to_python_raw(source7)
         self.assertEqual(observed.strip(), expected_raw_7.strip())
+
+    def test_to_python_raw_8(self) -> None:
+        self.maxDiff = None
         observed = to_python_raw(source8)
         self.assertEqual(observed.strip(), expected_raw_8.strip())
+
+    def disabled_test_to_python_raw_9(self) -> None:
+        # TODO: Enable this test when named arguments are fixed.
+        self.maxDiff = None
         observed = to_python_raw(source9)
         self.assertEqual(observed.strip(), expected_raw_9.strip())
-        #        observed = to_python_raw(source10)
-        #        self.assertEqual(observed.strip(), expected_raw_10.strip())
+
+    def disabled_test_to_python_raw_10(self) -> None:
+        # TODO: Enable this test when we support compilation of
+        # TODO: vectorized models.
+        self.maxDiff = None
+        observed = to_python_raw(source10)
+        self.assertEqual(observed.strip(), expected_raw_10.strip())
+
+    def disabled_test_to_python_raw_11(self) -> None:
+        # TODO: Enable this test when we support compilation of
+        # TODO: vectorized models.
+        self.maxDiff = None
         observed = to_python_raw(source11)
         self.assertEqual(observed.strip(), expected_raw_11.strip())
 
-    def disabled_test_to_python(self) -> None:
-        """Tests for to_python from bm_to_bmg.py"""
+    def disabled_test_to_python_1(self) -> None:
         self.maxDiff = None
         # TODO: This test is disabled because the model computes a probability
         # TODO: via addition, which is not supported in the BMG type system.
         observed = to_python(source1)
         self.assertEqual(observed.strip(), expected_python_1.strip())
 
-    def disabled_test_to_dot(self) -> None:
-        """Tests for to_dot from bm_to_bmg.py"""
+    def disabled_test_to_dot_1(self) -> None:
+        # TODO: Something is wrong with the lowering of the named
+        # TODO: argument.
         self.maxDiff = None
         observed = to_dot(source1)
         self.assertEqual(observed.strip(), expected_dot_1.strip())
+
+    def disabled_test_to_dot_2(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source2)
         self.assertEqual(observed.strip(), expected_dot_2.strip())
+
+    def test_to_dot_3(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source3)
         self.assertEqual(observed.strip(), expected_dot_3.strip())
+
+    def test_to_dot_5(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source5)
         self.assertEqual(observed.strip(), expected_dot_5.strip())
+
+    def test_to_dot_6(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source6)
         self.assertEqual(observed.strip(), expected_dot_6.strip())
+
+    def disabled_test_to_dot_7(self) -> None:
+        # TODO: This crashes the compiler; figure out why
+        self.maxDiff = None
         observed = to_dot(source7)
         self.assertEqual(observed.strip(), expected_dot_7.strip())
+
+    def test_to_dot_8(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source8)
         self.assertEqual(observed.strip(), expected_dot_8.strip())
+
+    def disabled_test_to_dot_9(self) -> None:
+        # TODO: Enable this test when named arguments are fixed.
+        self.maxDiff = None
         observed = to_dot(source9)
         self.assertEqual(observed.strip(), expected_dot_9.strip())
+
+    def disabled_test_to_dot_10(self) -> None:
+        # TODO: This crashes; something is broken with matrix multiplication.
+        self.maxDiff = None
         observed = to_dot(source10)
         self.assertEqual(observed.strip(), expected_dot_10.strip())
+
+    def test_to_dot_11(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source11)
         self.assertEqual(observed.strip(), expected_dot_11.strip())
+
+    def disabled_test_to_dot_12(self) -> None:
+        # TODO: This crashes the compiler; figure out why
+        self.maxDiff = None
         observed = to_dot(source12)
         self.assertEqual(observed.strip(), expected_dot_12.strip())
+
+    def test_to_dot_13(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source13)
         self.assertEqual(observed.strip(), expected_dot_13.strip())
+
+    def test_to_dot_14(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source14)
         self.assertEqual(observed.strip(), expected_dot_14.strip())
+
+    def test_to_dot_15(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source15)
         self.assertEqual(observed.strip(), expected_dot_15.strip())
+
+    def test_to_dot_16(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source16)
         self.assertEqual(observed.strip(), expected_dot_16.strip())
+
+    def disabled_test_to_dot_17(self) -> None:
+        # TODO: Crashes the compiler; figure out why
+        self.maxDiff = None
         observed = to_dot(source17)
         self.assertEqual(observed.strip(), expected_dot_17.strip())
+
+    def test_to_dot_18(self) -> None:
+        self.maxDiff = None
         observed = to_dot(source18)
         self.assertEqual(observed.strip(), expected_dot_18.strip())
 
-    def disabled_test_to_cpp(self) -> None:
+    def disabled_test_to_cpp_1(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
+        # TODO: This test is disabled because the model computes a probability
+        # TODO: via addition, which is not supported in the BMG type system.
         self.maxDiff = None
         observed = to_cpp(source1)
         self.assertEqual(observed.strip(), expected_cpp_1.strip())
 
-    # TODO: Test disabled; BMG type system violations in graph
-    def disabled_test_to_bmg(self) -> None:
+    def disabled_test_to_bmg_1(self) -> None:
         """Tests for to_bmg from bm_to_bmg.py"""
+        # TODO: This test is disabled because the model computes a probability
+        # TODO: via addition, which is not supported in the BMG type system.
         self.maxDiff = None
         observed = to_bmg(source1).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_1))
