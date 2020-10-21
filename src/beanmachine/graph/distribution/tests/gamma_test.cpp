@@ -3,9 +3,7 @@
 
 #include "beanmachine/graph/graph.h"
 
-
 using namespace beanmachine::graph;
-
 
 TEST(testdistrib, gamma) {
   Graph g;
@@ -17,31 +15,47 @@ TEST(testdistrib, gamma) {
   auto neg1 = g.add_constant(C);
   // negative test the sample_type must be positive real.
   EXPECT_THROW(
-      g.add_distribution(DistributionType::GAMMA, AtomicType::REAL, std::vector<uint>{pos1, pos2}),
+      g.add_distribution(
+          DistributionType::GAMMA,
+          AtomicType::REAL,
+          std::vector<uint>{pos1, pos2}),
       std::invalid_argument);
   // negative tests gamma has two parents
   EXPECT_THROW(
-      g.add_distribution(DistributionType::GAMMA, AtomicType::POS_REAL, std::vector<uint>{}),
+      g.add_distribution(
+          DistributionType::GAMMA, AtomicType::POS_REAL, std::vector<uint>{}),
       std::invalid_argument);
   EXPECT_THROW(
-      g.add_distribution(DistributionType::GAMMA, AtomicType::POS_REAL, std::vector<uint>{pos1}),
+      g.add_distribution(
+          DistributionType::GAMMA,
+          AtomicType::POS_REAL,
+          std::vector<uint>{pos1}),
       std::invalid_argument);
   EXPECT_THROW(
-      g.add_distribution(DistributionType::GAMMA, AtomicType::POS_REAL, std::vector<uint>{pos1, pos1, pos1}),
+      g.add_distribution(
+          DistributionType::GAMMA,
+          AtomicType::POS_REAL,
+          std::vector<uint>{pos1, pos1, pos1}),
       std::invalid_argument);
   // negative test the parents must be both positive real.
   EXPECT_THROW(
-      g.add_distribution(DistributionType::GAMMA, AtomicType::POS_REAL, std::vector<uint>{neg1, pos1}),
+      g.add_distribution(
+          DistributionType::GAMMA,
+          AtomicType::POS_REAL,
+          std::vector<uint>{neg1, pos1}),
       std::invalid_argument);
   // test creation of a distribution
   auto gamma_dist = g.add_distribution(
-      DistributionType::GAMMA, AtomicType::POS_REAL, std::vector<uint>{pos1, pos2});
+      DistributionType::GAMMA,
+      AtomicType::POS_REAL,
+      std::vector<uint>{pos1, pos2});
   // test distribution of mean and variance
   auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{gamma_dist});
   auto x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
   g.query(x);
   g.query(x_sq);
-  const std::vector<double>& means = g.infer_mean(100000, InferenceType::REJECTION);
+  const std::vector<double>& means =
+      g.infer_mean(100000, InferenceType::REJECTION);
   EXPECT_NEAR(means[0], A / B, 0.1);
   EXPECT_NEAR(means[1] - means[0] * means[0], A / (B * B), 0.1);
   // test log_prob
@@ -63,24 +77,30 @@ TEST(testdistrib, gamma) {
   // shape ~ FLAT
   // rate ~ Gamma(5, 2)
   // y ~ Gamma(shape^2, rate^2)
-  auto shape = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{
-      g.add_distribution(DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{})});
-  auto shape_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{shape, shape});
+  auto shape = g.add_operator(
+      OperatorType::SAMPLE,
+      std::vector<uint>{g.add_distribution(
+          DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{})});
+  auto shape_sq =
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{shape, shape});
   g.observe(shape, 3.0);
   auto rate = x;
   auto rate_sq = x_sq;
-  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{
-      g.add_distribution(DistributionType::GAMMA, AtomicType::POS_REAL,
-      std::vector<uint>{shape_sq, rate_sq})});
+  auto y = g.add_operator(
+      OperatorType::SAMPLE,
+      std::vector<uint>{g.add_distribution(
+          DistributionType::GAMMA,
+          AtomicType::POS_REAL,
+          std::vector<uint>{shape_sq, rate_sq})});
   g.observe(y, 3.0);
   // shape = torch.tensor([3.0], requires_grad=True)
   // rate = torch.tensor([1.5], requires_grad=True)
-  // f_x = torch.distributions.Gamma(shape**2, rate**2).log_prob(3.0) + torch.distributions.Gamma(5, 2).log_prob(rate)
-  // f_grad_shape = torch.autograd.grad(f_x, shape, create_graph=True)
-  // f_grad2_shape = torch.autograd.grad(f_grad_shape, shape)
-  // f_grad_shape, f_grad2_shape # -> -1.3866, -4.6926
-  // f_grad_rate = torch.autograd.grad(f_x, rate, create_graph=True)
-  // f_grad2_rate = torch.autograd.grad(f_grad_rate, rate)
+  // f_x = torch.distributions.Gamma(shape**2, rate**2).log_prob(3.0) +
+  // torch.distributions.Gamma(5, 2).log_prob(rate) f_grad_shape =
+  // torch.autograd.grad(f_x, shape, create_graph=True) f_grad2_shape =
+  // torch.autograd.grad(f_grad_shape, shape) f_grad_shape, f_grad2_shape # ->
+  // -1.3866, -4.6926 f_grad_rate = torch.autograd.grad(f_x, rate,
+  // create_graph=True) f_grad2_rate = torch.autograd.grad(f_grad_rate, rate)
   // f_grad_rate, f_grad2_rate # -> 3.6667, -15.7778
   // we will call gradient_log_prob from all the parameters one time
   // to ensure that their children are evaluated

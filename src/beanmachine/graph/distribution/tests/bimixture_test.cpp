@@ -3,9 +3,7 @@
 
 #include "beanmachine/graph/graph.h"
 
-
 using namespace beanmachine::graph;
-
 
 TEST(testdistrib, bimixture) {
   Graph g1;
@@ -29,9 +27,7 @@ TEST(testdistrib, bimixture) {
   // negative test: must have three parents.
   EXPECT_THROW(
       g1.add_distribution(
-          DistributionType::BIMIXTURE,
-          AtomicType::REAL,
-          std::vector<uint>{}),
+          DistributionType::BIMIXTURE, AtomicType::REAL, std::vector<uint>{}),
       std::invalid_argument);
   // negative tests: first parent must be probability
   EXPECT_THROW(
@@ -76,7 +72,8 @@ TEST(testdistrib, bimixture) {
   auto x_sq = g1.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
   g1.query(x);
   g1.query(x_sq);
-  const std::vector<double>& means = g1.infer_mean(100000, InferenceType::REJECTION);
+  const std::vector<double>& means =
+      g1.infer_mean(100000, InferenceType::REJECTION);
   EXPECT_NEAR(means[0], 0.2, 0.01);
   EXPECT_NEAR(means[1] - means[0] * means[0], 5.26, 0.1);
   // test log_prob
@@ -104,11 +101,14 @@ TEST(testdistrib, bimixture) {
   // f1 = NORMAL(0, c^2), f2 = NORMAL(b^2, c^2)
   // x ~ BIMIXTURE(p, f1, f2)
   Graph g2;
-  auto flat_real = g2.add_distribution(DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
-  auto flat_pos_real = g2.add_distribution(DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto flat_real = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto flat_pos_real = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
   auto a = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_real});
   auto b = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_real});
-  auto c = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos_real});
+  auto c =
+      g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos_real});
   auto p = g2.add_operator(OperatorType::LOGISTIC, std::vector<uint>{a});
   g2.observe(a, -1.5);
   auto zero = g2.add_constant(0.0);
@@ -116,11 +116,17 @@ TEST(testdistrib, bimixture) {
   g2.observe(b, 1.8);
   auto c_sq = g2.add_operator(OperatorType::MULTIPLY, std::vector<uint>{c, c});
   g2.observe(c, 1.5);
-  auto dist1 = g2.add_distribution(DistributionType::NORMAL, AtomicType::REAL,
+  auto dist1 = g2.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
       std::vector<uint>{zero, c_sq});
-  auto dist2 = g2.add_distribution(DistributionType::NORMAL, AtomicType::REAL,
+  auto dist2 = g2.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
       std::vector<uint>{b_sq, c_sq});
-  auto bimix = g2.add_distribution(DistributionType::BIMIXTURE, AtomicType::REAL,
+  auto bimix = g2.add_distribution(
+      DistributionType::BIMIXTURE,
+      AtomicType::REAL,
       std::vector<uint>{p, dist1, dist2});
   auto y = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{bimix});
   g2.query(y);

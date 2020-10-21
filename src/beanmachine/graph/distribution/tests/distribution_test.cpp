@@ -78,8 +78,7 @@ TEST(testdistrib, bernoulli_noisy_or) {
 
 TEST(testdistrib, tabular) {
   Eigen::MatrixXd matrix(2, 2);
-  matrix << 0.9, 0.1,
-            0.1, 0.9;
+  matrix << 0.9, 0.1, 0.1, 0.9;
   graph::ConstNode cnode1(graph::NodeValue(
       graph::ValueType(
           graph::VariableType::COL_SIMPLEX_MATRIX,

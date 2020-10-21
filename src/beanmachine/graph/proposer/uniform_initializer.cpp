@@ -5,9 +5,7 @@
 namespace beanmachine {
 namespace proposer {
 
-graph::NodeValue uniform_initializer(
-    std::mt19937& gen,
-    graph::ValueType type) {
+graph::NodeValue uniform_initializer(std::mt19937& gen, graph::ValueType type) {
   // The initialization rules here are based on Stan's default initialization
   // except for discrete variables which are sampled uniformly.
   // Note: Stan doesn't support discrete variables.

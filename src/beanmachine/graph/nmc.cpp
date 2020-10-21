@@ -46,8 +46,7 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
       std::vector<uint> sto_nodes;
       std::tie(det_nodes, sto_nodes) = compute_descendants(node_id, supp);
       pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
-    }
-    else if (node_is_not_observed) {
+    } else if (node_is_not_observed) {
       node->eval(gen); // evaluate the value of non-observed operator nodes
     }
   }

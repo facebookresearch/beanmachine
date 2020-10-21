@@ -1,8 +1,8 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
+#include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/controlop.h"
 #include "beanmachine/graph/operator/multiaryop.h"
-#include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/operator/unaryop.h"
 
@@ -13,7 +13,8 @@ double Operator::log_prob() const {
   throw std::runtime_error("log_prob is only defined for sample or iid sample");
 }
 
-void Operator::gradient_log_prob(double& /* grad1 */, double& /* grad2 */) const {
+void Operator::gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
+    const {
   throw std::runtime_error(
       "gradient_log_prob is only defined for sample or iid sample");
 }
@@ -38,7 +39,6 @@ void Operator::compute_gradients() {
       std::to_string(static_cast<int>(op_type)) + " at node_id " +
       std::to_string(index));
 }
-
 
 bool OperatorFactory::register_op(
     const graph::OperatorType op_type,

@@ -1,17 +1,17 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/distribution/bernoulli.h"
+#include "beanmachine/graph/distribution/bernoulli_logit.h"
 #include "beanmachine/graph/distribution/bernoulli_noisy_or.h"
 #include "beanmachine/graph/distribution/beta.h"
-#include "beanmachine/graph/distribution/binomial.h"
-#include "beanmachine/graph/distribution/distribution.h"
-#include "beanmachine/graph/distribution/tabular.h"
-#include "beanmachine/graph/distribution/flat.h"
-#include "beanmachine/graph/distribution/normal.h"
-#include "beanmachine/graph/distribution/half_cauchy.h"
-#include "beanmachine/graph/distribution/student_t.h"
-#include "beanmachine/graph/distribution/bernoulli_logit.h"
-#include "beanmachine/graph/distribution/gamma.h"
 #include "beanmachine/graph/distribution/bimixture.h"
+#include "beanmachine/graph/distribution/binomial.h"
+#include "beanmachine/graph/distribution/flat.h"
+#include "beanmachine/graph/distribution/gamma.h"
+#include "beanmachine/graph/distribution/half_cauchy.h"
+#include "beanmachine/graph/distribution/normal.h"
+#include "beanmachine/graph/distribution/student_t.h"
+#include "beanmachine/graph/distribution/tabular.h"
 
 namespace beanmachine {
 namespace distribution {
@@ -21,9 +21,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
     graph::ValueType sample_type,
     const std::vector<graph::Node*>& in_nodes) {
   // call the appropriate distribution constructor
-  if(sample_type.variable_type == graph::VariableType::SCALAR){
+  if (sample_type.variable_type == graph::VariableType::SCALAR) {
     auto atype = sample_type.atomic_type;
-    switch(dist_type) {
+    switch (dist_type) {
       case graph::DistributionType::TABULAR: {
         return std::make_unique<Tabular>(atype, in_nodes);
       }
@@ -68,7 +68,7 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
     }
   }
-  switch(dist_type) {
+  switch (dist_type) {
     default: {
       throw std::invalid_argument(
           "Unknown distribution " +

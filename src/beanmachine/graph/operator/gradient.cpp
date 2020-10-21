@@ -1,9 +1,9 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
-#include "beanmachine/graph/operator/unaryop.h"
-#include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/controlop.h"
+#include "beanmachine/graph/operator/multiaryop.h"
+#include "beanmachine/graph/operator/unaryop.h"
 
 namespace beanmachine {
 namespace oper {
@@ -233,8 +233,8 @@ void LogSumExp::compute_gradients() {
   for (uint i = 0; i < N; i++) {
     const auto node_i = in_nodes[i];
     // @lint-ignore (HOWTOEVEN) LocalUncheckedArrayBounds
-    grad2 += f_grad[i] *
-        (node_i->grad1 * (node_i->grad1 - grad1) + node_i->grad2);
+    grad2 +=
+        f_grad[i] * (node_i->grad1 * (node_i->grad1 - grad1) + node_i->grad2);
   }
 }
 

@@ -1,6 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
-#include <random>
 #include <math.h>
+#include <random>
 
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/proposer/beta.h"
@@ -30,8 +30,7 @@ nmc_proposer(const graph::NodeValue& value, double grad1, double grad2) {
     proposers.push_back(
         std::make_unique<Delta>(graph::NodeValue(not value._bool)));
     weights.push_back(0.01);
-    proposers.push_back(
-        std::make_unique<Delta>(graph::NodeValue(value._bool)));
+    proposers.push_back(std::make_unique<Delta>(graph::NodeValue(value._bool)));
   }
   // For continuous-valued variables we will mix multiple proposers with various
   // weights with a small probability always given to a random walk proposer.

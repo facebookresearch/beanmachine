@@ -38,9 +38,11 @@ std::tuple<torch::Tensor, torch::Tensor> gradients(
   grad1 = grad1.reshape(-1);
   int64_t input_len = grad1.size(0);
   torch::Tensor hessian = torch::empty(
-        {input_len, input_len}, {}, torch::TensorOptions().dtype(input.dtype()));
+      {input_len, input_len}, {}, torch::TensorOptions().dtype(input.dtype()));
   for (int64_t i = 0; i < input_len; i++) {
-    hessian[i] = (torch::autograd::grad({grad1[i]}, {input}, {}, true, true, true)[0]).reshape(-1);
+    hessian[i] =
+        (torch::autograd::grad({grad1[i]}, {input}, {}, true, true, true)[0])
+            .reshape(-1);
   }
 
   return std::make_tuple(grad1, hessian);
@@ -64,7 +66,9 @@ std::tuple<torch::Tensor, torch::Tensor> simplex_gradients(
   int64_t input_len = grad1.size(0);
   torch::Tensor hessian_diag = torch::zeros({input_len}, grad1.dtype());
   for (int64_t i = 0; i < input_len; i++) {
-    torch::Tensor second_grad = (torch::autograd::grad({grad1[i]}, {input}, {}, true, true, true)[0]).reshape(-1);
+    torch::Tensor second_grad =
+        (torch::autograd::grad({grad1[i]}, {input}, {}, true, true, true)[0])
+            .reshape(-1);
     hessian_diag[i] = second_grad[i];
     second_grad[i] = second_grad.min();
     hessian_diag[i] -= second_grad.max();
@@ -91,7 +95,9 @@ std::tuple<torch::Tensor, torch::Tensor> halfspace_gradients(
   int64_t input_len = grad1.size(0);
   torch::Tensor hessian_diag = torch::zeros({input_len}, grad1.dtype());
   for (int64_t i = 0; i < input_len; i++) {
-    torch::Tensor second_grad = (torch::autograd::grad({grad1[i]}, {input}, {}, true, true, true)[0]).reshape(-1);
+    torch::Tensor second_grad =
+        (torch::autograd::grad({grad1[i]}, {input}, {}, true, true, true)[0])
+            .reshape(-1);
     hessian_diag[i] = second_grad[i];
   }
 
@@ -119,7 +125,6 @@ PYBIND11_MODULE(tensorops, module) {
       "Compute the first and the second gradient of the output Tensor w.r.t. the input Tensor for half space.",
       pybind11::arg("output"),
       pybind11::arg("input"));
-
 }
 
 } // namespace tensorops

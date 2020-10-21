@@ -14,9 +14,8 @@ bool IfThenElse::is_registered = OperatorFactory::register_op(
     &(IfThenElse::new_op));
 
 // multiary op
-bool Add::is_registered = OperatorFactory::register_op(
-    graph::OperatorType::ADD,
-    &(Add::new_op));
+bool Add::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::ADD, &(Add::new_op));
 
 bool Multiply::is_registered = OperatorFactory::register_op(
     graph::OperatorType::MULTIPLY,
@@ -26,9 +25,8 @@ bool LogSumExp::is_registered = OperatorFactory::register_op(
     graph::OperatorType::LOGSUMEXP,
     &(LogSumExp::new_op));
 
-bool Pow::is_registered = OperatorFactory::register_op(
-    graph::OperatorType::POW,
-    &(Pow::new_op));
+bool Pow::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::POW, &(Pow::new_op));
 
 // stochastic op
 bool Sample::is_registered = OperatorFactory::register_op(
@@ -56,17 +54,14 @@ bool Negate::is_registered = OperatorFactory::register_op(
     graph::OperatorType::NEGATE,
     &(Negate::new_op));
 
-bool Exp::is_registered = OperatorFactory::register_op(
-    graph::OperatorType::EXP,
-    &(Exp::new_op));
+bool Exp::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::EXP, &(Exp::new_op));
 
-bool ExpM1::is_registered = OperatorFactory::register_op(
-    graph::OperatorType::EXPM1,
-    &(ExpM1::new_op));
+bool ExpM1::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::EXPM1, &(ExpM1::new_op));
 
-bool Phi::is_registered = OperatorFactory::register_op(
-    graph::OperatorType::PHI,
-    &(Phi::new_op));
+bool Phi::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::PHI, &(Phi::new_op));
 
 bool Logistic::is_registered = OperatorFactory::register_op(
     graph::OperatorType::LOGISTIC,
@@ -80,9 +75,8 @@ bool Log1mExp::is_registered = OperatorFactory::register_op(
     graph::OperatorType::LOG1MEXP,
     &(Log1mExp::new_op));
 
-bool Log::is_registered = OperatorFactory::register_op(
-    graph::OperatorType::LOG,
-    &(Log::new_op));
+bool Log::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::LOG, &(Log::new_op));
 
 bool NegativeLog::is_registered = OperatorFactory::register_op(
     graph::OperatorType::NEGATIVE_LOG,

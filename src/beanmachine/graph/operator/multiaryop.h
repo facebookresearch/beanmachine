@@ -41,7 +41,8 @@ class Add : public MultiaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Add>(in_nodes);
   }
 
@@ -57,7 +58,8 @@ class Multiply : public MultiaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Multiply>(in_nodes);
   }
 
@@ -73,7 +75,8 @@ class LogSumExp : public MultiaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<LogSumExp>(in_nodes);
   }
 
@@ -91,7 +94,8 @@ class Pow : public Operator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Pow>(in_nodes);
   }
 
