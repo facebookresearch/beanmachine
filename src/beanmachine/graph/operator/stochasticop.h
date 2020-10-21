@@ -40,7 +40,8 @@ class Sample : public oper::StochasticOperator {
   explicit Sample(const std::vector<graph::Node*>& in_nodes);
   ~Sample() override {}
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Sample>(in_nodes);
   }
 
@@ -52,7 +53,8 @@ class IIdSample : public oper::StochasticOperator {
   explicit IIdSample(const std::vector<graph::Node*>& in_nodes);
   ~IIdSample() override {}
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<IIdSample>(in_nodes);
   }
 

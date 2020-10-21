@@ -14,7 +14,8 @@ class IfThenElse : public Operator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<IfThenElse>(in_nodes);
   }
 

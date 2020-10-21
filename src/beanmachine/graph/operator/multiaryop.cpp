@@ -11,8 +11,7 @@ Add::Add(const std::vector<graph::Node*>& in_nodes)
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL and
       type0 != graph::AtomicType::POS_REAL) {
-    throw std::invalid_argument(
-        "operator ADD requires real/pos_real parent");
+    throw std::invalid_argument("operator ADD requires real/pos_real parent");
   }
   value = graph::NodeValue(type0);
 }
@@ -34,7 +33,6 @@ void Add::eval(std::mt19937& /* gen */) {
         " for ADD operator at node_id " + std::to_string(index));
   }
 }
-
 
 Multiply::Multiply(const std::vector<graph::Node*>& in_nodes)
     : MultiaryOperator(graph::OperatorType::MULTIPLY, in_nodes) {
@@ -66,7 +64,6 @@ void Multiply::eval(std::mt19937& /* gen */) {
         " for MULTIPLY operator at node_id " + std::to_string(index));
   }
 }
-
 
 LogSumExp::LogSumExp(const std::vector<graph::Node*>& in_nodes)
     : MultiaryOperator(graph::OperatorType::LOGSUMEXP, in_nodes) {
@@ -103,9 +100,8 @@ void LogSumExp::eval(std::mt19937& /* gen */) {
   }
 }
 
-
 Pow::Pow(const std::vector<graph::Node*>& in_nodes)
-    : Operator(graph::OperatorType::POW)  {
+    : Operator(graph::OperatorType::POW) {
   if (in_nodes.size() != 2) {
     throw std::invalid_argument("operator POW requires 2 parents");
   }
@@ -150,8 +146,7 @@ void Pow::eval(std::mt19937& /* gen */) {
       (parent1.type != graph::AtomicType::REAL and
        parent1.type != graph::AtomicType::POS_REAL)) {
     throw std::runtime_error(
-        "invalid type for POW operator at node_id " +
-        std::to_string(index));
+        "invalid type for POW operator at node_id " + std::to_string(index));
   }
   value._double = std::pow(parent0._double, parent1._double);
 }

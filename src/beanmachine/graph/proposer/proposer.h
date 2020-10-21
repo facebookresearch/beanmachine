@@ -40,9 +40,7 @@ Returns a value for the specified type uniformly at random.
 :param type: The desired type
 :returns: A value of this type
 */
-graph::NodeValue uniform_initializer(
-    std::mt19937& gen,
-    graph::ValueType type);
+graph::NodeValue uniform_initializer(std::mt19937& gen, graph::ValueType type);
 
 } // namespace proposer
 } // namespace beanmachine

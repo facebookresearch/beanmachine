@@ -26,10 +26,7 @@ class Operator : public graph::Node {
 };
 
 template <class T>
-void _gradient_lob_prob(
-    T& first_grad,
-    T& second_grad,
-    Operator const* node) {
+void _gradient_lob_prob(T& first_grad, T& second_grad, Operator const* node) {
   assert(
       node->op_type == graph::OperatorType::SAMPLE or
       node->op_type == graph::OperatorType::IID_SAMPLE);

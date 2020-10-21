@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
+#include <Eigen/Dense>
 #include <algorithm>
 #include <list>
 #include <map>
@@ -9,14 +10,13 @@
 #include <string>
 #include <tuple>
 #include <vector>
-#include <Eigen/Dense>
 
 #define NATURAL_TYPE unsigned long long int
 
 namespace Eigen {
-  typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
-  typedef Matrix<NATURAL_TYPE, Dynamic, Dynamic> MatrixXn;
-}
+typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
+typedef Matrix<NATURAL_TYPE, Dynamic, Dynamic> MatrixXn;
+} // namespace Eigen
 
 namespace beanmachine {
 namespace graph {
@@ -85,7 +85,7 @@ struct ValueType {
     return variable_type != VariableType::SCALAR or atomic_type != other;
   }
   bool operator==(const ValueType& other) const {
-    return not (*this != other);
+    return not(*this != other);
   }
   bool operator==(const AtomicType& other) const {
     return variable_type == VariableType::SCALAR and atomic_type == other;
@@ -167,10 +167,8 @@ class NodeValue {
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
         type == AtomicType::NEG_REAL or type == AtomicType::PROBABILITY);
   }
-  NodeValue(AtomicType /* type */, Eigen::MatrixXb& value)
-      : NodeValue(value) {}
-  NodeValue(AtomicType /* type */, Eigen::MatrixXn& value)
-      : NodeValue(value) {}
+  NodeValue(AtomicType /* type */, Eigen::MatrixXb& value) : NodeValue(value) {}
+  NodeValue(AtomicType /* type */, Eigen::MatrixXn& value) : NodeValue(value) {}
   NodeValue(ValueType type, Eigen::MatrixXd& value)
       : type(type), _matrix(value) {
     assert(
@@ -197,7 +195,7 @@ class NodeValue {
   }
   NodeValue(AtomicType type, double value);
 
-  NodeValue(const NodeValue& other): type(other.type) {
+  NodeValue(const NodeValue& other) : type(other.type) {
     if (type.variable_type == VariableType::SCALAR) {
       switch (type.atomic_type) {
         case AtomicType::UNKNOWN: {
@@ -218,7 +216,7 @@ class NodeValue {
         }
       }
     } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
-      switch(type.atomic_type) {
+      switch (type.atomic_type) {
         case AtomicType::BOOLEAN:
           _bmatrix = other._bmatrix;
           break;
@@ -238,7 +236,8 @@ class NodeValue {
     } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
       _matrix = other._matrix;
     } else {
-       throw std::invalid_argument("Trying to copy a value of unknown VariableType");
+      throw std::invalid_argument(
+          "Trying to copy a value of unknown VariableType");
     }
   }
   NodeValue& operator=(const NodeValue& other) = default;
@@ -375,18 +374,21 @@ class Node {
   virtual ~Node() {}
 
   /*
-  The generic gradient propagation thru a node (deterministic operator or distribution) with
-  multiple scalar inputs and one scalar output, w.r.t a scalar or vector source. (When the
-  input or output is a vector, the hessian matrix is typically sparse, thus a generic logic is
-  inefficient and the propagation will be implemented case by case.) Template is used so that
-  the jacobian and hessian may have fixed sized, which is faster than dynamic sized.
-  :param is_source_scalar: Indicates whether the gradient is taken w.r.t a scalar source.
-  :param jacobian: The Jacobian matrix, with dimension 1 x in-degree.
-  :param hessian: The Hessian matrix, with dimension in-degree x in-degree.
-  :param d_grad1: The double type 1st order gradient, used when is_source_scalar = true.
-  :param d_grad2: The double type 2nd order gradient, used when is_source_scalar = true.
-  :param dm_grad1: The MatrixXd type 1st order gradient, used when is_source_scalar = false.
-  :param dm_grad2: The MatrixXd type 2nd order gradient (diagonal only), used when is_source_scalar = false..
+  The generic gradient propagation thru a node (deterministic operator or
+  distribution) with multiple scalar inputs and one scalar output, w.r.t a
+  scalar or vector source. (When the input or output is a vector, the hessian
+  matrix is typically sparse, thus a generic logic is inefficient and the
+  propagation will be implemented case by case.) Template is used so that the
+  jacobian and hessian may have fixed sized, which is faster than dynamic sized.
+  :param is_source_scalar: Indicates whether the gradient is taken w.r.t a
+  scalar source. :param jacobian: The Jacobian matrix, with dimension 1 x
+  in-degree. :param hessian: The Hessian matrix, with dimension in-degree x
+  in-degree. :param d_grad1: The double type 1st order gradient, used when
+  is_source_scalar = true. :param d_grad2: The double type 2nd order gradient,
+  used when is_source_scalar = true. :param dm_grad1: The MatrixXd type 1st
+  order gradient, used when is_source_scalar = false. :param dm_grad2: The
+  MatrixXd type 2nd order gradient (diagonal only), used when is_source_scalar =
+  false..
   */
   template <class T1, class T2>
   void gradient_propagation_scalar_to_scalar(
@@ -455,41 +457,48 @@ struct Graph {
   /*
   Draw Monte Carlo samples from the posterior distribution using a single chain.
   :param num_samples: The number of the MCMC samples.
-  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
-  :param seed: The seed provided to the random number generator.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION,
+  GIBBS, and NMC. :param seed: The seed provided to the random number generator.
   :returns: The posterior samples.
   */
   std::vector<std::vector<NodeValue>>&
   infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   /*
-  Draw Monte Carlo samples from the posterior distribution using multiple chains.
-  :param num_samples: The number of the MCMC samples of each chain.
-  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
-  :param seed: The seed provided to the random number generator of the first chain.
-  :param n_chains: The number of MCMC chains.
-  :returns: The posterior samples from all chains.
+  Draw Monte Carlo samples from the posterior distribution using multiple
+  chains. :param num_samples: The number of the MCMC samples of each chain.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION,
+  GIBBS, and NMC. :param seed: The seed provided to the random number generator
+  of the first chain. :param n_chains: The number of MCMC chains. :returns: The
+  posterior samples from all chains.
   */
   std::vector<std::vector<std::vector<NodeValue>>>&
   infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
-  std::vector<double>&
-  /*
-  Make point estimates of the posterior means from a single MCMC chain.
-  :param num_samples: The number of the MCMC samples.
-  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
-  :param seed: The seed provided to the random number generator.
-  :returns: The posterior means.
-  */
-  infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  std::
+      vector<double>&
+      /*
+      Make point estimates of the posterior means from a single MCMC chain.
+      :param num_samples: The number of the MCMC samples.
+      :param algorithm: The sampling algorithm, currently supporting REJECTION,
+      GIBBS, and NMC. :param seed: The seed provided to the random number
+      generator. :returns: The posterior means.
+      */
+      infer_mean(
+          uint num_samples,
+          InferenceType algorithm,
+          uint seed = 5123401);
   /*
   Make point estimates of the posterior means from multiple MCMC chains.
   :param num_samples: The number of the MCMC samples of each chain.
-  :param algorithm: The sampling algorithm, currently supporting REJECTION, GIBBS, and NMC.
-  :param seed: The seed provided to the random number generator of the first chain.
-  :param n_chains: The number of MCMC chains.
-  :returns: The posterior means from all chains.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION,
+  GIBBS, and NMC. :param seed: The seed provided to the random number generator
+  of the first chain. :param n_chains: The number of MCMC chains. :returns: The
+  posterior means from all chains.
   */
-  std::vector<std::vector<double>>&
-  infer_mean(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
+  std::vector<std::vector<double>>& infer_mean(
+      uint num_samples,
+      InferenceType algorithm,
+      uint seed,
+      uint n_chains);
   /*
   Use mean-field variational inference to infer the posterior mean, variance
   of the queried nodes in the graph.
@@ -563,10 +572,15 @@ struct Graph {
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
-  std::vector<uint> get_parent_ids(const std::vector<Node*>& parent_nodes) const;
+  std::vector<uint> get_parent_ids(
+      const std::vector<Node*>& parent_nodes) const;
   Node* check_node(uint node_id, NodeType node_type);
   void _infer(uint num_samples, InferenceType algorithm, uint seed);
-  void _infer_parallel(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
+  void _infer_parallel(
+      uint num_samples,
+      InferenceType algorithm,
+      uint seed,
+      uint n_chains);
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
   std::set<uint> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a

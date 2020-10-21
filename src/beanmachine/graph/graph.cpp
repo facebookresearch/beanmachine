@@ -70,7 +70,8 @@ NodeValue::NodeValue(AtomicType type, double value)
       _double = 1 - PRECISION;
     }
   } else {
-    // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY values
+    // this API is only meant for POS_REAL, NEG_REAL, REAL and PROBABILITY
+    // values
     if (type != AtomicType::REAL) {
       throw std::invalid_argument(
           "expect probability, pos_real, neg_real or real type with floating point value");

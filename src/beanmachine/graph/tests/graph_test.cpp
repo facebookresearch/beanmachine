@@ -72,8 +72,7 @@ TEST(testgraph, infer_bn) {
   // classic sprinkler BN, see the diagram here:
   // https://upload.wikimedia.org/wikipedia/commons/0/0e/SimpleBayesNet.svg
   Eigen::MatrixXd matrix1(2, 1);
-  matrix1 << 0.8,
-             0.2;
+  matrix1 << 0.8, 0.2;
   uint c1 = g.add_constant_col_simplex_matrix(matrix1);
   uint d1 = g.add_distribution(
       graph::DistributionType::TABULAR,
@@ -82,8 +81,7 @@ TEST(testgraph, infer_bn) {
   uint RAIN =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d1}));
   Eigen::MatrixXd matrix2(2, 2);
-  matrix2 << 0.6, 0.99,
-             0.4, 0.01;
+  matrix2 << 0.6, 0.99, 0.4, 0.01;
   uint c2 = g.add_constant_col_simplex_matrix(matrix2);
   uint d2 = g.add_distribution(
       graph::DistributionType::TABULAR,
@@ -92,8 +90,7 @@ TEST(testgraph, infer_bn) {
   uint SPRINKLER =
       g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({d2}));
   Eigen::MatrixXd matrix3(2, 4);
-  matrix3 << 1.0, 0.2, 0.1, 0.01,
-             0.0, 0.8, 0.9, 0.99;
+  matrix3 << 1.0, 0.2, 0.1, 0.01, 0.0, 0.8, 0.9, 0.99;
   uint c3 = g.add_constant_col_simplex_matrix(matrix3);
   uint d3 = g.add_distribution(
       graph::DistributionType::TABULAR,
@@ -118,7 +115,7 @@ TEST(testgraph, infer_bn) {
   EXPECT_GT(sum, 10);
   // using multiple chains
   const auto& all_samples =
-    g.infer(n_iter, graph::InferenceType::REJECTION, 123, 2);
+      g.infer(n_iter, graph::InferenceType::REJECTION, 123, 2);
   ASSERT_EQ(all_samples.size(), 2);
   ASSERT_EQ(all_samples[0].size(), n_iter);
   ASSERT_EQ(all_samples[1].size(), n_iter);
@@ -133,7 +130,7 @@ TEST(testgraph, infer_bn) {
   ASSERT_LT(eqsum, n_iter);
 
   const auto& all_means =
-    g.infer_mean(n_iter, graph::InferenceType::REJECTION, 123, 2);
+      g.infer_mean(n_iter, graph::InferenceType::REJECTION, 123, 2);
   ASSERT_EQ(all_means.size(), 2);
   ASSERT_NE(all_means[0].front(), all_means[1].front());
   ASSERT_GT(all_means[0].front(), 0.1);
@@ -162,68 +159,66 @@ TEST(testgraph, clone_graph) {
   Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(2, 2);
   g.add_constant_matrix(m2);
   Eigen::MatrixXd m3(2, 1);
-  m3 << 0.2,
-        0.8;
+  m3 << 0.2, 0.8;
   g.add_constant_col_simplex_matrix(m3);
   Eigen::MatrixXb m4(1, 2);
   m4 << true, false;
   g.add_constant_matrix(m4);
   Eigen::MatrixXn m5(2, 1);
-  m5 << 1,
-        2;
+  m5 << 1, 2;
   g.add_constant_matrix(m5);
   // distributions
   uint d_bernoulli = g.add_distribution(
-    graph::DistributionType::BERNOULLI,
-    graph::AtomicType::BOOLEAN,
-    std::vector<uint>{c_prob});
+      graph::DistributionType::BERNOULLI,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{c_prob});
   uint d_bernoulli_or = g.add_distribution(
-    graph::DistributionType::BERNOULLI_NOISY_OR,
-    graph::AtomicType::BOOLEAN,
-    std::vector<uint>{c_pos});
+      graph::DistributionType::BERNOULLI_NOISY_OR,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{c_pos});
   uint d_bernoulli_logit = g.add_distribution(
-    graph::DistributionType::BERNOULLI_LOGIT,
-    graph::AtomicType::BOOLEAN,
-    std::vector<uint>{c_real});
+      graph::DistributionType::BERNOULLI_LOGIT,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{c_real});
   uint d_beta = g.add_distribution(
-    graph::DistributionType::BETA,
-    graph::AtomicType::PROBABILITY,
-    std::vector<uint>{c_pos, c_pos});
+      graph::DistributionType::BETA,
+      graph::AtomicType::PROBABILITY,
+      std::vector<uint>{c_pos, c_pos});
   uint d_binomial = g.add_distribution(
-    graph::DistributionType::BINOMIAL,
-    graph::AtomicType::NATURAL,
-    std::vector<uint>{c_natural_2, c_prob});
+      graph::DistributionType::BINOMIAL,
+      graph::AtomicType::NATURAL,
+      std::vector<uint>{c_natural_2, c_prob});
   uint d_flat = g.add_distribution(
-    graph::DistributionType::FLAT,
-    graph::AtomicType::POS_REAL,
-    std::vector<uint>{});
+      graph::DistributionType::FLAT,
+      graph::AtomicType::POS_REAL,
+      std::vector<uint>{});
   uint d_normal = g.add_distribution(
-    graph::DistributionType::NORMAL,
-    graph::AtomicType::REAL,
-    std::vector<uint>{c_real, c_pos});
+      graph::DistributionType::NORMAL,
+      graph::AtomicType::REAL,
+      std::vector<uint>{c_real, c_pos});
   uint d_halfcauchy = g.add_distribution(
-    graph::DistributionType::HALF_CAUCHY,
-    graph::AtomicType::POS_REAL,
-    std::vector<uint>{c_pos});
+      graph::DistributionType::HALF_CAUCHY,
+      graph::AtomicType::POS_REAL,
+      std::vector<uint>{c_pos});
   uint d_studentt = g.add_distribution(
-    graph::DistributionType::STUDENT_T,
-    graph::AtomicType::REAL,
-    std::vector<uint>{c_pos, c_real, c_pos});
+      graph::DistributionType::STUDENT_T,
+      graph::AtomicType::REAL,
+      std::vector<uint>{c_pos, c_real, c_pos});
   uint d_gamma = g.add_distribution(
-    graph::DistributionType::GAMMA,
-    graph::AtomicType::POS_REAL,
-    std::vector<uint>{c_pos, c_pos});
+      graph::DistributionType::GAMMA,
+      graph::AtomicType::POS_REAL,
+      std::vector<uint>{c_pos, c_pos});
   // operators
   uint o_sample_bool = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>{d_bernoulli});
-  uint o_sample_real = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>{d_normal});
+      graph::OperatorType::SAMPLE, std::vector<uint>{d_bernoulli});
+  uint o_sample_real =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_normal});
   uint o_sample_natural = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>{d_binomial});
-  uint o_sample_prob = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>{d_beta});
-  uint o_sample_pos = g.add_operator(
-    graph::OperatorType::SAMPLE, std::vector<uint>{d_gamma});
+      graph::OperatorType::SAMPLE, std::vector<uint>{d_binomial});
+  uint o_sample_prob =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_beta});
+  uint o_sample_pos =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_gamma});
 
   uint o_iidsample_bool = g.add_operator(
       graph::OperatorType::IID_SAMPLE,
@@ -242,40 +237,42 @@ TEST(testgraph, clone_graph) {
       std::vector<uint>{d_gamma, c_natural_2, c_natural_2});
 
   uint o_to_real = g.add_operator(
-    graph::OperatorType::TO_REAL, std::vector<uint>{o_sample_pos});
+      graph::OperatorType::TO_REAL, std::vector<uint>{o_sample_pos});
   uint o_to_pos = g.add_operator(
-    graph::OperatorType::TO_POS_REAL, std::vector<uint>{o_sample_prob});
+      graph::OperatorType::TO_POS_REAL, std::vector<uint>{o_sample_prob});
   uint o_complement = g.add_operator(
-    graph::OperatorType::COMPLEMENT, std::vector<uint>{o_sample_prob});
-  uint o_negate = g.add_operator(
-    graph::OperatorType::NEGATE, std::vector<uint>{c_real});
-  uint o_exp = g.add_operator(
-    graph::OperatorType::EXP, std::vector<uint>{c_real});
+      graph::OperatorType::COMPLEMENT, std::vector<uint>{o_sample_prob});
+  uint o_negate =
+      g.add_operator(graph::OperatorType::NEGATE, std::vector<uint>{c_real});
+  uint o_exp =
+      g.add_operator(graph::OperatorType::EXP, std::vector<uint>{c_real});
   uint o_expm1 = g.add_operator(
-    graph::OperatorType::EXPM1, std::vector<uint>{o_sample_pos});
-  uint o_log = g.add_operator(
-    graph::OperatorType::LOG, std::vector<uint> {o_to_pos});
-  uint o_log1pexp = g.add_operator(
-    graph::OperatorType::LOG1PEXP, std::vector<uint> {o_log});
-  uint o_log1mexp = g.add_operator(
-    graph::OperatorType::LOG1MEXP, std::vector<uint> {c_neg});
+      graph::OperatorType::EXPM1, std::vector<uint>{o_sample_pos});
+  uint o_log =
+      g.add_operator(graph::OperatorType::LOG, std::vector<uint>{o_to_pos});
+  uint o_log1pexp =
+      g.add_operator(graph::OperatorType::LOG1PEXP, std::vector<uint>{o_log});
+  uint o_log1mexp =
+      g.add_operator(graph::OperatorType::LOG1MEXP, std::vector<uint>{c_neg});
   uint o_logsumexp = g.add_operator(
-    graph::OperatorType::LOGSUMEXP, std::vector<uint> {c_real, o_sample_real});
+      graph::OperatorType::LOGSUMEXP, std::vector<uint>{c_real, o_sample_real});
   uint o_multiply = g.add_operator(
-    graph::OperatorType::MULTIPLY, std::vector<uint>{c_real, o_sample_real, o_logsumexp});
+      graph::OperatorType::MULTIPLY,
+      std::vector<uint>{c_real, o_sample_real, o_logsumexp});
   uint o_add = g.add_operator(
-    graph::OperatorType::ADD, std::vector<uint>{c_real, o_sample_real, o_to_real});
+      graph::OperatorType::ADD,
+      std::vector<uint>{c_real, o_sample_real, o_to_real});
   uint o_phi = g.add_operator(
-    graph::OperatorType::PHI, std::vector<uint>{o_sample_real});
-  uint o_logistic = g.add_operator(
-    graph::OperatorType::LOGISTIC, std::vector<uint>{c_real});
+      graph::OperatorType::PHI, std::vector<uint>{o_sample_real});
+  uint o_logistic =
+      g.add_operator(graph::OperatorType::LOGISTIC, std::vector<uint>{c_real});
   uint o_ifelse = g.add_operator(
-    graph::OperatorType::IF_THEN_ELSE,
-    std::vector<uint>{o_sample_bool, o_sample_pos, o_log1pexp});
+      graph::OperatorType::IF_THEN_ELSE,
+      std::vector<uint>{o_sample_bool, o_sample_pos, o_log1pexp});
   // factors
   uint f_expprod = g.add_factor(
-    graph::FactorType::EXP_PRODUCT,
-    std::vector<uint>{o_sample_real, o_sample_pos, o_to_pos});
+      graph::FactorType::EXP_PRODUCT,
+      std::vector<uint>{o_sample_real, o_sample_pos, o_to_pos});
   // observe and query
   g.observe(o_sample_real, 1.5);
   g.observe(o_sample_prob, 0.1);

@@ -34,8 +34,7 @@ double Beta::log_prob(const graph::NodeValue& value) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double ret_val = 0.0;
-  auto update_logprob = [&] (double val)
-  {
+  auto update_logprob = [&](double val) {
     ret_val += (param_a - 1) * log(val) + (param_b - 1) * log(1 - val);
   };
   if (value.type.variable_type == graph::VariableType::SCALAR) {
@@ -50,7 +49,8 @@ double Beta::log_prob(const graph::NodeValue& value) const {
   for (uint i = 0; i < size; i++) {
     update_logprob(*(value._matrix.data() + i));
   }
-  ret_val += size * (lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b));
+  ret_val +=
+      size * (lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b));
   return ret_val;
 }
 

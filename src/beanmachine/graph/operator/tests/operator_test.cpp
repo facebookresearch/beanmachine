@@ -15,8 +15,7 @@ using namespace beanmachine::distribution;
 TEST(testoperator, complement) {
   // negative test num args can't be zero
   EXPECT_THROW(
-      oper::Complement onode1(std::vector<Node*>{}),
-      std::invalid_argument);
+      oper::Complement onode1(std::vector<Node*>{}), std::invalid_argument);
   auto p1 = NodeValue(AtomicType::PROBABILITY, 0.1);
   ConstNode cnode1(p1);
   // negative test num args can't be two
@@ -556,8 +555,7 @@ TEST(testoperator, iid_sample) {
 
   // test log_prob
   Eigen::MatrixXd matrix1(2, 1);
-  matrix1 << 0.6,
-             0.5;
+  matrix1 << 0.6, 0.5;
   auto matrix_value = NodeValue(vtype, matrix1);
   beta_samples.value = matrix_value;
   EXPECT_NEAR(beta_samples.log_prob(), 0.7701, 1e-3);

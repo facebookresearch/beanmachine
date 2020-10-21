@@ -40,7 +40,8 @@ class Complement : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Complement>(in_nodes);
   }
 
@@ -56,7 +57,8 @@ class ToReal : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToReal>(in_nodes);
   }
 
@@ -72,7 +74,8 @@ class ToPosReal : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToPosReal>(in_nodes);
   }
 
@@ -88,7 +91,8 @@ class Negate : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Negate>(in_nodes);
   }
 
@@ -104,7 +108,8 @@ class Exp : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Exp>(in_nodes);
   }
 
@@ -120,7 +125,8 @@ class ExpM1 : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ExpM1>(in_nodes);
   }
 
@@ -136,7 +142,8 @@ class Phi : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Phi>(in_nodes);
   }
 
@@ -152,7 +159,8 @@ class Logistic : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Logistic>(in_nodes);
   }
 
@@ -168,7 +176,8 @@ class Log1pExp : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log1pExp>(in_nodes);
   }
 
@@ -184,7 +193,8 @@ class Log : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log>(in_nodes);
   }
 
@@ -200,7 +210,8 @@ class NegativeLog : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<NegativeLog>(in_nodes);
   }
 
@@ -216,7 +227,8 @@ class Log1mExp : public UnaryOperator {
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
 
-  static std::unique_ptr<Operator> new_op(const std::vector<graph::Node*>& in_nodes) {
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<Log1mExp>(in_nodes);
   }
 

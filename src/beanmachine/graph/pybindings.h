@@ -27,8 +27,7 @@ struct type_caster<NodeValue> : public type_caster_base<NodeValue> {
     return base::load(src, convert);
   }
 
-  static handle
-  cast(NodeValue src, return_value_policy policy, handle parent) {
+  static handle cast(NodeValue src, return_value_policy policy, handle parent) {
     // for C++ -> Python condition the return object on the type
     if (src.type.variable_type == VariableType::SCALAR) {
       switch (src.type.atomic_type) {
