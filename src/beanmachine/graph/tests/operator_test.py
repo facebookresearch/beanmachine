@@ -42,11 +42,20 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [c4, c5])
         # test EXP
+        # Exp needs exactly one operand
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.EXP, [])
-        g.add_operator(bmg.OperatorType.EXP, [c2])
         with self.assertRaises(ValueError):
-            g.add_operator(bmg.OperatorType.EXP, [c4, c5])
+            g.add_operator(bmg.OperatorType.EXP, [c2, c8])
+        # That operand must be real, negative real or positive real:
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.EXP, [c3])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.EXP, [c6])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.EXP, [c7])
+        g.add_operator(bmg.OperatorType.EXP, [c2])
+        g.add_operator(bmg.OperatorType.EXP, [c8])
         # test LOG
         # Log needs exactly one operand:
         with self.assertRaises(ValueError):
