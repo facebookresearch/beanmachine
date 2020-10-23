@@ -123,7 +123,10 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             acceptance_prob = self._compute_new_step_acceptance_probability(
                 node, node_var, world, theta, r, step_size
             )
-            if torch.pow(acceptance_prob, a) < threshold:
+            if (
+                torch.is_nonzero(acceptance_prob)
+                and torch.pow(acceptance_prob, a) < threshold
+            ):
                 # stop if the acceptance probability crosses the threshold
                 break
         self.step_size = step_size.detach()
