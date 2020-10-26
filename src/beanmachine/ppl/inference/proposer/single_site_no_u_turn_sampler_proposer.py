@@ -116,6 +116,7 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             a = -1
         step_size_multiplier = torch.pow(tensor(2.0, dtype=acceptance_prob.dtype), a)
         threshold = torch.pow(tensor(2.0, dtype=acceptance_prob.dtype), -a)
+        epsilon = tensor(1e-10, dtype=acceptance_prob.dtype)
 
         for _ in range(self.max_initial_iterations):
             # half or double step size
@@ -123,6 +124,9 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             acceptance_prob = self._compute_new_step_acceptance_probability(
                 node, node_var, world, theta, r, step_size
             )
+            # Set lower bound of acceptance probability to epsilon to prevent running
+            # into numerical issue in computing 0^{-1}
+            acceptance_prob = torch.max(acceptance_prob, epsilon)
             if torch.pow(acceptance_prob, a) < threshold:
                 # stop if the acceptance probability crosses the threshold
                 break
