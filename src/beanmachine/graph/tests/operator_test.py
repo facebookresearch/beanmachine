@@ -20,6 +20,7 @@ class TestOperators(unittest.TestCase):
         c6 = g.add_constant(23)  # NATURAL
         c7 = g.add_constant(False)
         c8 = g.add_constant_neg_real(-1.25)
+        c9 = g.add_constant_pos_real(1.25)
         # add const matrices, operators on matrix to be added
         g.add_constant_matrix(np.array([[True, False], [False, True]]))
         g.add_constant_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
@@ -42,11 +43,21 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.TO_REAL, [c4, c5])
         # test EXP
+        # Exp needs exactly one operand
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.EXP, [])
-        g.add_operator(bmg.OperatorType.EXP, [c2])
         with self.assertRaises(ValueError):
-            g.add_operator(bmg.OperatorType.EXP, [c4, c5])
+            g.add_operator(bmg.OperatorType.EXP, [c2, c8])
+        # That operand must be real, negative real or positive real:
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.EXP, [c3])  # prob throws
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.EXP, [c6])  # natural throws
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.EXP, [c7])  # bool throws
+        g.add_operator(bmg.OperatorType.EXP, [c2])  # real OK
+        g.add_operator(bmg.OperatorType.EXP, [c8])  # neg_real OK
+        g.add_operator(bmg.OperatorType.EXP, [c9])  # pos_real OK
         # test LOG
         # Log needs exactly one operand:
         with self.assertRaises(ValueError):
@@ -153,7 +164,8 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             o1 = g.add_operator(bmg.OperatorType.EXP, [s1])
         self.assertTrue(
-            "operator EXP requires a real or pos_real parent" in str(cm.exception)
+            "operator EXP requires a neg_real, real or pos_real parent"
+            in str(cm.exception)
         )
 
         # the proper way to do it is to convert to floating point first

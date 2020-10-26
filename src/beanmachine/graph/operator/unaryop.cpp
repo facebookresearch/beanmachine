@@ -123,19 +123,25 @@ void Negate::eval(std::mt19937& /* gen */) {
 Exp::Exp(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::EXP, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
-  if (type0 != graph::AtomicType::REAL and
-      type0 != graph::AtomicType::POS_REAL) {
+  graph::ValueType new_type;
+  if (type0 == graph::AtomicType::REAL or
+      type0 == graph::AtomicType::POS_REAL) {
+    new_type = graph::AtomicType::POS_REAL;
+  } else if (type0 == graph::AtomicType::NEG_REAL) {
+    new_type = graph::AtomicType::PROBABILITY;
+  } else {
     throw std::invalid_argument(
-        "operator EXP requires a real or pos_real parent");
+        "operator EXP requires a neg_real, real or pos_real parent");
   }
-  value = graph::NodeValue(graph::AtomicType::POS_REAL);
+  value = graph::NodeValue(new_type);
 }
 
 void Exp::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::REAL or
-      parent.type == graph::AtomicType::POS_REAL) {
+      parent.type == graph::AtomicType::POS_REAL or
+      parent.type == graph::AtomicType::NEG_REAL) {
     value._double = std::exp(parent._double);
   } else {
     throw std::runtime_error(
