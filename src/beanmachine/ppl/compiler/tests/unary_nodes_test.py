@@ -49,12 +49,14 @@ class UnaryNodesTest(unittest.TestCase):
         bino = SampleNode(BinomialNode(nat, prob))
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
+        neg = NegateNode(half)
 
         self.assertEqual(bern.inf_type, Boolean)
         self.assertEqual(beta.inf_type, Probability)
         self.assertEqual(bino.inf_type, Natural)
         self.assertEqual(half.inf_type, PositiveReal)
         self.assertEqual(norm.inf_type, Real)
+        self.assertEqual(neg.inf_type, NegativeReal)
 
         # Negate
         # - Boolean -> Real
@@ -68,6 +70,7 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(NegateNode(bino).inf_type, NegativeReal)
         self.assertEqual(NegateNode(half).inf_type, NegativeReal)
         self.assertEqual(NegateNode(norm).inf_type, Real)
+        self.assertEqual(NegateNode(neg).inf_type, PositiveReal)
 
         # Complement
         # - Boolean -> Boolean
@@ -82,11 +85,13 @@ class UnaryNodesTest(unittest.TestCase):
         # exp Natural -> PositiveReal
         # exp PositiveReal -> PositiveReal
         # exp Real -> PositiveReal
+        # exp NegativeReal -> Probability
         self.assertEqual(ExpNode(bern).inf_type, PositiveReal)
         self.assertEqual(ExpNode(beta).inf_type, PositiveReal)
         self.assertEqual(ExpNode(bino).inf_type, PositiveReal)
         self.assertEqual(ExpNode(half).inf_type, PositiveReal)
         self.assertEqual(ExpNode(norm).inf_type, PositiveReal)
+        self.assertEqual(ExpNode(neg).inf_type, Probability)
 
         # Log of prob is negative real, otherwise real.
         self.assertEqual(LogNode(bern).inf_type, NegativeReal)
@@ -113,6 +118,7 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ToRealNode(bino).inf_type, Real)
         self.assertEqual(ToRealNode(half).inf_type, Real)
         self.assertEqual(ToRealNode(norm).inf_type, Real)
+        self.assertEqual(ToRealNode(neg).inf_type, Real)
 
         # To Positive Real
         self.assertEqual(ToPositiveRealNode(bern).inf_type, PositiveReal)
@@ -140,6 +146,7 @@ class UnaryNodesTest(unittest.TestCase):
         bino = SampleNode(BinomialNode(nat, prob))
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
+        neg = NegateNode(half)
 
         # Negate requires its operand be positive real, negative real or real.
         self.assertEqual(NegateNode(bern).requirements, [PositiveReal])
@@ -147,18 +154,20 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(NegateNode(bino).requirements, [PositiveReal])
         self.assertEqual(NegateNode(half).requirements, [PositiveReal])
         self.assertEqual(NegateNode(norm).requirements, [Real])
+        self.assertEqual(NegateNode(neg).requirements, [NegativeReal])
 
         # Complement requires that its operand be probability or Boolean
         self.assertEqual(ComplementNode(bern).requirements, [Boolean])
         self.assertEqual(ComplementNode(beta).requirements, [Probability])
 
-        # Exp requires that its operand be positive real or real.
+        # Exp requires that its operand be negative real, positive real or real.
 
         self.assertEqual(ExpNode(bern).requirements, [PositiveReal])
         self.assertEqual(ExpNode(beta).requirements, [PositiveReal])
         self.assertEqual(ExpNode(bino).requirements, [PositiveReal])
         self.assertEqual(ExpNode(half).requirements, [PositiveReal])
         self.assertEqual(ExpNode(norm).requirements, [Real])
+        self.assertEqual(ExpNode(neg).requirements, [NegativeReal])
 
         # Log requires that its operand be probability or positive real.
         self.assertEqual(LogNode(bern).requirements, [Probability])

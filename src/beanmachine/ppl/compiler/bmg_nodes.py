@@ -2357,6 +2357,9 @@ class ExpNode(UnaryOperatorNode):
 
     @property
     def inf_type(self) -> BMGLatticeType:
+        ot = self.operand.inf_type
+        if supremum(ot, NegativeReal) == NegativeReal:
+            return Probability
         return PositiveReal
 
     @property
@@ -2364,14 +2367,18 @@ class ExpNode(UnaryOperatorNode):
         ot = self.operand.graph_type
         if ot == Real or ot == PositiveReal:
             return PositiveReal
+        if ot == NegativeReal:
+            return Probability
         return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
-        # If the operand is a tensor or real, the requirement
-        # has been met; if not, we require that it be converted
-        # to positive real.
-        return [supremum(self.operand.inf_type, PositiveReal)]
+        ot = self.operand.inf_type
+        if supremum(ot, NegativeReal) == NegativeReal:
+            return [NegativeReal]
+        if supremum(ot, PositiveReal) == PositiveReal:
+            return [PositiveReal]
+        return [Real]
 
     @property
     def size(self) -> torch.Size:
@@ -2381,7 +2388,6 @@ class ExpNode(UnaryOperatorNode):
         return "Exp(" + str(self.operand) + ")"
 
     def support(self) -> Iterator[Any]:
-        # TODO: Not always a tensor.
         return SetOfTensors(torch.exp(o) for o in self.operand.support())
 
     def _supported_in_bmg(self) -> bool:
