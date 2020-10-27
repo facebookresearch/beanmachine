@@ -41,7 +41,7 @@ class VariationalInfer(dist.distribution.Distribution):
 
     def sample(self, sample_shape=torch.Size()):
         _, xs, _, _, _ = self.flow_stack(shape=sample_shape)
-        return xs
+        return xs.detach()
 
     def log_prob(self, value):
         # if z' = f(z), Q(z') = Q(z) |det df/dz|^{-1}
