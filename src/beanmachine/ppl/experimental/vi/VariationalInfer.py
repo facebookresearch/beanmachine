@@ -5,9 +5,9 @@ import torch.distributions as dist
 from .IAF import FlowStack
 
 
-class VariationalInfer(dist.distribution.Distribution):
+class VariationalApproximation(dist.distribution.Distribution):
     def __init__(self, target):
-        super(VariationalInfer, self).__init__()
+        super(VariationalApproximation, self).__init__()
         self.p = target
         self.d = 2
         self.flow_stack = FlowStack(dim=2, n_flows=8)
