@@ -804,19 +804,13 @@ digraph "graph" {
 
         self.assertEqual(observed.strip(), expected.strip())
 
-    def disabled_test_fix_problems_11(self) -> None:
+    def test_fix_problems_11(self) -> None:
         """test_fix_problems_11"""
 
-        # TODO: We are adding support for negative reals as a type in the
-        # TODO: BMG type system, which means that we will be able to
-        # TODO: remove the NEG_LOG operator from BMG.  When we do,
-        # TODO: this test will be rewritten to show that we correctly
-        # TODO: allow -log(probability) to be used in contexts where
-        # TODO: a positive real is expected. Until then I will disable
-        # TODO: this test.
-
-        # Here we demonstrate that we can generate a node to treat
-        # the negative log of a probability as a positive real.
+        # Here we demonstrate that we treat the negative log of a
+        # probability as a positive real.  (In a previous iteration
+        # we generated a special negative log node, but now we can
+        # do it directly without fixing up the graph.)
 
         # @rv def beta1():
         #   return Beta(2.0, 2.0)
@@ -846,16 +840,16 @@ digraph "graph" {
   N0[label="2.0:R>=N"];
   N1[label="Beta:P>=P"];
   N2[label="Sample:P>=P"];
-  N3[label="Log:R>=R"];
-  N4[label="-:R>=R+"];
+  N3[label="Log:R->=R-"];
+  N4[label="-:R+>=R+"];
   N5[label="Beta:P>=P"];
   N6[label="Sample:P>=P"];
   N0 -> N1[label="alpha:R+"];
   N0 -> N1[label="beta:R+"];
   N0 -> N5[label="beta:R+"];
   N1 -> N2[label="operand:P"];
-  N2 -> N3[label="operand:R+"];
-  N3 -> N4[label="operand:R"];
+  N2 -> N3[label="operand:P"];
+  N3 -> N4[label="operand:R-"];
   N4 -> N5[label="alpha:R+"];
   N5 -> N6[label="operand:P"];
 }
@@ -877,21 +871,19 @@ digraph "graph" {
   N0[label="2.0:R>=N"];
   N1[label="Beta:P>=P"];
   N2[label="Sample:P>=P"];
-  N3[label="Log:R>=R"];
-  N4[label="-:R>=R+"];
+  N3[label="Log:R->=R-"];
+  N4[label="-:R+>=R+"];
   N5[label="Beta:P>=P"];
   N6[label="Sample:P>=P"];
-  N7[label="NegLog:R+>=R+"];
-  N8[label="2.0:R+>=N"];
+  N7[label="2.0:R+>=N"];
   N1 -> N2[label="operand:P"];
-  N2 -> N3[label="operand:R+"];
-  N2 -> N7[label="operand:P"];
-  N3 -> N4[label="operand:R"];
+  N2 -> N3[label="operand:P"];
+  N3 -> N4[label="operand:R-"];
+  N4 -> N5[label="alpha:R+"];
   N5 -> N6[label="operand:P"];
-  N7 -> N5[label="alpha:R+"];
-  N8 -> N1[label="alpha:R+"];
-  N8 -> N1[label="beta:R+"];
-  N8 -> N5[label="beta:R+"];
+  N7 -> N1[label="alpha:R+"];
+  N7 -> N1[label="beta:R+"];
+  N7 -> N5[label="beta:R+"];
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
