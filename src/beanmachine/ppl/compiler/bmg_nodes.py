@@ -1737,7 +1737,7 @@ class AdditionNode(BinaryOperatorNode):
     def inf_type(self) -> BMGLatticeType:
         # The BMG addition node requires:
         # * the operands and the result type to be the same
-        # * that type must be R+ or R.
+        # * that type must be R+, R- or R.
         #
         # However, we can make transformations during the problem-fixing phase
         # that enable other combinations of types:
@@ -1758,16 +1758,24 @@ class AdditionNode(BinaryOperatorNode):
             assert isinstance(other, NegateNode)
             return other.operand.inf_type
 
-        return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
+        # There is no way to turn this into a complement. Can we make both
+        # operands into a negative real?
+        op_type = supremum(self.left.inf_type, self.right.inf_type)
+        if supremum(op_type, NegativeReal) == NegativeReal:
+            return NegativeReal
+        # Can we make both operands into a positive real?
+        if supremum(op_type, PositiveReal) == PositiveReal:
+            return PositiveReal
+        return Real
 
     @property
     def graph_type(self) -> BMGLatticeType:
         if self.left.graph_type != self.right.graph_type:
             return Malformed
         t = self.left.graph_type
-        if supremum(PositiveReal, t) != t:
-            return Malformed
-        return t
+        if t in {PositiveReal, NegativeReal, Real}:
+            return t
+        return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:

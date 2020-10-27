@@ -21,6 +21,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     Natural,
+    NegativeReal,
     PositiveReal,
     Probability,
     Real,
@@ -43,6 +44,7 @@ class BMGNodesTest(unittest.TestCase):
         bino = SampleNode(BinomialNode(nat, prob))
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
+        neg = NegateNode(half)
 
         # Multiplication
 
@@ -135,55 +137,78 @@ class BMGNodesTest(unittest.TestCase):
         # Boolean + Probability -> PositiveReal
         # Boolean + Natural -> PositiveReal
         # Boolean + PositiveReal -> PositiveReal
+        # Boolean + NegativeReal -> Real
         # Boolean + Real -> Real
         self.assertEqual(AdditionNode(bern, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bern, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bern, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bern, half).inf_type, PositiveReal)
+        self.assertEqual(AdditionNode(bern, neg).inf_type, Real)
         self.assertEqual(AdditionNode(bern, norm).inf_type, Real)
 
         # Probability + Boolean -> PositiveReal
         # Probability + Probability -> PositiveReal
         # Probability + Natural -> PositiveReal
         # Probability + PositiveReal -> PositiveReal
+        # Probability + NegativeReal -> Real
         # Probability + Real -> Real
         self.assertEqual(AdditionNode(beta, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(beta, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(beta, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(beta, half).inf_type, PositiveReal)
+        self.assertEqual(AdditionNode(beta, neg).inf_type, Real)
         self.assertEqual(AdditionNode(beta, norm).inf_type, Real)
 
         # Natural + Boolean -> PositiveReal
         # Natural + Probability -> PositiveReal
         # Natural + Natural -> PositiveReal
         # Natural + PositiveReal -> PositiveReal
+        # Natural + NegativeReal -> Real
         # Natural + Real -> Real
         self.assertEqual(AdditionNode(bino, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bino, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bino, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(bino, half).inf_type, PositiveReal)
+        self.assertEqual(AdditionNode(bino, neg).inf_type, Real)
         self.assertEqual(AdditionNode(bino, norm).inf_type, Real)
 
         # PositiveReal + Boolean -> PositiveReal
         # PositiveReal + Probability -> PositiveReal
         # PositiveReal + Natural -> PositiveReal
         # PositiveReal + PositiveReal -> PositiveReal
+        # PositiveReal + NegativeReal -> Real
         # PositiveReal + Real -> Real
         self.assertEqual(AdditionNode(half, bern).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(half, beta).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(half, bino).inf_type, PositiveReal)
         self.assertEqual(AdditionNode(half, half).inf_type, PositiveReal)
+        self.assertEqual(AdditionNode(half, neg).inf_type, Real)
         self.assertEqual(AdditionNode(half, norm).inf_type, Real)
+
+        # NegativeReal + Boolean -> Real
+        # NegativeReal + Probability -> Real
+        # NegativeReal + Natural -> Real
+        # NegativeReal + PositiveReal -> Real
+        # NegativeReal + NegativeReal -> NegativeReal
+        # NegativeReal + Real -> Real
+        self.assertEqual(AdditionNode(neg, bern).inf_type, Real)
+        self.assertEqual(AdditionNode(neg, beta).inf_type, Real)
+        self.assertEqual(AdditionNode(neg, bino).inf_type, Real)
+        self.assertEqual(AdditionNode(neg, half).inf_type, Real)
+        self.assertEqual(AdditionNode(neg, neg).inf_type, NegativeReal)
+        self.assertEqual(AdditionNode(neg, norm).inf_type, Real)
 
         # Real + Boolean -> Real
         # Real + Probability -> Real
         # Real + Natural -> Real
         # Real + PositiveReal -> Real
+        # Real + NegativeReal -> Real
         # Real + Real -> Real
         self.assertEqual(AdditionNode(norm, bern).inf_type, Real)
         self.assertEqual(AdditionNode(norm, beta).inf_type, Real)
         self.assertEqual(AdditionNode(norm, bino).inf_type, Real)
         self.assertEqual(AdditionNode(norm, half).inf_type, Real)
+        self.assertEqual(AdditionNode(norm, neg).inf_type, Real)
         self.assertEqual(AdditionNode(norm, norm).inf_type, Real)
 
         # Power
@@ -246,6 +271,7 @@ class BMGNodesTest(unittest.TestCase):
         bino = SampleNode(BinomialNode(nat, prob))
         half = SampleNode(HalfCauchyNode(pos))
         norm = SampleNode(NormalNode(real, pos))
+        neg = NegateNode(half)
 
         # Multiplication
 
@@ -366,6 +392,7 @@ class BMGNodesTest(unittest.TestCase):
         # Boolean + Probability -> PositiveReal
         # Boolean + Natural -> PositiveReal
         # Boolean + PositiveReal -> PositiveReal
+        # Boolean + NegativeReal -> Real
         # Boolean + Real -> Real
         self.assertEqual(
             AdditionNode(bern, bern).requirements, [PositiveReal, PositiveReal]
@@ -379,12 +406,14 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(
             AdditionNode(bern, half).requirements, [PositiveReal, PositiveReal]
         )
+        self.assertEqual(AdditionNode(bern, neg).requirements, [Real, Real])
         self.assertEqual(AdditionNode(bern, norm).requirements, [Real, Real])
 
         # Probability + Boolean -> PositiveReal
         # Probability + Probability -> PositiveReal
         # Probability + Natural -> PositiveReal
         # Probability + PositiveReal -> PositiveReal
+        # Probability + NegativeReal -> Real
         # Probability + Real -> Real
         self.assertEqual(
             AdditionNode(beta, bern).requirements, [PositiveReal, PositiveReal]
@@ -398,12 +427,15 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(
             AdditionNode(beta, half).requirements, [PositiveReal, PositiveReal]
         )
+        self.assertEqual(AdditionNode(beta, neg).requirements, [Real, Real])
+
         self.assertEqual(AdditionNode(beta, norm).requirements, [Real, Real])
 
         # Natural + Boolean -> PositiveReal
         # Natural + Probability -> PositiveReal
         # Natural + Natural -> PositiveReal
         # Natural + PositiveReal -> PositiveReal
+        # Natural + NegativeReal -> Real
         # Natural + Real -> Real
         self.assertEqual(
             AdditionNode(bino, bern).requirements, [PositiveReal, PositiveReal]
@@ -417,12 +449,15 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(
             AdditionNode(bino, half).requirements, [PositiveReal, PositiveReal]
         )
+        self.assertEqual(AdditionNode(bino, neg).requirements, [Real, Real])
+
         self.assertEqual(AdditionNode(bino, norm).requirements, [Real, Real])
 
         # PositiveReal + Boolean -> PositiveReal
         # PositiveReal + Probability -> PositiveReal
         # PositiveReal + Natural -> PositiveReal
         # PositiveReal + PositiveReal -> PositiveReal
+        # PositiveReal + NegativeReal -> Real
         # PositiveReal + Real -> Real
         self.assertEqual(
             AdditionNode(half, bern).requirements, [PositiveReal, PositiveReal]
@@ -436,17 +471,35 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(
             AdditionNode(half, half).requirements, [PositiveReal, PositiveReal]
         )
+        self.assertEqual(AdditionNode(half, neg).requirements, [Real, Real])
         self.assertEqual(AdditionNode(half, norm).requirements, [Real, Real])
+
+        # NegativeReal + Boolean -> Real
+        # NegativeReal + Probability -> Real
+        # NegativeReal + Natural -> Real
+        # NegativeReal + PositiveReal -> Real
+        # NegativeReal + NegativeReal -> NegativeReal
+        # NegativeReal + Real -> Real
+        self.assertEqual(AdditionNode(neg, bern).requirements, [Real, Real])
+        self.assertEqual(AdditionNode(neg, beta).requirements, [Real, Real])
+        self.assertEqual(AdditionNode(neg, bino).requirements, [Real, Real])
+        self.assertEqual(AdditionNode(neg, half).requirements, [Real, Real])
+        self.assertEqual(
+            AdditionNode(neg, neg).requirements, [NegativeReal, NegativeReal]
+        )
+        self.assertEqual(AdditionNode(neg, norm).requirements, [Real, Real])
 
         # Real + Boolean -> Real
         # Real + Probability -> Real
         # Real + Natural -> Real
         # Real + PositiveReal -> Real
+        # Real + NegativeReal -> Real
         # Real + Real -> Real
         self.assertEqual(AdditionNode(norm, bern).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, beta).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, bino).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, half).requirements, [Real, Real])
+        self.assertEqual(AdditionNode(norm, neg).requirements, [Real, Real])
         self.assertEqual(AdditionNode(norm, norm).requirements, [Real, Real])
 
         # Power
