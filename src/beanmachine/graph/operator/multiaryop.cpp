@@ -10,8 +10,10 @@ Add::Add(const std::vector<graph::Node*>& in_nodes)
     : MultiaryOperator(graph::OperatorType::ADD, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL and
-      type0 != graph::AtomicType::POS_REAL) {
-    throw std::invalid_argument("operator ADD requires real/pos_real parent");
+      type0 != graph::AtomicType::POS_REAL and
+      type0 != graph::AtomicType::NEG_REAL) {
+    throw std::invalid_argument(
+        "operator ADD requires a real, pos_real or neg_real parent");
   }
   value = graph::NodeValue(type0);
 }
@@ -20,7 +22,8 @@ void Add::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() > 1);
   const graph::NodeValue& parent0 = in_nodes[0]->value;
   if (parent0.type == graph::AtomicType::REAL or
-      parent0.type == graph::AtomicType::POS_REAL) {
+      parent0.type == graph::AtomicType::POS_REAL or
+      parent0.type == graph::AtomicType::NEG_REAL) {
     value._double = parent0._double;
 
     for (uint i = 1; i < in_nodes.size(); i++) {

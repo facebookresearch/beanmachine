@@ -105,12 +105,20 @@ class TestOperators(unittest.TestCase):
         g.add_operator(bmg.OperatorType.MULTIPLY, [c4, c5])
         g.add_operator(bmg.OperatorType.MULTIPLY, [c3, c4, c5])
         # test ADD
+        # Add requires two or more operands
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.ADD, [])
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.ADD, [c1])
+        # All operands must be (1) the same type, and (2)
+        # real, neg real or pos real.
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.ADD, [c1, c8])
+        with self.assertRaises(ValueError):
+            g.add_operator(bmg.OperatorType.ADD, [c3, c3])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2])
         g.add_operator(bmg.OperatorType.ADD, [c1, c2, c1])
+        g.add_operator(bmg.OperatorType.ADD, [c8, c8, c8])
         # test POW
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.POW, [])
