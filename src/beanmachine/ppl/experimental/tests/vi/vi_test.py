@@ -2,7 +2,7 @@
 import unittest
 
 import scipy.stats
-from beanmachine.ppl.experimental.vi.VariationalInfer import VariationalInfer
+from beanmachine.ppl.experimental.vi.VariationalInfer import VariationalApproximation
 from beanmachine.ppl.model.statistical_model import StatisticalModel
 from beanmachine.ppl.experimental.tests.vi.neals_funnel import NealsFunnel
 
@@ -14,7 +14,7 @@ class VariationalInferTest(unittest.TestCase):
     def test_neals_funnel(self):
         nf = NealsFunnel()
 
-        vi = VariationalInfer(target=nf)
+        vi = VariationalApproximation(target=nf)
         vi.train(epochs=1000)
 
         # compare 1D marginals of empirical distributions using 2-sample K-S test
