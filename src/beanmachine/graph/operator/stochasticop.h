@@ -33,6 +33,10 @@ class StochasticOperator : public Operator {
     return true;
   }
   void compute_gradients() override {}
+  void backward() override {
+    _backward(true);
+  }
+  virtual void _backward(bool /* skip_observed */) {}
 };
 
 class Sample : public oper::StochasticOperator {

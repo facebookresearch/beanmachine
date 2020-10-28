@@ -54,6 +54,20 @@ class Distribution : public graph::Node {
     throw std::runtime_error(
         "gradient_log_prob_param has not been implemented for this distribution.");
   }
+  virtual void backward_value(
+      const graph::NodeValue& /* value */,
+      graph::DoubleVector& /* back_grad */,
+      double /* adjunct */ = 1.0) const {}
+  virtual void backward_param(
+      const graph::NodeValue& /* value */,
+      double /* adjunct */ = 1.0) const {}
+  virtual void backward_value_iid(
+      const graph::NodeValue& /* value */,
+      graph::DoubleVector& /* back_grad */,
+      double /* adjunct */ = 1.0) const {}
+  virtual void backward_param_iid(
+      const graph::NodeValue& /* value */,
+      double /* adjunct */ = 1.0) const {}
   graph::DistributionType dist_type;
   graph::ValueType sample_type;
 

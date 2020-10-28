@@ -1,4 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#include <algorithm>
 #include <random>
 #include <sstream>
 #include <thread>
@@ -7,6 +8,7 @@
 #include "beanmachine/graph/factor/factor.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/operator/stochasticop.h"
 
 namespace beanmachine {
 namespace graph {
@@ -260,6 +262,15 @@ template void Node::gradient_propagation_scalar_to_scalar<
     Eigen::MatrixXd& dm_grad1,
     Eigen::MatrixXd& dm_grad2) const;
 
+void Node::reset_backgrad() {
+  assert(value.type.variable_type != graph::VariableType::UNKNOWN);
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    back_grad1._double = 0;
+  } else {
+    back_grad1._vector.setZero(value.type.rows * value.type.cols);
+  }
+}
+
 std::string Graph::to_string() const {
   std::ostringstream os;
   for (auto const& node : nodes) {
@@ -310,6 +321,30 @@ void Graph::eval_and_grad(
     Node* node = nodes[node_id].get();
     node->grad1 = node->grad2 = 0;
   }
+}
+
+void Graph::eval_and_grad(std::vector<DoubleVector*>& grad1, uint seed) {
+  std::mt19937 generator(seed);
+  std::set<uint> supp = compute_support();
+  for (auto it = supp.begin(); it != supp.end(); ++it) {
+    Node* node = nodes[*it].get();
+    if (!node->is_observed) {
+      node->eval(generator);
+    }
+    node->reset_backgrad();
+  }
+  grad1.clear();
+  for (auto it = supp.rbegin(); it != supp.rend(); ++it) {
+    Node* node = nodes[*it].get();
+    if (node->is_stochastic()) {
+      auto sto_node = static_cast<oper::StochasticOperator*>(node);
+      sto_node->_backward(false);
+      grad1.push_back(&node->back_grad1);
+    } else {
+      node->backward();
+    }
+  }
+  std::reverse(grad1.begin(), grad1.end());
 }
 
 void set_value(Eigen::MatrixXd& variable, double value) {
