@@ -667,12 +667,13 @@ n1 = g.add_distribution(
   graph.AtomicType.PROBABILITY,
   [n0, n0])
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
-n3 = g.add_operator(graph.OperatorType.NEGATIVE_LOG, [n2])
-n4 = g.add_distribution(
+n3 = g.add_operator(graph.OperatorType.LOG, [n2])
+n4 = g.add_operator(graph.OperatorType.NEGATE, [n3])
+n5 = g.add_distribution(
   graph.DistributionType.BETA,
   graph.AtomicType.PROBABILITY,
-  [n3, n0])
-n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+  [n4, n0])
+n6 = g.add_operator(graph.OperatorType.SAMPLE, [n5])
 """
 
 expected_cpp_6 = """
@@ -685,22 +686,25 @@ uint n1 = g.add_distribution(
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 uint n3 = g.add_operator(
-  graph::OperatorType::NEGATIVE_LOG, std::vector<uint>({n2}));
-uint n4 = g.add_distribution(
+  graph::OperatorType::LOG, std::vector<uint>({n2}));
+uint n4 = g.add_operator(
+  graph::OperatorType::NEGATE, std::vector<uint>({n3}));
+uint n5 = g.add_distribution(
   graph::DistributionType::BETA,
   graph::AtomicType::PROBABILITY,
-  std::vector<uint>({n3, n0}));
-uint n5 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
+  std::vector<uint>({n4, n0}));
+uint n6 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n5}));
 """
 
 expected_bmg_6 = """
-Node 0 type 1 parents [ ] children [ 1 1 4 ] positive real 2
+Node 0 type 1 parents [ ] children [ 1 1 5 ] positive real 2
 Node 1 type 2 parents [ 0 0 ] children [ 2 ] unknown
 Node 2 type 3 parents [ 1 ] children [ 3 ] probability 1e-10
-Node 3 type 3 parents [ 2 ] children [ 4 ] positive real 1e-10
-Node 4 type 2 parents [ 3 0 ] children [ 5 ] unknown
-Node 5 type 3 parents [ 4 ] children [ ] probability 1e-10
+Node 3 type 3 parents [ 2 ] children [ 4 ] negative real -1e-10
+Node 4 type 3 parents [ 3 ] children [ 5 ] positive real 1e-10
+Node 5 type 2 parents [ 4 0 ] children [ 6 ] unknown
+Node 6 type 3 parents [ 5 ] children [ ] probability 1e-10
 """
 
 # Demonstrate that identity additions and multiplications
