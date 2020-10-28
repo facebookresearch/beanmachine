@@ -22,6 +22,7 @@ class Operator : public graph::Node {
       const override;
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  void backward() override {}
   graph::OperatorType op_type;
 };
 

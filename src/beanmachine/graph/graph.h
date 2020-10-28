@@ -332,6 +332,11 @@ enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
 
 enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
+struct DoubleVector {
+  double _double;
+  Eigen::VectorXd _vector;
+};
+
 class Node {
  public:
   bool is_observed = false;
@@ -346,6 +351,7 @@ class Node {
   double grad2;
   Eigen::MatrixXd Grad1;
   Eigen::MatrixXd Grad2;
+  DoubleVector back_grad1;
 
   virtual bool is_stochastic() const {
     return false;
@@ -371,8 +377,13 @@ class Node {
   virtual void eval(std::mt19937& gen) = 0;
   // populate the derivatives
   virtual void compute_gradients() {}
+  /*
+  Gradient backward propagation: computes the 1st-order gradient update and
+  add it to the parent's back_grad1.
+  */
+  virtual void backward() {}
   virtual ~Node() {}
-
+  void reset_backgrad();
   /*
   The generic gradient propagation thru a node (deterministic operator or
   distribution) with multiple scalar inputs and one scalar output, w.r.t a
@@ -545,6 +556,13 @@ struct Graph {
       NodeValue& value,
       double& grad1,
       double& grad2);
+  /*
+  Evaluate all nodes in the support and compute their gradients in backward
+  mode. (used for unit tests)
+  :param grad1: Output value of first gradient.
+  :param seed: Random number generator seed.
+  */
+  void eval_and_grad(std::vector<DoubleVector*>& grad1, uint seed = 5123412);
   /*
   Evaluate the deterministic descendants of the source node and compute
   the logprob_gradient of all stochastic descendants in the support including
