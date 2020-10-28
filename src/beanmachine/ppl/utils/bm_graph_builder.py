@@ -88,7 +88,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     MultiplicationNode,
     NaturalNode,
     NegateNode,
-    NegativeLogNode,
     NegativeRealNode,
     NormalNode,
     NotNode,
@@ -917,16 +916,6 @@ class BMGraphBuilder:
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.log(operand.value))
         node = LogNode(operand)
-        self.add_node(node)
-        return node
-
-    @memoize
-    def add_negative_log(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, TensorNode):
-            return self.add_constant(-(torch.log(operand.value)))
-        if isinstance(operand, ConstantNode):
-            return self.add_constant(-(math.log(operand.value)))
-        node = NegativeLogNode(operand)
         self.add_node(node)
         return node
 
