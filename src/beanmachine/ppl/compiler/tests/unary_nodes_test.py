@@ -12,7 +12,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     LogNode,
     NaturalNode,
     NegateNode,
-    NegativeLogNode,
     NormalNode,
     PhiNode,
     PositiveRealNode,
@@ -99,13 +98,6 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(LogNode(bino).inf_type, Real)
         self.assertEqual(LogNode(half).inf_type, Real)
 
-        # Negative Log of probability or smaller is Positive Real;
-        # otherwise Real.
-        self.assertEqual(NegativeLogNode(bern).inf_type, PositiveReal)
-        self.assertEqual(NegativeLogNode(beta).inf_type, PositiveReal)
-        self.assertEqual(NegativeLogNode(bino).inf_type, Real)
-        self.assertEqual(NegativeLogNode(half).inf_type, Real)
-
         # Phi of anything is Probability
         self.assertEqual(PhiNode(bern).inf_type, Probability)
         self.assertEqual(PhiNode(beta).inf_type, Probability)
@@ -174,12 +166,6 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(LogNode(beta).requirements, [Probability])
         self.assertEqual(LogNode(bino).requirements, [PositiveReal])
         self.assertEqual(LogNode(half).requirements, [PositiveReal])
-
-        # Negative Log requires that its operand be positive real or probability.
-        self.assertEqual(NegativeLogNode(bern).requirements, [Probability])
-        self.assertEqual(NegativeLogNode(beta).requirements, [Probability])
-        self.assertEqual(NegativeLogNode(bino).requirements, [PositiveReal])
-        self.assertEqual(NegativeLogNode(half).requirements, [PositiveReal])
 
         # Phi requires that its operand be real.
         self.assertEqual(PhiNode(bern).requirements, [Real])
