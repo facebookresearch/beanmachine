@@ -391,15 +391,19 @@ class Node {
   matrix is typically sparse, thus a generic logic is inefficient and the
   propagation will be implemented case by case.) Template is used so that the
   jacobian and hessian may have fixed sized, which is faster than dynamic sized.
+
   :param is_source_scalar: Indicates whether the gradient is taken w.r.t a
-  scalar source. :param jacobian: The Jacobian matrix, with dimension 1 x
-  in-degree. :param hessian: The Hessian matrix, with dimension in-degree x
-  in-degree. :param d_grad1: The double type 1st order gradient, used when
-  is_source_scalar = true. :param d_grad2: The double type 2nd order gradient,
-  used when is_source_scalar = true. :param dm_grad1: The MatrixXd type 1st
-  order gradient, used when is_source_scalar = false. :param dm_grad2: The
-  MatrixXd type 2nd order gradient (diagonal only), used when is_source_scalar =
-  false..
+                           scalar source.
+  :param jacobian: The Jacobian matrix, with dimension 1 x in-degree.
+  :param hessian: The Hessian matrix, with dimension in-degree x in-degree.
+  :param d_grad1: The double type 1st order gradient, used when
+                  is_source_scalar = true.
+  :param d_grad2: The double type 2nd order gradient, used when
+                  is_source_scalar = true.
+  :param dm_grad1: The MatrixXd type 1st order gradient, used when
+                   is_source_scalar = false.
+  :param dm_grad2: The MatrixXd type 2nd order gradient (diagonal only), used
+                   when is_source_scalar = false.
   */
   template <class T1, class T2>
   void gradient_propagation_scalar_to_scalar(
@@ -467,43 +471,51 @@ struct Graph {
   uint query(uint var); // returns the index of the query in the samples
   /*
   Draw Monte Carlo samples from the posterior distribution using a single chain.
+
   :param num_samples: The number of the MCMC samples.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-  GIBBS, and NMC. :param seed: The seed provided to the random number generator.
+                    GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator.
   :returns: The posterior samples.
   */
   std::vector<std::vector<NodeValue>>&
   infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   /*
   Draw Monte Carlo samples from the posterior distribution using multiple
-  chains. :param num_samples: The number of the MCMC samples of each chain.
+  chains.
+
+  :param num_samples: The number of the MCMC samples of each chain.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-  GIBBS, and NMC. :param seed: The seed provided to the random number generator
-  of the first chain. :param n_chains: The number of MCMC chains. :returns: The
-  posterior samples from all chains.
+                    GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator of the first
+               chain.
+  :param n_chains: The number of MCMC chains.
+  :returns: The posterior samples from all chains.
   */
   std::vector<std::vector<std::vector<NodeValue>>>&
   infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
-  std::
-      vector<double>&
-      /*
-      Make point estimates of the posterior means from a single MCMC chain.
-      :param num_samples: The number of the MCMC samples.
-      :param algorithm: The sampling algorithm, currently supporting REJECTION,
-      GIBBS, and NMC. :param seed: The seed provided to the random number
-      generator. :returns: The posterior means.
-      */
-      infer_mean(
-          uint num_samples,
-          InferenceType algorithm,
-          uint seed = 5123401);
+
+  /*
+  Make point estimates of the posterior means from a single MCMC chain.
+
+  :param num_samples: The number of the MCMC samples.
+  :param algorithm: The sampling algorithm, currently supporting REJECTION,
+                    GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator.
+  :returns: The posterior means.
+  */
+  std::vector<double>&
+  infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   /*
   Make point estimates of the posterior means from multiple MCMC chains.
+
   :param num_samples: The number of the MCMC samples of each chain.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-  GIBBS, and NMC. :param seed: The seed provided to the random number generator
-  of the first chain. :param n_chains: The number of MCMC chains. :returns: The
-  posterior means from all chains.
+                    GIBBS, and NMC.
+  :param seed: The seed provided to the random number generator of the first
+               chain.
+  :param n_chains: The number of MCMC chains.
+  :returns: The posterior means from all chains.
   */
   std::vector<std::vector<double>>& infer_mean(
       uint num_samples,
@@ -542,6 +554,7 @@ struct Graph {
   /*
   Evaluate the target node and compute its gradient w.r.t. source_node
   (used for unit tests)
+
   :param tgt_idx: The index of the node to eval and compute grads.
   :param src_idx: The index of the node to compute the gradient w.r.t.
   :param seed: Random number generator seed.
@@ -567,13 +580,13 @@ struct Graph {
   Evaluate the deterministic descendants of the source node and compute
   the logprob_gradient of all stochastic descendants in the support including
   the source node.
+
   :param src_idx: The index of the node to evaluate the gradients w.r.t., must
-  be a vector valued node.
-  :param grad1: Output value of first gradient
-  (double), or gradient vector (Eigen::MatrixXd)
-  :param grad2: Output value of
-  the second gradient (double), or the diagonal terms of the gradient matrix
-  (Eigen::MatrixXd).
+                  be a vector valued node.
+  :param grad1: Output value of first gradient (double), or gradient vector
+                (Eigen::MatrixXd)
+  :param grad2: Output value of the second gradient (double), or the diagonal
+                terms of the gradient matrix (Eigen::MatrixXd).
   */
   template <class T>
   void gradient_log_prob(uint src_idx, T& grad1, T& grad2);
@@ -581,6 +594,7 @@ struct Graph {
   Evaluate the deterministic descendants of the source node and compute
   the sum of logprob of all stochastic descendants in the support including
   the source node.
+
   :param src_idx: source node
   :returns: The sum of log_prob of source node and all stochastic descendants.
   */
