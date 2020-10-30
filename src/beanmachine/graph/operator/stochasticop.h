@@ -21,14 +21,7 @@ class StochasticOperator : public Operator {
         ->log_prob(value);
   }
   void gradient_log_prob(double& first_grad, double& second_grad)
-      const override {
-    oper::_gradient_lob_prob<double>(first_grad, second_grad, this);
-  }
-  void gradient_log_prob(
-      Eigen::MatrixXd& first_grad,
-      Eigen::MatrixXd& second_grad) const override {
-    oper::_gradient_lob_prob<Eigen::MatrixXd>(first_grad, second_grad, this);
-  }
+      const override;
   bool is_stochastic() const override {
     return true;
   }

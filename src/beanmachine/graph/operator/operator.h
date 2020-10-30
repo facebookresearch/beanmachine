@@ -18,27 +18,11 @@ class Operator : public graph::Node {
   }
   double log_prob() const override;
   void gradient_log_prob(double& grad1, double& grad2) const override;
-  void gradient_log_prob(Eigen::MatrixXd& grad1, Eigen::MatrixXd& grad2_diag)
-      const override;
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
   void backward() override {}
   graph::OperatorType op_type;
 };
-
-template <class T>
-void _gradient_lob_prob(T& first_grad, T& second_grad, Operator const* node) {
-  assert(
-      node->op_type == graph::OperatorType::SAMPLE or
-      node->op_type == graph::OperatorType::IID_SAMPLE);
-  const auto dist =
-      static_cast<const distribution::Distribution*>(node->in_nodes[0]);
-  if (node->grad1 != 0.0) {
-    dist->gradient_log_prob_value(node->value, first_grad, second_grad);
-  } else {
-    dist->gradient_log_prob_param(node->value, first_grad, second_grad);
-  }
-}
 
 class OperatorFactory {
  public:

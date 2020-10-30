@@ -388,35 +388,22 @@ class Node {
   virtual ~Node() {}
   void reset_backgrad();
   /*
-  The generic gradient propagation thru a node (deterministic operator or
-  distribution) with multiple scalar inputs and one scalar output, w.r.t a
-  scalar or vector source. (When the input or output is a vector, the hessian
-  matrix is typically sparse, thus a generic logic is inefficient and the
-  propagation will be implemented case by case.) Template is used so that the
-  jacobian and hessian may have fixed sized, which is faster than dynamic sized.
-
-  :param is_source_scalar: Indicates whether the gradient is taken w.r.t a
-                           scalar source.
+  The generic forward gradient propagation thru a node (deterministic operator
+  or distribution) with multiple scalar inputs and one scalar output, w.r.t a
+  scalar source. Template is used so that the
+  jacobian and hessian may have fixed sized, which is much faster than dynamic
+  sized.
   :param jacobian: The Jacobian matrix, with dimension 1 x in-degree.
   :param hessian: The Hessian matrix, with dimension in-degree x in-degree.
-  :param d_grad1: The double type 1st order gradient, used when
-                  is_source_scalar = true.
-  :param d_grad2: The double type 2nd order gradient, used when
-                  is_source_scalar = true.
-  :param dm_grad1: The MatrixXd type 1st order gradient, used when
-                   is_source_scalar = false.
-  :param dm_grad2: The MatrixXd type 2nd order gradient (diagonal only), used
-                   when is_source_scalar = false.
+  :param d_grad1: The double type 1st order gradient
+  :param d_grad2: The double type 2nd order gradient
   */
   template <class T1, class T2>
-  void gradient_propagation_scalar_to_scalar(
-      bool is_source_scalar,
+  void forward_gradient_scalarops(
       T1& jacobian,
       T2& hessian,
       double& d_grad1,
-      double& d_grad2,
-      Eigen::MatrixXd& dm_grad1,
-      Eigen::MatrixXd& dm_grad2) const;
+      double& d_grad2) const;
 };
 
 class ConstNode : public Node {

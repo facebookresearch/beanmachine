@@ -5,6 +5,17 @@
 namespace beanmachine {
 namespace oper {
 
+void StochasticOperator::gradient_log_prob(
+    double& first_grad,
+    double& second_grad) const {
+  const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
+  if (grad1 != 0.0) {
+    dist->gradient_log_prob_value(value, first_grad, second_grad);
+  } else {
+    dist->gradient_log_prob_param(value, first_grad, second_grad);
+  }
+}
+
 void Sample::_backward(bool skip_observed) {
   const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
   dist->backward_param(value);

@@ -36,24 +36,11 @@ class Distribution : public graph::Node {
       const graph::NodeValue& value,
       double& grad1,
       double& grad2) const = 0;
-  virtual void gradient_log_prob_value(
-      const graph::NodeValue& /* value */,
-      Eigen::MatrixXd& /* grad1 */,
-      Eigen::MatrixXd& /* grad2_diag */) const {
-    throw std::runtime_error(
-        "gradient_log_prob_value has not been implemented for this distribution.");
-  }
   virtual void gradient_log_prob_param(
       const graph::NodeValue& value,
       double& grad1,
       double& grad2) const = 0;
-  virtual void gradient_log_prob_param(
-      const graph::NodeValue& /* value */,
-      Eigen::MatrixXd& /* grad1 */,
-      Eigen::MatrixXd& /* grad2_diag */) const {
-    throw std::runtime_error(
-        "gradient_log_prob_param has not been implemented for this distribution.");
-  }
+
   /*
   In backward gradient propagation, increments the back_grad by the gradient of
   the log prob of the distribution w.r.t. the sampled value.
