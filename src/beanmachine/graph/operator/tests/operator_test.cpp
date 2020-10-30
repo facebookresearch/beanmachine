@@ -44,6 +44,83 @@ TEST(testoperator, complement) {
   EXPECT_EQ(onode2.value._bool, true);
 }
 
+TEST(testoperator, multiply) {
+  Graph g;
+  // negative tests:
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{}),
+      std::invalid_argument);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{pos1}),
+      std::invalid_argument);
+  auto real1 = g.add_constant(0.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{real1, pos1}),
+      std::invalid_argument);
+  // x1, x2, x3 = Normal(0, 1)
+  // m = x1 * x2 * x3
+  // y ~ Normal(m, 1)
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{real1, pos1});
+  auto x1 =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
+  auto x2 =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
+  auto x3 =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
+  auto m =
+      g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x1, x2, x3});
+  auto y_dist = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{m, pos1});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{y_dist});
+  // test eval()
+  g.query(m);
+  g.observe(x1, 1.3);
+  g.observe(x2, -0.8);
+  g.observe(x3, 2.1);
+  const auto& means = g.infer_mean(10, InferenceType::NMC);
+  EXPECT_NEAR(means[0], -2.184, 0.001);
+  // test backward():
+  // verification with pyTorh
+  // X = tensor([1.3, -0.8, 2.1], requires_grad=True)
+  // m = X.prod()
+  // log_p = (
+  //     dist.Normal(m, tensor(1.0)).log_prob(tensor(-0.9))
+  //     + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(X).sum()
+  // )
+  // torch.autograd.grad(log_p, X) -> [-3.4571,  4.3053, -3.4354]
+  g.observe(y, -0.9);
+  std::vector<DoubleVector*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 4);
+  EXPECT_NEAR(grad1[0]->_double, -3.4571, 1e-3);
+  EXPECT_NEAR(grad1[1]->_double, 4.3053, 1e-3);
+  EXPECT_NEAR(grad1[2]->_double, -3.4354, 1e-3);
+  // test backward() with 1 zero-valued input
+  g.remove_observations();
+  g.observe(x1, 1.3);
+  g.observe(x2, -0.8);
+  g.observe(x3, 0.0);
+  g.observe(y, -0.9);
+  g.eval_and_grad(grad1);
+  EXPECT_NEAR(grad1[0]->_double, -1.3000, 1e-3);
+  EXPECT_NEAR(grad1[1]->_double, 0.8000, 1e-3);
+  EXPECT_NEAR(grad1[2]->_double, 0.9360, 1e-3);
+  // test backward() with 2 zero-valued inputs
+  g.remove_observations();
+  g.observe(x1, 1.3);
+  g.observe(x2, 0.0);
+  g.observe(x3, 0.0);
+  g.observe(y, -0.9);
+  g.eval_and_grad(grad1);
+  EXPECT_NEAR(grad1[0]->_double, -1.3000, 1e-3);
+  EXPECT_NEAR(grad1[1]->_double, 0.0, 1e-3);
+  EXPECT_NEAR(grad1[2]->_double, 0.0, 1e-3);
+}
+
 TEST(testoperator, phi) {
   Graph g;
   // negative tests: exactly one real should be the input to a PHI

@@ -97,3 +97,49 @@ TEST(testdistrib, normal) {
   EXPECT_NEAR(grad1, -0.483822, 1e-6);
   EXPECT_NEAR(grad2, 0.038648, 1e-6);
 }
+
+TEST(testdistrib, backward_normal_normal) {
+  Graph g;
+  uint zero = g.add_constant(0.0);
+  uint pos_one = g.add_constant_pos_real(1.0);
+  uint two = g.add_constant((natural_t)2);
+
+  uint normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos_one});
+  uint mu =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
+
+  uint dist_y = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{mu, pos_one});
+  uint y =
+      g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist_y, two});
+  g.observe(mu, 0.1);
+  Eigen::MatrixXd yobs(2, 1);
+  yobs << 0.5, -0.5;
+  g.observe(y, yobs);
+
+  // test log_prob() on vector value:
+  double log_prob_y = g.log_prob(y);
+  EXPECT_NEAR(log_prob_y, -2.0979, 0.001);
+  // test backward_param(), backward_value() and
+  // backward_param_iid(), backward_value_iid():
+  // To verify the grad1 results with pyTorch:
+  // mu = tensor([0.1], requires_grad=True)
+  // y = tensor([0.5, -0.5], requires_grad=True)
+  // log_p = (
+  //     dist.Normal(mu, tensor(1.0)).log_prob(y).sum() +
+  //     dist.Normal(tensor(0.0), tensor(1.0)).log_prob(mu)
+  // )
+  // torch.autograd.grad(log_p, mu) -> -0.3
+  // torch.autograd.grad(log_p, y) -> [-0.4, 0.6]
+  std::vector<DoubleVector*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 2);
+  EXPECT_NEAR(grad1[0]->_double, -0.3, 1e-3);
+  EXPECT_NEAR(grad1[1]->_vector.coeff(0), -0.4, 1e-3);
+  EXPECT_NEAR(grad1[1]->_vector.coeff(1), 0.6, 1e-3);
+}

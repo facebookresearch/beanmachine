@@ -334,7 +334,7 @@ enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
 struct DoubleVector {
   double _double;
-  Eigen::VectorXd _vector;
+  Eigen::Matrix<double, 1, Eigen::Dynamic> _vector;
 };
 
 class Node {
@@ -359,6 +359,9 @@ class Node {
   // only valid for stochastic nodes
   virtual double log_prob() const {
     return 0;
+  }
+  virtual bool needs_gradient() const {
+    return true;
   }
   // gradient_log_prob is also only valid for stochastic nodes
   // this function adds the gradients to the passed in gradients
@@ -421,6 +424,9 @@ class ConstNode : public Node {
   explicit ConstNode(NodeValue value) : Node(NodeType::CONSTANT, value) {}
   void eval(std::mt19937& /* unused */) override {}
   ~ConstNode() override {}
+  bool needs_gradient() const override {
+    return false;
+  }
 };
 
 // NOTE: the second kind of node -- Distribution is defined in distribution.h
