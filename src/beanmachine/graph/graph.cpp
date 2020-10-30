@@ -196,71 +196,36 @@ std::string NodeValue::to_string() const {
 }
 
 template <class T1, class T2>
-void Node::gradient_propagation_scalar_to_scalar(
-    bool is_source_scalar,
+void Node::forward_gradient_scalarops(
     T1& jacobian,
     T2& hessian,
     double& d_grad1,
-    double& d_grad2,
-    Eigen::MatrixXd& dm_grad1,
-    Eigen::MatrixXd& dm_grad2) const {
-  uint src_dim = 0;
+    double& d_grad2) const {
   uint in_degree = in_nodes.size();
   assert(jacobian.cols() == in_degree);
   assert(hessian.cols() == in_degree and hessian.rows() == in_degree);
-  if (is_source_scalar) {
-    src_dim = 1;
-  } else {
-    for (const auto node : in_nodes) {
-      if (node->Grad1.cols() > src_dim) {
-        src_dim = node->Grad1.cols();
-      } else if (node->Grad1.cols() != src_dim) {
-        throw std::runtime_error("gradient source node dimension incompatible");
-      }
-    }
-    if (src_dim == 0) {
-      return;
-    }
-    assert(src_dim == dm_grad1.cols());
-  }
-  Eigen::MatrixXd Grad1_old = Eigen::MatrixXd::Zero(in_degree, src_dim);
-  Eigen::MatrixXd Grad2_old = Eigen::MatrixXd::Zero(in_degree, src_dim);
+
+  T1 Grad1_old = T1::Zero();
+  T1 Grad2_old = T1::Zero();
   for (uint i = 0; i < in_degree; i++) {
-    if (is_source_scalar) {
-      *(Grad1_old.data() + i) = in_nodes[i]->grad1;
-      *(Grad2_old.data() + i) = in_nodes[i]->grad2;
-    } else {
-      if (in_nodes[i]->Grad1.cols() == src_dim) {
-        Grad1_old.row(i) = in_nodes[i]->Grad1;
-      }
-      if (in_nodes[i]->Grad2.cols() == src_dim) {
-        Grad2_old.row(i) = in_nodes[i]->Grad2;
-      }
-    }
+    *(Grad1_old.data() + i) = in_nodes[i]->grad1;
+    *(Grad2_old.data() + i) = in_nodes[i]->grad2;
   }
-  Eigen::MatrixXd grad1_update = jacobian * Grad1_old;
-  Eigen::MatrixXd grad2_update =
-      ((hessian * Grad1_old).array() * Grad1_old.array()).colwise().sum();
-  grad2_update += jacobian * Grad2_old;
-  if (is_source_scalar) {
-    d_grad1 += *grad1_update.data();
-    d_grad2 += *grad2_update.data();
-  } else {
-    dm_grad1 += grad1_update;
-    dm_grad2 += grad2_update;
-  }
+  double grad1_update = jacobian * Grad1_old.transpose();
+  double grad2_update =
+      ((Grad1_old * hessian).array() * Grad1_old.array()).sum();
+  grad2_update += jacobian * Grad2_old.transpose();
+
+  d_grad1 += grad1_update;
+  d_grad2 += grad2_update;
 }
 
-template void Node::gradient_propagation_scalar_to_scalar<
-    Eigen::Matrix<double, 1, 2>,
-    Eigen::Matrix2d>(
-    bool is_source_scalar,
+template void
+Node::forward_gradient_scalarops<Eigen::Matrix<double, 1, 2>, Eigen::Matrix2d>(
     Eigen::Matrix<double, 1, 2>& jacobian,
     Eigen::Matrix2d& hessian,
     double& d_grad1,
-    double& d_grad2,
-    Eigen::MatrixXd& dm_grad1,
-    Eigen::MatrixXd& dm_grad2) const;
+    double& d_grad2) const;
 
 void Node::reset_backgrad() {
   assert(value.type.variable_type != graph::VariableType::UNKNOWN);
@@ -411,11 +376,6 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
 
 template void
 Graph::gradient_log_prob<double>(uint src_idx, double& grad1, double& grad2);
-
-template void Graph::gradient_log_prob<Eigen::MatrixXd>(
-    uint src_idx,
-    Eigen::MatrixXd& grad1,
-    Eigen::MatrixXd& grad2);
 
 double Graph::log_prob(uint src_idx) {
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);

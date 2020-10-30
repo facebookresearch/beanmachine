@@ -87,35 +87,14 @@ void Beta::gradient_log_prob_value(
       in_nodes[1]->value._double);
 }
 
-void Beta::gradient_log_prob_value(
-    const graph::NodeValue& value,
-    Eigen::MatrixXd& grad1,
-    Eigen::MatrixXd& grad2_diag) const {
-  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
-  double param_a = in_nodes[0]->value._double;
-  double param_b = in_nodes[1]->value._double;
-  uint size = value._matrix.size();
-  assert(size == grad1.size() and size == grad2_diag.size());
-  for (uint i = 0; i < size; i++) {
-    _gradient_log_prob_value(
-        *(value._matrix.data() + i),
-        *(grad1.data() + i),
-        *(grad2_diag.data() + i),
-        param_a,
-        param_b);
-  }
-}
-
 void Beta::gradient_log_prob_param(
     const graph::NodeValue& value,
     double& grad1,
     double& grad2) const {
   Eigen::Matrix<double, 1, 2> jacobian;
   Eigen::Matrix2d hessian;
-  Eigen::MatrixXd pseudo_input;
   compute_jacobian_hessian(value, jacobian, hessian);
-  gradient_propagation_scalar_to_scalar(
-      true, jacobian, hessian, grad1, grad2, pseudo_input, pseudo_input);
+  forward_gradient_scalarops(jacobian, hessian, grad1, grad2);
 }
 
 void Beta::compute_jacobian_hessian(

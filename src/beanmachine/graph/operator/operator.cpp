@@ -19,13 +19,6 @@ void Operator::gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
       "gradient_log_prob is only defined for sample or iid sample");
 }
 
-void Operator::gradient_log_prob(
-    Eigen::MatrixXd& /* grad1 */,
-    Eigen::MatrixXd& /* grad2_diag */) const {
-  throw std::runtime_error(
-      "gradient_log_prob is only defined for sample or iid sample");
-}
-
 void Operator::eval(std::mt19937& /* gen */) {
   throw std::runtime_error(
       "internal error: unexpected operator type " +
