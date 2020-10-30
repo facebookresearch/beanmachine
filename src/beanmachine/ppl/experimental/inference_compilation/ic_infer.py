@@ -106,7 +106,6 @@ class ICProposer(AbstractSingleSiteSingleStepProposer):
         )
 
         optimizer = self._optimizer
-        # pyre-fixme
         loss = -(proposal_distribution.log_prob(node_var.value))
         optimizer.zero_grad()
         loss.backward()
