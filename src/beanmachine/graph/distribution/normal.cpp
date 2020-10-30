@@ -43,23 +43,52 @@ double Normal::_double_sampler(std::mt19937& gen) const {
 // grad2 w.r.t. s : 1/s^2 - 3 (x-m)^2 / s^4
 // grad  w.r.t. m : (x - m) / s^2
 // grad2 w.r.t. m : -1 / s^2
+// First order chain rule: f(g(x))' = f'(g(x)) g'(x),
+// - In backward propagation, f'(g(x)) is given by adjunct, the above equation
+// computes g'(x). [g is the current function f is the final target]
+// - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
+// the above equation computes f'(g) [f is the current function g is the input]
 double Normal::log_prob(const NodeValue& value) const {
-  double x = value._double;
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
-  return -std::log(s) - 0.5 * std::log(2 * M_PI) -
-      0.5 * (x - m) * (x - m) / (s * s);
+  double result, sum_x, sum_xsq;
+  int size;
+
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    size = 1;
+    sum_x = value._double;
+    sum_xsq = value._double * value._double;
+  } else if (
+      value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
+    size = value._matrix.size();
+    sum_x = value._matrix.sum();
+    sum_xsq = value._matrix.squaredNorm();
+  } else {
+    throw std::runtime_error(
+        "Normal::log_prob applied to invalid variable type");
+  }
+  result = (-std::log(s) - 0.5 * std::log(2 * M_PI)) * size -
+      0.5 * (sum_xsq - 2 * m * sum_x + m * m * size) / (s * s);
+  return result;
 }
+
+void Normal::_grad1_log_prob_value(
+    double& grad1,
+    double val,
+    double m,
+    double s_sq) {
+  grad1 += -(val - m) / s_sq;
+};
 
 void Normal::gradient_log_prob_value(
     const NodeValue& value,
     double& grad1,
     double& grad2) const {
-  double x = value._double;
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  grad1 += -(x - m) / s_sq;
+  _grad1_log_prob_value(grad1, value._double, m, s_sq);
   grad2 += -1 / s_sq;
 }
 
@@ -67,6 +96,7 @@ void Normal::gradient_log_prob_param(
     const NodeValue& value,
     double& grad1,
     double& grad2) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
   double x = value._double;
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
@@ -87,6 +117,68 @@ void Normal::gradient_log_prob_param(
     double grad2_s2 = 1 / s_sq - 3 * (x - m) * (x - m) / (s_sq * s_sq);
     grad1 += grad_s * s_grad;
     grad2 += grad2_s2 * s_grad * s_grad + grad_s * s_grad2;
+  }
+}
+
+void Normal::backward_value(
+    const graph::NodeValue& value,
+    graph::DoubleVector& back_grad,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  double m = in_nodes[0]->value._double;
+  double s = in_nodes[1]->value._double;
+  double s_sq = s * s;
+  double increment = 0.0;
+  _grad1_log_prob_value(increment, value._double, m, s_sq);
+  back_grad._double += adjunct * increment;
+}
+
+void Normal::backward_value_iid(
+    const graph::NodeValue& value,
+    graph::DoubleVector& back_grad,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double m = in_nodes[0]->value._double;
+  double s = in_nodes[1]->value._double;
+  double s_sq = s * s;
+  back_grad._vector -=
+      ((value._matrix.array() - m) / s_sq * adjunct).matrix().transpose();
+}
+
+void Normal::backward_param(const graph::NodeValue& value, double adjunct)
+    const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  double m = in_nodes[0]->value._double;
+  double s = in_nodes[1]->value._double;
+  double s_sq = s * s;
+  double jacob_0 = (value._double - m) / s_sq;
+
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1._double += adjunct * jacob_0;
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    in_nodes[1]->back_grad1._double +=
+        adjunct * (-1 / s + jacob_0 * jacob_0 * s);
+  }
+}
+
+void Normal::backward_param_iid(const graph::NodeValue& value, double adjunct)
+    const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double m = in_nodes[0]->value._double;
+  double s = in_nodes[1]->value._double;
+  double s_sq = s * s;
+
+  int size = value._matrix.size();
+  double sum_x = value._matrix.sum();
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1._double +=
+        adjunct * (sum_x / s_sq - size * m / s_sq);
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    double sum_xsq = value._matrix.squaredNorm();
+    in_nodes[1]->back_grad1._double += adjunct *
+        (-size / s + (sum_xsq - 2 * m * sum_x + m * m * size) / (s * s_sq));
   }
 }
 

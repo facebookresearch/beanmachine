@@ -31,6 +31,7 @@ class MultiaryOperator : public Operator {
   ~MultiaryOperator() override {}
   void eval(std::mt19937& /* gen */) override {}
   void compute_gradients() override {}
+  void backward() override {}
 };
 
 class Add : public MultiaryOperator {
@@ -40,6 +41,7 @@ class Add : public MultiaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  void backward() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -57,6 +59,7 @@ class Multiply : public MultiaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  void backward() override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {

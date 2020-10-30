@@ -5,6 +5,22 @@
 namespace beanmachine {
 namespace oper {
 
+void Sample::_backward(bool skip_observed) {
+  const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
+  dist->backward_param(value);
+  if (!(is_observed and skip_observed)) {
+    dist->backward_value(value, back_grad1);
+  }
+}
+
+void IIdSample::_backward(bool skip_observed) {
+  const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
+  dist->backward_param_iid(value);
+  if (!(is_observed and skip_observed)) {
+    dist->backward_value_iid(value, back_grad1);
+  }
+}
+
 Sample::Sample(const std::vector<graph::Node*>& in_nodes)
     : StochasticOperator(graph::OperatorType::SAMPLE) {
   if (in_nodes.size() != 1 or
