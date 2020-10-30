@@ -21,6 +21,22 @@ class Normal : public Distribution {
       const graph::NodeValue& value,
       double& grad1,
       double& grad2) const override;
+
+  void backward_value(
+      const graph::NodeValue& value,
+      graph::DoubleVector& back_grad,
+      double adjunct = 1.0) const override;
+  void backward_param(const graph::NodeValue& value, double adjunct = 1.0)
+      const override;
+  void backward_value_iid(
+      const graph::NodeValue& value,
+      graph::DoubleVector& back_grad,
+      double adjunct = 1.0) const override;
+  void backward_param_iid(const graph::NodeValue& value, double adjunct = 1.0)
+      const override;
+
+  static void
+  _grad1_log_prob_value(double& grad1, double val, double m, double s_sq);
 };
 
 } // namespace distribution

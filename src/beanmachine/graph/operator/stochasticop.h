@@ -43,6 +43,7 @@ class Sample : public oper::StochasticOperator {
  public:
   explicit Sample(const std::vector<graph::Node*>& in_nodes);
   ~Sample() override {}
+  void _backward(bool skip_observed) override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -56,6 +57,7 @@ class IIdSample : public oper::StochasticOperator {
  public:
   explicit IIdSample(const std::vector<graph::Node*>& in_nodes);
   ~IIdSample() override {}
+  void _backward(bool skip_observed) override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {

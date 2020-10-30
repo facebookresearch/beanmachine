@@ -213,3 +213,56 @@ TEST(testgradient, beta_binomial) {
           1 / ((1 + prob_val) * (1 + prob_val)),
       1e-3);
 }
+
+TEST(testgradient, backward_scalar_linearmodel) {
+  // constant: x_i, for i in {0, 1, 2}
+  // prior: coeff_x, intercept ~ Normal(0, 1)
+  // likelihood: y_i ~ Normal(x_i * coeff_x + intercept, 1)
+  Graph g;
+  uint zero = g.add_constant(0.0);
+  uint pos_one = g.add_constant_pos_real(1.0);
+
+  uint normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos_one});
+  uint intercept =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
+  uint coeff_x =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
+
+  std::vector<double> X{0.5, -1.5, 2.1};
+  for (double x : X) {
+    uint x_i = g.add_constant(x);
+    uint xb_i =
+        g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x_i, coeff_x});
+    uint mu_i =
+        g.add_operator(OperatorType::ADD, std::vector<uint>{xb_i, intercept});
+    uint dist_i = g.add_distribution(
+        DistributionType::NORMAL,
+        AtomicType::REAL,
+        std::vector<uint>{mu_i, pos_one});
+    uint y_i = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist_i});
+    g.observe(y_i, 0.5);
+  }
+  g.observe(intercept, 0.1);
+  g.observe(coeff_x, 0.2);
+
+  // To verify the grad1 results with pyTorch:
+  // b0 = tensor([0.1], requires_grad=True)
+  // b1 = tensor([0.2], requires_grad=True)
+  // x = tensor([0.5, -1.5, 2.1])
+  // y = 0.5
+  // log_p = (
+  //     dist.Normal(x * b1 + b0, tensor(1.0)).log_prob(tensor([y, y, y])).sum()
+  //     + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(b0)
+  //     + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(b1)
+  // )
+  // torch.autograd.grad(log_p, b0) -> 0.8800
+  // torch.autograd.grad(log_p, b1) -> -1.1420
+  std::vector<DoubleVector*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 5);
+  EXPECT_NEAR(grad1[0]->_double, 0.8800, 1e-3);
+  EXPECT_NEAR(grad1[1]->_double, -1.1420, 1e-3);
+}
