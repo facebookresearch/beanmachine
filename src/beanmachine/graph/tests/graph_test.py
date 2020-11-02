@@ -316,8 +316,14 @@ class TestBayesNet(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             g.add_constant_neg_real(1.25)
         self.assertTrue("neg_real must be <=0" in str(cm.exception))
-        g.add_constant_neg_real(-1.25)
+        neg1 = g.add_constant_neg_real(-1.25)
         expected = """
-Node 0 type 1 parents [ ] children [ ] negative real -1.25
-"""
+        Node 0 type 1 parents [ ] children [ ] negative real -1.25
+        """
         self.assertEqual(g.to_string().strip(), expected.strip())
+        add_negs = g.add_operator(graph.OperatorType.ADD, [neg1, neg1])
+        g.query(add_negs)
+        means = g.infer_mean(10)
+        self.assertAlmostEqual(means[0], -2.5)
+        samples = g.infer(10)
+        self.assertAlmostEqual(samples[0][0], -2.5)

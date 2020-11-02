@@ -36,6 +36,7 @@ struct type_caster<NodeValue> : public type_caster_base<NodeValue> {
         }
         case AtomicType::PROBABILITY:
         case AtomicType::REAL:
+        case AtomicType::NEG_REAL:
         case AtomicType::POS_REAL: {
           return type_caster<double>::cast(src._double, policy, parent);
         }
@@ -53,6 +54,7 @@ struct type_caster<NodeValue> : public type_caster_base<NodeValue> {
               src._bmatrix, policy, parent);
         case AtomicType::REAL:
         case AtomicType::POS_REAL:
+        case AtomicType::NEG_REAL:
         case AtomicType::PROBABILITY:
           return type_caster<Eigen::MatrixXd>::cast(
               src._matrix, policy, parent);
