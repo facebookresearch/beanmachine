@@ -24,13 +24,13 @@ class Normal : public Distribution {
 
   void backward_value(
       const graph::NodeValue& value,
-      graph::DoubleVector& back_grad,
+      graph::DoubleMatrix& back_grad,
       double adjunct = 1.0) const override;
   void backward_param(const graph::NodeValue& value, double adjunct = 1.0)
       const override;
   void backward_value_iid(
       const graph::NodeValue& value,
-      graph::DoubleVector& back_grad,
+      graph::DoubleMatrix& back_grad,
       double adjunct = 1.0) const override;
   void backward_param_iid(const graph::NodeValue& value, double adjunct = 1.0)
       const override;

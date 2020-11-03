@@ -93,7 +93,7 @@ TEST(testoperator, multiply) {
   // )
   // torch.autograd.grad(log_p, X) -> [-3.4571,  4.3053, -3.4354]
   g.observe(y, -0.9);
-  std::vector<DoubleVector*> grad1;
+  std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 4);
   EXPECT_NEAR(grad1[0]->_double, -3.4571, 1e-3);
@@ -625,4 +625,132 @@ TEST(testoperator, iid_sample) {
   EXPECT_NEAR(m0.coeff(1, 0) / (double)n_samples, 0.1, 0.01);
   EXPECT_NEAR(m0.coeff(1, 1) / (double)n_samples, 0.1, 0.01);
   // log_prob_grad to be tested in each distribution test
+}
+
+TEST(testoperator, matrix_multiply) {
+  Graph g;
+  // negative tests:
+  // requries two parents
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{}),
+      std::invalid_argument);
+  auto c1 = g.add_constant(1.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{c1}),
+      std::invalid_argument);
+  // requires matrix parents
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{c1, c1}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(3, 2);
+  m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
+  auto cm1 = g.add_constant_matrix(m1);
+  Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
+  auto cm2 = g.add_constant_matrix(m2);
+  // requires real/pos_real/neg_real/probability types
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cm2, cm1}),
+      std::invalid_argument);
+  // requires compatible dimension
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cm1, cm1}),
+      std::invalid_argument);
+
+  // test eval()
+  auto zero = g.add_constant(0.0);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos1});
+  auto one = g.add_constant((natural_t)1);
+  auto two = g.add_constant((natural_t)2);
+  auto three = g.add_constant((natural_t)3);
+
+  auto x = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, one, three});
+  auto y = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
+  auto z = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two, two});
+  auto w = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two});
+
+  Eigen::MatrixXd mx(1, 3);
+  mx << 0.4, 0.1, 0.5;
+  g.observe(x, mx);
+  g.observe(y, m1);
+  Eigen::MatrixXd mz(2, 2);
+  mz << -1.1, 0.7, -0.6, 0.2;
+  g.observe(z, mz);
+  Eigen::MatrixXd mw(2, 1);
+  mw << 2.3, -0.4;
+  g.observe(w, mw);
+
+  auto xy =
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{x, y});
+  g.query(xy);
+  const auto& xy_eval = g.infer(10, InferenceType::NMC);
+  EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
+  EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 1);
+  EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(0), -1.0600, 0.001);
+  EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(1), 0.4500, 0.001);
+
+  // test backward():
+  auto zw =
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{z, w});
+  auto xyzw =
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{xy, zw});
+  auto xyzw_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{xyzw, pos1});
+  auto xyzw_sample =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{xyzw_dist});
+  g.observe(xyzw_sample, 1.7);
+  // to verify with pyTorch:
+  // X = tensor([0.4, 0.1, 0.5], requires_grad=True)
+  // Y = tensor([[0.3, -0.1], [1.2, 0.9], [-2.6, 0.8]], requires_grad=True)
+  // Z = tensor([[-1.1, 0.7], [-0.6, 0.2]], requires_grad=True)
+  // W = tensor([2.3, -0.4], requires_grad=True)
+  // def f_grad(x):
+  //     XY = torch.mm(X.view((1, 3)), Y)
+  //     ZW = torch.mm(Z, W.view((2,1)))
+  //     XYZW = torch.mm(XY, ZW)
+  //     log_p = (
+  //         dist.Normal(XYZW, tensor(1.0)).log_prob(tensor(1.7))
+  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(X).sum()
+  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Y).sum()
+  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Z).sum()
+  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(W).sum()
+  //     )
+  //     return torch.autograd.grad(log_p, x)[0]
+  // f_grad(X) -> [0.0333,  2.8128, -4.3154]
+  // f_grad(Y) -> [[0.3987,  0.4630], [-1.0253, -0.8092], [3.4733, -0.3462]]
+  // f_grad(Z) -> [[2.6155, -0.9636], [-0.0434, -0.0881]]
+  // f_grad(W) -> [-2.8570,  0.8053]
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 5);
+  // grad x
+  EXPECT_NEAR(grad1[0]->_matrix.coeff(0), 0.0333, 1e-3);
+  EXPECT_NEAR(grad1[0]->_matrix.coeff(1), 2.8128, 1e-3);
+  EXPECT_NEAR(grad1[0]->_matrix.coeff(2), -4.3154, 1e-3);
+  // grad y
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), 0.3987, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.0253, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(2), 3.4733, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(3), 0.4630, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(4), -0.8092, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(5), -0.3462, 1e-3);
+  // grad z
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(0), 2.6155, 1e-3);
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(1), -0.0434, 1e-3);
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(2), -0.9636, 1e-3);
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(3), -0.0881, 1e-3);
+  // grad w
+  EXPECT_NEAR(grad1[3]->_matrix.coeff(0), -2.8570, 1e-3);
+  EXPECT_NEAR(grad1[3]->_matrix.coeff(1), 0.8053, 1e-3);
 }
