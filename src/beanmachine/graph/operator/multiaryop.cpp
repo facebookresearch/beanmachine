@@ -72,9 +72,10 @@ LogSumExp::LogSumExp(const std::vector<graph::Node*>& in_nodes)
     : MultiaryOperator(graph::OperatorType::LOGSUMEXP, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL and
+      type0 != graph::AtomicType::NEG_REAL and
       type0 != graph::AtomicType::POS_REAL) {
     throw std::invalid_argument(
-        "operator LOGSUMEXP requires a real or pos_real parent");
+        "operator LOGSUMEXP requires a real or pos/neg_real parent");
   }
   value = graph::NodeValue(graph::AtomicType::REAL);
 }
@@ -83,6 +84,7 @@ void LogSumExp::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() > 1);
   const graph::NodeValue& parent0 = in_nodes[0]->value;
   if (parent0.type == graph::AtomicType::REAL or
+      parent0.type == graph::AtomicType::NEG_REAL or
       parent0.type == graph::AtomicType::POS_REAL) {
     double max_val = parent0._double;
     for (uint i = 1; i < in_nodes.size(); i++) {

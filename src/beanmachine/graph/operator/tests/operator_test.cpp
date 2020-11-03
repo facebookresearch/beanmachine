@@ -375,7 +375,7 @@ TEST(testoperator, log1mexp) {
 
 TEST(testoperator, logsumexp) {
   Graph g;
-  // negative tests: two or more real/pos should be the input
+  // negative tests: two or more real/pos/neg should be the input
   EXPECT_THROW(
       g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{}),
       std::invalid_argument);
@@ -386,6 +386,12 @@ TEST(testoperator, logsumexp) {
   auto prob1 = g.add_constant_probability(0.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{prob1, prob1}),
+      std::invalid_argument);
+  auto neg1 = g.add_constant_neg_real(-1.0);
+  g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{pos1, pos1});
+  g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{neg1, neg1});
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOGSUMEXP, std::vector<uint>{pos1, neg1}),
       std::invalid_argument);
   // y ~ Normal(logsumexp(x^2, z^3), 1) and x = 0.5, z = -0.5
   // note: ln[exp(0.25) + exp(-0.125)] = 0.773
