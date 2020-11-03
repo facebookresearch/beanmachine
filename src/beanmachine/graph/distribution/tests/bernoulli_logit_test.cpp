@@ -95,4 +95,19 @@ TEST(testdistrib, bernoulli_logit) {
   g.gradient_log_prob(logit, grad1, grad2);
   EXPECT_NEAR(grad1, -3.0420, 0.001);
   EXPECT_NEAR(grad2, -2.9426, 0.001);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 5);
+  EXPECT_NEAR(grad[2]->_double, -3.0420, 1e-3);
+
+  auto two = g.add_constant((natural_t)2);
+  auto var3 = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{dist2, two, two});
+  Eigen::MatrixXb m1(2, 2);
+  m1 << true, false, false, false;
+  g.observe(var3, m1);
+  EXPECT_NEAR(g.log_prob(logit), -11.8845, 1e-3);
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 6);
+  EXPECT_NEAR(grad[2]->_double, -12.5259, 1e-3);
 }

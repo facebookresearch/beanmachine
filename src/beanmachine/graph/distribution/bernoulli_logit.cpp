@@ -45,26 +45,47 @@ bool BernoulliLogit::_bool_sampler(std::mt19937& gen) const {
 // d2f dl2 = - x exp(l) / (1 + exp(l))^2 - (1-x) exp(-l) / (1 + exp(-l))^2
 //         = -1 /[(1 + exp(-l)) (1 + exp(l))]
 //         = -1 / (2 + exp(-l) + exp(l))
-
+// First order chain rule: f(g(x))' = f'(g(x)) g'(x),
+// - In backward propagation, f'(g(x)) is given by adjunct, the above equation
+// computes g'(x). [g is the current function f is the final target]
+// - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
+// the above equation computes f'(g) [f is the current function g is the input]
 double BernoulliLogit::log_prob(const NodeValue& value) const {
-  bool x = value._bool;
   double l = in_nodes[0]->value._double;
-  return x ? -util::log1pexp(-l) : -util::log1pexp(l);
+
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    return value._bool ? -util::log1pexp(-l) : -util::log1pexp(l);
+  } else if (
+      value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
+    int size = value._bmatrix.size();
+    int n_positive = value._bmatrix.count();
+    return -util::log1pexp(-l) * n_positive -
+        util::log1pexp(l) * (size - n_positive);
+  } else {
+    throw std::runtime_error(
+        "BernoulliLogit::log_prob applied to invalid variable type");
+  }
 }
 
 void BernoulliLogit::gradient_log_prob_value(
     const NodeValue& /* value */,
     double& grad1,
     double& /* grad2 */) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
   double l = in_nodes[0]->value._double;
   grad1 += l;
   // grad2 += 0
+}
+
+double BernoulliLogit::_grad1_log_prob_param(bool x, double l) {
+  return x ? 1 / (1 + std::exp(l)) : -1 / (1 + std::exp(-l));
 }
 
 void BernoulliLogit::gradient_log_prob_param(
     const NodeValue& value,
     double& grad1,
     double& grad2) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
   bool x = value._bool;
   double l = in_nodes[0]->value._double;
   // We will compute the gradients w.r.t. each the parameter only if
@@ -72,10 +93,35 @@ void BernoulliLogit::gradient_log_prob_param(
   double l_grad = in_nodes[0]->grad1;
   double l_grad2 = in_nodes[0]->grad2;
   if (l_grad != 0 or l_grad2 != 0) {
-    double grad_l = x ? 1 / (1 + std::exp(l)) : -1 / (1 + std::exp(-l));
+    double grad_l = _grad1_log_prob_param(x, l);
     double grad2_l2 = -1 / (2 + std::exp(-l) + std::exp(l));
     grad1 += grad_l * l_grad;
     grad2 += grad2_l2 * l_grad * l_grad + grad_l * l_grad2;
+  }
+}
+
+void BernoulliLogit::backward_param(
+    const graph::NodeValue& value,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  if (in_nodes[0]->needs_gradient()) {
+    bool x = value._bool;
+    double l = in_nodes[0]->value._double;
+    in_nodes[0]->back_grad1._double += adjunct * _grad1_log_prob_param(x, l);
+  }
+}
+
+void BernoulliLogit::backward_param_iid(
+    const graph::NodeValue& value,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  if (in_nodes[0]->needs_gradient()) {
+    double l = in_nodes[0]->value._double;
+    int size = value._bmatrix.size();
+    int n_positive = value._bmatrix.count();
+    in_nodes[0]->back_grad1._double += adjunct *
+        (1 / (1 + std::exp(l)) * n_positive -
+         1 / (1 + std::exp(-l)) * (size - n_positive));
   }
 }
 
