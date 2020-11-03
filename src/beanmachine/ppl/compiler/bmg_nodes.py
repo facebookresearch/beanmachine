@@ -1706,6 +1706,116 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
         )
 
 
+class ComparisonNode(BinaryOperatorNode, metaclass=ABCMeta):
+    """This is the base class for all comparison operators."""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    @property
+    def inf_type(self) -> BMGLatticeType:
+        return Boolean
+
+    @property
+    def graph_type(self) -> BMGLatticeType:
+        return Boolean
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [self.left.inf_type, self.right.inf_type]
+
+    @property
+    def size(self) -> torch.Size:
+        return (torch.zeros(self.left.size) < torch.zeros(self.right.size)).size()
+
+    def __str__(self) -> str:
+        return "(" + str(self.left) + self.label + str(self.right) + ")"
+
+
+class GreaterThanNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            el > ar for el in self.left.support() for ar in self.right.support()
+        )
+
+    @property
+    def label(self) -> str:
+        return ">"
+
+
+class GreaterThanEqualNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            el >= ar for el in self.left.support() for ar in self.right.support()
+        )
+
+    @property
+    def label(self) -> str:
+        return ">="
+
+
+class LessThanNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            el < ar for el in self.left.support() for ar in self.right.support()
+        )
+
+    @property
+    def label(self) -> str:
+        return "<"
+
+
+class LessThanEqualNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            el <= ar for el in self.left.support() for ar in self.right.support()
+        )
+
+    @property
+    def label(self) -> str:
+        return "<="
+
+
+class EqualNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            el == ar for el in self.left.support() for ar in self.right.support()
+        )
+
+    @property
+    def label(self) -> str:
+        return "=="
+
+
+class NotEqualNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(
+            el != ar for el in self.left.support() for ar in self.right.support()
+        )
+
+    @property
+    def label(self) -> str:
+        return "!="
+
+
 class AdditionNode(BinaryOperatorNode):
     """This represents an addition of values."""
 
