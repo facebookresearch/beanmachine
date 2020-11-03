@@ -21,6 +21,22 @@ class HalfCauchy : public Distribution {
       const graph::NodeValue& value,
       double& grad1,
       double& grad2) const override;
+
+  void backward_value(
+      const graph::NodeValue& value,
+      graph::DoubleMatrix& back_grad,
+      double adjunct = 1.0) const override;
+  void backward_param(const graph::NodeValue& value, double adjunct = 1.0)
+      const override;
+  void backward_value_iid(
+      const graph::NodeValue& value,
+      graph::DoubleMatrix& back_grad,
+      double adjunct = 1.0) const override;
+  void backward_param_iid(const graph::NodeValue& value, double adjunct = 1.0)
+      const override;
+
+  static void _grad1_log_prob_value(double& grad1, double val, double s2_p_x2);
+  static double _grad1_log_prob_param(double s, double s2_p_x2);
 };
 
 } // namespace distribution
