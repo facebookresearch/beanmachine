@@ -296,6 +296,7 @@ enum class OperatorType {
   NEGATIVE_LOG,
   // TODO: We can remove NEGATIVE_LOG once we have a NEG_REAL type implemented.
   LOG1MEXP,
+  MATRIX_MULTIPLY,
 };
 
 enum class DistributionType {
@@ -332,9 +333,9 @@ enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
 
 enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
-struct DoubleVector {
+struct DoubleMatrix {
   double _double;
-  Eigen::Matrix<double, 1, Eigen::Dynamic> _vector;
+  Eigen::MatrixXd _matrix;
 };
 
 class Node {
@@ -351,7 +352,7 @@ class Node {
   double grad2;
   Eigen::MatrixXd Grad1;
   Eigen::MatrixXd Grad2;
-  DoubleVector back_grad1;
+  DoubleMatrix back_grad1;
 
   virtual bool is_stochastic() const {
     return false;
@@ -404,6 +405,8 @@ class Node {
       T2& hessian,
       double& d_grad1,
       double& d_grad2) const;
+  // Converts the 1x1 matrix value to a scalar value.
+  void to_scalar();
 };
 
 class ConstNode : public Node {
@@ -568,7 +571,7 @@ struct Graph {
   :param grad1: Output value of first gradient.
   :param seed: Random number generator seed.
   */
-  void eval_and_grad(std::vector<DoubleVector*>& grad1, uint seed = 5123412);
+  void eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed = 5123412);
   /*
   Evaluate the deterministic descendants of the source node and compute
   the logprob_gradient of all stochastic descendants in the support including

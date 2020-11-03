@@ -56,7 +56,8 @@ PYBIND11_MODULE(graph, module) {
       .value("IF_THEN_ELSE", OperatorType::IF_THEN_ELSE)
       .value("LOG", OperatorType::LOG)
       .value("POW", OperatorType::POW)
-      .value("NEGATIVE_LOG", OperatorType::NEGATIVE_LOG);
+      .value("NEGATIVE_LOG", OperatorType::NEGATIVE_LOG)
+      .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)

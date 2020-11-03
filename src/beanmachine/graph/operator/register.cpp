@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
 #include "beanmachine/graph/operator/controlop.h"
+#include "beanmachine/graph/operator/linalgop.h"
 #include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/operator/unaryop.h"
@@ -81,6 +82,11 @@ bool Log::is_registered =
 bool NegativeLog::is_registered = OperatorFactory::register_op(
     graph::OperatorType::NEGATIVE_LOG,
     &(NegativeLog::new_op));
+
+// linear algebra op
+bool MatrixMultiply::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::MATRIX_MULTIPLY,
+    &(MatrixMultiply::new_op));
 
 } // namespace oper
 } // namespace beanmachine
