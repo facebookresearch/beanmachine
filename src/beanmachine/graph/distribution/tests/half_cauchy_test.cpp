@@ -84,4 +84,48 @@ TEST(testdistrib, half_cauchy) {
   // 100^2) + 16x^6/(x^4 + 100^2)^2 f''(7) = -0.056399
   EXPECT_NEAR(grad1, -0.053493, 1e-6);
   EXPECT_NEAR(grad2, -0.056399, 1e-6);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR(grad[0]->_double, -0.0535, 1e-3);
+  EXPECT_NEAR(grad[1]->_double, -0.0161, 1e-3);
+
+  // test vector operators
+  // to verify results with pyTorch:
+  // X = tensor(0.8, requires_grad=True)
+  // Y = tensor([[0.1, 0.2], [0.3, 0.4]], requires_grad=True)
+  // log_p = (
+  //     dist.HalfCauchy(X).log_prob(Y).sum()
+  //     + dist.HalfCauchy(tensor(1.1)).log_prob(X)
+  // )
+  // torch.autograd.grad(log_p, X) -> -4.8711
+  // torch.autograd.grad(log_p, Y) -> [[-0.3077, -0.5882], [-0.8219, -1.0000]]
+  Graph g2;
+  auto two = g2.add_constant((natural_t)2);
+  auto pos2 = g2.add_constant_pos_real(1.1);
+  auto hc_dist = g2.add_distribution(
+      DistributionType::HALF_CAUCHY,
+      AtomicType::POS_REAL,
+      std::vector<uint>{pos2});
+  auto x = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{hc_dist});
+  auto y_dist = g2.add_distribution(
+      DistributionType::HALF_CAUCHY,
+      AtomicType::POS_REAL,
+      std::vector<uint>{x});
+  auto y = g2.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{y_dist, two, two});
+  g2.observe(x, 0.8);
+  Eigen::MatrixXd m_y(2, 2);
+  m_y << 0.1, 0.2, 0.3, 0.4;
+  g2.observe(y, m_y);
+  // test log_prob():
+  EXPECT_NEAR(g2.log_prob(x), -2.3161, 1e-3);
+  // test backward_value/param/ (iid):
+  g2.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR(grad[0]->_double, -4.8711, 1e-3);
+  EXPECT_NEAR(grad[1]->_matrix.coeff(0), -0.3077, 1e-3);
+  EXPECT_NEAR(grad[1]->_matrix.coeff(1), -0.8219, 1e-3);
+  EXPECT_NEAR(grad[1]->_matrix.coeff(2), -0.5882, 1e-3);
+  EXPECT_NEAR(grad[1]->_matrix.coeff(3), -1.0000, 1e-3);
 }
