@@ -267,35 +267,6 @@ void Log::eval(std::mt19937& /* gen */) {
   }
 }
 
-// TODO: Once we have more complete implementation of the NEG_REAL type,
-// TODO: we can remove this operator entirely.
-NegativeLog::NegativeLog(const std::vector<graph::Node*>& in_nodes)
-    : UnaryOperator(graph::OperatorType::NEGATIVE_LOG, in_nodes) {
-  graph::ValueType type0 = in_nodes[0]->value.type;
-  if (type0 == graph::AtomicType::POS_REAL) {
-    value = graph::NodeValue(graph::AtomicType::REAL);
-  } else if (type0 == graph::AtomicType::PROBABILITY) {
-    value = graph::NodeValue(graph::AtomicType::POS_REAL);
-  } else {
-    throw std::invalid_argument(
-        "operator NEG_LOG requires a pos_real or probability parent");
-  }
-}
-
-void NegativeLog::eval(std::mt19937& /* gen */) {
-  assert(in_nodes.size() == 1);
-  const graph::NodeValue& parent = in_nodes[0]->value;
-  if (parent.type == graph::AtomicType::POS_REAL or
-      parent.type == graph::AtomicType::PROBABILITY) {
-    value._double = -std::log(parent._double);
-  } else {
-    throw std::runtime_error(
-        "invalid parent type " +
-        std::to_string(static_cast<int>(parent.type.atomic_type)) +
-        " for NEGATIVE_LOG operator at node_id " + std::to_string(index));
-  }
-}
-
 Log1mExp::Log1mExp(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::LOG1MEXP, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;

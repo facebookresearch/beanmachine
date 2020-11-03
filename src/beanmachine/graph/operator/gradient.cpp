@@ -121,19 +121,6 @@ void Logistic::compute_gradients() {
       f_grad * in_nodes[0]->grad2;
 }
 
-void NegativeLog::compute_gradients() {
-  assert(in_nodes.size() == 1);
-  // f(x) = -log(x)
-  // f'(x) = -1 / x
-  // f''(x) = 1 / (x^2) = f'(x) * f'(x)
-  double x = in_nodes[0]->value._double;
-  double f_grad = -1.0 / x;
-  double f_grad2 = f_grad * f_grad;
-  grad1 = f_grad * in_nodes[0]->grad1;
-  grad2 = f_grad2 * in_nodes[0]->grad1 * in_nodes[0]->grad1 +
-      f_grad * in_nodes[0]->grad2;
-}
-
 void Pow::compute_gradients() {
   assert(in_nodes.size() == 2);
   // We wish to compute the first and second derivatives of x ** y.

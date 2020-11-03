@@ -491,54 +491,6 @@ TEST(testoperator, log) {
   EXPECT_NEAR(grad2, -27.0904, 1e-3);
 }
 
-TEST(testoperator, negative_log) {
-  Graph g;
-  // negative tests: exactly one pos_real or probability should be the input
-  EXPECT_THROW(
-      g.add_operator(OperatorType::NEGATIVE_LOG, std::vector<uint>{}),
-      std::invalid_argument);
-  auto neg_real = g.add_constant(-1.5);
-  EXPECT_THROW(
-      g.add_operator(OperatorType::NEGATIVE_LOG, std::vector<uint>{neg_real}),
-      std::invalid_argument);
-  auto pos1 = g.add_constant_pos_real(1.0);
-  EXPECT_THROW(
-      g.add_operator(OperatorType::NEGATIVE_LOG, std::vector<uint>{pos1, pos1}),
-      std::invalid_argument);
-  // y ~ Normal(-log(x^2), 1)
-  // If we observe x = 0.5 then the mean should be -log(0.25) = 1.386.
-  auto prior = g.add_distribution(
-      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
-  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
-  auto x_sq = g.add_operator(OperatorType::MULTIPLY, std::vector<uint>{x, x});
-  auto log_x_sq =
-      g.add_operator(OperatorType::NEGATIVE_LOG, std::vector<uint>{x_sq});
-  auto likelihood = g.add_distribution(
-      DistributionType::NORMAL,
-      AtomicType::REAL,
-      std::vector<uint>{log_x_sq, pos1});
-  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
-  g.query(y);
-  g.observe(x, 0.5);
-  const auto& means = g.infer_mean(10000, InferenceType::NMC);
-  EXPECT_NEAR(means[0], 1.386, 0.01);
-  g.observe(y, 0.0);
-  // check gradient:
-  // Verified in pytorch using the following code:
-  //
-  // x = tensor(0.5, requires_grad=True)
-  // fx = Normal(-(x * x).log(), tensor(1.0)).log_prob(tensor(0.0))
-  // f1x = grad(fx, x, create_graph=True)
-  // f2x = grad(f1x, x)
-  //
-  // f1x -> 5.5452 and f2x -> -27.0904
-  double grad1 = 0;
-  double grad2 = 0;
-  g.gradient_log_prob(x, grad1, grad2);
-  EXPECT_NEAR(grad1, 5.5452, 1e-3);
-  EXPECT_NEAR(grad2, -27.0904, 1e-3);
-}
-
 TEST(testoperator, pow) {
   Graph g;
   // There must be exactly two operands.

@@ -78,9 +78,5 @@ bool Log1mExp::is_registered = OperatorFactory::register_op(
 bool Log::is_registered =
     OperatorFactory::register_op(graph::OperatorType::LOG, &(Log::new_op));
 
-bool NegativeLog::is_registered = OperatorFactory::register_op(
-    graph::OperatorType::NEGATIVE_LOG,
-    &(NegativeLog::new_op));
-
 } // namespace oper
 } // namespace beanmachine
