@@ -44,28 +44,58 @@ double HalfCauchy::_double_sampler(std::mt19937& gen) const {
 // d2f/dx2 = -2/(s^2 + x^2) + 4x^2/(s^2 + x^2)^2
 // df/ds = 1/s -2s/(s^2 + x^2)
 // d2f/ds2 = - 1/s^2 - 2/(s^2 + x^2) + 4s^2/(s^2 + x^2)^2
-
+// First order chain rule: f(g(x))' = f'(g(x)) g'(x),
+// - In backward propagation, f'(g(x)) is given by adjunct, the above equation
+// computes g'(x). [g is the current function f is the final target]
+// - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
+// the above equation computes f'(g) [f is the current function g is the input]
 double HalfCauchy::log_prob(const NodeValue& value) const {
-  double x = value._double;
   double s = in_nodes[0]->value._double;
-  return -std::log(M_PI_2) - std::log(s) - std::log1p(std::pow(x / s, 2));
+  double result;
+  int size;
+
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    size = 1;
+    result = std::log1p(std::pow(value._double / s, 2));
+  } else if (
+      value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
+    size = value._matrix.size();
+    result = (value._matrix.array() / s).pow(2).log1p().sum();
+  } else {
+    throw std::runtime_error(
+        "HalfCauchy::log_prob applied to invalid variable type");
+  }
+  return (-std::log(M_PI_2) - std::log(s)) * size - result;
+}
+
+void HalfCauchy::_grad1_log_prob_value(
+    double& grad1,
+    double val,
+    double s2_p_x2) {
+  grad1 += -2 * val / s2_p_x2;
 }
 
 void HalfCauchy::gradient_log_prob_value(
     const NodeValue& value,
     double& grad1,
     double& grad2) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
   double x = value._double;
   double s = in_nodes[0]->value._double;
   double s2_p_x2 = s * s + x * x;
-  grad1 += -2 * x / s2_p_x2;
+  _grad1_log_prob_value(grad1, x, s2_p_x2);
   grad2 += -2 / s2_p_x2 + 4 * x * x / (s2_p_x2 * s2_p_x2);
+}
+
+double HalfCauchy::_grad1_log_prob_param(double s, double s2_p_x2) {
+  return 1 / s - 2 * s / s2_p_x2;
 }
 
 void HalfCauchy::gradient_log_prob_param(
     const NodeValue& value,
     double& grad1,
     double& grad2) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
   // gradients of s should be non-zero before computing gradients w.r.t. s
   double s_grad = in_nodes[0]->grad1;
   double s_grad2 = in_nodes[0]->grad2;
@@ -73,11 +103,62 @@ void HalfCauchy::gradient_log_prob_param(
     double x = value._double;
     double s = in_nodes[0]->value._double;
     double s2_p_x2 = s * s + x * x;
-    double grad_s = 1 / s - 2 * s / s2_p_x2;
+    double grad_s = _grad1_log_prob_param(s, s2_p_x2);
     double grad2_s2 =
         -1 / (s * s) - 2 / s2_p_x2 + 4 * s * s / (s2_p_x2 * s2_p_x2);
     grad1 += grad_s * s_grad;
     grad2 += grad2_s2 * s_grad * s_grad + grad_s * s_grad2;
+  }
+}
+
+void HalfCauchy::backward_value(
+    const graph::NodeValue& value,
+    graph::DoubleMatrix& back_grad,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  double x = value._double;
+  double s = in_nodes[0]->value._double;
+  double s2_p_x2 = s * s + x * x;
+  double increment = 0.0;
+  _grad1_log_prob_value(increment, x, s2_p_x2);
+  back_grad._double += adjunct * increment;
+}
+
+void HalfCauchy::backward_value_iid(
+    const graph::NodeValue& value,
+    graph::DoubleMatrix& back_grad,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double s = in_nodes[0]->value._double;
+  Eigen::MatrixXd s2_p_x2 =
+      s * s + value._matrix.array() * value._matrix.array();
+  back_grad._matrix -=
+      (2 * adjunct * value._matrix.array() / s2_p_x2.array()).matrix();
+}
+
+void HalfCauchy::backward_param(const graph::NodeValue& value, double adjunct)
+    const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  if (in_nodes[0]->needs_gradient()) {
+    double x = value._double;
+    double s = in_nodes[0]->value._double;
+    double s2_p_x2 = s * s + x * x;
+    in_nodes[0]->back_grad1._double +=
+        adjunct * _grad1_log_prob_param(s, s2_p_x2);
+  }
+}
+
+void HalfCauchy::backward_param_iid(
+    const graph::NodeValue& value,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  if (in_nodes[0]->needs_gradient()) {
+    int size = value._matrix.size();
+    double s = in_nodes[0]->value._double;
+    Eigen::MatrixXd s2_p_x2 =
+        s * s + value._matrix.array() * value._matrix.array();
+    in_nodes[0]->back_grad1._double +=
+        adjunct * (size / s - 2 * (s / s2_p_x2.array()).sum());
   }
 }
 
