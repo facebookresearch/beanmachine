@@ -202,23 +202,6 @@ class Log : public UnaryOperator {
   static bool is_registered;
 };
 
-class NegativeLog : public UnaryOperator {
- public:
-  explicit NegativeLog(const std::vector<graph::Node*>& in_nodes);
-  ~NegativeLog() override {}
-
-  void eval(std::mt19937& gen) override;
-  void compute_gradients() override;
-
-  static std::unique_ptr<Operator> new_op(
-      const std::vector<graph::Node*>& in_nodes) {
-    return std::make_unique<NegativeLog>(in_nodes);
-  }
-
- private:
-  static bool is_registered;
-};
-
 class Log1mExp : public UnaryOperator {
  public:
   explicit Log1mExp(const std::vector<graph::Node*>& in_nodes);
