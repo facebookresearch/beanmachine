@@ -76,12 +76,17 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DirichletNode,
     DistributionNode,
     DivisionNode,
+    EqualNode,
     ExpNode,
     FlatNode,
     GammaNode,
+    GreaterThanEqualNode,
+    GreaterThanNode,
     HalfCauchyNode,
     IfThenElseNode,
     IndexNode,
+    LessThanEqualNode,
+    LessThanNode,
     LogNode,
     MapNode,
     MatrixMultiplicationNode,
@@ -90,6 +95,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     NegateNode,
     NegativeRealNode,
     NormalNode,
+    NotEqualNode,
     NotNode,
     Observation,
     OperatorNode,
@@ -648,6 +654,132 @@ class BMGraphBuilder:
 
     # TODO: This code is not very well organized; consider sorting it
     # into alpha order by operation.
+
+    @memoize
+    def add_greater_than(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode):
+            if isinstance(right, ConstantNode):
+                return self.add_constant(left.value > right.value)
+
+        node = GreaterThanNode(left, right)
+        self.add_node(node)
+        return node
+
+    def handle_greater_than(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input > other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value > other.value
+        return self.add_greater_than(input, other)
+
+    @memoize
+    def add_greater_than_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode):
+            if isinstance(right, ConstantNode):
+                return self.add_constant(left.value >= right.value)
+
+        node = GreaterThanEqualNode(left, right)
+        self.add_node(node)
+        return node
+
+    def handle_greater_than_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input >= other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value >= other.value
+        return self.add_greater_than_equal(input, other)
+
+    @memoize
+    def add_less_than(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode):
+            if isinstance(right, ConstantNode):
+                return self.add_constant(left.value < right.value)
+
+        node = LessThanNode(left, right)
+        self.add_node(node)
+        return node
+
+    def handle_less_than(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input < other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value < other.value
+        return self.add_less_than(input, other)
+
+    @memoize
+    def add_less_than_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode):
+            if isinstance(right, ConstantNode):
+                return self.add_constant(left.value <= right.value)
+
+        node = LessThanEqualNode(left, right)
+        self.add_node(node)
+        return node
+
+    def handle_less_than_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input <= other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value <= other.value
+        return self.add_less_than_equal(input, other)
+
+    @memoize
+    def add_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode):
+            if isinstance(right, ConstantNode):
+                return self.add_constant(left.value == right.value)
+
+        node = EqualNode(left, right)
+        self.add_node(node)
+        return node
+
+    def handle_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input == other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value == other.value
+        return self.add_equal(input, other)
+
+    @memoize
+    def add_not_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        if isinstance(left, ConstantNode):
+            if isinstance(right, ConstantNode):
+                return self.add_constant(left.value != right.value)
+
+        node = NotEqualNode(left, right)
+        self.add_node(node)
+        return node
+
+    def handle_not_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input != other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value != other.value
+        return self.add_not_equal(input, other)
 
     @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:

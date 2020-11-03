@@ -10,11 +10,17 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BernoulliNode,
     BooleanNode,
     DivisionNode,
+    EqualNode,
     ExpNode,
+    GreaterThanEqualNode,
+    GreaterThanNode,
+    LessThanEqualNode,
+    LessThanNode,
     LogNode,
     MatrixMultiplicationNode,
     MultiplicationNode,
     NegateNode,
+    NotEqualNode,
     NotNode,
     PowerNode,
     RealNode,
@@ -942,6 +948,116 @@ digraph "graph" {
         self.assertTrue(isinstance(bmg.handle_function(ta2, [s], {"mat2": gt1}), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1, s]), n))
         self.assertTrue(isinstance(bmg.handle_function(ta2, [gt1], {"mat2": s}), n))
+
+    def test_comparison(self) -> None:
+        """Test comparison"""
+        bmg = BMGraphBuilder()
+
+        t1 = tensor(1.0)
+        t2 = tensor(2.0)
+        f = tensor(False)
+        t = tensor(True)
+        g1 = bmg.add_real(1.0)
+        g2 = bmg.add_real(2.0)
+        s = bmg.add_sample(bmg.add_halfcauchy(bmg.add_real(0.5)))
+
+        self.assertEqual(bmg.handle_equal(t2, t1), f)
+        self.assertEqual(bmg.handle_equal(t1, t1), t)
+        self.assertEqual(bmg.handle_equal(t1, t2), f)
+        self.assertEqual(bmg.handle_equal(g2, t1), f)
+        self.assertEqual(bmg.handle_equal(g1, t1), t)
+        self.assertEqual(bmg.handle_equal(g1, t2), f)
+        self.assertEqual(bmg.handle_equal(t2, g1), f)
+        self.assertEqual(bmg.handle_equal(t1, g1), t)
+        self.assertEqual(bmg.handle_equal(t1, g2), f)
+        self.assertEqual(bmg.handle_equal(g2, g1), f)
+        self.assertEqual(bmg.handle_equal(g1, g1), t)
+        self.assertEqual(bmg.handle_equal(g1, g2), f)
+        self.assertTrue(isinstance(bmg.handle_equal(s, t1), EqualNode))
+        self.assertTrue(isinstance(bmg.handle_equal(t1, s), EqualNode))
+
+        self.assertEqual(bmg.handle_not_equal(t2, t1), t)
+        self.assertEqual(bmg.handle_not_equal(t1, t1), f)
+        self.assertEqual(bmg.handle_not_equal(t1, t2), t)
+        self.assertEqual(bmg.handle_not_equal(g2, t1), t)
+        self.assertEqual(bmg.handle_not_equal(g1, t1), f)
+        self.assertEqual(bmg.handle_not_equal(g1, t2), t)
+        self.assertEqual(bmg.handle_not_equal(t2, g1), t)
+        self.assertEqual(bmg.handle_not_equal(t1, g1), f)
+        self.assertEqual(bmg.handle_not_equal(t1, g2), t)
+        self.assertEqual(bmg.handle_not_equal(g2, g1), t)
+        self.assertEqual(bmg.handle_not_equal(g1, g1), f)
+        self.assertEqual(bmg.handle_not_equal(g1, g2), t)
+        self.assertTrue(isinstance(bmg.handle_not_equal(s, t1), NotEqualNode))
+        self.assertTrue(isinstance(bmg.handle_not_equal(t1, s), NotEqualNode))
+
+        self.assertEqual(bmg.handle_greater_than(t2, t1), t)
+        self.assertEqual(bmg.handle_greater_than(t1, t1), f)
+        self.assertEqual(bmg.handle_greater_than(t1, t2), f)
+        self.assertEqual(bmg.handle_greater_than(g2, t1), t)
+        self.assertEqual(bmg.handle_greater_than(g1, t1), f)
+        self.assertEqual(bmg.handle_greater_than(g1, t2), f)
+        self.assertEqual(bmg.handle_greater_than(t2, g1), t)
+        self.assertEqual(bmg.handle_greater_than(t1, g1), f)
+        self.assertEqual(bmg.handle_greater_than(t1, g2), f)
+        self.assertEqual(bmg.handle_greater_than(g2, g1), t)
+        self.assertEqual(bmg.handle_greater_than(g1, g1), f)
+        self.assertEqual(bmg.handle_greater_than(g1, g2), f)
+        self.assertTrue(isinstance(bmg.handle_greater_than(s, t1), GreaterThanNode))
+        self.assertTrue(isinstance(bmg.handle_greater_than(t1, s), GreaterThanNode))
+
+        self.assertEqual(bmg.handle_greater_than_equal(t2, t1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(t1, t1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(t1, t2), f)
+        self.assertEqual(bmg.handle_greater_than_equal(g2, t1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(g1, t1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(g1, t2), f)
+        self.assertEqual(bmg.handle_greater_than_equal(t2, g1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(t1, g1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(t1, g2), f)
+        self.assertEqual(bmg.handle_greater_than_equal(g2, g1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(g1, g1), t)
+        self.assertEqual(bmg.handle_greater_than_equal(g1, g2), f)
+        self.assertTrue(
+            isinstance(bmg.handle_greater_than_equal(s, t1), GreaterThanEqualNode)
+        )
+        self.assertTrue(
+            isinstance(bmg.handle_greater_than_equal(t1, s), GreaterThanEqualNode)
+        )
+
+        self.assertEqual(bmg.handle_less_than(t2, t1), f)
+        self.assertEqual(bmg.handle_less_than(t1, t1), f)
+        self.assertEqual(bmg.handle_less_than(t1, t2), t)
+        self.assertEqual(bmg.handle_less_than(g2, t1), f)
+        self.assertEqual(bmg.handle_less_than(g1, t1), f)
+        self.assertEqual(bmg.handle_less_than(g1, t2), t)
+        self.assertEqual(bmg.handle_less_than(t2, g1), f)
+        self.assertEqual(bmg.handle_less_than(t1, g1), f)
+        self.assertEqual(bmg.handle_less_than(t1, g2), t)
+        self.assertEqual(bmg.handle_less_than(g2, g1), f)
+        self.assertEqual(bmg.handle_less_than(g1, g1), f)
+        self.assertEqual(bmg.handle_less_than(g1, g2), t)
+        self.assertTrue(isinstance(bmg.handle_less_than(s, t1), LessThanNode))
+        self.assertTrue(isinstance(bmg.handle_less_than(t1, s), LessThanNode))
+
+        self.assertEqual(bmg.handle_less_than_equal(t2, t1), f)
+        self.assertEqual(bmg.handle_less_than_equal(t1, t1), t)
+        self.assertEqual(bmg.handle_less_than_equal(t1, t2), t)
+        self.assertEqual(bmg.handle_less_than_equal(g2, t1), f)
+        self.assertEqual(bmg.handle_less_than_equal(g1, t1), t)
+        self.assertEqual(bmg.handle_less_than_equal(g1, t2), t)
+        self.assertEqual(bmg.handle_less_than_equal(t2, g1), f)
+        self.assertEqual(bmg.handle_less_than_equal(t1, g1), t)
+        self.assertEqual(bmg.handle_less_than_equal(t1, g2), t)
+        self.assertEqual(bmg.handle_less_than_equal(g2, g1), f)
+        self.assertEqual(bmg.handle_less_than_equal(g1, g1), t)
+        self.assertEqual(bmg.handle_less_than_equal(g1, g2), t)
+        self.assertTrue(
+            isinstance(bmg.handle_less_than_equal(s, t1), LessThanEqualNode)
+        )
+        self.assertTrue(
+            isinstance(bmg.handle_less_than_equal(t1, s), LessThanEqualNode)
+        )
 
     def test_negation(self) -> None:
         """Test negation"""
