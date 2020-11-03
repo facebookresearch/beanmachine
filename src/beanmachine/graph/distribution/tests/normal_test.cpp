@@ -136,10 +136,10 @@ TEST(testdistrib, backward_normal_normal) {
   // )
   // torch.autograd.grad(log_p, mu) -> -0.3
   // torch.autograd.grad(log_p, y) -> [-0.4, 0.6]
-  std::vector<DoubleVector*> grad1;
+  std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
   EXPECT_NEAR(grad1[0]->_double, -0.3, 1e-3);
-  EXPECT_NEAR(grad1[1]->_vector.coeff(0), -0.4, 1e-3);
-  EXPECT_NEAR(grad1[1]->_vector.coeff(1), 0.6, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.4, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), 0.6, 1e-3);
 }

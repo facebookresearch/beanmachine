@@ -232,7 +232,32 @@ void Node::reset_backgrad() {
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     back_grad1._double = 0;
   } else {
-    back_grad1._vector.setZero(value.type.rows * value.type.cols);
+    back_grad1._matrix.setZero(value.type.rows, value.type.cols);
+  }
+}
+
+void Node::to_scalar() {
+  switch (value.type.atomic_type) {
+    case graph::AtomicType::BOOLEAN:
+      assert(value._bmatrix.size() == 1);
+      value._bool = *(value._bmatrix.data());
+      value._bmatrix.setZero(0, 0);
+      break;
+    case graph::AtomicType::NATURAL:
+      assert(value._nmatrix.size() == 1);
+      value._natural = *(value._nmatrix.data());
+      value._nmatrix.setZero(0, 0);
+      break;
+    case graph::AtomicType::REAL:
+    case graph::AtomicType::POS_REAL:
+    case graph::AtomicType::NEG_REAL:
+    case graph::AtomicType::PROBABILITY:
+      assert(value._matrix.size() == 1);
+      value._double = *(value._matrix.data());
+      value._matrix.setZero(0, 0);
+      break;
+    default:
+      throw std::runtime_error("unsupported AtomicType to cast to scalar");
   }
 }
 
@@ -288,7 +313,7 @@ void Graph::eval_and_grad(
   }
 }
 
-void Graph::eval_and_grad(std::vector<DoubleVector*>& grad1, uint seed) {
+void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
   std::mt19937 generator(seed);
   std::set<uint> supp = compute_support();
   for (auto it = supp.begin(); it != supp.end(); ++it) {

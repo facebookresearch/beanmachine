@@ -122,7 +122,7 @@ void Normal::gradient_log_prob_param(
 
 void Normal::backward_value(
     const graph::NodeValue& value,
-    graph::DoubleVector& back_grad,
+    graph::DoubleMatrix& back_grad,
     double adjunct) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
   double m = in_nodes[0]->value._double;
@@ -135,14 +135,13 @@ void Normal::backward_value(
 
 void Normal::backward_value_iid(
     const graph::NodeValue& value,
-    graph::DoubleVector& back_grad,
+    graph::DoubleMatrix& back_grad,
     double adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  back_grad._vector -=
-      ((value._matrix.array() - m) / s_sq * adjunct).matrix().transpose();
+  back_grad._matrix -= ((value._matrix.array() - m) / s_sq * adjunct).matrix();
 }
 
 void Normal::backward_param(const graph::NodeValue& value, double adjunct)

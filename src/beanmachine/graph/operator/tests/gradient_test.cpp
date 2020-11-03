@@ -260,9 +260,61 @@ TEST(testgradient, backward_scalar_linearmodel) {
   // )
   // torch.autograd.grad(log_p, b0) -> 0.8800
   // torch.autograd.grad(log_p, b1) -> -1.1420
-  std::vector<DoubleVector*> grad1;
+  std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 5);
   EXPECT_NEAR(grad1[0]->_double, 0.8800, 1e-3);
   EXPECT_NEAR(grad1[1]->_double, -1.1420, 1e-3);
+}
+
+TEST(testgradient, backward_vector_linearmodel) {
+  // constant matrix(3 by 2): X
+  // prior vector(2 by 1): betas ~ iid Normal(0, 1)
+  // likelihood: y_i ~ Normal((X @ betas)[i], 1)
+  Graph g;
+  uint zero = g.add_constant(0.0);
+  uint pos_one = g.add_constant_pos_real(1.0);
+  uint two = g.add_constant((natural_t)2);
+
+  uint normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos_one});
+  uint betas = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two});
+  Eigen::MatrixXd Xmat(3, 2);
+  Xmat << 1.0, 0.5, 1.0, -1.5, 1.0, 2.1;
+  for (uint i = 0; i < 3; ++i) {
+    Eigen::MatrixXd x = Xmat.row(i);
+    uint x_i = g.add_constant_matrix(x);
+    uint mu_i = g.add_operator(
+        OperatorType::MATRIX_MULTIPLY, std::vector<uint>{x_i, betas});
+    uint dist_i = g.add_distribution(
+        DistributionType::NORMAL,
+        AtomicType::REAL,
+        std::vector<uint>{mu_i, pos_one});
+    uint y_i = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist_i});
+    g.observe(y_i, 0.5);
+  }
+  Eigen::MatrixXd betas_mat(2, 1);
+  betas_mat << 0.1, 0.2;
+  g.observe(betas, betas_mat);
+
+  // To verify the grad1 results with pyTorch:
+  // b0 = tensor([0.1], requires_grad=True)
+  // b1 = tensor([0.2], requires_grad=True)
+  // x = tensor([0.5, -1.5, 2.1])
+  // y = 0.5
+  // log_p = (
+  //     dist.Normal(x * b1 + b0, tensor(1.0)).log_prob(tensor([y, y, y])).sum()
+  //     + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(b0)
+  //     + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(b1)
+  // )
+  // torch.autograd.grad(log_p, b0) -> 0.8800
+  // torch.autograd.grad(log_p, b1) -> -1.1420
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 4);
+  EXPECT_NEAR(grad1[0]->_matrix.coeff(0), 0.8800, 1e-3);
+  EXPECT_NEAR(grad1[0]->_matrix.coeff(1), -1.1420, 1e-3);
 }
