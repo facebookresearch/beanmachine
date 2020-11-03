@@ -54,7 +54,7 @@ class Distribution : public graph::Node {
   */
   virtual void backward_value(
       const graph::NodeValue& /* value */,
-      graph::DoubleVector& /* back_grad */,
+      graph::DoubleMatrix& /* back_grad */,
       double /* adjunct */ = 1.0) const {}
   /*
   Similar to backward_value, except that it is used when the child operator is
@@ -62,7 +62,7 @@ class Distribution : public graph::Node {
   */
   virtual void backward_value_iid(
       const graph::NodeValue& /* value */,
-      graph::DoubleVector& /* back_grad */,
+      graph::DoubleMatrix& /* back_grad */,
       double /* adjunct */ = 1.0) const {}
   /*
   In backward gradient propagation, increments the back_grad1 of each parent
