@@ -18,10 +18,16 @@ from beanmachine.ppl.utils.ast_patterns import (
     binop,
     call,
     constant_numeric,
+    equal,
     function_def,
+    greater_than,
+    greater_than_equal,
     index,
+    less_than,
+    less_than_equal,
     load,
     name,
+    not_equal,
     subscript,
     unaryop,
 )
@@ -188,6 +194,59 @@ _handle_power = PatternRule(
     ),
 )
 
+_handle_equal = PatternRule(
+    assign(value=equal()),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call("handle_equal", [a.value.left, a.value.comparators[0]]),
+    ),
+)
+
+_handle_not_equal = PatternRule(
+    assign(value=not_equal()),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call("handle_not_equal", [a.value.left, a.value.comparators[0]]),
+    ),
+)
+
+
+_handle_greater_than = PatternRule(
+    assign(value=greater_than()),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call("handle_greater_than", [a.value.left, a.value.comparators[0]]),
+    ),
+)
+
+_handle_greater_than_equal = PatternRule(
+    assign(value=greater_than_equal()),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call(
+            "handle_greater_than_equal", [a.value.left, a.value.comparators[0]]
+        ),
+    ),
+)
+
+_handle_less_than = PatternRule(
+    assign(value=less_than()),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call("handle_less_than", [a.value.left, a.value.comparators[0]]),
+    ),
+)
+
+_handle_less_than_equal = PatternRule(
+    assign(value=less_than_equal()),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call(
+            "handle_less_than_equal", [a.value.left, a.value.comparators[0]]
+        ),
+    ),
+)
+
 
 _handle_index = PatternRule(
     assign(value=subscript(slice=index())),
@@ -220,6 +279,12 @@ _math_to_bmg: Rule = _top_down(
                 _handle_division,
                 _handle_power,
                 _handle_index,
+                _handle_equal,
+                _handle_not_equal,
+                _handle_greater_than,
+                _handle_greater_than_equal,
+                _handle_less_than,
+                _handle_less_than_equal,
             ]
         )
     )
