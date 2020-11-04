@@ -163,6 +163,42 @@ def compare(left: Pattern = _any, ops: Pattern = _any, comparators: Pattern = _a
     )
 
 
+def equal(left: Pattern = _any, right: Pattern = _any):
+    return type_and_attributes(
+        ast.Compare, {"left": left, "ops": [ast.Eq], "comparators": [right]}
+    )
+
+
+def not_equal(left: Pattern = _any, right: Pattern = _any):
+    return type_and_attributes(
+        ast.Compare, {"left": left, "ops": [ast.NotEq], "comparators": [right]}
+    )
+
+
+def greater_than(left: Pattern = _any, right: Pattern = _any):
+    return type_and_attributes(
+        ast.Compare, {"left": left, "ops": [ast.Gt], "comparators": [right]}
+    )
+
+
+def greater_than_equal(left: Pattern = _any, right: Pattern = _any):
+    return type_and_attributes(
+        ast.Compare, {"left": left, "ops": [ast.GtE], "comparators": [right]}
+    )
+
+
+def less_than(left: Pattern = _any, right: Pattern = _any):
+    return type_and_attributes(
+        ast.Compare, {"left": left, "ops": [ast.Lt], "comparators": [right]}
+    )
+
+
+def less_than_equal(left: Pattern = _any, right: Pattern = _any):
+    return type_and_attributes(
+        ast.Compare, {"left": left, "ops": [ast.LtE], "comparators": [right]}
+    )
+
+
 def expr(value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Expr, {"value": value})
 

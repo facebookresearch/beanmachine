@@ -1980,6 +1980,79 @@ digraph "graph" {
 """
 
 
+# Test comparison operators; these are not supported
+# in BMG yet but we need to be able to detect use of
+# them and give an error, so we will verify that we
+# can lower code containing them correctly.
+
+source19 = """
+import beanmachine.ppl as bm
+from torch.distributions import Normal, StudentT
+from torch import tensor
+
+@bm.random_variable
+def x():
+    return Normal(0.0, 1.0)
+
+@bm.random_variable
+def y():
+    z = 0.0 < x() < 2.0
+    return StudentT(3.0, z, 4.0)
+"""
+
+expected_raw_19 = """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+_lifted_to_bmg: bool = True
+bmg = BMGraphBuilder()
+import beanmachine.ppl as bm
+from torch.distributions import Normal, StudentT
+from torch import tensor
+
+
+@probabilistic(bmg)
+@memoize
+def x():
+    a11 = 0.0
+    a9 = [a11]
+    a15 = 1.0
+    a12 = [a15]
+    r7 = bmg.handle_addition(a9, a12)
+    r13 = {}
+    r1 = bmg.handle_function(Normal, [*r7], r13)
+    return bmg.handle_sample(r1)
+
+
+@probabilistic(bmg)
+@memoize
+def y():
+    a2 = 0.0
+    r5 = []
+    r10 = {}
+    a4 = bmg.handle_function(x, [*r5], r10)
+    a6 = bmg.handle_less_than(a2, a4)
+    if a6:
+        a8 = 2.0
+        z = bmg.handle_less_than(a4, a8)
+    else:
+        z = a6
+    a20 = 3.0
+    a17 = [a20]
+    a21 = [z]
+    a16 = bmg.handle_addition(a17, a21)
+    a22 = 4.0
+    a18 = [a22]
+    r14 = bmg.handle_addition(a16, a18)
+    r19 = {}
+    r3 = bmg.handle_function(StudentT, [*r14], r19)
+    return bmg.handle_sample(r3)
+
+
+roots = [x(), y()]
+"""
+
+
 class CompilerTest(unittest.TestCase):
     def disabled_test_to_python_raw_1(self) -> None:
         # TODO: Something is wrong with the lowering of the named
@@ -2043,6 +2116,11 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_python_raw(source11)
         self.assertEqual(observed.strip(), expected_raw_11.strip())
+
+    def test_to_python_raw_19(self) -> None:
+        self.maxDiff = None
+        observed = to_python_raw(source19)
+        self.assertEqual(observed.strip(), expected_raw_19.strip())
 
     def disabled_test_to_python_1(self) -> None:
         self.maxDiff = None
