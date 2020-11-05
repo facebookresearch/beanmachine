@@ -424,6 +424,28 @@ double Graph::log_prob(uint src_idx) {
   return log_prob;
 }
 
+double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
+  double sum_log_prob = 0.0;
+  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
+  for (auto node : ordered_supp) {
+    if (node->is_stochastic()) {
+      sum_log_prob += node->log_prob();
+    } else {
+      node->eval(generator);
+    }
+  }
+  return sum_log_prob;
+}
+
+double Graph::full_log_prob() {
+  std::set<uint> supp = compute_support();
+  std::vector<Node*> ordered_supp;
+  for (uint node_id : supp) {
+    ordered_supp.push_back(nodes[node_id].get());
+  }
+  return _full_log_prob(ordered_supp);
+}
+
 std::vector<Node*> Graph::convert_parent_ids(
     const std::vector<uint>& parent_ids) const {
   // check that the parent ids are valid indices and convert them to
@@ -685,6 +707,21 @@ uint Graph::query(uint node_id) {
   return queries.size() - 1; // the index is 0-based
 }
 
+void Graph::collect_log_prob(double log_prob) {
+  auto& logprob_collector = (master_graph == nullptr)
+      ? this->log_prob_vals
+      : master_graph->log_prob_allchains[thread_index];
+  logprob_collector.push_back(log_prob);
+}
+
+std::vector<std::vector<double>>& Graph::get_log_prob() {
+  if (log_prob_vals.size() > 0) {
+    log_prob_allchains.clear();
+    log_prob_allchains.push_back(log_prob_vals);
+  }
+  return log_prob_allchains;
+}
+
 void Graph::collect_sample() {
   // construct a sample of the queried nodes
   auto& sample_collector = (master_graph == nullptr)
@@ -748,8 +785,11 @@ void Graph::_infer(uint num_samples, InferenceType algorithm, uint seed) {
 
 std::vector<std::vector<NodeValue>>&
 Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
+  infer_config = InferConfig();
   agg_type = AggregationType::NONE;
   samples.clear();
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
   _infer(num_samples, algorithm, seed);
   return samples;
 }
@@ -758,11 +798,16 @@ std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
     uint num_samples,
     InferenceType algorithm,
     uint seed,
-    uint n_chains) {
+    uint n_chains,
+    InferConfig infer_config) {
+  this->infer_config = infer_config;
   agg_type = AggregationType::NONE;
   samples.clear();
   samples_allchains.clear();
   samples_allchains.resize(n_chains, std::vector<std::vector<NodeValue>>());
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
+  log_prob_allchains.resize(n_chains, std::vector<double>());
   _infer_parallel(num_samples, algorithm, seed, n_chains);
   return samples_allchains;
 }
@@ -814,10 +859,13 @@ void Graph::_infer_parallel(
 
 std::vector<double>&
 Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
+  infer_config = InferConfig();
   agg_type = AggregationType::MEAN;
   agg_samples = num_samples;
   means.clear();
   means.resize(queries.size(), 0.0);
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
   _infer(num_samples, algorithm, seed);
   return means;
 }
@@ -826,13 +874,17 @@ std::vector<std::vector<double>>& Graph::infer_mean(
     uint num_samples,
     InferenceType algorithm,
     uint seed,
-    uint n_chains) {
+    uint n_chains,
+    InferConfig infer_config) {
+  this->infer_config = infer_config;
   agg_type = AggregationType::MEAN;
   agg_samples = num_samples;
   means.clear();
   means.resize(queries.size(), 0.0);
   means_allchains.clear();
   means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
+  log_prob_vals.clear();
+  log_prob_allchains.clear();
   _infer_parallel(num_samples, algorithm, seed, n_chains);
   return means_allchains;
 }
@@ -908,6 +960,7 @@ Graph::Graph(const Graph& other) {
   master_graph = other.master_graph;
   agg_type = other.agg_type;
   agg_samples = other.agg_samples;
+  infer_config = other.infer_config;
 }
 
 } // namespace graph

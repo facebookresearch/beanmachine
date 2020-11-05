@@ -291,3 +291,45 @@ TEST(testgraph, clone_graph) {
   graph::Graph g_copy(g);
   ASSERT_EQ(g.to_string(), g_copy.to_string());
 }
+
+TEST(testgraph, full_log_prob) {
+  graph::Graph g;
+  uint a = g.add_constant_pos_real(5.0);
+  uint b = g.add_constant_pos_real(3.0);
+  uint n = g.add_constant((graph::natural_t)10);
+  uint beta = g.add_distribution(
+      graph::DistributionType::BETA,
+      graph::AtomicType::PROBABILITY,
+      std::vector<uint>({a, b}));
+  uint prob =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>({beta}));
+  uint binomial = g.add_distribution(
+      graph::DistributionType::BINOMIAL,
+      graph::AtomicType::NATURAL,
+      std::vector<uint>({n, prob}));
+  uint k = g.add_operator(
+      graph::OperatorType::SAMPLE, std::vector<uint>({binomial}));
+  g.observe(k, (graph::natural_t)8);
+  g.query(prob);
+  // Note: the posterior is p ~ Beta(13, 5).
+  int num_samples = 10;
+  auto conf = graph::InferConfig(true);
+  auto samples = g.infer(num_samples, graph::InferenceType::NMC, 123, 2, conf);
+  auto log_probs = g.get_log_prob();
+  EXPECT_EQ(log_probs.size(), 2);
+  EXPECT_EQ(log_probs[0].size(), num_samples);
+  for (uint c = 0; c < 2; ++c) {
+    for (uint i = 0; i < num_samples; ++i) {
+      auto& s = samples[c][i][0];
+      double l = log_probs[c][i];
+      g.remove_observations();
+      g.observe(k, (graph::natural_t)8);
+      g.observe(prob, s._double);
+      EXPECT_NEAR(g.full_log_prob(), l, 1e-3);
+    }
+  }
+  g.remove_observations();
+  g.observe(k, (graph::natural_t)8);
+  g.observe(prob, 0.6);
+  EXPECT_NEAR(g.full_log_prob(), -1.3344, 1e-3);
+}

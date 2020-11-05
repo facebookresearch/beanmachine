@@ -336,6 +336,21 @@ struct DoubleMatrix {
   Eigen::MatrixXd _matrix;
 };
 
+struct InferConfig {
+  bool keep_log_prob;
+  double path_length;
+  double step_size;
+
+  ~InferConfig() {}
+  InferConfig(
+      bool keep_log_prob = false,
+      double path_length = 1.0,
+      double step_size = 1.0)
+      : keep_log_prob(keep_log_prob),
+        path_length(path_length),
+        step_size(step_size) {}
+};
+
 class Node {
  public:
   bool is_observed = false;
@@ -484,18 +499,20 @@ struct Graph {
   :param seed: The seed provided to the random number generator of the first
                chain.
   :param n_chains: The number of MCMC chains.
+  :param infer_config: Other parameters for infer.
   :returns: The posterior samples from all chains.
   */
-  std::vector<std::vector<std::vector<NodeValue>>>&
-  infer(uint num_samples, InferenceType algorithm, uint seed, uint n_chains);
-
+  std::vector<std::vector<std::vector<NodeValue>>>& infer(
+      uint num_samples,
+      InferenceType algorithm,
+      uint seed,
+      uint n_chains,
+      InferConfig infer_config = InferConfig());
   /*
   Make point estimates of the posterior means from a single MCMC chain.
-
   :param num_samples: The number of the MCMC samples.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-                    GIBBS, and NMC.
-  :param seed: The seed provided to the random number generator.
+  GIBBS, and NMC. :param seed: The seed provided to the random number generator.
   :returns: The posterior means.
   */
   std::vector<double>&
@@ -509,13 +526,15 @@ struct Graph {
   :param seed: The seed provided to the random number generator of the first
                chain.
   :param n_chains: The number of MCMC chains.
+  :param infer_config: Other parameters for infer.
   :returns: The posterior means from all chains.
   */
   std::vector<std::vector<double>>& infer_mean(
       uint num_samples,
       InferenceType algorithm,
       uint seed,
-      uint n_chains);
+      uint n_chains,
+      InferConfig infer_config = InferConfig());
   /*
   Use mean-field variational inference to infer the posterior mean, variance
   of the queried nodes in the graph.
@@ -593,6 +612,12 @@ struct Graph {
   :returns: The sum of log_prob of source node and all stochastic descendants.
   */
   double log_prob(uint src_idx);
+  /*
+  Evaluate the full log probability over the support of the graph.
+  :returns: The sum of log_prob of stochastic nodes in the support.
+  */
+  double full_log_prob();
+  std::vector<std::vector<double>>& get_log_prob();
   uint thread_index;
 
  private:
@@ -632,6 +657,16 @@ struct Graph {
       uint steps_per_iter,
       std::mt19937& gen,
       uint elbo_samples);
+  InferConfig infer_config;
+  /*
+  Evaluate the full log probability over the support of the graph.
+  :param ordered_supp: node pointers in the support in topological order.
+  :returns: The sum of log_prob of stochastic nodes in the support.
+  */
+  double _full_log_prob(std::vector<Node*>& ordered_supp);
+  void collect_log_prob(double log_prob);
+  std::vector<double> log_prob_vals;
+  std::vector<std::vector<double>> log_prob_allchains;
 };
 
 } // namespace graph

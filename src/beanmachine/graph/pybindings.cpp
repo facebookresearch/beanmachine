@@ -88,6 +88,13 @@ PYBIND11_MODULE(graph, module) {
 
   py::class_<Node>(module, "Node");
 
+  py::class_<InferConfig>(module, "InferConfig")
+      .def(py::init())
+      .def(py::init<bool, double, double>())
+      .def_readwrite("keep_log_prob", &InferConfig::keep_log_prob)
+      .def_readwrite("path_length", &InferConfig::path_length)
+      .def_readwrite("step_size", &InferConfig::step_size);
+
   py::class_<Graph>(module, "Graph")
       .def(py::init())
       .def("to_string", &Graph::to_string, "string representation of the graph")
@@ -244,13 +251,14 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "infer_mean",
           (std::vector<std::vector<double>> &
-           (Graph::*)(uint, InferenceType, uint, uint)) &
+           (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
               Graph::infer_mean,
           "infer the posterior mean of the queried nodes using multiple chains",
           py::arg("num_samples"),
           py::arg("algorithm") = InferenceType::GIBBS,
           py::arg("seed") = 5123401,
-          py::arg("n_chains"))
+          py::arg("n_chains"),
+          py::arg("infer_config") = InferConfig())
       .def(
           "infer",
           (std::vector<std::vector<NodeValue>> &
@@ -263,13 +271,14 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "infer",
           (std::vector<std::vector<std::vector<NodeValue>>> &
-           (Graph::*)(uint, InferenceType, uint, uint)) &
+           (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
               Graph::infer,
           "infer the empirical distribution of the queried nodes using multiple chains",
           py::arg("num_samples"),
           py::arg("algorithm") = InferenceType::GIBBS,
           py::arg("seed") = 5123401,
-          py::arg("n_chains"))
+          py::arg("n_chains"),
+          py::arg("infer_config") = InferConfig())
       .def(
           "variational",
           &Graph::variational,
@@ -281,7 +290,11 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "get_elbo",
           &Graph::get_elbo,
-          "get the evidence lower bound (ELBO) of the last variational call");
+          "get the evidence lower bound (ELBO) of the last variational call")
+      .def(
+          "get_log_prob",
+          &Graph::get_log_prob,
+          "get the log probabilities of all chains");
 }
 
 } // namespace graph

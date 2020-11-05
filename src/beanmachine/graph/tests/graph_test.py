@@ -327,3 +327,21 @@ class TestBayesNet(unittest.TestCase):
         self.assertAlmostEqual(means[0], -2.5)
         samples = g.infer(10)
         self.assertAlmostEqual(samples[0][0], -2.5)
+
+    def test_get_log_prob(self):
+        g, Rain, Sprinkler, GrassWet = self._create_graph()
+        g.observe(GrassWet, True)
+        g.query(Rain)
+        g.query(GrassWet)
+        conf = graph.InferConfig()
+        conf.keep_log_prob = True
+        g.infer(
+            num_samples=10,
+            algorithm=graph.InferenceType.GIBBS,
+            seed=123,
+            n_chains=2,
+            infer_config=conf,
+        )
+        log_probs = g.get_log_prob()
+        self.assertEqual(len(log_probs), 2)
+        self.assertEqual(len(log_probs[0]), 10)

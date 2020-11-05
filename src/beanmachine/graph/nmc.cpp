@@ -29,6 +29,7 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
   // pool : nodes that we will infer over -> det_desc, sto_desc
   std::set<uint> supp = compute_support();
   std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
+  std::vector<Node*> ordered_supp;
   for (uint node_id : supp) {
     Node* node = node_ptrs[node_id];
     bool node_is_not_observed = observed.find(node_id) == observed.end();
@@ -49,7 +50,11 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
     } else if (node_is_not_observed) {
       node->eval(gen); // evaluate the value of non-observed operator nodes
     }
+    if (infer_config.keep_log_prob) {
+      ordered_supp.push_back(node);
+    }
   }
+
   std::vector<NodeValue> old_values = std::vector<NodeValue>(nodes.size());
   assert(old_values.size() > 0); // keep linter happy
   // sampling outer loop
@@ -134,6 +139,9 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
         tgt_node->value = old_value;
       }
       tgt_node->grad1 = tgt_node->grad2 = 0;
+    }
+    if (infer_config.keep_log_prob) {
+      collect_log_prob(_full_log_prob(ordered_supp));
     }
     collect_sample();
   }
