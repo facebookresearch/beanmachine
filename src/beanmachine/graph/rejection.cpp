@@ -5,6 +5,13 @@ namespace beanmachine {
 namespace graph {
 
 void Graph::rejection(uint num_samples, std::mt19937& gen) {
+  std::vector<Node*> ordered_supp;
+  if (infer_config.keep_log_prob) {
+    std::set<uint> supp = compute_support();
+    for (uint node_id : supp) {
+      ordered_supp.push_back(nodes[node_id].get());
+    }
+  }
   for (uint snum = 0; snum < num_samples; snum++) {
     // rejection sampling
     bool rejected;
@@ -31,6 +38,9 @@ void Graph::rejection(uint num_samples, std::mt19937& gen) {
         }
       }
     } while (rejected);
+    if (infer_config.keep_log_prob) {
+      collect_log_prob(_full_log_prob(ordered_supp));
+    }
     collect_sample();
   }
 }
