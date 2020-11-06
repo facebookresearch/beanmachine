@@ -151,12 +151,6 @@ class MeanFieldVariationalInference(object, metaclass=ABCMeta):
                         proposer.target_log_prob = _target_log_prob
                         proposer.train(epochs=1, lr=lr)
 
-                # print the mean of the proposer for mu(), should drift towards 10
-                flow_stack = vi_dicts[queries[0]].flow_stack
-                z0 = flow_stack.mu.reshape((1, 1))
-                zk, _ = flow_stack.flow({0: z0, 1: 0.0})
-                print(zk)
-
         except BaseException as x:
             raise x
         finally:

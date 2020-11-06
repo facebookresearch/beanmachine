@@ -23,8 +23,8 @@ class VariationalInferTest(unittest.TestCase):
         vi.train(epochs=300)
 
         # compare 1D marginals of empirical distributions using 2-sample K-S test
-        nf_samples = nf.sample(sample_shape=(30, 2)).squeeze().numpy()
-        vi_samples = vi.sample((30, 2)).numpy()
+        nf_samples = nf.sample(sample_shape=(20, 2)).squeeze().numpy()
+        vi_samples = vi.sample((20, 2)).detach().numpy()
 
         self.assertTrue(
             scipy.stats.ks_2samp(nf_samples[:, 0], vi_samples[:, 0]).pvalue >= 0.05
