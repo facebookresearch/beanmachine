@@ -18,18 +18,19 @@ from .IAF import FlowStack
 
 
 class VariationalApproximation(dist.distribution.Distribution):
-    def __init__(self, target_log_prob=None, d=1):
+    def __init__(self, target_log_prob=None, n_flows=8, base_dist=dist.Normal(0, 1)):
+        assert len(base_dist.event_shape) <= 1, "VariationalApproximation currently only supports 0D and 1D tensors"
         super(VariationalApproximation, self).__init__()
         self.target_log_prob = target_log_prob
-        self.d = d
-        self.flow_stack = FlowStack(dim=self.d, n_flows=8)
+        self.flow_stack = FlowStack(n_flows=n_flows, base_dist=base_dist)
     
     def arg_constraints():
         # TODO(fixme)
         return dict()
 
     def train(self, epochs=100, lr=1e-2):
-        sample_shape = (100, self.d)
+        dim = self.flow_stack.base_dist.event_shape[0] if len(self.flow_stack.base_dist.event_shape) == 1 else 1
+        sample_shape = (100, dim)
         optim = torch.optim.Adam(self.flow_stack.parameters(), lr=lr)
 
         for i in range(epochs):
