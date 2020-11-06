@@ -56,6 +56,9 @@ class FlowStack(nn.Module):
         # eps = torch.randn(shape)  # unit gaussian
         eps = self.base_dist.sample(shape)
         z0 = self.mu + eps * std
+        if z0.ndim == 1:
+            # ensure tensor is 2D
+            z0 = z0.unsqueeze(1)
 
         zk, ldj = self.flow({0: z0, 1: 0.0})
         return z0, zk, self.mu, self.log_var, ldj
