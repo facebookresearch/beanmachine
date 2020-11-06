@@ -37,15 +37,33 @@ class LinearMasked(nn.Module):
             if c > 10:
                 break
             # m function of the paper. Every hidden node, gets a number between 1 and D-1
-            self.m = torch.randint(1, num_input_features, size=(out_features,)).type(
-                torch.int32
-            )
+            if num_input_features == 1:
+                self.m = torch.ones(size=(out_features,)).type(torch.int32)
+            else:
+                self.m = torch.randint(
+                    1, num_input_features, size=(out_features,)
+                ).type(torch.int32)
             if len(d - set(self.m.numpy())) == 0:
                 break
 
         self.register_buffer(
             "mask", torch.ones_like(self.linear.weight).type(torch.uint8)
         )
+
+    def forward(self, x):
+        if self.linear.bias is None:
+            b = 0
+        else:
+            b = self.linear.bias
+
+        return F.linear(x, self.linear.weight * self.mask, b)
+
+    def set_mask_output_layer(self, m_previous_layer):
+        # Output layer has different m-values.
+        # The connection is shifted one value to the right.
+        self.m = torch.arange(0, self.num_input_features)
+        self.set_mask(m_previous_layer)
+        return self
 
     def set_mask(self, m_previous_layer):
         """
@@ -60,13 +78,11 @@ class LinearMasked(nn.Module):
         """
         self.mask[...] = (m_previous_layer[:, None] <= self.m[None, :]).T
 
-    def forward(self, x):
-        if self.linear.bias is None:
-            b = 0
-        else:
-            b = self.linear.bias
-
-        return F.linear(x, self.linear.weight * self.mask, b)
+    def set_mask_input_layer(self):
+        m_input_layer = torch.arange(1, self.num_input_features + 1)
+        m_input_layer[-1] = 1e9
+        self.set_mask(m_input_layer)
+        return self
 
 
 class SequentialMasked(nn.Sequential):
@@ -79,7 +95,7 @@ class SequentialMasked(nn.Sequential):
             if not isinstance(layer, LinearMasked):
                 continue
             if not input_set:
-                layer = set_mask_input_layer(layer)
+                layer = layer.set_mask_input_layer()
                 m_previous_layer = layer.m
                 input_set = True
             else:
@@ -94,22 +110,7 @@ class SequentialMasked(nn.Sequential):
         # Get last masked layer
         layer = next(reversed_layers)
         prev_layer = next(reversed_layers)
-        set_mask_output_layer(layer, prev_layer.m)
-
-
-def set_mask_output_layer(layer, m_previous_layer):
-    # Output layer has different m-values.
-    # The connection is shifted one value to the right.
-    layer.m = torch.arange(0, layer.num_input_features)
-    layer.set_mask(m_previous_layer)
-    return layer
-
-
-def set_mask_input_layer(layer):
-    m_input_layer = torch.arange(1, layer.num_input_features + 1)
-    m_input_layer[-1] = 1e9
-    layer.set_mask(m_input_layer)
-    return layer
+        layer.set_mask_output_layer(prev_layer.m)
 
 
 class MADE(nn.Module):
