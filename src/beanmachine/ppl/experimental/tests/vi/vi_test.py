@@ -59,5 +59,4 @@ class VariationalInferTest(unittest.TestCase):
 
         mu_approx = vi_dicts[mu()]
         sample_mean = mu_approx.sample((100, 1)).mean()
-        print(sample_mean)
         self.assertTrue(sample_mean > 2.0)
