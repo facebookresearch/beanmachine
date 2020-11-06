@@ -18,19 +18,19 @@ from .IAF import FlowStack
 
 
 class VariationalApproximation(dist.distribution.Distribution):
-    def __init__(self, target_log_prob=None, n_flows=8, base_dist=dist.Normal(0, 1)):
+    def __init__(self, target_log_prob=None, num_flows=8, lr=1e-2, base_dist=dist.Normal(0, 1)):
         assert len(base_dist.event_shape) <= 1, "VariationalApproximation currently only supports 0D and 1D tensors"
         super(VariationalApproximation, self).__init__()
         self.target_log_prob = target_log_prob
-        self.flow_stack = FlowStack(n_flows=n_flows, base_dist=base_dist)
+        self.flow_stack = FlowStack(num_flows=num_flows, base_dist=base_dist)
+        self.optim = torch.optim.Adam(self.flow_stack.parameters(), lr=lr)
     
     def arg_constraints():
         # TODO(fixme)
         return dict()
 
-    def train(self, epochs=100, lr=1e-2):
-        optim = torch.optim.Adam(self.flow_stack.parameters(), lr=lr)
-
+    def train(self, epochs=100):
+        optim = self.optim
         for i in range(epochs):
             z0, zk, mu, log_var, ldj = self.flow_stack(shape=(100,))
             n, d = z0.shape
@@ -102,6 +102,7 @@ class MeanFieldVariationalInference(object, metaclass=ABCMeta):
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, Tensor],
         num_iter: int = 100,
+        num_flows: int = 8,
         lr: float = 1e-2,
     ) -> Dict[RVIdentifier, VariationalApproximation]:
         try:
@@ -113,7 +114,7 @@ class MeanFieldVariationalInference(object, metaclass=ABCMeta):
             self.observations_ = observations
 
             # TODO: handle dimension
-            vi_dicts = defaultdict(VariationalApproximation)
+            vi_dicts = defaultdict(lambda: VariationalApproximation(num_flows=num_flows, lr=lr))
             for iteration in tqdm(
                 iterable=range(num_iter),
                 desc="Training iterations",
@@ -128,10 +129,8 @@ class MeanFieldVariationalInference(object, metaclass=ABCMeta):
                     get_wrapper(node.function)(*node.arguments)
                 self.world_.accept_diff()
 
-                # propose each node using Variational approx, accumulating logQ/logP
                 nodes = list(self.world_.get_all_world_vars().items())
                 shuffle(nodes)
-                # loss = tensor(0.0)
                 for rvid, node_var in nodes:
                     if rvid in self.observations_:
                         continue
@@ -142,14 +141,15 @@ class MeanFieldVariationalInference(object, metaclass=ABCMeta):
                             self.world_.propose_change(
                                 rvid, x, start_new_diff=True
                             )
-                            log_prob = node_var.distribution.log_prob(x)
+                            # sum here to prevent broadcasting of child log_prob
+                            log_prob = node_var.distribution.log_prob(x).sum()
                             for child in node_var.children:
                                 child_var = self.world_.get_node_in_world_raise_error(child)
                                 log_prob += child_var.log_prob
                             self.world_.reject_diff()
                             return log_prob
                         proposer.target_log_prob = _target_log_prob
-                        proposer.train(epochs=1, lr=lr)
+                        proposer.train(epochs=1)
 
         except BaseException as x:
             raise x
