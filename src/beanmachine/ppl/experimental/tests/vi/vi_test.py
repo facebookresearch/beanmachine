@@ -30,11 +30,13 @@ class VariationalInferTest(unittest.TestCase):
         nf_samples = nf.sample((20,)).squeeze().numpy()
         vi_samples = vi.sample((20,)).detach().numpy()
 
-        self.assertTrue(
-            scipy.stats.ks_2samp(nf_samples[:, 0], vi_samples[:, 0]).pvalue >= 0.05
+        self.assertGreaterEqual(
+            scipy.stats.ks_2samp(nf_samples[:, 0], vi_samples[:, 0]).pvalue,
+            0.05
         )
-        self.assertTrue(
-            scipy.stats.ks_2samp(nf_samples[:, 1], vi_samples[:, 1]).pvalue >= 0.05
+        self.assertGreaterEqual(
+            scipy.stats.ks_2samp(nf_samples[:, 1], vi_samples[:, 1]).pvalue,
+            0.05
         )
 
     def test_normal_normal(self):
@@ -59,4 +61,4 @@ class VariationalInferTest(unittest.TestCase):
 
         mu_approx = vi_dicts[mu()]
         sample_mean = mu_approx.sample((100, 1)).mean()
-        self.assertTrue(sample_mean > 2.0)
+        self.assertTrue(sample_mean > 8.0)

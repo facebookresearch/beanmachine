@@ -29,20 +29,19 @@ class VariationalApproximation(dist.distribution.Distribution):
         return dict()
 
     def train(self, epochs=100, lr=1e-2):
-        dim = self.flow_stack.base_dist.event_shape[0] if len(self.flow_stack.base_dist.event_shape) == 1 else 1
-        sample_shape = (100, dim)
         optim = torch.optim.Adam(self.flow_stack.parameters(), lr=lr)
 
         for i in range(epochs):
-            z0, zk, mu, log_var, ldj = self.flow_stack(shape=sample_shape)
+            z0, zk, mu, log_var, ldj = self.flow_stack(shape=(100,))
+            n, d = z0.shape
+            std = torch.exp(0.5 * log_var)
 
             # negative ELBO loss
 
             # entropy H(Q)
-            loss = (
-                dist.Normal(mu, torch.exp(0.5 * log_var)).log_prob(z0).sum()
-            )  # Q(z_0)
-            loss -= ldj.sum()  # transport to Q(z_k) via - sum log det jac
+            loss = self.flow_stack.base_dist.log_prob((z0 - mu) / std).sum()  # Q((z_0 - mu)/sigma)
+            loss -= n * log_var.sum() / 2.0  # jac from standardizing z0
+            loss -= ldj.sum()  # change of variable zk -> z0
 
             # negative cross-entropy -H(Q,P)
             loss -= self.target_log_prob(zk).sum()
