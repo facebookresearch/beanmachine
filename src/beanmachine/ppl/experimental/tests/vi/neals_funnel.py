@@ -19,7 +19,7 @@ class NealsFunnel(dist.distribution.Distribution):
 
     def rsample(self, sample_shape=torch.Size()):
         eps = _standard_normal(
-            sample_shape, dtype=torch.float, device=torch.device("cpu")
+            (sample_shape[0], 2), dtype=torch.float, device=torch.device("cpu")
         )
         z = torch.zeros(eps.shape)
         z[..., 1] = torch.tensor(3.0) * eps[..., 1]

@@ -1,4 +1,5 @@
 import torch
+import torch.distributions as dist
 import torch.nn as nn
 
 from .MADE import AutoRegressiveNN
@@ -41,15 +42,19 @@ class IAF(nn.Module):
 
 
 class FlowStack(nn.Module):
-    def __init__(self, dim, n_flows):
+    def __init__(self, n_flows, base_dist=dist.Normal(0, 1)):
         super().__init__()
+        self.base_dist = base_dist
+        assert len(base_dist.event_shape) <= 1
+        dim = base_dist.event_shape[0] if len(base_dist.event_shape) == 1 else 1
         self.flow = nn.Sequential(*[IAF(dim) for _ in range(n_flows)])
         self.mu = nn.Parameter(torch.randn(dim,).normal_(0, 0.01))
         self.log_var = nn.Parameter(torch.randn(dim,).normal_(1, 0.01))
 
     def forward(self, shape):
         std = torch.exp(0.5 * self.log_var)
-        eps = torch.randn(shape)  # unit gaussian
+        # eps = torch.randn(shape)  # unit gaussian
+        eps = self.base_dist.sample(shape)
         z0 = self.mu + eps * std
 
         zk, ldj = self.flow({0: z0, 1: 0.0})
