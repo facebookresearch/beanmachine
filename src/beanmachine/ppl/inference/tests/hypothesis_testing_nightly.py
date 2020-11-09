@@ -46,6 +46,10 @@ class HypothesisTestingTest(unittest.TestCase):
         return true_mean, true_std
 
     # Main procedure for testing the hypothesis test
+    # It works by checking the p-value semantics of the mean equality
+    # hypothesis test. By default it uses 100 batches of
+    # 1000 samples of 1000 elements.
+
     def run_mean_equality_hypothesis_test_on_synthetic_samples(
         self, samples=1000, sample_size=1000, p_value=0.01, random_seed=None
     ):
