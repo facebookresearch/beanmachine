@@ -2,8 +2,11 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
+import scipy.stats
 import torch
 import torch.tensor as tensor
+from beanmachine.ppl.diagnostics.common_statistics import effective_sample_size
 from beanmachine.ppl.examples.conjugate_models.beta_binomial import BetaBinomialModel
 from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
     CategoricalDirichletModel,
@@ -13,6 +16,10 @@ from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalMo
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
 from beanmachine.ppl.inference.abstract_infer import AbstractInference
 from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.testlib.hypothesis_testing import (
+    mean_equality_hypothesis_confidence_interval,
+    mean_equality_hypothesis_test,
+)
 from torch import Tensor
 
 
@@ -32,7 +39,10 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param predictions: tensor of samples
         :returns: mean and standard deviation of the tensor of samples.
         """
-        return (torch.mean(predictions, 0), torch.std(predictions, 0))
+        return (
+            torch.mean(predictions, 0),
+            torch.std(predictions, 0, unbiased=True, keepdim=True),
+        )
 
     def compute_beta_binomial_moments(
         self,
@@ -55,7 +65,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mean_prime = alpha_prime / (alpha_prime + beta_prime)
         std_prime = (
             (alpha_prime * beta_prime)
-            / ((alpha_prime + beta_prime).pow(2.0) * (alpha_prime + beta + 1.0))
+            / ((alpha_prime + beta_prime).pow(2.0) * (alpha_prime + beta_prime + 1.0))
         ).pow(0.5)
 
         return (mean_prime, std_prime, queries, observations)
@@ -124,7 +134,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))) * (
             mu / std.pow(2.0) + obs / sigma.pow(2.0)
         )
-        expected_std = (std.pow(2.0) + sigma.pow(2.0)).pow(-0.5)
+        expected_std = (std.pow(-2.0) + sigma.pow(-2.0)).pow(-0.5)
         # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor, List[RVIdentifier],
         #  Dict[RVIdentifier, Tensor]]` but got `Tuple[float, typing.Any,
         #  List[typing.Any], Dict[typing.Any, typing.Any]]`.
@@ -148,7 +158,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))) * (
             mu / std.pow(2.0) + obs / sigma.pow(2.0)
         )
-        expected_std = (std.pow(2.0) + sigma.pow(2.0)).pow(-0.5)
+        expected_std = (std.pow(-2.0) + sigma.pow(-2.0)).pow(-0.5)
         return (expected_mean, expected_std, queries, observations)
 
     def compute_dirichlet_categorical_moments(self):
@@ -166,7 +176,9 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         observations = {model.categorical(): obs}
         alpha = alpha + tensor([0.0, 1.0])
         expected_mean = alpha / alpha.sum()
-        expected_std = expected_mean * (1 - expected_mean) / (alpha.sum() + 1)
+        expected_std = (expected_mean * (1 - expected_mean) / (alpha.sum() + 1)).pow(
+            0.5
+        )
         return (expected_mean, expected_std, queries, observations)
 
     def _compare_run(
@@ -178,7 +190,15 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         delta: float,
         random_seed: Optional[int],
         num_adaptive_samples: int = 0,
+        p_value: float = 0.01,
     ):
+        # Helper functions for p-value tests
+        def chi2(p_value, df):
+            return scipy.stats.chi2.ppf(p_value, df)
+
+        def z(p_value):
+            return scipy.stats.norm.ppf(p_value)
+
         expected_mean, expected_std, queries, observations = moments
 
         if random_seed is not None:
@@ -191,12 +211,91 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             num_chains=num_chains,
             num_adaptive_samples=num_adaptive_samples,
         )
+
         for i in range(predictions.get_num_chains()):
-            mean, _ = self.compute_statistics(predictions.get_chain(i)[queries[0]])
+            sample = predictions.get_chain(i)[queries[0]]
+            mean, std = self.compute_statistics(sample)
+            total_samples = tensor(sample.size())[0].item()
+            n_eff = effective_sample_size(sample.unsqueeze(dim=0))
+
+            # TODO: Once p-value tests are working, the following should be removed
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
             #  `assertAlmostEqual`.
             self.assertAlmostEqual(
                 torch.abs(mean - expected_mean).sum().item(), 0, delta=delta
+            )
+            # p-value Testing
+            # First, let's start by making sure that we can assume normalcy of means
+            # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
+            #  `assertGreaterEqual`.
+            self.assertGreaterEqual(
+                total_samples, 30, msg="Sample size too small for normalcy assumption"
+            )
+            self.assertGreaterEqual(
+                torch.min(n_eff).item(),
+                30,
+                msg="Effective sample size too small for normalcy assumption",
+            )
+            # Second, let us check the means using confidence intervals:
+            lower_bound, upper_bound = mean_equality_hypothesis_confidence_interval(
+                expected_mean, expected_std, n_eff, p_value
+            )
+            below_upper = torch.min(lower_bound <= mean).item()
+            above_lower = torch.min(mean <= upper_bound).item()
+            accept_interval = below_upper and above_lower
+            message = "abs(mean - expected_mean) * sqr(n_eff) / expected_std = " + str(
+                torch.abs(mean - expected_mean) / (expected_std / np.sqrt(n_eff))
+            )
+            message = (
+                " p_value = "
+                + str(p_value)
+                + " z_alpha/2 = "
+                + str(z(1 - p_value / 2))
+                + " => "
+                + message
+            )
+            message = (
+                str(lower_bound)
+                + " <= "
+                + str(mean)
+                + " <= "
+                + str(upper_bound)
+                + ". "
+                + message
+            )
+            message = "Mean outside confidence interval. Expected: " + message
+            # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
+            #  `assertLessTrue`.
+            self.assertTrue(accept_interval, msg=message)
+            # Here is the old way to check the means
+            # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
+            #  `assertLessEqual`.
+            # The following is a round about way of doing lhs<=rhs using =
+            self.assertLessEqual(
+                torch.max(
+                    torch.abs(mean - expected_mean) / (expected_std / np.sqrt(n_eff))
+                ).item(),
+                z(1 - p_value / 2),
+                msg="Failed mean test",
+            )
+            self.assertTrue(
+                mean_equality_hypothesis_test(
+                    mean, expected_mean, expected_std, n_eff, p_value
+                ),
+                msg="Failed equal mean hypothesis test",
+            )
+            continue
+            # Third, let's check the variance
+            normalized_ratio = (n_eff - 1) * std.pow(2) / expected_std.pow(2)
+            self.assertLessEqual(
+                chi2(p_value / 2, n_eff - 1),
+                torch.min(normalized_ratio).item(),
+                msg="Failed first part of standard deviation test",
+            )
+            self.assertLessEqual(
+                torch.max(normalized_ratio).item(),
+                chi2(1 - p_value / 2, n_eff - 1),
+                msg="Failed second part of standard deviation test",
             )
 
     def beta_binomial_conjugate_run(
