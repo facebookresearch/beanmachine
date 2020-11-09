@@ -2,6 +2,7 @@
 import unittest
 
 from beanmachine.ppl.testlib.hypothesis_testing import (
+    inverse_chi2_cdf,
     inverse_normal_cdf,
     mean_equality_hypothesis_test,
 )
@@ -131,4 +132,52 @@ class HypothesisTestingTest(unittest.TestCase):
         )
         self.assertEqual(
             observed_result, False, msg="Mean is not within confidence interval"
+        )
+
+    def test_hypothesis_test_inverse_chi2_cdf(self) -> None:
+        """Minimal test for inverse chi-squared CDF used to calculate chi2 values"""
+
+        # Check that the median has the probability we expect
+        # A rule of thumb for chi2 is that median is df-0.7
+        # in this test we pick a more specific value from test run
+        median = inverse_chi2_cdf(100, 0.5)
+        self.assertEqual(
+            median,
+            99.33412923598846,
+            msg="Unexpected value for median of normal distribution",
+        )
+
+        # Record and check the values we get for chi2_0.01
+        # From C.M. Thompson tables from 1941, we expect 70.0648
+        # more specific value reflects results from test run
+        # NB: Test run appears to contradict least significant
+        # digit in table the table cited above, but not if we take
+        # into account p used for lookup in distribution
+        # is 0.990, which suggests only on 4 digits are valid.
+        expected_chi2_one_percent = 70.06489492539978
+        observed_chi2_one_percent = inverse_chi2_cdf(100, 0.01)
+        self.assertEqual(
+            observed_chi2_one_percent,
+            expected_chi2_one_percent,
+            msg="Expected value for chi2_0.01",
+        )
+
+        # Record and check the values we get for chi2_0.99
+        # Table above predicts 135.807
+        expected_chi2_99_percent = 135.80672317102676
+        observed_chi2_99_percent = inverse_chi2_cdf(100, 1 - 0.01)
+        self.assertEqual(
+            observed_chi2_99_percent,
+            expected_chi2_99_percent,
+            msg="Expected value for chi2_0.99",
+        )
+
+        # Record and check the values we get for chi2_0.005
+        # Table above predicts 67.3276
+        expected_chi2_half_percent = 67.32756330547916
+        observed_chi2_half_percent = inverse_chi2_cdf(100, 0.005)
+        self.assertEqual(
+            observed_chi2_half_percent,
+            expected_chi2_half_percent,
+            msg="Expected value for chi2_0.005",
         )

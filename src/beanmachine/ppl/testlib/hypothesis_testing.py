@@ -15,6 +15,10 @@ from torch import Tensor, abs, max, min, prod, tensor
 # Inverse of CDF of normal distribution at given probability
 inverse_normal_cdf = stats.norm.ppf
 
+# Inverse of CDF of chi-squared distribution at given probability
+def inverse_chi2_cdf(df, p):
+    return stats.chi2(df).ppf(p)
+
 
 # The hypothesis test proper
 def mean_equality_hypothesis_confidence_interval(
