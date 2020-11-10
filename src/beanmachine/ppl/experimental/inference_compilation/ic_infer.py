@@ -145,7 +145,7 @@ class ICInference(AbstractMHInference):
         LOGGER_IC.warn(f"No IC artifact found for {node}, using ancestral proposer.")
         return SingleSiteAncestralProposer()
 
-    def compile(
+    def compile(  # noqa: C901
         self,
         observation_keys: Sequence[RVIdentifier],
         num_worlds: int = 100,
