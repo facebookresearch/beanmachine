@@ -26,8 +26,8 @@ class Predictive(object):
     Class for the posterior predictive distribution.
     """
 
-    @staticmethod
-    def simulate(
+    @staticmethod  # noqa: C901
+    def simulate(  # noqa: C901
         queries: List[RVIdentifier],
         posterior: Optional[MonteCarloSamples] = None,
         num_samples: Optional[int] = None,

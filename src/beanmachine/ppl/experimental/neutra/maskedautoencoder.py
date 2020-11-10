@@ -76,7 +76,7 @@ class MaskedAutoencoder(nn.Module):
         g1.manual_seed(seed_num)  # assign a seed to generator
         self.create_masks_(in_layer, out_layer, n_block, hidden_layer, g1)
 
-    def create_masks_(
+    def create_masks_(  # noqa: C901
         self, in_layer: int, out_layer: int, n_block: int, hidden_layer: int, g1: Any
     ) -> None:
         """
