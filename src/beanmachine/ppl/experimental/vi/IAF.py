@@ -42,20 +42,21 @@ class IAF(nn.Module):
 
 
 class FlowStack(nn.Module):
-    def __init__(self, num_flows, base_dist=dist.Normal(0, 1)):
+    def __init__(self, num_flows, base_dist=dist.Normal, base_args={}):
         super().__init__()
         self.base_dist = base_dist
-        assert len(base_dist.event_shape) <= 1
-        dim = base_dist.event_shape[0] if len(base_dist.event_shape) == 1 else 1
+        self.base_args = base_args
+        # assert len(base_dist.event_shape) <= 1
+        dim = base_dist(**base_args).event_shape[0] if len(base_dist(**base_args).event_shape) == 1 else 1
         self.flow = nn.Sequential(*[IAF(dim) for _ in range(num_flows)])
         self.mu = nn.Parameter(torch.randn(dim,).normal_(0, 0.01))
         self.log_var = nn.Parameter(torch.randn(dim,).normal_(1, 0.01))
 
     def forward(self, shape):
-        std = torch.exp(0.5 * self.log_var)
+        # std = torch.exp(0.5 * self.log_var)
         # eps = torch.randn(shape)  # unit gaussian
-        eps = self.base_dist.sample(shape)
-        z0 = self.mu + eps * std
+        #z0 = self.mu + eps * std
+        z0 = self.base_dist(**self.base_args).sample(shape)
         if z0.ndim == 1:
             # ensure tensor is 2D
             z0 = z0.unsqueeze(1)

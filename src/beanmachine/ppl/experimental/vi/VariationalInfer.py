@@ -2,7 +2,7 @@ import random
 from abc import ABCMeta
 from collections import defaultdict
 from random import shuffle
-from typing import ClassVar, Dict, List
+from typing import ClassVar, Dict, List, Optional
 
 import torch
 import torch.optim
@@ -18,12 +18,14 @@ from .IAF import FlowStack
 
 
 class VariationalApproximation(dist.distribution.Distribution):
-    def __init__(self, target_log_prob=None, num_flows=8, lr=1e-2, base_dist=dist.Normal(0, 1)):
-        assert len(base_dist.event_shape) <= 1, "VariationalApproximation currently only supports 0D and 1D tensors"
+    def __init__(self, target_log_prob=None, num_flows=8, lr=1e-2, base_dist=dist.Normal, base_args={}):
+        #assert len(base_dist.event_shape) <= 1, "VariationalApproximation currently only supports 0D and 1D tensors"
         super(VariationalApproximation, self).__init__()
         self.target_log_prob = target_log_prob
-        self.flow_stack = FlowStack(num_flows=num_flows, base_dist=base_dist)
-        self.optim = torch.optim.Adam(self.flow_stack.parameters(), lr=lr)
+        self.flow_stack = FlowStack(num_flows=num_flows, base_dist=base_dist, base_args=base_args)
+        self.optim = torch.optim.Adam(
+            list(self.flow_stack.parameters()) + list(base_args.values()), 
+            lr=lr)
     
     def arg_constraints():
         # TODO(fixme)
@@ -34,13 +36,17 @@ class VariationalApproximation(dist.distribution.Distribution):
         for i in range(epochs):
             z0, zk, mu, log_var, ldj = self.flow_stack(shape=(100,))
             n, d = z0.shape
-            std = torch.exp(0.5 * log_var)
+            # std = torch.exp(0.5 * log_var)
 
             # negative ELBO loss
 
             # entropy H(Q)
-            loss = self.flow_stack.base_dist.log_prob((z0 - mu) / std).sum()  # Q((z_0 - mu)/sigma)
-            loss -= n * log_var.sum() / 2.0  # jac from standardizing z0
+            # base_args = {mu, sigma} for normal, {nu, mu, sigma} for StudentT
+            loss = self.flow_stack.base_dist(**self.flow_stack.base_args).log_prob(z0).sum()
+
+            #loss = self.flow_stack.base_dist.log_prob((z0 - mu) / std).sum()  # Q((z_0 - mu)/sigma)
+            #loss -= n * log_var.sum() / 2.0  # jac from standardizing z0, TODO: only valid for normal
+
             loss -= ldj.sum()  # change of variable zk -> z0
 
             # negative cross-entropy -H(Q,P)
@@ -58,7 +64,7 @@ class VariationalApproximation(dist.distribution.Distribution):
         return xs
 
     def parameters(self):
-        return self.flow_stack.parameters()
+        return list(self.flow_stack.parameters()) + list(self.flow_stack.base_args.values())
 
     def log_prob(self, value):
         # if z' = f(z), Q(z') = Q(z) |det df/dz|^{-1}
@@ -73,10 +79,8 @@ class VariationalApproximation(dist.distribution.Distribution):
             z_prev = (z - (1 - sigma_t) * m_t) / sigma_t
             z = z_prev
         return (
-            dist.Independent(
-                dist.Normal(self.flow_stack.mu, torch.exp(self.flow_stack.log_var / 2)),
-                1,
-            ).log_prob(z)
+            self.flow_stack.base_dist(**self.flow_stack.base_args)
+            .log_prob(z).squeeze()
             - ldj
         )
 
@@ -104,6 +108,8 @@ class MeanFieldVariationalInference(object, metaclass=ABCMeta):
         num_iter: int = 100,
         num_flows: int = 8,
         lr: float = 1e-2,
+        base_dist: Optional[dist.Distribution] = dist.Normal,
+        base_args = {'loc': torch.tensor(0.0), 'scale': torch.tensor(1.0)},
     ) -> Dict[RVIdentifier, VariationalApproximation]:
         try:
             random_seed = (
@@ -114,7 +120,11 @@ class MeanFieldVariationalInference(object, metaclass=ABCMeta):
             self.observations_ = observations
 
             # TODO: handle dimension
-            vi_dicts = defaultdict(lambda: VariationalApproximation(num_flows=num_flows, lr=lr))
+            vi_dicts = defaultdict(lambda: VariationalApproximation(
+                num_flows=num_flows, 
+                lr=lr, 
+                base_dist=base_dist,
+                base_args=base_args))
             for iteration in tqdm(
                 iterable=range(num_iter),
                 desc="Training iterations",

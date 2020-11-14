@@ -13,6 +13,15 @@ from beanmachine.ppl.experimental.tests.vi.neals_funnel import NealsFunnel
 
 
 class VariationalInferTest(unittest.TestCase):
+    class NormalNormal:
+        @bm.random_variable
+        def mu(self):
+            return dist.Normal(0, 10)
+
+        @bm.random_variable
+        def x(self, i):
+            return dist.Normal(self.mu(), 1)
+
     def tearDown(self) -> None:
         StatisticalModel.reset()
 
@@ -40,25 +49,42 @@ class VariationalInferTest(unittest.TestCase):
         )
 
     def test_normal_normal(self):
-        @bm.random_variable
-        def mu():
-            return dist.Normal(0, 10)
-
-        @bm.random_variable
-        def x(i):
-            return dist.Normal(mu(), 1)
-
+        model = self.NormalNormal()
         vi = MeanFieldVariationalInference()
         vi_dicts = vi.infer(
-            queries=[mu()],
+            queries=[model.mu()],
             observations={
-                x(1): torch.tensor(9.0),
-                x(2): torch.tensor(10.0),
+                model.x(1): torch.tensor(9.0),
+                model.x(2): torch.tensor(10.0),
             },
             num_iter=100,
             lr=1e-1,
         )
 
-        mu_approx = vi_dicts[mu()]
+        mu_approx = vi_dicts[model.mu()]
         sample_mean = mu_approx.sample((100, 1)).mean()
-        self.assertTrue(sample_mean > 8.0)
+        self.assertGreater(sample_mean, 8.0)
+
+        sample_var = mu_approx.sample((100, 1)).var()
+        self.assertGreater(sample_var, 0.3)
+
+    def test_normal_normal_studentt_base_dist(self):
+        model = self.NormalNormal()
+        vi = MeanFieldVariationalInference()
+        vi_dicts = vi.infer(
+            queries=[model.mu()],
+            observations={
+                model.x(1): torch.tensor(9.0),
+                model.x(2): torch.tensor(10.0),
+            },
+            num_iter=100,
+            lr=1e-1,
+            base_dist=dist.StudentT(df=1),
+        )
+
+        mu_approx = vi_dicts[model.mu()]
+        sample_mean = mu_approx.sample((100, 1)).mean()
+        self.assertGreater(sample_mean, 8.0)
+
+        sample_var = mu_approx.sample((100, 1)).var()
+        self.assertGreater(sample_var, 0.3)
