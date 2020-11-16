@@ -47,6 +47,7 @@ class FlowStack(nn.Module):
         self.base_dist = base_dist
         self.base_args = base_args
         # assert len(base_dist.event_shape) <= 1
+        assert self.base_dist(**self.base_args).has_rsample
         dim = base_dist(**base_args).event_shape[0] if len(base_dist(**base_args).event_shape) == 1 else 1
         self.flow = nn.Sequential(*[IAF(dim) for _ in range(num_flows)])
         self.mu = nn.Parameter(torch.randn(dim,).normal_(0, 0.01))
@@ -56,7 +57,7 @@ class FlowStack(nn.Module):
         # std = torch.exp(0.5 * self.log_var)
         # eps = torch.randn(shape)  # unit gaussian
         #z0 = self.mu + eps * std
-        z0 = self.base_dist(**self.base_args).sample(shape)
+        z0 = self.base_dist(**self.base_args).rsample(shape)
         if z0.ndim == 1:
             # ensure tensor is 2D
             z0 = z0.unsqueeze(1)

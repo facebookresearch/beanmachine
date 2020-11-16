@@ -24,8 +24,9 @@ class VariationalApproximation(dist.distribution.Distribution):
         self.target_log_prob = target_log_prob
         self.flow_stack = FlowStack(num_flows=num_flows, base_dist=base_dist, base_args=base_args)
         self.optim = torch.optim.Adam(
-            list(self.flow_stack.parameters()) + list(base_args.values()), 
+            list(self.flow_stack.parameters()) + list(self.flow_stack.base_args.values()), 
             lr=lr)
+        self.has_rsample = True
     
     def arg_constraints():
         # TODO(fixme)
@@ -54,17 +55,17 @@ class VariationalApproximation(dist.distribution.Distribution):
 
             # normalize by batch size
             loss /= z0.size(0)
+            if not torch.isnan(loss):
+                loss.backward(retain_graph=True)
+                optim.step()
+                optim.zero_grad()
 
-            loss.backward()
-            optim.step()
-            optim.zero_grad()
-
-    def sample(self, sample_shape=torch.Size()):
+    def rsample(self, sample_shape=torch.Size()):
         _, xs, _, _, _ = self.flow_stack(shape=sample_shape)
         return xs
 
     def parameters(self):
-        return list(self.flow_stack.parameters()) + list(self.flow_stack.base_args.values())
+        return list(self.flow_stack.parameters()) + list(filter(lambda x: x.requires_grad, self.flow_stack.base_args.values()))
 
     def log_prob(self, value):
         # if z' = f(z), Q(z') = Q(z) |det df/dz|^{-1}
