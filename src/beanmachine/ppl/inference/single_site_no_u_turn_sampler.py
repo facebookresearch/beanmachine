@@ -17,6 +17,7 @@ class SingleSiteNoUTurnSampler(AbstractMHInference):
 
     def __init__(
         self,
+        use_dense_mass_matrix: bool = True,
         transform_type: TransformType = TransformType.DEFAULT,
         transforms: Optional[List] = None,
     ):
@@ -26,6 +27,7 @@ class SingleSiteNoUTurnSampler(AbstractMHInference):
             transforms=transforms,
         )
         self.proposer_ = {}
+        self.use_dense_mass_matrix = use_dense_mass_matrix
 
     def find_best_single_site_proposer(self, node: RVIdentifier):
         """
@@ -36,5 +38,7 @@ class SingleSiteNoUTurnSampler(AbstractMHInference):
         :returns: a proposer for the node
         """
         if node not in self.proposer_:
-            self.proposer_[node] = SingleSiteNoUTurnSamplerProposer()
+            self.proposer_[node] = SingleSiteNoUTurnSamplerProposer(
+                self.use_dense_mass_matrix
+            )
         return self.proposer_[node]

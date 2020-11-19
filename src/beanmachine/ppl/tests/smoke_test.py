@@ -34,6 +34,6 @@ class ToplevelSmokeTest(unittest.TestCase):
 
         # NUTS
         samples = bm.SingleSiteNoUTurnSampler().infer(
-            [bar()], {foo(0): tensor(0.0)}, 500, 1, num_adaptive_samples=500
+            [bar()], {foo(0): tensor(0.0)}, 100, 1, num_adaptive_samples=200
         )
         bm.Diagnostics(samples)

@@ -15,7 +15,7 @@ from torch import Tensor, tensor
 
 
 class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
-    def __init__(self):
+    def __init__(self, use_dense_mass_matrix: bool = True):
         super().__init__()
         # NUTS parameters
         self.max_depth = 5
@@ -25,11 +25,18 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         self.ratio = tensor(0.0)
 
         # mass matrix parameters
-        self.mass_matrix_initialized = False
-        self.sample_mean = None
-        self.co_moment = None
-        self.covariance = None
-        self.no_cov_iterations = 1000
+        self.use_dense_mass_matrix = use_dense_mass_matrix
+        if self.use_dense_mass_matrix:
+            self.mass_matrix_initialized = False
+            self.sample_mean = None
+            self.co_moment = None
+            self.start_cov = 75
+            self.initial_window_size = 25
+            self.window_size = self.initial_window_size
+            self.covariance = None
+            self.track_covariance = None
+            self.l_inv = None
+            self.covariance_diagonal_padding = 1e-6
 
         # step size parameters
         self.initialized = False
@@ -142,7 +149,7 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         :param world: the world in which we have already proposed a new value
         for node.
         :param ratio: the ratio that we want to converge
-        :param iteration_number: The current iteration of inference
+        :param iteration_number: the current iteration of inference
         """
         iteration_number = tensor(iteration_number, dtype=self.ratio.dtype).detach()
         closeness_frac = 1 / (iteration_number + self.t)
@@ -168,6 +175,75 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         self.closeness = self.closeness.detach()
         self.mu = self.mu.detach()
 
+    def _adapt_mass_matrix(self, node: RVIdentifier, world: World, iteration: int):
+        """
+        The mass matrix is approximated using the covariance of the samples
+        Calculated using online covariance algorithm
+        https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online
+
+        :param node: the node for which we have already proposed a new value for
+        :param world: the world in which we have already proposed a new value
+        for node
+        :param iteration: the current iteration of inference
+        """
+        if iteration <= self.start_cov:
+            return
+
+        # detach everything
+        if self.sample_mean is not None:
+            self.sample_mean = self.sample_mean.detach()
+        if self.track_covariance is not None:
+            self.track_covariance = self.track_covariance.detach()
+        if self.covariance is not None:
+            self.covariance = self.covariance.detach()
+        if self.l_inv is not None:
+            self.l_inv = self.l_inv.detach()
+
+        # calculate the iteration for the warmup window
+        window_iteration = (
+            iteration - self.start_cov - self.window_size + self.initial_window_size
+        )
+
+        # calculate co-moment
+        node_var = world.variables_.get_node_raise_error(node)
+        sample = node_var.transformed_value
+        sample_vector = torch.reshape(sample, (-1,))
+        if self.sample_mean is None:
+            self.sample_mean = torch.zeros(len(sample_vector), dtype=sample.dtype)
+            self.co_moment = torch.zeros(
+                len(sample_vector), len(sample_vector), dtype=sample.dtype
+            )
+        old_sample_mean = self.sample_mean
+        self.sample_mean = (
+            self.sample_mean + (sample_vector - self.sample_mean) / iteration
+        )
+        x_term = (sample_vector - old_sample_mean).unsqueeze(0).T
+        y_term = (sample_vector - self.sample_mean).unsqueeze(0)
+        self.co_moment = self.co_moment + torch.matmul(x_term, y_term)
+
+        self.track_covariance = self.co_moment / window_iteration
+
+        # update mass matrix at the end of the window
+        if window_iteration == self.window_size:
+            # update mass matrix and l_inv
+            self.covariance = self.track_covariance.detach()
+            self.covariance = (
+                self.covariance
+                + torch.eye(len(self.covariance)) * self.covariance_diagonal_padding
+            )
+            lower = torch.cholesky(self.covariance)
+            identity_matrix = torch.eye(lower.size(-1), dtype=lower.dtype)
+            self.l_inv = torch.triangular_solve(
+                identity_matrix, lower, upper=False
+            ).solution
+            # reset sample mean and covariance
+            self.sample_mean = torch.zeros(len(sample_vector), dtype=sample.dtype)
+            self.co_moment = torch.zeros(
+                len(sample_vector), len(sample_vector), dtype=sample.dtype
+            )
+            # update window size
+            self.window_size *= 2
+
     def do_adaptation(
         self,
         node: RVIdentifier,
@@ -178,8 +254,12 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         is_accepted: bool,
     ) -> None:
         """
-        To be implemented by proposers that are capable of adaptation at
-        the beginning of the chain.
+        The adaptation uses warmup phases as described by Stan
+        https://mc-stan.org/docs/2_25/reference-manual/hmc-algorithm-parameters.html
+        Phase 1: start_cov initial iterations for adapting the step size
+        Phase 2: growing slow intervals starting with initial_window_size
+            for adapting the step size and covariance
+        Phase 3: remaining iterations for adapting the step size
 
         :param node: the node for which we have already proposed a new value for.
         :param world: the world in which we have already proposed a new value
@@ -200,6 +280,8 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             self.initialized = True
 
         self._adapt_step_size(node, world, iteration_number)
+        if self.use_dense_mass_matrix:
+            self._adapt_mass_matrix(node, world, iteration_number)
 
         if iteration_number == num_adaptive_samples:
             self.step_size = self.best_step_size
@@ -212,7 +294,9 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         :returns: the kinetic energy calculated by 1/2 * r.T * cov * r
         """
         r_vector = torch.reshape(r, (-1,))
-        return torch.matmul(r_vector.T, torch.matmul(self.covariance, r_vector)) / 2
+        if self.use_dense_mass_matrix:
+            return torch.matmul(r_vector.T, torch.matmul(self.covariance, r_vector)) / 2
+        return (r_vector * r_vector).sum() / 2
 
     def _compute_likelihood(self, node, world, theta):
         """
@@ -245,7 +329,6 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             -score, node_var.transformed_value, retain_graph=True
         )
         score = score.detach()
-
         world.reset_diff()
         return is_valid, grad_U
 
@@ -276,16 +359,22 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         if not is_valid:
             return is_valid, theta, r
         r = r - step_size * grad_U / 2
-        r_vector = torch.reshape(r, (-1,))
-        if self.covariance is None:
-            self.covariance = torch.eye(len(r_vector), dtype=theta.dtype)
-            self.covariance = self.covariance.detach()
-        r_scaled = torch.reshape(torch.matmul(self.covariance, r_vector), r.shape)
+
+        if self.use_dense_mass_matrix:
+            r_vector = torch.reshape(r, (-1,))
+            if self.covariance is None:
+                self.covariance = torch.eye(len(r_vector), dtype=theta.dtype)
+                self.covariance = self.covariance.detach()
+            r_scaled = torch.reshape(torch.matmul(self.covariance, r_vector), r.shape)
+        else:
+            r_scaled = r
+
         theta1 = theta + step_size * r_scaled
         is_valid, grad_U = self._compute_potential_energy_gradient(node, world, theta1)
         if not is_valid:
             return is_valid, theta1, r
         r1 = r - step_size * grad_U / 2
+
         return is_valid, theta1, r1
 
     def _build_tree_base_case(self, node, world, build_tree_input: Tuple):
@@ -369,11 +458,51 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
                 a1 = a1 + a2
                 na1 = na1 + na2
 
-                neg_turn = ((theta_p - theta_n) * r_n).sum() >= 0
-                pos_turn = ((theta_p - theta_n) * r_p).sum() >= 0
-                s1 = s2 * neg_turn * pos_turn
+                if torch.ne(s2, tensor(1.0, dtype=s2.dtype)):
+                    s1 = s2
+                else:
+                    if self.use_dense_mass_matrix:
+                        p_vector = torch.reshape(theta_p, (-1,))
+                        if self.l_inv is None:
+                            self.l_inv = torch.eye(len(p_vector), dtype=theta.dtype)
+                        transformed_p = torch.reshape(
+                            torch.matmul(self.l_inv, p_vector), theta_p.shape
+                        )
+                        n_vector = torch.reshape(theta_p, (-1,))
+                        transformed_n = torch.reshape(
+                            torch.matmul(self.l_inv, n_vector), theta_n.shape
+                        )
+                    else:
+                        transformed_p = theta_p
+                        transformed_n = theta_n
+
+                    neg_turn = ((transformed_p - transformed_n) * r_n).sum() >= 0
+                    pos_turn = ((transformed_p - transformed_n) * r_p).sum() >= 0
+                    s1 = neg_turn * pos_turn
                 n1 = n1 + n2
             return theta_n, r_n, theta_p, r_p, theta1, n1, s1, a1, na1
+
+    def _initialize_momentum(self, theta: Tensor) -> Tensor:
+        """
+        Initialize momentum
+
+        :param theta: the position vector
+        """
+        if self.use_dense_mass_matrix:
+            # initialize momentum
+            if self.covariance is None:
+                self.covariance = torch.eye(len(theta.reshape(-1)), dtype=theta.dtype)
+            r = (
+                dist.MultivariateNormal(
+                    torch.zeros(len(theta.reshape(-1)), dtype=theta.dtype),
+                    precision_matrix=self.covariance,
+                )
+                .sample()
+                .reshape(theta.shape)
+            )
+        else:
+            r = torch.randn(theta.shape, dtype=theta.dtype)
+        return r
 
     def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor, Dict]:
         """
@@ -394,9 +523,8 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             self.mu = torch.log(10 * self.step_size)
             self.best_step_size = tensor(1.0, dtype=theta.dtype)
             self.initialized = True
+        r = self._initialize_momentum(theta)
 
-        # initialize momentum
-        r = torch.randn(theta.shape, dtype=theta.dtype)
         u = dist.Uniform(tensor(0.0, dtype=theta.dtype), 1.0).sample().log()
 
         theta_n = theta
@@ -427,9 +555,28 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
                 if change_val:
                     theta_propose = theta1
             n = n + n1
-            turn_n = ((theta_p - theta_n) * r_n).sum() >= 0
-            turn_p = ((theta_p - theta_n) * r_p).sum() >= 0
-            s = s1 * turn_n * turn_p
+
+            if torch.ne(s1, tensor(1.0, dtype=s1.dtype)):
+                s = s1
+            else:
+                if self.use_dense_mass_matrix:
+                    p_vector = torch.reshape(theta_p, (-1,))
+                    if self.l_inv is None:
+                        self.l_inv = torch.eye(len(p_vector), dtype=theta.dtype)
+                    transformed_p = torch.reshape(
+                        torch.matmul(self.l_inv, p_vector), theta_p.shape
+                    )
+                    n_vector = torch.reshape(theta_p, (-1,))
+                    transformed_n = torch.reshape(
+                        torch.matmul(self.l_inv, n_vector), theta_n.shape
+                    )
+                else:
+                    transformed_p = theta_p
+                    transformed_n = theta_n
+
+                turn_n = ((transformed_p - transformed_n) * r_n).sum() >= 0
+                turn_p = ((transformed_p - transformed_n) * r_p).sum() >= 0
+                s = turn_n * turn_p
 
             if torch.ne(s, tensor(1.0, dtype=s.dtype)):
                 break
