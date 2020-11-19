@@ -3,8 +3,8 @@ import inspect
 import warnings
 from functools import wraps
 
-from beanmachine.ppl.model.utils import Mode, RVIdentifier
-from beanmachine.ppl.world.world import World
+from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.world.world import world_context
 
 
 class StatisticalModel(object):
@@ -31,48 +31,6 @@ class StatisticalModel(object):
     def y(i):
         return Normal(mu(z(i)), gamma)
     """
-
-    __world_ = None
-    __mode_ = Mode.INITIALIZE
-
-    @staticmethod
-    def reset() -> World:
-        """
-        Resets the world at the beginning of inference
-        """
-        StatisticalModel.__world_ = World()
-        StatisticalModel.__mode_ = Mode.INITIALIZE
-        return StatisticalModel.__world_
-
-    @staticmethod
-    def get_world() -> World:
-        """
-        :returns: __world_
-        """
-        return StatisticalModel.__world_
-
-    @staticmethod
-    def set_world(world) -> None:
-        """
-        :param world: the world to set the __world_ to
-        """
-        StatisticalModel.__world_ = world
-
-    @staticmethod
-    def get_mode() -> Mode:
-        """
-        :returns: __mode_
-        """
-        return StatisticalModel.__mode_
-
-    @staticmethod
-    def set_mode(mode):
-        """
-        Update __mode_ to mode
-
-        :param mode: the mode to update the __mode_ to
-        """
-        StatisticalModel.__mode_ = mode
 
     @staticmethod
     def get_func_key(function, arguments) -> RVIdentifier:
@@ -105,10 +63,11 @@ class StatisticalModel(object):
         @wraps(f)
         def wrapper(*args):
             func_key = StatisticalModel.get_func_key(f, args)
-            if StatisticalModel.__mode_ == Mode.INITIALIZE:
+            world = world_context.get()
+            if world:
+                return world.update_graph(func_key)
+            else:
                 return func_key
-            world = StatisticalModel.__world_
-            return world.update_graph(func_key)
 
         if inspect.ismethod(f):
             meth_name = f.__name__ + "_wrapper"
@@ -132,12 +91,14 @@ class StatisticalModel(object):
 
         @wraps(f)
         def wrapper(*args):
-            if StatisticalModel.__mode_ == Mode.INITIALIZE:
+            world = world_context.get()
+            if world:
+                if world.get_cache_functionals():
+                    return world.update_cached_functionals(f, *args)
+                else:
+                    return f(*args)
+            else:
                 return StatisticalModel.get_func_key(f, args)
-            world = StatisticalModel.__world_
-            if world.get_cache_functionals():
-                return world.update_cached_functionals(f, *args)
-            return f(*args)
 
         if inspect.ismethod(f):
             meth_name = f.__name__ + "_wrapper"

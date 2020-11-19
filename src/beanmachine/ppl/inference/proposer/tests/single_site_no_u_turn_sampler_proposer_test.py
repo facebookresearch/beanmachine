@@ -8,8 +8,7 @@ import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer import (
     SingleSiteNoUTurnSamplerProposer,
 )
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.world import Variable
+from beanmachine.ppl.world import Variable, World
 from torch.autograd import grad
 
 
@@ -21,7 +20,7 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         self.assertAlmostEqual(k.item(), 1.775)
 
     def test_nuts_leapfrog_step(self):
-        world = StatisticalModel.reset()
+        world = World()
         proposer = SingleSiteNoUTurnSamplerProposer()
         distribution = dist.Normal(0, 1)
         val = tensor(1.0)
@@ -65,7 +64,7 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         self.assertAlmostEqual(proposer_r, handwritten_r)
 
     def test_nuts_build_tree_base_case_invalid(self):
-        world = StatisticalModel.reset()
+        world = World()
         proposer = SingleSiteNoUTurnSamplerProposer()
         distribution = dist.Normal(0, 1)
         val = tensor(1.0)
@@ -114,7 +113,7 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         self.assertAlmostEqual(output[8], tensor(1.0))
 
     def test_nuts_build_tree_base_case_valid(self):
-        world = StatisticalModel.reset()
+        world = World()
         proposer = SingleSiteNoUTurnSamplerProposer()
         distribution = dist.Normal(0, 1)
         val = tensor(1.0)
@@ -180,7 +179,7 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         self.assertAlmostEqual(output[8], tensor(1.0))
 
     def test_nuts_build_tree(self):
-        world = StatisticalModel.reset()
+        world = World()
         proposer = SingleSiteNoUTurnSamplerProposer()
         distribution = dist.Normal(0, 1)
         val = tensor(1.0)
@@ -260,7 +259,7 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
         self.assertAlmostEqual(output[8], tensor(2.0))
 
     def test_nuts_compute_hamiltonian(self):
-        world = StatisticalModel.reset()
+        world = World()
         proposer = SingleSiteNoUTurnSamplerProposer()
         distribution = dist.Normal(0, 1)
         val = tensor(1.0)

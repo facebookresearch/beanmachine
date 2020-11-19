@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import contextvars
 import copy
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
@@ -11,6 +12,8 @@ from beanmachine.ppl.world.variable import TransformData, TransformType, Variabl
 from beanmachine.ppl.world.world_vars import WorldVars
 from torch import Tensor, tensor
 
+
+world_context = contextvars.ContextVar("beanmachine.ppl.world", default=None)
 
 Variables = Dict[RVIdentifier, Variable]
 
@@ -76,14 +79,7 @@ class World(object):
     )
     """
 
-    def __init__(
-        self,
-        # pyre-fixme[9]: init_world_log_prob has type `Tensor`; used as `None`.
-        init_world_log_prob: Tensor = None,
-        # pyre-fixme[9]: init_world_dict has type `Dict[RVIdentifier, Variable]`;
-        #  used as `None`.
-        init_world_dict: Dict[RVIdentifier, Variable] = None,
-    ):
+    def __init__(self):
         self.variables_ = WorldVars()
         self.stack_ = []
         self.observations_ = defaultdict()
@@ -94,6 +90,10 @@ class World(object):
         self.maintain_graph_ = True
         self.cache_functionals_ = False
         self.cached_functionals_ = defaultdict()
+
+        # The token used to restore context to previous state. It's used in __enter__
+        # and __exit__ to control the scope of the world.
+        self.context_tokens: List[contextvars.Token] = []
 
     def set_initialize_from_prior(self, initialize_from_prior: bool = True):
         """
@@ -588,8 +588,9 @@ class World(object):
             old_log_probs[child] = child_var.log_prob
             child_var.parent = set()
             self.stack_.append(child)
-            # in this call child is going to be copied over to the latest diff.
-            child_var.distribution = child.function(*child.arguments)
+            with self:
+                # in this call child is going to be copied over to the latest diff.
+                child_var.distribution = child.function(*child.arguments)
             self.stack_.pop()
             obs_value = (
                 self.observations_[child] if child in self.observations_ else None
@@ -638,7 +639,8 @@ class World(object):
 
     def update_cached_functionals(self, f, *args) -> Tensor:
         if (f, *args) not in self.cached_functionals_:
-            self.cached_functionals_[(f, *args)] = f(*args)
+            with self:
+                self.cached_functionals_[(f, *args)] = f(*args)
         return self.cached_functionals_[(f, *args)]
 
     def propose_change(
@@ -692,7 +694,7 @@ class World(object):
         """
         Updates the parents and children of the node based on the stack
 
-        :param node: the node which was called from StatisticalModel.sample()
+        :param node: the node which was called from StatisticalModel.random_variable()
         """
         assert self.maintain_graph_ != self.cache_functionals_
         if len(self.stack_) > 0:
@@ -732,7 +734,8 @@ class World(object):
 
         self.add_node_to_world(node, node_var)
         self.stack_.append(node)
-        node_var.distribution = node.function(*node.arguments)
+        with self:
+            node_var.distribution = node.function(*node.arguments)
         self.stack_.pop()
 
         obs_value = self.observations_[node] if node in self.observations_ else None
@@ -749,3 +752,36 @@ class World(object):
             self.update_diff_log_prob(node)
 
         return node_var.value
+
+    def __enter__(self):
+        """
+        This method, together with __exit__, allow us to use wolrd as a context, e.g.
+        ```
+        with World():
+            # invoke random variables to update the graph
+        ```
+        By keeping a stack of context tokens, we can easily nest multiple worlds and
+        restore the outer context if needed, e.g.
+        ```
+        world1, world2 = World(), World()
+        with world1:
+            # do some graph update specific to world1
+            with world2:
+                # update world2
+            # back to updating world1
+        ```
+        """
+        self.context_tokens.append(world_context.set(self))
+        return self
+
+    def __exit__(self, *args):
+        # reset world to previous context (if any)
+        if self.context_tokens:
+            world_context.reset(self.context_tokens.pop())
+
+    def call(self, node: RVIdentifier):
+        """
+        A helper function that invokes the random variable and return its value
+        """
+        with self:
+            return get_wrapper(node.function)(*node.arguments)

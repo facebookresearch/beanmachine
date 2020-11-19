@@ -10,8 +10,7 @@ import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
 from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier, get_wrapper
+from beanmachine.ppl.model.utils import LogLevel, RVIdentifier, get_wrapper
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
@@ -36,8 +35,8 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         skip_single_inference_run: bool = False,
     ):
         super().__init__()
-        self.world_.set_all_nodes_proposer(proposer)
-        self.world_.set_all_nodes_transform(transform_type, transforms)
+        self.initial_world_.set_all_nodes_proposer(proposer)
+        self.initial_world_.set_all_nodes_transform(transform_type, transforms)
         self.blocks_ = []
         self.skip_single_inference_run = skip_single_inference_run
 
@@ -47,20 +46,20 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
 
         :param initialize_from_prior: boolean to initialize samples from prior
         """
-        self.initialize_infer()
+        self.world_ = self.initial_world_.copy()
         self.world_.set_observations(self.observations_)
         self.world_.set_initialize_from_prior(initialize_from_prior)
-        StatisticalModel.set_mode(Mode.INFERENCE)
+
         for node in self.observations_:
             # makes the call for the observation node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world
-            get_wrapper(node.function)(*node.arguments)
+            self.world_.call(node)
         for node in self.queries_:
             # makes the call for the query node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world.
-            get_wrapper(node.function)(*node.arguments)
+            self.world_.call(node)
 
         self.world_.accept_diff()
 
@@ -384,21 +383,14 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             for query in self.queries_:
                 # unsqueeze the sampled value tensor, which adds an extra dimension
                 # along which we'll be adding samples generated at each iteration
+                query_val = self.world_.call(query).unsqueeze(0).clone().detach()
                 if query not in queries_sample:
-                    queries_sample[query] = (
-                        get_wrapper(query.function)(*query.arguments)
-                        .unsqueeze(0)
-                        .clone()
-                        .detach()
-                    )
+                    queries_sample[query] = query_val
                 else:
                     queries_sample[query] = torch.cat(
                         [
                             queries_sample[query],
-                            get_wrapper(query.function)(*query.arguments)
-                            .unsqueeze(0)
-                            .clone()
-                            .detach(),
+                            query_val,
                         ],
                         dim=0,
                     )

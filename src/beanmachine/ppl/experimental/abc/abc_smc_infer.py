@@ -11,8 +11,8 @@ from beanmachine.ppl.inference.abstract_infer import VerboseLevel
 from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import (
     SingleSiteRandomWalkProposer,
 )
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
+from beanmachine.ppl.world import World
 from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
 
@@ -82,7 +82,7 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
         )
         perturbed_sample = {}
         for key, value in sample.items():
-            key.function._wrapper(*key.arguments)
+            self.world_.call(key)
             node_var = self.world_.get_node_in_world(key)
             # pyre-fixme
             node_var.update_value(value)
@@ -103,11 +103,11 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
         :param stage: the stage of ABC-SMC inference used to choose from the tolerance schedule
         :returns: 1 if sample is accepted and 0 if sample is rejected (used to update the tqdm iterator)
         """
-        self.world_ = StatisticalModel.reset()
+        self.world_ = World()
         self.world_.set_initialize_from_prior(True)
         self.world_.set_maintain_graph(False)
         self.world_.set_cache_functionals(True)
-        StatisticalModel.set_mode(Mode.INFERENCE)
+
         if not stage == 0:
             weighted_sample = self.weighted_sample_draw()
             perturbed_sample_draw = self.perturb_kernel(weighted_sample, stage)
@@ -119,9 +119,7 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
             # makes the call for the summary statistic node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world, as well as computing it's value
-            computed_summary = summary_statistic.function._wrapper(
-                *summary_statistic.arguments
-            )
+            computed_summary = self.world_.call(summary_statistic)
             # check if passed observation is a tensor, if not, cast it
             if not torch.is_tensor(observed_summary):
                 observed_summary = torch.tensor(observed_summary)

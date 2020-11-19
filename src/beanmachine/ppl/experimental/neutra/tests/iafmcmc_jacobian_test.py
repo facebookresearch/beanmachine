@@ -8,17 +8,13 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.neutra.iafmcmc_proposer import IAFMCMCProposer
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
 from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode, RVIdentifier
-from beanmachine.ppl.world import Variable
+from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.world import Variable, World
 from beanmachine.ppl.world.world import TransformType
 from torch import nn, tensor as tensor
 
 
 class IAFJacobainTest(unittest.TestCase):
-    def tearDown(self):
-        StatisticalModel.reset()
-
     class SampleModel(object):
         @bm.random_variable
         def foo(self):
@@ -52,12 +48,11 @@ class IAFJacobainTest(unittest.TestCase):
         )
 
     def test_jacobain_for_iaf_proposer(self):
-        world = StatisticalModel.reset()
+        world = World()
         model = self.SampleModel()
         foo_key = model.foo()
         bar_key = model.bar()
 
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor([0.1, 0.1])})
         world_vars = world.variables_.vars()
 

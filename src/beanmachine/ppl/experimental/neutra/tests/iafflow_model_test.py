@@ -7,16 +7,11 @@ import torch.tensor as tensor
 from beanmachine.ppl.distribution.flat import Flat
 from beanmachine.ppl.experimental.neutra.iafflow import InverseAutoregressiveFlow
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode
-from beanmachine.ppl.world import Variable
+from beanmachine.ppl.world import Variable, World
 from torch import nn
 
 
 class IAFTest(unittest.TestCase):
-    def tearDown(self):
-        StatisticalModel.reset()
-
     class SampleModel(object):
         @bm.random_variable
         def foo(self):
@@ -62,10 +57,10 @@ class IAFTest(unittest.TestCase):
     def test_elbo_change(self):
         # set up the world in Bean machine
         model = self.SampleModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
-        StatisticalModel.set_mode(Mode.INFERENCE)
+
         world.set_observations({bar_key: tensor(0.1)})
         world_vars = world.variables_.vars()
         world_vars[foo_key] = Variable(
@@ -109,7 +104,13 @@ class IAFTest(unittest.TestCase):
             in_layer, out_layer, nn.ELU(), hidden_layer, n_block, seed_num
         )
         model = InverseAutoregressiveFlow(
-            based_distribution, network_architecture, 2, in_layer, foo_key, world, True
+            based_distribution,
+            network_architecture,
+            2,
+            in_layer,
+            foo_key,
+            world,
+            True,
         )
 
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
@@ -129,12 +130,11 @@ class IAFTest(unittest.TestCase):
 
     def test_normal_normal(self):
         # set up the world in Bean machine
-        world = StatisticalModel.reset()
+        world = World()
         model = self.SampleModel()
         foo_key = model.foo()
         bar_key = model.bar()
 
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor(0.1)})
         world_vars = world.variables_.vars()
 
@@ -207,10 +207,9 @@ class IAFTest(unittest.TestCase):
     def test_neal_funnel_change(self):
         # set up the world in Bean machine
         model = self.NealFunnel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
-        StatisticalModel.set_mode(Mode.INFERENCE)
 
         world.set_observations({bar_key: tensor([0.1, 0.1])})
         world_vars = world.variables_.vars()

@@ -6,16 +6,11 @@ import torch.distributions as dist
 from beanmachine.ppl.distribution.flat import Flat
 from beanmachine.ppl.experimental.neutra.iafmcmc_proposer import IAFMCMCProposer
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode
-from beanmachine.ppl.world import Variable
+from beanmachine.ppl.world import Variable, World
 from torch import nn, tensor as tensor
 
 
 class IAFMCMCProposerDoAdaptationTest(unittest.TestCase):
-    def tearDown(self):
-        StatisticalModel.reset()
-
     class Target(dist.Distribution):
         has_enumerate_support = False
         support = dist.constraints.real
@@ -59,10 +54,9 @@ class IAFMCMCProposerDoAdaptationTest(unittest.TestCase):
     def test_neal_funnel(self):
         # set up the world in Bean machine
         model = self.NealFunnel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
-        StatisticalModel.set_mode(Mode.INFERENCE)
 
         world.set_observations({bar_key: tensor([0.1, 0.1])})
         # set up the node_var in Bean machine

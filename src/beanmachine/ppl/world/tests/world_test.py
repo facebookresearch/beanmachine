@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import itertools
 import unittest
 
 import beanmachine.ppl as bm
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world import Variable, World
 
 
@@ -68,7 +68,7 @@ class WorldTest(unittest.TestCase):
     class SampleLargeModelWithAncesters(object):
         @bm.random_variable
         def X(self):
-            return dist.Categorical([0.5, 0.5])
+            return dist.Categorical(tensor([0.5, 0.5]))
 
         @bm.random_variable
         def A(self, i):
@@ -92,10 +92,10 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change(self):
         model = self.SampleModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
-        StatisticalModel.set_mode(Mode.INFERENCE)
+
         world.set_observations({bar_key: tensor(0.1)})
         world_vars = world.variables_.vars()
         world_vars[foo_key] = Variable(
@@ -153,11 +153,10 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change_with_parent_update_and_new_node(self):
         model = self.SampleModelWithParentUpdate()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor(0.1)})
 
         world_vars = world.variables_.vars()
@@ -218,13 +217,12 @@ class WorldTest(unittest.TestCase):
 
     def test_world_change_with_multiple_parent_update(self):
         model = self.SampleLargeModelUpdate()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
         foobar_key = model.foobar()
         foobaz_key = model.foobaz()
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor(0.1)})
 
         world_vars = world.variables_.vars()
@@ -369,7 +367,7 @@ class WorldTest(unittest.TestCase):
 
     def test_ancestor_change(self):
         model = self.SampleLargeModelWithAncesters()
-        world = StatisticalModel.reset()
+        world = World()
         X_key = model.X()
         A_key_0 = model.A(0.0)
         A_key_1 = model.A(1.0)
@@ -380,7 +378,7 @@ class WorldTest(unittest.TestCase):
         D_key_0 = model.D(0.0)
         D_key_1 = model.D(1.0)
         Y_key = model.Y()
-        StatisticalModel.set_mode(Mode.INFERENCE)
+
         world.set_observations({Y_key: tensor(0.1)})
 
         world_vars = world.variables_.vars()
@@ -577,11 +575,10 @@ class WorldTest(unittest.TestCase):
 
     def test_update_graph_small_bar(self):
         model = self.SampleModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
 
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.update_graph(bar_key)
 
         foo_expected_parent = set()
@@ -614,10 +611,9 @@ class WorldTest(unittest.TestCase):
 
     def test_update_graph_small_foo(self):
         model = self.SampleModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
 
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.update_graph(foo_key)
 
         foo_expected_parent = set()
@@ -628,12 +624,11 @@ class WorldTest(unittest.TestCase):
 
     def test_update_graph_parent_update(self):
         model = self.SampleModelWithParentUpdate()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
 
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.update_graph(foo_key)
         world.update_graph(bar_key)
         world.update_graph(baz_key)
@@ -671,10 +666,9 @@ class WorldTest(unittest.TestCase):
 
     def test_world_propose_change_score(self):
         model = self.SampleModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
-        StatisticalModel.set_mode(Mode.INFERENCE)
 
         world_vars = world.variables_.vars()
         world.set_observations({bar_key: tensor(0.1)})
@@ -708,3 +702,89 @@ class WorldTest(unittest.TestCase):
             0.25, 1.0
         ).log_prob(0.1)
         self.assertAlmostEqual(score, expected_score)
+
+    def test_update_graph_in_nested_world(self):
+        model1 = self.SampleLargeModelWithAncesters()
+        model2 = self.SampleModel()
+        world1 = World()
+        world2 = World()
+
+        # random variables that are invoked should only be added to the corresponding
+        # context
+        with world1:
+            model1.C(1)
+            with world2:
+                model2.bar()
+            model1.X()
+
+        # check if variables and their parents has been added to the graph
+        self.assertIn(model1.C(1), world1.diff_.vars())
+        self.assertIn(model1.B(1), world1.diff_.vars())
+        self.assertIn(model1.A(1), world1.diff_.vars())
+        self.assertIn(model1.X(), world1.diff_.vars())
+        self.assertIn(model2.bar(), world2.diff_.vars())
+        self.assertIn(model2.foo(), world2.diff_.vars())
+
+        # check variables that aren't supposed to be in the world aren't there
+        self.assertNotIn(model1.X(), world2.diff_.vars())
+        self.assertNotIn(model2.bar(), world1.diff_.vars())
+        self.assertNotIn(model1.Y(), world1.diff_.vars())
+
+    def test_value_consistentcy_in_world(self):
+        model = self.SampleModel()
+
+        with World() as world1:
+            world1.set_initialize_from_prior(True)
+            value1 = model.bar()
+            value2 = model.bar()
+
+        # Calling the same random varaible twice in a world should return the same value
+        self.assertNotIsInstance(value1, RVIdentifier)
+        self.assertEqual(value1, value2)
+
+        with World() as world2:
+            world2.set_initialize_from_prior(True)
+            value3 = model.bar()
+
+        # The value should be different in a different world
+        self.assertNotEqual(value1, value3)
+
+        # However, if we reactivate the original world, we should get back the original
+        # value
+        with world1:
+            value4 = model.bar()
+            with world2:
+                value5 = model.bar()
+        self.assertEqual(value1, value4)
+        self.assertEqual(value3, value5)
+
+    def test_world_in_generator(self):
+        @bm.random_variable
+        def foo(i: int):
+            return dist.Normal(0.0, 1.0)
+
+        def gen_sample():
+            """A simple generator that keeps its own world internally"""
+            world = World()
+            world.set_initialize_from_prior(True)
+            for i in itertools.count(0):
+                with world:
+                    value = foo(i)
+                yield (i, value, world)
+
+        generator1 = gen_sample()
+        generator2 = gen_sample()
+
+        for i in range(100):
+            idx1, value1, world1 = next(generator1)
+            idx2, value2, world2 = next(generator2)
+            # Check if the two generators are indeed running in different world
+            self.assertIsNot(world1, world2)
+            # Check if the two generators are in the same iteration
+            self.assertEqual(idx1, idx2)
+            self.assertEqual(i, idx1)
+            # Check if the sample are not interfering with each other
+            self.assertNotEqual(value1, value2)
+            # We're supposed to be out of any world context, so calling foo(i) should
+            # returns RVIdentifier instead of its value
+            self.assertIsInstance(foo(i), RVIdentifier)

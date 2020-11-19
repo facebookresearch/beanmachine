@@ -10,7 +10,6 @@ import torch.multiprocessing as mp
 from torch import Tensor
 from torch.multiprocessing import Queue
 
-from ..model.statistical_model import StatisticalModel
 from ..model.utils import LogLevel, RVIdentifier
 from ..world import World
 from .monte_carlo_samples import MonteCarloSamples
@@ -38,9 +37,8 @@ class AbstractInference(object, metaclass=ABCMeta):
     _rand_int_max: ClassVar[int] = 2 ** 62
 
     def __init__(self):
-        self.world_ = World()
-        self.initial_world_ = self.world_
-        StatisticalModel.reset()
+        self.initial_world_ = World()
+        self.world_ = self.initial_world_
         self.queries_ = []
         self.observations_ = {}
 
@@ -148,18 +146,10 @@ class AbstractInference(object, metaclass=ABCMeta):
             self.reset()
         return monte_carlo_samples
 
-    def initialize_infer(self):
-        """
-        Initialize inference
-        """
-        self.initial_world_ = self.world_.copy()
-        StatisticalModel.set_world(self.world_)
-
     def reset(self):
         """
         Resets world, mode and observation
         """
-        self.world_ = self.initial_world_
-        StatisticalModel.reset()
+        self.world_ = self.initial_world_.copy()
         self.queries_ = []
         self.observations_ = {}

@@ -4,15 +4,11 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.model.statistical_model import RVIdentifier, StatisticalModel
-from beanmachine.ppl.model.utils import Mode
+from beanmachine.ppl.model.statistical_model import RVIdentifier
+from beanmachine.ppl.world import World
 
 
 class StatisticalModelTest(unittest.TestCase):
-    def tearDown(self) -> None:
-        # reset the StatisticalModel to prevent subsequent tests from failing
-        StatisticalModel.reset()
-
     class SampleModel(object):
         @bm.random_variable
         def foo(self):
@@ -57,15 +53,15 @@ class StatisticalModelTest(unittest.TestCase):
 
     def test_rv_sample_assignment(self):
         model = self.SampleModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
 
-        StatisticalModel.set_mode(Mode.INFERENCE)
-        model.foo()
-        model.bar()
-        model.baz()
+        with world:
+            model.foo()
+            model.bar()
+            model.baz()
 
         foo_expected_parent = set()
         foo_expected_children = set({bar_key, baz_key})
@@ -103,7 +99,7 @@ class StatisticalModelTest(unittest.TestCase):
 
     def test_rv_sample_assignment_with_large_model_with_index(self):
         model = self.SampleLargeModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
@@ -112,13 +108,13 @@ class StatisticalModelTest(unittest.TestCase):
         foobaz_key = model.foobaz()
         query_key = model.avg()
 
-        StatisticalModel.set_mode(Mode.INFERENCE)
-        model.foo()
-        model.bar()
-        model.baz()
-        model.foobar()
-        model.bazbar(1)
-        model.foobaz()
+        with world:
+            model.foo()
+            model.bar()
+            model.baz()
+            model.foobar()
+            model.bazbar(1)
+            model.foobaz()
 
         foo_expected_parent = set()
         foo_expected_children = set({bar_key, baz_key, bazbar_key, foobaz_key})
