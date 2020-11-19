@@ -7,15 +7,10 @@ import torch.distributions as dist
 from beanmachine.ppl.distribution import Flat
 from beanmachine.ppl.examples.conjugate_models import NormalNormalModel
 from beanmachine.ppl.experimental.inference_compilation.ic_infer import ICInference
-from beanmachine.ppl.model.statistical_model import StatisticalModel
 from torch import tensor
 
 
 class InferenceCompilationTest(unittest.TestCase):
-    def tearDown(self) -> None:
-        # reset the StatisticalModel to prevent subsequent tests from failing
-        StatisticalModel.reset()
-
     class RandomGaussianSum:
         @bm.random_variable
         def N(self):

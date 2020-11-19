@@ -5,8 +5,7 @@ from typing import Callable, Dict, Union
 
 import torch
 from beanmachine.ppl.inference.rejection_sampling_infer import RejectionSampling
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode, get_wrapper
+from beanmachine.ppl.world import World
 
 
 LOGGER = logging.getLogger("beanmachine")
@@ -49,11 +48,11 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
 
         :returns: 1 if sample is accepted and 0 if sample is rejected (used to update the tqdm iterator)
         """
-        self.world_ = StatisticalModel.reset()
+        self.world_ = World()
         self.world_.set_initialize_from_prior(True)
         self.world_.set_maintain_graph(False)
         self.world_.set_cache_functionals(True)
-        StatisticalModel.set_mode(Mode.INFERENCE)
+
         if self.simulate:
             # in simulate mode, user passes obtained samples as observations and shall query nodes to be
             # simulated. This required observations to set instead of being sampled from prior
@@ -63,9 +62,7 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
             # makes the call for the summary statistic node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world, as well as computing it's value
-            computed_summary = get_wrapper(summary_statistic.function)(
-                *summary_statistic.arguments
-            )
+            computed_summary = self.world_.call(summary_statistic)
             if self.simulate:
                 # if we are simulating, simply accept sample
                 self._accept_sample()

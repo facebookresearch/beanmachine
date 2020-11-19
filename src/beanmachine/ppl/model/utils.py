@@ -26,15 +26,6 @@ class RVIdentifier:
         return str(self.function.__name__) + str(self.arguments)
 
 
-class Mode(Enum):
-    """
-    Stages/modes that a model will go through
-    """
-
-    INITIALIZE = 1
-    INFERENCE = 2
-
-
 class LogLevel(Enum):
     """
     Enum class mapping the logging levels to numeric values.

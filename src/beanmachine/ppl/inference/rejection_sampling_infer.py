@@ -6,8 +6,8 @@ from typing import Dict
 
 import torch
 from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import LogLevel, Mode, RVIdentifier, get_wrapper
+from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
+from beanmachine.ppl.world import World
 from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
 
@@ -38,16 +38,14 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
         for query in self.queries_:
             # unsqueeze the sampled value tensor, which adds an extra dimension
             # along which we'll be adding samples generated at each iteration
-            wrapped_fn = get_wrapper(query.function)
+            query_val = self.world_.call(query).unsqueeze(0).clone()
             if query not in self.queries_sample:
-                self.queries_sample[query] = (
-                    wrapped_fn(*query.arguments).unsqueeze(0).clone()
-                )
+                self.queries_sample[query] = query_val
             else:
                 self.queries_sample[query] = torch.cat(
                     [
                         self.queries_sample[query],
-                        wrapped_fn(*query.arguments).unsqueeze(0).clone(),
+                        query_val,
                     ],
                     dim=0,
                 )
@@ -80,13 +78,13 @@ class RejectionSampling(AbstractInference, metaclass=ABCMeta):
 
         :returns: 1 if sample is accepted and 0 if sample is rejected (used to update the tqdm iterator)
         """
-        self.world_ = StatisticalModel.reset()
+        self.world_ = World()
         self.world_.set_initialize_from_prior(True)
         self.world_.set_maintain_graph(False)
         self.world_.set_cache_functionals(True)
-        StatisticalModel.set_mode(Mode.INFERENCE)
+
         for node_key, node_observation in self.observations_.items():
-            temp_sample = get_wrapper(node_key.function)(*node_key.arguments)
+            temp_sample = self.world_.call(node_key)
             node_var = self.world_.get_node_in_world(node_key)
             # a functional will not be in the world, so we access its sample differently
             node_var_sample = node_var.value if node_var else temp_sample

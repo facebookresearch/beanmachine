@@ -4,9 +4,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.model.statistical_model import StatisticalModel
-from beanmachine.ppl.model.utils import Mode
-from beanmachine.ppl.world import Diff, Variable
+from beanmachine.ppl.world import Diff, Variable, World
 
 
 class DiffStackTest(unittest.TestCase):
@@ -21,10 +19,9 @@ class DiffStackTest(unittest.TestCase):
 
     def test_diffstack_change(self):
         model = self.SampleModel()
-        world = StatisticalModel.reset()
+        world = World()
         foo_key = model.foo()
         bar_key = model.bar()
-        StatisticalModel.set_mode(Mode.INFERENCE)
         world.set_observations({bar_key: tensor(0.1)})
         diff_vars = world.diff_stack_
         foo_var = Variable(
