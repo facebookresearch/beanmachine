@@ -180,7 +180,7 @@ class SingleSiteNoUTurnSamplerProposerTest(unittest.TestCase):
 
     def test_nuts_build_tree(self):
         world = World()
-        proposer = SingleSiteNoUTurnSamplerProposer()
+        proposer = SingleSiteNoUTurnSamplerProposer(use_dense_mass_matrix=False)
         distribution = dist.Normal(0, 1)
         val = tensor(1.0)
         val.requires_grad_(True)
