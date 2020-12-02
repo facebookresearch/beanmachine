@@ -13,7 +13,9 @@ commands:
           command: sudo pip install --progress-bar off numpy
       - run:
           name: "Install pytorch"
-          command: sudo pip install --progress-bar off torch==1.6.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          command: >
+            sudo pip install --progress-bar off torch==1.7.0+cpu
+            -f https://download.pytorch.org/whl/torch_stable.html
 
   dev_install:
     description: "Install beanmachine[dev] in editable mode via pip"

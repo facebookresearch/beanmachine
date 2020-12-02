@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 import torch
+import torch.fft
 from torch import Tensor
 
 
@@ -80,13 +81,13 @@ def effective_sample_size(query_samples: Tensor) -> Tensor:
     # computes fourier transform (with padding)
     padding = torch.zeros(samples.shape, dtype=samples.dtype)
     padded_samples = torch.cat((samples, padding), dim=-1)
-    fvi = torch.rfft(padded_samples, 1, onesided=False)
+    fvi = torch.view_as_real(torch.fft.fft(padded_samples))
     # multiply by complex conjugate
     acf = fvi.pow(2).sum(-1, keepdim=True)
     # transform back to reals (with padding)
     padding = torch.zeros(acf.shape, dtype=acf.dtype)
     padded_acf = torch.cat((acf, padding), dim=-1)
-    rho_per_chain = torch.irfft(padded_acf, 1, onesided=False)
+    rho_per_chain = torch.fft.ifft(torch.view_as_complex(padded_acf)).real
 
     rho_per_chain = rho_per_chain.narrow(-1, 0, n_samples)
     num_per_lag = torch.tensor(range(n_samples, 0, -1), dtype=samples.dtype)
