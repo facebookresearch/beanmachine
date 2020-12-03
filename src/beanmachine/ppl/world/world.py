@@ -149,12 +149,11 @@ class World(object):
         if transform_type == TransformType.CUSTOM and transforms is None:
             raise ValueError("No transform provided")
 
+        transform_dict = defaultdict(lambda: TransformData(transform_type, transforms))
         for func_wrapper in self.transforms_:
-            self.transforms_[func_wrapper] = TransformData(transform_type, transforms)
+            transform_dict[func_wrapper] = TransformData(transform_type, transforms)
 
-        self.transforms_ = defaultdict(
-            lambda: TransformData(transform_type, transforms)
-        )
+        self.transforms_ = transform_dict
 
     def get_transforms_for_node(self, node):
         """
@@ -180,10 +179,11 @@ class World(object):
 
         :param proposer: the default proposer
         """
+        proposer_dict = defaultdict(lambda: proposer)
         for func_wrapper in self.proposer_:
-            self.proposer_[func_wrapper] = proposer
+            proposer_dict[func_wrapper] = proposer
 
-        self.proposer_ = defaultdict(lambda: proposer)
+        self.proposer_ = proposer_dict
 
     def reject_latest_diff(self):
         """
