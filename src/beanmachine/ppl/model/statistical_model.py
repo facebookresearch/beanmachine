@@ -1,10 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import inspect
 import warnings
-from functools import wraps
 
-from beanmachine.ppl.model.utils import RVIdentifier
-from beanmachine.ppl.world.world import world_context
+from beanmachine.ppl.model import RVWrapper
 
 
 class StatisticalModel(object):
@@ -33,19 +30,6 @@ class StatisticalModel(object):
     """
 
     @staticmethod
-    def get_func_key(function, arguments) -> RVIdentifier:
-        """
-        Creates a key to uniquely identify the Random Variable.
-
-        :param function: reference to function
-        :param arguments: function arguments
-
-        :returns: tuple of function and arguments which is to be used to identify
-        a particular function call.
-        """
-        return RVIdentifier(function=function, arguments=arguments)
-
-    @staticmethod
     def sample(f):
         warnings.warn(
             "@sample will be deprecated, use @random_variable instead",
@@ -59,22 +43,7 @@ class StatisticalModel(object):
         Decorator to be used for every stochastic random variable defined in
         all statistical models.
         """
-
-        @wraps(f)
-        def wrapper(*args):
-            func_key = StatisticalModel.get_func_key(f, args)
-            world = world_context.get()
-            if world:
-                return world.update_graph(func_key)
-            else:
-                return func_key
-
-        if inspect.ismethod(f):
-            meth_name = f.__name__ + "_wrapper"
-            setattr(f.__self__, meth_name, wrapper)
-        else:
-            f._wrapper = wrapper
-        return wrapper
+        return RVWrapper(function=f)
 
     @staticmethod
     def query(f):
@@ -88,24 +57,7 @@ class StatisticalModel(object):
         """
         Decorator to be used for every query defined in statistical model.
         """
-
-        @wraps(f)
-        def wrapper(*args):
-            world = world_context.get()
-            if world:
-                if world.get_cache_functionals():
-                    return world.update_cached_functionals(f, *args)
-                else:
-                    return f(*args)
-            else:
-                return StatisticalModel.get_func_key(f, args)
-
-        if inspect.ismethod(f):
-            meth_name = f.__name__ + "_wrapper"
-            setattr(f.__self__, meth_name, wrapper)
-        else:
-            f._wrapper = wrapper
-        return wrapper
+        return RVWrapper(function=f, is_random_variable=False)
 
 
 random_variable = StatisticalModel.random_variable

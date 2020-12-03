@@ -1,10 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import contextvars
-import copy
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
-from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
@@ -156,14 +155,14 @@ class World(object):
             lambda: TransformData(transform_type, transforms)
         )
 
-    def get_transforms_for_node(self, node):
+    def get_transforms_for_node(self, node: RVIdentifier):
         """
         Returns whether transform is enabled for a given node.
 
         :param node: the node to look up
         :returns: whether the node has transform enabled or not
         """
-        return self.transforms_[get_wrapper(node.function)]
+        return self.transforms_[node.wrapper]
 
     def set_proposer(self, func_wrapper, proposer):
         """
@@ -194,14 +193,14 @@ class World(object):
         else:
             self.diff_ = self.diff_stack_.remove_last_diff()
 
-    def get_proposer_for_node(self, node):
+    def get_proposer_for_node(self, node: RVIdentifier):
         """
         Returns the proposer for a given node
 
         :param node: the node to look up
         :returns: the associate proposer
         """
-        return self.proposer_[get_wrapper(node.function)]
+        return self.proposer_[node.wrapper]
 
     def __str__(self) -> str:
         return (
@@ -418,8 +417,8 @@ class World(object):
         Returns a copy of the world.
         """
         world_copy = World()
-        world_copy.transforms_ = copy.deepcopy(self.transforms_)
-        world_copy.proposer_ = copy.deepcopy(self.proposer_)
+        world_copy.transforms_ = self.transforms_.copy()
+        world_copy.proposer_ = self.proposer_.copy()
         return world_copy
 
     def get_markov_blanket(self, node: RVIdentifier) -> Set[RVIdentifier]:
@@ -451,14 +450,14 @@ class World(object):
         """
         return self.diff_stack_.is_marked_for_delete(node)
 
-    def get_all_nodes_from_func(self, node_func: str) -> Set[RVIdentifier]:
+    def get_all_nodes_from_wrapper(self, func_wrapper) -> Set[RVIdentifier]:
         """
         Fetches all nodes that have a given node function.
 
         :param node_func: the node function
         :returns: list of nodes with a given node function
         """
-        return self.variables_.get_nodes_by_func(node_func)
+        return self.variables_.get_nodes_by_wrapper(func_wrapper)
 
     def start_diff_with_proposed_val(
         self, node: RVIdentifier, proposed_value: Tensor, start_new_diff: bool = False
@@ -590,7 +589,7 @@ class World(object):
             self.stack_.append(child)
             with self:
                 # in this call child is going to be copied over to the latest diff.
-                child_var.distribution = child.function(*child.arguments)
+                child_var.distribution = child.run()
             self.stack_.pop()
             obs_value = (
                 self.observations_[child] if child in self.observations_ else None
@@ -637,11 +636,17 @@ class World(object):
         proposed_value = node_var.inverse_transform_value(proposed_transformed_value)
         return self.propose_change(node, proposed_value, allow_graph_update)
 
-    def update_cached_functionals(self, f, *args) -> Tensor:
-        if (f, *args) not in self.cached_functionals_:
-            with self:
-                self.cached_functionals_[(f, *args)] = f(*args)
-        return self.cached_functionals_[(f, *args)]
+    def update_functionals(self, node: RVIdentifier) -> Tensor:
+        if self.get_cache_functionals() and node in self.cached_functionals_:
+            return self.cached_functionals_[node]
+
+        with self:
+            value = node.run()
+
+        if self.get_cache_functionals():
+            self.cached_functionals_[node] = value
+
+        return value
 
     def propose_change(
         self,
@@ -735,7 +740,7 @@ class World(object):
         self.add_node_to_world(node, node_var)
         self.stack_.append(node)
         with self:
-            node_var.distribution = node.function(*node.arguments)
+            node_var.distribution = node.run()
         self.stack_.pop()
 
         obs_value = self.observations_[node] if node in self.observations_ else None
@@ -784,4 +789,4 @@ class World(object):
         A helper function that invokes the random variable and return its value
         """
         with self:
-            return get_wrapper(node.function)(*node.arguments)
+            return node.wrapper(*node.arguments)

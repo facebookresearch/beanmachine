@@ -10,7 +10,7 @@ import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
 from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.model.utils import LogLevel, RVIdentifier, get_wrapper
+from beanmachine.ppl.model.utils import LogLevel, RVIdentifier
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore
@@ -170,7 +170,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         """
         markov_blanket = set({block.first_node})
         markov_blanket_func = {}
-        markov_blanket_func[get_wrapper(block.first_node.function)] = [block.first_node]
+        markov_blanket_func[block.first_node.wrapper] = [block.first_node]
         pos_proposal_log_updates, neg_proposal_log_updates = tensor(0.0), tensor(0.0)
         children_log_updates, nodes_log_updates = tensor(0.0), tensor(0.0)
         # We will go through all family of random variable in the block. Note
@@ -241,9 +241,9 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
                     # We create a dictionary from node family to the node itself
                     # as the match with block happens at the family level and
                     # this makes the lookup much faster.
-                    if get_wrapper(new_node.function) not in markov_blanket_func:
-                        markov_blanket_func[get_wrapper(new_node.function)] = []
-                    markov_blanket_func[get_wrapper(new_node.function)].append(new_node)
+                    if new_node.wrapper not in markov_blanket_func:
+                        markov_blanket_func[new_node.wrapper] = []
+                    markov_blanket_func[new_node.wrapper].append(new_node)
                 markov_blanket |= new_nodes_to_be_added
 
         proposal_log_updates = pos_proposal_log_updates + neg_proposal_log_updates
@@ -284,7 +284,7 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
             blocks.append(Block(first_node=node, type=BlockType.SINGLENODE, block=[]))
         for block in self.blocks_:
             first_node_str = block[0]
-            first_nodes = self.world_.get_all_nodes_from_func(first_node_str)
+            first_nodes = self.world_.get_all_nodes_from_wrapper(first_node_str)
             for node in first_nodes:
                 blocks.append(
                     Block(first_node=node, type=BlockType.SEQUENTIAL, block=block)

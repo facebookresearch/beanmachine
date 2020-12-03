@@ -730,6 +730,9 @@ class WorldTest(unittest.TestCase):
         self.assertNotIn(model2.bar(), world1.diff_.vars())
         self.assertNotIn(model1.Y(), world1.diff_.vars())
 
+        world1.accept_diff()
+        self.assertTrue(world1.variables_.contains_wrapper(model1.C))
+
     def test_value_consistentcy_in_world(self):
         model = self.SampleModel()
 

@@ -12,7 +12,7 @@ from beanmachine.ppl.world.variable import (
     TransformType,
     Variable,
 )
-from beanmachine.ppl.world.world import World
+from beanmachine.ppl.world.world import World, world_context
 from beanmachine.ppl.world.world_vars import WorldVars
 
 
@@ -20,6 +20,7 @@ __all__ = [
     "ProposalDistribution",
     "Variable",
     "World",
+    "world_context",
     "get_default_transforms",
     "is_discrete",
     "Diff",

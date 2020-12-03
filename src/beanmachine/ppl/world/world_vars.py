@@ -2,7 +2,7 @@
 from collections import defaultdict
 from typing import Dict, Optional
 
-from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
+from beanmachine.ppl.model.utils import RVIdentifier
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor, tensor
 
@@ -28,30 +28,27 @@ class WorldVars(object):
         in the WorldVars.
         """
         self.data_[node] = value
-        if hasattr(node, "function"):
-            self.var_funcs_[get_wrapper(node.function)].add(node)
+        self.var_funcs_[node.wrapper].add(node)
 
-    def contains_node_by_func(self, node_func: str) -> bool:
+    def contains_wrapper(self, func_wrapper) -> bool:
         """
         Returns whether the WorlVars contains the node with function node_func.
 
-        :params node_func: the node_func of the node to looked up in the
-        worldvars.
-        :returns: whether a node with node_func exists in WorldVars.
+        :params func_wrapper: the wrapper of the node to looked up in the
+        WorldVars.
+        :returns: whether a node with func_wrapper exists in WorldVars.
         """
-        if node_func in self.var_funcs_:
-            return True
-        return False
+        return func_wrapper in self.var_funcs_
 
-    def get_nodes_by_func(self, node_func: str):
+    def get_nodes_by_wrapper(self, func_wrapper):
         """
-        Get the nodes in WorldVars with the given node_func.
+        Get the nodes in WorldVars with the given func_wrapper.
 
-        :params node_func: the node_func to be looked up in WorldVars.
+        :params func_wrapper: the wrapper to be looked up in WorldVars.
         :returns: the variable of the node in WorldVars and None if the node
         does not exist.
         """
-        return self.var_funcs_[node_func]
+        return self.var_funcs_[func_wrapper]
 
     def get_node(self, node: RVIdentifier) -> Optional[Variable]:
         """
@@ -61,9 +58,7 @@ class WorldVars(object):
         :returns: the variable of the node in WorldVars and None if the node
         does not exist.
         """
-        if node in self.data_:
-            return self.data_[node]
-        return None
+        return self.data_.get(node)
 
     def get_node_raise_error(self, node: RVIdentifier) -> Variable:
         """
@@ -96,7 +91,7 @@ class WorldVars(object):
         :param node: the node to delete
         """
         del self.data_[node]
-        self.var_funcs_[get_wrapper(node.function)].remove(node)
+        self.var_funcs_[node.wrapper].remove(node)
 
     def len(self) -> int:
         """

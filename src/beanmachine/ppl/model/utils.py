@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import inspect
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -8,22 +7,27 @@ from typing import Any
 import torch
 
 
-def get_wrapper(f):
-    """
-    Gets wrapped function given a Python callable
-    """
-    if inspect.ismethod(f):
-        return getattr(f.__self__, f.__name__ + "_wrapper")
-    return f._wrapper
-
-
 @dataclass(eq=True, frozen=True)
 class RVIdentifier:
-    function: Any
+    """
+    Creates a key to uniquely identify the Random Variable.
+
+    :param wrapper: reference to the decorator class that wraps the function
+    :param arguments: function arguments
+    """
+
     arguments: Any
+    wrapper: Any
 
     def __str__(self):
         return str(self.function.__name__) + str(self.arguments)
+
+    @property
+    def function(self):
+        return self.wrapper.function
+
+    def run(self):
+        return self.function(*self.arguments)
 
 
 class LogLevel(Enum):

@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import copy
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch.distributions as dist
 from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
@@ -13,7 +13,8 @@ from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_propos
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
+from beanmachine.ppl.model import RVWrapper
+from beanmachine.ppl.model.utils import RVIdentifier
 
 
 class CompositionalInference(AbstractMHInference):
@@ -21,8 +22,7 @@ class CompositionalInference(AbstractMHInference):
     Compositional inference
     """
 
-    # pyre-fixme[9]: proposers has type `Dict[typing.Any, typing.Any]`; used as `None`.
-    def __init__(self, proposers: Dict = None):
+    def __init__(self, proposers: Optional[Dict] = None):
         self.proposers_per_family_ = {}
         self.proposers_per_rv_ = {}
         super().__init__()
@@ -30,20 +30,19 @@ class CompositionalInference(AbstractMHInference):
         # NMC requires an additional transform from Beta -> Reshaped beta
         # so all nodes default to having this behavior unless otherwise specified using CI
         # should be updated as initialization gets moved to the proposer
-        self.world_.set_all_nodes_proposer(SingleSiteNewtonianMonteCarloProposer())
+        self.initial_world_.set_all_nodes_proposer(
+            SingleSiteNewtonianMonteCarloProposer()
+        )
         if proposers is not None:
             for key in proposers:
-                if hasattr(key, "__func__"):
-                    func_wrapper = key.__func__
-                    self.proposers_per_family_[key.__func__] = proposers[key]
-                    self.world_.set_transforms(
-                        func_wrapper,
+                if isinstance(key, RVWrapper):
+                    self.proposers_per_family_[key] = proposers[key]
+                    self.initial_world_.set_transforms(
+                        key,
                         proposers[key].transform_type,
                         proposers[key].transforms,
                     )
-                    self.world_.set_proposer(func_wrapper, proposers[key])
-                else:
-                    self.proposers_per_family_[key] = proposers[key]
+                    self.initial_world_.set_proposer(key, proposers[key])
 
     def add_sequential_proposer(self, block: List) -> None:
         """
@@ -54,9 +53,7 @@ class CompositionalInference(AbstractMHInference):
         """
         blocks = []
         for rv in block:
-            if hasattr(rv, "__func__"):
-                blocks.append(rv.__func__)
-            else:
+            if isinstance(rv, RVWrapper):
                 blocks.append(rv)
         self.blocks_.append(blocks)
 
@@ -71,7 +68,7 @@ class CompositionalInference(AbstractMHInference):
         if node in self.proposers_per_rv_:
             return self.proposers_per_rv_[node]
 
-        wrapped_fn = get_wrapper(node.function)
+        wrapped_fn = node.wrapper
         if wrapped_fn in self.proposers_per_family_:
             proposer_inst = self.proposers_per_family_[wrapped_fn]
             self.proposers_per_rv_[node] = copy.deepcopy(proposer_inst)

@@ -19,8 +19,6 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.model.statistical_model import sample
-from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.utils import BetaDimensionTransform
 from beanmachine.ppl.world.variable import TransformType, Variable
 from beanmachine.ppl.world.world import World
@@ -88,27 +86,27 @@ class CompositionalInferenceTest(unittest.TestCase):
             return dist.Categorical(self.alpha())
 
     class SampleTransformModel(object):
-        @sample
+        @bm.random_variable
         def realspace(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def halfspace(self):
             return dist.Gamma(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def simplex(self):
             return dist.Dirichlet(tensor([0.1, 0.9]))
 
-        @sample
+        @bm.random_variable
         def interval(self):
             return dist.Uniform(tensor(1.0), tensor(3.0))
 
-        @sample
+        @bm.random_variable
         def beta(self):
             return dist.Beta(tensor(1.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def discrete(self):
             return dist.Poisson(tensor(2.0))
 
@@ -269,7 +267,7 @@ class CompositionalInferenceTest(unittest.TestCase):
                 first_nodes.append(block.first_node)
                 self.assertEqual(
                     block.block,
-                    list(map(get_wrapper, [foo_0_key.function, bar_0_key.function])),
+                    [foo_0_key.wrapper, bar_0_key.wrapper],
                 )
             if block.type == BlockType.SINGLENODE:
                 self.assertEqual(block.block, [])
@@ -282,7 +280,7 @@ class CompositionalInferenceTest(unittest.TestCase):
             Block(
                 first_node=foo_0_key,
                 type=BlockType.SEQUENTIAL,
-                block=list(map(get_wrapper, [foo_0_key.function, bar_0_key.function])),
+                block=[foo_0_key.wrapper, bar_0_key.wrapper],
             )
         )
 
