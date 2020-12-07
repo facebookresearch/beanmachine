@@ -390,25 +390,29 @@ _to_bmg = all_of(
 )
 
 
-def _bm_to_bmg_ast(source: str) -> ast.AST:
-    a: ast.Module = ast.parse(source)
-    a = _eliminate_all_assertions(a).expect_success()
-    # TODO: We might want to iterate the folder and optimizer until
-    # TODO: they reach a fixpoint; it's possible that the optimizer
-    # TODO: could someday produce a new opportunity for folding.
-    f = fold(a)
-    o = optimize(f)
-    assert isinstance(o, ast.Module)
+def _bm_ast_to_bmg_ast(a: ast.AST, run_optimizer: bool) -> ast.AST:
+    no_asserts = _eliminate_all_assertions(a).expect_success()
+    # TODO: Eventually remove the folder / optimizer; we can do optimization
+    # TODO: and folding when we generate the graph. No need to do it on source.
+    optimized = optimize(fold(no_asserts)) if run_optimizer else no_asserts
+    assert isinstance(optimized, ast.Module)
     # The AST has now had constants folded and associative
     # operators are nested to the left.
-    es = _fix_arithmetic(o).expect_success()
-    assert isinstance(es, ast.Module)
+    arithmetic_fixed = _fix_arithmetic(optimized).expect_success()
+    assert isinstance(arithmetic_fixed, ast.Module)
     # The AST has now eliminated all subtractions; negative constants
     # are represented as constants, not as USubs
-    sa = single_assignment(es)
+    sa = single_assignment(arithmetic_fixed)
     assert isinstance(sa, ast.Module)
     # Now we're in single assignment form.
     bmg = _to_bmg(sa).expect_success()
+    assert isinstance(bmg, ast.Module)
+    return bmg
+
+
+def _bm_module_to_bmg_ast(source: str) -> ast.AST:
+    a: ast.Module = ast.parse(source)
+    bmg = _bm_ast_to_bmg_ast(a, True)
     assert isinstance(bmg, ast.Module)
     bmg = _prepend_statements(bmg, _header.body)
     assert isinstance(bmg, ast.Module)
@@ -428,7 +432,7 @@ def _bm_to_bmg_ast(source: str) -> ast.AST:
 
 
 def to_python_raw(source: str) -> str:
-    bmg: ast.AST = _bm_to_bmg_ast(source)
+    bmg: ast.AST = _bm_module_to_bmg_ast(source)
     p: str = astor.to_source(bmg)
     return p
 
@@ -440,7 +444,7 @@ def _execute(source: str) -> Dict[str, Any]:
     # TODO: Make the name unique so that if this happens more than
     # TODO: once, we're not overwriting existing work.
     filename = "<BMGAST>"
-    a: ast.AST = _bm_to_bmg_ast(source)
+    a: ast.AST = _bm_module_to_bmg_ast(source)
     try:
         compiled = compile(a, filename, "exec")
     except Exception as ex:
