@@ -119,11 +119,10 @@ module.exports = {
       copyright: `Copyright &#169; ${new Date().getFullYear()} Facebook, Inc. Built with Docusaurus.`,
     },
   },
-  plugins: ['docusaurus-plugin-internaldocs-fb'],
   stylesheets: ['https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css'],
   presets: [
     [
-      '@docusaurus/preset-classic',
+      require.resolve('docusaurus-plugin-internaldocs-fb/docusaurus-preset'),
       {
         docs: {
           // It is recommended to set document id as docs home page (`docs/` path).
