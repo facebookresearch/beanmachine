@@ -31,6 +31,14 @@ commands:
           name: "Install beanmachine"
           command: sudo pip install --progress-bar off -v .
 
+  pip_install_pytest_patch:
+    steps:
+      - run:
+          name: "Install a patched pytest version from PR (pytest-dev/pytest#7870)"
+          command: >
+            sudo pip install --progress-bar off
+            git+https://github.com/pytest-dev/pytest.git@refs/pull/7870/head
+
   apt_get_install_deps:
     description: "Install beanmachine graph dependencies via apt-get"
     steps:
@@ -113,6 +121,7 @@ jobs:
       - pip_install_deps
       - checkout
       - dev_install
+      - pip_install_pytest_patch
       - dev_unit_tests
 
   user_par_install_test_py37_pip:
@@ -123,6 +132,7 @@ jobs:
       - pip_install_deps
       - checkout
       - user_install
+      - pip_install_pytest_patch
       - user_par_unit_tests
 
   lint_py37_pip:
@@ -143,6 +153,7 @@ jobs:
       - pip_install_deps
       - checkout
       - user_install
+      - pip_install_pytest_patch
       - nightly_tests
 
 
