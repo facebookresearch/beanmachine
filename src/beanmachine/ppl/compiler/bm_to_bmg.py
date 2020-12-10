@@ -2,9 +2,10 @@
 """Tools to transform Bean Machine programs to Bean Machine Graph"""
 
 import ast
+import inspect
 import sys
 import types
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 import astor
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
@@ -408,6 +409,81 @@ def _bm_ast_to_bmg_ast(a: ast.AST, run_optimizer: bool) -> ast.AST:
     bmg = _to_bmg(sa).expect_success()
     assert isinstance(bmg, ast.Module)
     return bmg
+
+
+def _unindent(lines):
+    # TODO: Handle the situation if there are tabs
+    if len(lines) == 0:
+        return lines
+    num_spaces = len(lines[0]) - len(lines[0].lstrip(" "))
+    if num_spaces == 0:
+        return lines
+    spaces = lines[0][0:num_spaces]
+    return [(line[num_spaces:] if line.startswith(spaces) else line) for line in lines]
+
+
+def _bm_function_to_bmg_ast(f: Callable) -> ast.AST:
+    """This function takes a function such as
+
+        @random_variable
+        def coin():
+            return Beta(1, 2)
+
+    and transforms it to
+
+        def coin_helper(bmg):
+            @stochastic
+            @memoize
+            def coin():
+                t1 = 1
+                t2 = 2
+                t3 = [t1, t2]
+                t4 = bmg.handle_function(Beta, t3)
+                t5 = bmg.handle_sample(t4)
+                return t5
+            return coin"""
+
+    # TODO: f.__class__ must be 'function' or 'method'
+    # TODO: Verify that we can get the source, handle it appropriately if we cannot.
+    lines, line_num = inspect.getsourcelines(f)
+    # The function may be indented because it is a local function or class member;
+    # either way, we cannot parse an indented function. Unindent it.
+    source = "".join(_unindent(lines))
+    a: ast.Module = ast.parse(source)
+    assert len(a.body) == 1
+    # TODO: What if it is an async function? Give an appropriate error.
+    # TODO: Similarly for generators, lambdas, coroutines
+
+    assert isinstance(a.body[0], ast.FunctionDef)
+    bmg = _bm_ast_to_bmg_ast(a, False)
+    assert isinstance(bmg, ast.Module)
+    assert len(bmg.body) == 1
+    bmg_f = bmg.body[0]
+    assert isinstance(bmg_f, ast.FunctionDef)
+    name = bmg_f.name
+    helper_name = name + "_helper"
+    helper_arg = ast.arg(arg="bmg", annotation=None)
+    helper_args = ast.arguments(
+        args=[helper_arg],
+        vararg=None,
+        kwonlyargs=[],
+        kw_defaults=[],
+        kwarg=None,
+        defaults=[],
+    )
+    helper = ast.Module(
+        body=[
+            ast.FunctionDef(
+                name=helper_name,
+                args=helper_args,
+                body=[bmg.body[0], ast.Return(value=ast.Name(id=name, ctx=ast.Load()))],
+                decorator_list=[],
+                returns=None,
+            )
+        ]
+    )
+    ast.fix_missing_locations(helper)
+    return helper
 
 
 def _bm_module_to_bmg_ast(source: str) -> ast.AST:
