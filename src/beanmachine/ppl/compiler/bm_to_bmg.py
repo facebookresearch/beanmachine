@@ -359,6 +359,12 @@ _lifted_to_bmg : bool = True
 bmg = BMGraphBuilder()"""
 )
 
+_short_header: ast.Module = ast.parse(
+    """
+from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.probabilistic import probabilistic"""
+)
+
 
 def _prepend_statements(module: ast.Module, statements: List[ast.stmt]) -> ast.Module:
     return ast.Module(body=statements + module.body)
@@ -422,7 +428,7 @@ def _unindent(lines):
     return [(line[num_spaces:] if line.startswith(spaces) else line) for line in lines]
 
 
-def _bm_function_to_bmg_ast(f: Callable) -> ast.AST:
+def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
     """This function takes a function such as
 
         @random_variable
@@ -432,7 +438,7 @@ def _bm_function_to_bmg_ast(f: Callable) -> ast.AST:
     and transforms it to
 
         def coin_helper(bmg):
-            @stochastic
+            @probabilistic
             @memoize
             def coin():
                 t1 = 1
@@ -445,6 +451,7 @@ def _bm_function_to_bmg_ast(f: Callable) -> ast.AST:
 
     # TODO: f.__class__ must be 'function' or 'method'
     # TODO: Verify that we can get the source, handle it appropriately if we cannot.
+    # TODO: Verify that function is not closed over any local variables
     lines, line_num = inspect.getsourcelines(f)
     # The function may be indented because it is a local function or class member;
     # either way, we cannot parse an indented function. Unindent it.
@@ -461,7 +468,6 @@ def _bm_function_to_bmg_ast(f: Callable) -> ast.AST:
     bmg_f = bmg.body[0]
     assert isinstance(bmg_f, ast.FunctionDef)
     name = bmg_f.name
-    helper_name = name + "_helper"
     helper_arg = ast.arg(arg="bmg", annotation=None)
     helper_args = ast.arguments(
         args=[helper_arg],
@@ -471,19 +477,45 @@ def _bm_function_to_bmg_ast(f: Callable) -> ast.AST:
         kwarg=None,
         defaults=[],
     )
-    helper = ast.Module(
-        body=[
-            ast.FunctionDef(
-                name=helper_name,
-                args=helper_args,
-                body=[bmg.body[0], ast.Return(value=ast.Name(id=name, ctx=ast.Load()))],
-                decorator_list=[],
-                returns=None,
-            )
-        ]
+
+    # TODO: Eliminate the need to do these imports?
+
+    helper_body = _short_header.body + [
+        bmg.body[0],
+        ast.Return(value=ast.Name(id=name, ctx=ast.Load())),
+    ]
+
+    helper_func = ast.FunctionDef(
+        name=helper_name,
+        args=helper_args,
+        body=helper_body,
+        decorator_list=[],
+        returns=None,
     )
+
+    helper = ast.Module(body=[helper_func])
     ast.fix_missing_locations(helper)
+
     return helper
+
+
+def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
+    helper_name = f.__name__ + "_helper"
+    a = _bm_function_to_bmg_ast(f, helper_name)
+    filename = "<BMGJIT>"
+    # TODO: Put this in a try-except and raise a lifted compilation error
+    # TODO: if there is a failure.
+    c = compile(a, filename, "exec")
+    if f.__module__ not in sys.modules:
+        msg = (
+            f"module {f.__module__} for function {f.__name__} not "
+            + f"found in sys.modules.\n{str(sys.modules.keys())}"
+        )
+        raise Exception(msg)
+
+    g = sys.modules[f.__module__].__dict__
+    exec(c, g)  # noqa
+    return g[helper_name](bmg)
 
 
 def _bm_module_to_bmg_ast(source: str) -> ast.AST:
@@ -528,7 +560,7 @@ def _execute(source: str) -> Dict[str, Any]:
     new_module = types.ModuleType(filename)
     sys.modules[filename] = new_module
     mod_globals = new_module.__dict__
-    exec(compiled, mod_globals)
+    exec(compiled, mod_globals)  # noqa
     return mod_globals
 
 

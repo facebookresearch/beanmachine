@@ -5,12 +5,14 @@ import unittest
 import astor
 from beanmachine.ppl.compiler.bm_to_bmg import (
     _bm_function_to_bmg_ast,
+    _bm_function_to_bmg_function,
     to_bmg,
     to_cpp,
     to_dot,
     to_python,
     to_python_raw,
 )
+from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.utils.memoize import RecursionError
 
 
@@ -2283,23 +2285,3 @@ def z():
 """
         with self.assertRaises(RecursionError):
             to_bmg(bad_model_2)
-
-    def test_function_transformation(self) -> None:
-        """Unit tests for _bm_function_to_bmg_ast from bm_to_bmg.py"""
-
-        def f(x):
-            return math.log(x)
-
-        self.maxDiff = None
-        observed = astor.to_source(_bm_function_to_bmg_ast(f))
-        expected = """
-def f_helper(bmg):
-
-    def f(x):
-        a2 = bmg.handle_dot_get(math, 'log')
-        r3 = [x]
-        r4 = {}
-        r1 = bmg.handle_function(a2, [*r3], r4)
-        return r1
-    return f"""
-        self.assertEqual(observed.strip(), expected.strip())
