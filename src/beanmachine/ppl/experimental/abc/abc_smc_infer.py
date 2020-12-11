@@ -15,7 +15,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
 from beanmachine.ppl.world import World
 from torch import Tensor
-from tqdm.auto import tqdm  # pyre-ignore
+from tqdm.auto import tqdm
 
 
 LOGGER_PROPOSER = logging.getLogger("beanmachine.proposer")
