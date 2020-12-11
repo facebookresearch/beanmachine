@@ -1,9 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import inspect
 import logging
-from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 import torch
 
@@ -15,15 +13,6 @@ def get_wrapper(f):
     if inspect.ismethod(f):
         return getattr(f.__self__, f.__name__ + "_wrapper")
     return f._wrapper
-
-
-@dataclass(eq=True, frozen=True)
-class RVIdentifier:
-    function: Any
-    arguments: Any
-
-    def __str__(self):
-        return str(self.function.__name__) + str(self.arguments)
 
 
 class LogLevel(Enum):

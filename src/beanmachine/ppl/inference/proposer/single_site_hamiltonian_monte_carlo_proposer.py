@@ -10,7 +10,7 @@ from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import Variable, World
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor, tensor

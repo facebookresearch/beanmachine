@@ -6,7 +6,7 @@ import gpytorch
 import gpytorch.distributions as dist
 import torch
 from beanmachine.ppl.experimental.gp import kernels
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 class KernelTests(unittest.TestCase):

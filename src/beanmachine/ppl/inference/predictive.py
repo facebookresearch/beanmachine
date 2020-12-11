@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 
 import torch
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch.distributions import Categorical
 
 from .single_site_ancestral_mh import SingleSiteAncestralMetropolisHastings

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List
 
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Tensor, tensor
 
 

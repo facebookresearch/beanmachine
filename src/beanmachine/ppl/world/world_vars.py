@@ -2,7 +2,8 @@
 from collections import defaultdict
 from typing import Dict, Optional
 
-from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor, tensor
 

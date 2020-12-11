@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.statistical_model import (
     StatisticalModel,
     functional,
@@ -6,7 +7,7 @@ from beanmachine.ppl.model.statistical_model import (
     random_variable,
     sample,
 )
-from beanmachine.ppl.model.utils import RVIdentifier, get_beanmachine_logger
+from beanmachine.ppl.model.utils import get_beanmachine_logger
 
 
 __all__ = [

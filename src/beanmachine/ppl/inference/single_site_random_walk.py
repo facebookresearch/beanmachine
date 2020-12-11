@@ -5,7 +5,7 @@ from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import (
     SingleSiteRandomWalkProposer,
 )
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.world import TransformType
 
 

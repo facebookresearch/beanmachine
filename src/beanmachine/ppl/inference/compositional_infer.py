@@ -13,7 +13,8 @@ from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_propos
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.model.utils import get_wrapper
 
 
 class CompositionalInference(AbstractMHInference):

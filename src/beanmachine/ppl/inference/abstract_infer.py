@@ -10,7 +10,8 @@ import torch.multiprocessing as mp
 from torch import Tensor
 from torch.multiprocessing import Queue
 
-from ..model.utils import LogLevel, RVIdentifier
+from ..model.rv_identifier import RVIdentifier
+from ..model.utils import LogLevel
 from ..world import World
 from .monte_carlo_samples import MonteCarloSamples
 
