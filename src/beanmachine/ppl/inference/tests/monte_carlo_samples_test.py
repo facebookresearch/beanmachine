@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import pickle
 import unittest
 
 import beanmachine.ppl as bm
@@ -95,3 +96,22 @@ class MonteCarloSamplesTest(unittest.TestCase):
             mcs.get_variable(foo_key, include_adapt_steps=True).shape,
             torch.zeros(4, 13).shape,
         )
+
+    def test_dump_and_restore_samples(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        foo_key = model.foo()
+        samples = mh.infer([foo_key], {}, num_samples=10, num_chains=2)
+        self.assertEqual(samples[foo_key].shape, (2, 10))
+
+        dumped = pickle.dumps((model, samples))
+        # delete local variables and pretend that we are starting from a new session
+        del model
+        del mh
+        del foo_key
+        del samples
+
+        # reload from dumped bytes
+        reloaded_model, reloaded_samples = pickle.loads(dumped)
+        # check the values still exist and have the correct shape
+        self.assertEqual(reloaded_samples[reloaded_model.foo()].shape, (2, 10))

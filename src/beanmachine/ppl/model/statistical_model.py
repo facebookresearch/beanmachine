@@ -33,17 +33,17 @@ class StatisticalModel(object):
     """
 
     @staticmethod
-    def get_func_key(function, arguments) -> RVIdentifier:
+    def get_func_key(wrapper, arguments) -> RVIdentifier:
         """
         Creates a key to uniquely identify the Random Variable.
 
-        :param function: reference to function
+        :param wrapper: reference to the wrapper function
         :param arguments: function arguments
 
         :returns: tuple of function and arguments which is to be used to identify
         a particular function call.
         """
-        return RVIdentifier(function=function, arguments=arguments)
+        return RVIdentifier(wrapper=wrapper, arguments=arguments)
 
     @staticmethod
     def sample(f):
@@ -62,7 +62,7 @@ class StatisticalModel(object):
 
         @wraps(f)
         def wrapper(*args):
-            func_key = StatisticalModel.get_func_key(f, args)
+            func_key = StatisticalModel.get_func_key(wrapper, args)
             world = world_context.get()
             if world:
                 return world.update_graph(func_key)
@@ -98,7 +98,7 @@ class StatisticalModel(object):
                 else:
                     return f(*args)
             else:
-                return StatisticalModel.get_func_key(f, args)
+                return StatisticalModel.get_func_key(wrapper, args)
 
         if inspect.ismethod(f):
             meth_name = f.__name__ + "_wrapper"
