@@ -4,7 +4,7 @@ import copy
 import beanmachine.ppl as bm
 import gpytorch.likelihoods as likelihoods
 import torch
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 class GpytorchMixin(torch.nn.Module):

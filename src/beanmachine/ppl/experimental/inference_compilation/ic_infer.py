@@ -19,7 +19,7 @@ from ...inference.proposer.abstract_single_site_single_step_proposer import (
 from ...inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from ...model.utils import RVIdentifier
+from ...model.rv_identifier import RVIdentifier
 from ...world import ProposalDistribution, Variable, World
 from . import utils
 

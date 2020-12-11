@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import plotly
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from plotly.subplots import make_subplots
 from torch import Tensor
 

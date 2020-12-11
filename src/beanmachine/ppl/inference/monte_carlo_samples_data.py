@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Dict, List, Union
 
 import torch
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Tensor
 
 

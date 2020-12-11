@@ -2,7 +2,7 @@ import copy
 
 import gpytorch.kernels as kernels
 import torch
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 class KernelMixin(torch.nn.Module):
