@@ -20,12 +20,15 @@ On Linux:
 
 On Mac, we recommend [conda](https://docs.conda.io/en/latest/) as a package manager and [Homebrew](https://brew.sh/) to install the Xcode dependencies:
 
-    brew install boost eigen
+    brew install boost eigen pybind11
     conda create -n {env name}; conda activate {env name}
     pip install numpy torch
     git clone https://github.com/facebookincubator/BeanMachine.git
     cd BeanMachine
-    python setup.py install --boost_include_dir {path_to_boost} --eigen_include_dir {path_to_eigen}
+    CC=$(LLVMBASE)/bin/clang -fopenmp CXX=$(LLVMBASE)/bin/clang++ -fopenmp CXX11=$(LLVMBASE)/bin/clang++ -fopenmp CXX14=$(LLVMBASE)/bin/clang++ -fopenmp \
+    CXX17=$(LLVMBASE)/bin/clang++ -fopenmp CXX1X=$(LLVMBASE)/bin/clang++ -fopenmp \
+    pip install . —global-option=build_ext —global-option='-Isrc:{INCLUDE_PATHS}'
+    # example INCLUDE_PATHS: /usr/local/Cellar/eigen/3.3.7/include/eigen3:/usr/local/Cellar/boost/1.73.0/include:/usr/local/Cellar/pybind11/2.6.1/include
 
 Further, if you would like to run the builtin unit tests:
 
