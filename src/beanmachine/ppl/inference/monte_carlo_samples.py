@@ -4,7 +4,7 @@ import copy
 from typing import Dict, List, Union
 
 from beanmachine.ppl.inference.monte_carlo_samples_data import MonteCarloSamplesData
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Tensor
 
 

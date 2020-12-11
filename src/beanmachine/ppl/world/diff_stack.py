@@ -2,7 +2,7 @@
 from collections import defaultdict
 from typing import List, Optional
 
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world_vars import WorldVars

@@ -10,7 +10,8 @@ import torch.distributions as dist
 import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
 from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.model.utils import LogLevel, RVIdentifier, get_wrapper
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel, get_wrapper
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 from tqdm.auto import tqdm  # pyre-ignore

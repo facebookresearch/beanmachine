@@ -12,7 +12,7 @@ from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaMode
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
 from beanmachine.ppl.inference.abstract_infer import AbstractInference
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Tensor
 
 
@@ -182,7 +182,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         expected_mean, expected_std, queries, observations = moments
 
         if random_seed is not None:
-            torch.manual_seed(random_seed)
+            torch.manual_seed(123)
 
         predictions = mh.infer(
             queries,

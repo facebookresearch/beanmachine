@@ -27,7 +27,7 @@ from beanmachine.ppl.experimental.neutra.train import IAFMap
 from beanmachine.ppl.inference.proposer.abstract_single_site_proposer import (
     AbstractSingleSiteProposer,
 )
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
 from torch import Tensor, tensor
 

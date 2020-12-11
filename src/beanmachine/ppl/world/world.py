@@ -4,7 +4,8 @@ import copy
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
-from beanmachine.ppl.model.utils import RVIdentifier, get_wrapper
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack

@@ -5,7 +5,7 @@ import beanmachine.ppl as bm
 import gpytorch
 import torch
 from beanmachine.ppl.experimental.gp import likelihoods
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 class LikelihoodTest(unittest.TestCase):

@@ -3,7 +3,7 @@ import inspect
 import warnings
 from functools import wraps
 
-from beanmachine.ppl.model.utils import RVIdentifier
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.world import world_context
 
 
