@@ -49,6 +49,9 @@ class BaseDiagnostics:
         self, query: RVIdentifier, chain: Optional[int] = None
     ):
         query_samples = self.samples[query]
+        if query_samples.shape[0] != 1:
+            # squeeze out non-chain singleton dims
+            query_samples = query_samples.squeeze()
         if chain is not None:
             query_samples = query_samples[chain].unsqueeze(0)
         return query_samples
