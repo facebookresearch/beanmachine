@@ -39,6 +39,11 @@ def foo():
     return dist.Normal(0, 1)
 
 
+@bm.random_variable
+def bar():
+    return dist.Normal(torch.randn(3, 1, 2), torch.ones(3, 1, 2))
+
+
 def dist_summary_stats() -> Dict[str, torch.tensor]:
     exact_mean = {
         "beta": beta_dis.mean.reshape(-1),
@@ -154,7 +159,7 @@ class DiagnosticsTest(unittest.TestCase):
 
     def test_r_hat_one_chain(self):
         mh = bm.SingleSiteAncestralMetropolisHastings()
-        samples = mh.infer([normal()], {}, 50, 1)
+        samples = mh.infer([normal()], {}, 5, 1)
         diagnostics = Diagnostics(samples)
         with self.assertWarns(UserWarning):
             results = diagnostics.split_r_hat([normal()])
@@ -162,7 +167,7 @@ class DiagnosticsTest(unittest.TestCase):
 
     def test_r_hat_column(self):
         mh = bm.SingleSiteAncestralMetropolisHastings()
-        samples = mh.infer([normal()], {}, 100, 2)
+        samples = mh.infer([normal()], {}, 5, 2)
         diagnostics = Diagnostics(samples)
 
         out_df = diagnostics.summary()
@@ -173,7 +178,7 @@ class DiagnosticsTest(unittest.TestCase):
 
     def test_r_hat_no_column(self):
         mh = bm.SingleSiteAncestralMetropolisHastings()
-        samples = mh.infer([normal()], {}, 100, 1)
+        samples = mh.infer([normal()], {}, 5, 1)
         out_df = Diagnostics(samples).summary()
         self.assertTrue("r_hat" not in out_df.columns)
 
@@ -220,6 +225,14 @@ class DiagnosticsTest(unittest.TestCase):
 
     def test_effective_sample_size_columns(self):
         mh = bm.SingleSiteAncestralMetropolisHastings()
-        samples = mh.infer([normal()], {}, 100, 2)
+        samples = mh.infer([normal()], {}, 5, 2)
         out_df = Diagnostics(samples).summary()
         self.assertTrue("n_eff" in out_df.columns)
+
+    def test_singleton_dims(self):
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        obs = {bar(): torch.ones(3, 1, 2)}
+        samples = mh.infer([bar()], obs, 5, 2)
+        diagnostics = Diagnostics(samples)
+        out_df = diagnostics.summary()
+        self.assertTrue("r_hat" in out_df.columns)
