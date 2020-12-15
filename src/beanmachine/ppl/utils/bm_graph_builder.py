@@ -123,6 +123,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Real,
     Zero,
 )
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.memoize import memoize
@@ -1115,6 +1116,12 @@ class BMGraphBuilder:
             return self.handle_phi(*args, **kwargs)
 
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
+
+    def _rv_to_node(self, rv: RVIdentifier) -> SampleNode:
+        from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_function
+
+        lifted = _bm_function_to_bmg_function(rv.function, self)
+        return lifted(*rv.arguments)
 
     @memoize
     def add_map(self, *elements) -> MapNode:

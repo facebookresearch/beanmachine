@@ -73,15 +73,18 @@ def norm_helper(bmg):
 """
         self.assertEqual(observed.strip(), expected.strip())
 
-        # Now obtain both lifted functions; call both and verify
-        # that the graph builder accumulates the desired graph.
+        # * Obtain the lifted version of f.
+        # * Ask the graph builder to transform the rv associated
+        #   with norm() to a sample node.
+        # * Invoke the lifted f and verify that we accumulate an
+        #   exp(sample(normal(0, 1))) node into the graph.
 
         bmg = BMGraphBuilder()
 
         lifted_f = _bm_function_to_bmg_function(f, bmg)
-        lifted_norm = _bm_function_to_bmg_function(norm, bmg)
+        norm_sample = bmg._rv_to_node(norm())
 
-        result = lifted_f(lifted_norm())
+        result = lifted_f(norm_sample)
         self.assertTrue(isinstance(result, ExpNode))
         dot = bmg.to_dot(point_at_input=True)
         expected = """
