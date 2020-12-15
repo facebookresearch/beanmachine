@@ -20,9 +20,13 @@ def f(x):
 
 # TODO: support aliases on bm.random_variable
 
+counter = 0
+
 
 @bm.random_variable
-def norm():
+def norm(n):
+    global counter
+    counter = counter + 1
     return Normal(0.0, 1.0)
 
 
@@ -60,29 +64,32 @@ def norm_helper(bmg):
 
     @probabilistic(bmg)
     @memoize
-    def norm():
-        a4 = 0.0
-        a3 = [a4]
-        a7 = 1.0
-        a5 = [a7]
-        r2 = bmg.handle_addition(a3, a5)
-        r6 = {}
-        r1 = bmg.handle_function(Normal, [*r2], r6)
-        return bmg.handle_sample(r1)
+    def norm(n):
+        global counter
+        a1 = 1
+        counter = bmg.handle_addition(counter, a1)
+        a5 = 0.0
+        a4 = [a5]
+        a8 = 1.0
+        a6 = [a8]
+        r3 = bmg.handle_addition(a4, a6)
+        r7 = {}
+        r2 = bmg.handle_function(Normal, [*r3], r7)
+        return bmg.handle_sample(r2)
     return norm
 """
         self.assertEqual(observed.strip(), expected.strip())
 
         # * Obtain the lifted version of f.
         # * Ask the graph builder to transform the rv associated
-        #   with norm() to a sample node.
+        #   with norm(0) to a sample node.
         # * Invoke the lifted f and verify that we accumulate an
         #   exp(sample(normal(0, 1))) node into the graph.
 
         bmg = BMGraphBuilder()
 
         lifted_f = _bm_function_to_bmg_function(f, bmg)
-        norm_sample = bmg._rv_to_node(norm())
+        norm_sample = bmg._rv_to_node(norm(0))
 
         result = lifted_f(norm_sample)
         self.assertTrue(isinstance(result, ExpNode))
@@ -101,3 +108,18 @@ digraph "graph" {
 }
 """
         self.assertEqual(dot.strip(), expected.strip())
+
+        # Verify that we've executed the body of the lifted
+        # norm(n) exactly once.
+        global counter
+        self.assertEqual(counter, 1)
+
+        # Turning an rv into a node should be idempotent;
+        # the second time, we do not increment the counter.
+
+        bmg._rv_to_node(norm(0))
+        self.assertEqual(counter, 1)
+        bmg._rv_to_node(norm(1))
+        self.assertEqual(counter, 2)
+        bmg._rv_to_node(norm(1))
+        self.assertEqual(counter, 2)
