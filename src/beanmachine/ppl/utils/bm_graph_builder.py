@@ -283,7 +283,16 @@ class BMGraphBuilder:
 
     function_map: Dict[Callable, Callable]
 
+    # As we construct the graph we may encounter "random variable" values; these
+    # refer to a function that we need to transform into the "lifted" form. This
+    # map tracks those so that we do not repeat work.
+
+    rv_map: Dict[RVIdentifier, Callable]
+    lifted_map: Dict[Callable, Callable]
+
     def __init__(self) -> None:
+        self.rv_map = {}
+        self.lifted_map = {}
         self.nodes = {}
         self.function_map = {
             # Math functions
@@ -1120,8 +1129,13 @@ class BMGraphBuilder:
     def _rv_to_node(self, rv: RVIdentifier) -> SampleNode:
         from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_function
 
-        lifted = _bm_function_to_bmg_function(rv.function, self)
-        return lifted(*rv.arguments)
+        if rv not in self.rv_map:
+            if rv.function not in self.lifted_map:
+                self.lifted_map[rv.function] = _bm_function_to_bmg_function(
+                    rv.function, self
+                )
+            self.rv_map[rv] = self.lifted_map[rv.function](*rv.arguments)
+        return self.rv_map[rv]
 
     @memoize
     def add_map(self, *elements) -> MapNode:
