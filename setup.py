@@ -5,7 +5,8 @@ import re
 import sys
 from glob import glob
 
-from setuptools import Extension, find_packages, setup
+from pybind11.setup_helpers import Pybind11Extension
+from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 
 
@@ -13,7 +14,7 @@ REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 6
 
 
-TEST_REQUIRES = ["pytest", "pytest-cov", "botorch"]
+TEST_REQUIRES = ["pytest", "pytest-cov"]
 DEV_REQUIRES = TEST_REQUIRES + [
     "black==20.8b1",
     "isort",
@@ -53,8 +54,19 @@ with open(init_file, "r") as f:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+# Use absolute path to the src directory
+INCLUDE_DIRS = [os.path.join(current_dir, "src")]
+
+# check if we're installing in a conda environment
+if "CONDA_PREFIX" in os.environ:
+    conda_include_dir = os.path.join(os.environ["CONDA_PREFIX"], "include")
+    INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "eigen3")])
+
+if sys.platform.startswith("linux"):
+    INCLUDE_DIRS.extend(["/usr/include", "/usr/include/eigen3"])
+
 setup(
-    name="BeanMachine",
+    name="beanmachine",
     version=version,
     description="Probabilistic Programming Language for Bayesian Inference",
     author="Facebook, Inc.",
@@ -82,9 +94,9 @@ setup(
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires=">=3.7",
+    python_requires=">={}.{}".format(REQUIRED_MAJOR, REQUIRED_MINOR),
     install_requires=[
-        "torch>=1.6.0",
+        "torch>=1.7.0",
         "numpy>=1.18.1",
         "pandas>=0.24.2",
         "plotly>=2.2.1",
@@ -93,17 +105,19 @@ setup(
         "tqdm>=4.46.0",
         "astor>=0.7.1",
         "black>=19.3b0",
+        "gpytorch>=1.3.0",
+        "botorch>=0.3.3",
     ],
     packages=find_packages("src/"),
     package_dir={"": "src"},
     ext_modules=[
-        Extension(
+        Pybind11Extension(
             name="beanmachine.graph",
-            sources=list(
+            sources=sorted(
                 set(glob("src/beanmachine/graph/**/*.cpp", recursive=True))
                 - set(glob("src/beanmachine/graph/**/*_test.cpp", recursive=True))
             ),
-            include_dirs=["src", "/usr/include/eigen3"],
+            include_dirs=INCLUDE_DIRS,
             extra_compile_args=CPP_COMPILE_ARGS,
         ),
         CppExtension(

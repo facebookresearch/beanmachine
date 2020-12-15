@@ -112,7 +112,7 @@ class TestNMC(unittest.TestCase):
         print("means", means)  # only printed on error
         self.assertTrue(abs(means[0] - 0.0) < 0.2, "mean of x should be 0")
         self.assertTrue(
-            abs(means[1] - SIGMA_X ** 2) < 0.2, f"mean of x^2 should be {SIGMA_X**2}"
+            abs(means[1] - SIGMA_X ** 2) < 0.5, f"mean of x^2 should be {SIGMA_X**2}"
         )
         self.assertTrue(abs(means[2] - 0.0) < 0.2, "mean of y should be 0")
         self.assertTrue(
@@ -149,7 +149,10 @@ class TestNMC(unittest.TestCase):
         means = g.infer_mean(10000, graph.InferenceType.NMC)
         post_var = means[1] - means[0] ** 2
         self.assertAlmostEqual(
-            means[0], 2 / (2 + 1), 2, f"posterior mean {means[0]} is not accurate"
+            means[0],
+            2 / (2 + 1),
+            msg=f"posterior mean {means[0]} is not accurate",
+            delta=0.01,
         )
         self.assertAlmostEqual(
             post_var,
