@@ -39,6 +39,8 @@ class JITTest(unittest.TestCase):
         # Verify code generation of lifted, nested form of
         # functions f(x), norm(), above.
 
+        self.assertTrue(norm.is_random_variable)
+
         bmgast = _bm_function_to_bmg_ast(f, "f_helper")
         observed = astor.to_source(bmgast)
         expected = """
