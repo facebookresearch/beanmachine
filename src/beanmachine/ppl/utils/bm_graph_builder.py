@@ -215,6 +215,10 @@ def is_ordinary_call(f, args, kwargs) -> bool:
     return True
 
 
+def _is_random_variable_call(f) -> bool:
+    return hasattr(f, "is_random_variable")
+
+
 def _is_phi(f: Any) -> bool:
     if not isinstance(f, Callable):
         return False
@@ -1103,11 +1107,27 @@ class BMGraphBuilder:
             )
         return (f, args, kwargs)
 
+    def _handle_ordinary_random_variable_call(
+        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+    ) -> SampleNode:
+        # We have a call to a random variable function and none of the arguments
+        # are graph nodes. Call the function; it will return an RVIdentifier.
+        # We then can use our usual mechanism for turning that into a graph node.
+
+        # TODO: Random variable calls do not support kwargs.
+        # TODO: Throw an exception if we have some?
+        rv = function(*arguments, **kwargs)
+        assert isinstance(rv, RVIdentifier)
+        return self._rv_to_node(rv)
+
     def handle_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
     ) -> Any:
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
+
         if is_ordinary_call(f, args, kwargs):
+            if _is_random_variable_call(f):
+                return self._handle_ordinary_random_variable_call(f, args, kwargs)
             return f(*args, **kwargs)
 
         # Some functions are perfectly safe for a graph node.
