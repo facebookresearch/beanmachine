@@ -1463,6 +1463,18 @@ g = graph.Graph()
             key=lambda n: self.nodes[n],
         )
 
+    def accumulate_graph(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, Any],
+    ) -> None:
+        for rv, val in observations.items():
+            node = self._rv_to_node(rv)
+            self.add_observation(node, val)
+        for q in queries:
+            node = self._rv_to_node(q)
+            self.add_query(node)
+
     def infer(
         self,
         queries: List[OperatorNode],
