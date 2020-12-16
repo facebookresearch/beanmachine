@@ -41,6 +41,11 @@ def flip():
     return Bernoulli(coin())
 
 
+@bm.functional
+def exp_coin():
+    return coin().exp()
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -177,7 +182,7 @@ digraph "graph" {
         self.maxDiff = None
 
         bmg = BMGraphBuilder()
-        queries = [coin()]
+        queries = [coin(), exp_coin()]
         observations = {flip(): tensor(1.0)}
         bmg.accumulate_graph(queries, observations)
         dot = bmg.to_dot(point_at_input=True)
@@ -190,13 +195,17 @@ digraph "graph" {
   N4[label=Sample];
   N5[label="Observation tensor(1.)"];
   N6[label=Query];
+  N7[label=Exp];
+  N8[label=Query];
   N0 -> N1[label=alpha];
   N0 -> N1[label=beta];
   N1 -> N2[label=operand];
   N2 -> N3[label=probability];
   N2 -> N6[label=operator];
+  N2 -> N7[label=operand];
   N3 -> N4[label=operand];
   N4 -> N5[label=operand];
+  N7 -> N8[label=operator];
 }
 """
         self.assertEqual(dot.strip(), expected.strip())
