@@ -19,6 +19,7 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "black==20.8b1",
     "isort",
     "flake8",
+    "flake8-bugbear",
     "sphinx",
     "sphinx-autodoc-typehints",
 ]

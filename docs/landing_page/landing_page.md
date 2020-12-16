@@ -66,13 +66,13 @@ Leverage native GPU and autograd support and integrate seamlessly with the PyTor
 
   ```py
   from torch.distributions import Bernoulli, Beta
-  from beanmachine.ppl.model import sample
+  from beanmachine.ppl import random_variable
 
-  @sample
+  @random_variable
   def p():
       return Beta(1, 1)
 
-  @sample
+  @random_variable
   def toss(i: int):
       return Bernoulli(p())
   ```

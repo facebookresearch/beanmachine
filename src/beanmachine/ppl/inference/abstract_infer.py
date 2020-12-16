@@ -7,6 +7,8 @@ from typing import ClassVar, Dict, List
 
 import torch
 import torch.multiprocessing as mp
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.model.utils import LogLevel
 from torch import Tensor
 from torch.multiprocessing import Queue
 
@@ -14,6 +16,9 @@ from ..model.rv_identifier import RVIdentifier
 from ..model.utils import LogLevel
 from ..world import World
 from .monte_carlo_samples import MonteCarloSamples
+
+
+LOGGER = logging.getLogger("beanmachine")
 
 
 class VerboseLevel(Enum):
@@ -24,9 +29,6 @@ class VerboseLevel(Enum):
 
     OFF = 0
     LOAD_BAR = 1
-
-
-LOGGER = logging.getLogger("beanmachine")
 
 
 class AbstractInference(object, metaclass=ABCMeta):
@@ -43,6 +45,54 @@ class AbstractInference(object, metaclass=ABCMeta):
         self.queries_ = []
         self.observations_ = {}
 
+    @staticmethod
+    def set_seed(seed: int):
+        torch.manual_seed(seed)
+        random.seed(seed)
+
+    def initialize_world(self, initialize_from_prior: bool = False, vi_dicts=None):
+        """
+        Initializes the world variables with queries and observation calls.
+
+        :param initialize_from_prior: boolean to initialize samples from prior
+        """
+        self.world_ = self.initial_world_.copy()
+        self.world_.vi_dicts = vi_dicts
+        self.world_.set_observations(self.observations_)
+        self.world_.set_initialize_from_prior(initialize_from_prior)
+
+        for node in self.observations_:
+            # makes the call for the observation node, which will run sample(node())
+            # that results in adding its corresponding Variable and its dependent
+            # Variable to the world
+            self.world_.call(node)
+        for node in self.queries_:
+            # makes the call for the query node, which will run sample(node())
+            # that results in adding its corresponding Variable and its dependent
+            # Variable to the world.
+            self.world_.call(node)
+
+        self.world_.accept_diff()
+        self.world_.vi_dicts = None
+
+    def reset(self):
+        """
+        Resets world, mode and observation
+        """
+        self.world_ = self.initial_world_.copy()
+        self.queries_ = []
+        self.observations_ = {}
+
+
+class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
+    """
+    Abstract inference object for Monte Carlo inference.
+    """
+
+    @staticmethod
+    def set_seed_for_chain(random_seed: int, chain: int):
+        AbstractInference.set_seed(random_seed + chain * 31)
+
     @abstractmethod
     def _infer(
         self,
@@ -57,11 +107,6 @@ class AbstractInference(object, metaclass=ABCMeta):
         """
         raise NotImplementedError("Inference algorithm must implement _infer.")
 
-    @staticmethod
-    def set_seed_for_chain(random_seed: int, chain: int):
-        torch.manual_seed(random_seed + chain * 31)
-        random.seed(random_seed + chain * 31)
-
     def _parallel_infer(
         self,
         queue: Queue,
@@ -72,7 +117,7 @@ class AbstractInference(object, metaclass=ABCMeta):
         verbose: VerboseLevel,
     ):
         try:
-            AbstractInference.set_seed_for_chain(random_seed, chain)
+            AbstractMCInference.set_seed_for_chain(random_seed, chain)
             rv_dict = self._infer(num_samples, num_adaptive_samples, verbose)
             string_dict = {str(rv): tensor.detach() for rv, tensor in rv_dict.items()}
             queue.put((None, chain, string_dict))
@@ -131,7 +176,7 @@ class AbstractInference(object, metaclass=ABCMeta):
             else:
                 chain_queries = []
                 for chain in range(num_chains):
-                    AbstractInference.set_seed_for_chain(random_seed, chain)
+                    AbstractMCInference.set_seed_for_chain(random_seed, chain)
                     rv_dicts = self._infer(
                         num_samples,
                         num_adaptive_samples,
@@ -146,11 +191,3 @@ class AbstractInference(object, metaclass=ABCMeta):
         finally:
             self.reset()
         return monte_carlo_samples
-
-    def reset(self):
-        """
-        Resets world, mode and observation
-        """
-        self.world_ = self.initial_world_.copy()
-        self.queries_ = []
-        self.observations_ = {}

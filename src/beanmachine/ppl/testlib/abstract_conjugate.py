@@ -11,7 +11,7 @@ from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
 from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaModel
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
-from beanmachine.ppl.inference.abstract_infer import AbstractInference
+from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Tensor
 
@@ -172,7 +172,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
     def _compare_run(
         self,
         moments: Tuple[Tensor, Tensor, List[RVIdentifier], Dict[RVIdentifier, Tensor]],
-        mh: AbstractInference,
+        mh: AbstractMHInference,
         num_chains: int,
         num_samples: int,
         delta: float,
@@ -201,7 +201,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def beta_binomial_conjugate_run(
         self,
-        mh: AbstractInference,
+        mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
@@ -230,7 +230,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def gamma_gamma_conjugate_run(
         self,
-        mh: AbstractInference,
+        mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
@@ -259,7 +259,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def gamma_normal_conjugate_run(
         self,
-        mh: AbstractInference,
+        mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
@@ -288,7 +288,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def normal_normal_conjugate_run(
         self,
-        mh: AbstractInference,
+        mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
@@ -317,7 +317,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def distant_normal_normal_conjugate_run(
         self,
-        mh: AbstractInference,
+        mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
@@ -347,7 +347,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     def dirichlet_categorical_conjugate_run(
         self,
-        mh: AbstractInference,
+        mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
         delta: float = 0.05,
