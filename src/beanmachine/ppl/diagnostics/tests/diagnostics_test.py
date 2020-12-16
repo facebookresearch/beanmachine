@@ -130,7 +130,7 @@ class DiagnosticsTest(unittest.TestCase):
                         expected_acf[ns],
                         msg=f"autocorr data for {diag._stringify_query(query)}\
                               is not correct",
-                        delta=0.1,
+                        delta=0.11,
                     )
                 index += 1
 

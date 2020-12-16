@@ -7,36 +7,36 @@ commands:
     steps:
       - run:
           name: "Upgrade pip"
-          command: sudo pip install --progress-bar off --upgrade pip
+          command: pip install --progress-bar off --upgrade pip
       - run:
           name: "Install numpy"
-          command: sudo pip install --progress-bar off numpy
+          command: pip install --progress-bar off numpy
       - run:
           name: "Install pytorch"
           command: >
-            sudo pip install --progress-bar off torch==1.7.0+cpu
+            pip install --progress-bar off torch==1.7.0+cpu
             -f https://download.pytorch.org/whl/torch_stable.html
 
-  dev_install:
+  dev_install_beanmachine:
     description: "Install beanmachine[dev] in editable mode via pip"
     steps:
       - run:
           name: "Install beanmachine[dev]"
           command: sudo pip install --progress-bar off -v -e .[dev]
 
-  user_install:
+  user_install_beanmachine:
     description: "Install beanmachine as an ordinary user would via pip"
     steps:
       - run:
           name: "Install beanmachine"
-          command: sudo pip install --progress-bar off -v .
+          command: pip install --progress-bar off -v .
 
   pip_install_pytest_patch:
     steps:
       - run:
           name: "Install a patched pytest version from PR (pytest-dev/pytest#7870)"
           command: >
-            sudo pip install --progress-bar off
+            pip install --progress-bar off
             git+https://github.com/pytest-dev/pytest.git@refs/pull/7870/head
 
   apt_get_install_deps:
@@ -46,18 +46,59 @@ commands:
           name: "Update package lists"
           command: sudo apt-get update
       - run:
-          name: "Install Boost, Eigen, and PyBind11"
-          command: sudo apt-get install libboost-dev libeigen3-dev pybind11-dev
+          name: "Install Boost and Eigen"
+          command: sudo apt-get install libboost-dev libeigen3-dev
 
   pip_lint_install:
     description: "Install lint packages via pip"
     steps:
       - run:
           name: "Upgrade pip"
-          command: sudo pip install --progress-bar off --upgrade pip
+          command: pip install --progress-bar off --upgrade pip
       - run:
           name: "Install lint packages"
-          command: sudo pip install --progress-bar off black==20.8b1 isort==4.3.21 flake8
+          command: pip install --progress-bar off black==20.8b1 isort==4.3.21 flake8
+
+  install_miniconda_macos:
+    steps:
+      - run:
+          name: "Download Miniconda installation script from anaconda.com"
+          command: >
+            curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+            -o miniconda.sh
+      - run:
+          name: "Install Miniconda"
+          command: |
+            bash miniconda.sh -b -p $HOME/miniconda
+            source "$HOME/miniconda/etc/profile.d/conda.sh"
+            conda init
+            conda config --set always_yes yes --set changeps1 no
+            conda update -q conda
+            conda info -a  # print out info that're useful for debug
+      - run:
+          name: "Create a new conda environment (Python 3.7)"
+          command: |
+            conda create -q -n test_env python=3.7
+            # activate test_env by default for the subsequent commands
+            echo "conda activate test_env" >> /Users/distiller/.bash_profile
+
+  brew_install_deps:
+    steps:
+      - run:
+          name: "Install LLVM with OpenMP Support"
+          command: |
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install llvm libomp
+            echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> \
+              /Users/distiller/.bash_profile
+
+  conda_install_beanmachine:
+    steps:
+      - run:
+          name: "Install Boost and Eigen with conda"
+          command: conda install eigen boost
+      - run:
+          name: "Install beanmachine in editable mode"
+          command: CC=clang CXX=clang++ pip install --progress-bar off -e .[dev]
 
   lint_flake8:
     description: "Lint with flake8"
@@ -95,7 +136,7 @@ commands:
     steps:
       - run:
           name: "Install test dependencies"
-          command: pip install pytest botorch pytest-xdist
+          command: pip install pytest pytest-xdist
       - run:
           name: "Run unit tests in parallel"
           command: pytest -n 20 -vv
@@ -105,7 +146,7 @@ commands:
     steps:
       - run:
           name: "Install test dependencies"
-          command: pip install pytest botorch pytest-xdist
+          command: pip install pytest pytest-xdist
       - run:
           name: "Run nightly tests and report overall runtimes"
           command: pytest -n auto -o python_files="*_nightly.py" --durations=0
@@ -120,7 +161,7 @@ jobs:
       - apt_get_install_deps
       - pip_install_deps
       - checkout
-      - dev_install
+      - dev_install_beanmachine
       - pip_install_pytest_patch
       - dev_unit_tests
 
@@ -131,9 +172,20 @@ jobs:
       - apt_get_install_deps
       - pip_install_deps
       - checkout
-      - user_install
+      - user_install_beanmachine
       - pip_install_pytest_patch
       - user_par_unit_tests
+
+  macos_dev_install_test_py37_conda:
+    macos:
+      xcode: 12.0
+    steps:
+      - checkout
+      - install_miniconda_macos
+      - brew_install_deps
+      - conda_install_beanmachine
+      - pip_install_pytest_patch
+      - dev_unit_tests
 
   lint_py37_pip:
     docker:
@@ -152,7 +204,7 @@ jobs:
       - apt_get_install_deps
       - pip_install_deps
       - checkout
-      - user_install
+      - user_install_beanmachine
       - pip_install_pytest_patch
       - nightly_tests
 
@@ -177,6 +229,9 @@ workflows:
           filters: *exclude_ghpages_fbconfig
 
       - user_par_install_test_py37_pip:
+          filters: *exclude_ghpages_fbconfig
+
+      - macos_dev_install_test_py37_conda:
           filters: *exclude_ghpages_fbconfig
 
   nightly_test:
