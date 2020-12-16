@@ -24,18 +24,18 @@ class SingleSiteNoUTurnConjugateTest(unittest.TestCase, AbstractConjugateTests):
     def test_gamma_gamma_conjugate_run(self):
         nuts = SingleSiteNoUTurnSampler(use_dense_mass_matrix=False)
         self.gamma_gamma_conjugate_run(
-            nuts, num_samples=200, delta=0.07, num_adaptive_samples=100
+            nuts, num_samples=200, delta=0.20, num_adaptive_samples=100
         )
         nuts = SingleSiteNoUTurnSampler()
         self.gamma_gamma_conjugate_run(
-            nuts, num_samples=200, delta=0.07, num_adaptive_samples=100
+            nuts, num_samples=200, delta=0.20, num_adaptive_samples=100
         )
 
     def test_gamma_normal_conjugate_run(self):
         nuts = SingleSiteNoUTurnSampler(use_dense_mass_matrix=False)
         # TODO: The delta in the following needs to be reduced
         self.gamma_normal_conjugate_run(
-            nuts, num_samples=150, delta=0.21, num_adaptive_samples=50
+            nuts, num_samples=250, delta=0.25, num_adaptive_samples=100
         )
         nuts = SingleSiteNoUTurnSampler()
         self.gamma_normal_conjugate_run(
