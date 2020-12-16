@@ -11,7 +11,7 @@ from beanmachine.ppl.compiler.bm_to_bmg import (
 )
 from beanmachine.ppl.compiler.bmg_nodes import ExpNode
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
-from torch.distributions import Normal
+from torch.distributions import Bernoulli, Beta, Normal
 
 
 def f(x):
@@ -28,6 +28,16 @@ def norm(n):
     global counter
     counter = counter + 1
     return Normal(0.0, 1.0)
+
+
+@bm.random_variable
+def coin():
+    return Beta(2.0, 2.0)
+
+
+@bm.random_variable
+def flip():
+    return Bernoulli(coin())
 
 
 class JITTest(unittest.TestCase):
@@ -125,3 +135,37 @@ digraph "graph" {
         self.assertEqual(counter, 2)
         bmg._rv_to_node(norm(1))
         self.assertEqual(counter, 2)
+
+    def test_function_transformation_2(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        # We have flip() which calls Bernoulli(coin()). What should happen
+        # here is:
+        # * _rv_to_node jit-compiles flip() and executes the lifted version.
+        # * while executing the lifted flip() we encounter a call to
+        #   coin().  We detect that coin is a random variable function,
+        #   and call it.
+        # * We now have the RVIdentifier for coin() in hand, which we
+        #   then jit-compile in turn, and execute the lifted version.
+        # * That completes the construction of the graph.
+
+        bmg = BMGraphBuilder()
+        bmg._rv_to_node(flip())
+        dot = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=Bernoulli];
+  N4[label=Sample];
+  N0 -> N1[label=alpha];
+  N0 -> N1[label=beta];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=probability];
+  N3 -> N4[label=operand];
+}
+"""
+        self.assertEqual(dot.strip(), expected.strip())
