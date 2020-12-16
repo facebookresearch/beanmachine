@@ -11,6 +11,7 @@ from beanmachine.ppl.compiler.bm_to_bmg import (
 )
 from beanmachine.ppl.compiler.bmg_nodes import ExpNode
 from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from torch import tensor
 from torch.distributions import Bernoulli, Beta, Normal
 
 
@@ -166,6 +167,36 @@ digraph "graph" {
   N1 -> N2[label=operand];
   N2 -> N3[label=probability];
   N3 -> N4[label=operand];
+}
+"""
+        self.assertEqual(dot.strip(), expected.strip())
+
+    def test_function_transformation_3(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [coin()]
+        observations = {flip(): tensor(1.0)}
+        bmg.accumulate_graph(queries, observations)
+        dot = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=Bernoulli];
+  N4[label=Sample];
+  N5[label="Observation tensor(1.)"];
+  N6[label=Query];
+  N0 -> N1[label=alpha];
+  N0 -> N1[label=beta];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=probability];
+  N2 -> N6[label=operator];
+  N3 -> N4[label=operand];
+  N4 -> N5[label=operand];
 }
 """
         self.assertEqual(dot.strip(), expected.strip())
