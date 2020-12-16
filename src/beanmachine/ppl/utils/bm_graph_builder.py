@@ -219,6 +219,10 @@ def _is_random_variable_call(f) -> bool:
     return hasattr(f, "is_random_variable")
 
 
+def _is_functional_call(f) -> bool:
+    return hasattr(f, "is_functional")
+
+
 def _is_phi(f: Any) -> bool:
     if not isinstance(f, Callable):
         return False
@@ -291,7 +295,7 @@ class BMGraphBuilder:
     # refer to a function that we need to transform into the "lifted" form. This
     # map tracks those so that we do not repeat work.
 
-    rv_map: Dict[RVIdentifier, Callable]
+    rv_map: Dict[RVIdentifier, BMGNode]
     lifted_map: Dict[Callable, Callable]
 
     def __init__(self) -> None:
@@ -1126,7 +1130,7 @@ class BMGraphBuilder:
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
 
         if is_ordinary_call(f, args, kwargs):
-            if _is_random_variable_call(f):
+            if _is_random_variable_call(f) or _is_functional_call(f):
                 return self._handle_ordinary_random_variable_call(f, args, kwargs)
             return f(*args, **kwargs)
 
@@ -1146,7 +1150,7 @@ class BMGraphBuilder:
 
         raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
 
-    def _rv_to_node(self, rv: RVIdentifier) -> SampleNode:
+    def _rv_to_node(self, rv: RVIdentifier) -> BMGNode:
         from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_function
 
         if rv not in self.rv_map:
