@@ -1961,25 +1961,23 @@ digraph "graph" {
   N09[label=Normal];
   N10[label=Sample];
   N11[label="+"];
-  N12[label=Query];
-  N13[label=1.0];
-  N14[label=Normal];
-  N15[label=Sample];
-  N03 -> N00[label=df];
-  N03 -> N01[label=loc];
-  N03 -> N02[label=scale];
-  N04 -> N03[label=operand];
-  N06 -> N05[label=scale];
-  N07 -> N06[label=operand];
-  N09 -> N07[label=sigma];
-  N09 -> N08[label=mu];
-  N10 -> N09[label=operand];
-  N11 -> N04[label=left];
-  N11 -> N10[label=right];
-  N12 -> N11[label=operator];
-  N14 -> N11[label=mu];
-  N14 -> N13[label=sigma];
-  N15 -> N14[label=operand];
+  N12[label=1.0];
+  N13[label=Normal];
+  N14[label=Sample];
+  N00 -> N03[label=df];
+  N01 -> N03[label=loc];
+  N02 -> N03[label=scale];
+  N03 -> N04[label=operand];
+  N04 -> N11[label=left];
+  N05 -> N06[label=scale];
+  N06 -> N07[label=operand];
+  N07 -> N09[label=sigma];
+  N08 -> N09[label=mu];
+  N09 -> N10[label=operand];
+  N10 -> N11[label=right];
+  N11 -> N13[label=mu];
+  N12 -> N13[label=sigma];
+  N13 -> N14[label=operand];
 }
 """
 
@@ -2222,7 +2220,7 @@ class CompilerTest(unittest.TestCase):
 
     def test_to_dot_18(self) -> None:
         self.maxDiff = None
-        observed = to_dot(source18)
+        observed = to_dot(source18, point_at_input=True)
         self.assertEqual(observed.strip(), expected_dot_18.strip())
 
     def disabled_test_to_cpp_1(self) -> None:
