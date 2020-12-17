@@ -1,3 +1,4 @@
+import itertools
 import logging
 from typing import Callable
 
@@ -67,14 +68,14 @@ class VariationalApproximation(dist.distribution.Distribution):
         z0, zk, ldj = self.flow_stack(shape=(num_elbo_mc_samples,))
         n, d = z0.shape
 
-        # negative entropy -H(Q)
-        obj = -(
-            self.flow_stack.base_dist(**self.flow_stack.base_args).log_prob(z0).sum()
-        )
-        obj += ldj.sum()  # change of variable zk -> z0
-
         # cross-entropy H(Q,P)
-        obj += target_log_prob(zk).sum()
+        obj = target_log_prob(zk).sum()
+
+        # negative entropy -H(Q)
+        obj -= (
+            self.flow_stack.base_dist(**self.flow_stack.base_args).log_prob(z0).sum()
+            - ldj.sum()
+        )
 
         # normalize by batch size
         obj /= num_elbo_mc_samples
@@ -109,7 +110,7 @@ class VariationalApproximation(dist.distribution.Distribution):
                 # TODO: caused by e.g. negative scales in `dist.Normal`;
                 # fix using pytorch's `constraint_registry` to account for
                 # `Distribution.arg_constraints`
-                LOGGER.log(LogLevel.INFO, "Encountered NaNs in loss, skipping epoch")
+                LOGGER.log(LogLevel.INFO.value, "Encountered NaNs in loss, skipping epoch")
         return self
 
     def rsample(self, sample_shape=None):
@@ -119,8 +120,11 @@ class VariationalApproximation(dist.distribution.Distribution):
         return xs
 
     def parameters(self):
-        return list(self.flow_stack.parameters()) + list(
-            filter(lambda x: x.requires_grad, self.flow_stack.base_args.values())
+        return itertools.chain(
+            self.flow_stack.parameters(),
+            filter(
+                lambda x: x.requires_grad, 
+                self.flow_stack.base_args.values())
         )
 
     def log_prob(self, value):

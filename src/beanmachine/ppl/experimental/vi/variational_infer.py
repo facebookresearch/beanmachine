@@ -35,8 +35,8 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         num_iter: int = 100,
         num_flows: int = 8,
         lr: float = 1e-2,
-        base_dist: Optional[dist.Distribution] = dist.Normal,
-        base_args=None,
+        base_dist: Optional[dist.Distribution] = None,
+        base_args={},
         random_seed=None,
         num_elbo_mc_samples=100,
     ) -> Dict[RVIdentifier, VariationalApproximation]:
@@ -52,6 +52,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         :param base_args: arguments to base_dist (will optimize any `nn.Parameter`s)
         """
         if not base_dist:
+            base_dist = dist.Normal
             base_args = {"loc": torch.tensor(0.0), "scale": torch.tensor(1.0)}
         try:
             if not random_seed:
@@ -96,7 +97,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                         # TODO: support batching on `x` (e.g. if `children` depend
                         # on the value of `x`)
                         self.world_.propose_change(rvid, x, start_new_diff=True)
-                        log_prob = node_var.log_prob.sum()
+                        log_prob = node_var.distribution.log_prob(x).sum()
                         for child in node_var.children:
                             child_var = self.world_.get_node_in_world_raise_error(child)
                             log_prob += child_var.log_prob
@@ -120,7 +121,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     # fix using pytorch's `constraint_registry` to account for
                     # `Distribution.arg_constraints`
                     LOGGER.log(
-                        LogLevel.INFO, "Encountered NaNs in loss, skipping epoch"
+                        LogLevel.INFO.value, "Encountered NaNs in loss, skipping epoch"
                     )
 
         except BaseException as x:
