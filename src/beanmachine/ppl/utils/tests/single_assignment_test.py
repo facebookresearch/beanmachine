@@ -1764,3 +1764,83 @@ def f():
 """
 
         self.check_rewrite(source, expected)
+
+        # Helper tests to fix the bug identified above
+        # Interestingly, regular arguments are OK
+
+        source = """
+def f():
+    return b(c())
+"""
+        expected = """
+def f():
+    r5 = []
+    r6 = {}
+    a3 = c(*r5, **r6)
+    r2 = [a3]
+    r4 = {}
+    r1 = b(*r2, **r4)
+    return r1
+"""
+
+        self.check_rewrite(source, expected)
+
+        # What is happening to multiple arguments is a bit worrying
+        # TODO: Should this really be so complicated?
+
+        source = """
+def f():
+    return b(n1=c1(),n2=c2(),n3=c3())
+"""
+        expected = """
+def f():
+    r2 = []
+    r3 = dict(**dict(**dict(n1=c1()), **dict(n2=c2())), **dict(n3=c3()))
+    r1 = b(*r2, **r3)
+    return r1
+"""
+
+        self.check_rewrite(source, expected)
+
+        # It also seems there is no similar problem with regular args
+
+        source = """
+def f():
+    return b(*[c()])
+"""
+        expected = """
+def f():
+    r5 = []
+    r6 = {}
+    a3 = c(*r5, **r6)
+    r2 = [a3]
+    r4 = {}
+    r1 = b(*r2, **r4)
+    return r1
+"""
+
+        self.check_rewrite(source, expected)
+
+        # There is also no problem with multiple regular arguments
+
+        source = """
+def f():
+    return b(c1(),c2())
+"""
+        expected = """
+def f():
+    r8 = []
+    r10 = {}
+    a4 = c1(*r8, **r10)
+    a3 = [a4]
+    r9 = []
+    r11 = {}
+    a7 = c2(*r9, **r11)
+    a5 = [a7]
+    r2 = a3 + a5
+    r6 = {}
+    r1 = b(*r2, **r6)
+    return r1
+"""
+
+        self.check_rewrite(source, expected)
