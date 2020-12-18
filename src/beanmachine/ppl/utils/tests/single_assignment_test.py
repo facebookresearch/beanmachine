@@ -1754,7 +1754,7 @@ y = p1(*r5, **r9)
     def test_single_assignment_nested_call_named_arg(self) -> None:
         self.maxDiff = None
 
-        # This test points out a bug in the rewriting logic.
+        # This test originally pointed out a bug in the rewriting logic.
         # We should be pulling the invocation of c() out into
         # it's own top-level function call.
         #
@@ -1814,13 +1814,16 @@ def f():
 
         self.check_rewrite(source, expected)
 
-        # What is happening to multiple arguments is a bit worrying
-        # TODO: This needs to be fixed
+        # It was further noted that the following expression was
+        # also not handled well
 
         source = """
 def f():
     return b(n1=c1(),n2=c2(),n3=c3())
 """
+
+        # In particular, it produced the following output, which
+        # has nested "dict" calls that are should be removed
         expected = """
 def f():
     r2 = []
@@ -1828,7 +1831,7 @@ def f():
     r1 = b(*r2, **r3)
     return r1
 """
-        # The above "expected" was before the introduction of "binary_dict_left"
+        # To fix this, first we introduced the rewrite "binary_dict_left"
         # With the introduction of that rule we get
         expected = """
 def f():
@@ -1842,7 +1845,7 @@ def f():
     r1 = b(*r2, **r3)
     return r1
 """
-        # With the introduction of that rule we get
+        # Next, we introduced "binary_dict_right" and then we get
         expected = """
 def f():
     r2 = []
@@ -1866,7 +1869,8 @@ def f():
 
         self.check_rewrite(source, expected)
 
-        # It also seems there is no similar problem with regular args
+        # It was useful to note that there was no similar problem with
+        # calls that have regular arguments
 
         source = """
 def f():
@@ -1885,7 +1889,7 @@ def f():
 
         self.check_rewrite(source, expected)
 
-        # There is also no problem with multiple regular arguments
+        # No similar problem with multiple regular arguments also:
 
         source = """
 def f():
