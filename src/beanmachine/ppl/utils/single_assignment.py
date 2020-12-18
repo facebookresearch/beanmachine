@@ -576,6 +576,36 @@ class SingleAssignment:
             "handle_assign_binary_dict_left",
         )
 
+    def _handle_assign_binary_dict_right(self) -> Rule:
+        return PatternRule(
+            assign(
+                value=call(
+                    func=name(id="dict"),
+                    args=[],
+                    keywords=[keyword(value=name()), keyword(value=_not_identifier)],
+                )
+            ),
+            self._transform_with_name(
+                "a",
+                lambda source_term: source_term.value.keywords[1].value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=ast.Call(
+                        func=source_term.value.func,  # Name(id="dict", ctx=Load()),
+                        args=source_term.value.args,  # [],
+                        keywords=source_term.value.keywords[:1]
+                        + [
+                            ast.keyword(
+                                arg=source_term.value.keywords[1].arg,  # "name",
+                                value=new_name,
+                            )
+                        ],
+                    ),
+                ),
+            ),
+            "handle_assign_binary_dict_right",
+        )
+
     def _handle_assign_binop_right(self) -> Rule:
         return PatternRule(
             assign(value=binop(right=_not_identifier, op=_binops)),
@@ -1087,6 +1117,7 @@ class SingleAssignment:
                 # Rules for dict (as a special function name)
                 self._handlle_assign_unary_dict(),
                 self._handle_assign_binary_dict_left(),
+                self._handle_assign_binary_dict_right(),
             ]
         )
 

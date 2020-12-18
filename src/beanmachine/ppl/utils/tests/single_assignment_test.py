@@ -1083,8 +1083,11 @@ x = f(*r1, **dict(**dict(**dict(**d), **dict(k=42)), **dict(**e)))
         expected = """
 r1 = []
 a3 = dict(**d)
-a2 = dict(**a3, **dict(k=42))
-r1 = dict(**a2, **dict(**e))
+a6 = 42
+a5 = dict(k=a6)
+a2 = dict(**a3, **a5)
+a4 = dict(**e)
+r1 = dict(**a2, **a4)
 x = f(*r1, **r1)
 """
         self.check_rewrite(
@@ -1097,8 +1100,11 @@ x = f(**dict(**d), k=42, **dict(**e))
         expected = """
 r1 = []
 a4 = dict(**d)
-a3 = dict(**a4, **dict(k=42))
-r2 = dict(**a3, **dict(**e))
+a7 = 42
+a6 = dict(k=a7)
+a3 = dict(**a4, **a6)
+a5 = dict(**e)
+r2 = dict(**a3, **a5)
 x = f(*r1, **r2)
 """
         self.check_rewrite(source, expected)
@@ -1836,6 +1842,27 @@ def f():
     r1 = b(*r2, **r3)
     return r1
 """
+        # With the introduction of that rule we get
+        expected = """
+def f():
+    r2 = []
+    r11 = []
+    r14 = {}
+    a7 = c1(*r11, **r14)
+    a5 = dict(n1=a7)
+    r13 = []
+    r16 = {}
+    a10 = c2(*r13, **r16)
+    a8 = dict(n2=a10)
+    a4 = dict(**a5, **a8)
+    r12 = []
+    r15 = {}
+    a9 = c3(*r12, **r15)
+    a6 = dict(n3=a9)
+    r3 = dict(**a4, **a6)
+    r1 = b(*r2, **r3)
+    return r1
+"""
 
         self.check_rewrite(source, expected)
 
@@ -1914,4 +1941,21 @@ x = dict(**a1, **d())
 
         self.check_rewrite(
             source, expected, _some_top_down(self.s._handle_assign_binary_dict_left())
+        )
+
+    def test_single_assignment_assign_binary_dict_right(self) -> None:
+        """Test the first special rule for dict (the binary right case)"""
+
+        self.maxDiff = None
+
+        source = """
+x = dict(**c,**d())
+"""
+        expected = """
+a1 = d()
+x = dict(**c, **a1)
+"""
+
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_assign_binary_dict_right())
         )
