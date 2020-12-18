@@ -29,9 +29,10 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
         nw = bm.SingleSiteNewtonianMonteCarlo()
         self.normal_normal_conjugate_run(nw, num_samples=500, delta=0.15)
 
+    # Following had to be increased to 1600 to pass variance test
     def test_distant_normal_normal_conjugate_run(self):
         nw = bm.SingleSiteNewtonianMonteCarlo()
-        self.distant_normal_normal_conjugate_run(nw, num_samples=800, delta=0.15)
+        self.distant_normal_normal_conjugate_run(nw, num_samples=1600, delta=0.15)
 
     def test_dirichlet_categorical_conjugate_run(self):
         nw = bm.SingleSiteNewtonianMonteCarlo()
