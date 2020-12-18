@@ -226,6 +226,12 @@ def _is_functional_call(f) -> bool:
 def _is_phi(f: Any) -> bool:
     if not isinstance(f, Callable):
         return False
+    if not hasattr(f, "__name__"):
+        return False
+    if f.__name__ != "cdf":
+        return False
+    if not hasattr(f, "__self__"):
+        return False
     s = f.__self__
     if not isinstance(s, Normal):
         return False
