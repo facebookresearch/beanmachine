@@ -19,6 +19,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.testlib.hypothesis_testing import (
     mean_equality_hypothesis_confidence_interval,
     mean_equality_hypothesis_test,
+    variance_equality_hypothesis_confidence_interval,
 )
 from torch import Tensor
 
@@ -218,7 +219,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             total_samples = tensor(sample.size())[0].item()
             n_eff = effective_sample_size(sample.unsqueeze(dim=0))
 
-            # TODO: Once hypothesis are working, the following should be removed
+            # For out purposes, it seems more appropriate to use n_eff ONLY
+            # to discount sample size. In particular, we should not allow
+            # n_eff > total_samples
+
+            n_eff = torch.min(n_eff, tensor(total_samples))
+
+            # TODO: Once hypothesis tests are working, the following should be removed
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
             #  `assertAlmostEqual`.
             self.assertAlmostEqual(
@@ -263,7 +270,13 @@ class AbstractConjugateTests(metaclass=ABCMeta):
                 + ". "
                 + message
             )
-            message = "Mean outside confidence interval. Expected: " + message
+            message = (
+                "Mean outside confidence interval.\n"
+                + "n_eff = "
+                + str(n_eff)
+                + ".\nExpected: "
+                + message
+            )
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
             #  `assertLessTrue`.
             self.assertTrue(accept_interval, msg=message)
@@ -284,7 +297,48 @@ class AbstractConjugateTests(metaclass=ABCMeta):
                 ),
                 msg="Failed equal mean hypothesis test",
             )
+            # Third, let us check the variance using confidence intervals:
+            lower_bound, upper_bound = variance_equality_hypothesis_confidence_interval(
+                expected_std, n_eff - 1, alpha
+            )
+            # TODO: In the above, check of dof should be n_eff or n_eff - 1
+            below_upper = torch.min(lower_bound <= std).item()
+            above_lower = torch.min(std <= upper_bound).item()
+            accept_interval = below_upper and above_lower
+            message = "(n_eff - 1) * (std/ expected_std) ** 2 = " + str(
+                (n_eff - 1) * (std / expected_std) ** 2
+            )
+            message = (
+                " alpha = "
+                + str(alpha)
+                + " chi2_alpha/2 = "
+                + str(chi2(alpha / 2, n_eff - 1))
+                + " <= "
+                + message
+                + " <= "
+                + " chi2_(1-alpha/2) = "
+                + str(chi2(1 - alpha / 2, n_eff - 1))
+            )
+            message = (
+                str(lower_bound)
+                + " <= "
+                + str(std)
+                + " <= "
+                + str(upper_bound)
+                + ". "
+                + message
+            )
+            message = (
+                "Standard deviation outside confidence interval.\n"
+                + "n_eff = "
+                + str(n_eff)
+                + ".\nExpected: "
+                + message
+            )
+            self.assertTrue(accept_interval, msg=message)
             continue
+            # Note: The "continue" above disables the following test
+            #       The following test is the old test, and should eventually be removed
             # Third, let's check the variance
             normalized_ratio = (n_eff - 1) * std.pow(2) / expected_std.pow(2)
             self.assertLessEqual(
