@@ -45,6 +45,9 @@ class HypothesisTestingTest(unittest.TestCase):
         return true_mean, true_std
 
     # Main procedure for testing the hypothesis test
+    # It works by checking the significance level (alpha) semantics
+    # of the mean equality hypothesis test.
+
     def run_mean_equality_hypothesis_test_on_synthetic_samples(
         self, samples, sample_size, alpha, random_seed=42
     ):
@@ -98,7 +101,7 @@ class HypothesisTestingTest(unittest.TestCase):
         self, runs=1000, samples=100, alpha=0.01, alpha_meta=0.01, random_seed=42
     ):
         """Check that the hypothesis tests are working as expected,
-        that is, their promised p-value is about the same as the rate at which
+        that is, their promised alpha is about the same as the rate at which
         they fail. The idea here is that we run a series of checks, and treat
         this as a binomial distribution.
         Note, the alpha_meta for this test should not be confused with the
@@ -109,9 +112,9 @@ class HypothesisTestingTest(unittest.TestCase):
         Note:
         1) We do the meta-test multiple times (runs)
         2) Each meta-test is a Bernoulli trial. The probability of failure
-           should be exactly p-value.
+           should be exactly alpha.
         3) We check that the total runs of the meta-test have an observed
-           failure rate that is equal to p-value. We do this by checking
+           failure rate that is equal to alpha. We do this by checking
            that it falls within the alpha_meta CI.
         """
         observed_alphas = [
@@ -164,5 +167,6 @@ class HypothesisTestingTest(unittest.TestCase):
         )
 
         self.assertTrue(
-            meta_meta_test, "Unable to confirm p-value semantics: " + message
+            meta_meta_test,
+            "Unable to confirm significance level (alpha) semantics: " + message,
         )
