@@ -188,11 +188,11 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mh: AbstractMHInference,
         num_chains: int,
         num_samples: int,
-        delta: float,
         random_seed: Optional[int],
         num_adaptive_samples: int = 0,
         alpha: float = 0.01,
     ):
+
         # Helper functions for hypothesis tests
         def chi2(alpha, df):
             return scipy.stats.chi2.ppf(alpha, df)
@@ -225,12 +225,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
             n_eff = torch.min(n_eff, tensor(total_samples))
 
-            # TODO: Once hypothesis tests are working, the following should be removed
-            # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
-            #  `assertAlmostEqual`.
-            self.assertAlmostEqual(
-                torch.abs(mean - expected_mean).sum().item(), 0, delta=delta
-            )
             # Hypothesis Testing
             # First, let's start by making sure that we can assume normalcy of means
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
@@ -301,7 +295,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             lower_bound, upper_bound = variance_equality_hypothesis_confidence_interval(
                 expected_std, n_eff - 1, alpha
             )
-            # TODO: In the above, check of dof should be n_eff or n_eff - 1
             below_upper = torch.min(lower_bound <= std).item()
             above_lower = torch.min(std <= upper_bound).item()
             accept_interval = below_upper and above_lower
@@ -337,27 +330,12 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             )
             self.assertTrue(accept_interval, msg=message)
             continue
-            # Note: The "continue" above disables the following test
-            #       The following test is the old test, and should eventually be removed
-            # Third, let's check the variance
-            normalized_ratio = (n_eff - 1) * std.pow(2) / expected_std.pow(2)
-            self.assertLessEqual(
-                chi2(alpha / 2, n_eff - 1),
-                torch.min(normalized_ratio).item(),
-                msg="Failed first part of standard deviation test",
-            )
-            self.assertLessEqual(
-                torch.max(normalized_ratio).item(),
-                chi2(1 - alpha / 2, n_eff - 1),
-                msg="Failed second part of standard deviation test",
-            )
 
     def beta_binomial_conjugate_run(
         self,
         mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
-        delta: float = 0.05,
         random_seed: Optional[int] = 17,
         num_adaptive_samples: int = 0,
     ):
@@ -367,7 +345,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param mh: inference algorithm
         :param num_samples: number of samples
         :param num_chains: number of chains
-        :param delta: delta to check against expected results
         :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_beta_binomial_moments()
@@ -376,7 +353,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             mh,
             num_chains,
             num_samples,
-            delta,
             random_seed,
             num_adaptive_samples,
         )
@@ -386,7 +362,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
-        delta: float = 0.05,
         random_seed: Optional[int] = 17,
         num_adaptive_samples: int = 0,
     ):
@@ -396,7 +371,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param mh: inference algorithm
         :param num_samples: number of samples
         :param num_chains: number of chains
-        :param delta: delta to check against expected results
         :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_gamma_gamma_moments()
@@ -405,7 +379,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             mh,
             num_chains,
             num_samples,
-            delta,
             random_seed,
             num_adaptive_samples,
         )
@@ -415,7 +388,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
-        delta: float = 0.05,
         random_seed: Optional[int] = 17,
         num_adaptive_samples: int = 0,
     ):
@@ -425,7 +397,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param mh: inference algorithm
         :param num_samples: number of samples
         :param num_chains: number of chains
-        :param delta: delta to check against expected results
         :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_gamma_normal_moments()
@@ -434,7 +405,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             mh,
             num_chains,
             num_samples,
-            delta,
             random_seed,
             num_adaptive_samples,
         )
@@ -444,7 +414,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
-        delta: float = 0.05,
         random_seed: Optional[int] = 17,
         num_adaptive_samples: int = 0,
     ):
@@ -454,7 +423,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param mh: inference algorithm
         :param num_samples: number of samples
         :param num_chains: number of chains
-        :param delta: delta to check against expected results
         :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_normal_normal_moments()
@@ -463,7 +431,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             mh,
             num_chains,
             num_samples,
-            delta,
             random_seed,
             num_adaptive_samples,
         )
@@ -473,7 +440,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
-        delta: float = 0.05,
         random_seed: Optional[int] = 17,
         num_adaptive_samples: int = 0,
     ):
@@ -484,7 +450,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param mh: inference algorithm
         :param num_samples: number of samples
         :param num_chains: number of chains
-        :param delta: delta to check against expected results
         :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_distant_normal_normal_moments()
@@ -493,7 +458,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             mh,
             num_chains,
             num_samples,
-            delta,
             random_seed,
             num_adaptive_samples,
         )
@@ -503,7 +467,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         mh: AbstractMHInference,
         num_chains: int = 1,
         num_samples: int = 1000,
-        delta: float = 0.05,
         random_seed: Optional[int] = 17,
         num_adaptive_samples: int = 0,
     ):
@@ -513,7 +476,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         :param mh: inference algorithm
         :param num_samples: number of samples
         :param num_chains: number of chains
-        :param delta: delta to check against expected results
         :param random_seed: seed for pytorch random number generator
         """
         moments = self.compute_dirichlet_categorical_moments()
@@ -522,7 +484,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             mh,
             num_chains,
             num_samples,
-            delta,
             random_seed,
             num_adaptive_samples,
         )
