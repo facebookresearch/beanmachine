@@ -1733,3 +1733,34 @@ y = p1(*r5, **r9)
 """
 
         self.check_rewrite(source, expected)
+
+    def test_single_assignment_nested_call_named_arg(self) -> None:
+        self.maxDiff = None
+
+        # This test points out a bug in the rewriting logic.
+        # We should be pulling the invocation of c() out into
+        # it's own top-level function call.
+        #
+        # The code below should be rewritten as something like:
+        #
+        # t1 = []
+        # t2 = {}
+        # t3 = c(*t1, **t2)
+        # t4 = []
+        # t5 = {'n' : t3}
+        # t6 = b(*t4, **t5)
+        # return t6
+
+        source = """
+def f():
+    return b(n=c())
+"""
+        expected = """
+def f():
+    r2 = []
+    r3 = dict(n=c())
+    r1 = b(*r2, **r3)
+    return r1
+"""
+
+        self.check_rewrite(source, expected)
