@@ -110,7 +110,9 @@ class VariationalApproximation(dist.distribution.Distribution):
                 # TODO: caused by e.g. negative scales in `dist.Normal`;
                 # fix using pytorch's `constraint_registry` to account for
                 # `Distribution.arg_constraints`
-                LOGGER.log(LogLevel.INFO.value, "Encountered NaNs in loss, skipping epoch")
+                LOGGER.log(
+                    LogLevel.INFO.value, "Encountered NaNs in loss, skipping epoch"
+                )
         return self
 
     def rsample(self, sample_shape=None):
@@ -122,9 +124,7 @@ class VariationalApproximation(dist.distribution.Distribution):
     def parameters(self):
         return itertools.chain(
             self.flow_stack.parameters(),
-            filter(
-                lambda x: x.requires_grad, 
-                self.flow_stack.base_args.values())
+            filter(lambda x: x.requires_grad, self.flow_stack.base_args.values()),
         )
 
     def log_prob(self, value):

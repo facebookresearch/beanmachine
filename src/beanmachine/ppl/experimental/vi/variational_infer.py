@@ -36,8 +36,8 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         num_flows: int = 8,
         lr: float = 1e-2,
         base_dist: Optional[dist.Distribution] = None,
-        base_args={},
-        random_seed=None,
+        base_args: Optional[dict] = None,
+        random_seed: Optional[int] = None,
         num_elbo_mc_samples=100,
     ) -> Dict[RVIdentifier, VariationalApproximation]:
         """
@@ -54,6 +54,8 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         if not base_dist:
             base_dist = dist.Normal
             base_args = {"loc": torch.tensor(0.0), "scale": torch.tensor(1.0)}
+        if not base_args:
+            base_args = {}
         try:
             if not random_seed:
                 random_seed = (
