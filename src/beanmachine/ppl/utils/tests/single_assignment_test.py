@@ -974,7 +974,8 @@ x = f(*d, **r1)
         )
 
         expected = """
-r1 = dict(**dict(**a, **b), **c)
+a2 = dict(**a, **b)
+r1 = dict(**a2, **c)
 x = f(*d, **r1)
 """
         self.check_rewrite(source, expected)
@@ -1081,7 +1082,9 @@ x = f(*r1, **dict(**dict(**dict(**d), **dict(k=42)), **dict(**e)))
         source = expected
         expected = """
 r1 = []
-r1 = dict(**dict(**dict(**d), **dict(k=42)), **dict(**e))
+a3 = dict(**d)
+a2 = dict(**a3, **dict(k=42))
+r1 = dict(**a2, **dict(**e))
 x = f(*r1, **r1)
 """
         self.check_rewrite(
@@ -1093,7 +1096,9 @@ x = f(**dict(**d), k=42, **dict(**e))
 """
         expected = """
 r1 = []
-r2 = dict(**dict(**dict(**d), **dict(k=42)), **dict(**e))
+a4 = dict(**d)
+a3 = dict(**a4, **dict(k=42))
+r2 = dict(**a3, **dict(**e))
 x = f(*r1, **r2)
 """
         self.check_rewrite(source, expected)
@@ -1804,7 +1809,7 @@ def f():
         self.check_rewrite(source, expected)
 
         # What is happening to multiple arguments is a bit worrying
-        # TODO: Should this really be so complicated?
+        # TODO: This needs to be fixed
 
         source = """
 def f():
@@ -1814,6 +1819,20 @@ def f():
 def f():
     r2 = []
     r3 = dict(**dict(**dict(n1=c1()), **dict(n2=c2())), **dict(n3=c3()))
+    r1 = b(*r2, **r3)
+    return r1
+"""
+        # The above "expected" was before the introduction of "binary_dict_left"
+        # With the introduction of that rule we get
+        expected = """
+def f():
+    r2 = []
+    r7 = []
+    r8 = {}
+    a6 = c1(*r7, **r8)
+    a5 = dict(n1=a6)
+    a4 = dict(**a5, **dict(n2=c2()))
+    r3 = dict(**a4, **dict(n3=c3()))
     r1 = b(*r2, **r3)
     return r1
 """
@@ -1864,7 +1883,7 @@ def f():
         self.check_rewrite(source, expected)
 
     def test_single_assignment_assign_unary_dict(self) -> None:
-        """Test the first special rule for dict"""
+        """Test the first special rule for dict (the unary case)"""
 
         self.maxDiff = None
 
@@ -1878,4 +1897,21 @@ x = dict(n=a1)
 
         self.check_rewrite(
             source, expected, _some_top_down(self.s._handlle_assign_unary_dict())
+        )
+
+    def test_single_assignment_assign_binary_dict_left(self) -> None:
+        """Test the first special rule for dict (the binary left case)"""
+
+        self.maxDiff = None
+
+        source = """
+x = dict(**c(),**d())
+"""
+        expected = """
+a1 = c()
+x = dict(**a1, **d())
+"""
+
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_assign_binary_dict_left())
         )
