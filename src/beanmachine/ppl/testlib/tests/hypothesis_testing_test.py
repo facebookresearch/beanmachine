@@ -6,6 +6,8 @@ from beanmachine.ppl.testlib.hypothesis_testing import (
     inverse_normal_cdf,
     mean_equality_hypothesis_confidence_interval,
     mean_equality_hypothesis_test,
+    variance_equality_hypothesis_confidence_interval,
+    variance_equality_hypothesis_test,
 )
 from torch import tensor
 
@@ -61,7 +63,7 @@ class HypothesisTestingTest(unittest.TestCase):
             msg="Expected value for z_0.005",
         )
 
-    def test_hypothesis_test_main(self) -> None:
+    def test_hypothesis_test_mean(self) -> None:
         """Minimal test for mean equality hypothesis test"""
         sample_mean = tensor(10)
         true_mean = tensor(0)
@@ -195,4 +197,99 @@ class HypothesisTestingTest(unittest.TestCase):
             observed_chi2_half_percent,
             expected_chi2_half_percent,
             msg="Unexpected value for chi2_0.005",
+        )
+
+    def test_hypothesis_test_variance(self) -> None:
+        """Minimal test for variance equality hypothesis test"""
+        # Based on solved example in Scheaffer & McClave, 1986, Pg 300
+        sample_std = tensor(0.0003) ** 0.5
+        true_std = tensor(0.0002) ** 0.5
+        degrees_of_freedom = tensor(9)
+        alpha = 0.05
+        observed_result = variance_equality_hypothesis_test(
+            sample_std, true_std, degrees_of_freedom, alpha
+        )
+        self.assertTrue(observed_result, msg="Variance is within confidence interval")
+
+        sample_std = tensor(0.002) ** 0.5
+        true_std = tensor(0.0002) ** 0.5
+        degrees_of_freedom = tensor(9)
+        alpha = 0.05
+        observed_result = variance_equality_hypothesis_test(
+            sample_std, true_std, degrees_of_freedom, alpha
+        )
+        self.assertFalse(
+            observed_result, msg="Variance is not within confidence interval"
+        )
+
+        # Based on lookup of chi-squared table values
+        # The interval for chi-square at p=0.1 split over both distribution ends is
+        # approximately [77.9, 124.3]
+        # First, we check the lower bound
+        sample_std = tensor(78.0 / 100.0) ** 0.5
+        true_std = tensor(1.0)
+        degrees_of_freedom = tensor(100)
+        alpha = 0.1
+        observed_result = variance_equality_hypothesis_test(
+            sample_std, true_std, degrees_of_freedom, alpha
+        )
+        self.assertTrue(observed_result, msg="Variance is within confidence interval")
+
+        sample_std = tensor(77.0 / 100.0) ** 0.5
+        true_std = tensor(1.0)
+        degrees_of_freedom = tensor(100)
+        alpha = 0.1
+        observed_result = variance_equality_hypothesis_test(
+            sample_std, true_std, degrees_of_freedom, alpha
+        )
+        self.assertFalse(
+            observed_result, msg="Variance is not within confidence interval"
+        )
+
+        # Second, we check the upper bound
+        sample_std = tensor(124.0 / 100.0) ** 0.5
+        true_std = tensor(1.0)
+        degrees_of_freedom = tensor(100)
+        alpha = 0.1
+        observed_result = variance_equality_hypothesis_test(
+            sample_std, true_std, degrees_of_freedom, alpha
+        )
+        self.assertTrue(observed_result, msg="Variance is within confidence interval")
+
+        sample_std = tensor(125.0 / 100.0) ** 0.5
+        true_std = tensor(1.0)
+        degrees_of_freedom = tensor(100)
+        alpha = 0.1
+        observed_result = variance_equality_hypothesis_test(
+            sample_std, true_std, degrees_of_freedom, alpha
+        )
+        self.assertFalse(
+            observed_result, msg="Variance is not within confidence interval"
+        )
+
+    def test_confidence_interval_variance(self) -> None:
+        """Minimal test for variance confidence interval"""
+
+        true_std = tensor(1.0)
+        degrees_of_freedom = tensor(100)
+        alpha = 0.05
+        observed_interval = variance_equality_hypothesis_confidence_interval(
+            true_std, degrees_of_freedom, alpha
+        )
+
+        observed_lower, observed_upper = observed_interval
+
+        expected_std_lower1 = tensor(0.86)
+        expected_std_lower2 = tensor(0.87)
+        expected_std_upper1 = tensor(1.13)
+        expected_std_upper2 = tensor(1.14)
+
+        self.assertLessEqual(expected_std_lower1, observed_lower, "Lower bound too low")
+        self.assertLessEqual(
+            observed_lower, expected_std_lower2, "Lower bound too high"
+        )
+
+        self.assertLessEqual(expected_std_upper1, observed_upper, "Upper bound too low")
+        self.assertLessEqual(
+            observed_upper, expected_std_upper2, "Upper bound too high"
         )
