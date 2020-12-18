@@ -1923,7 +1923,7 @@ x = dict(n=a1)
 """
 
         self.check_rewrite(
-            source, expected, _some_top_down(self.s._handlle_assign_unary_dict())
+            source, expected, _some_top_down(self.s._handle_assign_unary_dict())
         )
 
     def test_single_assignment_assign_binary_dict_left(self) -> None:

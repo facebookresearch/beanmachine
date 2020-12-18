@@ -442,7 +442,7 @@ class SingleAssignment:
         )
 
     # Start of a series of rules that will define handle_assign
-    def _handlle_assign_unaryop(self) -> Rule:
+    def _handle_assign_unaryop(self) -> Rule:
         return PatternRule(
             assign(value=unaryop(operand=_not_identifier, op=_unops)),
             self._transform_with_name(
@@ -460,7 +460,7 @@ class SingleAssignment:
     # Rewrites x=dict(n=complex) to y=complex, x=dict(n=y)
     # TODO: To accomomdate more source-level uses of "dict", we
     #       may wish to generalis to multiple arguments.
-    def _handlle_assign_unary_dict(self) -> Rule:
+    def _handle_assign_unary_dict(self) -> Rule:
         return PatternRule(
             assign(
                 value=call(
@@ -1088,7 +1088,7 @@ class SingleAssignment:
     def _handle_assign(self) -> Rule:
         return first(
             [
-                self._handlle_assign_unaryop(),
+                self._handle_assign_unaryop(),
                 self._handle_assign_subscript(),
                 self._handle_assign_subscript_slice(),
                 self._handle_assign_binop_left(),
@@ -1115,7 +1115,7 @@ class SingleAssignment:
                 self._handle_assign_setComp(),
                 self._handle_assign_dictComp(),
                 # Rules for dict (as a special function name)
-                self._handlle_assign_unary_dict(),
+                self._handle_assign_unary_dict(),
                 self._handle_assign_binary_dict_left(),
                 self._handle_assign_binary_dict_right(),
             ]
