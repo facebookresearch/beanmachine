@@ -456,6 +456,39 @@ class SingleAssignment:
             "handle_assign_unaryop",
         )
 
+    # First rewrite for special treatment of "dict"
+    # Rewrites x=dict(n=complex) to y=complex, x=dict(n=y)
+    # TODO: To accomomdate more source-level uses of "dict", we
+    #       may wish to generalis to multiple arguments.
+    def _handlle_assign_unary_dict(self) -> Rule:
+        return PatternRule(
+            assign(
+                value=call(
+                    func=name(id="dict"),
+                    args=[],
+                    keywords=[keyword(value=_not_identifier)],
+                )
+            ),
+            self._transform_with_name(
+                "a",
+                lambda source_term: source_term.value.keywords[0].value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=ast.Call(
+                        func=source_term.value.func,  # Name(id="dict", ctx=Load()),
+                        args=source_term.value.args,  # [],
+                        keywords=[
+                            ast.keyword(
+                                arg=source_term.value.keywords[0].arg,  # "name",
+                                value=new_name,
+                            )
+                        ],
+                    ),
+                ),
+            ),
+            "handle_assign_dict",
+        )
+
     def _handle_assign_subscript(self) -> Rule:
         # a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
         return PatternRule(
@@ -1021,6 +1054,8 @@ class SingleAssignment:
                 self._handle_assign_listComp(),
                 self._handle_assign_setComp(),
                 self._handle_assign_dictComp(),
+                # Rules for dict (as a special function name)
+                self._handlle_assign_unary_dict(),
             ]
         )
 

@@ -772,7 +772,8 @@ def f():
         a5 = a8 + a15
         a24 = 5
         r19 = [a24]
-        r26 = dict(y=6)
+        a27 = 6
+        r26 = dict(y=a27)
         a9 = g(*r19, **r26)
         r1 = a5 + a9
         return r1
@@ -1168,7 +1169,12 @@ def flip_logit_constant():
         expected = """
 def flip_logit_constant():
     r2 = []
-    r3 = dict(logits=tensor(-2.0))
+    a7 = 2.0
+    a6 = -a7
+    r5 = [a6]
+    r8 = {}
+    a4 = tensor(*r5, **r8)
+    r3 = dict(logits=a4)
     r1 = Bernoulli(*r2, **r3)
     return r1
 """
@@ -1762,6 +1768,18 @@ def f():
     r1 = b(*r2, **r3)
     return r1
 """
+        # The previous "expected" was the undesirable output, which we got at the time of the bug report
+        # The following "expected" is after the bug fix
+        expected = """
+def f():
+    r2 = []
+    r5 = []
+    r6 = {}
+    a4 = c(*r5, **r6)
+    r3 = dict(n=a4)
+    r1 = b(*r2, **r3)
+    return r1
+"""
 
         self.check_rewrite(source, expected)
 
@@ -1844,3 +1862,20 @@ def f():
 """
 
         self.check_rewrite(source, expected)
+
+    def test_single_assignment_assign_unary_dict(self) -> None:
+        """Test the first special rule for dict"""
+
+        self.maxDiff = None
+
+        source = """
+x = dict(n=c())
+"""
+        expected = """
+a1 = c()
+x = dict(n=a1)
+"""
+
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handlle_assign_unary_dict())
+        )
