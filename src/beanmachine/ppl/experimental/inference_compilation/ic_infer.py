@@ -11,7 +11,7 @@ import torch.optim as optim
 from torch import Tensor, tensor
 from tqdm.auto import tqdm
 
-from ...inference.abstract_infer import AbstractInference
+from ...inference.abstract_infer import AbstractInference, AbstractMCInference
 from ...inference.abstract_mh_infer import AbstractMHInference
 from ...inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
@@ -206,7 +206,7 @@ class ICInference(AbstractMHInference):
             self._GMM_NUM_COMPONENTS = gmm_num_components
 
         random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
-        AbstractInference.set_seed_for_chain(random_seed, 0)
+        AbstractMCInference.set_seed_for_chain(random_seed, 0)
 
         # initialize once so observation embedding network can access RVIdentifiers
         self.reset()

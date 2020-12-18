@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 from . import experimental
 from .diagnostics import Diagnostics
 from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat

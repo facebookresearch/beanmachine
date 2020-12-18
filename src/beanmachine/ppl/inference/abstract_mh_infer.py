@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 import torch
 import torch.distributions as dist
 import torch.tensor as tensor
-from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
+from beanmachine.ppl.inference.abstract_infer import AbstractMCInference, VerboseLevel
 from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel, get_wrapper
@@ -22,7 +22,7 @@ LOGGER_PROPOSER = logging.getLogger("beanmachine.proposer")
 LOGGER_WORLD = logging.getLogger("beanmachine.world")
 
 
-class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
+class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
     """
     Abstract inference object that all single-site MH inference algorithms
     inherit from.
@@ -40,29 +40,6 @@ class AbstractMHInference(AbstractInference, metaclass=ABCMeta):
         self.initial_world_.set_all_nodes_transform(transform_type, transforms)
         self.blocks_ = []
         self.skip_single_inference_run = skip_single_inference_run
-
-    def initialize_world(self, initialize_from_prior: bool = False):
-        """
-        Initializes the world variables with queries and observation calls.
-
-        :param initialize_from_prior: boolean to initialize samples from prior
-        """
-        self.world_ = self.initial_world_.copy()
-        self.world_.set_observations(self.observations_)
-        self.world_.set_initialize_from_prior(initialize_from_prior)
-
-        for node in self.observations_:
-            # makes the call for the observation node, which will run sample(node())
-            # that results in adding its corresponding Variable and its dependent
-            # Variable to the world
-            self.world_.call(node)
-        for node in self.queries_:
-            # makes the call for the query node, which will run sample(node())
-            # that results in adding its corresponding Variable and its dependent
-            # Variable to the world.
-            self.world_.call(node)
-
-        self.world_.accept_diff()
 
     def accept_or_reject_update(
         self,

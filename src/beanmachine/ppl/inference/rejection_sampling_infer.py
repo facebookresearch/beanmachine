@@ -5,7 +5,7 @@ from collections import defaultdict
 from typing import Dict
 
 import torch
-from beanmachine.ppl.inference.abstract_infer import AbstractInference, VerboseLevel
+from beanmachine.ppl.inference.abstract_infer import AbstractMCInference, VerboseLevel
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
 from beanmachine.ppl.world import World
@@ -16,7 +16,7 @@ from tqdm.auto import tqdm
 LOGGER_INFERENCE = logging.getLogger("beanmachine.inference")
 
 
-class RejectionSampling(AbstractInference, metaclass=ABCMeta):
+class RejectionSampling(AbstractMCInference, metaclass=ABCMeta):
     """
     Inference object for rejection sampling inference. ABC inference
     algorithms will inherit from this class, and override the single_inference_step method

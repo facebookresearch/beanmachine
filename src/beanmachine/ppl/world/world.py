@@ -91,6 +91,7 @@ class World(object):
         self.maintain_graph_ = True
         self.cache_functionals_ = False
         self.cached_functionals_ = defaultdict()
+        self.vi_dicts = None
 
         # The token used to restore context to previous state. It's used in __enter__
         # and __exit__ to control the scope of the world.
@@ -735,8 +736,13 @@ class World(object):
 
         obs_value = self.observations_[node] if node in self.observations_ else None
 
+        value = None
+        if self.vi_dicts and not obs_value:
+            # resample latents from q
+            value = self.vi_dicts[node].rsample((1,))
+
         node_var.update_fields(
-            None,
+            value,
             obs_value,
             self.get_transforms_for_node(node),
             self.get_proposer_for_node(node),
@@ -750,7 +756,7 @@ class World(object):
 
     def __enter__(self):
         """
-        This method, together with __exit__, allow us to use wolrd as a context, e.g.
+        This method, together with __exit__, allow us to use world as a context, e.g.
         ```
         with World():
             # invoke random variables to update the graph
