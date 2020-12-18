@@ -3061,11 +3061,7 @@ class Query(BMGNode):
     """A query is a marker on a node in the graph that indicates
     to the inference engine that the user is interested in
     getting a distribution of values of that node. It always
-    points to an operator node.
-
-    We represent queries in models with the @bm.functional annotation;
-    the compiler causes the returned nodes of such models
-    to have a query node accumulated into the graph builder."""
+    points to an operator node."""
 
     # TODO: As with observations, properly speaking there is no
     # need to represent a query as a *node*, and BMG does not

@@ -1270,32 +1270,12 @@ class BMGraphBuilder:
             )
         setattr(operand, name, value)
 
+    # TODO: Should this be idempotent?
+    # TODO: Should it be an error to add two unequal observations to one node?
     def add_observation(self, observed: SampleNode, value: Any) -> Observation:
         node = Observation(observed, value)
         self.add_node(node)
         return node
-
-    def handle_query(self, value: Any) -> Any:
-        # When we have an @bm.functional function, we need to put a node
-        # in the graph indicating that the value returned is of
-        # interest to the user, and the inference engine should
-        # accumulate information about it.  Under what circumstances
-        # might that be useful? If the query function returns an
-        # ordinary value, there is nothing we can infer from it.
-        # But if it returns an operation in a probabilistic workflow,
-        # that node in the graph should be marked as being of interest.
-        #
-        # Adding a query to a node is idempotent; querying twice is the
-        # same as querying once, so the add_query method is memoized.
-        #
-        # Note that this function does not return the added query node.
-        # The query node is just a marker, not a value; we just keep
-        # using the value as it was before. We insert a node into the
-        # graph if necessary and then hand back the argument.
-
-        if isinstance(value, OperatorNode):
-            self.add_query(value)
-        return value
 
     @memoize
     def add_query(self, operator: OperatorNode) -> Query:
@@ -1490,9 +1470,6 @@ g = graph.Graph()
 
         # TODO: Error checking; verify that all observations are samples
         # TODO: and all queries are operators.
-
-        # TODO: Do not automatically insert query nodes based on
-        # TODO: source code annotations.
 
         for node, val in observations.items():
             self.add_observation(node, val)
