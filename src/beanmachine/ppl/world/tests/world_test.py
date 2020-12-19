@@ -254,8 +254,8 @@ class WorldTest(unittest.TestCase):
 
         expected_node_update = (
             dist.Normal(tensor(0.0), tensor(1.0))
-            .log_prob(0.35)
-            .sub(dist.Normal(tensor(0.0), tensor(1.0)).log_prob(0.2))
+            .log_prob(tensor(0.35))
+            .sub(dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.2)))
         )
 
         children_log_update, world_log_update, _, score = world.propose_change(
@@ -298,8 +298,8 @@ class WorldTest(unittest.TestCase):
 
         expected_node_update = (
             dist.Normal(tensor(0.0), tensor(1.0))
-            .log_prob(0.55)
-            .sub(dist.Normal(tensor(0.0), tensor(1.0)).log_prob(0.35))
+            .log_prob(tensor(0.55))
+            .sub(dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.35)))
         )
 
         expected_children_log_update = (
@@ -698,9 +698,9 @@ class WorldTest(unittest.TestCase):
         )
 
         score = world.propose_change(foo_key, tensor(0.25))[3]
-        expected_score = dist.Normal(0, 1).log_prob(0.25) + dist.Normal(
+        expected_score = dist.Normal(0, 1).log_prob(tensor(0.25)) + dist.Normal(
             0.25, 1.0
-        ).log_prob(0.1)
+        ).log_prob(tensor(0.1))
         self.assertAlmostEqual(score, expected_score)
 
     def test_update_graph_in_nested_world(self):
