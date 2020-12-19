@@ -59,7 +59,7 @@ class SingleSiteNoUTurnConjugateTest(unittest.TestCase, AbstractConjugateTests):
         )
         nuts = SingleSiteNoUTurnSampler()
         self.distant_normal_normal_conjugate_run(
-            nuts, num_samples=1000, delta=0.22, num_adaptive_samples=500
+            nuts, num_samples=1000, delta=0.5, num_adaptive_samples=500
         )
 
     def test_dirichlet_categorical_conjugate_run(self):
