@@ -20,7 +20,7 @@ class StatisticalModelTest(unittest.TestCase):
 
         @bm.random_variable
         def baz(self):
-            return dist.Normal(self.foo(), self.bar())
+            return dist.Normal(self.foo(), self.bar().abs())
 
     class SampleLargeModel(object):
         @bm.random_variable
@@ -33,19 +33,19 @@ class StatisticalModelTest(unittest.TestCase):
 
         @bm.random_variable
         def baz(self):
-            return dist.Normal(self.foo(), self.bar())
+            return dist.Normal(self.foo(), self.bar().abs())
 
         @bm.random_variable
         def foobar(self):
-            return dist.Normal(self.baz(), self.bar())
+            return dist.Normal(self.baz(), self.bar().abs())
 
         @bm.random_variable
         def bazbar(self, i):
-            return dist.Normal(self.baz(), self.foo())
+            return dist.Normal(self.baz(), self.foo().abs())
 
         @bm.random_variable
         def foobaz(self):
-            return dist.Normal(self.bazbar(1), self.foo())
+            return dist.Normal(self.bazbar(1), self.foo().abs())
 
         @bm.functional
         def avg(self):
@@ -54,6 +54,7 @@ class StatisticalModelTest(unittest.TestCase):
     def test_rv_sample_assignment(self):
         model = self.SampleModel()
         world = World()
+        world.set_initialize_from_prior(True)
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
@@ -81,7 +82,7 @@ class StatisticalModelTest(unittest.TestCase):
         foo_expected_dist = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
         bar_expected_dist = dist.Normal(diff_vars[foo_key].value, torch.tensor(1.0))
         baz_expected_dist = dist.Normal(
-            diff_vars[foo_key].value, diff_vars[bar_key].value
+            diff_vars[foo_key].value, diff_vars[bar_key].value.abs()
         )
 
         self.assertEqual(foo_expected_dist.mean, diff_vars[foo_key].distribution.mean)
@@ -100,6 +101,7 @@ class StatisticalModelTest(unittest.TestCase):
     def test_rv_sample_assignment_with_large_model_with_index(self):
         model = self.SampleLargeModel()
         world = World()
+        world.set_initialize_from_prior(True)
         foo_key = model.foo()
         bar_key = model.bar()
         baz_key = model.baz()
@@ -147,16 +149,16 @@ class StatisticalModelTest(unittest.TestCase):
         foo_expected_dist = dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
         bar_expected_dist = dist.Normal(diff_vars[foo_key].value, torch.tensor(1.0))
         baz_expected_dist = dist.Normal(
-            diff_vars[foo_key].value, diff_vars[bar_key].value
+            diff_vars[foo_key].value, diff_vars[bar_key].value.abs()
         )
         foobar_expected_dist = dist.Normal(
-            diff_vars[baz_key].value, diff_vars[bar_key].value
+            diff_vars[baz_key].value, diff_vars[bar_key].value.abs()
         )
         bazbar_expected_dist = dist.Normal(
-            diff_vars[baz_key].value, diff_vars[foo_key].value
+            diff_vars[baz_key].value, diff_vars[foo_key].value.abs()
         )
         foobaz_expected_dist = dist.Normal(
-            diff_vars[bazbar_key].value, diff_vars[foo_key].value
+            diff_vars[bazbar_key].value, diff_vars[foo_key].value.abs()
         )
 
         self.assertEqual(foo_expected_dist.mean, diff_vars[foo_key].distribution.mean)
