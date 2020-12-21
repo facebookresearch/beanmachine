@@ -24,6 +24,7 @@ class TestIAFInfer(unittest.TestCase):
         has_enumerate_support = False
         support = dist.constraints.real
         has_rsample = True
+        arg_constraints = {}
 
         def __init__(self, z_foo):
             super().__init__()

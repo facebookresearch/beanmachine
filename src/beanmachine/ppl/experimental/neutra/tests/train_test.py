@@ -25,6 +25,7 @@ class TraininfTest(unittest.TestCase):
         has_enumerate_support = False
         support = dist.constraints.real
         has_rsample = True
+        arg_constraints = {}
 
         def __init__(self, x_foo, z_foo):
             super().__init__()
