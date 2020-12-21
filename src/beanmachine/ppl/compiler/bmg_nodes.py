@@ -3109,8 +3109,7 @@ class Query(BMGNode):
         return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        g.query(d[self.operator])
-        return -1
+        return g.query(d[self.operator])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return f"g.query(n{d[self.operator]})"

@@ -2,32 +2,20 @@
 """End-to-end test of realistic coin flip model"""
 import unittest
 
-from beanmachine.ppl.compiler.bm_to_bmg import infer
-
-
-source = """
 import beanmachine.ppl as bm
-import torch
+from beanmachine.ppl.inference.bmg_inference import BMGInference
+from torch import tensor
 from torch.distributions import Bernoulli, Beta
+
 
 @bm.random_variable
 def beta():
     return Beta(2.0, 2.0)
 
+
 @bm.random_variable
 def flip(n):
     return Bernoulli(beta())
-
-queries = [beta()]
-observations = {
-    flip(0): 0.0,
-    flip(1): 0.0,
-    flip(2): 1.0,
-    flip(3): 0.0,
-}
-"""
-
-expected = 0.37
 
 
 class CoinFlipTest(unittest.TestCase):
@@ -47,10 +35,17 @@ class CoinFlipTest(unittest.TestCase):
         # to be around 37%.
 
         self.maxDiff = None
-        observed = infer(source)
-        # We get [[0.12], [0.34], ...]; turn that into
-        # [0.12, 0.34, ...]
-        observed = [x[0] for x in observed]
-        # and take the average
-        observed = sum(observed) / len(observed)
+        queries = [beta()]
+        observations = {
+            flip(0): tensor(0.0),
+            flip(1): tensor(0.0),
+            flip(2): tensor(1.0),
+            flip(3): tensor(0.0),
+        }
+        num_samples = 1000
+        inference = BMGInference()
+        mcsamples = inference.infer(queries, observations, num_samples)
+        samples = mcsamples[beta()]
+        observed = samples.mean()
+        expected = 0.37
         self.assertAlmostEqual(first=observed, second=expected, delta=0.05)
