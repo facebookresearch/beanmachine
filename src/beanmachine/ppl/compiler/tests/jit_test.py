@@ -23,7 +23,7 @@ def f(x):
 
 counter = 0
 
-
+# Random variable that takes an argument
 @bm.random_variable
 def norm(n):
     global counter
@@ -31,19 +31,45 @@ def norm(n):
     return Normal(0.0, 1.0)
 
 
+# Random variable that takes no argument
 @bm.random_variable
 def coin():
     return Beta(2.0, 2.0)
 
 
+# Call to random variable inside random variable
 @bm.random_variable
 def flip():
     return Bernoulli(coin())
 
 
+# Functional that takes no argument
 @bm.functional
 def exp_coin():
     return coin().exp()
+
+
+# Functional that takes an ordinary value argument
+@bm.functional
+def exp_norm(n):
+    return norm(n).exp()
+
+
+# Functional that takes an graph node argument
+@bm.functional
+def exp_coin_2(c):
+    return c.exp()
+
+
+# Ordinary function
+def add_one(x):
+    return 1 + x
+
+
+# Functional that calls normal, functional, random variable functions
+@bm.functional
+def exp_coin_3():
+    return add_one(exp_coin_2(coin()))
 
 
 class JITTest(unittest.TestCase):
@@ -209,3 +235,69 @@ digraph "graph" {
 }
 """
         self.assertEqual(dot.strip(), expected.strip())
+
+    def test_function_transformation_4(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [exp_norm(0)]
+        observations = {}
+        bmg.accumulate_graph(queries, observations)
+        dot = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=Exp];
+  N5[label=Query];
+  N0 -> N2[label=mu];
+  N1 -> N2[label=sigma];
+  N2 -> N3[label=operand];
+  N3 -> N4[label=operand];
+  N4 -> N5[label=operator];
+}
+"""
+        self.assertEqual(dot.strip(), expected.strip())
+
+    def test_function_transformation_5(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [exp_coin_3()]
+        observations = {}
+        bmg.accumulate_graph(queries, observations)
+        dot = bmg.to_dot(point_at_input=True)
+
+        # Note that though functional exp_coin_3 calls functional exp_coin_2,
+        # we only get one query node emitted into the graph because the
+        # caller only asked for one query node.
+
+        expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=Exp];
+  N4[label=1];
+  N5[label="+"];
+  N6[label=Query];
+  N0 -> N1[label=alpha];
+  N0 -> N1[label=beta];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=operand];
+  N3 -> N5[label=right];
+  N4 -> N5[label=left];
+  N5 -> N6[label=operator];
+}
+"""
+        self.assertEqual(dot.strip(), expected.strip())
+
+
+# TODO: Also test lambdas and nested functions.
+# TODO: What should we do about closures?

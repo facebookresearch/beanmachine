@@ -49,6 +49,7 @@ three, four and five.
 # and the other which transforms the node types.
 
 import torch  # isort:skip  torch has to be imported before graph
+import inspect
 import math
 import sys
 from typing import Any, Callable, Dict, List
@@ -205,9 +206,7 @@ def is_from_lifted_module(f) -> bool:
     )
 
 
-def is_ordinary_call(f, args, kwargs) -> bool:
-    if is_from_lifted_module(f):
-        return True
+def only_ordinary_arguments(args, kwargs) -> bool:
     if any(isinstance(arg, BMGNode) for arg in args):
         return False
     if any(isinstance(arg, BMGNode) for arg in kwargs.values()):
@@ -238,6 +237,14 @@ def _is_phi(f: Any) -> bool:
     if s.mean != 0.0:
         return False
     if s.stddev != 1.0:
+        return False
+    return True
+
+
+def _has_source_code(function: Callable) -> bool:
+    try:
+        inspect.getsource(function)
+    except Exception:
         return False
     return True
 
@@ -1117,54 +1124,164 @@ class BMGraphBuilder:
             )
         return (f, args, kwargs)
 
-    def _handle_ordinary_random_variable_call(
+    def _handle_random_variable_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
-    ) -> SampleNode:
-        # We have a call to a random variable function and none of the arguments
-        # are graph nodes. Call the function; it will return an RVIdentifier.
-        # We then can use our usual mechanism for turning that into a graph node.
-
+    ) -> BMGNode:
         # TODO: Random variable calls do not support kwargs.
         # TODO: Throw an exception if we have some?
+
+        # We have a call to a random variable function. There are two
+        # cases. Either we have only ordinary values for arguments, or
+        # we have one or more graph nodes.
+        if only_ordinary_arguments(arguments, kwargs):
+            rv = function(*arguments, **kwargs)
+            assert isinstance(rv, RVIdentifier)
+            return self._rv_to_node(rv)
+
+        # TODO: We have a stochastic control flow; we need to make many
+        # TODO: calls to the random variable function and record the
+        # TODO: results for each.  Right now this is handled by the
+        # TODO: generated @probabilistic decorator, but that mechanism
+        # TODO: should be removed and instead inlined in this function.
+        # TODO: Just throw and we'll fix it later.
+
+        raise ValueError("Jitted stochastic control flows are not yet implemented")
+
+    def _handle_functional_call(
+        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+    ) -> BMGNode:
+
+        # TODO: What happens if we have a @functional that does not return
+        # TODO: a graph node? A functional that returns a constant is
+        # TODO: weird, but it should be legal.  Figure out what the
+        # TODO: right thing to do is for this scenario.
+
+        # TODO: Functional calls do not support kwargs.
+        # TODO: Throw an exception if we have some?
+
+        # We have a call to a functional function. There are two
+        # cases. Either we have only ordinary values for arguments, or
+        # we have one or more graph nodes.  *Do we need to handle these
+        # two cases differently?*
+        #
+        # If the arguments are just plain arguments then we can call the
+        # function normally, obtain an RVID back, and then use our usual
+        # mechanism for turning an RVID into a graph node.
+        #
+        # What if the arguments are graph nodes? We can just do the same!
+        # The callee will immediately return an RVID capturing the values
+        # of the graph nodes. We then check to see if this exact call
+        # has happened already; if it has, then we use the cached graph
+        # node from our RVID->node cache. If it has not, we call the lifted
+        # version of the method with the graph node arguments taken from
+        # the RVID, and add the resulting graph node to the cache.
+        #
+        # Since this is a functional, not a random_variable, there is no
+        # stochastic control flow to handle; we just pass the graph nodes in
+        # as values and let the lifted method handle them.
+        #
+        # We lose nothing by doing this and we gain memoization that allows
+        # us to skip doing the call if we have done it before. That's a win.
+
         rv = function(*arguments, **kwargs)
         assert isinstance(rv, RVIdentifier)
         return self._rv_to_node(rv)
+
+    def _handle_ordinary_call(
+        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+    ) -> Any:
+        # We have an ordinary function call to a function that is not on
+        # our list of special functions, and is not a functional, and
+        # is not a random variable.  We still need to lift the function
+        # even if its arguments are not graph nodes though! It might do
+        # arithmetic on a random variable even though it is not a functional.
+        # For example, we might have something like:
+        #
+        # @random_variable
+        # def norm1():
+        #   return Normal(0, 1)
+        #
+        # # not a functional
+        # def add_one():        # We call this function with no arguments
+        #   return norm1() + 1
+        #
+        # @random_variable
+        # def norm2():
+        #   return Normal(add_one(), 1)
+        #
+        # Ideally we would like add_one to be marked as functional, but
+        # given that it is not, we need to detect the call to add_one()
+        # as returning a graph node that represents the sum of a sample
+        # and a constant.
+
+        # It is not already compiled; if we have source code, compile it.
+        if _has_source_code(function):
+            return self._function_to_bmg_function(function)(*arguments, **kwargs)
+        # It is not compiled and we have no source code to compile.
+        # Just call it and hope for the best.
+        # TODO: Do we need to consider the scenario where we do not have
+        # source code, we call a function, and it somehow returns an RVID?
+        # We *could* convert that to a graph node.
+        return function(*arguments, **kwargs)
 
     def handle_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
     ) -> Any:
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
 
-        if is_ordinary_call(f, args, kwargs):
-            if _is_random_variable_call(f) or _is_functional_call(f):
-                return self._handle_ordinary_random_variable_call(f, args, kwargs)
-            return f(*args, **kwargs)
+        if is_from_lifted_module(f):
+            # It's already compiled; just call it.
+            return function(*arguments, **kwargs)
+
+        if _is_random_variable_call(f):
+            return self._handle_random_variable_call(f, args, kwargs)
+
+        if _is_functional_call(f):
+            return self._handle_functional_call(f, args, kwargs)
+
+        # If we get here, we have a function call from a module that
+        # is not already compiled, and it is not a random variable
+        # or functional.
 
         # Some functions are perfectly safe for a graph node.
+        # We do not need to compile them.
+
         if f in allowed_functions:
             return f(*args, **kwargs)
+
+        # Some functions we already have special-purpose handlers for,
+        # like calls to math.exp or tensor.log. If we know there are no
+        # graph nodes in the arguments we can just call the function directly
+        # and get the values. If there are graph nodes in the arguments then
+        # we can call our special handlers.
 
         # TODO: Do a sanity check that the arguments match and give
         # TODO: a good error if they do not. Alternatively, catch
         # TODO: the exception if the call fails and replace it with
         # TODO: a more informative error.
         if f in self.function_map:
+            if only_ordinary_arguments(args, kwargs):
+                return f(*args, **kwargs)
             return self.function_map[f](*args, **kwargs)
 
         if _is_phi(f):
             return self.handle_phi(*args, **kwargs)
 
-        raise ValueError(f"Function {f} is not supported by Bean Machine Graph.")
+        return self._handle_ordinary_call(f, args, kwargs)
 
-    def _rv_to_node(self, rv: RVIdentifier) -> BMGNode:
+    def _function_to_bmg_function(self, function: Callable) -> Callable:
         from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_function
 
+        # TODO: What happens if the function is a member of a class?
+        # TODO: Do we recompile it for different instances of the
+        # TODO: receiver? Do we recompile it on every call? Check this.
+        if function not in self.lifted_map:
+            self.lifted_map[function] = _bm_function_to_bmg_function(function, self)
+        return self.lifted_map[function]
+
+    def _rv_to_node(self, rv: RVIdentifier) -> BMGNode:
         if rv not in self.rv_map:
-            if rv.function not in self.lifted_map:
-                self.lifted_map[rv.function] = _bm_function_to_bmg_function(
-                    rv.function, self
-                )
-            self.rv_map[rv] = self.lifted_map[rv.function](*rv.arguments)
+            self.rv_map[rv] = self._function_to_bmg_function(rv.function)(*rv.arguments)
         return self.rv_map[rv]
 
     @memoize
