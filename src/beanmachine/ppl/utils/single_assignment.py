@@ -490,7 +490,7 @@ class SingleAssignment:
         )
 
     def _handle_assign_subscript(self) -> Rule:
-        # a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
+        # The term a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
         return PatternRule(
             assign(value=subscript(value=_not_identifier)),
             self._transform_with_name(

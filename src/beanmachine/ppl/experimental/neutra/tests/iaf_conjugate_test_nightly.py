@@ -41,9 +41,7 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             True,
             {},
         )
-        self.beta_binomial_conjugate_run(
-            iaf, num_samples=200, delta=0.3, num_adaptive_samples=100
-        )
+        self.beta_binomial_conjugate_run(iaf, num_samples=200, num_adaptive_samples=100)
 
     def test_gamma_gamma_conjugate_run(self):
         training_sample_size = 10
@@ -67,9 +65,7 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             True,
             [],
         )
-        self.gamma_gamma_conjugate_run(
-            iaf, num_samples=200, delta=0.3, num_adaptive_samples=100
-        )
+        self.gamma_gamma_conjugate_run(iaf, num_samples=200, num_adaptive_samples=100)
 
     def test_gamma_normal_conjugate_run(self):
         training_sample_size = 10
@@ -93,9 +89,7 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             True,
             [],
         )
-        self.gamma_normal_conjugate_run(
-            iaf, num_samples=150, delta=0.3, num_adaptive_samples=50
-        )
+        self.gamma_normal_conjugate_run(iaf, num_samples=150, num_adaptive_samples=50)
 
     def test_normal_normal_conjugate_run(self):
         training_sample_size = 10
@@ -119,10 +113,7 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             True,
             [],
         )
-        # TODO: The delta in the following needs to be reduced
-        self.normal_normal_conjugate_run(
-            iaf, num_samples=100, delta=0.33, num_adaptive_samples=500
-        )
+        self.normal_normal_conjugate_run(iaf, num_samples=100, num_adaptive_samples=500)
 
     def test_distant_normal_normal_conjugate_run(self):
         pass
@@ -150,7 +141,6 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             True,
             [],
         )
-        # TODO: The delta in the following needs to be reduced
         self.dirichlet_categorical_conjugate_run(
-            iaf, num_samples=200, delta=0.364, num_adaptive_samples=100
+            iaf, num_samples=200, num_adaptive_samples=100
         )
