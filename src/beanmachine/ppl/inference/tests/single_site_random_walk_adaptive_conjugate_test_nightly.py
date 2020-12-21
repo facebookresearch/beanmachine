@@ -47,7 +47,9 @@ class SingleSiteAdaptiveRandomWalkConjugateTest(
             self.mh, num_samples=500, num_adaptive_samples=500, delta=0.13
         )
 
+    # Increased n to 1000 so that n_eff passes the 30 threshold (!)
+    # TODO: Expected n_eff levels should be documented in tests
     def test_dirichlet_categorical_conjugate_run(self):
         self.dirichlet_categorical_conjugate_run(
-            self.mh, num_samples=500, num_adaptive_samples=500, delta=0.2
+            self.mh, num_samples=1000, num_adaptive_samples=500, delta=0.2
         )
