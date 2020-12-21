@@ -1582,12 +1582,13 @@ g = graph.Graph()
             node = self._rv_to_node(q)
             self.add_query(node)
 
-    def infer(
+    def infer_deprecated(
         self,
         queries: List[OperatorNode],
         observations: Dict[SampleNode, Any],
         num_samples: int,
-    ) -> Dict[Any, List[Any]]:
+    ) -> List[Any]:
+        # TODO: Remove this method
 
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 

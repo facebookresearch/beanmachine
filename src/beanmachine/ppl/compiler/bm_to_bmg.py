@@ -585,8 +585,9 @@ def to_bmg(source: str):
 
 
 def infer(source: str, num_samples: int = 1000) -> List[Any]:
+    # TODO: Remove this API
     mod_globals = _execute(source)
     bmg = mod_globals["bmg"]
     observations = mod_globals["observations"] if "observations" in mod_globals else {}
     queries = mod_globals["queries"] if "queries" in mod_globals else []
-    return bmg.infer(queries, observations, num_samples)
+    return bmg.infer_deprecated(queries, observations, num_samples)
