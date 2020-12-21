@@ -60,7 +60,8 @@ class SingleSiteCustomProposerTest(unittest.TestCase):
 
         @bm.random_variable
         def bar(self):
-            return dist.Gamma(self.foo(), torch.tensor(1.0))
+            # validation turned off to test fallback behavior
+            return dist.Gamma(self.foo(), torch.tensor(1.0), validate_args=False)
 
     def test_custom_proposer(self):
         model = self.SampleGammaModel()

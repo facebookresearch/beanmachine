@@ -349,7 +349,7 @@ class CompositionalInferenceTest(unittest.TestCase):
         mh = bm.CompositionalInference()
 
         # TODO: we should never raise RuntimeError, blocked by T67717820
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises((ValueError, RuntimeError)):
             mh.infer(queries, {}, num_samples=10, num_chains=1)
 
     def test_single_site_compositional_inference_transform_default(self):
