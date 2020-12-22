@@ -2,20 +2,21 @@
 """End-to-end test of realistic logistic regression model"""
 import unittest
 
-from beanmachine.ppl.compiler.bm_to_bmg import to_bmg, to_dot
-
-
-def tidy(s: str) -> str:
-    return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
-
-
-source = """
 import beanmachine.ppl as bm
-import torch
+from beanmachine.ppl.inference.bmg_inference import BMGInference
+from torch import tensor
 from torch.distributions import Bernoulli, Normal
 
+
 # We have N points with K coordinates each classified into one
-# of two categories.
+# of two categories: red or blue. There is a line separating
+# the sets of points; the idea is to deduce the most likely
+# parameters of that line.  Parameters are beta(0), beta(1)
+# and beta(2); line is y = (-b1/b2) x - (b0/b2).
+#
+# We have three parameters to define the line instead of two because
+# these parameters also define how "mixed" the points are when close
+# to the line.
 
 # Points are generated so that posteriors should be
 # centered on beta(0) around -1.0, beta(1) around 2.0,
@@ -24,289 +25,249 @@ from torch.distributions import Bernoulli, Normal
 N = 8
 K = 2
 X = [
-    [ 1.0000,  7.6483,  5.6988],
-    [ 1.0000, -6.2928,  1.1692],
-    [ 1.0000,  1.6583, -4.7142],
-    [ 1.0000, -7.7588,  7.9859],
-    [ 1.0000, -1.2421,  5.4628],
-    [ 1.0000,  6.4529,  2.3994],
-    [ 1.0000, -4.9269,  7.8679],
-    [ 1.0000,  4.2130,  2.6175]]
+    [1.0000, 7.6483, 5.6988],
+    [1.0000, -6.2928, 1.1692],
+    [1.0000, 1.6583, -4.7142],
+    [1.0000, -7.7588, 7.9859],
+    [1.0000, -1.2421, 5.4628],
+    [1.0000, 6.4529, 2.3994],
+    [1.0000, -4.9269, 7.8679],
+    [1.0000, 4.2130, 2.6175],
+]
 
 # Classifications of those N points into two buckets:
 
-Y = [0., 0., 1., 0., 0., 1., 0., 1.]
+red = tensor(0.0)
+blue = tensor(1.0)
+Y = [red, red, blue, red, red, blue, red, blue]
+
 
 @bm.random_variable
-def beta(k): # k is 0 to K
+def beta(k):  # k is 0 to K
     return Normal(0.0, 1.0)
 
+
 @bm.random_variable
-def y(n): # n is 0 to N-1
+def y(n):  # n is 0 to N-1
     mu = X[n][0] * beta(0) + X[n][1] * beta(1) + X[n][2] * beta(2)
     return Bernoulli(logits=mu)
 
-y(0)
-y(1)
-y(2)
-y(3)
-y(4)
-y(5)
-y(6)
-y(7)
-"""
 
-expected_bmg = """
-Node 0 type 1 parents [ ] children [ 2 ] real 0
-Node 1 type 1 parents [ ] children [ 2 ] positive real 1
-Node 2 type 2 parents [ 0 1 ] children [ 3 4 5 ] unknown
-Node 3 type 3 parents [ 2 ] children [ 8 16 24 32 40 48 56 64 ] real 0
-Node 4 type 3 parents [ 2 ] children [ 7 15 23 31 39 47 55 63 ] real 0
-Node 5 type 3 parents [ 2 ] children [ 10 18 26 34 42 50 58 66 ] real 0
-Node 6 type 1 parents [ ] children [ 7 ] real 7.6483
-Node 7 type 3 parents [ 6 4 ] children [ 8 ] real 0
-Node 8 type 3 parents [ 3 7 ] children [ 11 ] real 0
-Node 9 type 1 parents [ ] children [ 10 ] real 5.6988
-Node 10 type 3 parents [ 9 5 ] children [ 11 ] real 0
-Node 11 type 3 parents [ 8 10 ] children [ 12 ] real 0
-Node 12 type 2 parents [ 11 ] children [ 13 ] unknown
-Node 13 type 3 parents [ 12 ] children [ ] boolean 0
-Node 14 type 1 parents [ ] children [ 15 ] real -6.2928
-Node 15 type 3 parents [ 14 4 ] children [ 16 ] real 0
-Node 16 type 3 parents [ 3 15 ] children [ 19 ] real 0
-Node 17 type 1 parents [ ] children [ 18 ] real 1.1692
-Node 18 type 3 parents [ 17 5 ] children [ 19 ] real 0
-Node 19 type 3 parents [ 16 18 ] children [ 20 ] real 0
-Node 20 type 2 parents [ 19 ] children [ 21 ] unknown
-Node 21 type 3 parents [ 20 ] children [ ] boolean 0
-Node 22 type 1 parents [ ] children [ 23 ] real 1.6583
-Node 23 type 3 parents [ 22 4 ] children [ 24 ] real 0
-Node 24 type 3 parents [ 3 23 ] children [ 27 ] real 0
-Node 25 type 1 parents [ ] children [ 26 ] real -4.7142
-Node 26 type 3 parents [ 25 5 ] children [ 27 ] real 0
-Node 27 type 3 parents [ 24 26 ] children [ 28 ] real 0
-Node 28 type 2 parents [ 27 ] children [ 29 ] unknown
-Node 29 type 3 parents [ 28 ] children [ ] boolean 0
-Node 30 type 1 parents [ ] children [ 31 ] real -7.7588
-Node 31 type 3 parents [ 30 4 ] children [ 32 ] real 0
-Node 32 type 3 parents [ 3 31 ] children [ 35 ] real 0
-Node 33 type 1 parents [ ] children [ 34 ] real 7.9859
-Node 34 type 3 parents [ 33 5 ] children [ 35 ] real 0
-Node 35 type 3 parents [ 32 34 ] children [ 36 ] real 0
-Node 36 type 2 parents [ 35 ] children [ 37 ] unknown
-Node 37 type 3 parents [ 36 ] children [ ] boolean 0
-Node 38 type 1 parents [ ] children [ 39 ] real -1.2421
-Node 39 type 3 parents [ 38 4 ] children [ 40 ] real 0
-Node 40 type 3 parents [ 3 39 ] children [ 43 ] real 0
-Node 41 type 1 parents [ ] children [ 42 ] real 5.4628
-Node 42 type 3 parents [ 41 5 ] children [ 43 ] real 0
-Node 43 type 3 parents [ 40 42 ] children [ 44 ] real 0
-Node 44 type 2 parents [ 43 ] children [ 45 ] unknown
-Node 45 type 3 parents [ 44 ] children [ ] boolean 0
-Node 46 type 1 parents [ ] children [ 47 ] real 6.4529
-Node 47 type 3 parents [ 46 4 ] children [ 48 ] real 0
-Node 48 type 3 parents [ 3 47 ] children [ 51 ] real 0
-Node 49 type 1 parents [ ] children [ 50 ] real 2.3994
-Node 50 type 3 parents [ 49 5 ] children [ 51 ] real 0
-Node 51 type 3 parents [ 48 50 ] children [ 52 ] real 0
-Node 52 type 2 parents [ 51 ] children [ 53 ] unknown
-Node 53 type 3 parents [ 52 ] children [ ] boolean 0
-Node 54 type 1 parents [ ] children [ 55 ] real -4.9269
-Node 55 type 3 parents [ 54 4 ] children [ 56 ] real 0
-Node 56 type 3 parents [ 3 55 ] children [ 59 ] real 0
-Node 57 type 1 parents [ ] children [ 58 ] real 7.8679
-Node 58 type 3 parents [ 57 5 ] children [ 59 ] real 0
-Node 59 type 3 parents [ 56 58 ] children [ 60 ] real 0
-Node 60 type 2 parents [ 59 ] children [ 61 ] unknown
-Node 61 type 3 parents [ 60 ] children [ ] boolean 0
-Node 62 type 1 parents [ ] children [ 63 ] real 4.213
-Node 63 type 3 parents [ 62 4 ] children [ 64 ] real 0
-Node 64 type 3 parents [ 3 63 ] children [ 67 ] real 0
-Node 65 type 1 parents [ ] children [ 66 ] real 2.6175
-Node 66 type 3 parents [ 65 5 ] children [ 67 ] real 0
-Node 67 type 3 parents [ 64 66 ] children [ 68 ] real 0
-Node 68 type 2 parents [ 67 ] children [ 69 ] unknown
-Node 69 type 3 parents [ 68 ] children [ ] boolean 0
-"""
+queries = [beta(0), beta(1), beta(2)]
+observations = {
+    y(0): Y[0],
+    y(1): Y[1],
+    y(2): Y[2],
+    y(3): Y[3],
+    y(4): Y[4],
+    y(5): Y[5],
+    y(6): Y[6],
+    y(7): Y[7],
+}
 
 
 expected_dot = """
 digraph "graph" {
-  N00[label="0.0:R"];
-  N01[label="1.0:R+"];
-  N02[label="Normal:R"];
-  N03[label="Sample:R"];
-  N04[label="Sample:R"];
-  N05[label="Sample:R"];
-  N06[label="7.6483:R"];
-  N07[label="*:R"];
-  N08[label="+:R"];
-  N09[label="5.6988:R"];
-  N10[label="*:R"];
-  N11[label="+:R"];
-  N12[label="Bernoulli(logits):B"];
-  N13[label="Sample:B"];
-  N14[label="-6.2928:R"];
-  N15[label="*:R"];
-  N16[label="+:R"];
-  N17[label="1.1692:R"];
-  N18[label="*:R"];
-  N19[label="+:R"];
-  N20[label="Bernoulli(logits):B"];
-  N21[label="Sample:B"];
-  N22[label="1.6583:R"];
-  N23[label="*:R"];
-  N24[label="+:R"];
-  N25[label="-4.7142:R"];
-  N26[label="*:R"];
-  N27[label="+:R"];
-  N28[label="Bernoulli(logits):B"];
-  N29[label="Sample:B"];
-  N30[label="-7.7588:R"];
-  N31[label="*:R"];
-  N32[label="+:R"];
-  N33[label="7.9859:R"];
-  N34[label="*:R"];
-  N35[label="+:R"];
-  N36[label="Bernoulli(logits):B"];
-  N37[label="Sample:B"];
-  N38[label="-1.2421:R"];
-  N39[label="*:R"];
-  N40[label="+:R"];
-  N41[label="5.4628:R"];
-  N42[label="*:R"];
-  N43[label="+:R"];
-  N44[label="Bernoulli(logits):B"];
-  N45[label="Sample:B"];
-  N46[label="6.4529:R"];
-  N47[label="*:R"];
-  N48[label="+:R"];
-  N49[label="2.3994:R"];
-  N50[label="*:R"];
-  N51[label="+:R"];
-  N52[label="Bernoulli(logits):B"];
-  N53[label="Sample:B"];
-  N54[label="-4.9269:R"];
-  N55[label="*:R"];
-  N56[label="+:R"];
-  N57[label="7.8679:R"];
-  N58[label="*:R"];
-  N59[label="+:R"];
-  N60[label="Bernoulli(logits):B"];
-  N61[label="Sample:B"];
-  N62[label="4.213:R"];
-  N63[label="*:R"];
-  N64[label="+:R"];
-  N65[label="2.6175:R"];
-  N66[label="*:R"];
-  N67[label="+:R"];
-  N68[label="Bernoulli(logits):B"];
-  N69[label="Sample:B"];
-  N00 -> N02[label=mu];
-  N01 -> N02[label=sigma];
-  N02 -> N03[label=operand];
-  N02 -> N04[label=operand];
-  N02 -> N05[label=operand];
-  N03 -> N08[label=left];
-  N03 -> N16[label=left];
-  N03 -> N24[label=left];
-  N03 -> N32[label=left];
-  N03 -> N40[label=left];
-  N03 -> N48[label=left];
-  N03 -> N56[label=left];
-  N03 -> N64[label=left];
-  N04 -> N07[label=right];
-  N04 -> N15[label=right];
-  N04 -> N23[label=right];
-  N04 -> N31[label=right];
-  N04 -> N39[label=right];
-  N04 -> N47[label=right];
-  N04 -> N55[label=right];
-  N04 -> N63[label=right];
-  N05 -> N10[label=right];
-  N05 -> N18[label=right];
-  N05 -> N26[label=right];
-  N05 -> N34[label=right];
-  N05 -> N42[label=right];
-  N05 -> N50[label=right];
-  N05 -> N58[label=right];
-  N05 -> N66[label=right];
-  N06 -> N07[label=left];
-  N07 -> N08[label=right];
-  N08 -> N11[label=left];
-  N09 -> N10[label=left];
-  N10 -> N11[label=right];
-  N11 -> N12[label=probability];
-  N12 -> N13[label=operand];
-  N14 -> N15[label=left];
-  N15 -> N16[label=right];
-  N16 -> N19[label=left];
-  N17 -> N18[label=left];
-  N18 -> N19[label=right];
-  N19 -> N20[label=probability];
-  N20 -> N21[label=operand];
-  N22 -> N23[label=left];
-  N23 -> N24[label=right];
-  N24 -> N27[label=left];
-  N25 -> N26[label=left];
-  N26 -> N27[label=right];
-  N27 -> N28[label=probability];
-  N28 -> N29[label=operand];
-  N30 -> N31[label=left];
-  N31 -> N32[label=right];
-  N32 -> N35[label=left];
-  N33 -> N34[label=left];
-  N34 -> N35[label=right];
-  N35 -> N36[label=probability];
-  N36 -> N37[label=operand];
-  N38 -> N39[label=left];
-  N39 -> N40[label=right];
-  N40 -> N43[label=left];
-  N41 -> N42[label=left];
-  N42 -> N43[label=right];
-  N43 -> N44[label=probability];
-  N44 -> N45[label=operand];
-  N46 -> N47[label=left];
-  N47 -> N48[label=right];
-  N48 -> N51[label=left];
-  N49 -> N50[label=left];
-  N50 -> N51[label=right];
-  N51 -> N52[label=probability];
-  N52 -> N53[label=operand];
-  N54 -> N55[label=left];
-  N55 -> N56[label=right];
-  N56 -> N59[label=left];
-  N57 -> N58[label=left];
-  N58 -> N59[label=right];
-  N59 -> N60[label=probability];
-  N60 -> N61[label=operand];
-  N62 -> N63[label=left];
-  N63 -> N64[label=right];
-  N64 -> N67[label=left];
-  N65 -> N66[label=left];
-  N66 -> N67[label=right];
-  N67 -> N68[label=probability];
-  N68 -> N69[label=operand];
+  N00[label=0.0];
+  N01[label=1.0];
+  N02[label=Normal];
+  N03[label=Sample];
+  N04[label=Sample];
+  N05[label=Sample];
+  N06[label=7.6483];
+  N07[label="*"];
+  N08[label="+"];
+  N09[label=5.6988];
+  N10[label="*"];
+  N11[label="+"];
+  N12[label="Bernoulli(logits)"];
+  N13[label=Sample];
+  N14[label="Observation False"];
+  N15[label=-6.2928];
+  N16[label="*"];
+  N17[label="+"];
+  N18[label=1.1692];
+  N19[label="*"];
+  N20[label="+"];
+  N21[label="Bernoulli(logits)"];
+  N22[label=Sample];
+  N23[label="Observation False"];
+  N24[label=1.6583];
+  N25[label="*"];
+  N26[label="+"];
+  N27[label=-4.7142];
+  N28[label="*"];
+  N29[label="+"];
+  N30[label="Bernoulli(logits)"];
+  N31[label=Sample];
+  N32[label="Observation True"];
+  N33[label=-7.7588];
+  N34[label="*"];
+  N35[label="+"];
+  N36[label=7.9859];
+  N37[label="*"];
+  N38[label="+"];
+  N39[label="Bernoulli(logits)"];
+  N40[label=Sample];
+  N41[label="Observation False"];
+  N42[label=-1.2421];
+  N43[label="*"];
+  N44[label="+"];
+  N45[label=5.4628];
+  N46[label="*"];
+  N47[label="+"];
+  N48[label="Bernoulli(logits)"];
+  N49[label=Sample];
+  N50[label="Observation False"];
+  N51[label=6.4529];
+  N52[label="*"];
+  N53[label="+"];
+  N54[label=2.3994];
+  N55[label="*"];
+  N56[label="+"];
+  N57[label="Bernoulli(logits)"];
+  N58[label=Sample];
+  N59[label="Observation True"];
+  N60[label=-4.9269];
+  N61[label="*"];
+  N62[label="+"];
+  N63[label=7.8679];
+  N64[label="*"];
+  N65[label="+"];
+  N66[label="Bernoulli(logits)"];
+  N67[label=Sample];
+  N68[label="Observation False"];
+  N69[label=4.213];
+  N70[label="*"];
+  N71[label="+"];
+  N72[label=2.6175];
+  N73[label="*"];
+  N74[label="+"];
+  N75[label="Bernoulli(logits)"];
+  N76[label=Sample];
+  N77[label="Observation True"];
+  N78[label=Query];
+  N79[label=Query];
+  N80[label=Query];
+  N00 -> N02;
+  N01 -> N02;
+  N02 -> N03;
+  N02 -> N04;
+  N02 -> N05;
+  N03 -> N08;
+  N03 -> N17;
+  N03 -> N26;
+  N03 -> N35;
+  N03 -> N44;
+  N03 -> N53;
+  N03 -> N62;
+  N03 -> N71;
+  N03 -> N78;
+  N04 -> N07;
+  N04 -> N16;
+  N04 -> N25;
+  N04 -> N34;
+  N04 -> N43;
+  N04 -> N52;
+  N04 -> N61;
+  N04 -> N70;
+  N04 -> N79;
+  N05 -> N10;
+  N05 -> N19;
+  N05 -> N28;
+  N05 -> N37;
+  N05 -> N46;
+  N05 -> N55;
+  N05 -> N64;
+  N05 -> N73;
+  N05 -> N80;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N11;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N12;
+  N12 -> N13;
+  N13 -> N14;
+  N15 -> N16;
+  N16 -> N17;
+  N17 -> N20;
+  N18 -> N19;
+  N19 -> N20;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+  N24 -> N25;
+  N25 -> N26;
+  N26 -> N29;
+  N27 -> N28;
+  N28 -> N29;
+  N29 -> N30;
+  N30 -> N31;
+  N31 -> N32;
+  N33 -> N34;
+  N34 -> N35;
+  N35 -> N38;
+  N36 -> N37;
+  N37 -> N38;
+  N38 -> N39;
+  N39 -> N40;
+  N40 -> N41;
+  N42 -> N43;
+  N43 -> N44;
+  N44 -> N47;
+  N45 -> N46;
+  N46 -> N47;
+  N47 -> N48;
+  N48 -> N49;
+  N49 -> N50;
+  N51 -> N52;
+  N52 -> N53;
+  N53 -> N56;
+  N54 -> N55;
+  N55 -> N56;
+  N56 -> N57;
+  N57 -> N58;
+  N58 -> N59;
+  N60 -> N61;
+  N61 -> N62;
+  N62 -> N65;
+  N63 -> N64;
+  N64 -> N65;
+  N65 -> N66;
+  N66 -> N67;
+  N67 -> N68;
+  N69 -> N70;
+  N70 -> N71;
+  N71 -> N74;
+  N72 -> N73;
+  N73 -> N74;
+  N74 -> N75;
+  N75 -> N76;
+  N76 -> N77;
 }
 """
 
 
 class LogisticRegressionTest(unittest.TestCase):
-    def test_to_bmg(self) -> None:
-        """test_to_bmg from logistic_regression_test.py"""
+    def test_logistic_regression_inference(self) -> None:
         self.maxDiff = None
-        observed = to_bmg(source).to_string()
-        self.assertEqual(tidy(observed), tidy(expected_bmg))
+        bmg = BMGInference()
+        samples = bmg.infer(queries, observations, 1000)
+        b0 = samples[beta(0)].mean()
+        b1 = samples[beta(1)].mean()
+        b2 = samples[beta(2)].mean()
 
-    def test_to_dot(self) -> None:
-        """test_to_dot from logistic_regression_test.py"""
+        slope_ob = -b1 / b2
+        int_ob = -b0 / b2
+        slope_ex = 0.64  # Should be 0.67
+        int_ex = 0.16  # Should be -0.33; reasonable guess given thin data
+
+        self.assertAlmostEqual(first=slope_ob, second=slope_ex, delta=0.05)
+        self.assertAlmostEqual(first=int_ob, second=int_ex, delta=0.05)
+
+    def test_logistic_regression_to_dot(self) -> None:
         self.maxDiff = None
-        observed = to_dot(
-            source=source,
-            graph_types=True,
-            inf_types=False,
-            edge_requirements=False,
-            point_at_input=True,
-            after_transform=True,
-        )
+        bmg = BMGInference()
+        observed = bmg.to_dot(queries, observations)
         self.assertEqual(observed.strip(), expected_dot.strip())
