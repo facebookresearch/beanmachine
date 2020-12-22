@@ -447,7 +447,7 @@ n8 = g.add_distribution(
 n9 = g.add_operator(graph.OperatorType.SAMPLE, [n8])
 """
 
-# End-to-end tests for math functions
+# Tests for math functions
 
 source_4 = """
 import beanmachine.ppl as bm
@@ -754,105 +754,105 @@ n10 = g.add_operator(graph.OperatorType.SAMPLE, [n9])
 """
 
 
-class EndToEndTest(unittest.TestCase):
+class GraphAccumulationTests(unittest.TestCase):
     def test_to_cpp_1(self) -> None:
-        """test_to_cpp_1 from end_to_end_test.py"""
+        """test_to_cpp_1 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_cpp(source_1)
         self.assertEqual(observed.strip(), expected_cpp_1.strip())
 
     def test_to_bmg_1(self) -> None:
-        """test_to_bmg_1 from end_to_end_test.py"""
+        """test_to_bmg_1 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_bmg(source_1).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_1))
 
     def test_to_python_1(self) -> None:
-        """test_to_python_1 from end_to_end_test.py"""
+        """test_to_python_1 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_python(source_1)
         self.assertEqual(observed.strip(), expected_python_1.strip())
 
     def test_to_cpp_2(self) -> None:
-        """test_to_cpp_2 from end_to_end_test.py"""
+        """test_to_cpp_2 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_cpp(source_2)
         self.assertEqual(observed.strip(), expected_cpp_2.strip())
 
     def test_to_bmg_2(self) -> None:
-        """test_to_bmg_2 from end_to_end_test.py"""
+        """test_to_bmg_2 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_bmg(source_2).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_2))
 
     def test_to_python_2(self) -> None:
-        """test_to_python_2 from end_to_end_test.py"""
+        """test_to_python_2 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_python(source_2)
         self.assertEqual(observed.strip(), expected_python_2.strip())
 
     def test_to_python_3(self) -> None:
-        """test_to_python_3 from end_to_end_test.py"""
+        """test_to_python_3 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_python(source_3)
         self.assertEqual(observed.strip(), expected_python_3.strip())
 
     def test_to_python_4(self) -> None:
-        """test_to_python_4 from end_to_end_test.py"""
+        """test_to_python_4 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_python(source_4)
         self.assertEqual(observed.strip(), expected_python_4.strip())
 
     def test_to_cpp_4(self) -> None:
-        """test_to_cpp_4 from end_to_end_test.py"""
+        """test_to_cpp_4 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_cpp(source_4)
         self.assertEqual(observed.strip(), expected_cpp_4.strip())
 
     def test_to_bmg_4(self) -> None:
-        """test_to_bmg_4 from end_to_end_test.py"""
+        """test_to_bmg_4 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_bmg(source_4).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_4))
 
     def test_to_python_5(self) -> None:
-        """test_to_python_5 from end_to_end_test.py"""
+        """test_to_python_5 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_python(source_5)
         self.assertEqual(observed.strip(), expected_python_5.strip())
 
     def test_to_cpp_5(self) -> None:
-        """test_to_cpp_5 from end_to_end_test.py"""
+        """test_to_cpp_5 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_cpp(source_5)
         self.assertEqual(observed.strip(), expected_cpp_5.strip())
 
     def test_to_bmg_5(self) -> None:
-        """test_to_bmg_5 from end_to_end_test.py"""
+        """test_to_bmg_5 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_bmg(source_5).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_5))
 
     def test_to_python_6(self) -> None:
-        """test_to_python_6 from end_to_end_test.py"""
+        """test_to_python_6 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_python(source_6)
         self.assertEqual(observed.strip(), expected_python_6.strip())
 
     def test_to_cpp_6(self) -> None:
-        """test_to_cpp_6 from end_to_end_test.py"""
+        """test_to_cpp_6 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_cpp(source_6)
         self.assertEqual(observed.strip(), expected_cpp_6.strip())
 
     def test_to_bmg_6(self) -> None:
-        """test_to_bmg_6 from end_to_end_test.py"""
+        """test_to_bmg_6 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_bmg(source_6).to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_6))
 
     def test_to_python_7(self) -> None:
-        """test_to_python_7 from end_to_end_test.py"""
+        """test_to_python_7 from graph_accumulation_test.py"""
         self.maxDiff = None
         observed = to_python(source_7)
         self.assertEqual(observed.strip(), expected_python_7.strip())
