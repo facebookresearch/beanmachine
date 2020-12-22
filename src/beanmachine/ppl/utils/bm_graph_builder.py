@@ -124,6 +124,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Real,
     Zero,
 )
+from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
@@ -311,10 +312,16 @@ class BMGraphBuilder:
     rv_map: Dict[RVIdentifier, BMGNode]
     lifted_map: Dict[Callable, Callable]
 
+    # We also need to keep track of which query nodes are associated
+    # with which RVIDs:
+
+    query_rv_map: Dict[Query, RVIdentifier]
+
     def __init__(self) -> None:
         self.rv_map = {}
         self.lifted_map = {}
         self.nodes = {}
+        self.query_rv_map = {}
         self.function_map = {
             # Math functions
             math.exp: self.handle_exp,
@@ -1578,9 +1585,61 @@ g = graph.Graph()
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
             self.add_observation(node, val)
-        for q in queries:
-            node = self._rv_to_node(q)
-            self.add_query(node)
+        for qrv in queries:
+            node = self._rv_to_node(qrv)
+            q = self.add_query(node)
+            self.query_rv_map[q] = qrv
+
+    def infer(
+        self,
+        num_samples: int,
+    ) -> MonteCarloSamples:
+        # TODO: Add num_chains to API
+        # TODO: Add inference kind to API
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+        fix_problems(self).raise_errors()
+        g = Graph()
+
+        d: Dict[BMGNode, int] = {}
+        q: Dict[int, RVIdentifier] = {}
+        for node in self._traverse_from_roots():
+            # When we add a query to the graph, we get back the
+            # column index in the sample set for that query.
+            # Make a note of what RVID that is associated with.
+            d[node] = node._add_to_graph(g, d)
+            if isinstance(node, Query) and node in self.query_rv_map:
+                q[d[node]] = self.query_rv_map[node]
+
+        # Suppose we have two queries and three samples; the shape we get
+        # from BMG is:
+        #
+        # [ [s00, s01], [s10, s11], [s20, s21] ]
+        #
+        # But what we need is:
+        #
+        # {
+        #   RV0: tensor([[s00, s10, s20]]),
+        #   RV1: tensor([[s01, s11, s21]])
+        # }
+        #
+        # Start by taking the transpose.
+
+        samples = g.infer(num_samples, InferenceType.NMC)
+        transp = tensor(samples).transpose(0, 1)
+
+        # Now we've got
+        #
+        # [ [s00, s10, s20], [s01, s11, s21] ]
+        #
+        # And we can turn this into a dictionary with a comprehension:
+
+        result: Dict[RVIdentifier, Tensor] = {
+            q[index]: samples.reshape([1] + list(samples.shape))
+            for index, samples in enumerate(transp)
+            if index in q
+        }
+        return MonteCarloSamples(result)
 
     def infer_deprecated(
         self,
