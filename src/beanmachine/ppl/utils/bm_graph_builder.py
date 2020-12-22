@@ -1439,6 +1439,7 @@ class BMGraphBuilder:
         edge_requirements: bool = False,
         point_at_input: bool = False,
         after_transform: bool = False,
+        label_edges: bool = True,
     ) -> str:
         """This dumps the entire accumulated graph state, including
         orphans, as a DOT graph description; nodes are enumerated in the order
@@ -1469,9 +1470,15 @@ class BMGraphBuilder:
             for (child, edge_name, req) in zip(
                 node.children, node.edges, node.requirements
             ):
-                edge_label = edge_name
-                if edge_requirements:
-                    edge_label += ":" + req.short_name
+                if label_edges:
+                    edge_label = edge_name
+                    if edge_requirements:
+                        edge_label += ":" + req.short_name
+                elif edge_requirements:
+                    edge_label = req.short_name
+                else:
+                    edge_label = ""
+
                 # Bayesian networks are typically drawn with the arrows
                 # in the direction of data flow, not in the direction
                 # of dependency.

@@ -27,3 +27,25 @@ class BMGInference:
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, observations)
         return bmg.infer(num_samples)
+
+    def to_dot(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
+        after_transform: bool = True,
+        label_edges: bool = False,
+    ) -> str:
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph(queries, observations)
+        graph_types = False
+        inf_types = False
+        point_at_input = True
+        edge_requirements = False
+        return bmg.to_dot(
+            graph_types,
+            inf_types,
+            edge_requirements,
+            point_at_input,
+            after_transform,
+            label_edges,
+        )
