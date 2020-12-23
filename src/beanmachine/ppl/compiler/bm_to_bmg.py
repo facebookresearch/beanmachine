@@ -506,7 +506,14 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
 
     g = sys.modules[f.__module__].__dict__
     exec(c, g)  # noqa
-    return g[helper_name](bmg)
+    # For debugging purposes we'll stick some helpful information into
+    # the function object.
+    transformed = g[helper_name](bmg)
+    transformed.graph_builder = bmg
+    transformed.original = f
+    transformed.transformed_ast = a
+    transformed.transformed_source = astor.to_source(a)
+    return transformed
 
 
 def _bm_module_to_bmg_ast(source: str) -> ast.AST:
