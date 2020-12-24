@@ -51,6 +51,10 @@ bool ToPosReal::is_registered = OperatorFactory::register_op(
     graph::OperatorType::TO_POS_REAL,
     &(ToPosReal::new_op));
 
+bool ToProbability::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::TO_PROBABILITY,
+    &(ToProbability::new_op));
+
 bool Negate::is_registered = OperatorFactory::register_op(
     graph::OperatorType::NEGATE,
     &(Negate::new_op));

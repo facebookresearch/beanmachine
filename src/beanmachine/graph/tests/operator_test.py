@@ -161,6 +161,34 @@ class TestOperators(unittest.TestCase):
         self.assertTrue(type(samples[0][0]), float)
         self.assertAlmostEqual(samples[0][0], 0.14, 3)
 
+    def test_to_probability(self) -> None:
+        # We have some situations where we know that a real or positive
+        # real quantity is a probability but we cannot prove it. For
+        # example, 0.4 * beta_sample + 0.5 is definitely between 0.0 and
+        # 1.0, but we assume that the sum of two probabilities is a
+        # positive real.
+        #
+        # The to_probability operator takes a real or positive real and
+        # constrains it to the range (0.0, 1.0)
+
+        g = bmg.Graph()
+        c0 = g.add_constant(0.25)
+        c1 = g.add_constant(0.5)
+        c2 = g.add_constant(0.75)
+        o0 = g.add_operator(bmg.OperatorType.ADD, [c0, c1])
+        o1 = g.add_operator(bmg.OperatorType.TO_PROBABILITY, [o0])
+        o2 = g.add_operator(bmg.OperatorType.ADD, [c1, c2])
+        o3 = g.add_operator(bmg.OperatorType.TO_PROBABILITY, [o2])
+        g.query(o0)
+        g.query(o1)
+        g.query(o2)
+        g.query(o3)
+        samples = g.infer(1)
+        self.assertAlmostEqual(samples[0][0], 0.75, 3)
+        self.assertAlmostEqual(samples[0][1], 0.75, 3)
+        self.assertAlmostEqual(samples[0][2], 1.25, 3)
+        self.assertAlmostEqual(samples[0][3], 1.0, 3)
+
     def test_sample(self) -> None:
         # negative test we can't exponentiate the sample from a Bernoulli
         g = bmg.Graph()

@@ -89,6 +89,36 @@ void ToPosReal::eval(std::mt19937& /* gen */) {
   }
 }
 
+ToProbability::ToProbability(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::TO_PROBABILITY, in_nodes) {
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  if (type0 != graph::AtomicType::PROBABILITY and
+      type0 != graph::AtomicType::POS_REAL and
+      type0 != graph::AtomicType::REAL) {
+    throw std::invalid_argument(
+        "operator TO_PROBABILITY requires a "
+        "real, pos_real, or probability parent");
+  }
+  value = graph::NodeValue(graph::AtomicType::PROBABILITY);
+}
+
+void ToProbability::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::NodeValue& parent = in_nodes[0]->value;
+  if (parent.type == graph::AtomicType::PROBABILITY or
+      parent.type == graph::AtomicType::POS_REAL or
+      parent.type == graph::AtomicType::REAL) {
+    // note: we have to cast it to an NodeValue object rather than directly
+    // assigning to ensure that the usual boundary checks for probabilities
+    // are made
+    value = graph::NodeValue(graph::AtomicType::PROBABILITY, parent._double);
+  } else {
+    throw std::runtime_error(
+        "invalid parent type " + parent.type.to_string() +
+        " for TO_PROBABILITY operator at node_id " + std::to_string(index));
+  }
+}
+
 Negate::Negate(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::NEGATE, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
