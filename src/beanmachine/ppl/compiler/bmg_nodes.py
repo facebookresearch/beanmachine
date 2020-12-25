@@ -2957,6 +2957,48 @@ class ToPositiveRealNode(UnaryOperatorNode):
         return True
 
 
+class ToProbabilityNode(UnaryOperatorNode):
+    operator_type = OperatorType.TO_PROBABILITY
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def graph_type(self) -> BMGLatticeType:
+        return Probability
+
+    @property
+    def inf_type(self) -> BMGLatticeType:
+        return Probability
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        # TODO: A ToProbabilityNode's input must be real, positive real
+        # or probability, but we don't have a bound for that. However,
+        # we do not need one, since this node is only ever added when
+        # a requirement violation exists in the graph! We will only
+        # add this node when it is legal to do so; it does not matter
+        # what requirement we give here.
+        return [upper_bound(Real)]
+
+    @property
+    def label(self) -> str:
+        return "ToProb"
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        return "ToProb(" + str(self.operand) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return self.operand.support()
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+
 # ####
 # #### Marker nodes
 # ####

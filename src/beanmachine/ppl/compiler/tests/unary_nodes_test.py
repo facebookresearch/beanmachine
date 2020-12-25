@@ -19,6 +19,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     RealNode,
     SampleNode,
     ToPositiveRealNode,
+    ToProbabilityNode,
     ToRealNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
@@ -117,6 +118,12 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ToPositiveRealNode(beta).inf_type, PositiveReal)
         self.assertEqual(ToPositiveRealNode(bino).inf_type, PositiveReal)
         self.assertEqual(ToPositiveRealNode(half).inf_type, PositiveReal)
+
+        # To Probability
+        # Input must be real, positive real, or probability
+        self.assertEqual(ToProbabilityNode(norm).inf_type, Probability)
+        self.assertEqual(ToProbabilityNode(half).inf_type, Probability)
+        self.assertEqual(ToProbabilityNode(beta).inf_type, Probability)
 
     def test_requirements_unary(self) -> None:
         """test_requirements_unary"""
