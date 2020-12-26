@@ -1413,6 +1413,22 @@ digraph "graph" {
         # to_positive_real nodes are deduplicated
         self.assertEqual(bmg.add_to_positive_real(beta22), to_pr)
 
+    def test_to_probability(self) -> None:
+        """Test to_probability"""
+        bmg = BMGraphBuilder()
+        h = bmg.add_probability(0.5)
+        # to_probability on a prob constant is an identity
+        self.assertEqual(bmg.add_to_probability(h), h)
+        # We have (hc / (0.5 + hc)) which is always between
+        # 0 and 1, but the quotient of two positive reals
+        # is a positive real. Force it to be a probability.
+        hc = bmg.add_halfcauchy(h)
+        s = bmg.add_addition(hc, h)
+        q = bmg.add_division(hc, s)
+        to_p = bmg.add_to_probability(q)
+        # to_probability nodes are deduplicated
+        self.assertEqual(bmg.add_to_probability(q), to_p)
+
     def test_sizes(self) -> None:
         bmg = BMGraphBuilder()
         t = bmg.add_tensor(tensor([1.0, 2.0]))
