@@ -110,6 +110,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     StudentTNode,
     TensorNode,
     ToPositiveRealNode,
+    ToProbabilityNode,
     ToRealNode,
     UniformNode,
 )
@@ -1040,6 +1041,16 @@ class BMGraphBuilder:
         if isinstance(operand, ConstantNode):
             return self.add_positive_real(float(operand.value))
         node = ToPositiveRealNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_to_probability(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ProbabilityNode):
+            return operand
+        if isinstance(operand, ConstantNode):
+            return self.add_probability(float(operand.value))
+        node = ToProbabilityNode(operand)
         self.add_node(node)
         return node
 
