@@ -9,6 +9,7 @@ returned."""
 
 from typing import Optional
 
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import (
     AdditionNode,
     BMGNode,
@@ -49,7 +50,6 @@ from beanmachine.ppl.compiler.error_report import (
     UnsupportedNode,
     Violation,
 )
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Tensor
 
 

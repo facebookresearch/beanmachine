@@ -3,6 +3,7 @@
 import unittest
 
 import astor
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bm_to_bmg import (
     _bm_function_to_bmg_ast,
     _bm_function_to_bmg_function,
@@ -12,7 +13,6 @@ from beanmachine.ppl.compiler.bm_to_bmg import (
     to_python,
     to_python_raw,
 )
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.utils.memoize import RecursionError
 
 
@@ -63,7 +63,7 @@ expected_raw_1 = """
 import beanmachine.ppl as bm
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import torch
@@ -285,7 +285,7 @@ def z():
 expected_raw_2 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import torch
@@ -411,7 +411,7 @@ def z():
 expected_raw_3 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import beanmachine.ppl as bm
@@ -559,7 +559,7 @@ def z():
 expected_raw_4 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import beanmachine.ppl as bm
@@ -660,7 +660,7 @@ def z():
 expected_raw_5 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import beanmachine.ppl as bm
@@ -767,7 +767,7 @@ def z():
 expected_raw_6 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import beanmachine.ppl as bm
@@ -868,7 +868,7 @@ def Y():
 expected_raw_7 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 from torch.distributions import Normal
@@ -946,7 +946,7 @@ def toss():
 expected_raw_8 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import beanmachine.ppl as bm
@@ -1025,7 +1025,7 @@ def toss4():
 expected_raw_9 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 from torch.distributions import Bernoulli
@@ -1111,7 +1111,7 @@ def y():
 expected_raw_10 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 from torch import tensor, zeros
@@ -1217,7 +1217,7 @@ expected_raw_11 = """
 import beanmachine.ppl as bm
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 from torch import tensor
@@ -2005,7 +2005,7 @@ def y():
 expected_raw_19 = """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg: bool = True
 bmg = BMGraphBuilder()
 import beanmachine.ppl as bm

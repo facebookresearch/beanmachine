@@ -8,6 +8,7 @@ import types
 from typing import Any, Callable, Dict, List
 
 import astor
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
 from beanmachine.ppl.utils.ast_patterns import (
     arguments,
@@ -32,7 +33,6 @@ from beanmachine.ppl.utils.ast_patterns import (
     subscript,
     unaryop,
 )
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.utils.fold_constants import _fold_unary_op, fold
 from beanmachine.ppl.utils.optimize import optimize
 from beanmachine.ppl.utils.patterns import ListAny, match_any
@@ -346,7 +346,7 @@ _header: ast.Module = ast.parse(
     """
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg : bool = True
 bmg = BMGraphBuilder()"""
 )
