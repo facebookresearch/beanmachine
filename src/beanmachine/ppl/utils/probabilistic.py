@@ -2,7 +2,8 @@
 import inspect
 from functools import wraps
 
-from beanmachine.ppl.utils.bm_graph_builder import BMGNode, BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bmg_nodes import BMGNode
 
 
 def probabilistic(bmg: BMGraphBuilder):

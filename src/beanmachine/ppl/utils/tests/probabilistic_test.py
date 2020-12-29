@@ -2,7 +2,7 @@
 """Tests for probabilistic.py"""
 import unittest
 
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.utils.memoize import memoize
 from beanmachine.ppl.utils.probabilistic import probabilistic
 from torch import tensor

@@ -5,9 +5,9 @@ inferences on Bean Machine models."""
 
 from typing import Dict, List
 
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import Tensor
 
 

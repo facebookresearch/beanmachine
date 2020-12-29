@@ -2,8 +2,8 @@
 """Tests for error_report.py"""
 import unittest
 
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 
 
 class ErrorReportTest(unittest.TestCase):

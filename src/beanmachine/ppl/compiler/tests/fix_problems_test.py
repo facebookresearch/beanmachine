@@ -2,8 +2,8 @@
 """Tests for fix_problems.py"""
 import unittest
 
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problems import fix_problems
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import tensor
 
 

@@ -2,6 +2,7 @@
 """Tests for bmg_types.py"""
 import unittest
 
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     BooleanMatrix,
@@ -27,7 +28,6 @@ from beanmachine.ppl.compiler.bmg_types import (
     type_of_value,
     upper_bound,
 )
-from beanmachine.ppl.utils.bm_graph_builder import BMGraphBuilder
 from torch import tensor
 
 
