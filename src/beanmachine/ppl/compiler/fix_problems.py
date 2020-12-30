@@ -413,14 +413,14 @@ class Fixer:
         reported = set()
         nodes = self.bmg._traverse_from_roots()
         for node in nodes:
-            for i in range(len(node.children)):
-                c = node.children[i]
+            for i in range(len(node.inputs)):
+                c = node.inputs[i]
                 if c._supported_in_bmg():
                     continue
                 # We have an unsupported node. Have we already worked out its
                 # replacement node?
                 if c in replacements:
-                    node.children[i] = replacements[c]
+                    node.inputs[i] = replacements[c]
                     continue
                 # We have an unsupported node; have we already reported it as
                 # having no replacement?
@@ -433,15 +433,15 @@ class Fixer:
                     reported.add(c)
                 else:
                     replacements[c] = replacement
-                    node.children[i] = replacement
+                    node.inputs[i] = replacement
 
     def _fix_unmet_requirements(self) -> None:
         nodes = self.bmg._traverse_from_roots()
         for node in nodes:
             requirements = node.requirements
             for i in range(len(requirements)):
-                node.children[i] = self.meet_requirement(
-                    node.children[i], requirements[i], node, node.edges[i]
+                node.inputs[i] = self.meet_requirement(
+                    node.inputs[i], requirements[i], node, node.edges[i]
                 )
 
     def _addition_to_complement(self, node: AdditionNode) -> BMGNode:
@@ -467,18 +467,18 @@ class Fixer:
         replacements = {}
         nodes = self.bmg._traverse_from_roots()
         for node in nodes:
-            for i in range(len(node.children)):
-                c = node.children[i]
+            for i in range(len(node.inputs)):
+                c = node.inputs[i]
                 if not isinstance(c, AdditionNode):
                     continue
                 assert isinstance(c, AdditionNode)
                 if not c.can_be_complement:
                     continue
                 if c in replacements:
-                    node.children[i] = replacements[c]
+                    node.inputs[i] = replacements[c]
                     continue
                 replacement = self._addition_to_complement(c)
-                node.children[i] = replacement
+                node.inputs[i] = replacement
                 replacements[c] = replacement
 
     def _fix_observations(self) -> None:

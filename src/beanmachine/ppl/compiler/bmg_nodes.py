@@ -48,24 +48,30 @@ def prod(x):
 class BMGNode(ABC):
     """The base class for all graph nodes."""
 
-    # A node has a list of its child nodes,
-    # each of which has an associated edge label.
+    # A Bayesian network is a acyclic graph in which each node represents
+    # a value or operation; directed edges represent the inputs and
+    # outputs of each node.
     #
-    # TODO: "children" is misleading, as the graph is not a tree
-    # and the edges are not logically representing a parent-child
-    # relationship. Rather, each "child" would better be thought
-    # of as an "input" or a "dependency". A distribution is not
-    # the *child* of a sample; rather, the sample depends on the
-    # distribution to determine its semantics. Similarly, addends
-    # are not children of a sum; they are the inputs to the sum.
-    # Consider refactoring "children" throughout to "inputs" or
-    # "dependencies".
+    # We have a small nomenclature problem here; when describing the shape
+    # of, say, a multiplication in an abstract syntax tree we would say that
+    # the multiplication operator is the "parent" and the pair of operands
+    # are the left and right "children".  However, in Bayesian networks
+    # the tradition is to consider the input values as "parents" of the
+    # multiplication, and nodes which consume the product are its "children".
+    #
+    # To avoid this confusion, in this class we will explicitly call out
+    # that the edges represent inputs.
+    #
+    # TODO: Right now we can get away with nodes having only a list of their
+    # inputs, but in the future we will need to store (and update) both
+    # inputs and outputs. This is necessary to solve some performance problems
+    # during graph rewrites.
 
-    children: List["BMGNode"]
+    inputs: List["BMGNode"]
     edges: List[str]
 
-    def __init__(self, children: List["BMGNode"]):
-        self.children = children
+    def __init__(self, inputs: List["BMGNode"]):
+        self.inputs = inputs
 
     @property
     @abstractmethod
@@ -537,8 +543,8 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
     """This is the base class for all nodes that represent
     probability distributions."""
 
-    def __init__(self, children: List[BMGNode]):
-        BMGNode.__init__(self, children)
+    def __init__(self, inputs: List[BMGNode]):
+        BMGNode.__init__(self, inputs)
 
 
 class BernoulliNode(DistributionNode):
@@ -565,11 +571,11 @@ class BernoulliNode(DistributionNode):
 
     @property
     def probability(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @probability.setter
     def probability(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -637,19 +643,19 @@ class BetaNode(DistributionNode):
 
     @property
     def alpha(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @alpha.setter
     def alpha(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def beta(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @beta.setter
     def beta(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -740,19 +746,19 @@ class BinomialNode(DistributionNode):
 
     @property
     def count(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @count.setter
     def count(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def probability(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @probability.setter
     def probability(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -893,11 +899,11 @@ class CategoricalNode(DistributionNode):
 
     @property
     def probability(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @probability.setter
     def probability(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -944,11 +950,11 @@ class Chi2Node(DistributionNode):
 
     @property
     def df(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @df.setter
     def df(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -1002,11 +1008,11 @@ class DirichletNode(DistributionNode):
 
     @property
     def concentration(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @concentration.setter
     def concentration(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -1115,19 +1121,19 @@ class GammaNode(DistributionNode):
 
     @property
     def concentration(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @concentration.setter
     def concentration(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def rate(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @rate.setter
     def rate(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -1206,11 +1212,11 @@ class HalfCauchyNode(DistributionNode):
 
     @property
     def scale(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @scale.setter
     def scale(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -1281,19 +1287,19 @@ class NormalNode(DistributionNode):
 
     @property
     def mu(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @mu.setter
     def mu(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def sigma(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @sigma.setter
     def sigma(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -1370,27 +1376,27 @@ class StudentTNode(DistributionNode):
 
     @property
     def df(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @df.setter
     def df(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def loc(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @loc.setter
     def loc(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     @property
     def scale(self) -> BMGNode:
-        return self.children[2]
+        return self.inputs[2]
 
     @scale.setter
     def scale(self, p: BMGNode) -> None:
-        self.children[2] = p
+        self.inputs[2] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -1466,19 +1472,19 @@ class UniformNode(DistributionNode):
 
     @property
     def low(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @low.setter
     def low(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def high(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @high.setter
     def high(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
@@ -1526,10 +1532,10 @@ class UniformNode(DistributionNode):
 
 class OperatorNode(BMGNode, metaclass=ABCMeta):
     """This is the base class for all operators.
-    The children are the operands of each operator."""
+    The inputs are the operands of each operator."""
 
-    def __init__(self, children: List[BMGNode]):
-        BMGNode.__init__(self, children)
+    def __init__(self, inputs: List[BMGNode]):
+        BMGNode.__init__(self, inputs)
 
 
 # ####
@@ -1579,27 +1585,27 @@ class IfThenElseNode(OperatorNode):
 
     @property
     def condition(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @condition.setter
     def condition(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def consequence(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @consequence.setter
     def consequence(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     @property
     def alternative(self) -> BMGNode:
-        return self.children[2]
+        return self.inputs[2]
 
     @alternative.setter
     def alternative(self, p: BMGNode) -> None:
-        self.children[2] = p
+        self.inputs[2] = p
 
     @property
     def label(self) -> str:
@@ -1666,19 +1672,19 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
     @property
     def left(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @left.setter
     def left(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def right(self) -> BMGNode:
-        return self.children[1]
+        return self.inputs[1]
 
     @right.setter
     def right(self, p: BMGNode) -> None:
-        self.children[1] = p
+        self.inputs[1] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         if not self._supported_in_bmg():
@@ -2013,9 +2019,9 @@ class MapNode(BMGNode):
     # As an implementation detail, we represent the key-value pairs in the
     # map by a convention:
     #
-    # * Even numbered children are keys
+    # * Even numbered inputs are keys
     # * All keys are constant nodes
-    # * Odd numbered children are values associated with the previous
+    # * Odd numbered inputs are values associated with the previous
     #   sibling as the key.
 
     # TODO: We do not yet have this choice node in BMG, and the design
@@ -2037,26 +2043,26 @@ class MapNode(BMGNode):
     # to n graph nodes, and the indexed sample is drawn from a distribution
     # whose support is exactly 0 to n-1.
 
-    def __init__(self, children: List[BMGNode]):
+    def __init__(self, inputs: List[BMGNode]):
         # TODO: Check that keys are all constant nodes.
         # TODO: Check that there is one value for each key.
         # TODO: Verify that there is at least one pair.
-        BMGNode.__init__(self, children)
-        self.edges = [str(x) for x in range(len(children))]
+        BMGNode.__init__(self, inputs)
+        self.edges = [str(x) for x in range(len(inputs))]
 
     @property
     def inf_type(self) -> BMGLatticeType:
         # The inf type of a map is the supremum of the types of all
         # its inputs.
         return supremum(
-            *[self.children[i * 2 + 1].inf_type for i in range(len(self.children) // 2)]
+            *[self.inputs[i * 2 + 1].inf_type for i in range(len(self.inputs) // 2)]
         )
 
     @property
     def graph_type(self) -> BMGLatticeType:
-        first = self.children[0].graph_type
-        for i in range(len(self.children) // 2):
-            if self.children[i * 2 + 1].graph_type != first:
+        first = self.inputs[0].graph_type
+        for i in range(len(self.inputs) // 2):
+            if self.inputs[i * 2 + 1].graph_type != first:
                 return Malformed
         return first
 
@@ -2065,11 +2071,11 @@ class MapNode(BMGNode):
         it = self.inf_type
         # TODO: This isn't quite right; when we support this kind of node
         # in BMG, fix this.
-        return [upper_bound(BMGTensor), it] * (len(self.children) // 2)
+        return [upper_bound(BMGTensor), it] * (len(self.inputs) // 2)
 
     @property
     def size(self) -> torch.Size:
-        return self.children[1].size
+        return self.inputs[1].size
 
     @property
     def label(self) -> str:
@@ -2091,9 +2097,9 @@ class MapNode(BMGNode):
         # Linear search is fine.  We're not going to do this a lot, and the
         # maps will be small.
         k = key.value if isinstance(key, ConstantNode) else key
-        for i in range(len(self.children) // 2):
-            if self.children[i * 2].value == k:
-                return self.children[i * 2 + 1]
+        for i in range(len(self.inputs) // 2):
+            if self.inputs[i * 2].value == k:
+                return self.inputs[i * 2 + 1]
         raise ValueError("Key not found in map")
 
 
@@ -2427,11 +2433,11 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 
     @property
     def operand(self) -> BMGNode:
-        return self.children[0]
+        return self.inputs[0]
 
     @operand.setter
     def operand(self, p: BMGNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         if not self._supported_in_bmg():
@@ -2859,13 +2865,13 @@ class SampleNode(UnaryOperatorNode):
 
     @property
     def operand(self) -> DistributionNode:
-        c = self.children[0]
+        c = self.inputs[0]
         assert isinstance(c, DistributionNode)
         return c
 
     @operand.setter
     def operand(self, p: DistributionNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def label(self) -> str:
@@ -3043,13 +3049,13 @@ class Observation(BMGNode):
 
     @property
     def observed(self) -> SampleNode:
-        c = self.children[0]
+        c = self.inputs[0]
         assert isinstance(c, SampleNode)
         return c
 
     @observed.setter
     def operand(self, p: SampleNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def inf_type(self) -> BMGLatticeType:
@@ -3116,13 +3122,13 @@ class Query(BMGNode):
 
     @property
     def operator(self) -> OperatorNode:
-        c = self.children[0]
+        c = self.inputs[0]
         assert isinstance(c, OperatorNode)
         return c
 
     @operator.setter
     def operator(self, p: OperatorNode) -> None:
-        self.children[0] = p
+        self.inputs[0] = p
 
     @property
     def graph_type(self) -> BMGLatticeType:
