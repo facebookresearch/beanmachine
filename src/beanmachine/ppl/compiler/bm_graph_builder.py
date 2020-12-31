@@ -397,8 +397,8 @@ class BMGraphBuilder:
         """This adds a node we've recently created to the node set;
         it maintains the invariant that all the input nodes are also added."""
         if node not in self.nodes:
-            for child in node.children:
-                self.add_node(child)
+            for i in node.inputs:
+                self.add_node(i)
             self.nodes[node] = len(self.nodes)
 
     # ####
@@ -1478,9 +1478,7 @@ class BMGraphBuilder:
             if inf_types:
                 node_label += ">=" + node.inf_type.short_name
             db.with_node(n, node_label)
-            for (child, edge_name, req) in zip(
-                node.children, node.edges, node.requirements
-            ):
+            for (i, edge_name, req) in zip(node.inputs, node.edges, node.requirements):
                 if label_edges:
                     edge_label = edge_name
                     if edge_requirements:
@@ -1493,8 +1491,8 @@ class BMGraphBuilder:
                 # Bayesian networks are typically drawn with the arrows
                 # in the direction of data flow, not in the direction
                 # of dependency.
-                start_node = to_id(nodes[child]) if point_at_input else n
-                end_node = n if point_at_input else to_id(nodes[child])
+                start_node = to_id(nodes[i]) if point_at_input else n
+                end_node = n if point_at_input else to_id(nodes[i])
                 db.with_edge(start_node, end_node, edge_label)
         return str(db)
 
@@ -1579,8 +1577,8 @@ g = graph.Graph()
         def visit(n: BMGNode) -> None:
             if n in seen:
                 return
-            for c in n.children:
-                visit(c)
+            for i in n.inputs:
+                visit(i)
             seen.add(n)
             result.append(n)
 
