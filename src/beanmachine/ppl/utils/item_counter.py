@@ -17,3 +17,13 @@ class ItemCounter:
             self.items[item] = 1
         else:
             self.items[item] = self.items[item] + 1
+
+    def remove_item(self, item: Any) -> None:
+        if item not in self.items:
+            return
+        count = self.items[item] - 1
+        if count == 0:
+            del self.items[item]
+        else:
+            assert count > 0
+            self.items[item] = count
