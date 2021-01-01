@@ -131,3 +131,19 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(
             StudentTNode(pos, pos, pos).requirements, [PositiveReal, Real, PositiveReal]
         )
+
+    def test_inputs_and_outputs(self) -> None:
+        # We must maintain the invariant that the output set and the
+        # input set of every node are consistent even when the graph
+        # is edited.
+
+        r1 = RealNode(1.0)
+        self.assertEqual(len(r1.outputs.items), 0)
+        n = NormalNode(r1, r1)
+        # r1 has two outputs, both equal to n
+        self.assertEqual(r1.outputs.items[n], 2)
+        r2 = RealNode(2.0)
+        n.sigma = r2
+        # r1 and r2 now each have one output
+        self.assertEqual(r1.outputs.items[n], 1)
+        self.assertEqual(r2.outputs.items[n], 1)

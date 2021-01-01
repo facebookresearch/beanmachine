@@ -27,6 +27,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     upper_bound,
 )
 from beanmachine.ppl.compiler.internal_error import InternalError
+from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor, tensor
 from torch.distributions import Normal
 from torch.distributions.utils import broadcast_all
@@ -45,6 +46,39 @@ def prod(x):
     return functools.reduce(operator.mul, x, 1)
 
 
+# Note that we're not going to subclass list or UserList here because we
+# only need to use the most basic list operations: initialization, getting
+# an item, and setting an item. We never want to delete items, append to
+# the end, and so on.
+
+
+class InputList:
+    node: "BMGNode"
+    inputs: List["BMGNode"]
+
+    def __init__(self, node: "BMGNode", inputs: List["BMGNode"]) -> None:
+        self.node = node
+        self.inputs = inputs
+        for i in inputs:
+            i.outputs.add_item(node)
+
+    def __setitem__(self, index: int, value: "BMGNode") -> None:
+        # The node is no longer an output of the current input at the index.
+        # The node is now an output of the new input at the index.
+        self.inputs[index].outputs.remove_item(self.node)
+        self.inputs[index] = value
+        value.outputs.add_item(self.node)
+
+    def __getitem__(self, index: int) -> "BMGNode":
+        return self.inputs[index]
+
+    def __iter__(self):
+        return iter(self.inputs)
+
+    def __len__(self) -> int:
+        return len(self.inputs)
+
+
 class BMGNode(ABC):
     """The base class for all graph nodes."""
 
@@ -61,17 +95,14 @@ class BMGNode(ABC):
     #
     # To avoid this confusion, in this class we will explicitly call out
     # that the edges represent inputs.
-    #
-    # TODO: Right now we can get away with nodes having only a list of their
-    # inputs, but in the future we will need to store (and update) both
-    # inputs and outputs. This is necessary to solve some performance problems
-    # during graph rewrites.
 
     inputs: List["BMGNode"]
     edges: List[str]
+    outputs: ItemCounter
 
     def __init__(self, inputs: List["BMGNode"]):
-        self.inputs = inputs
+        self.inputs = InputList(self, inputs)
+        self.outputs = ItemCounter()
 
     @property
     @abstractmethod
