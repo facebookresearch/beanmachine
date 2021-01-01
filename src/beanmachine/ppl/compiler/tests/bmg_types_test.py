@@ -6,6 +6,7 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
     BooleanMatrix,
+    Malformed,
     Natural,
     NaturalMatrix,
     NegativeReal,
@@ -190,3 +191,66 @@ digraph "graph" {
 
         self.assertEqual(b22.short_name, "MB[2,2]")
         self.assertEqual(b22.long_name, "2 x 2 bool matrix")
+
+    def test_type_propagation(self) -> None:
+        # When we make a mutation to the graph this can cause the type of a node
+        # to change, which can then cause the type of an output node to change,
+        # and so on. We need to make sure that types propagate correctly.
+        #
+        # Note that we aggressively compute and store types for performance
+        # reasons; since a node's type can depend on the types of its inputs,
+        # we could end up traversing large parts of the graph every time we ask
+        # a node for its type. Since that operation is common, we want it to be
+        # extremely cheap so we compute it once and store the result until it
+        # needs to change. Graph mutations, by contrast, are rare and most of the
+        # mutations we do will not actually change the type of the outputs so
+        # the propagation to outputs will be cheap.
+        #
+        # To test this though, we'll make some contrived situations that
+        # demonstrate the correctness of the propagation.
+
+        bmg = BMGraphBuilder()
+        m = bmg.add_real(0.0)
+        s = bmg.add_pos_real(1.0)
+        norm = bmg.add_normal(m, s)
+        ns = bmg.add_sample(norm)
+        # ns is a real
+
+        hc = bmg.add_halfcauchy(s)
+        hcs = bmg.add_sample(hc)
+        # hcs is a positive real
+
+        # Addition requires that its operands have the same type. Let's see
+        # what happens when we create an addition and then square it, and
+        # then mutate the addition; the type information should propagate
+        # to the multiplication.
+
+        add = bmg.add_addition(ns, ns)
+        mult = bmg.add_multiplication(add, add)
+
+        self.assertEqual(add.graph_type, Real)
+        self.assertEqual(add.inf_type, Real)
+        self.assertEqual(mult.graph_type, Real)
+        self.assertEqual(mult.inf_type, Real)
+
+        # Now let's mutate the addition so it is malformed.  We should
+        # get that the inf type says that there is a mutation that makes
+        # this into a real-valued addition, and the graph type of both
+        # math operations is malformed.
+
+        add.left = hcs
+
+        self.assertEqual(add.graph_type, Malformed)
+        self.assertEqual(add.inf_type, Real)
+        self.assertEqual(mult.graph_type, Malformed)
+        self.assertEqual(mult.inf_type, Real)
+
+        # And now if we mutate further into a multiplication of two
+        # positive reals, the problem is fixed:
+
+        add.right = hcs
+
+        self.assertEqual(add.graph_type, PositiveReal)
+        self.assertEqual(add.inf_type, PositiveReal)
+        self.assertEqual(mult.graph_type, PositiveReal)
+        self.assertEqual(mult.inf_type, PositiveReal)

@@ -7,7 +7,7 @@ import functools
 import itertools
 import operator
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Dict, Iterator, List
+from typing import Any, Dict, Iterator, List, Optional
 
 from beanmachine.graph import AtomicType, DistributionType as dt, Graph, OperatorType
 from beanmachine.ppl.compiler.bmg_types import (
@@ -63,11 +63,26 @@ class InputList:
             i.outputs.add_item(node)
 
     def __setitem__(self, index: int, value: "BMGNode") -> None:
-        # The node is no longer an output of the current input at the index.
-        # The node is now an output of the new input at the index.
+        # Start by maintaining correctness of the input/output relationships.
+        #
+        # (1) The node is no longer an output of the current input at the index.
+        # (2) The node is now an output of the new input at the index.
+        #
         self.inputs[index].outputs.remove_item(self.node)
         self.inputs[index] = value
         value.outputs.add_item(self.node)
+
+        # Some additional invariants that we must maintain for performance reasons are:
+        #
+        # (3) Every node caches its own graph and inf types.
+        # (4) The types of the inputs to a node are always correct.
+        #
+        # This means that when the graph mutates such that an input of a node
+        # changes, we need to recompute the type of the node so that it stays
+        # correct. That could in turn cause the type of the node's outputs to
+        # change; the call to _recompute_types propagates the change to all
+        # descendant outputs.
+        self.node._recompute_types()
 
     def __getitem__(self, index: int) -> "BMGNode":
         return self.inputs[index]
@@ -100,9 +115,36 @@ class BMGNode(ABC):
     edges: List[str]
     outputs: ItemCounter
 
+    # See comments in InputList above for invariants we maintain on these members.
+    _inf_type: Optional[BMGLatticeType]
+    _graph_type: Optional[BMGLatticeType]
+
     def __init__(self, inputs: List["BMGNode"]):
         self.inputs = InputList(self, inputs)
         self.outputs = ItemCounter()
+        # We cannot compute the inf type or graph type yet because
+        # that's a virtual method call and the constructors of the
+        # derived classes have not finished yet. Compute them on
+        # demand.
+        self._inf_type = None
+        self._graph_type = None
+
+    def _recompute_types(self) -> None:
+        # A change in the inputs might have caused the cached types
+        # to be incorrect. The types of the inputs are correct, so
+        # recompute the types of this node; if they changed, then
+        # propagate that change to the outputs of this node; they
+        # might not be correct.
+        it = self._compute_inf_type()
+        gt = self._compute_graph_type()
+        changed = it != self._inf_type or gt != self._graph_type
+        self._inf_type = it
+        self._graph_type = gt
+        # Types are now correct and cached; we can propagate that
+        # change if necessary to our outputs.
+        if changed:
+            for o in self.outputs.items:
+                o._recompute_types()
 
     @abstractmethod
     def _compute_graph_type(self) -> BMGLatticeType:
@@ -112,7 +154,11 @@ class BMGNode(ABC):
     @property
     def graph_type(self) -> BMGLatticeType:
         """The type of the node in the graph type system."""
-        return self._compute_graph_type()
+        if self._graph_type is not None:
+            return self._graph_type
+        t = self._compute_graph_type()
+        self._graph_type = t
+        return t
 
     @abstractmethod
     def _compute_inf_type(self) -> BMGLatticeType:
@@ -123,7 +169,11 @@ class BMGNode(ABC):
         """BMG nodes have type requirements on their inputs; the *infimum type* of
         a node is the *smallest* BMG type that a node may be converted to if required by
         an input."""
-        return self._compute_inf_type()
+        if self._inf_type is not None:
+            return self._inf_type
+        t = self._compute_inf_type()
+        self._inf_type = t
+        return t
 
     @property
     @abstractmethod
@@ -2738,9 +2788,9 @@ class ComplementNode(UnaryOperatorNode):
         # unless we can type them correctly. The graph type should always
         # be probability or bool. If somehow it is not -- perhaps because
         # we are running a unit test -- then treat the node as malformed.
-        it = self.operand.graph_type
-        if it == Boolean or it == Probability:
-            return it
+        t = self.operand.graph_type
+        if t == Boolean or t == Probability:
+            return t
         return Malformed
 
     @property
