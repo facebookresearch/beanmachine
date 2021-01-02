@@ -295,6 +295,37 @@ class Fixer:
         one = self.bmg.add_constant_of_type(1.0, requirement)
         return self.bmg.add_if_then_else(node, one, zero)
 
+    def _can_force_to_prob(
+        self, inf_type: BMGLatticeType, requirement: Requirement
+    ) -> bool:
+        # Consider the graph created by a call like:
+        #
+        # Bernoulli(0.5 + some_beta() / 2)
+        #
+        # The inf types of the addends are both probability, but there is
+        # no addition operator on probabilities; we will add these as
+        # positive reals, and then get an error when we use it as the parameter
+        # to a Bernoulli.  But you and I both know that this is a legal
+        # probability.
+        #
+        # To work around this problem, if we have a *real* or *positive real* used
+        # in a situation where a *probability* is required, we insert an explicit
+        # "clamp this real to a probability" operation.
+        #
+        # TODO: We might want to restrict this. For example, if we have
+        #
+        # Bernoulli(some_normal())
+        #
+        # then it seems plausible that we ought to produce an error here rather than
+        # clamping the result to a probability. We could allow this feature only
+        # in situations where there was some operator other than a sample, for instance.
+        #
+        # TODO: We might want to build a warning mechanism that informs the developer
+        # of the possibility that they've gotten something wrong here.
+        return (
+            requirement == Probability or requirement == upper_bound(Probability)
+        ) and (inf_type == Real or inf_type == PositiveReal)
+
     def _meet_operator_requirement(
         self, node: OperatorNode, requirement: Requirement, consumer: BMGNode, edge: str
     ) -> BMGNode:
@@ -310,7 +341,18 @@ class Fixer:
         it = node.inf_type
 
         if not meets_requirement(it, upper_bound(requirement)):
-            # No; add an error.
+            # We cannot make the node meet the requirement "implicitly". However
+            # there is one situation where we can "explicitly" meet a requirement:
+            # an operator of type real or positive real used as a probability.
+            if self._can_force_to_prob(it, requirement):
+                # Ensure that the operand is converted to real or positive real:
+                operand = self.meet_requirement(node, it, consumer, edge)
+                # Force the real / positive real to probability:
+                result = self.bmg.add_to_probability(operand)
+                assert meets_requirement(result.graph_type, requirement)
+                return result
+
+            # We have no way to make the conversion we need, so add an error.
             self.errors.add_error(Violation(node, requirement, consumer, edge))
             return node
 
