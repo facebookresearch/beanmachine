@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# Copyright (c) Facebook, Inc. and its affiliates.
 # Non-vectorized CLARA model with probabilities represented
 # as straight probabilities, not negative reals.
 
@@ -107,9 +107,6 @@ def observation():
         for ii in range(0, n_spec_buckets):  # ii pos int
             # Sum of reals
             spec = spec + L_K_spec[spec_idx, ii] * eta_spec(ii)
-        # PROBLEM: We know that phi(spec) is a probability, but
-        # we have no way of knowing that 0.48 * phi(spec) + 0.5 is
-        # a probability.
         prob_spec = 0.48 * phi(spec) + 0.5  # pos real, should be prob
 
         sens = sens_f_mean
@@ -131,17 +128,6 @@ def observation():
                 neg_sum = neg_sum * prob_spec  # pos real or real, should be prob
 
         idx = idx + n_labels[i]
-
-        # PROBLEM: Even if we know that pos_sum and neg_sum
-        # are probs, how do we know that the sum of them
-        # is a probability? What reason do we have to believe
-        # that this sum is between 0.0 and 1.0?
-
-        # (I know it is true and you know it is true -- it is
-        # true because they *started* as summing to 1.0 and
-        # we have only made them both *smaller* so their sum
-        # must be smaller than 1.0. But how does BMG know that?)
-
         prob_i = (pos_sum + neg_sum) ** n_repeats[i]
         prob = prob * prob_i
 
@@ -162,10 +148,5 @@ class ClaraTest(unittest.TestCase):
         observations = {observation(): tensor(1.0)}
         num_samples = 1000
         inference = BMGInference()
-        # TODO: Right now this gives an error because (as noted above)
-        # we do not know that the sum of two reals is a probability.
-        # Until we've figured out how to fix that, note that this
-        # should produce an exception.
-        # TODO: Have this throw a better exception than ValueError.
-        with self.assertRaises(ValueError):
-            inference.infer(queries, observations, num_samples)
+        # TODO: Check that the inference results are sensible.
+        inference.infer(queries, observations, num_samples)

@@ -165,10 +165,6 @@ def observation():
         # TODO: torch.logsumexp(torch.tensor([pos_sum, neg_sum]), dim=0)
         # TODO: in the compiler
 
-        # PROBLEM: Here we have the sum of two probabilities, so we cannot
-        # prove that the input to Bernoulli is probability. The best we can
-        # say is that it is a positive real because exp(anything) is a
-        # positive real.
         log_prob_item = (pos_sum.exp() + neg_sum.exp()).log()
         log_prob = log_prob + log_prob_item
     return Bernoulli(log_prob.exp())
@@ -191,10 +187,39 @@ class ClaraCGMTest(unittest.TestCase):
 
         num_samples = 1000
         inference = BMGInference()
-        # TODO: Right now this gives an error because (as noted above)
-        # we do not know that the sum of two reals is a probability.
-        # Until we've figured out how to fix that, note that this
-        # should produce an exception.
-        # TODO: Have this throw a better exception than ValueError.
-        with self.assertRaises(ValueError):
-            inference.infer(queries, observations, num_samples)
+        mcsamples = inference.infer(queries, observations, num_samples)
+        prevalence_samples = mcsamples[prevalence()]
+        observed = prevalence_samples.mean()
+        # TODO: What is going on here? Should be around 0.5.
+        expected = 0.02
+        self.assertAlmostEqual(first=observed, second=expected, delta=0.05)
+
+        sens_bob = mcsamples[sensitivity(bob)]
+        observed = sens_bob.mean()
+        expected = bob.sensitivity
+        self.assertAlmostEqual(first=observed, second=expected, delta=0.15)
+
+        sens_joe = mcsamples[sensitivity(joe)]
+        observed = sens_joe.mean()
+        expected = joe.sensitivity
+        self.assertAlmostEqual(first=observed, second=expected, delta=0.15)
+
+        sens_sue = mcsamples[sensitivity(sue)]
+        observed = sens_sue.mean()
+        expected = sue.sensitivity
+        self.assertAlmostEqual(first=observed, second=expected, delta=0.15)
+
+        spec_bob = mcsamples[specificity(bob)]
+        observed = spec_bob.mean()
+        expected = bob.specificity
+        self.assertAlmostEqual(first=observed, second=expected, delta=0.15)
+
+        spec_joe = mcsamples[specificity(joe)]
+        observed = spec_joe.mean()
+        expected = joe.specificity
+        self.assertAlmostEqual(first=observed, second=expected, delta=0.15)
+
+        spec_sue = mcsamples[specificity(sue)]
+        observed = spec_sue.mean()
+        expected = sue.specificity
+        self.assertAlmostEqual(first=observed, second=expected, delta=0.15)
