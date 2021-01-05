@@ -52,52 +52,49 @@ class BMGraphBuilderTest(unittest.TestCase):
             return tensor_equality(x, y)
         return super().assertEqual(x, y)
 
-    def disabled_test_graph_builder_1(self) -> None:
-        """Test 1"""
-        # TODO: This test is disabled since we no longer support
-        # TODO: to_tensor nodes in BMG.  Redo this test case.
+    def test_graph_builder_1(self) -> None:
 
-        t = tensor([[10, 20], [40, 50]])
+        # Just a trivial model to test whether we can take a properly-typed
+        # accumulated graph and turn it into BMG, DOT, or a program that
+        # produces a BMG.
+        #
+        # @random_variable def flip(): return Bernoulli(0.5)
+        # @functional      def mult(): return (-flip() + 2) * 2
         bmg = BMGraphBuilder()
         half = bmg.add_probability(0.5)
         two = bmg.add_real(2)
-        tens = bmg.add_tensor(t)
         flip = bmg.add_bernoulli(half)
         samp = bmg.add_sample(flip)
         real = bmg.add_to_real(samp)
         neg = bmg.add_negate(real)
         add = bmg.add_addition(two, neg)
-        add_t = bmg.add_to_tensor(add)
-        mult = bmg.add_multiplication(tens, add_t)
+        mult = bmg.add_multiplication(two, add)
         bmg.add_observation(samp, True)
         bmg.add_query(mult)
 
-        observed = bmg.to_dot()
+        observed = bmg.to_dot(point_at_input=True, label_edges=False)
         expected = """
 digraph "graph" {
-  N00[label=0.5];
-  N01[label=2];
-  N02[label="[[10,20],\\\\n[40,50]]"];
-  N03[label=Bernoulli];
-  N04[label=Sample];
-  N05[label=ToReal];
-  N06[label="-"];
-  N07[label="+"];
-  N08[label=ToTensor];
-  N09[label="*"];
-  N10[label="Observation True"];
-  N11[label=Query];
-  N03 -> N00[label=probability];
-  N04 -> N03[label=operand];
-  N05 -> N04[label=operand];
-  N06 -> N05[label=operand];
-  N07 -> N01[label=left];
-  N07 -> N06[label=right];
-  N08 -> N07[label=operand];
-  N09 -> N02[label=left];
-  N09 -> N08[label=right];
-  N10 -> N04[label=operand];
-  N11 -> N09[label=operator];
+  N0[label=0.5];
+  N1[label=2];
+  N2[label=Bernoulli];
+  N3[label=Sample];
+  N4[label=ToReal];
+  N5[label="-"];
+  N6[label="+"];
+  N7[label="*"];
+  N8[label="Observation True"];
+  N9[label=Query];
+  N0 -> N2;
+  N1 -> N6;
+  N1 -> N7;
+  N2 -> N3;
+  N3 -> N4;
+  N3 -> N8;
+  N4 -> N5;
+  N5 -> N6;
+  N6 -> N7;
+  N7 -> N9;
 }
 """
         self.maxDiff = None
@@ -106,22 +103,15 @@ digraph "graph" {
         g = bmg.to_bmg()
         observed = g.to_string()
         expected = """
-Node 0 type 1 parents [ ] children [ 4 ] real value 0.5
-Node 1 type 1 parents [ ] children [ 8 ] real value 2
-Node 2 type 1 parents [ ] children [ 9 ] tensor value  10  20
- 40  50
-[ CPULongType{2,2} ]
-Node 3 type 1 parents [ ] children [ ] boolean value 1
-Node 4 type 2 parents [ 0 ] children [ 5 ] unknown value
-Node 5 type 3 parents [ 4 ] children [ 6 ] boolean value 1
-Node 6 type 3 parents [ 5 ] children [ 7 ] unknown value
-Node 7 type 3 parents [ 6 ] children [ 8 ] unknown value
-Node 8 type 3 parents [ 1 7 ] children [ 9 ] unknown value
-Node 9 type 3 parents [ 8 ] children [ 10 ] unknown value
-Node 10 type 3 parents [ 2 9 ] children [ ] unknown value
-        """
-        # TODO: This test is disabled due to problems with how torch dumps out tensors
-        # TODO: self.assertEqual(tidy(observed), tidy(expected))
+Node 0 type 1 parents [ ] children [ 1 ] probability 0.5
+Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
+Node 2 type 3 parents [ 1 ] children [ 4 ] boolean 1
+Node 3 type 1 parents [ ] children [ 6 7 ] real 2
+Node 4 type 3 parents [ 2 ] children [ 5 ] real 0
+Node 5 type 3 parents [ 4 ] children [ 6 ] real 0
+Node 6 type 3 parents [ 3 5 ] children [ 7 ] real 0
+Node 7 type 3 parents [ 3 6 ] children [ ] real 0"""
+        self.assertEqual(tidy(observed), tidy(expected))
 
         observed = bmg.to_python()
 
@@ -136,14 +126,12 @@ n1 = g.add_distribution(
   [n0])
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 g.observe(n2, True)
-n4 = g.add_constant(tensor([[10,20],[40,50]]))
-n5 = g.add_constant(2.0)
-n6 = g.add_operator(graph.OperatorType.TO_REAL, [n2])
-n7 = g.add_operator(graph.OperatorType.NEGATE, [n6])
-n8 = g.add_operator(graph.OperatorType.ADD, [n5, n7])
-n9 = g.add_operator(graph.OperatorType.TO_TENSOR, [n8])
-n10 = g.add_operator(graph.OperatorType.MULTIPLY, [n4, n9])
-g.query(n10)
+n4 = g.add_constant(2.0)
+n5 = g.add_operator(graph.OperatorType.TO_REAL, [n2])
+n6 = g.add_operator(graph.OperatorType.NEGATE, [n5])
+n7 = g.add_operator(graph.OperatorType.ADD, [n4, n6])
+n8 = g.add_operator(graph.OperatorType.MULTIPLY, [n4, n7])
+g.query(n8)
 """
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -159,19 +147,16 @@ uint n1 = g.add_distribution(
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 g.observe([n2], true);
-uint n4 = g.add_constant(torch::from_blob((float[]){10,20,40,50}, {2,2}));
-uint n5 = g.add_constant(2);
-uint n6 = g.add_operator(
+uint n4 = g.add_constant(2);
+uint n5 = g.add_operator(
   graph::OperatorType::TO_REAL, std::vector<uint>({n2}));
+uint n6 = g.add_operator(
+  graph::OperatorType::NEGATE, std::vector<uint>({n5}));
 uint n7 = g.add_operator(
-  graph::OperatorType::NEGATE, std::vector<uint>({n6}));
+  graph::OperatorType::ADD, std::vector<uint>({n4, n6}));
 uint n8 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n5, n7}));
-uint n9 = g.add_operator(
-  graph::OperatorType::TO_TENSOR, std::vector<uint>({n8}));
-uint n10 = g.add_operator(
-  graph::OperatorType::MULTIPLY, std::vector<uint>({n4, n9}));
-g.query(n10);
+  graph::OperatorType::MULTIPLY, std::vector<uint>({n4, n7}));
+g.query(n8);
 """
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -195,8 +180,8 @@ g.query(n10);
         inv = bmg.add_not(samp)
         real = bmg.add_to_real(inv)
         div = bmg.add_division(real, two)
-        pow = bmg.add_power(div, two)
-        bmg.add_log(pow)
+        p = bmg.add_power(div, two)
+        bmg.add_log(p)
         observed = bmg.to_dot()
         expected = """
 digraph "graph" {
