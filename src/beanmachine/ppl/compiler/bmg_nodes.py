@@ -370,9 +370,6 @@ class BooleanNode(ConstantNode):
     def _value_to_python(self) -> str:
         return str(bool(self.value))
 
-    def __bool__(self) -> bool:
-        return self.value
-
 
 class NaturalNode(ConstantNode):
     """An integer constant restricted to non-negative values"""
@@ -563,9 +560,6 @@ class RealNode(ConstantNode):
     def _value_to_python(self) -> str:
         return str(float(self.value))
 
-    def __bool__(self) -> bool:
-        return bool(self.value)
-
 
 class TensorNode(ConstantNode):
     """A tensor constant"""
@@ -609,9 +603,6 @@ class TensorNode(ConstantNode):
     def _value_to_python(self) -> str:
         t = TensorNode._tensor_to_python(self.value)
         return f"tensor({t})"
-
-    def __bool__(self) -> bool:
-        return bool(self.value)
 
 
 # ####
