@@ -226,20 +226,6 @@ Node 8 type 3 parents [ 6 7 ] children [ 9 ] positive real 1e-10
 Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(tidy(observed), tidy(expected))
 
-    def test_graph_builder_3(self) -> None:
-        """Test 3"""
-        bmg = BMGraphBuilder()
-        self.assertTrue(bmg.add_real(1.0))
-        self.assertTrue(bmg.add_boolean(True))
-        self.assertTrue(bmg.add_tensor(tensor(True)))
-        self.assertTrue(bmg.add_tensor(tensor(1.0)))
-        self.assertTrue(bmg.add_tensor(tensor([1.0])))
-        self.assertFalse(bmg.add_real(0.0))
-        self.assertFalse(bmg.add_boolean(False))
-        self.assertFalse(bmg.add_tensor(tensor(False)))
-        self.assertFalse(bmg.add_tensor(tensor(0.0)))
-        self.assertFalse(bmg.add_tensor(tensor([0.0])))
-
     # The "add" methods do exactly that: add a node to the graph if it is not
     # already there.
     #
