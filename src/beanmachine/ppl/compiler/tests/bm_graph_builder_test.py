@@ -161,28 +161,26 @@ g.query(n8);
         self.assertEqual(observed.strip(), expected.strip())
 
     def test_graph_builder_2(self) -> None:
-        """Test 2"""
-
-        # TODO: We haven't implemented DIVISION or POWER or LOG or NOT in BMG
-        # TODO: C++ code yet.
-        # TODO: When we do, update this test to show that we're representing
-        # TODO: it correctly.
-
         bmg = BMGraphBuilder()
-        # Note that the orphan node "1" is not stripped out.
-        one = bmg.add_real(1)
-        two = bmg.add_real(2)
-        # This should be folded:
+
+        one = bmg.add_pos_real(1)
+        two = bmg.add_pos_real(2)
+        # These should all be folded:
         four = bmg.add_power(two, two)
-        half = bmg.add_division(one, four)
-        flip = bmg.add_bernoulli(half)
+        fourth = bmg.add_division(one, four)
+        flip = bmg.add_bernoulli(fourth)
         samp = bmg.add_sample(flip)
-        inv = bmg.add_not(samp)
-        real = bmg.add_to_real(inv)
+        inv = bmg.add_complement(samp)  #  NOT operation
+        real = bmg.add_to_positive_real(inv)
         div = bmg.add_division(real, two)
         p = bmg.add_power(div, two)
-        bmg.add_log(p)
-        observed = bmg.to_dot()
+        lg = bmg.add_log(p)
+        bmg.add_query(lg)
+        # Note that the orphan nodes "1" and "4" are not stripped out
+        # by default. If you want them gone, the "after_transform" flag does
+        # a type check and also removes everything that is not an ancestor
+        # of a query or observation.
+        observed = bmg.to_dot(point_at_input=True, label_edges=False)
         expected = """
 digraph "graph" {
   N00[label=1];
@@ -191,24 +189,42 @@ digraph "graph" {
   N03[label=0.25];
   N04[label=Bernoulli];
   N05[label=Sample];
-  N06[label=not];
-  N07[label=ToReal];
+  N06[label=complement];
+  N07[label=ToPosReal];
   N08[label="/"];
   N09[label="**"];
   N10[label=Log];
-  N04 -> N03[label=probability];
-  N05 -> N04[label=operand];
-  N06 -> N05[label=operand];
-  N07 -> N06[label=operand];
-  N08 -> N01[label=right];
-  N08 -> N07[label=left];
-  N09 -> N01[label=right];
-  N09 -> N08[label=left];
-  N10 -> N09[label=operand];
+  N11[label=Query];
+  N01 -> N08;
+  N01 -> N09;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N11;
 }
 """
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
+
+        g = bmg.to_bmg()
+        observed = g.to_string()
+        # Here however the orphaned nodes are never added to the graph.
+        expected = """
+Node 0 type 1 parents [ ] children [ 1 ] probability 0.25
+Node 1 type 2 parents [ 0 ] children [ 2 ] unknown
+Node 2 type 3 parents [ 1 ] children [ 3 ] boolean 0
+Node 3 type 3 parents [ 2 ] children [ 4 ] boolean 0
+Node 4 type 3 parents [ 3 ] children [ 6 ] positive real 1e-10
+Node 5 type 1 parents [ ] children [ 6 ] positive real 0.5
+Node 6 type 3 parents [ 4 5 ] children [ 8 ] positive real 1e-10
+Node 7 type 1 parents [ ] children [ 8 ] positive real 2
+Node 8 type 3 parents [ 6 7 ] children [ 9 ] positive real 1e-10
+Node 9 type 3 parents [ 8 ] children [ ] real 0"""
+        self.assertEqual(tidy(observed), tidy(expected))
 
     def test_graph_builder_3(self) -> None:
         """Test 3"""
