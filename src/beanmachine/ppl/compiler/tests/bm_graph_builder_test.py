@@ -230,27 +230,46 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
     # already there.
     #
     # The "handle" methods try to keep everything in unwrapped values if possible;
-    # they are trying to keep values out of the graph when possible.
+    # they are trying to keep values out of the graph when possible. More specifically:
+    # The arithmetic "handle" functions will detect when they are given normal
+    # values and not produce graph nodes; they just do the math and produce the
+    # normal Python value. The "handle" functions for constructing distributions
+    # however are only ever called in non-test scenarios when a graph node
+    # *must* be added to the graph, so they always do so.
     #
     # The next few tests verify that the handle functions are working as designed.
 
     def test_handle_bernoulli(self) -> None:
-        # This test verifies that various mechanisms for producing an addition node
-        # in the graph are working as designed.
 
-        # TODO: Test tensors also.
+        # handle_bernoulli always adds a node to the graph.
 
         bmg = BMGraphBuilder()
 
-        # TODO: Should handle_bernoulli given constants just produce a Bernoulli object
-        # TODO: as a value?
-        # TODO: Do we actually need handle_bernoulli at all? It seems like we could
-        # TODO: simply delete it and use the logic that is in handle_sample.
+        # In normal operation of the graph accumulator the call below never happens;
+        # we only ever call handle_bernoulli if the Bernoulli constructor is invoked
+        # with a graph node as an operand. However, it will correctly handle the case
+        # where it is given a normal value as an argument, which is useful for
+        # testing.
+
         b = bmg.handle_bernoulli(0.5)
         self.assertTrue(isinstance(b, BernoulliNode))
 
+        # In normal operation of the graph accumulator the call sequence below never
+        # happens either, but once again we support this sequence of calls as it
+        # is useful for test cases.
+
         r = bmg.add_real(0.5)
         b = bmg.handle_bernoulli(r)
+        self.assertTrue(isinstance(b, BernoulliNode))
+
+        # The sequence that does normally happen is: handle_function has the
+        # Bernoulli constructor as the function and a graph node containing a
+        # sample (or a node whose ancestor is a sample) and it invokes
+        # handle_bernoulli. We can simulate that here:
+
+        beta = bmg.add_beta(r, r)
+        betas = bmg.add_sample(beta)
+        b = bmg.handle_bernoulli(betas)
         self.assertTrue(isinstance(b, BernoulliNode))
 
     def test_handle_sample(self) -> None:
