@@ -316,9 +316,13 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # torch defines an "instance" add method that takes a value.
         # Calling Tensor.add(x, y) or x.add(y) should be logically the same as x + y.
 
-        # TODO: In Tensor.add(x, y), x is required to be a tensor, not a double. We do
-        # TODO: not enforce this rule; handle_function(ta2, [1.0, 2.0]) would not fail.
-        # TODO: Should it?
+        # In Tensor.add(x, y), x is required to be a tensor, not a double. We do
+        # not enforce this rule; handle_function(ta2, [x, y]) where x is a
+        # double-valued graph node would not fail.
+        #
+        # That's fine; ensuring that every Bean Machine program that would crash
+        # also crashes during compilation is not a design requirement, particularly
+        # when we are generating a BMG model with the desired semantics.
 
         ta1 = t1.add
         self.assertEqual(bmg.handle_dot_get(t1, "add"), ta1)
@@ -350,7 +354,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_function(ta2, [t1, t2]), t3)
         self.assertEqual(bmg.handle_function(ta2, [t1], {"other": t2}), t3)
 
-        # Adding a graph constant and a value produces a value
+        # Adding a graph constant and a value produces a value.
+        # Note that this does not typically happen during accumulation of
+        # a model, but we support it anyways.
         self.assertEqual(bmg.handle_addition(gr1, 2.0), 3.0)
         self.assertEqual(bmg.handle_addition(gr1, t2), t3)
         self.assertEqual(bmg.handle_addition(gt1, 2.0), t3)
@@ -453,10 +459,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # torch defines an "instance" div method that takes a value.
         # Calling Tensor.div(x, y) or x.div(y) should be logically the same as x + y.
-
-        # TODO: In Tensor.div(x, y), x is required to be a tensor, not a double. We do
-        # TODO: not enforce this rule; handle_function(ta2, [1.0, 2.0]) would not fail.
-        # TODO: Should it?
 
         ta1 = t2.div
         self.assertEqual(bmg.handle_dot_get(t2, "div"), ta1)
@@ -613,7 +615,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Exp of a value produces a value
         self.assertEqual(bmg.handle_exp(1.0), e)
         self.assertEqual(bmg.handle_exp(t1), te)
-        # Not legal: self.assertEqual(bmg.handle_function(ta, [1.0]), e)
         self.assertEqual(bmg.handle_function(ta, [t1]), te)
         self.assertEqual(bmg.handle_function(ta1, []), te)
         self.assertEqual(bmg.handle_function(ta2, [t1]), te)
@@ -621,12 +622,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Exp of a graph constant produces a value
         self.assertEqual(bmg.handle_exp(gr1), e)
         self.assertEqual(bmg.handle_exp(gt1), te)
-        # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gr1]), e)
         self.assertEqual(bmg.handle_function(ta, [gt1]), te)
         self.assertEqual(bmg.handle_function(gta1, []), te)
-
-        # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), e)
         self.assertEqual(bmg.handle_function(ta2, [gt1]), te)
 
@@ -640,7 +638,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
     def test_log(self) -> None:
         """Test log"""
 
-        # This test verifies that various mechanisms for producing an exp node
+        # This test verifies that various mechanisms for producing a log node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
         bmg = BMGraphBuilder()
@@ -655,19 +653,11 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertTrue(isinstance(gt1, TensorNode))
 
         # torch defines a "static" log method that takes one value.
-        # TODO: torch.log(x) requires that x be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
-        # TODO: Should it?
-
         ta = torch.log
         self.assertEqual(bmg.handle_dot_get(torch, "log"), ta)
 
         # torch defines an "instance" log method that takes no arguments.
         # Calling Tensor.log(x) or x.log() should produce a log node.
-
-        # TODO: In Tensor.log(x), x is required to be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
-        # TODO: Should it?
 
         ta1 = t1.log
         self.assertEqual(bmg.handle_dot_get(t1, "log"), ta1)
@@ -686,7 +676,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Log of a value produces a value
         self.assertEqual(bmg.handle_log(1.0), 0.0)
         self.assertEqual(bmg.handle_log(t1), t0)
-        # Not legal: self.assertEqual(bmg.handle_function(ta, [1.0]), 0.0)
         self.assertEqual(bmg.handle_function(ta, [t1]), t0)
         self.assertEqual(bmg.handle_function(ta1, []), t0)
         self.assertEqual(bmg.handle_function(ta2, [t1]), t0)
@@ -694,11 +683,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Log of a graph constant produces a value
         self.assertEqual(bmg.handle_log(gr1), 0.0)
         self.assertEqual(bmg.handle_log(gt1), t0)
-        # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gr1]), 0.0)
         self.assertEqual(bmg.handle_function(ta, [gt1]), t0)
         self.assertEqual(bmg.handle_function(gta1, []), t0)
-        # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), 0.0)
         self.assertEqual(bmg.handle_function(ta2, [gt1]), t0)
 
@@ -736,11 +723,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # torch defines an "instance" mul method that takes a value.
         # Calling Tensor.mul(x, y) or x.mul(y) should be logically the same as x * y.
-
-        # TODO: In Tensor.mul(x, y), x is required to be a tensor, not a double. We do
-        # TODO: not enforce this rule; handle_function(ta2, [1.0, 2.0]) would not fail.
-        # TODO: Should it?
-
         ta1 = t1.mul
         self.assertEqual(bmg.handle_dot_get(t1, "mul"), ta1)
 
@@ -870,9 +852,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch, "mm"), ta)
 
         # torch defines an "instance" mm method that takes a value.
-
-        # TODO: In Tensor.mm(x, y), x and y are required to be a tensor, not a double.
-        # TODO: Consider enforcing this rule.
 
         ta1 = t1.mm
         self.assertEqual(bmg.handle_dot_get(t1, "mm"), ta1)
@@ -1084,20 +1063,11 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # torch defines a "static" neg method that takes one value.
         # Calling torch.neg(x) should be logically the same as -x
-        # TODO: torch.neg(x) requires that x be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
-        # TODO: Should it?
-
         ta = torch.neg
         self.assertEqual(bmg.handle_dot_get(torch, "neg"), ta)
 
         # torch defines an "instance" neg method that takes no arguments.
         # Calling Tensor.neg(x) or x.neg() should be logically the same as -x.
-
-        # TODO: In Tensor.neg(x), x is required to be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
-        # TODO: Should it?
-
         ta1 = t1.neg
         self.assertEqual(bmg.handle_dot_get(t1, "neg"), ta1)
 
@@ -1158,21 +1128,12 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # torch defines a "static" logical_not method that takes one value.
         # Calling torch.logical_not(x) should be logically the same as "not x"
-        # TODO: torch.logical_not(x) requires that x be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta, [1.0]) would not fail.
-        # TODO: Should it?
-
         ta = torch.logical_not
         self.assertEqual(bmg.handle_dot_get(torch, "logical_not"), ta)
 
         # torch defines an "instance" add method that takes no arguments.
         # Calling Tensor.logical_not(x) or x.logical_not() should be logically
         # the same as "not x".
-
-        # TODO: In Tensor.logical_not(x), x is required to be a tensor, not a float.
-        # TODO: We do not enforce this rule; handle_function(ta2, [1.0]) would not fail.
-        # TODO: Should it?
-
         ta1 = tt.logical_not
         self.assertEqual(bmg.handle_dot_get(tt, "logical_not"), ta1)
 
@@ -1190,7 +1151,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Negating a value produces a value
         self.assertEqual(bmg.handle_not(True), False)
         self.assertEqual(bmg.handle_not(tt), tf)
-        # Not legal: self.assertEqual(bmg.handle_function(ta, [True]), False)
         self.assertEqual(bmg.handle_function(ta, [tt]), tf)
         self.assertEqual(bmg.handle_function(ta1, []), tf)
         self.assertEqual(bmg.handle_function(ta2, [tt]), tf)
@@ -1198,12 +1158,10 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Negating a graph constant produces a value
         self.assertEqual(bmg.handle_not(gbt), False)
         self.assertEqual(bmg.handle_not(gtt), tf)
-        # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta, [gbt]), False)
         self.assertEqual(bmg.handle_function(ta, [gtt]), tf)
         self.assertEqual(bmg.handle_function(ta, [], {"input": gtt}), tf)
         self.assertEqual(bmg.handle_function(gta1, []), tf)
-        # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gbt]), False)
         self.assertEqual(bmg.handle_function(ta2, [gtt]), tf)
 
@@ -1245,7 +1203,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # (number, tensor)
         # (tensor, number)
         # whereas the others allow (number, number).
-        # TODO: Should we enforce this rule when the arguments are, say, samples?
 
         ta1 = t1.pow
         self.assertEqual(bmg.handle_dot_get(t1, "pow"), ta1)
@@ -1370,10 +1327,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # torch defines an "instance" float method that takes no arguments.
         # Calling Tensor.float(x) or x.float() should produce a to_real node.
 
-        # TODO: In Tensor.float(x), x is required to be a tensor, not a float. We do
-        # TODO: not enforce this rule; handle_function(ta2, [1.0]) would not fail.
-        # TODO: Should it?
-
         ta1 = t1.float
         self.assertEqual(bmg.handle_dot_get(t1, "float"), ta1)
 
@@ -1398,7 +1351,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_to_real(gr1), 1.0)
         self.assertEqual(bmg.handle_to_real(gt1), 1.0)
         self.assertEqual(bmg.handle_function(gta1, []), 1.0)
-        # TODO: Should this be illegal?
         self.assertEqual(bmg.handle_function(ta2, [gr1]), 1.0)
         self.assertEqual(bmg.handle_function(ta2, [gt1]), 1.0)
 
