@@ -20,6 +20,41 @@ from .monte_carlo_samples import MonteCarloSamples
 
 LOGGER = logging.getLogger("beanmachine")
 
+# Detect and report if a user fails to meet the inference contract.
+def _verify_queries_and_observations(
+    queries: List[RVIdentifier], observations: Dict[RVIdentifier, Tensor]
+) -> None:
+    if not isinstance(queries, list):
+        t = type(queries).__name__
+        raise TypeError(
+            f"Parameter 'queries' is required to be a list but is of type {t}."
+        )
+
+    for query in queries:
+        if not isinstance(query, RVIdentifier):
+            t = type(query).__name__
+            raise TypeError(
+                f"A query is required to be a random variable but is of type {t}."
+            )
+
+    if not isinstance(observations, dict):
+        t = type(observations).__name__
+        raise TypeError(
+            f"Parameter 'observations' is required to be a dictionary but is of type {t}."
+        )
+
+    for rv, value in observations.items():
+        if not isinstance(rv, RVIdentifier):
+            t = type(rv).__name__
+            raise TypeError(
+                f"An observation is required to be a random variable but is of type {t}."
+            )
+        if not isinstance(value, Tensor):
+            t = type(value).__name__
+            raise TypeError(
+                f"An observed value is required to be a tensor but is of type {t}."
+            )
+
 
 class VerboseLevel(Enum):
     """
@@ -150,6 +185,8 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
         :param initialize_from_prior: boolean to initialize samples from prior
         :returns: view of data for chains and samples for query
         """
+
+        _verify_queries_and_observations(queries, observations)
         try:
             random_seed = (
                 torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
