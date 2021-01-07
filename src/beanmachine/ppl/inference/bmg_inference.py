@@ -6,6 +6,7 @@ inferences on Bean Machine models."""
 from typing import Dict, List
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import Tensor
@@ -21,6 +22,7 @@ class BMGInference:
         observations: Dict[RVIdentifier, Tensor],
         num_samples: int,
     ) -> MonteCarloSamples:
+        _verify_queries_and_observations(queries, observations)
         # TODO: Add num_chains
         # TODO: Add verbose level
         # TODO: Add logging

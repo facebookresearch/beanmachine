@@ -29,7 +29,9 @@ class ToplevelSmokeTest(unittest.TestCase):
         bm.Diagnostics(samples)
 
         # Rejection Sampling
-        samples = bm.RejectionSampling().infer([foo_sum(2)], {foo(0): False}, 1000, 1)
+        samples = bm.RejectionSampling().infer(
+            [foo_sum(2)], {foo(0): tensor(0.0)}, 1000, 1
+        )
         bm.Diagnostics(samples)
 
         # NUTS
