@@ -1039,38 +1039,3 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
-
-    def test_fix_problems_15(self) -> None:
-        """test_fix_problems_15"""
-
-        # Comparisons involving a graph node have no representation in
-        # BMG and should produce an error.
-
-        # TODO: An equality comparison involving two Booleans could be
-        # TODO: turned into an if-then-else.  That is, for Booleans x, y:
-        # TODO: x == y  -->  if x then y else not y
-        # TODO: x != y  -->  if x then not y else y
-
-        self.maxDiff = None
-        bmg = BMGraphBuilder()
-
-        # @rv def normal():
-        #   return Normal(0, 1)
-        # @rv def t():
-        #   return StudentT(1, normal() > 1, 1)
-
-        zero = bmg.add_constant(0.0)
-        one = bmg.add_constant(1.0)
-        norm = bmg.add_normal(zero, one)
-        norms = bmg.add_sample(norm)
-        gt = bmg.add_greater_than(norms, one)
-        t = bmg.add_studentt(one, gt, one)
-        bmg.add_sample(t)
-
-        error_report = fix_problems(bmg)
-        observed = str(error_report)
-        expected = """
-The model uses a > operation unsupported by Bean Machine Graph.
-The unsupported node is the loc of a StudentT.
-"""
-        self.assertEqual(observed.strip(), expected.strip())
