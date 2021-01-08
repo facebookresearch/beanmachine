@@ -1,6 +1,48 @@
 #!/usr/bin/env python3
 """Tools to transform Bean Machine programs to Bean Machine Graph"""
 
+# This code transforms Python programs into a much simpler subset of Python with
+# the same semantics. Some invariants of the simpler language:
+#
+# * All "return" statements return either nothing or an identifier.
+# * All "while" loops are of the form "while True:"
+# * No "while" loop has an "else" clause.
+# * All "for" statements have an identifier as their collection.
+# * All "if" statements have an identifier as their condition.
+# * There are no statements that are just a single expression.
+#
+# * All unary operators (+, -, ~, not) have an identifier as their operand.
+# * All binary operators (+, -, *, /, //, %, **, <<, >>, |, ^, &, @) have an identifier
+#   as both operands.
+# * There are no "and" or "or" operators
+# * All comparison operators (<, >, <=, >=, ==, !=, is, is not, in, not in)
+#   are binary operators where both operands are identifiers.
+# * All indexing operators (a[b]) have identifiers as both collection and index.
+# * The left side of all attribute accesses ("dot") is an identifier.
+#   That is "id.attr".
+# * Every literal list contains only identifiers. That is "[id, id, id, ...]"
+# * Every literal dictionary consists only of identifiers for both keys and values.
+#   That is "{id : id, id : id, ... }"
+# * Every function call is of the exact form "id(*id, **id)". There are no "normal"
+#   arguments. There are some exceptions to this rule:
+#   * dict() is allowed. (TODO: this could be rewritten to {})
+#   * dict(key = id) is allowed.
+#   * dict(**id, **id) is allowed.
+#   * TODO: There are similar exceptions for set and list; say what they are.
+# * There are no dictionary, list or set comprehensions; they are rewritten as loops.
+# TODO: say something about assert, delete, pass, import, break, continue, try, with.
+# TODO: say something about global / nonlocal
+# TODO: say something about yield
+# TODO: say something about classes
+# TODO: say something about nested functions
+# TODO: say something about decorators
+# TODO: say something about type annotations
+# TODO: say something about lambdas
+# TODO: say something about async
+# TODO: say something about conditional expressions
+# TODO: say something about formatted strings
+
+
 import ast
 from typing import Any, Callable, List, Tuple
 
@@ -73,6 +115,7 @@ _not_in_allowed_functions: Pattern = negate(
     match_any(*[name(id=t.__name__) for t in allowed_functions])
 )
 
+# TODO: Add MatMult to this list
 _binops: Pattern = match_any(
     ast.Add,
     ast.BitAnd,
@@ -357,6 +400,21 @@ class SingleAssignment:
         return _do_it
 
     def _handle_while_True(self) -> Rule:
+        # This rule eliminates a redundant "else" clause from a "while True:" statement.
+        # The purpose of this rule will become clear upon examining the rule which follows.
+        #
+        # Python has a seldom-used structure:
+        # while condition:
+        #   body
+        # else:
+        #   alternative
+        #
+        # The alternative is only executed if the condition is ever tested and False.
+        # That is, if the loop is exited because of a break, return, or raised exception,
+        # then the alternative is not executed.
+        #
+        # Obviously an else clause on a "while True" cannot be executed; though this is
+        # rare, if we encounter it we can simply eliminate the "else:" entirely.
         return PatternRule(
             ast_while(test=ast_true, orelse=negate([])),
             lambda source_term: ListEdit(
@@ -366,6 +424,29 @@ class SingleAssignment:
         )
 
     def _handle_while_not_True(self) -> Rule:
+        # This rule eliminates all while statements which are not "while True:",
+        # and eliminates all "else" clauses from while statements. We rewrite:
+        #
+        # while condition:
+        #   body
+        # else:
+        #   alternative
+        #
+        # to
+        #
+        # while True:
+        #   t = condition
+        #   if t:
+        #     body
+        #   else:
+        #     break
+        # if not t:
+        #   alternative
+        #
+        # which has the same semantics.
+        #
+        # TODO: It looks like we forgot to implement the break statement below!
+        #
         return PatternRule(
             ast_while(test=negate(ast_true)),
             self._transform_with_assign(
@@ -394,14 +475,48 @@ class SingleAssignment:
         )
 
     def _handle_while(self) -> Rule:
+        # This rule eliminates all "else" clauses from while statements and
+        # makes every while of the form "while True". See above for details.
         return first([self._handle_while_True(), self._handle_while_not_True()])
 
-    def _handle_unassigned(self) -> Rule:  # unExp = unassigned expressions
+    def _handle_unassigned(self) -> Rule:
+        # This rule eliminates all expressions that are used only for their side
+        # effects and produces a redundant assignment. This is because a great
+        # many other rules are defined in terms of rewriting assignments, and it
+        # is easier to just turn unassigned values into assignments than to change
+        # all those rules.  It rewrites:
+        #
+        # complex
+        #
+        # to
+        #
+        # t = complex
         return PatternRule(
             expr(), self._transform_expr("u", lambda u: u.value), "handle_unassigned"
         )
 
     def _handle_return(self) -> Rule:
+        # This rule eliminates all "return" statements where the returned value is
+        # not an identifier. It rewrites:
+        #
+        # return complex
+        #
+        # to
+        #
+        # t = complex
+        # return t
+        #
+        # TODO: Should we also eliminate plain returns? We could rewrite
+        #
+        # return
+        #
+        # as
+        #
+        # t = None
+        # return t
+        #
+        # and thereby maintain the invariant that every return statement
+        # returns an identifier.
         return PatternRule(
             ast_return(value=_not_identifier),
             self._transform_with_name(
@@ -413,6 +528,42 @@ class SingleAssignment:
         )
 
     def _handle_if(self) -> Rule:
+        # This rule eliminates all "if" statements where the condition is not
+        # an identifier. It rewrites:
+        #
+        # if complex:
+        #   consequence
+        # else:
+        #   alternative
+        #
+        # to
+        #
+        # t = complex
+        # if t:
+        #   consequence
+        # else:
+        #   alternative
+        #
+        # TODO: We can go further than this and eliminate all else clauses
+        # from the simplified language by:
+        #
+        # t1 = bool(complex)
+        # if t1:
+        #   consequence
+        # t2 = not t1
+        # if t2:
+        #   alternative
+        #
+        # Note that we've inserted a call to bool() above. The reason for that
+        # is to ensure that we convert "complex" to bool *once* in this rewrite,
+        # just as it is converted to bool *once* in the original code. The "not"
+        # operator is defined as converting its operand to bool if it is not already
+        # a bool, and then inverting the result.
+        #
+        # In addition to further simplifying the language, we will probably need
+        # this proposed rewrite in order to make stochastic conditional control flows
+        # work properly.
+
         return PatternRule(
             ast_if(test=_not_identifier),
             self._transform_with_name(
@@ -426,6 +577,23 @@ class SingleAssignment:
         )
 
     def _handle_for(self) -> Rule:
+        # This eliminates all "for" statements where the collection is not an identifier.
+        # It rewrites:
+        #
+        # for id in complex: ...
+        #
+        # to
+        #
+        # t = complex
+        # for id in t: ...
+        #
+        # TODO: the "for" loop in Python supports an "else" clause which is only activated
+        # when the loop is exited via "break". We could eliminate it.
+        #
+        # TODO: the "for" loop could be rewritten as fetching an iterator and iterating
+        # over it until an exception is raised, but that's a rather complicated rewrite
+        # and it might not be necessary to do so.
+
         return PatternRule(
             ast_for(iter=_not_identifier),
             self._transform_with_name(
@@ -441,8 +609,22 @@ class SingleAssignment:
             "handle_for",
         )
 
+    #
     # Start of a series of rules that will define handle_assign
+    #
+
     def _handle_assign_unaryop(self) -> Rule:
+        # This rule eliminates all assignments where the right hand side
+        # is a unary operator whose operand is not an identifier.
+        # It rewrites:
+        #
+        # x = -complex
+        #
+        # to:
+        #
+        # t = complex
+        # x = -t
+
         return PatternRule(
             assign(value=unaryop(operand=_not_identifier, op=_unops)),
             self._transform_with_name(
@@ -456,11 +638,28 @@ class SingleAssignment:
             "handle_assign_unaryop",
         )
 
-    # First rewrite for special treatment of "dict"
-    # Rewrites x=dict(n=complex) to y=complex, x=dict(n=y)
-    # TODO: To accomomdate more source-level uses of "dict", we
-    #       may wish to generalis to multiple arguments.
     def _handle_assign_unary_dict(self) -> Rule:
+        # This rule eliminates explicit call-style dictionary constructions where
+        # there is a single argument and the value or collection is not an identifier.
+        #
+        # That is, We rewrite:
+        #
+        # x = dict(n = complex)
+        #
+        # to
+        #
+        # t = complex
+        # x = dict(n = t)
+        #
+        # and from
+        #
+        # x = dict(**complex)
+        #
+        # to
+        #
+        # t = complex
+        # x = dict(**complex)
+
         return PatternRule(
             assign(
                 value=call(
@@ -490,7 +689,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_subscript(self) -> Rule:
-        # The term a = (b + c)[d + e] becomes t = b + c, a = t[d + e]
+        # This rule eliminates indexing expressions where the collection
+        # indexed is not an identifier. We rewrite:
+        #
+        # x = complex[anything]
+        #
+        # to
+        #
+        # t = complex
+        # x = t[anything]
         return PatternRule(
             assign(value=subscript(value=_not_identifier)),
             self._transform_with_name(
@@ -509,8 +716,18 @@ class SingleAssignment:
         )
 
     def _handle_assign_subscript_slice(self) -> Rule:
-        # TODO: Handle slices other than Index
-        # a = b[d + e] becomes t = d + e, a = b[t]
+        # This rule eliminates indexing expressions where the collection
+        # indexed is an identifier but the index is not. We rewrite:
+        #
+        # x = c[complex]
+        #
+        # to
+        #
+        # t = complex
+        # x = c[t]
+        #
+        # TODO: We do not yet handle slices other than straightforward
+        # indices; we should also handle the other kinds of slices.
         return PatternRule(
             assign(value=subscript(slice=index(value=_not_identifier))),
             self._transform_with_name(
@@ -529,6 +746,16 @@ class SingleAssignment:
         )
 
     def _handle_assign_binop_left(self) -> Rule:
+        # This rule eliminates binary operators where the left hand side is not
+        # an identifier. We rewrite:
+        #
+        # x = complex + anything
+        #
+        # to
+        #
+        # t = complex
+        # x = t + anything
+        #
         return PatternRule(
             assign(value=binop(left=_not_identifier, op=_binops)),
             self._transform_with_name(
@@ -547,6 +774,28 @@ class SingleAssignment:
         )
 
     def _handle_assign_binary_dict_left(self) -> Rule:
+        # This rule eliminates explicit call-style dictionary constructions where
+        # there are exactly two arguments and the left value or collection is not
+        # an identifier.
+        #
+        # We rewrite:
+        #
+        # x = dict(n1 = complex, anything)
+        #
+        # to
+        #
+        # t = complex
+        # x = dict(n1 = t, anything)
+        #
+        # and we rewrite
+        #
+        # x = dict(**complex, anything)
+        #
+        # to
+        #
+        # t = complex
+        # x = dict(**t, anything)
+
         return PatternRule(
             assign(
                 value=call(
@@ -577,6 +826,27 @@ class SingleAssignment:
         )
 
     def _handle_assign_binary_dict_right(self) -> Rule:
+        # This rule eliminates explicit call-style dictionary constructions where
+        # there are exactly two arguments and the left value or collection is
+        # an identifier but the right is not.
+        #
+        # Suppose "left" is "n1 = id" or "**id". We rewrite these:
+        #
+        # x = dict(left, n2 = complex)
+        #
+        # or
+        #
+        # x = dict(left, **complex)
+        #
+        # to
+        #
+        # t = complex
+        # x = dict(left, n2 = t)
+        #
+        # or
+        #
+        # t = complex
+        # x = dict(left, **t)
         return PatternRule(
             assign(
                 value=call(
@@ -607,6 +877,16 @@ class SingleAssignment:
         )
 
     def _handle_assign_binop_right(self) -> Rule:
+        # This rule eliminates binary operators where the left hand side is
+        # an identifier but the right is not. We rewrite:
+        #
+        # x = id + anything
+        #
+        # to
+        #
+        # t = complex
+        # x = id + t
+        #
         return PatternRule(
             assign(value=binop(right=_not_identifier, op=_binops)),
             self._transform_with_name(
@@ -625,7 +905,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_function_expression(self) -> Rule:
-        # If we have t = foo.bar(...) rewrite that as t1 = foo.bar, t = t1(...)
+        # This rule eliminates function calls where the receiver is not an identifier.
+        # We rewrite:
+        #
+        # x = complex(args)
+        #
+        # to
+        #
+        # t = complex
+        # x = t(args)
         return PatternRule(
             assign(value=call(func=_not_identifier)),
             self._transform_with_name(
@@ -644,7 +932,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_single_star_arg(self) -> Rule:
-        # Rewrite x = f(*([1]+[2]) into d=[1]+[2]; x = f(*d)
+        # This rule eliminates function calls of the form "id(*complex).
+        # We rewrite:
+        #
+        # x = f(*complex)
+        #
+        # to
+        #
+        # t = complex
+        # x = f(*t)
         return PatternRule(
             assign(value=call(func=name(), args=[starred(value=_not_identifier)])),
             self._transform_with_name(
@@ -663,7 +959,16 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_single_double_star_arg(self) -> Rule:
-        # Rewrite x = f(*a, **{k:5}) into t = {k: 5} ; x = f(*a, **t)
+        # This rule eliminates function calls of the form "id(*id, **complex)".
+        # We rewrite:
+        #
+        # x = f(*a, **complex)
+        #
+        # to
+        #
+        # t = complex
+        # x = f(*a, **t)
+        #
         # Note: In the strategy we have chosen for dealing with keywords
         #       the argument to ** should normally be dict(...). However,
         #       if there is only a single argument of the form above there
@@ -693,7 +998,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_two_star_args(self) -> Rule:
-        # Rewrite x= f(*[1],*[2]) into x = f(*([1]+[2]))
+        # This rule eliminates function calls whose argument lists begin with
+        # two starred arguments. We rewrite:
+        #
+        # x = f(*a1, *a2, ...)
+        #
+        # to
+        #
+        # x = f(*(a1 + a2), ...)
+        #
         # TODO: Ideally, would like to merge [1].ctx with the [0].ctx below
         return PatternRule(
             assign(
@@ -721,8 +1034,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_two_double_star_args(self) -> Rule:
-        # Rewrite x = f(**{a:1},**{b:3})
-        #  into   x = f(**dict(**{a: 1}, **{b: 3}))
+        # This rule eliminates the leftmost pair of double-star arguments from function calls.
+        # Here d1 and d2 are any expressions:
+        #
+        # x = f(a1, a2, ... , **d1, **d2, ...)
+        #
+        # to
+        #
+        # x = f(a1, a2, ..., **(dict(**d1, **d2)), ...)
+        #
         # Note: Since we are not lifting, no restriction needed on func or args
         # TODO: Ideally, would like to merge [1].ctx with the [0].ctx below
         # TODO: The identifier "dict" should be made global unique in target name space
@@ -758,7 +1078,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_regular_arg(self) -> Rule:
-        # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
+        # This rule eliminates the leftmost non-starred argument from
+        # a function argument list. We rewrite:
+        #
+        # x = f(*a1, *a2, anything, ...)
+        #
+        # to
+        #
+        # x = f(*a1, *a2, *[anything], ...)
+        #
         return PatternRule(
             assign(value=call(args=_list_not_starred)),
             lambda source_term: ast.Assign(
@@ -773,7 +1101,16 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_keyword_arg(self) -> Rule:
-        # Rewrite x = f(k=42) into x = f(**dict(k=42))
+        # This rule eliminates a named argument from a function call by transforming
+        # it into a double-starred argument; another rule then simplifies the double-
+        # starred argument. We rewrite:
+        #
+        # x = f(... k = anything)
+        #
+        # to
+        #
+        # x = f(**dict(k = anything))
+        #
         # TODO: The identifier "dict" should be made global unique in target name space
 
         return PatternRule(
@@ -796,8 +1133,16 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_empty_regular_arg(self) -> Rule:
-        # Rewrite x = f(*[1],2) into x = f(*[1],*[2])
-        # TODO: The identifier "dict" should be made global unique in target name space
+        # This rule eliminates function calls with empty non-named argument lists.
+        # This guarantees that every function call has at least one unnamed argument.
+        # We rewrite:
+        #
+        # x = f(only_named_or_double_starred_args)
+        #
+        # to:
+        #
+        # x = f(*[], only_named_or_double_starred_args)
+
         return PatternRule(
             assign(value=call(func=_not_in_allowed_functions, args=[])),
             lambda source_term: ast.Assign(
@@ -812,8 +1157,16 @@ class SingleAssignment:
         )
 
     def _handle_assign_call_empty_keyword_arg(self) -> Rule:
-        # Rewrite x = f(1) into x = f(1,**{})
-        # Basically, ensure that any call has at least one ** argument
+        # This rule eliminates function calls with no ** arguments. That is,
+        # it ensures that every function call has at least one double-starred
+        # argument. We rewrite:
+        #
+        # x = f(no_double_star_arguments)
+        #
+        # to
+        #
+        # x = f(no_double_star_arguments, **{})
+        #
         # TODO: The identifier "dict" should be made global unique in target name space
         return PatternRule(
             assign(value=call(func=_not_in_allowed_functions, keywords=[])),
@@ -830,8 +1183,17 @@ class SingleAssignment:
             "_handle_assign_call_empty_keyword_arg",
         )
 
-    def _handle_handle_assign_attribute(self) -> Rule:
-        # If we have t = (x + y).z, rewrite that as t1 = x + y, t = t1.z
+    def _handle_assign_attribute(self) -> Rule:
+        # This rule eliminates attribute lookup ("dot") where the object
+        # of the lookup is not an identifier. We rewrite:
+        #
+        # x = complex.z
+        #
+        # to:
+        #
+        # t = complex
+        # x = t.z
+        #
         return PatternRule(
             assign(value=attribute(value=_not_identifier)),
             self._transform_with_name(
@@ -850,6 +1212,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_list(self) -> Rule:
+        # This rule eliminates the leftmost non-identifier from a list.
+        # We rewrite:
+        #
+        # x = [ids, complex, ...]
+        #
+        # to:
+        #
+        # t = complex
+        # x = [ids, t, ...]
         return PatternRule(
             assign(value=ast_list(elts=_list_not_identifier)),
             self._transform_list(),
@@ -857,6 +1228,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_tuple(self) -> Rule:
+        # This rule eliminates the leftmost non-identifier from a tuple.
+        # We rewrite:
+        #
+        # x = (ids, complex, ...)
+        #
+        # to:
+        #
+        # t = complex
+        # x = (ids, t, ...)
         return PatternRule(
             assign(value=ast_list(elts=_list_not_identifier, ast_op=ast.Tuple)),
             self._transform_list(ast_op=lambda a: ast.Tuple),
@@ -864,6 +1244,15 @@ class SingleAssignment:
         )
 
     def _handle_assign_dictionary_keys(self) -> Rule:
+        # This rule eliminates the leftmost non-identifier dictionary key.
+        # We rewrite:
+        #
+        # x = { complex : anything }
+        #
+        # to:
+        #
+        # t = complex
+        # x = { t : anything }
         return PatternRule(
             assign(value=ast_dict(keys=_list_not_identifier)),
             self._transform_lists(),
@@ -871,6 +1260,36 @@ class SingleAssignment:
         )
 
     def _handle_assign_dictionary_values(self) -> Rule:
+        # This rule eliminates the leftmost non-identifier dictionary value.
+        # We rewrite:
+        #
+        # x = { anything : complex }
+        #
+        # to:
+        #
+        # t = complex
+        # x = { anything : t }
+        #
+        # TODO: Note that this rule combined with the previous rule
+        # changes the order in which side effects happen. If we have
+        #
+        # x = { a() : b(), c() : d() }
+        #
+        # Then this could be rewritten to:
+        #
+        # t1 = a()
+        # t2 = c()
+        # t3 = b()
+        # t4 = d()
+        # x = { t1 : t3, t2 : t4 }
+        #
+        # Which is not the a(), b(), c(), d() order we expect.
+        #
+        # We might consider fixing these rules so that the leftmost
+        # key-or-value is rewritten, not the leftmost key and then the
+        # leftmost value. However, this is low priority, as it is rare
+        # for there to be a side effect in a dictionary key.
+
         return PatternRule(
             assign(value=ast_dict(values=_list_not_identifier)),
             self._transform_lists(),
@@ -1093,7 +1512,7 @@ class SingleAssignment:
                 self._handle_assign_subscript_slice(),
                 self._handle_assign_binop_left(),
                 self._handle_assign_binop_right(),
-                self._handle_handle_assign_attribute(),
+                self._handle_assign_attribute(),
                 self._handle_assign_list(),
                 self._handle_assign_tuple(),
                 self._handle_assign_dictionary_keys(),
@@ -1122,6 +1541,13 @@ class SingleAssignment:
         )
 
     def _handle_boolop_binarize(self) -> Rule:
+        # This rule eliminates non-binary "and" and "or" operators.
+        #
+        # Boolean operators -- "and" and "or" -- are not necessarily binary operators.
+        # "a and b and c" is parsed as a single "and" operator with three operands!
+        # This rule rewrites "a and b and c and ..." into "(a and b) and c and..."
+        # If the rule is then repeated until it attains a fixpoint we attain the
+        # invariant that every Boolean operator is also a binary operator.
         return PatternRule(
             ast_boolop(values=twoPlusList),
             lambda source_term: ast.BoolOp(
@@ -1137,7 +1563,18 @@ class SingleAssignment:
         )
 
     def _handle_assign_boolop_linearize(self) -> Rule:
-        return PatternRule(  # a = e1 and e2 rewrites into b = e1, a = b and e2
+        # This rule eliminates "and" and "or" operators with two operands where
+        # the left operand is complex. It rewrites:
+        #
+        # x = complex and y
+        #
+        # to
+        #
+        # t = complex
+        # x = t and y
+        #
+        # And similarly for "or".
+        return PatternRule(
             assign(value=ast_boolop(values=[_not_identifier, anyPattern])),
             self._transform_with_name(
                 "a",
@@ -1154,6 +1591,17 @@ class SingleAssignment:
         )
 
     def _handle_assign_and2if(self) -> Rule:
+        # This rule entirely eliminates "and" operators with two operands where the
+        # left operand is an identifier. It rewrites:
+        #
+        # x = id and y
+        #
+        # to
+        #
+        # if id:
+        #   x = y
+        # else:
+        #   x = id
         return PatternRule(
             assign(value=ast_boolop(op=ast.And, values=[name(), anyPattern])),
             lambda source_term: ast.If(
@@ -1173,6 +1621,17 @@ class SingleAssignment:
         )
 
     def _handle_assign_or2if(self) -> Rule:
+        # This rule entirely eliminates "or" operators with two operands where the
+        # left operand is an identifier. It rewrites:
+        #
+        # x = id or y
+        #
+        # to
+        #
+        # if id:
+        #   x = id
+        # else:
+        #   x = y
         return PatternRule(
             assign(value=ast_boolop(op=ast.Or, values=[name(), anyPattern])),
             lambda source_term: ast.If(
@@ -1192,6 +1651,7 @@ class SingleAssignment:
         )
 
     def _handle_boolop_all(self) -> Rule:
+        # This rule eliminates all "and" and "or" operators from the program.
         return first(
             [
                 self._handle_boolop_binarize(),
@@ -1202,7 +1662,28 @@ class SingleAssignment:
         )
 
     def _handle_compare_binarize(self) -> Rule:
-        # Rewrite things like x = a < b > c ... to x = a < b and b > c ...
+        # This rule eliminates non-binary comparison operators where the *second*
+        # leftmost operand is an identifier. This could use some explanation.
+        #
+        # In Python the comparison operators are not necessarily binary operators.
+        # An expression of the form
+        #
+        # x = a < b > c
+        #
+        # is equivalent to
+        #
+        # x = a < b and b > c
+        #
+        # Except that b is evaluated *only once*.  We therefore must ensure that
+        # "b" in this case has no side effects before we can do this rewrite. We
+        # rewrite:
+        #
+        # x = anything OP id OP anything ...
+        #
+        # to
+        #
+        # x = (anything OP id) and (id OP anything ...)
+        #
         return PatternRule(
             ast_compare(
                 ops=HeadTail(anyPattern, HeadTail(anyPattern, anyPattern)),
@@ -1227,7 +1708,16 @@ class SingleAssignment:
         )
 
     def _handle_assign_compare_lefthandside(self) -> Rule:
-        # Rewrite things like x = 1 + a < b ... to y = 1 + a; x = y < b ...
+        # This rule eliminates comparison operations where the leftmost operand
+        # is not an identifier, regardless of how many operands and operators
+        # there are in the operation. It rewrites:
+        #
+        # x = complex OP anything ...
+        #
+        # to
+        #
+        # t = complex
+        # x = t OP anything ...
         return PatternRule(
             assign(value=ast_compare(left=_not_identifier)),
             self._transform_with_name(
@@ -1246,7 +1736,18 @@ class SingleAssignment:
         )
 
     def _handle_assign_compare_righthandside(self) -> Rule:
-        # Rewrite things like x = a < 1 + b ... to y = 1 + b; x = a < y ...
+        # This rule eliminates comparison operations where the leftmost operand
+        # is an identifier and the second-from-the-leftmost operand is not an
+        # identifier, regardless of how many operands and operators there are in
+        # the operation. It rewrites:
+        #
+        # x = id OP complex ...
+        #
+        # to
+        #
+        # t = complex
+        # x = id OP t ...
+        #
         return PatternRule(
             assign(
                 value=ast_compare(
@@ -1269,6 +1770,33 @@ class SingleAssignment:
         )
 
     def _handle_compare_all(self) -> Rule:
+        # This rule simplifies the left two operands of a comparison
+        # operations to be both identifiers, and breaks up non-binary
+        # comparison operations by introducing an "and".
+        #
+        # Since we have other rules which eventually eliminate "and" expressions
+        # entirely, repeated application of these rules will reach a fixpoint where
+        # every comparison is a binary operator containing only identifiers.
+        #
+        # For example, the combination of this rule and the Boolean operator rules
+        # when executed until a fixpoint is reached would rewrite:
+        #
+        # x = (a + b) < (c + d) < (e + f)
+        #
+        # to:
+        #
+        # t1 = a + b
+        # t2 = c + d
+        # t3 = t1 < t2
+        # if t3:
+        #   t4 = e + f
+        #   x = t2 < t4
+        # else:
+        #   x = t3
+        #
+        # which has the same semantics.  Note that if (a + b) < (c + d) is false
+        # then e + f is never computed.
+
         return first(
             [
                 self._handle_compare_binarize(),
