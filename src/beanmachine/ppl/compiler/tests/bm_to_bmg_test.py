@@ -1920,67 +1920,6 @@ digraph "graph" {
 """
 
 
-source18 = """
-import beanmachine.ppl as bm
-from torch.distributions import HalfCauchy, Normal, StudentT
-from torch import tensor
-
-@bm.random_variable
-def result():
-    return Normal(mean(), 1.0)
-
-@bm.functional
-def mean():
-  return true_value() + bias()
-
-@bm.random_variable
-def true_value():
-    return StudentT(3, 0, 10)
-
-@bm.random_variable
-def bias():
-    return Normal(0, sigma())
-
-@bm.random_variable
-def sigma():
-    return HalfCauchy(tensor(1.))
-"""
-
-expected_dot_18 = """
-digraph "graph" {
-  N00[label=3.0];
-  N01[label=0.0];
-  N02[label=10.0];
-  N03[label=StudentT];
-  N04[label=Sample];
-  N05[label=1.0];
-  N06[label=HalfCauchy];
-  N07[label=Sample];
-  N08[label=0];
-  N09[label=Normal];
-  N10[label=Sample];
-  N11[label="+"];
-  N12[label=1.0];
-  N13[label=Normal];
-  N14[label=Sample];
-  N00 -> N03[label=df];
-  N01 -> N03[label=loc];
-  N02 -> N03[label=scale];
-  N03 -> N04[label=operand];
-  N04 -> N11[label=left];
-  N05 -> N06[label=scale];
-  N06 -> N07[label=operand];
-  N07 -> N09[label=sigma];
-  N08 -> N09[label=mu];
-  N09 -> N10[label=operand];
-  N10 -> N11[label=right];
-  N11 -> N13[label=mu];
-  N12 -> N13[label=sigma];
-  N13 -> N14[label=operand];
-}
-"""
-
-
 # Test comparison operators; these are not supported
 # in BMG yet but we need to be able to detect use of
 # them and give an error, so we will verify that we
@@ -2211,16 +2150,12 @@ class CompilerTest(unittest.TestCase):
         observed = to_dot(source16)
         self.assertEqual(observed.strip(), expected_dot_16.strip())
 
-    def disabled_test_to_dot_17(self) -> None:
-        # TODO: Crashes the compiler; figure out why
-        self.maxDiff = None
-        observed = to_dot(source17)
-        self.assertEqual(observed.strip(), expected_dot_17.strip())
+    def test_dictionary_crash(self) -> None:
+        # TODO: This crashes the compiler; figure out why.
+        from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
 
-    def test_to_dot_18(self) -> None:
-        self.maxDiff = None
-        observed = to_dot(source18, point_at_input=True)
-        self.assertEqual(observed.strip(), expected_dot_18.strip())
+        with self.assertRaises(LiftedCompilationError):
+            observed = to_dot("r3 = dict(**a4, **a6)")
 
     def disabled_test_to_cpp_1(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
