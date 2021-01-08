@@ -25,11 +25,13 @@ from beanmachine.ppl.utils.ast_patterns import (
     greater_than,
     greater_than_equal,
     index,
+    keyword,
     less_than,
     less_than_equal,
     load,
     name,
     not_equal,
+    starred,
     subscript,
     unaryop,
 )
@@ -58,8 +60,6 @@ from beanmachine.ppl.utils.single_assignment import single_assignment
 # TODO: Would be helpful if we could track original source code locations.
 # TODO: Collapse adds and multiplies in the graph
 # TODO: Impose a restruction that a sample method always returns a distribution
-# TODO: Add support for query methods -- that is, methods that represent an
-# TODO: operation on a distribution.
 
 _top_down = ast_domain.top_down
 _bottom_up = ast_domain.bottom_up
@@ -106,43 +106,31 @@ def _make_bmg_call(name: str, args: List[ast.AST]) -> ast.AST:
     )
 
 
-def _args_to_list(args: List[ast.AST]) -> ast.List:
-    # TODO: This needs to be fixed when we support *args
-    # TODO: An easy way to fix it will be to do the same
-    # TODO: trick used for kwargs, below. Instead of
-    # TODO: generating a single list [a, b, c], generate
-    # TODO: [a] + [b] + [c]
-    return ast.List(elts=args, ctx=ast.Load())
+#
+# After rewriting into single assignment form, every call has one of these forms:
+#
+# x = f(*args, **kwargs)
+# x = dict()
+# x = dict(key = id)
+# x = dict(**id, **id)
+#
+# The first is the only one we need to rewrite. We rewrite it to
+#
+# x = bmg.handle_function(f, args, kwargs)
 
-
-def _kwargs_to_dict(keywords: List[ast.keyword]) -> ast.expr:
-    # If we have a call
-    # f(a=b, c=d)
-    # then we generate the dictionary
-    # { **{'a'=b}, **{'c'=d} }
-    # It might seem easier to generate
-    # { 'a'=b, 'c'=d }
-    # directly but we would run into complications when supporting
-    # **kwargs scenarios (which are still TODO)
-
-    if len(keywords) == 1 and keywords[0].arg is None:
-        return keywords[0].value
-    else:
-        keys = [None] * len(keywords)
-        values = [ast.Dict(keys=[ast.Str(s=k.arg)], values=[k.value]) for k in keywords]
-        return ast.Dict(keys, values)
-
+_starred_id = starred(value=name())
+_double_starred_id = keyword(arg=None, value=name())
 
 _handle_call: PatternRule = PatternRule(
-    assign(value=call()),
+    assign(value=call(args=[_starred_id], keywords=[_double_starred_id])),
     lambda a: ast.Assign(
         a.targets,
         _make_bmg_call(
             "handle_function",
             [
                 a.value.func,
-                _args_to_list(a.value.args),
-                _kwargs_to_dict(a.value.keywords),
+                a.value.args[0].value,
+                a.value.keywords[0].value,
             ],
         ),
     ),
