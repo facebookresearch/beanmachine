@@ -196,7 +196,6 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
 
         for stage in range(num_stages):
             total_attempted_samples = 0
-            # pyre-fixme
             pbar = tqdm(
                 desc=f"Stage {stage + 1} of {num_stages}",
                 total=num_samples,

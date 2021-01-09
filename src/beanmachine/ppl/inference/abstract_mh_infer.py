@@ -305,7 +305,6 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
             LogLevel.DEBUG_GRAPH.value,
             "=" * 30 + "\n" + "Initialized graph:\n{g}\n".format(g=str(self.world_)),
         )
-        # pyre-fixme
         for iteration in tqdm(
             iterable=range(num_samples + num_adaptive_samples),
             desc="Samples collected",
