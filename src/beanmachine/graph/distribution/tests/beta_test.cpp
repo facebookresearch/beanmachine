@@ -173,11 +173,12 @@ TEST(testdistrib, beta2) {
   g2.observe(b, 2.0);
   auto y = g2.add_operator(
       OperatorType::IID_SAMPLE,
-      std::vector<uint>{g2.add_distribution(
-                            DistributionType::BETA,
-                            AtomicType::PROBABILITY,
-                            std::vector<uint>{a_sq, b_sq}),
-                        nat_node});
+      std::vector<uint>{
+          g2.add_distribution(
+              DistributionType::BETA,
+              AtomicType::PROBABILITY,
+              std::vector<uint>{a_sq, b_sq}),
+          nat_node});
   g2.query(y);
   // eval the graph from two roots
   g2.log_prob(a);
