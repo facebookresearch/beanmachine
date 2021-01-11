@@ -28,7 +28,7 @@ counter = 0
 def norm(n):
     global counter
     counter = counter + 1
-    return Normal(0.0, 1.0)
+    return Normal(loc=0.0, scale=1.0)
 
 
 # Random variable that takes no argument
@@ -94,7 +94,7 @@ def f_helper(bmg):
         a2 = bmg.handle_dot_get(math, 'exp')
         r3 = [x]
         r4 = {}
-        r1 = bmg.handle_function(a2, [*r3], r4)
+        r1 = bmg.handle_function(a2, r3, r4)
         return r1
     return f"""
         self.assertEqual(observed.strip(), expected.strip())
@@ -112,13 +112,13 @@ def norm_helper(bmg):
         global counter
         a1 = 1
         counter = bmg.handle_addition(counter, a1)
-        a5 = 0.0
-        a4 = [a5]
+        r3 = []
+        a6 = 0.0
+        a5 = dict(loc=a6)
         a8 = 1.0
-        a6 = [a8]
-        r3 = bmg.handle_addition(a4, a6)
-        r7 = {}
-        r2 = bmg.handle_function(Normal, [*r3], r7)
+        a7 = dict(scale=a8)
+        r4 = dict(**a5, **a7)
+        r2 = bmg.handle_function(Normal, r3, r4)
         return bmg.handle_sample(r2)
     return norm
 """

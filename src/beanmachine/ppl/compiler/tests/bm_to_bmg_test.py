@@ -425,22 +425,22 @@ def x(n):
     a33 = 0.5
     r27 = [a33]
     r35 = {}
-    a15 = bmg.handle_function(tensor, [*r27], r35)
+    a15 = bmg.handle_function(tensor, r27, r35)
     a50 = 0.1
     r48 = [a50]
     r52 = {}
-    a45 = bmg.handle_function(tensor, [*r48], r52)
+    a45 = bmg.handle_function(tensor, r48, r52)
     a43 = bmg.handle_multiplication(n, a45)
     r40 = [a43]
     r46 = {}
-    a36 = bmg.handle_function(exp, [*r40], r46)
+    a36 = bmg.handle_function(exp, r40, r46)
     r34 = [a36]
     r38 = {}
-    a23 = bmg.handle_function(log, [*r34], r38)
+    a23 = bmg.handle_function(log, r34, r38)
     a13 = bmg.handle_addition(a15, a23)
     r7 = [a13]
     r16 = {}
-    r1 = bmg.handle_function(Bernoulli, [*r7], r16)
+    r1 = bmg.handle_function(Bernoulli, r7, r16)
     return bmg.handle_sample(r1)
 
 
@@ -453,10 +453,10 @@ def z():
     a24 = -4.605170249938965
     r17 = [a24]
     r28 = {}
-    a5 = bmg.handle_function(a8, [*r17], r28)
+    a5 = bmg.handle_function(a8, r17, r28)
     r18 = [n]
     r29 = {}
-    a9 = bmg.handle_function(x, [*r18], r29)
+    a9 = bmg.handle_function(x, r18, r29)
     a2 = bmg.handle_multiplication(a5, a9)
     sum = bmg.handle_addition(sum, a2)
     n = 1
@@ -464,10 +464,10 @@ def z():
     a25 = -4.605170249938965
     r19 = [a25]
     r30 = {}
-    a6 = bmg.handle_function(a10, [*r19], r30)
+    a6 = bmg.handle_function(a10, r19, r30)
     r20 = [n]
     r31 = {}
-    a11 = bmg.handle_function(x, [*r20], r31)
+    a11 = bmg.handle_function(x, r20, r31)
     a3 = bmg.handle_multiplication(a6, a11)
     sum = bmg.handle_addition(sum, a3)
     a21 = 1
@@ -475,16 +475,16 @@ def z():
     a49 = -0.010050326585769653
     r47 = [a49]
     r51 = {}
-    a41 = bmg.handle_function(a44, [*r47], r51)
+    a41 = bmg.handle_function(a44, r47, r51)
     a39 = bmg.handle_addition(a41, sum)
     r37 = [a39]
     r42 = {}
-    a32 = bmg.handle_function(exp, [*r37], r42)
+    a32 = bmg.handle_function(exp, r37, r42)
     a26 = bmg.handle_negate(a32)
     a14 = bmg.handle_addition(a21, a26)
     r12 = [a14]
     r22 = {}
-    r4 = bmg.handle_function(Bernoulli, [*r12], r22)
+    r4 = bmg.handle_function(Bernoulli, r12, r22)
     return bmg.handle_sample(r4)
 
 
@@ -573,22 +573,22 @@ def x(n):
     a24 = 0.5
     r21 = [a24]
     r28 = {}
-    a13 = bmg.handle_function(tensor, [*r21], r28)
+    a13 = bmg.handle_function(tensor, r21, r28)
     a43 = 0.1
     r41 = [a43]
     r45 = {}
-    a38 = bmg.handle_function(tensor, [*r41], r45)
+    a38 = bmg.handle_function(tensor, r41, r45)
     a36 = bmg.handle_multiplication(n, a38)
     r33 = [a36]
     r39 = {}
-    a29 = bmg.handle_function(exp, [*r33], r39)
+    a29 = bmg.handle_function(exp, r33, r39)
     r25 = [a29]
     r31 = {}
-    a17 = bmg.handle_function(log, [*r25], r31)
+    a17 = bmg.handle_function(log, r25, r31)
     a9 = bmg.handle_addition(a13, a17)
     r6 = [a9]
     r14 = {}
-    r1 = bmg.handle_function(Bernoulli, [*r6], r14)
+    r1 = bmg.handle_function(Bernoulli, r6, r14)
     return bmg.handle_sample(r1)
 
 
@@ -605,10 +605,10 @@ def z():
         a22 = -4.605170249938965
         r18 = [a22]
         r26 = {}
-        a7 = bmg.handle_function(a10, [*r18], r26)
+        a7 = bmg.handle_function(a10, r18, r26)
         r19 = [n]
         r27 = {}
-        a11 = bmg.handle_function(x, [*r19], r27)
+        a11 = bmg.handle_function(x, r19, r27)
         a5 = bmg.handle_multiplication(a7, a11)
         sum = bmg.handle_addition(sum, a5)
     a15 = 1
@@ -616,16 +616,16 @@ def z():
     a42 = -0.010050326585769653
     r40 = [a42]
     r44 = {}
-    a34 = bmg.handle_function(a37, [*r40], r44)
+    a34 = bmg.handle_function(a37, r40, r44)
     a32 = bmg.handle_addition(a34, sum)
     r30 = [a32]
     r35 = {}
-    a23 = bmg.handle_function(exp, [*r30], r35)
+    a23 = bmg.handle_function(exp, r30, r35)
     a20 = bmg.handle_negate(a23)
     a12 = bmg.handle_addition(a15, a20)
     r8 = [a12]
     r16 = {}
-    r3 = bmg.handle_function(Bernoulli, [*r8], r16)
+    r3 = bmg.handle_function(Bernoulli, r8, r16)
     return bmg.handle_sample(r3)
 
 
@@ -677,7 +677,7 @@ def q(a, b):
 def r(p):
     r7 = [p]
     r12 = {}
-    r2 = bmg.handle_function(Bernoulli, [*r7], r12)
+    r2 = bmg.handle_function(Bernoulli, r7, r12)
     return r2
 
 
@@ -687,7 +687,7 @@ def x(n):
     a10 = 0.5
     r8 = [a10]
     r13 = {}
-    r3 = bmg.handle_function(Bernoulli, [*r8], r13)
+    r3 = bmg.handle_function(Bernoulli, r8, r13)
     return bmg.handle_sample(r3)
 
 
@@ -697,19 +697,19 @@ def z():
     a22 = 0
     r21 = [a22]
     r24 = {}
-    a17 = bmg.handle_function(x, [*r21], r24)
+    a17 = bmg.handle_function(x, r21, r24)
     a16 = [a17]
     a25 = 1
     r23 = [a25]
     r26 = {}
-    a20 = bmg.handle_function(x, [*r23], r26)
+    a20 = bmg.handle_function(x, r23, r26)
     a18 = [a20]
     r15 = bmg.handle_addition(a16, a18)
     r19 = {}
-    a11 = bmg.handle_function(q, [*r15], r19)
+    a11 = bmg.handle_function(q, r15, r19)
     r9 = [a11]
     r14 = {}
-    r4 = bmg.handle_function(r, [*r9], r14)
+    r4 = bmg.handle_function(r, r9, r14)
     return bmg.handle_sample(r4)
 
 
@@ -783,7 +783,7 @@ def x(n):
     a7 = bmg.handle_addition(a10, a15)
     r4 = [a7]
     r11 = {}
-    r1 = bmg.handle_function(Bernoulli, [*r4], r11)
+    r1 = bmg.handle_function(Bernoulli, r4, r11)
     return bmg.handle_sample(r1)
 
 
@@ -793,7 +793,7 @@ def y():
     a8 = 0.5
     r5 = [a8]
     r12 = {}
-    r2 = bmg.handle_function(Bernoulli, [*r5], r12)
+    r2 = bmg.handle_function(Bernoulli, r5, r12)
     return bmg.handle_sample(r2)
 
 
@@ -802,13 +802,13 @@ def y():
 def z():
     r19 = []
     r20 = {}
-    a17 = bmg.handle_function(y, [*r19], r20)
+    a17 = bmg.handle_function(y, r19, r20)
     r16 = [a17]
     r18 = {}
-    a9 = bmg.handle_function(x, [*r16], r18)
+    a9 = bmg.handle_function(x, r16, r18)
     r6 = [a9]
     r13 = {}
-    r3 = bmg.handle_function(Bernoulli, [*r6], r13)
+    r3 = bmg.handle_function(Bernoulli, r6, r13)
     return bmg.handle_sample(r3)
 
 
@@ -961,7 +961,7 @@ def mint():
     a10 = [a12]
     r5 = bmg.handle_addition(a7, a10)
     r11 = {}
-    r1 = bmg.handle_function(Beta, [*r5], r11)
+    r1 = bmg.handle_function(Beta, r5, r11)
     return bmg.handle_sample(r1)
 
 
@@ -970,10 +970,10 @@ def mint():
 def toss():
     r8 = []
     r13 = {}
-    a4 = bmg.handle_function(mint, [*r8], r13)
+    a4 = bmg.handle_function(mint, r8, r13)
     r3 = [a4]
     r6 = {}
-    r2 = bmg.handle_function(Bernoulli, [*r3], r6)
+    r2 = bmg.handle_function(Bernoulli, r3, r6)
     return bmg.handle_sample(r2)
 
 
@@ -1960,7 +1960,7 @@ def x():
     a12 = [a15]
     r7 = bmg.handle_addition(a9, a12)
     r13 = {}
-    r1 = bmg.handle_function(Normal, [*r7], r13)
+    r1 = bmg.handle_function(Normal, r7, r13)
     return bmg.handle_sample(r1)
 
 
@@ -1970,7 +1970,7 @@ def y():
     a2 = 0.0
     r5 = []
     r10 = {}
-    a4 = bmg.handle_function(x, [*r5], r10)
+    a4 = bmg.handle_function(x, r5, r10)
     a6 = bmg.handle_less_than(a2, a4)
     if a6:
         a8 = 2.0
@@ -1985,7 +1985,7 @@ def y():
     a18 = [a22]
     r14 = bmg.handle_addition(a16, a18)
     r19 = {}
-    r3 = bmg.handle_function(StudentT, [*r14], r19)
+    r3 = bmg.handle_function(StudentT, r14, r19)
     return bmg.handle_sample(r3)
 
 
@@ -2149,13 +2149,6 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_dot(source16)
         self.assertEqual(observed.strip(), expected_dot_16.strip())
-
-    def test_dictionary_crash(self) -> None:
-        # TODO: This crashes the compiler; figure out why.
-        from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
-
-        with self.assertRaises(LiftedCompilationError):
-            observed = to_dot("r3 = dict(**a4, **a6)")
 
     def disabled_test_to_cpp_1(self) -> None:
         """Tests for to_cpp from bm_to_bmg.py"""
