@@ -74,6 +74,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     Chi2Node,
     ComplementNode,
     ConstantNode,
+    ConstantTensorNode,
     DirichletNode,
     DistributionNode,
     DivisionNode,
@@ -108,7 +109,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     RealNode,
     SampleNode,
     StudentTNode,
-    TensorNode,
     ToPositiveRealNode,
     ToProbabilityNode,
     ToRealNode,
@@ -489,8 +489,8 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_tensor(self, value: Tensor) -> TensorNode:
-        node = TensorNode(value)
+    def add_tensor(self, value: Tensor) -> ConstantTensorNode:
+        node = ConstantTensorNode(value)
         self.add_node(node)
         return node
 
@@ -1056,7 +1056,7 @@ class BMGraphBuilder:
 
     @memoize
     def add_exp(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, TensorNode):
+        if isinstance(operand, ConstantTensorNode):
             return self.add_constant(torch.exp(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.exp(operand.value))
@@ -1067,7 +1067,7 @@ class BMGraphBuilder:
     def handle_exp(self, input: Any) -> Any:
         if isinstance(input, Tensor):
             return torch.exp(input)
-        if isinstance(input, TensorNode):
+        if isinstance(input, ConstantTensorNode):
             return torch.exp(input.value)
         if not isinstance(input, BMGNode):
             return math.exp(input)
@@ -1092,7 +1092,7 @@ class BMGraphBuilder:
 
     @memoize
     def add_log(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, TensorNode):
+        if isinstance(operand, ConstantTensorNode):
             return self.add_constant(torch.log(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.log(operand.value))
@@ -1103,7 +1103,7 @@ class BMGraphBuilder:
     def handle_log(self, input: Any) -> Any:
         if isinstance(input, Tensor):
             return torch.log(input)
-        if isinstance(input, TensorNode):
+        if isinstance(input, ConstantTensorNode):
             return torch.log(input.value)
         if not isinstance(input, BMGNode):
             return math.log(input)

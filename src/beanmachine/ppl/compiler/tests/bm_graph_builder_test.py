@@ -10,6 +10,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     AdditionNode,
     BernoulliNode,
     BooleanNode,
+    ConstantTensorNode,
     DivisionNode,
     EqualNode,
     ExpNode,
@@ -27,7 +28,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     RealNode,
     SampleNode,
     SetOfTensors,
-    TensorNode,
     ToRealNode,
 )
 from beanmachine.ppl.compiler.bmg_types import PositiveReal, Real
@@ -305,7 +305,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" add method that takes two values.
         # Calling torch.add(x, y) should be logically the same as x + y
@@ -447,9 +447,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr2 = bmg.add_real(2.0)
         self.assertTrue(isinstance(gr2, RealNode))
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
         gt2 = bmg.add_tensor(t2)
-        self.assertTrue(isinstance(gt2, TensorNode))
+        self.assertTrue(isinstance(gt2, ConstantTensorNode))
 
         # torch defines a "static" div method that takes two values.
         # Calling torch.div(x, y) should be logically the same as x + y
@@ -581,7 +581,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" exp method that takes one value.
         # TODO: torch.exp(x) requires that x be a tensor, not a float. We do
@@ -650,7 +650,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" log method that takes one value.
         ta = torch.log
@@ -712,7 +712,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertTrue(isinstance(gr1, RealNode))
         gr2 = bmg.add_real(2.0)
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
         gt2 = bmg.add_tensor(t2)
 
         # torch defines a "static" mul method that takes two values.
@@ -842,9 +842,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # Graph nodes
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
         gt2 = bmg.add_tensor(t2)
-        self.assertTrue(isinstance(gt2, TensorNode))
+        self.assertTrue(isinstance(gt2, ConstantTensorNode))
 
         # torch defines a "static" mm method that takes two values.
 
@@ -1059,7 +1059,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" neg method that takes one value.
         # Calling torch.neg(x) should be logically the same as -x
@@ -1124,7 +1124,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gbt = bmg.add_boolean(True)
         self.assertTrue(isinstance(gbt, BooleanNode))
         gtt = bmg.add_tensor(tt)
-        self.assertTrue(isinstance(gtt, TensorNode))
+        self.assertTrue(isinstance(gtt, ConstantTensorNode))
 
         # torch defines a "static" logical_not method that takes one value.
         # Calling torch.logical_not(x) should be logically the same as "not x"
@@ -1187,7 +1187,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" pow method that takes two values.
         # Calling torch.pow(x, y) should be logically the same as x ** y
@@ -1320,7 +1320,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
         gt1 = bmg.add_tensor(t1)
-        self.assertTrue(isinstance(gt1, TensorNode))
+        self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch.float is not a function, unlike torch.log, torch.add and so on.
 
