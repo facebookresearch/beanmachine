@@ -33,8 +33,6 @@ from torch.distributions import Normal
 from torch.distributions.utils import broadcast_all
 
 
-# TODO: BMGTensor will be eliminated soon in favor of matrix types.
-
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
 # TODO: for now, we'll just turn off error checking in this mModuleNotFoundError
@@ -307,7 +305,7 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
     def _compute_inf_type(self) -> BMGLatticeType:
         # The infimum type of a constant is derived from the value,
         # not from the kind of constant node we have. For instance,
-        # a NaturalNode containing zero and a TensorNode containing
+        # a NaturalNode containing zero and a ConstantTensorNode containing
         # tensor([[[0.0]]]) both have infimum type "Boolean" because
         # we can convert zero to False, and Boolean is the smallest type
         # in the lattice. Remember, the infimum type answers the question
@@ -561,7 +559,7 @@ class RealNode(ConstantNode):
         return str(float(self.value))
 
 
-class TensorNode(ConstantNode):
+class ConstantTensorNode(ConstantNode):
     """A tensor constant"""
 
     value: Tensor
@@ -577,16 +575,20 @@ class TensorNode(ConstantNode):
     def _tensor_to_python(t: Tensor) -> str:
         if len(t.shape) == 0:
             return str(t.item())
-        return "[" + ",".join(TensorNode._tensor_to_python(c) for c in t) + "]"
+        return "[" + ",".join(ConstantTensorNode._tensor_to_python(c) for c in t) + "]"
 
     @staticmethod
     def _tensor_to_label(t: Tensor) -> str:
         length = len(t.shape)
         if length == 0 or length == 1:
-            return TensorNode._tensor_to_python(t)
-        return "[" + ",\\n".join(TensorNode._tensor_to_label(c) for c in t) + "]"
+            return ConstantTensorNode._tensor_to_python(t)
+        return (
+            "[" + ",\\n".join(ConstantTensorNode._tensor_to_label(c) for c in t) + "]"
+        )
 
     def _compute_graph_type(self) -> BMGLatticeType:
+        # TODO: If this is a single value, single row, or two-dimensional
+        # TODO: tensor then we can give a more specific type.
         return BMGTensor
 
     @property
@@ -595,13 +597,13 @@ class TensorNode(ConstantNode):
 
     @property
     def label(self) -> str:
-        return TensorNode._tensor_to_label(self.value)
+        return ConstantTensorNode._tensor_to_label(self.value)
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(self.value)
 
     def _value_to_python(self) -> str:
-        t = TensorNode._tensor_to_python(self.value)
+        t = ConstantTensorNode._tensor_to_python(self.value)
         return f"tensor({t})"
 
 
