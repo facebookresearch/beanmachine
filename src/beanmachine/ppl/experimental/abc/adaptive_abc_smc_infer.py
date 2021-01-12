@@ -244,6 +244,7 @@ class AdaptiveApproximateBayesianComputationSequentialMonteCarlo(
         self.num_adaptive_samples = num_adaptive_samples
         while self.tolerance >= self.target_tolerance:
             total_attempted_samples = 0
+            # pyre-fixme
             pbar = tqdm(
                 desc=f"Stage {stage + 1} with tolerance {self.tolerance}",
                 total=num_samples,

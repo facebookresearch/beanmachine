@@ -132,6 +132,7 @@ class RejectionSampling(AbstractMCInference, metaclass=ABCMeta):
         self.num_accepted_samples = 0
         self.queries_sample = defaultdict()
         total_attempted_samples = 0
+        # pyre-fixme
         pbar = tqdm(
             total=num_samples, disable=not bool(verbose == VerboseLevel.LOAD_BAR)
         )
