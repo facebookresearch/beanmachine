@@ -4,8 +4,9 @@ import copy
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
+import torch.distributions.constraints as constraints
 from beanmachine.ppl.experimental.vi.variational_approximation import (
-    VariationalApproximation,
+    ContinuousVariationalApproximation,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import get_wrapper
@@ -15,6 +16,7 @@ from beanmachine.ppl.world.diff_stack import DiffStack
 from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
 from beanmachine.ppl.world.world_vars import WorldVars
 from torch import Size, Tensor, tensor
+from torch.distributions.constraint_registry import biject_to
 
 
 world_context = contextvars.ContextVar("beanmachine.ppl.world", default=None)
@@ -83,7 +85,8 @@ class World(object):
     )
     """
 
-    vi_dicts: Optional[Callable[[RVIdentifier], VariationalApproximation]]
+    # TODO: this type is wrong, both VariationalApproximations are acceptable
+    vi_dicts: Optional[Callable[[RVIdentifier], ContinuousVariationalApproximation]]
 
     def __init__(self):
         self.variables_ = WorldVars()
@@ -739,7 +742,7 @@ class World(object):
             node_var.distribution = node.function(*node.arguments)
         self.stack_.pop()
 
-        obs_value = self.observations_[node] if node in self.observations_ else None
+        obs_value = self.observations_.get(node)
 
         value = None
         # resample latents from q
@@ -748,7 +751,21 @@ class World(object):
             if self.vi_dicts is not None:
                 # mean-field VI
                 variational_approx = self.vi_dicts(node)  # pyre-ignore[29]
-                value = variational_approx.rsample(Size((1,))).squeeze()
+                if variational_approx.has_rsample:
+                    # TODO: dedupe with VariationalApproximation.elbo
+                    if (
+                        node_var.distribution.support  # pyre-fixme[16]
+                        != constraints.real
+                    ):
+                        variational_approx._transform = biject_to(
+                            node_var.distribution.support
+                        )
+                    value = variational_approx.rsample(Size((1,))).squeeze()
+                else:
+                    assert (
+                        node_var.distribution.has_enumerate_support  # pyre-fixme[16]
+                    ), "VI only supports non-reparameterizable guides for enumerable distributions"
+                    value = variational_approx.sample(Size((1,))).float().squeeze()
 
         node_var.update_fields(
             value,

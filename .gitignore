@@ -1,5 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
+settings.json
+.pyre/
+.pyre_configuration
+beanmachine.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -8,7 +8,7 @@ from typing import Callable, ClassVar, Dict, List, Optional
 import torch
 import torch.multiprocessing as mp
 from beanmachine.ppl.experimental.vi.variational_approximation import (
-    VariationalApproximation,
+    ContinuousVariationalApproximation,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
@@ -91,7 +91,9 @@ class AbstractInference(object, metaclass=ABCMeta):
     def initialize_world(
         self,
         initialize_from_prior: bool = False,
-        vi_dicts: Optional[Callable[[RVIdentifier], VariationalApproximation]] = None,
+        vi_dicts: Optional[
+            Callable[[RVIdentifier], ContinuousVariationalApproximation]
+        ] = None,
     ):
         """
         Initializes the world variables with queries and observation calls.

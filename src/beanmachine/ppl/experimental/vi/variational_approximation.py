@@ -15,7 +15,32 @@ from torch.distributions.constraint_registry import biject_to
 LOGGER = logging.getLogger("beanmachine.vi")
 
 
-class VariationalApproximation(dist.distribution.Distribution):
+class DiscreteVariationalApproximation(dist.distribution.Distribution):
+    def __init__(
+        self,
+        enumerated_support: torch.Tensor,
+        lr: float = 1e-2,
+    ):
+        self.enumerated_support = enumerated_support
+        self.logits = torch.randn_like(enumerated_support.float(), requires_grad=True)
+        self.optim = torch.optim.Adam(
+            [self.logits],
+            lr=lr,
+        )
+
+    def elbo(self, target_log_prob):
+        q = dist.Categorical(logits=self.logits)
+
+        elbo = q.entropy()
+        for x in self.enumerated_support:
+            elbo += torch.exp(q.log_prob(x)) * (target_log_prob(x))
+        return elbo
+
+    def sample(self, sample_shape=torch.Size()):  # noqa: B008
+        return dist.Categorical(logits=self.logits).sample(sample_shape)
+
+
+class ContinuousVariationalApproximation(dist.distribution.Distribution):
     """
     Variational approximations on R^d.
 
@@ -49,7 +74,7 @@ class VariationalApproximation(dist.distribution.Distribution):
         assert (
             len(base_dist(**base_args).event_shape) <= 1
         ), "VariationalApproximation only supports 0D/1D distributions"
-        super(VariationalApproximation, self).__init__()
+        super(ContinuousVariationalApproximation, self).__init__()
 
         # form independent product distribution of `base_dist` for `event_shape`
         _base_args = base_args
