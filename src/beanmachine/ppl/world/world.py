@@ -4,6 +4,7 @@ import copy
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 
+import torch
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.utils.dotbuilder import print_graph
@@ -11,7 +12,7 @@ from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
 from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
 from beanmachine.ppl.world.world_vars import WorldVars
-from torch import Tensor, tensor
+from torch import Tensor
 
 
 world_context = contextvars.ContextVar("beanmachine.ppl.world", default=None)
@@ -266,10 +267,10 @@ class World(object):
         the node
         """
         node_var = self.get_node_earlier_version(node)
-        self.diff_stack_.update_log_prob(
-            self.diff_stack_.get_node_raise_error(node).log_prob
-            - (node_var.log_prob if node_var is not None else tensor(0.0))
-        )
+        new_log_prob = self.diff_stack_.get_node_raise_error(node).log_prob
+        if node_var is not None:
+            new_log_prob -= node_var.log_prob
+        self.diff_stack_.update_log_prob(new_log_prob)
 
     def compute_score(self, node_var: Variable) -> Tensor:
         """
@@ -477,7 +478,7 @@ class World(object):
 
         old_log_prob = var.log_prob
         var.update_fields(
-            proposed_value,
+            proposed_value.to(old_log_prob.device),
             None,
             self.get_transforms_for_node(node),
             self.get_proposer_for_node(node),
@@ -604,7 +605,7 @@ class World(object):
             self.diff_.len()
             > len(self.variables_.get_node_raise_error(node).children) + 1
         )
-        children_log_update = tensor(0.0)
+        children_log_update = torch.zeros((), device=node_var.value.device)
         for node in old_log_probs:
             if node in new_log_probs and not self.diff_.is_marked_for_delete(node):
                 children_log_update += new_log_probs[node] - old_log_probs[node]

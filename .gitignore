@@ -1,5 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
+# beanmachine
+beanmachine.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -38,6 +41,9 @@ wheels/
 .ftpignore
 *.tags
 *.tags1
+
+# vscode
+.vscode/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -80,6 +86,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# pyre
+.pyre_configuration
+.pyre/
 
 # vim
 *.swp

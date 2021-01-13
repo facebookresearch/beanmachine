@@ -35,7 +35,8 @@ def safe_log_prob_sum(distrib, value: Tensor) -> Tensor:
     try:
         return distrib.log_prob(value).sum()
     except (RuntimeError, ValueError) as e:
+        print(e)
         if not distrib.support.check(value):
-            return tensor(float("-Inf"))
+            return tensor(float("-Inf")).to(value.device)
         else:
             raise e

@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional, Set
 
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.utils import (
@@ -127,40 +126,57 @@ class Variable(object):
         :returns: the value to the set the Variable value to
         """
         distribution = self.distribution
+        if obs is not None:
+            return obs
+
         # pyre-fixme
         sample_val = distribution.sample()
         # pyre-fixme
         support = distribution.support
-        if obs is not None:
-            return obs
         if initialize_from_prior:
             return sample_val
         elif isinstance(support, dist.constraints._Real):
-            return torch.zeros(sample_val.shape, dtype=sample_val.dtype)
+            return torch.zeros(
+                sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
+            )
         elif isinstance(support, dist.constraints._Simplex):
-            value = torch.ones(sample_val.shape, dtype=sample_val.dtype)
+            value = torch.ones(
+                sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
+            )
             return value / sample_val.shape[-1]
         elif isinstance(support, dist.constraints._GreaterThan):
             return (
-                torch.ones(sample_val.shape, dtype=sample_val.dtype)
+                torch.ones(
+                    sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
+                )
                 + support.lower_bound
             )
         elif isinstance(support, dist.constraints._Boolean):
-            return dist.Bernoulli(torch.ones(sample_val.shape) / 2).sample()
+            return dist.Bernoulli(
+                torch.ones(sample_val.shape, device=sample_val.device) / 2
+            ).sample()
         elif isinstance(support, dist.constraints._Interval):
-            lower_bound = torch.ones(sample_val.shape) * support.lower_bound
-            upper_bound = torch.ones(sample_val.shape) * support.upper_bound
+            lower_bound = (
+                torch.ones(sample_val.shape, device=sample_val.device)
+                * support.lower_bound
+            )
+            upper_bound = (
+                torch.ones(sample_val.shape, device=sample_val.device)
+                * support.upper_bound
+            )
             return dist.Uniform(lower_bound, upper_bound).sample()
         elif isinstance(support, dist.constraints._IntegerInterval):
             integer_interval = support.upper_bound - support.lower_bound
             return dist.Categorical(
-                (torch.ones(integer_interval)).expand(
+                (torch.ones(integer_interval, device=sample_val.device)).expand(
                     sample_val.shape + (integer_interval,)
                 )
             ).sample()
         elif isinstance(support, dist.constraints._IntegerGreaterThan):
             return (
-                torch.ones(sample_val.shape, dtype=sample_val.dtype)
+                torch.ones(
+                    sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
+                )
                 + support.lower_bound
             )
         return sample_val
@@ -261,7 +277,7 @@ class Variable(object):
 
     def update_jacobian(self):
         temp = self.value
-        self.jacobian = tensor(0.0, dtype=temp.dtype)
+        self.jacobian = torch.zeros((), dtype=temp.dtype)
         for transform in self.transforms:
             transformed_value = transform(temp)
             self.jacobian -= transform.log_abs_det_jacobian(

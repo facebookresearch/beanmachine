@@ -41,9 +41,9 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         self.t = 10
         self.kappa = 0.75
         self.optimal_acceptance_prob = 0.65
-        self.step_size = tensor(step_size)
-        self.path_length = tensor(path_length)
-        self.mu = torch.log(10.0 * self.step_size)
+        self.step_size = step_size
+        self.path_length = path_length
+        self.mu = 10.0 * self.step_size
         self.best_step_size = step_size
         self.closeness = 0
 
@@ -104,15 +104,16 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param world: the world where the node exists
         """
         node_var = world.get_node_in_world_raise_error(node, False)
+        node_device = node_var.value.device
         if node_var.value is None:
             raise ValueError(f"{node} has no value")
 
         # initialize momentum and kinetic energy
         q_transformed = node_var.transformed_value
-        p = torch.randn(q_transformed.shape)
+        p = torch.randn(q_transformed.shape, device=node_device)
 
         # take one leapfrog step with step size = 1.0
-        self.step_size = tensor(1.0, dtype=q_transformed.dtype)
+        self.step_size = tensor(1.0, dtype=q_transformed.dtype, device=node_device)
         is_valid, original_grad = self._compute_potential_energy_gradient(
             node, world, q_transformed
         )
@@ -121,12 +122,12 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         acceptance_prob = self._compute_new_step_acceptance_probability(
             node, node_var, world, q_transformed, p, original_grad
         )
-        if acceptance_prob > tensor(0.5):
+        if acceptance_prob > 0.5:
             a = 1
         else:
             a = -1
-        step_size_multiplier = torch.pow(tensor(2.0), a)
-        threshold = torch.pow(tensor(2.0), -a)
+        step_size_multiplier = torch.pow(tensor(2.0, device=node_device), a)
+        threshold = torch.pow(tensor(2.0, device=node_device), -a)
 
         max_iterations = 100
         for _ in range(max_iterations):
@@ -151,7 +152,11 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         :param acceptance_probability: the acceptance probability of the previous move.
         :param iteration_number: The current iteration of inference
         """
-        iteration_number = tensor(iteration_number, dtype=acceptance_probability.dtype)
+        iteration_number = tensor(
+            iteration_number,
+            dtype=acceptance_probability.dtype,
+            device=acceptance_probability.device,
+        )
         closeness_frac = 1 / (iteration_number + self.t)
         self.closeness = ((1 - closeness_frac) * self.closeness) + (
             closeness_frac * (self.optimal_acceptance_prob - acceptance_probability)
@@ -182,9 +187,16 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
 
         if not self.mass_matrix_initialized:
             self.mass_matrix_initialized = True
-            self.sample_mean = torch.zeros(len(sample_vector), dtype=sample.dtype)
+            self.sample_mean = torch.zeros(
+                len(sample_vector),
+                dtype=sample.dtype,
+                device=sample.device,
+            )
             self.co_moment = torch.zeros(
-                len(sample_vector), len(sample_vector), dtype=sample.dtype
+                len(sample_vector),
+                len(sample_vector),
+                dtype=sample.dtype,
+                device=sample.device,
             )
         old_sample_mean = self.sample_mean
         self.sample_mean = (
@@ -197,8 +209,10 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         if iteration > 1:
             covariance = self.co_moment / (iteration - 1)
             # smoothing the covariance matrix
-            delta = tensor(1e-3, dtype=sample.dtype)
-            identity = torch.eye(len(sample_vector), dtype=sample.dtype)
+            delta = tensor(1e-3, dtype=sample.dtype, device=sample.device)
+            identity = torch.eye(
+                len(sample_vector), dtype=sample.dtype, device=sample.device
+            )
             self.covariance = (delta * identity) + ((1 - delta) * covariance)
 
     def do_adaptation(
@@ -226,12 +240,20 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         iteration_number = iteration_number + 1
 
         if self.runtime_error:
-            acceptance_probability = tensor(0.0, dtype=acceptance_probability.dtype)
+            acceptance_probability = tensor(
+                0.0,
+                dtype=acceptance_probability.dtype,
+                device=acceptance_probability.device,
+            )
 
         if not self.initialized:
             self._find_reasonable_step_size(node, world)
             self.mu = torch.log(10 * self.step_size)
-            self.best_step_size = tensor(1.0, dtype=acceptance_probability.dtype)
+            self.best_step_size = tensor(
+                1.0,
+                dtype=acceptance_probability.dtype,
+                device=acceptance_probability.device,
+            )
             self.initialized = True
 
         node_var = world.variables_.get_node_raise_error(node)
@@ -254,7 +276,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         """
         p_vector = torch.reshape(p, (-1,))
         if self.covariance is None:
-            self.covariance = torch.eye(len(p_vector), dtype=p.dtype)
+            self.covariance = torch.eye(len(p_vector), dtype=p.dtype, device=p.device)
         return torch.matmul(p_vector.T, torch.matmul(self.covariance, p_vector)) / 2
 
     def _compute_potential_energy_gradient(self, node, world, q_transformed):
@@ -291,12 +313,13 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         energy between the start and the end value
         """
         node_var = world.get_node_in_world_raise_error(node, False)
+        node_device = node_var.value.device
         if node_var.value is None:
             raise ValueError(f"{node} has no value")
         q_transformed = node_var.transformed_value
 
         # initialize momentum
-        p = torch.randn(q_transformed.shape)
+        p = torch.randn(q_transformed.shape, device=node_device)
         current_K = self._compute_kinetic_energy(p)
 
         is_valid, grad_U = self._compute_potential_energy_gradient(
@@ -314,7 +337,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         # take a half-step for momentum
         p = p - self.step_size * grad_U / 2
 
-        ideal_num_steps = int(torch.ceil(self.path_length / self.step_size))
+        ideal_num_steps = int(self.path_length / self.step_size) + 1
         num_steps = min(ideal_num_steps, self.max_num_steps)
         # leapfrog steps
         for i in range(num_steps):
@@ -361,4 +384,6 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         node_var = world.get_node_in_world_raise_error(node, False)
         if node_var.value is None:
             raise ValueError(f"{node} has no value")
-        return torch.tensor(0.0, dtype=node_var.value.dtype)
+        return torch.tensor(
+            0.0, dtype=node_var.value.dtype, device=node_var.value.device
+        )

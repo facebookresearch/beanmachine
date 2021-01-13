@@ -161,7 +161,7 @@ class InferenceCompilationTest(unittest.TestCase):
         observed_value = -1.0
         observations = {model.normal(): tensor(observed_value)}
         ic = ICInference()
-        ic.compile(observations.keys(), num_worlds=20)
+        ic.compile(observations.keys(), num_worlds=3)
 
         node = model.normal_p()
         ic.queries_ = [node]
@@ -171,10 +171,8 @@ class InferenceCompilationTest(unittest.TestCase):
         world = ic.world_
         node_var = world.get_node_in_world_raise_error(node)
 
-        # draw some posterior samples to compute empirical KL divergence over
-        samples = ic._infer(num_samples=10)
-
         # compute empirical inclusive KL before adaptation
+        samples = ic._infer(num_samples=100)
         ic_proposer = ic._proposers(node)
         before_adaptation_kldiv = -(
             ic_proposer.get_proposal_distribution(node, node_var, world, {})[0]
@@ -186,6 +184,7 @@ class InferenceCompilationTest(unittest.TestCase):
         ic._infer(num_samples=0, num_adaptive_samples=100)
 
         # compute empirical inclusive KL after adaptation
+        samples = ic._infer(num_samples=100)
         ic_proposer = ic._proposers(node)
         after_adaptation_kldiv = -(
             ic_proposer.get_proposal_distribution(node, node_var, world, {})[0]

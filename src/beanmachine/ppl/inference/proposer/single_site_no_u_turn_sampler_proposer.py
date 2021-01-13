@@ -1,6 +1,7 @@
 # Copyforward (c) Facebook, Inc. and its affiliates
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 
+import numpy as np
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
@@ -20,9 +21,9 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         # NUTS parameters
         self.max_depth = 5
         self.delta_max = 1000
-        self.alpha = tensor(0.0)
-        self.n_alpha = tensor(1.0)
-        self.ratio = tensor(0.0)
+        self.alpha = 0.0
+        self.n_alpha = 1.0
+        self.ratio = 0.0
 
         # mass matrix parameters
         self.use_dense_mass_matrix = use_dense_mass_matrix
@@ -44,8 +45,8 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         self.t = 10
         self.kappa = 0.75
         self.optimal_acceptance_prob = 0.65
-        self.step_size = tensor(0.1)
-        self.mu = torch.log(10.0 * self.step_size)
+        self.step_size = 0.1
+        self.mu = np.log(10.0 * self.step_size)
         self.best_step_size = self.step_size
         self.closeness = 0
         self.max_initial_iterations = 100
@@ -57,7 +58,7 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         world: World,
         theta: Tensor,
         r: Tensor,
-        step_size: Tensor,
+        step_size: Union[float, Tensor],
     ) -> Tensor:
         """
         Computes the acceptance probability for a step given the
@@ -91,7 +92,11 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         )
         return torch.exp(
             torch.min(
-                tensor(0.0, dtype=acceptance_log_prob.dtype),
+                tensor(
+                    0.0,
+                    dtype=acceptance_log_prob.dtype,
+                    device=acceptance_log_prob.device,
+                ),
                 acceptance_log_prob.detach(),
             )
         )
@@ -110,20 +115,24 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
 
         # initialize momentum and kinetic energy
         theta = node_var.transformed_value
-        r = torch.randn(theta.shape, dtype=theta.dtype)
+        r = torch.randn(theta.shape, dtype=theta.dtype, device=theta.device)
 
-        step_size = tensor(1.0, dtype=theta.dtype)
+        step_size = 1.0
         # take one leapfrog step with step size = 1.0
         acceptance_prob = self._compute_new_step_acceptance_probability(
             node, node_var, world, theta, r, step_size
         )
-        if acceptance_prob > tensor(0.5, dtype=acceptance_prob.dtype):
+        if acceptance_prob > tensor(
+            0.5, dtype=acceptance_prob.dtype, device=acceptance_prob.device
+        ):
             a = 1
         else:
             a = -1
-        step_size_multiplier = torch.pow(tensor(2.0, dtype=acceptance_prob.dtype), a)
-        threshold = torch.pow(tensor(2.0, dtype=acceptance_prob.dtype), -a)
-        epsilon = tensor(1e-10, dtype=acceptance_prob.dtype)
+        step_size_multiplier = np.power(2.0, a)
+        threshold = np.power(2.0, -a)
+        epsilon = tensor(
+            1e-10, dtype=acceptance_prob.dtype, device=acceptance_prob.device
+        )
 
         for _ in range(self.max_initial_iterations):
             # half or double step size
@@ -137,7 +146,7 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             if torch.pow(acceptance_prob, a) < threshold:
                 # stop if the acceptance probability crosses the threshold
                 break
-        self.step_size = step_size.detach()
+        self.step_size = step_size
 
     def _adapt_step_size(self, node, world, iteration_number):
         """
@@ -151,29 +160,22 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         :param ratio: the ratio that we want to converge
         :param iteration_number: the current iteration of inference
         """
-        iteration_number = tensor(iteration_number, dtype=self.ratio.dtype).detach()
-        closeness_frac = 1 / (iteration_number + self.t)
+        closeness_frac = 1.0 / (iteration_number + self.t)
         self.closeness = ((1 - closeness_frac) * self.closeness) + (
             closeness_frac * (self.optimal_acceptance_prob - self.ratio)
         )
 
         log_step_size = self.mu - (
-            (torch.sqrt(iteration_number) / self.gamma) * self.closeness
+            (np.sqrt(iteration_number) / self.gamma) * self.closeness
         )
 
-        step_frac = torch.pow(iteration_number, -self.kappa)
+        step_frac = np.power(iteration_number, -self.kappa)
         log_best_step_size = (step_frac * log_step_size) + (
-            (1 - step_frac) * torch.log(self.best_step_size)
+            (1 - step_frac) * np.log(self.best_step_size)
         )
 
-        self.step_size = torch.exp(log_step_size)
-        self.best_step_size = torch.exp(log_best_step_size)
-
-        self.step_size = self.step_size.detach()
-        self.best_step_size = self.best_step_size.detach()
-        self.ratio = self.ratio.detach()
-        self.closeness = self.closeness.detach()
-        self.mu = self.mu.detach()
+        self.step_size = np.exp(log_step_size)
+        self.best_step_size = np.exp(log_best_step_size)
 
     def _adapt_mass_matrix(self, node: RVIdentifier, world: World, iteration: int):
         """
@@ -274,9 +276,8 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
 
         if not self.initialized:
             self._find_reasonable_step_size(node, world)
-            self.mu = torch.log(10 * self.step_size)
-            self.mu = self.mu.detach()
-            self.best_step_size = tensor(1.0, dtype=acceptance_probability.dtype)
+            self.mu = np.log(10 * self.step_size)
+            self.best_step_size = 1.0
             self.initialized = True
 
         self._adapt_step_size(node, world, iteration_number)
@@ -363,7 +364,9 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         if self.use_dense_mass_matrix:
             r_vector = torch.reshape(r, (-1,))
             if self.covariance is None:
-                self.covariance = torch.eye(len(r_vector), dtype=theta.dtype)
+                self.covariance = torch.eye(
+                    len(r_vector), dtype=theta.dtype, device=theta.device
+                )
                 self.covariance = self.covariance.detach()
             r_scaled = torch.reshape(torch.matmul(self.covariance, r_vector), r.shape)
         else:
@@ -408,7 +411,9 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
 
         n1 = (u <= dH).to(dtype=theta1.dtype)
         s1 = (u < self.delta_max + dH).to(dtype=theta1.dtype)
-        accept_ratio = torch.min(tensor(1.0, dtype=theta1.dtype), torch.exp(dH))
+        accept_ratio = torch.min(
+            tensor(1.0, dtype=theta1.dtype, device=theta1.device), torch.exp(dH)
+        )
         return (
             theta1,
             r1,
@@ -437,7 +442,7 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
             subtree_output = self._build_tree(node, world, subtree_input)
             theta_n, r_n, theta_p, r_p, theta1, n1, s1, a1, na1 = subtree_output
 
-            if torch.eq(s1, tensor(1.0, dtype=s1.dtype)):
+            if torch.eq(s1, tensor(1.0, dtype=s1.dtype, device=s1.device)):
                 if v < 0:
                     neg_output = self._build_tree(
                         node, world, (theta_n, r_n, u, v, j - 1, theta0, r0)
@@ -451,20 +456,25 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
 
                 # sometimes n1 + n2 is 0
                 change_val = dist.Bernoulli(
-                    n2 / torch.max(n1 + n2, tensor(1.0, dtype=theta.dtype))
+                    n2
+                    / torch.max(
+                        n1 + n2, tensor(1.0, dtype=theta.dtype, device=theta.device)
+                    )
                 ).sample()
                 if change_val:
                     theta1 = theta2
                 a1 = a1 + a2
                 na1 = na1 + na2
 
-                if torch.ne(s2, tensor(1.0, dtype=s2.dtype)):
+                if torch.ne(s2, tensor(1.0, dtype=s2.dtype, device=s2.device)):
                     s1 = s2
                 else:
                     if self.use_dense_mass_matrix:
                         p_vector = torch.reshape(theta_p, (-1,))
                         if self.l_inv is None:
-                            self.l_inv = torch.eye(len(p_vector), dtype=theta.dtype)
+                            self.l_inv = torch.eye(
+                                len(p_vector), dtype=theta.dtype, device=theta.device
+                            )
                         transformed_p = torch.reshape(
                             torch.matmul(self.l_inv, p_vector), theta_p.shape
                         )
@@ -491,17 +501,21 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         if self.use_dense_mass_matrix:
             # initialize momentum
             if self.covariance is None:
-                self.covariance = torch.eye(len(theta.reshape(-1)), dtype=theta.dtype)
+                self.covariance = torch.eye(
+                    len(theta.reshape(-1)), dtype=theta.dtype, device=theta.device
+                )
             r = (
                 dist.MultivariateNormal(
-                    torch.zeros(len(theta.reshape(-1)), dtype=theta.dtype),
+                    torch.zeros(
+                        len(theta.reshape(-1)), dtype=theta.dtype, device=theta.device
+                    ),
                     precision_matrix=self.covariance,
                 )
                 .sample()
                 .reshape(theta.shape)
             )
         else:
-            r = torch.randn(theta.shape, dtype=theta.dtype)
+            r = torch.randn(theta.shape, dtype=theta.dtype, device=theta.device)
         return r
 
     def propose(self, node: RVIdentifier, world: World) -> Tuple[Tensor, Tensor, Dict]:
@@ -520,12 +534,16 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
 
         if not self.initialized:
             self._find_reasonable_step_size(node, world)
-            self.mu = torch.log(10 * self.step_size)
-            self.best_step_size = tensor(1.0, dtype=theta.dtype)
+            self.mu = np.log(10 * self.step_size)
+            self.best_step_size = 1.0
             self.initialized = True
         r = self._initialize_momentum(theta)
 
-        u = dist.Uniform(tensor(0.0, dtype=theta.dtype), 1.0).sample().log()
+        u = (
+            dist.Uniform(tensor(0.0, dtype=theta.dtype, device=theta.device), 1.0)
+            .sample()
+            .log()
+        )
 
         theta_n = theta
         theta_p = theta
@@ -536,7 +554,11 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
         s = tensor(1.0, dtype=theta.dtype)
 
         for j in range(self.max_depth):
-            v = (dist.Bernoulli(tensor(0.5, dtype=theta.dtype)).sample()) * 2 - 1
+            v = (
+                dist.Bernoulli(
+                    tensor(0.5, dtype=theta.dtype, device=theta.device)
+                ).sample()
+            ) * 2 - 1
             if v < 0:
                 build_tree_output = self._build_tree(
                     node, world, (theta_n, r_n, u, v, j, theta, r)
@@ -550,19 +572,23 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
 
             if torch.eq(s1, tensor(1.0, dtype=theta.dtype)):
                 change_val = dist.Bernoulli(
-                    torch.min(tensor(1.0, dtype=theta.dtype), n1 / n)
+                    torch.min(
+                        tensor(1.0, dtype=theta.dtype, device=theta.device), n1 / n
+                    )
                 ).sample()
                 if change_val:
                     theta_propose = theta1
             n = n + n1
 
-            if torch.ne(s1, tensor(1.0, dtype=s1.dtype)):
+            if torch.ne(s1, tensor(1.0, dtype=s1.dtype, device=s1.device)):
                 s = s1
             else:
                 if self.use_dense_mass_matrix:
                     p_vector = torch.reshape(theta_p, (-1,))
                     if self.l_inv is None:
-                        self.l_inv = torch.eye(len(p_vector), dtype=theta.dtype)
+                        self.l_inv = torch.eye(
+                            len(p_vector), dtype=theta.dtype, device=theta.device
+                        )
                     transformed_p = torch.reshape(
                         torch.matmul(self.l_inv, p_vector), theta_p.shape
                     )
@@ -578,11 +604,11 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
                 turn_p = ((transformed_p - transformed_n) * r_p).sum() >= 0
                 s = turn_n * turn_p
 
-            if torch.ne(s, tensor(1.0, dtype=s.dtype)):
+            if torch.ne(s, tensor(1.0, dtype=s.dtype, device=s.device)):
                 break
 
         # need this for adaptive step (sometimes na is 0)
-        self.ratio = a / torch.max(na, tensor(1.0, dtype=na.dtype))
+        self.ratio = a.item() / max(na.item(), 1.0)
 
         q = node_var.inverse_transform_value(theta_propose)
         (children_log_update, _, node_log_update, _) = world.propose_change(
