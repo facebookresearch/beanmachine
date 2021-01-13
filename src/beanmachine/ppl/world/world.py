@@ -2,8 +2,11 @@
 import contextvars
 import copy
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
+from beanmachine.ppl.experimental.vi.variational_approximation import (
+    VariationalApproximation,
+)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.utils.dotbuilder import print_graph
@@ -11,7 +14,7 @@ from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
 from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
 from beanmachine.ppl.world.world_vars import WorldVars
-from torch import Tensor, tensor
+from torch import Size, Tensor, tensor
 
 
 world_context = contextvars.ContextVar("beanmachine.ppl.world", default=None)
@@ -79,6 +82,8 @@ class World(object):
      }
     )
     """
+
+    vi_dicts: Optional[Callable[[RVIdentifier], VariationalApproximation]]
 
     def __init__(self):
         self.variables_ = WorldVars()
@@ -737,9 +742,13 @@ class World(object):
         obs_value = self.observations_[node] if node in self.observations_ else None
 
         value = None
-        if self.vi_dicts and not obs_value:
-            # resample latents from q
-            value = self.vi_dicts[node].rsample((1,))
+        # resample latents from q
+        if obs_value is None:
+            # TODO: messy, consider strategy pattern
+            if self.vi_dicts is not None:
+                # mean-field VI
+                variational_approx = self.vi_dicts(node)  # pyre-ignore[29]
+                value = variational_approx.rsample(Size((1,))).squeeze()
 
         node_var.update_fields(
             value,

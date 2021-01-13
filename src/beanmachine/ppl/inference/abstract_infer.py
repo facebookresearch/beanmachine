@@ -3,10 +3,13 @@ import logging
 import random
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import ClassVar, Dict, List
+from typing import Callable, ClassVar, Dict, List, Optional
 
 import torch
 import torch.multiprocessing as mp
+from beanmachine.ppl.experimental.vi.variational_approximation import (
+    VariationalApproximation,
+)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
 from torch import Tensor
@@ -85,7 +88,11 @@ class AbstractInference(object, metaclass=ABCMeta):
         torch.manual_seed(seed)
         random.seed(seed)
 
-    def initialize_world(self, initialize_from_prior: bool = False, vi_dicts=None):
+    def initialize_world(
+        self,
+        initialize_from_prior: bool = False,
+        vi_dicts: Optional[Callable[[RVIdentifier], VariationalApproximation]] = None,
+    ):
         """
         Initializes the world variables with queries and observation calls.
 

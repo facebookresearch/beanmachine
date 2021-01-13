@@ -45,7 +45,7 @@ if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
 
 
 # get version string from module
-current_dir = os.path.dirname(__file__)
+current_dir = os.path.dirname(os.path.abspath(__file__))
 init_file = os.path.join(current_dir, "src", "beanmachine", "__init__.py")
 version_regexp = r"__version__ = ['\"]([^'\"]*)['\"]"
 with open(init_file, "r") as f:
@@ -65,6 +65,7 @@ if "CONDA_PREFIX" in os.environ:
 
 if sys.platform.startswith("linux"):
     INCLUDE_DIRS.extend(["/usr/include", "/usr/include/eigen3"])
+    INCLUDE_DIRS.extend(["/usr/include/x86_64-linux-gnu"])
 
 setup(
     name="beanmachine",
@@ -108,6 +109,7 @@ setup(
         "black>=19.3b0",
         "gpytorch>=1.3.0",
         "botorch>=0.3.3",
+        "flowtorch>=0.0.dev1",
     ],
     packages=find_packages("src/"),
     package_dir={"": "src"},
