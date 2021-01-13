@@ -18,6 +18,7 @@ class RealSupportDist(dist.Distribution):
     has_enumerate_support = False
     support = dist.constraints.real
     has_rsample = True
+    arg_constraints = {}
 
     # Ancestral sampling will only return zero.
     def rsample(self, sample_shape):
@@ -34,6 +35,7 @@ class HalfRealSupportDist(dist.Distribution):
     has_enumerate_support = False
     support = dist.constraints.greater_than(lower_bound=0.0)
     has_rsample = True
+    arg_constraints = {}
 
     # Ancestral sampling will only return one.
     def rsample(self, sample_shape):
@@ -50,6 +52,7 @@ class IntervalRealSupportDist(dist.Distribution):
     has_enumerate_support = False
     support = dist.constraints.interval(lower_bound=2.0, upper_bound=20.0)
     has_rsample = True
+    arg_constraints = {}
 
     # Ancestral sampling will only return zero.
     def rsample(self, sample_shape):
@@ -66,6 +69,7 @@ class IntegerSupportDist(dist.Distribution):
     has_enumerate_support = False
     support = dist.constraints.integer_interval(0.0, 100.0)
     has_rsample = True
+    arg_constraints = {}
 
     # Ancestral sampling will only return zero.
     def rsample(self, sample_shape):

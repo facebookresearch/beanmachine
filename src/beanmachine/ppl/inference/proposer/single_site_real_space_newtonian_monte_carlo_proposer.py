@@ -150,6 +150,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
                 node_val_reshaped
                 + distance * frac_dist.to(dtype=node_val_reshaped.dtype)
             ).squeeze(0)
+            # TODO(@yucenli): set scale_tril to be lower triangular
             _proposer = dist.MultivariateNormal(mean, scale_tril=L_inv)
             _arguments["scale_tril"] = L_inv
         except numpy.linalg.LinAlgError:
