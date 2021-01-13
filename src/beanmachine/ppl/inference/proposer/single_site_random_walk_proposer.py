@@ -185,7 +185,9 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         :returns: returns the Beta distribution given mu and sigma.
         """
         beta = expectation / (sigma ** 2)
+        beta = torch.clamp(beta, min=1e-3)
         alpha = expectation * beta
+        alpha = torch.clamp(alpha, min=1e-3)
         distribution = dist.Gamma(concentration=alpha, rate=beta)
         return distribution
 
@@ -198,12 +200,13 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         :returns: returns the Beta distribution given mu and sigma.
         """
         mu = torch.clamp(mu, 1e-3, 1 - 1e-3)
+        sigma = torch.clamp(sigma, 0, (mu * (1 - mu)).min().item())
         """
         https://stats.stackexchange.com/questions/12232/calculating-the-
         parameters-of-a-beta-distribution-using-the-mean-and-variance
         """
         alpha = ((1.0 - mu) / (sigma ** 2) - (1.0 / mu)) * (mu ** 2)
-        beta = alpha * (1.0 - mu) / mu
+        beta = alpha * (1.0 / mu - 1.0)
         distribution = dist.Beta(concentration1=alpha, concentration0=beta)
         return distribution
 
