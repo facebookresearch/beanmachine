@@ -75,6 +75,13 @@ Compute log of the sum of the exponentiation of all the values in the vector
 :returns: log sum exp of values
 */
 double log_sum_exp(const std::vector<double>& values);
+double log_sum_exp(double a, double b);
+
+struct BinaryLogSumExp {
+  double operator()(double a, double b) const {
+    return log_sum_exp(a, b);
+  }
+};
 
 /*
 Compute the polygamma function. Note n=0 is the digamma function.
