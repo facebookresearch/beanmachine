@@ -72,6 +72,16 @@ double Normal::log_prob(const NodeValue& value) const {
   return result;
 }
 
+void Normal::log_prob_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& log_probs) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double m = in_nodes[0]->value._double;
+  double s = in_nodes[1]->value._double;
+  log_probs = (-std::log(s) - 0.5 * std::log(2 * M_PI)) -
+      0.5 * (value._matrix.array() - m).pow(2) / (s * s);
+}
+
 void Normal::_grad1_log_prob_value(
     double& grad1,
     double val,
@@ -135,13 +145,24 @@ void Normal::backward_value(
 
 void Normal::backward_value_iid(
     const graph::NodeValue& value,
-    graph::DoubleMatrix& back_grad,
-    double adjunct) const {
+    graph::DoubleMatrix& back_grad) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  back_grad._matrix -= ((value._matrix.array() - m) / s_sq * adjunct).matrix();
+  back_grad._matrix -= ((value._matrix.array() - m) / s_sq).matrix();
+}
+
+void Normal::backward_value_iid(
+    const graph::NodeValue& value,
+    graph::DoubleMatrix& back_grad,
+    Eigen::MatrixXd& adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double m = in_nodes[0]->value._double;
+  double s = in_nodes[1]->value._double;
+  double s_sq = s * s;
+  back_grad._matrix -=
+      (adjunct.array() * (value._matrix.array() - m) / s_sq).matrix();
 }
 
 void Normal::backward_param(const graph::NodeValue& value, double adjunct)
@@ -161,8 +182,7 @@ void Normal::backward_param(const graph::NodeValue& value, double adjunct)
   }
 }
 
-void Normal::backward_param_iid(const graph::NodeValue& value, double adjunct)
-    const {
+void Normal::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
@@ -171,13 +191,33 @@ void Normal::backward_param_iid(const graph::NodeValue& value, double adjunct)
   int size = value._matrix.size();
   double sum_x = value._matrix.sum();
   if (in_nodes[0]->needs_gradient()) {
-    in_nodes[0]->back_grad1._double +=
-        adjunct * (sum_x / s_sq - size * m / s_sq);
+    in_nodes[0]->back_grad1._double += sum_x / s_sq - size * m / s_sq;
   }
   if (in_nodes[1]->needs_gradient()) {
     double sum_xsq = value._matrix.squaredNorm();
-    in_nodes[1]->back_grad1._double += adjunct *
+    in_nodes[1]->back_grad1._double +=
         (-size / s + (sum_xsq - 2 * m * sum_x + m * m * size) / (s * s_sq));
+  }
+}
+
+void Normal::backward_param_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double m = in_nodes[0]->value._double;
+  double s = in_nodes[1]->value._double;
+  double s_sq = s * s;
+
+  double sum_x = (value._matrix.array() * adjunct.array()).sum();
+  double sum_adjunct = adjunct.sum();
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1._double += sum_x / s_sq - sum_adjunct * m / s_sq;
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    double sum_xsq = (value._matrix.array().pow(2) * adjunct.array()).sum();
+    in_nodes[1]->back_grad1._double +=
+        (-sum_adjunct / s +
+         (sum_xsq - 2 * m * sum_x + m * m * sum_adjunct) / (s * s_sq));
   }
 }
 
