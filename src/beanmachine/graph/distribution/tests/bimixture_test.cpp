@@ -95,6 +95,12 @@ TEST(testdistrib, bimixture) {
   g1.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, -0.3359, 0.001);
   EXPECT_NEAR(grad2, -0.1314, 0.001);
+  // test backward_value
+  std::vector<DoubleMatrix*> grad;
+  g1.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 1);
+  EXPECT_NEAR(grad[0]->_double, -0.3359, 1e-3);
+
   // test gradients of the parameters
   // a ~ FLAT(REAL), b ~ FLAT(REAL), c ~ FLAT(POS_REAL)
   // p = LOGISTIC(a)
@@ -133,9 +139,11 @@ TEST(testdistrib, bimixture) {
   const std::vector<double>& ymean = g2.infer_mean(10, InferenceType::NMC);
   EXPECT_NEAR(ymean[0], 2.0, 2.0);
   g2.observe(y, 4.0);
+  EXPECT_NEAR(g2.full_log_prob(), -1.9408, 1e-3);
   // a = torch.tensor(-1.5, requires_grad=True)
   // b = torch.tensor(1.8, requires_grad=True)
   // c = torch.tensor(1.5, requires_grad=True)
+  // x = torch.tensor(4.0, requires_grad=True)
   // d1 = torch.distributions.Normal(tensor(0.0), c**2)
   // d2 = torch.distributions.Normal(b**2, c**2)
   // f1 = d1.log_prob(x).exp()
@@ -172,4 +180,6 @@ TEST(testdistrib, bimixture) {
   g2.gradient_log_prob(c, grad1, grad2);
   EXPECT_NEAR(grad1, -0.9928, 0.001);
   EXPECT_NEAR(grad2, 0.4835, 0.001);
+
+  // tests for backward methods shall be added to each distribution type
 }
