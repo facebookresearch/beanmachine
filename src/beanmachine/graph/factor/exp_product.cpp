@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "beanmachine/graph/factor/exp_product.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace factor {
@@ -55,6 +56,34 @@ void ExpProduct::gradient_log_prob(double& grad1, double& grad2) const {
   }
   grad1 += running_prod_1grad;
   grad2 += running_prod_2grad;
+}
+
+// In backward mode, we add the dlog_prob(x1,...,xk)/dxi to each parent xi
+// for ExpProduct, dlog_prob(x1,...,xk)/dxi = prod{xj} for all j!=i.
+void ExpProduct::backward() {
+  std::vector<graph::Node*> zeros;
+  double non_zero_prod = 1.0;
+  for (const auto node : in_nodes) {
+    if (util::approx_zero(node->value._double)) {
+      zeros.push_back(node);
+    } else {
+      non_zero_prod *= node->value._double;
+    }
+  }
+  if (zeros.size() == 1 and zeros.front()->needs_gradient()) {
+    // if there is only one zero, only its backgrad needs update
+    zeros.front()->back_grad1._double += non_zero_prod;
+    return;
+  } else if (zeros.size() > 1) {
+    // if multiple zeros, all grad increments are zero, no need to update
+    return;
+  }
+
+  for (const auto node : in_nodes) {
+    if (node->needs_gradient()) {
+      node->back_grad1._double += non_zero_prod / node->value._double;
+    }
+  }
 }
 
 } // namespace factor
