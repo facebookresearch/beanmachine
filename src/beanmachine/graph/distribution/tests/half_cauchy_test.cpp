@@ -128,4 +128,58 @@ TEST(testdistrib, half_cauchy) {
   EXPECT_NEAR(grad[1]->_matrix.coeff(1), -0.8219, 1e-3);
   EXPECT_NEAR(grad[1]->_matrix.coeff(2), -0.5882, 1e-3);
   EXPECT_NEAR(grad[1]->_matrix.coeff(3), -1.0000, 1e-3);
+
+  // mixture of half_cauchy
+  Graph g3;
+  auto size = g3.add_constant((natural_t)2);
+  auto flat_pos = g3.add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto flat_prob = g3.add_distribution(
+      DistributionType::FLAT, AtomicType::PROBABILITY, std::vector<uint>{});
+  auto s1 = g3.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto s2 = g3.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto d1 = g3.add_distribution(
+      DistributionType::HALF_CAUCHY,
+      AtomicType::POS_REAL,
+      std::vector<uint>{s1});
+  auto d2 = g3.add_distribution(
+      DistributionType::HALF_CAUCHY,
+      AtomicType::POS_REAL,
+      std::vector<uint>{s2});
+  auto p = g3.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_prob});
+  auto dist = g3.add_distribution(
+      DistributionType::BIMIXTURE,
+      AtomicType::POS_REAL,
+      std::vector<uint>{p, d1, d2});
+  auto x_ = g3.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist});
+  auto xiid =
+      g3.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist, size});
+  g3.observe(s1, 1.1);
+  g3.observe(s2, 4.3);
+  g3.observe(p, 0.65);
+  g3.observe(x_, 3.5);
+  Eigen::MatrixXd xobs(2, 1);
+  xobs << 0.5, 1.5;
+  g3.observe(xiid, xobs);
+  // To verify the results with pyTorch:
+  // s1 = torch.tensor(1.1, requires_grad=True)
+  // s2 = torch.tensor(4.3, requires_grad=True)
+  // p = torch.tensor(0.65, requires_grad=True)
+  // x = torch.tensor([3.5, 0.5, 1.5], requires_grad=True)
+  // d1 = torch.distributions.HalfCauchy(s1)
+  // d2 = torch.distributions.HalfCauchy(s2)
+  // f1 = d1.log_prob(x).exp()
+  // f2 = d2.log_prob(x).exp()
+  // log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
+  // torch.autograd.grad(log_p, x)[0]
+  EXPECT_NEAR(g3.full_log_prob(), -5.4746, 1e-3);
+  std::vector<DoubleMatrix*> back_grad;
+  g3.eval_and_grad(back_grad);
+  EXPECT_EQ(back_grad.size(), 5);
+  EXPECT_NEAR(back_grad[0]->_double, 0.0767, 1e-3); // s1
+  EXPECT_NEAR(back_grad[1]->_double, -0.1019, 1e-3); // s2
+  EXPECT_NEAR(back_grad[2]->_double, 0.7455, 1e-3); // p
+  EXPECT_NEAR(back_grad[3]->_double, -0.3798, 1e-3); // x_
+  EXPECT_NEAR(back_grad[4]->_matrix.coeff(0), -0.5960, 1e-3); // xiid
+  EXPECT_NEAR(back_grad[4]->_matrix.coeff(1), -0.6793, 1e-3);
 }
