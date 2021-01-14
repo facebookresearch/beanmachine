@@ -13,8 +13,8 @@
 namespace beanmachine {
 namespace graph {
 
-void Graph::nmc(uint num_samples, std::mt19937& gen) {
-  Graph::_mh(num_samples, gen, proposer::nmc_proposer);
+void Graph::rw(uint num_samples, std::mt19937& gen) {
+  Graph::_mh(num_samples, gen, proposer::rw_proposer);
 }
 } // namespace graph
 } // namespace beanmachine

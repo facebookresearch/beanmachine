@@ -6,7 +6,7 @@ import numpy as np
 from beanmachine import graph
 
 
-class TestNMC(unittest.TestCase):
+class TestMH(unittest.TestCase):
     # see https://www.jstatsoft.org/article/view/v012i03/v12i03.pdf
     def test_eight_schools(self):
         # For each school, the average treatment effect and the standard deviation

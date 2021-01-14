@@ -19,6 +19,9 @@ typedef Matrix<NATURAL_TYPE, Dynamic, Dynamic> MatrixXn;
 } // namespace Eigen
 
 namespace beanmachine {
+namespace proposer {
+class Proposer;
+} // namespace proposer
 namespace graph {
 
 const double PRECISION = 1e-10; // minimum precision of values
@@ -328,7 +331,7 @@ enum class NodeType {
   MAX
 };
 
-enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC };
+enum class InferenceType { UNKNOWN = 0, REJECTION = 1, GIBBS, NMC, RW };
 
 enum class AggregationType { UNKNOWN = 0, NONE = 1, MEAN };
 
@@ -484,7 +487,7 @@ struct Graph {
 
   :param num_samples: The number of the MCMC samples.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-                    GIBBS, and NMC.
+                    GIBBS, NMC, and RW.
   :param seed: The seed provided to the random number generator.
   :returns: The posterior samples.
   */
@@ -496,7 +499,7 @@ struct Graph {
 
   :param num_samples: The number of the MCMC samples of each chain.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-                    GIBBS, and NMC.
+                    GIBBS, NMC, and RW.
   :param seed: The seed provided to the random number generator of the first
                chain.
   :param n_chains: The number of MCMC chains.
@@ -513,8 +516,8 @@ struct Graph {
   Make point estimates of the posterior means from a single MCMC chain.
   :param num_samples: The number of the MCMC samples.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-  GIBBS, and NMC. :param seed: The seed provided to the random number generator.
-  :returns: The posterior means.
+  GIBBS, NMC, and RW. :param seed: The seed provided to the random number
+  generator. :returns: The posterior means.
   */
   std::vector<double>&
   infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
@@ -523,7 +526,7 @@ struct Graph {
 
   :param num_samples: The number of the MCMC samples of each chain.
   :param algorithm: The sampling algorithm, currently supporting REJECTION,
-                    GIBBS, and NMC.
+                    GIBBS, NMC, and RW.
   :param seed: The seed provided to the random number generator of the first
                chain.
   :param n_chains: The number of MCMC chains.
@@ -652,7 +655,14 @@ struct Graph {
   void collect_sample();
   void rejection(uint num_samples, std::mt19937& gen);
   void gibbs(uint num_samples, std::mt19937& gen);
+  void _mh(
+      uint num_samples,
+      std::mt19937& gen,
+      std::function<std::unique_ptr<
+          proposer::Proposer>(const graph::NodeValue&, double, double)>
+          proposer);
   void nmc(uint num_samples, std::mt19937& gen);
+  void rw(uint num_samples, std::mt19937& gen);
   void cavi(
       uint num_iters,
       uint steps_per_iter,
@@ -669,6 +679,5 @@ struct Graph {
   std::vector<double> log_prob_vals;
   std::vector<std::vector<double>> log_prob_allchains;
 };
-
 } // namespace graph
 } // namespace beanmachine

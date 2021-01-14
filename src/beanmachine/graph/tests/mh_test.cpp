@@ -6,42 +6,45 @@
 
 using namespace beanmachine::graph;
 
-TEST(testnmc, beta_binomial) {
-  Graph g;
-  uint a = g.add_constant_pos_real(5.0);
-  uint b = g.add_constant_pos_real(3.0);
-  uint n = g.add_constant((natural_t)10);
-  uint beta = g.add_distribution(
-      DistributionType::BETA,
-      AtomicType::PROBABILITY,
-      std::vector<uint>({a, b}));
-  uint prob = g.add_operator(OperatorType::SAMPLE, std::vector<uint>({beta}));
-  uint binomial = g.add_distribution(
-      DistributionType::BINOMIAL,
-      AtomicType::NATURAL,
-      std::vector<uint>({n, prob}));
-  uint k = g.add_operator(OperatorType::SAMPLE, std::vector<uint>({binomial}));
-  g.observe(k, (natural_t)8);
-  g.query(prob);
-  // Note: the posterior is p ~ Beta(13, 5).
-  int num_samples = 10000;
-  std::vector<std::vector<NodeValue>> samples =
-      g.infer(num_samples, InferenceType::NMC);
-  double sum = 0;
-  double sumsq = 0;
-  for (const auto& sample : samples) {
-    const auto& s = sample.front();
-    ASSERT_EQ(s.type, AtomicType::PROBABILITY);
-    sum += s._double;
-    sumsq += s._double * s._double;
+TEST(testmh, beta_binomial) {
+  for (const auto& algorithm : {InferenceType::NMC, InferenceType::RW}) {
+    Graph g;
+    uint a = g.add_constant_pos_real(5.0);
+    uint b = g.add_constant_pos_real(3.0);
+    uint n = g.add_constant((natural_t)10);
+    uint beta = g.add_distribution(
+        DistributionType::BETA,
+        AtomicType::PROBABILITY,
+        std::vector<uint>({a, b}));
+    uint prob = g.add_operator(OperatorType::SAMPLE, std::vector<uint>({beta}));
+    uint binomial = g.add_distribution(
+        DistributionType::BINOMIAL,
+        AtomicType::NATURAL,
+        std::vector<uint>({n, prob}));
+    uint k =
+        g.add_operator(OperatorType::SAMPLE, std::vector<uint>({binomial}));
+    g.observe(k, (natural_t)8);
+    g.query(prob);
+    // Note: the posterior is p ~ Beta(13, 5).
+    int num_samples = 10000;
+    std::vector<std::vector<NodeValue>> samples =
+        g.infer(num_samples, InferenceType::RW);
+    double sum = 0;
+    double sumsq = 0;
+    for (const auto& sample : samples) {
+      const auto& s = sample.front();
+      ASSERT_EQ(s.type, AtomicType::PROBABILITY);
+      sum += s._double;
+      sumsq += s._double * s._double;
+    }
+    double mean = sum / num_samples;
+    double var = sumsq / num_samples - mean * mean;
+    EXPECT_NEAR(mean, 13.0 / 18.0, 1e-1);
+    EXPECT_NEAR(var, 13.0 * 5.0 / (18.0 * 18.0 * 19.0), 1e-1);
   }
-  double mean = sum / num_samples;
-  double var = sumsq / num_samples - mean * mean;
-  EXPECT_NEAR(mean, 13.0 / 18.0, 1e-2);
-  EXPECT_NEAR(var, 13.0 * 5.0 / (18.0 * 18.0 * 19.0), 1e-3);
 }
 
-TEST(testnmc, net_norad) {
+TEST(testmh, net_norad) {
   // The NetNORAD model is as follows:
   // We have a number of components s.t. the i th one has a drop rate drop_i
   // We observe packets sent on multiple paths criss-crossing these components
@@ -97,7 +100,7 @@ TEST(testnmc, net_norad) {
   EXPECT_LT(10 * means[1], means[2]);
 }
 
-TEST(testnmc, normal_normal) {
+TEST(testmh, normal_normal) {
   Graph g;
   auto mean0 = g.add_constant(0.0);
   auto sigma0 = g.add_constant_pos_real(5.0);
@@ -120,7 +123,7 @@ TEST(testnmc, normal_normal) {
   EXPECT_NEAR(means[1] - means[0] * means[0], 20, 1.0);
 }
 
-TEST(testnmc, flat_normal) {
+TEST(testmh, flat_normal) {
   // This test learns both the mean and standard deviation
   Graph g;
   auto mean_prior = g.add_distribution(
@@ -160,7 +163,7 @@ TEST(testnmc, flat_normal) {
   EXPECT_NEAR(post_means[1], std::sqrt(emp_var), 1.0);
 }
 
-TEST(testnmc, gmm_two_components) {
+TEST(testmh, gmm_two_components) {
   // Test two component Gaussian Mixture Model
   // tau ~ Beta(1, 1)
   // mu_{false|true} ~ Normal(0, 100)
@@ -212,7 +215,7 @@ TEST(testnmc, gmm_two_components) {
   EXPECT_NEAR(post_means[2], 9.5, 0.1);
 }
 
-TEST(testnmc, infinite_grad) {
+TEST(testmh, infinite_grad) {
   /*
   This is a manual construction of a modified version of the BMA++ model.
   In practice, this model structure is not used, but it could produce

@@ -25,7 +25,7 @@ class Proposer {
 };
 
 /*
-Return a unique pointer to a Proposer object.
+Return a unique pointer to a NMC Proposer object.
 :param value: The current value.
 :param grad1: First gradient.
 :param grad2: Second gradient.
@@ -33,6 +33,16 @@ Return a unique pointer to a Proposer object.
 */
 std::unique_ptr<Proposer>
 nmc_proposer(const graph::NodeValue& value, double grad1, double grad2);
+
+/*
+Return a unique pointer to a RW Proposer object.
+:param value: The current value.
+:param grad1: First gradient.
+:param grad2: Second gradient.
+:returns: A proposer object pointer.
+*/
+std::unique_ptr<Proposer>
+rw_proposer(const graph::NodeValue& value, double grad1, double grad2);
 
 /*
 Returns a value for the specified type uniformly at random.

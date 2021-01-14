@@ -780,6 +780,8 @@ void Graph::_infer(uint num_samples, InferenceType algorithm, uint seed) {
     gibbs(num_samples, generator);
   } else if (algorithm == InferenceType::NMC) {
     nmc(num_samples, generator);
+  } else if (algorithm == InferenceType::RW) {
+    rw(num_samples, generator);
   }
 }
 
