@@ -326,7 +326,7 @@ void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
   grad1.clear();
   for (auto it = supp.rbegin(); it != supp.rend(); ++it) {
     Node* node = nodes[*it].get();
-    if (node->is_stochastic()) {
+    if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
       sto_node->_backward(false);
       grad1.push_back(&node->back_grad1);
