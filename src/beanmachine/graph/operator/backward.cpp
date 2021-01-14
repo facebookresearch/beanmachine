@@ -44,6 +44,36 @@ double ExpM1::jacobian() const {
   return value._double + 1.0;
 }
 
+// 1st grad is the Normal(0, 1) pdf
+// g'(x) = 1/sqrt(2 pi) exp(-0.5 x^2)
+double Phi::jacobian() const {
+  double x = in_nodes[0]->value._double;
+  return M_SQRT1_2 * (M_2_SQRTPI / 2) * std::exp(-0.5 * x * x);
+}
+
+// g(x) = 1 / (1 + exp(-x))
+// g'(x) = exp(-x) / (1 + exp(-x))^2 = g(x) * (1 - g(x))
+double Logistic::jacobian() const {
+  return value._double * (1 - value._double);
+}
+
+// g(x) = log (1 + exp(x))
+// g'(x) = exp(x) / (1 + exp(x)) = 1 - exp(-g)
+double Log1pExp::jacobian() const {
+  return 1.0 - std::exp(-value._double);
+}
+
+// g(x) = log (1 - exp(x))
+// g'(x) = -exp(x) / (1 - exp(x)) = 1 - exp(-g)
+double Log1mExp::jacobian() const {
+  return 1.0 - std::exp(-value._double);
+}
+
+// g'(x) = 1 / x
+double Log::jacobian() const {
+  return 1.0 / in_nodes[0]->value._double;
+}
+
 // dg(x1,...xn)/dxi = 1
 void Add::backward() {
   for (const auto node : in_nodes) {
