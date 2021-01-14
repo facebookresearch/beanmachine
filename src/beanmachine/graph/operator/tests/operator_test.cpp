@@ -164,6 +164,10 @@ TEST(testoperator, phi) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, 0.6458, 1e-3);
   EXPECT_NEAR(grad2, 0.7131, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR(grad[0]->_double, 0.6458, 1e-3);
 }
 
 TEST(testoperator, logistic) {
@@ -210,6 +214,10 @@ TEST(testoperator, logistic) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, 0.4378, 1e-3);
   EXPECT_NEAR(grad2, 0.6295, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR(grad[0]->_double, 0.4378, 1e-3);
 }
 
 TEST(testoperator, if_then_else) {
@@ -315,6 +323,10 @@ TEST(testoperator, log1pexp) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, -0.4643, 1e-3);
   EXPECT_NEAR(grad2, -1.4480, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR(grad[0]->_double, -0.4643, 1e-3);
 }
 
 TEST(testoperator, log1mexp) {
@@ -371,6 +383,10 @@ TEST(testoperator, log1mexp) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, 5.3118, 1e-3);
   EXPECT_NEAR(grad2, -25.7862, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR(grad[0]->_double, 5.3118, 1e-3);
 }
 
 TEST(testoperator, logsumexp) {
@@ -489,6 +505,10 @@ TEST(testoperator, log) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, 5.5452, 1e-3);
   EXPECT_NEAR(grad2, -27.0904, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 2);
+  EXPECT_NEAR(grad[0]->_double, 5.5452, 1e-3);
 }
 
 TEST(testoperator, pow) {
