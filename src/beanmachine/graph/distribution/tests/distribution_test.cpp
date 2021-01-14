@@ -45,6 +45,95 @@ TEST(testdistrib, bernoulli) {
       distribution::Bernoulli(
           graph::AtomicType::BOOLEAN, std::vector<graph::Node*>{&cnode2}),
       std::invalid_argument);
+
+  graph::Graph g;
+  auto two = g.add_constant((graph::natural_t)2);
+  auto flat_dist = g.add_distribution(
+      graph::DistributionType::FLAT,
+      graph::AtomicType::PROBABILITY,
+      std::vector<uint>{});
+  auto prob =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{flat_dist});
+  auto bern_dist = g.add_distribution(
+      graph::DistributionType::BERNOULLI,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{prob});
+  auto y1 =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{bern_dist});
+  auto y2 = g.add_operator(
+      graph::OperatorType::IID_SAMPLE, std::vector<uint>{bern_dist, two, two});
+  g.observe(prob, 0.23);
+  g.observe(y1, false);
+  Eigen::MatrixXb mat(2, 2);
+  mat << true, true, false, true;
+  g.observe(y2, mat);
+  // test log_prob:
+  EXPECT_NEAR(g.full_log_prob(), -4.9318, 1e-3);
+  // test backward_param, backward_param_iid:
+  // to verify results with pyTorch:
+  // x = tensor([0.23], requires_grad=True)
+  // dist_b = dist.Bernoulli(x)
+  // f_x = dist_b.log_prob(True) * 3 + dist_b.log_prob(False) * 2
+  // torch.autograd.grad(f_x, x)
+  std::vector<graph::DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 3);
+  EXPECT_NEAR(grad1[0]->_double, 10.4461, 1e-3);
+
+  // mixture of Bernoulli-Logit
+  graph::Graph g2;
+  auto size = g2.add_constant((graph::natural_t)2);
+  auto flat_prob = g2.add_distribution(
+      graph::DistributionType::FLAT,
+      graph::AtomicType::PROBABILITY,
+      std::vector<uint>{});
+  auto prob1 = g2.add_operator(
+      graph::OperatorType::SAMPLE, std::vector<uint>{flat_prob});
+  auto prob2 = g2.add_operator(
+      graph::OperatorType::SAMPLE, std::vector<uint>{flat_prob});
+  auto d1 = g2.add_distribution(
+      graph::DistributionType::BERNOULLI,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{prob1});
+  auto d2 = g2.add_distribution(
+      graph::DistributionType::BERNOULLI,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{prob2});
+  auto p = g2.add_operator(
+      graph::OperatorType::SAMPLE, std::vector<uint>{flat_prob});
+  auto dist = g2.add_distribution(
+      graph::DistributionType::BIMIXTURE,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{p, d1, d2});
+  auto x =
+      g2.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{dist});
+  auto xiid = g2.add_operator(
+      graph::OperatorType::IID_SAMPLE, std::vector<uint>{dist, size});
+  g2.observe(prob1, 0.2);
+  g2.observe(prob2, 0.7);
+  g2.observe(p, 0.65);
+  g2.observe(x, true);
+  Eigen::MatrixXb xobs(2, 1);
+  xobs << false, true;
+  g2.observe(xiid, xobs);
+  // To verify the results with pyTorch:
+  // p1 = torch.tensor(0.2, requires_grad=True)
+  // p2 = torch.tensor(0.7, requires_grad=True)
+  // p = torch.tensor(0.65, requires_grad=True)
+  // x = torch.tensor([1., 0., 1.])
+  // d1 = torch.distributions.Bernoulli(p1)
+  // d2 = torch.distributions.Bernoulli(p2)
+  // f1 = d1.log_prob(x).exp()
+  // f2 = d2.log_prob(x).exp()
+  // log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
+  // torch.autograd.grad(log_p, p)[0]
+  EXPECT_NEAR(g2.full_log_prob(), -2.4317, 1e-3);
+  std::vector<graph::DoubleMatrix*> back_grad;
+  g2.eval_and_grad(back_grad);
+  EXPECT_EQ(back_grad.size(), 5);
+  EXPECT_NEAR(back_grad[0]->_double, 2.4267, 1e-3); // p1
+  EXPECT_NEAR(back_grad[1]->_double, 1.3067, 1e-3); // p2
+  EXPECT_NEAR(back_grad[2]->_double, -1.8667, 1e-3); // p
 }
 
 TEST(testdistrib, bernoulli_noisy_or) {
