@@ -110,4 +110,55 @@ TEST(testdistrib, bernoulli_logit) {
   g.eval_and_grad(grad);
   EXPECT_EQ(grad.size(), 6);
   EXPECT_NEAR(grad[2]->_double, -12.5259, 1e-3);
+
+  // mixture of Bernoulli-Logit
+  Graph g2;
+  auto size = g2.add_constant((natural_t)2);
+  auto flat_real = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto flat_prob = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::PROBABILITY, std::vector<uint>{});
+  auto l1 = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_real});
+  auto l2 = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_real});
+  auto d1 = g2.add_distribution(
+      DistributionType::BERNOULLI_LOGIT,
+      AtomicType::BOOLEAN,
+      std::vector<uint>{l1});
+  auto d2 = g2.add_distribution(
+      DistributionType::BERNOULLI_LOGIT,
+      AtomicType::BOOLEAN,
+      std::vector<uint>{l2});
+  auto p = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_prob});
+  auto dist = g2.add_distribution(
+      DistributionType::BIMIXTURE,
+      AtomicType::BOOLEAN,
+      std::vector<uint>{p, d1, d2});
+  auto x = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist});
+  auto xiid =
+      g2.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist, size});
+  g2.observe(l1, 1.2);
+  g2.observe(l2, -1.3);
+  g2.observe(p, 0.65);
+  g2.observe(x, true);
+  Eigen::MatrixXb xobs(2, 1);
+  xobs << false, true;
+  g2.observe(xiid, xobs);
+  // To verify the results with pyTorch:
+  // l1 = torch.tensor(1.2, requires_grad=True)
+  // l2 = torch.tensor(-1.3, requires_grad=True)
+  // p = torch.tensor(0.65, requires_grad=True)
+  // x = torch.tensor([1., 0., 1.])
+  // d1 = torch.distributions.Bernoulli(logits=l1)
+  // d2 = torch.distributions.Bernoulli(logits=l2)
+  // f1 = d1.log_prob(x).exp()
+  // f2 = d2.log_prob(x).exp()
+  // log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
+  // torch.autograd.grad(log_p, l1)[0]
+  EXPECT_NEAR(g2.full_log_prob(), -1.9630, 1e-3);
+  std::vector<DoubleMatrix*> back_grad;
+  g2.eval_and_grad(back_grad);
+  EXPECT_EQ(back_grad.size(), 5);
+  EXPECT_NEAR(back_grad[0]->_double, 0.1308, 1e-3); // l1
+  EXPECT_NEAR(back_grad[1]->_double, 0.0666, 1e-3); // l2
+  EXPECT_NEAR(back_grad[2]->_double, 0.6271, 1e-3); // p
 }
