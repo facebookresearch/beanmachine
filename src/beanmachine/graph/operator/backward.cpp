@@ -113,6 +113,34 @@ void Multiply::backward() {
   }
 }
 
+// g(x0, x1) = x0 ^ x1
+// dg/x0 = x1 * x0 ^ (x1 - 1)
+// dg/x1 = g * log(x0)
+void Pow::backward() {
+  assert(in_nodes.size() == 2);
+  double x0 = in_nodes[0]->value._double;
+  double x1 = in_nodes[1]->value._double;
+  if (in_nodes[0]->needs_gradient()) {
+    double jacob =
+        approx_zero(x0) ? x1 * std::pow(x0, x1 - 1) : value._double * x1 / x0;
+    in_nodes[0]->back_grad1._double += back_grad1._double * jacob;
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    double jacob = value._double * std::log(x0);
+    in_nodes[1]->back_grad1._double += back_grad1._double * jacob;
+  }
+}
+
+// dg(x1,...xn)/dxi = exp(xi) / sum_j^n exp(xj) = exp(xi - g)
+void LogSumExp::backward() {
+  for (const auto node : in_nodes) {
+    if (node->needs_gradient()) {
+      node->back_grad1._double +=
+          back_grad1._double * std::exp(node->value._double - value._double);
+    }
+  }
+}
+
 /*
 For C = A @ B, with the backward accumulated gradient for C is Gc,
 the backward propagation to A is Ga += Gc @ B^T and to B is
