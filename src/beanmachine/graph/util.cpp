@@ -72,6 +72,12 @@ double log_sum_exp(const std::vector<double>& values) {
   return std::log(sum) + max;
 }
 
+double log_sum_exp(double a, double b) {
+  double max_val = a > b ? a : b;
+  double sum = std::exp(a - max_val) + std::exp(b - max_val);
+  return std::log(sum) + max_val;
+}
+
 double polygamma(int n, double x) {
   return boost::math::polygamma(n, x);
 }
