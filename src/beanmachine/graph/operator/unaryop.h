@@ -30,6 +30,10 @@ class UnaryOperator : public Operator {
   ~UnaryOperator() override {}
   void eval(std::mt19937& /* gen */) override {}
   void compute_gradients() override {}
+  void backward() override;
+  virtual double jacobian() const {
+    return 1.0;
+  }
 };
 
 class Complement : public UnaryOperator {
@@ -39,6 +43,7 @@ class Complement : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -107,6 +112,7 @@ class Negate : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -124,6 +130,7 @@ class Exp : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -141,6 +148,7 @@ class ExpM1 : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
