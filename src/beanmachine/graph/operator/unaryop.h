@@ -166,6 +166,7 @@ class Phi : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -183,6 +184,7 @@ class Logistic : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -200,6 +202,7 @@ class Log1pExp : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -217,6 +220,7 @@ class Log : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
@@ -234,6 +238,7 @@ class Log1mExp : public UnaryOperator {
 
   void eval(std::mt19937& gen) override;
   void compute_gradients() override;
+  double jacobian() const override;
 
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
