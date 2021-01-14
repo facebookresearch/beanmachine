@@ -12,6 +12,7 @@ class ExpProduct : public Factor {
   ~ExpProduct() override {}
   double log_prob() const override;
   void gradient_log_prob(double& grad1, double& grad2) const override;
+  void backward() override;
 };
 
 } // namespace factor

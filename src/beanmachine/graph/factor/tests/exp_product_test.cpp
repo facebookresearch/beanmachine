@@ -39,4 +39,8 @@ TEST(testfactor, exp_product) {
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, 57.8, 1e-3);
   EXPECT_NEAR(grad2, 16.55, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 1);
+  EXPECT_NEAR(grad[0]->_double, 57.8, 1e-3);
 }
