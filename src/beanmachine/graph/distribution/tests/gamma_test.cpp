@@ -86,12 +86,11 @@ TEST(testdistrib, gamma) {
   g.observe(shape, 3.0);
   auto rate = x;
   auto rate_sq = x_sq;
-  auto y = g.add_operator(
-      OperatorType::SAMPLE,
-      std::vector<uint>{g.add_distribution(
-          DistributionType::GAMMA,
-          AtomicType::POS_REAL,
-          std::vector<uint>{shape_sq, rate_sq})});
+  auto y_dist = g.add_distribution(
+      DistributionType::GAMMA,
+      AtomicType::POS_REAL,
+      std::vector<uint>{shape_sq, rate_sq});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{y_dist});
   g.observe(y, 3.0);
   // shape = torch.tensor([3.0], requires_grad=True)
   // rate = torch.tensor([1.5], requires_grad=True)
@@ -116,4 +115,88 @@ TEST(testdistrib, gamma) {
   g.gradient_log_prob(rate, grad1, grad2);
   EXPECT_NEAR(grad1, 3.6667, 0.001);
   EXPECT_NEAR(grad2, -15.7778, 0.001);
+  // test test backward_param, backward_value, backward_param_iid,
+  // backward_value_iid
+  auto two = g.add_constant((natural_t)2);
+  auto y2 = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{y_dist, two, two});
+  Eigen::MatrixXd m_y(2, 2);
+  m_y << 4.1, 3.2, 2.3, 1.4;
+  g.observe(y2, m_y);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 4);
+  EXPECT_NEAR(grad[0]->_double, 18.6667, 1e-3); // rate
+  EXPECT_NEAR(grad[1]->_double, -10.8386, 1e-3); // shape
+  EXPECT_NEAR(grad[2]->_double, 0.4167, 1e-3); // y
+  EXPECT_NEAR(grad[3]->_matrix.coeff(0), -0.2988, 1e-3); // y2
+  EXPECT_NEAR(grad[3]->_matrix.coeff(1), 1.2283, 1e-3);
+  EXPECT_NEAR(grad[3]->_matrix.coeff(2), 0.2500, 1e-3);
+  EXPECT_NEAR(grad[3]->_matrix.coeff(3), 3.4643, 1e-3);
+
+  // test sample/iid_sample from a mixture of gammas
+  Graph g2;
+  auto size = g2.add_constant((natural_t)2);
+  auto flat_pos = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto flat_prob = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::PROBABILITY, std::vector<uint>{});
+  auto rate1 =
+      g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto shape1 =
+      g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto rate2 =
+      g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto shape2 =
+      g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto d1 = g2.add_distribution(
+      DistributionType::GAMMA,
+      AtomicType::POS_REAL,
+      std::vector<uint>{rate1, shape1});
+  auto d2 = g2.add_distribution(
+      DistributionType::GAMMA,
+      AtomicType::POS_REAL,
+      std::vector<uint>{rate2, shape2});
+  auto p = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_prob});
+  auto dist = g2.add_distribution(
+      DistributionType::BIMIXTURE,
+      AtomicType::POS_REAL,
+      std::vector<uint>{p, d1, d2});
+  auto x1 = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist});
+  auto x2 =
+      g2.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist, size});
+  g2.observe(rate1, 10.0);
+  g2.observe(shape1, 1.2);
+  g2.observe(rate2, 0.4);
+  g2.observe(shape2, 1.8);
+  g2.observe(p, 0.37);
+  g2.observe(x1, 2.5);
+  Eigen::MatrixXd xobs(2, 1);
+  xobs << 0.5, 1.5;
+  g2.observe(x2, xobs);
+  // To verify the results with pyTorch:
+  // a1 = torch.tensor(10.0, requires_grad=True)
+  // b1 = torch.tensor(1.2, requires_grad=True)
+  // a2 = torch.tensor(0.4, requires_grad=True)
+  // b2 = torch.tensor(1.8, requires_grad=True)
+  // p = torch.tensor(0.37, requires_grad=True)
+  // x = torch.tensor([2.5, 0.5, 1.5], requires_grad=True)
+  // d1 = torch.distributions.Gamma(a1, b1)
+  // d2 = torch.distributions.Gamma(a2, b2)
+  // f1 = d1.log_prob(x).exp()
+  // f2 = d2.log_prob(x).exp()
+  // log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
+  // torch.autograd.grad(log_p, x)[0]
+  EXPECT_NEAR(g2.full_log_prob(), -11.1268, 1e-3);
+  std::vector<DoubleMatrix*> back_grad;
+  g2.eval_and_grad(back_grad);
+  EXPECT_EQ(back_grad.size(), 7);
+  EXPECT_NEAR(back_grad[0]->_double, -0.3983, 1e-3); // rate1
+  EXPECT_NEAR(back_grad[1]->_double, 2.0114, 1e-3); // shape1
+  EXPECT_NEAR(back_grad[2]->_double, 8.6768, 1e-3); // rate2
+  EXPECT_NEAR(back_grad[3]->_double, -3.0509, 1e-3); // shape2
+  EXPECT_NEAR(back_grad[4]->_double, -3.2842, 1e-3); // p
+  EXPECT_NEAR(back_grad[5]->_double, -0.5200, 1e-3); // x1
+  EXPECT_NEAR(back_grad[6]->_matrix.coeff(0), -3.0000, 1e-3); // x2
+  EXPECT_NEAR(back_grad[6]->_matrix.coeff(1), -2.1852, 1e-3);
 }
