@@ -327,3 +327,38 @@ TEST(testgradient, backward_vector_linearmodel) {
   EXPECT_NEAR(grad1[0]->_matrix.coeff(1), -0.6806, 1e-3);
   EXPECT_NEAR(grad1[1]->_double, -2.8773, 1e-3);
 }
+
+TEST(testgradient, backward_unaryops) {
+  Graph g;
+  auto flat_dist = g.add_distribution(
+      DistributionType::FLAT, AtomicType::PROBABILITY, std::vector<uint>{});
+  auto prob =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_dist});
+  auto c_prob =
+      g.add_operator(OperatorType::COMPLEMENT, std::vector<uint>{prob});
+  auto pos_real =
+      g.add_operator(OperatorType::TO_POS_REAL, std::vector<uint>{c_prob});
+  auto neg_real =
+      g.add_operator(OperatorType::NEGATE, std::vector<uint>{pos_real});
+  auto real =
+      g.add_operator(OperatorType::TO_REAL, std::vector<uint>{neg_real});
+  auto exp_ = g.add_operator(OperatorType::EXP, std::vector<uint>{pos_real});
+  auto expm1 = g.add_operator(OperatorType::EXPM1, std::vector<uint>{real});
+  auto normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{expm1, exp_});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
+  g.observe(prob, 0.67);
+  g.observe(y, 0.14);
+  // To verify the grad1 results with pyTorch:
+  // x = tensor([0.67], requires_grad=True)
+  // mu = (x - tensor([1.0])).expm1()
+  // sd = (tensor([1.0]) - x).exp()
+  // log_p = dist.Normal(mu, sd).log_prob((tensor(0.14)))
+  // torch.autograd.grad(log_p, x) -> 1.0648
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 2);
+  EXPECT_NEAR(grad1[0]->_double, 1.0648, 1e-3);
+}
