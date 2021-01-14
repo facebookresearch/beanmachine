@@ -54,6 +54,17 @@ double Beta::log_prob(const graph::NodeValue& value) const {
   return ret_val;
 }
 
+void Beta::log_prob_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& log_probs) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  double result = lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b);
+  log_probs = result + (param_a - 1) * value._matrix.array().log() +
+      (param_b - 1) * (1 - value._matrix.array()).log();
+}
+
 // Note log_prob(x | a, b) = (a-1) log(x) + (b-1) log(1-x) + log G(a+b) - log
 // G(a) - log G(b) grad1 w.r.t. x =  (a-1) / x - (b-1) / (1-x) grad2 w.r.t. x =
 // - (a-1) / x^2 - (b-1) / (1-x)^2 grad1 w.r.t. params = (log(x) + digamma(a+b)
@@ -63,15 +74,18 @@ double Beta::log_prob(const graph::NodeValue& value) const {
 //   (polygamma(1, a+b) - polygamma(1, a)) a'^2 + (log(x) + digamma(a+b) -
 //   digamma(a)) a'' (polygamma(1, a+b) - polygamma(1, b)) b'^2 + (log(1-x) +
 //   digamma(a+b) - digamma(b)) b''
-void Beta::_gradient_log_prob_value(
-    const double& val,
+// First order chain rule: f(g(x))' = f'(g(x)) g'(x),
+// - In backward propagation, f'(g(x)) is given by adjunct, the above equation
+// computes g'(x). [g is the current function f is the final target]
+// - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
+// the above equation computes f'(g) [f is the current function g is the input]
+
+void Beta::_grad1_log_prob_value(
     double& grad1,
-    double& grad2,
-    const double& param_a,
-    const double& param_b) const {
-  grad1 += (param_a - 1) / val - (param_b - 1) / (1 - val);
-  grad2 +=
-      -(param_a - 1) / (val * val) - (param_b - 1) / ((1 - val) * (1 - val));
+    double x,
+    double param_a,
+    double param_b) {
+  grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);
 }
 
 void Beta::gradient_log_prob_value(
@@ -79,12 +93,11 @@ void Beta::gradient_log_prob_value(
     double& grad1,
     double& grad2) const {
   assert(value.type.variable_type == graph::VariableType::SCALAR);
-  _gradient_log_prob_value(
-      value._double,
-      grad1,
-      grad2,
-      in_nodes[0]->value._double,
-      in_nodes[1]->value._double);
+  double x = value._double;
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  _grad1_log_prob_value(grad1, x, param_a, param_b);
+  grad2 += -(param_a - 1) / (x * x) - (param_b - 1) / ((1 - x) * (1 - x));
 }
 
 void Beta::gradient_log_prob_param(
@@ -128,6 +141,96 @@ void Beta::compute_jacobian_hessian(
     *(jacobian.data() + 1) += std::log(1 - *(value._matrix.data() + i));
   }
   hessian *= size;
+}
+
+void Beta::backward_value(
+    const graph::NodeValue& value,
+    graph::DoubleMatrix& back_grad,
+    double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  double x = value._double;
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  double increment = 0.0;
+  _grad1_log_prob_value(increment, x, param_a, param_b);
+  back_grad._double += adjunct * increment;
+}
+
+void Beta::backward_value_iid(
+    const graph::NodeValue& value,
+    graph::DoubleMatrix& back_grad) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  back_grad._matrix += ((param_a - 1) / value._matrix.array() -
+                        (param_b - 1) / (1 - value._matrix.array()))
+                           .matrix();
+}
+
+void Beta::backward_value_iid(
+    const graph::NodeValue& value,
+    graph::DoubleMatrix& back_grad,
+    Eigen::MatrixXd& adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  back_grad._matrix += (adjunct.array() *
+                        ((param_a - 1) / value._matrix.array() -
+                         (param_b - 1) / (1 - value._matrix.array())))
+                           .matrix();
+}
+
+void Beta::backward_param(const graph::NodeValue& value, double adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  double x = value._double;
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  double digamma_a_p_b = util::polygamma(0, param_a + param_b);
+  if (in_nodes[0]->needs_gradient()) {
+    double jacob = std::log(x) + digamma_a_p_b - util::polygamma(0, param_a);
+    in_nodes[0]->back_grad1._double += adjunct * jacob;
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    double jacob =
+        std::log(1 - x) + digamma_a_p_b - util::polygamma(0, param_b);
+    in_nodes[1]->back_grad1._double += adjunct * jacob;
+  }
+}
+
+void Beta::backward_param_iid(const graph::NodeValue& value) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  double digamma_a_p_b = util::polygamma(0, param_a + param_b);
+  int size = value._matrix.size();
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1._double += value._matrix.array().log().sum() +
+        size * (digamma_a_p_b - util::polygamma(0, param_a));
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    in_nodes[1]->back_grad1._double += (1 - value._matrix.array()).log().sum() +
+        size * (digamma_a_p_b - util::polygamma(0, param_b));
+  }
+}
+
+void Beta::backward_param_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double param_a = in_nodes[0]->value._double;
+  double param_b = in_nodes[1]->value._double;
+  double digamma_a_p_b = util::polygamma(0, param_a + param_b);
+  double adjunct_sum = adjunct.sum();
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1._double +=
+        (adjunct.array() * value._matrix.array().log()).sum() +
+        adjunct_sum * (digamma_a_p_b - util::polygamma(0, param_a));
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    in_nodes[1]->back_grad1._double +=
+        (adjunct.array() * (1 - value._matrix.array()).log()).sum() +
+        adjunct_sum * (digamma_a_p_b - util::polygamma(0, param_b));
+  }
 }
 
 } // namespace distribution
