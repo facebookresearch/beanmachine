@@ -19,6 +19,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     RealNode,
     SampleNode,
     StudentTNode,
+    TensorNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
     Boolean,
@@ -28,8 +29,10 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
+    Tensor as BMGTensor,
     Zero,
 )
+from torch import Size
 
 
 class BMGNodesTest(unittest.TestCase):
@@ -87,6 +90,10 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(norm.inf_type, Real)
         self.assertEqual(stut.inf_type, Real)
 
+        # Tensors
+        # TODO: See notes in TensorNode class for how we should improve this.
+        self.assertEqual(TensorNode([half, norm], Size([2])).inf_type, BMGTensor)
+
     def test_requirements(self) -> None:
         """test_requirements"""
 
@@ -120,8 +127,11 @@ class BMGNodesTest(unittest.TestCase):
 
         # Distributions
 
-        self.assertEqual(BernoulliNode(prob).requirements, [Probability])
-        self.assertEqual(BetaNode(pos, pos).requirements, [PositiveReal, PositiveReal])
+        bern = BernoulliNode(prob)
+        beta = BetaNode(pos, pos)
+
+        self.assertEqual(bern.requirements, [Probability])
+        self.assertEqual(beta.requirements, [PositiveReal, PositiveReal])
         self.assertEqual(BinomialNode(nat, prob).requirements, [Natural, Probability])
         self.assertEqual(GammaNode(pos, pos).requirements, [PositiveReal, PositiveReal])
         self.assertEqual(Chi2Node(pos).requirements, [PositiveReal])
@@ -130,6 +140,13 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(NormalNode(real, pos).requirements, [Real, PositiveReal])
         self.assertEqual(
             StudentTNode(pos, pos, pos).requirements, [PositiveReal, Real, PositiveReal]
+        )
+
+        # Tensors
+        # TODO: See notes in TensorNode class for how we should improve this.
+        self.assertEqual(
+            TensorNode([SampleNode(bern), SampleNode(beta)], Size([2])).requirements,
+            [Boolean, Probability],
         )
 
     def test_inputs_and_outputs(self) -> None:

@@ -633,6 +633,69 @@ class ConstantTensorNode(ConstantNode):
         return f"tensor({t})"
 
 
+class TensorNode(BMGNode):
+    """A tensor whose elements are graph nodes."""
+
+    _size: torch.Size
+
+    def __init__(self, items: List[BMGNode], size: torch.Size):
+        BMGNode.__init__(self, items)
+        self._size = size
+
+    def _compute_edge_names(self) -> List[str]:
+        # TODO: Base this on size rather than ordinal position.
+        return [str(x) for x in range(len(self.inputs))]
+
+    def __str__(self) -> str:
+        # TODO: Create a better string representation; maybe something like
+        # _tensor_to_python above.
+        return "TensorNode"
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        # TODO: When eventually we get a representation of these in BMG, we will
+        # need to compute the graph type of this node. When that happens we should
+        # impose the invariant that the graph types of each input must be the same;
+        # we can have the problem fixer insert conversions on input edges as necessary.
+        # Once we have all the input types the same, we can produce a matrix type
+        # here based on the size and the graph type of the input elements.
+        return BMGTensor
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        # TODO: When eventually we get a representation of these in BMG, we will
+        # need to compute the inf type of this node.  When that happens we should
+        # first check the size; if it is not one or two dimensional then we can
+        # just return BMGTensor. If it is one or two dimensional then we can
+        # take the supremum of the inf types of all the inputs, and use that with
+        # the size to create the appropriate matrix type. But for now we'll
+        # just return tensor and worry about it later.
+        return BMGTensor
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        # TODO: When eventually we get a representation of these in BMG, we will
+        # need to make every input required to be the supremum of the inf types of
+        # all the inputs. Until then, just make every input required to be whatever
+        # it already is.
+        return [i.inf_type for i in self.inputs]
+
+    @property
+    def size(self) -> torch.Size:
+        return self._size
+
+    @property
+    def label(self) -> str:
+        # TODO: Better string representation; maybe something like
+        # _tensor_to_label above.
+        return "tensor"
+
+    def support(self) -> Iterator[Any]:
+        s = self.size
+        return (
+            tensor(c).view(s)
+            for c in itertools.product(*(i.support() for i in self.inputs))
+        )
+
+
 # ####
 # #### Nodes representing distributions
 # ####
