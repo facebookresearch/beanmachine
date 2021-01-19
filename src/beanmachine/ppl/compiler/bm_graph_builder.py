@@ -426,7 +426,7 @@ class BMGraphBuilder:
         if isinstance(value, float):
             return self.add_real(value)
         if isinstance(value, Tensor):
-            return self.add_tensor(value)
+            return self.add_constant_tensor(value)
         raise TypeError("value must be a bool, real or tensor")
 
     def add_constant_of_type(
@@ -448,8 +448,8 @@ class BMGraphBuilder:
             return self.add_real(float(value))
         if node_type == Tensor:
             if isinstance(value, Tensor):
-                return self.add_tensor(value)
-            return self.add_tensor(tensor(value))
+                return self.add_constant_tensor(value)
+            return self.add_constant_tensor(tensor(value))
         raise TypeError("node type must be a valid BMG type")
 
     @memoize
@@ -489,7 +489,7 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_tensor(self, value: Tensor) -> ConstantTensorNode:
+    def add_constant_tensor(self, value: Tensor) -> ConstantTensorNode:
         node = ConstantTensorNode(value)
         self.add_node(node)
         return node
