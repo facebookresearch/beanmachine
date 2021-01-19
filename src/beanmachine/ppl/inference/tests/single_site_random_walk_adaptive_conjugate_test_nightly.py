@@ -29,7 +29,7 @@ class SingleSiteAdaptiveRandomWalkConjugateTest(
     def test_gamma_normal_conjugate_run(self):
         self.mh = bm.SingleSiteRandomWalk(step_size=5.0)
         self.gamma_normal_conjugate_run(
-            self.mh, num_samples=5000, num_adaptive_samples=5000
+            self.mh, num_samples=6000, num_adaptive_samples=5000
         )
 
     def test_normal_normal_conjugate_run(self):
