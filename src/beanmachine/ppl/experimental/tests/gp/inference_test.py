@@ -52,6 +52,7 @@ class InferenceTests(unittest.TestCase):
         self.lengthscale_prior = lengthscale_prior
         self.period_length_prior = period_length_prior
 
+    @unittest.skip("Flaky timeout.")
     def test_simple_regression(self):
         torch.manual_seed(1)
         n_samples = 100
