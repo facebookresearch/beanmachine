@@ -107,8 +107,8 @@ class ProbabilisticTest(unittest.TestCase):
             n5 = bmg.handle_sample(n4)
             return n5
 
-        t2 = bmg.add_tensor(tensor(2.0))
-        t5 = bmg.add_tensor(tensor(0.5))
+        t2 = bmg.add_constant_tensor(tensor(2.0))
+        t5 = bmg.add_constant_tensor(tensor(0.5))
         b = bmg.add_bernoulli(t5)
         s1 = bmg.add_sample(b)
         s2 = bmg.add_sample(b)

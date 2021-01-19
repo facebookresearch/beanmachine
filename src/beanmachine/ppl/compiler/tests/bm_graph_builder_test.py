@@ -277,7 +277,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         bmg = BMGraphBuilder()
 
         # Sample on a graph node.
-        b = bmg.add_bernoulli(bmg.add_tensor(tensor(0.5)))
+        b = bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5)))
         s1 = bmg.handle_sample(b)
         self.assertTrue(isinstance(s1, SampleNode))
 
@@ -304,7 +304,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Graph nodes
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" add method that takes two values.
@@ -333,7 +333,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "add"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "add")
@@ -446,9 +446,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertTrue(isinstance(gr1, RealNode))
         gr2 = bmg.add_real(2.0)
         self.assertTrue(isinstance(gr2, RealNode))
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
-        gt2 = bmg.add_tensor(t2)
+        gt2 = bmg.add_constant_tensor(t2)
         self.assertTrue(isinstance(gt2, ConstantTensorNode))
 
         # torch defines a "static" div method that takes two values.
@@ -469,7 +469,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "div"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "div")
@@ -580,7 +580,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Graph nodes
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" exp method that takes one value.
@@ -607,7 +607,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "exp"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "exp")
@@ -649,7 +649,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Graph nodes
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" log method that takes one value.
@@ -668,7 +668,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "log"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "log")
@@ -711,9 +711,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
         gr2 = bmg.add_real(2.0)
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
-        gt2 = bmg.add_tensor(t2)
+        gt2 = bmg.add_constant_tensor(t2)
 
         # torch defines a "static" mul method that takes two values.
         # Calling torch.mul(x, y) should be logically the same as x * y
@@ -733,7 +733,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mul"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "mul")
@@ -841,9 +841,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         t2 = tensor([[29.0, 36.0], [45.0, 56.0]])
 
         # Graph nodes
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
-        gt2 = bmg.add_tensor(t2)
+        gt2 = bmg.add_constant_tensor(t2)
         self.assertTrue(isinstance(gt2, ConstantTensorNode))
 
         # torch defines a "static" mm method that takes two values.
@@ -863,7 +863,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # Make a sample node; this cannot be simplified away.
         s = bmg.add_sample(
-            bmg.add_bernoulli(bmg.add_tensor(tensor([[0.5, 0.5], [0.5, 0.5]])))
+            bmg.add_bernoulli(bmg.add_constant_tensor(tensor([[0.5, 0.5], [0.5, 0.5]])))
         )
         self.assertTrue(isinstance(s, SampleNode))
 
@@ -1058,7 +1058,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Graph nodes
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" neg method that takes one value.
@@ -1077,7 +1077,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "neg"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "neg")
@@ -1123,7 +1123,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Graph nodes
         gbt = bmg.add_boolean(True)
         self.assertTrue(isinstance(gbt, BooleanNode))
-        gtt = bmg.add_tensor(tt)
+        gtt = bmg.add_constant_tensor(tt)
         self.assertTrue(isinstance(gtt, ConstantTensorNode))
 
         # torch defines a "static" logical_not method that takes one value.
@@ -1143,7 +1143,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "logical_not"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "logical_not")
@@ -1186,7 +1186,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Graph nodes
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" pow method that takes two values.
@@ -1213,7 +1213,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "pow"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "pow")
@@ -1319,7 +1319,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # Graph nodes
         gr1 = bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_tensor(t1)
+        gt1 = bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch.float is not a function, unlike torch.log, torch.add and so on.
@@ -1336,7 +1336,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "float"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_tensor(tensor(0.5))))
+        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "float")
@@ -1389,9 +1389,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
     def test_sizes(self) -> None:
         bmg = BMGraphBuilder()
-        t = bmg.add_tensor(tensor([1.0, 2.0]))
-        z1 = bmg.add_tensor(torch.zeros(1, 2))
-        z2 = bmg.add_tensor(torch.zeros(2, 1))
+        t = bmg.add_constant_tensor(tensor([1.0, 2.0]))
+        z1 = bmg.add_constant_tensor(torch.zeros(1, 2))
+        z2 = bmg.add_constant_tensor(torch.zeros(2, 1))
         r = bmg.add_real(1.0)
         bern = bmg.add_bernoulli(t)
         s = bmg.add_sample(bern)
@@ -1436,7 +1436,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         t1 = tensor(1.0)
         t2 = tensor(2.0)
         t0 = tensor(0.0)
-        t = bmg.add_tensor(t5)
+        t = bmg.add_constant_tensor(t5)
         bern = bmg.add_bernoulli(t)
         s = bmg.add_sample(bern)
         a1 = bmg.add_addition(s, t)
@@ -1449,10 +1449,10 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
     def test_maps(self) -> None:
         bmg = BMGraphBuilder()
 
-        t0 = bmg.add_tensor(tensor(0.0))
-        t1 = bmg.add_tensor(tensor(1.0))
-        t2 = bmg.add_tensor(tensor(2.0))
-        t5 = bmg.add_tensor(tensor(0.5))
+        t0 = bmg.add_constant_tensor(tensor(0.0))
+        t1 = bmg.add_constant_tensor(tensor(1.0))
+        t2 = bmg.add_constant_tensor(tensor(2.0))
+        t5 = bmg.add_constant_tensor(tensor(0.5))
         bern = bmg.add_bernoulli(t5)
         s1 = bmg.add_sample(bern)
         s2 = bmg.add_sample(bern)
@@ -1496,8 +1496,8 @@ digraph "graph" {
 
     def test_normal(self) -> None:
         bmg = BMGraphBuilder()
-        t0 = bmg.add_tensor(tensor(0.0))
-        t1 = bmg.add_tensor(tensor(1.0))
+        t0 = bmg.add_constant_tensor(tensor(0.0))
+        t1 = bmg.add_constant_tensor(tensor(1.0))
         n = bmg.add_normal(t0, t1)
         bmg.add_sample(n)
         observed = bmg.to_dot()
@@ -1516,7 +1516,7 @@ digraph "graph" {
 
     def test_dirichlet(self) -> None:
         bmg = BMGraphBuilder()
-        t0 = bmg.add_tensor(tensor([1.0, 2.0, 3.0]))
+        t0 = bmg.add_constant_tensor(tensor([1.0, 2.0, 3.0]))
         d = bmg.add_dirichlet(t0)
         bmg.add_sample(d)
         observed = bmg.to_dot()
