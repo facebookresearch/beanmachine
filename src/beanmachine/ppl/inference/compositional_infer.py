@@ -15,6 +15,7 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import get_wrapper
+from beanmachine.ppl.world.utils import is_constraint_eq
 
 
 class CompositionalInference(AbstractMHInference):
@@ -82,17 +83,22 @@ class CompositionalInference(AbstractMHInference):
         # pyre-fixme
         distribution = node_var.distribution
         support = distribution.support
-        if (
-            isinstance(support, dist.constraints._Real)
-            or isinstance(support, dist.constraints._Simplex)
-            or isinstance(support, dist.constraints._GreaterThan)
+        if any(
+            is_constraint_eq(
+                support,
+                (
+                    dist.constraints.real,
+                    dist.constraints.simplex,
+                    dist.constraints.greater_than,
+                ),
+            )
         ):
             self.proposers_per_rv_[node] = SingleSiteNewtonianMonteCarloProposer()
-        elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
-            distribution, dist.Categorical
-        ):
+        elif is_constraint_eq(
+            support, dist.constraints.integer_interval
+        ) and isinstance(distribution, dist.Categorical):
             self.proposers_per_rv_[node] = SingleSiteUniformProposer()
-        elif isinstance(support, dist.constraints._Boolean) and isinstance(
+        elif is_constraint_eq(support, dist.constraints.boolean) and isinstance(
             distribution, dist.Bernoulli
         ):
             self.proposers_per_rv_[node] = SingleSiteUniformProposer()

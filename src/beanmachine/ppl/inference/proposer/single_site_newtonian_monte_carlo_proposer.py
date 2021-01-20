@@ -17,6 +17,7 @@ from beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carl
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from beanmachine.ppl.world.utils import is_constraint_eq
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 
@@ -84,18 +85,20 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             node_distribution_support = node_var.distribution.support
             if world.get_transforms_for_node(
                 node
-            ).transform_type != TransformType.NONE or isinstance(
-                node_distribution_support, dist.constraints._Real
+            ).transform_type != TransformType.NONE or is_constraint_eq(
+                node_distribution_support, dist.constraints.real
             ):
                 self.proposers_[node] = SingleSiteRealSpaceNewtonianMonteCarloProposer(
                     self.alpha_, self.beta_
                 )
 
-            elif isinstance(node_distribution_support, dist.constraints._GreaterThan):
+            elif is_constraint_eq(
+                node_distribution_support, dist.constraints.greater_than
+            ):
                 self.proposers_[node] = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
 
-            elif isinstance(
-                node_distribution_support, dist.constraints._Simplex
+            elif is_constraint_eq(
+                node_distribution_support, dist.constraints.simplex
             ) or isinstance(node_var.distribution, dist.Beta):
                 self.proposers_[node] = SingleSiteSimplexNewtonianMonteCarloProposer()
             else:

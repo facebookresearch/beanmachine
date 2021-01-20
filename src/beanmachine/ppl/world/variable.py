@@ -11,6 +11,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.utils import (
     BetaDimensionTransform,
     get_default_transforms,
+    is_constraint_eq,
     is_discrete,
 )
 from torch import Tensor
@@ -135,30 +136,30 @@ class Variable(object):
             return obs
         if initialize_from_prior:
             return sample_val
-        elif isinstance(support, dist.constraints._Real):
+        elif is_constraint_eq(support, dist.constraints.real):
             return torch.zeros(sample_val.shape, dtype=sample_val.dtype)
-        elif isinstance(support, dist.constraints._Simplex):
+        elif is_constraint_eq(support, dist.constraints.simplex):
             value = torch.ones(sample_val.shape, dtype=sample_val.dtype)
             return value / sample_val.shape[-1]
-        elif isinstance(support, dist.constraints._GreaterThan):
+        elif is_constraint_eq(support, dist.constraints.greater_than):
             return (
                 torch.ones(sample_val.shape, dtype=sample_val.dtype)
                 + support.lower_bound
             )
-        elif isinstance(support, dist.constraints._Boolean):
+        elif is_constraint_eq(support, dist.constraints.boolean):
             return dist.Bernoulli(torch.ones(sample_val.shape) / 2).sample()
-        elif isinstance(support, dist.constraints._Interval):
+        elif is_constraint_eq(support, dist.constraints.interval):
             lower_bound = torch.ones(sample_val.shape) * support.lower_bound
             upper_bound = torch.ones(sample_val.shape) * support.upper_bound
             return dist.Uniform(lower_bound, upper_bound).sample()
-        elif isinstance(support, dist.constraints._IntegerInterval):
+        elif is_constraint_eq(support, dist.constraints.integer_interval):
             integer_interval = support.upper_bound - support.lower_bound
             return dist.Categorical(
                 (torch.ones(integer_interval)).expand(
                     sample_val.shape + (integer_interval,)
                 )
             ).sample()
-        elif isinstance(support, dist.constraints._IntegerGreaterThan):
+        elif is_constraint_eq(support, dist.constraints.nonnegative_integer):
             return (
                 torch.ones(sample_val.shape, dtype=sample_val.dtype)
                 + support.lower_bound
