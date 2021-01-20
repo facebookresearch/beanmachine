@@ -109,6 +109,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     RealNode,
     SampleNode,
     StudentTNode,
+    TensorNode,
     ToPositiveRealNode,
     ToProbabilityNode,
     ToRealNode,
@@ -1110,6 +1111,12 @@ class BMGraphBuilder:
         if isinstance(input, ConstantNode):
             return math.log(input.value)
         return self.add_log(input)
+
+    @memoize
+    def add_tensor(self, size: torch.Size, *data: List[BMGNode]) -> TensorNode:
+        node = TensorNode(data, size)
+        self.add_node(node)
+        return node
 
     def _canonicalize_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
