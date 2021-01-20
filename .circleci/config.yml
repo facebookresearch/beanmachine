@@ -149,7 +149,10 @@ commands:
           command: pip install pytest pytest-xdist
       - run:
           name: "Run nightly tests and report overall runtimes"
-          command: pytest -n auto -o python_files="*_nightly.py" --durations=0
+          no_output_timeout: 30m
+          command: |
+            export PYTHONUNBUFFERED=1
+            pytest -n auto -o python_files="*_nightly.py" --durations=0
 
 
 jobs:
