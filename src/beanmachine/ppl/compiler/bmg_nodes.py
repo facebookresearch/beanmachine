@@ -686,7 +686,7 @@ class TensorNode(BMGNode):
     def label(self) -> str:
         # TODO: Better string representation; maybe something like
         # _tensor_to_label above.
-        return "tensor"
+        return "Tensor"
 
     def support(self) -> Iterator[Any]:
         s = self.size

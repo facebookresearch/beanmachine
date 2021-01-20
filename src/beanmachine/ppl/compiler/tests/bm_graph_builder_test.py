@@ -1646,3 +1646,30 @@ digraph "graph" {
         s = bmg.add_sample(b)
         d = bmg.handle_function(dict, [[(1, s)]])
         self.assertEqual(d, {1: s})
+
+    def test_add_tensor(self) -> None:
+        bmg = BMGraphBuilder()
+        p = bmg.add_constant(0.5)
+        b = bmg.add_bernoulli(p)
+        s = bmg.add_sample(b)
+
+        # Tensors are deduplicated
+        t1 = bmg.add_tensor(torch.Size([3]), s, s, p)
+        t2 = bmg.add_tensor(torch.Size([3]), *[s, s, p])
+        self.assertTrue(t1 is t2)
+
+        observed = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Tensor];
+  N0 -> N1[label=probability];
+  N0 -> N3[label=2];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=0];
+  N2 -> N3[label=1];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
