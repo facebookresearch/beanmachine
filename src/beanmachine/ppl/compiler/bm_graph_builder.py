@@ -1426,7 +1426,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_query(self, operator: OperatorNode) -> Query:
+    def add_query(self, operator: BMGNode) -> Query:
+        # TODO: BMG requires that the target of a query be classified
+        # as an operator and that queries be unique; that is, every node
+        # is queried *exactly* zero or one times. Rather than making
+        # those restrictions here, instead detect bad queries in the
+        # problem fixing phase and report accordingly.
         node = Query(operator)
         self.add_node(node)
         return node
@@ -1605,6 +1610,9 @@ g = graph.Graph()
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, Any],
     ) -> None:
+        # TODO: Add error handling and tests for scenarios where
+        # an rv does not return a distribution or a functional does
+        # not return an operation.
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
             self.add_observation(node, val)
