@@ -455,6 +455,11 @@ TEST(testoperator, logsumexp) {
   g.gradient_log_prob(z, grad1, grad2);
   EXPECT_NEAR(grad1, -0.2362, 1e-3);
   EXPECT_NEAR(grad2, 0.7464, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 3);
+  EXPECT_NEAR(grad[0]->_double, -0.4582, 1e-3);
+  EXPECT_NEAR(grad[1]->_double, -0.2362, 1e-3);
 }
 
 TEST(testoperator, log) {
@@ -537,7 +542,8 @@ TEST(testoperator, pow) {
   auto prior = g.add_distribution(
       DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
   auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
-  auto x_pow = g.add_operator(OperatorType::POW, std::vector<uint>{x, pos225});
+  auto pow_ = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto x_pow = g.add_operator(OperatorType::POW, std::vector<uint>{x, pow_});
   auto x_pow_real =
       g.add_operator(OperatorType::TO_REAL, std::vector<uint>{x_pow});
   auto likelihood = g.add_distribution(
@@ -547,6 +553,7 @@ TEST(testoperator, pow) {
   auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
   g.query(y);
   g.observe(x, 0.5);
+  g.observe(pow_, 2.25);
   const auto& means = g.infer_mean(10000, InferenceType::NMC);
   EXPECT_NEAR(means[0], 0.21, 0.01);
   g.observe(y, 0.0);
@@ -554,16 +561,28 @@ TEST(testoperator, pow) {
   // Verified in pytorch using the following code:
   //
   // x = tensor(0.5, requires_grad=True)
-  // fx = Normal(x ** 2.25, tensor(1.0)).log_prob(tensor(0.0))
-  // f1x = grad(fx, x, create_graph=True)
+  // y = tensor(2.25, requires_grad=True)
+  // f = Normal(x ** y, tensor(1.0)).log_prob(tensor(0.0))
+  // f1x = grad(f, x, create_graph=True)
   // f2x = grad(f1x, x)
-  //
   // f1x -> -0.1989 and f2x -> -1.3921
+  // f1y = grad(f, y, create_graph=True)
+  // f2y = grad(f1y, y)
+  // f1y -> 0.0306 and f2y -> -0.0425
   double grad1 = 0;
   double grad2 = 0;
   g.gradient_log_prob(x, grad1, grad2);
   EXPECT_NEAR(grad1, -0.1989, 1e-3);
   EXPECT_NEAR(grad2, -1.3921, 1e-3);
+  grad1 = grad2 = 0;
+  g.gradient_log_prob(pow_, grad1, grad2);
+  EXPECT_NEAR(grad1, 0.0306, 1e-3);
+  EXPECT_NEAR(grad2, -0.0425, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 3);
+  EXPECT_NEAR(grad[0]->_double, -0.1989, 1e-3);
+  EXPECT_NEAR(grad[1]->_double, 0.0306, 1e-3);
 }
 
 TEST(testoperator, iid_sample) {
