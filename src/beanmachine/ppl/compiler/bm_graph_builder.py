@@ -44,10 +44,6 @@ execution of the lifted program; it implements phases
 three, four and five.
 """
 
-# TODO: Consider whether this module is doing too much. We might
-# break it up into two modules, one which accumulates the graph
-# and the other which transforms the node types.
-
 import torch  # isort:skip  torch has to be imported before graph
 import inspect
 import math
@@ -145,6 +141,23 @@ from torch.distributions import (
     StudentT,
     Uniform,
 )
+
+
+def _flatten_all_lists(lst):
+    """Takes a list-of-lists, with arbitrary nesting level;
+    returns an iteration of all elements."""
+    for item in lst:
+        if isinstance(item, list):
+            yield from _flatten_all_lists(item)
+        else:
+            yield item
+
+
+def _list_to_zeros(lst):
+    """Takes a list-of-lists, with arbitrary nesting level;
+    returns a list-of-lists of the same shape but with every non-list
+    element replaced with zero."""
+    return [_list_to_zeros(item) if isinstance(item, list) else 0 for item in lst]
 
 
 builtin_function_or_method = type(abs)
@@ -1249,6 +1262,35 @@ class BMGraphBuilder:
         # We *could* convert that to a graph node.
         return function(*arguments, **kwargs)
 
+    def _handle_tensor_constructor(
+        self, arguments: List[Any], kwargs: Dict[str, Any]
+    ) -> Any:
+        # TODO: Handle kwargs
+        flattened_args = list(_flatten_all_lists(arguments))
+        if not any(isinstance(arg, BMGNode) for arg in flattened_args):
+            # None of the arguments are graph nodes. We can just
+            # construct the tensor normally.
+            return tensor(*arguments, **kwargs)
+        # At least one of the arguments is a graph node.
+        #
+        # If we're constructing a singleton tensor and the single value
+        # is a graph node, we can just keep it as that graph node.
+        if len(flattened_args) == 1:
+            return flattened_args[0]
+
+        # We have two or more arguments and at least one is a graph node.
+        # Convert them all to graph nodes.
+        for index, arg in enumerate(flattened_args):
+            if not isinstance(arg, BMGNode):
+                flattened_args[index] = self.add_constant(arg)
+
+        # What shape is this tensor? Rather than duplicating the logic in the
+        # tensor class, let's just construct the same shape made of entirely
+        # zeros and then ask what shape it is.
+        size = tensor(_list_to_zeros(arguments)).size()
+
+        return self.add_tensor(size, *flattened_args)
+
     def handle_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
     ) -> Any:
@@ -1273,6 +1315,13 @@ class BMGraphBuilder:
 
         if f in allowed_functions:
             return f(*args, **kwargs)
+
+        # We have special processing if we're trying to create a tensor;
+        # if any element of the new tensor is a graph node then we'll
+        # need to create a TensorNode.
+
+        if f is tensor:
+            return self._handle_tensor_constructor(args, kwargs)
 
         # Some functions we already have special-purpose handlers for,
         # like calls to math.exp or tensor.log. If we know there are no
