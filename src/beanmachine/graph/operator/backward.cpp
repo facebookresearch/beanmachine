@@ -16,6 +16,34 @@ bool approx_zero(double val) {
 // Note: that we use the following chain rule for the gradients of f(g(x))
 // first: f'(g(x)) g'(x), assuming f'(g(x)) is given by back_grad1.
 
+void UnaryOperator::backward() {
+  assert(in_nodes.size() == 1);
+  auto node = in_nodes[0];
+  if (node->needs_gradient()) {
+    node->back_grad1._double += back_grad1._double * jacobian();
+  }
+}
+
+// g'(x) = -1
+double Complement::jacobian() const {
+  return -1.0;
+}
+
+// g'(x) = -1
+double Negate::jacobian() const {
+  return -1.0;
+}
+
+// g'(x) = exp(x) = g(x)
+double Exp::jacobian() const {
+  return value._double;
+}
+
+// g'(x) = exp(x) = g(x) + 1
+double ExpM1::jacobian() const {
+  return value._double + 1.0;
+}
+
 // dg(x1,...xn)/dxi = 1
 void Add::backward() {
   for (const auto node : in_nodes) {
