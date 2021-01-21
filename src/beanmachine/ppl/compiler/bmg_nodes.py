@@ -3208,8 +3208,13 @@ class Observation(BMGNode):
 class Query(BMGNode):
     """A query is a marker on a node in the graph that indicates
     to the inference engine that the user is interested in
-    getting a distribution of values of that node. It always
-    points to an operator node."""
+    getting a distribution of values of that node."""
+
+    # TODO: BMG requires that the target of a query be classified
+    # as an operator and that queries be unique; that is, every node
+    # is queried *exactly* zero or one times. Rather than making
+    # those restrictions here, instead detect bad queries in the
+    # problem fixing phase and report accordingly.
 
     # TODO: As with observations, properly speaking there is no
     # need to represent a query as a *node*, and BMG does not
@@ -3217,17 +3222,16 @@ class Query(BMGNode):
 
     _edges = ["operator"]
 
-    def __init__(self, operator: OperatorNode):
+    def __init__(self, operator: BMGNode):
         BMGNode.__init__(self, [operator])
 
     @property
-    def operator(self) -> OperatorNode:
+    def operator(self) -> BMGNode:
         c = self.inputs[0]
-        assert isinstance(c, OperatorNode)
         return c
 
     @operator.setter
-    def operator(self, p: OperatorNode) -> None:
+    def operator(self, p: BMGNode) -> None:
         self.inputs[0] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
