@@ -8,6 +8,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from beanmachine.ppl.world.utils import is_constraint_eq
 from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor, tensor
 
@@ -98,10 +99,10 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
         # for now, assume all transforms will transform distributions into the realspace
         if world.get_transforms_for_node(
             node
-        ).transform_type != TransformType.NONE or isinstance(
+        ).transform_type != TransformType.NONE or is_constraint_eq(
             # pyre-fixme
             node_distribution.support,
-            dist.constraints._Real,
+            dist.constraints.real,
         ):
             return (
                 ProposalDistribution(
@@ -115,9 +116,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
                 ),
                 {},
             )
-        elif isinstance(
-            node_distribution.support, dist.constraints._GreaterThan
-        ) or isinstance(node_distribution.support, dist.constraints._GreaterThan):
+        elif is_constraint_eq(node_distribution.support, dist.constraints.greater_than):
             lower_bound = node_distribution.support.lower_bound
             proposal_distribution = self.gamma_distbn_from_moments(
                 node_var.value - lower_bound, self.step_size ** 2
@@ -136,7 +135,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
                 ),
                 {},
             )
-        elif isinstance(node_distribution.support, dist.constraints._Interval):
+        elif is_constraint_eq(node_distribution.support, dist.constraints.interval):
             lower_bound = node_distribution.support.lower_bound
             width = node_distribution.support.upper_bound - lower_bound
             # Compute first and second moments of the perturbation distribution
@@ -158,7 +157,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
                 ),
                 {},
             )
-        elif isinstance(node_distribution.support, dist.constraints._Simplex):
+        elif is_constraint_eq(node_distribution.support, dist.constraints.simplex):
             proposal_distribution = self.dirichlet_distbn_from_moments(
                 node_var.value, self.step_size
             )

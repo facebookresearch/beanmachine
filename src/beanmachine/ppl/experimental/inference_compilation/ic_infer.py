@@ -21,6 +21,7 @@ from ...inference.proposer.single_site_ancestral_proposer import (
 )
 from ...model.rv_identifier import RVIdentifier
 from ...world import ProposalDistribution, Variable, World
+from ...world.utils import is_constraint_eq
 from . import utils
 
 
@@ -476,10 +477,16 @@ class ICInference(AbstractMHInference):
                 f"Encountered node={node} with dim={ndim}"
             )
 
-        if (
-            isinstance(support, dist.constraints._Real)
-            or isinstance(support, dist.constraints._Simplex)
-            or isinstance(support, dist.constraints._GreaterThan)
+        if any(
+            is_constraint_eq(
+                support,
+                (
+                    dist.constraints.real,
+                    dist.constraints.real_vector,
+                    dist.constraints.simplex,
+                    dist.constraints.greater_than,
+                ),
+            )
         ):
             k = self._GMM_NUM_COMPONENTS
             if ndim == 0:
@@ -511,12 +518,12 @@ class ICInference(AbstractMHInference):
                     return dist.MixtureSameFamily(mix, comp)
 
                 return (k + 2 * k * d, _func)
-        elif isinstance(support, dist.constraints._IntegerInterval) and isinstance(
-            distribution, dist.Categorical
-        ):
+        elif is_constraint_eq(
+            support, dist.constraints.integer_interval
+        ) and isinstance(distribution, dist.Categorical):
             num_categories = distribution.param_shape[-1]
             return (num_categories, lambda x: dist.Categorical(logits=x))
-        elif isinstance(support, dist.constraints._Boolean) and isinstance(
+        elif is_constraint_eq(support, dist.constraints.boolean) and isinstance(
             distribution, dist.Bernoulli
         ):
             return (1, lambda x: dist.Bernoulli(logits=x.item()))

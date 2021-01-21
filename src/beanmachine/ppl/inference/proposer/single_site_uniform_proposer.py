@@ -8,6 +8,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
+from beanmachine.ppl.world.utils import is_constraint_eq
 
 
 class SingleSiteUniformProposer(SingleSiteAncestralProposer):
@@ -40,10 +41,10 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
         """
         node_distribution = node_var.distribution
         if (
-            isinstance(
+            is_constraint_eq(
                 # pyre-fixme
                 node_distribution.support,
-                dist.constraints._Boolean,
+                dist.constraints.boolean,
             )
             and isinstance(node_distribution, dist.Bernoulli)
         ):
@@ -58,8 +59,8 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
                 ),
                 {},
             )
-        if isinstance(
-            node_distribution.support, dist.constraints._IntegerInterval
+        if is_constraint_eq(
+            node_distribution.support, dist.constraints.integer_interval
         ) and isinstance(node_distribution, dist.Categorical):
             probs = torch.ones(node_distribution.param_shape)
             # In Categorical distrbution, the samples are integers from 0-k
