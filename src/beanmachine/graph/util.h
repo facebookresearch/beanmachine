@@ -1,9 +1,13 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
+#include <algorithm>
 #include <random>
 
 namespace beanmachine {
 namespace util {
+
+// Check if val is approximately zero
+bool approx_zero(double val);
 
 // sample with probability 1 / (1 + exp(-logodds))
 bool sample_logodds(std::mt19937& gen, double logodds);

@@ -5,13 +5,10 @@
 #include "beanmachine/graph/operator/linalgop.h"
 #include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/unaryop.h"
+#include "beanmachine/graph/util.h"
 
 namespace beanmachine {
 namespace oper {
-
-bool approx_zero(double val) {
-  return std::abs(val) < graph::PRECISION;
-}
 
 // Note: that we use the following chain rule for the gradients of f(g(x))
 // first: f'(g(x)) g'(x), assuming f'(g(x)) is given by back_grad1.
@@ -86,11 +83,11 @@ void Add::backward() {
 // dg(x1,...xn)/dxi = g(x1, ..., xn) / xi
 void Multiply::backward() {
   // if at least one parent value is likely zero.
-  if (approx_zero(value._double)) {
+  if (util::approx_zero(value._double)) {
     std::vector<graph::Node*> zeros;
     double non_zero_prod = 1.0;
     for (const auto node : in_nodes) {
-      if (approx_zero(node->value._double)) {
+      if (util::approx_zero(node->value._double)) {
         zeros.push_back(node);
       } else {
         non_zero_prod *= node->value._double;
@@ -121,8 +118,8 @@ void Pow::backward() {
   double x0 = in_nodes[0]->value._double;
   double x1 = in_nodes[1]->value._double;
   if (in_nodes[0]->needs_gradient()) {
-    double jacob =
-        approx_zero(x0) ? x1 * std::pow(x0, x1 - 1) : value._double * x1 / x0;
+    double jacob = util::approx_zero(x0) ? x1 * std::pow(x0, x1 - 1)
+                                         : value._double * x1 / x0;
     in_nodes[0]->back_grad1._double += back_grad1._double * jacob;
   }
   if (in_nodes[1]->needs_gradient()) {
@@ -137,6 +134,19 @@ void LogSumExp::backward() {
     if (node->needs_gradient()) {
       node->back_grad1._double +=
           back_grad1._double * std::exp(node->value._double - value._double);
+    }
+  }
+}
+
+void IfThenElse::backward() {
+  assert(in_nodes.size() == 3);
+  if (in_nodes[0]->value._bool) {
+    if (in_nodes[1]->needs_gradient()) {
+      in_nodes[1]->back_grad1._double += back_grad1._double;
+    }
+  } else {
+    if (in_nodes[2]->needs_gradient()) {
+      in_nodes[2]->back_grad1._double += back_grad1._double;
     }
   }
 }
