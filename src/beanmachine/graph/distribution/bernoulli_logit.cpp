@@ -67,6 +67,18 @@ double BernoulliLogit::log_prob(const NodeValue& value) const {
   }
 }
 
+void BernoulliLogit::log_prob_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& log_probs) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double l = in_nodes[0]->value._double;
+  double pos_val = -util::log1pexp(-l);
+  double neg_val = -util::log1pexp(l);
+  log_probs = Eigen::MatrixXd::Constant(
+      value._bmatrix.rows(), value._bmatrix.cols(), neg_val);
+  log_probs = value._bmatrix.select(pos_val, log_probs);
+}
+
 void BernoulliLogit::gradient_log_prob_value(
     const NodeValue& /* value */,
     double& grad1,
@@ -111,17 +123,30 @@ void BernoulliLogit::backward_param(
   }
 }
 
-void BernoulliLogit::backward_param_iid(
-    const graph::NodeValue& value,
-    double adjunct) const {
+void BernoulliLogit::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
     double l = in_nodes[0]->value._double;
     int size = value._bmatrix.size();
     int n_positive = value._bmatrix.count();
-    in_nodes[0]->back_grad1._double += adjunct *
+    in_nodes[0]->back_grad1._double +=
         (1 / (1 + std::exp(l)) * n_positive -
          1 / (1 + std::exp(-l)) * (size - n_positive));
+  }
+}
+
+void BernoulliLogit::backward_param_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  if (in_nodes[0]->needs_gradient()) {
+    double l = in_nodes[0]->value._double;
+    double sum_adjunct = adjunct.sum();
+    double sum_pos_adjunct =
+        (value._bmatrix.cast<double>().array() * adjunct.array()).sum();
+    in_nodes[0]->back_grad1._double +=
+        (1 / (1 + std::exp(l)) * sum_pos_adjunct -
+         1 / (1 + std::exp(-l)) * (sum_adjunct - sum_pos_adjunct));
   }
 }
 

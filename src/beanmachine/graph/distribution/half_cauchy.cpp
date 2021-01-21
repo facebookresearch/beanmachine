@@ -68,6 +68,15 @@ double HalfCauchy::log_prob(const NodeValue& value) const {
   return (-std::log(M_PI_2) - std::log(s)) * size - result;
 }
 
+void HalfCauchy::log_prob_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& log_probs) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double s = in_nodes[0]->value._double;
+  log_probs = -std::log(M_PI_2) - std::log(s) -
+      (value._matrix.array() / s).pow(2).log1p();
+}
+
 void HalfCauchy::_grad1_log_prob_value(
     double& grad1,
     double val,
@@ -126,14 +135,24 @@ void HalfCauchy::backward_value(
 
 void HalfCauchy::backward_value_iid(
     const graph::NodeValue& value,
+    graph::DoubleMatrix& back_grad) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  double s = in_nodes[0]->value._double;
+  Eigen::MatrixXd s2_p_x2 =
+      s * s + value._matrix.array() * value._matrix.array();
+  back_grad._matrix -= (2 * value._matrix.array() / s2_p_x2.array()).matrix();
+}
+
+void HalfCauchy::backward_value_iid(
+    const graph::NodeValue& value,
     graph::DoubleMatrix& back_grad,
-    double adjunct) const {
+    Eigen::MatrixXd& adjunct) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double s = in_nodes[0]->value._double;
   Eigen::MatrixXd s2_p_x2 =
       s * s + value._matrix.array() * value._matrix.array();
   back_grad._matrix -=
-      (2 * adjunct * value._matrix.array() / s2_p_x2.array()).matrix();
+      (2 * adjunct.array() * value._matrix.array() / s2_p_x2.array()).matrix();
 }
 
 void HalfCauchy::backward_param(const graph::NodeValue& value, double adjunct)
@@ -148,9 +167,7 @@ void HalfCauchy::backward_param(const graph::NodeValue& value, double adjunct)
   }
 }
 
-void HalfCauchy::backward_param_iid(
-    const graph::NodeValue& value,
-    double adjunct) const {
+void HalfCauchy::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
     int size = value._matrix.size();
@@ -158,7 +175,21 @@ void HalfCauchy::backward_param_iid(
     Eigen::MatrixXd s2_p_x2 =
         s * s + value._matrix.array() * value._matrix.array();
     in_nodes[0]->back_grad1._double +=
-        adjunct * (size / s - 2 * (s / s2_p_x2.array()).sum());
+        size / s - 2 * (s / s2_p_x2.array()).sum();
+  }
+}
+
+void HalfCauchy::backward_param_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+  if (in_nodes[0]->needs_gradient()) {
+    double s = in_nodes[0]->value._double;
+    double sum_adjunct = adjunct.sum();
+    Eigen::MatrixXd s2_p_x2 =
+        s * s + value._matrix.array() * value._matrix.array();
+    in_nodes[0]->back_grad1._double +=
+        sum_adjunct / s - 2 * s * (adjunct.array() / s2_p_x2.array()).sum();
   }
 }
 
