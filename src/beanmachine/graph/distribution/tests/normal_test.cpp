@@ -142,4 +142,60 @@ TEST(testdistrib, backward_normal_normal) {
   EXPECT_NEAR(grad1[0]->_double, -0.3, 1e-3);
   EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.4, 1e-3);
   EXPECT_NEAR(grad1[1]->_matrix.coeff(1), 0.6, 1e-3);
+
+  // mixture of normals
+  Graph g2;
+  auto size = g2.add_constant((natural_t)2);
+  auto flat_real = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto flat_pos = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto flat_prob = g2.add_distribution(
+      DistributionType::FLAT, AtomicType::PROBABILITY, std::vector<uint>{});
+  auto m1 = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_real});
+  auto m2 = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_real});
+  auto s = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto d1 = g2.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{m1, s});
+  auto d2 = g2.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{m2, s});
+  auto p = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_prob});
+  auto dist = g2.add_distribution(
+      DistributionType::BIMIXTURE,
+      AtomicType::REAL,
+      std::vector<uint>{p, d1, d2});
+  auto x = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist});
+  auto xiid =
+      g2.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist, size});
+  g2.observe(m1, -1.2);
+  g2.observe(m2, 0.4);
+  g2.observe(s, 1.8);
+  g2.observe(p, 0.37);
+  g2.observe(x, -0.5);
+  Eigen::MatrixXd xobs(2, 1);
+  xobs << 0.5, -1.5;
+  g2.observe(xiid, xobs);
+  // To verify the results with pyTorch:
+  // m1 = torch.tensor(-1.2, requires_grad=True)
+  // m2 = torch.tensor(0.4, requires_grad=True)
+  // s = torch.tensor(1.8, requires_grad=True)
+  // p = torch.tensor(0.37, requires_grad=True)
+  // x = torch.tensor([-0.5, 0.5, -1.5], requires_grad=True)
+  // d1 = torch.distributions.Normal(m1, s)
+  // d2 = torch.distributions.Normal(m2, s)
+  // f1 = d1.log_prob(x).exp()
+  // f2 = d2.log_prob(x).exp()
+  // log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
+  // torch.autograd.grad(log_p, x)[0]
+  EXPECT_NEAR(g2.full_log_prob(), -5.0911, 1e-3);
+  std::vector<DoubleMatrix*> back_grad;
+  g2.eval_and_grad(back_grad);
+  EXPECT_EQ(back_grad.size(), 6);
+  EXPECT_NEAR(back_grad[0]->_double, 0.1794, 1e-3); // m1
+  EXPECT_NEAR(back_grad[1]->_double, -0.4410, 1e-3); // m2
+  EXPECT_NEAR(back_grad[2]->_double, -1.0964, 1e-3); // s
+  EXPECT_NEAR(back_grad[3]->_double, 0.2054, 1e-3); // p
+  EXPECT_NEAR(back_grad[4]->_double, 0.0893, 1e-3); // x
+  EXPECT_NEAR(back_grad[5]->_matrix.coeff(0), -0.1660, 1e-3); // xiid
+  EXPECT_NEAR(back_grad[5]->_matrix.coeff(1), 0.3381, 1e-3);
 }
