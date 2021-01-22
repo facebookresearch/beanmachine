@@ -11,6 +11,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     FlatNode,
     GammaNode,
     HalfCauchyNode,
+    LogSumExpNode,
     NaturalNode,
     NegativeRealNode,
     NormalNode,
@@ -94,6 +95,9 @@ class BMGNodesTest(unittest.TestCase):
         # TODO: See notes in TensorNode class for how we should improve this.
         self.assertEqual(TensorNode([half, norm], Size([2])).inf_type, BMGTensor)
 
+        # LogSumExp is always real.
+        self.assertEqual(LogSumExpNode([half, norm]).inf_type, Real)
+
     def test_requirements(self) -> None:
         """test_requirements"""
 
@@ -147,6 +151,17 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(
             TensorNode([SampleNode(bern), SampleNode(beta)], Size([2])).requirements,
             [Boolean, Probability],
+        )
+
+        # LogSumExp requires the dimension be natural and the values be
+        # real, positive real, or negative real.
+
+        self.assertEqual(LogSumExpNode([real, pos]).requirements, [Real, Real])
+        self.assertEqual(
+            LogSumExpNode([pos, nat]).requirements, [PositiveReal, PositiveReal]
+        )
+        self.assertEqual(
+            LogSumExpNode([neg, neg]).requirements, [NegativeReal, NegativeReal]
         )
 
     def test_inputs_and_outputs(self) -> None:

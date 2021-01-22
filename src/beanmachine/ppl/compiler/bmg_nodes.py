@@ -1677,6 +1677,96 @@ class OperatorNode(BMGNode, metaclass=ABCMeta):
 
 
 # ####
+# #### Multiary operators
+# ####
+
+
+class LogSumExpNode(OperatorNode):
+    """This class represents the LogSumExp operation: for values v_1, ..., v_n
+    we compute log(exp(v_1) + ... + exp(v_n))"""
+
+    # TODO: The original Python model allows the developer to choose which
+    # dimension of the tensor to apply the logsumexp operation to. Right now
+    # we only support single-dimensional tensors which are created using the
+    # tensor constructor; we will expand this to more scenarios later.
+    # For example, we might want to support compiling something like
+    #
+    # @rv def n(): return Normal(tensor(0., 0.), tensor(1., 1.))
+    # y = n().logsumexp(dim=1)
+    #
+    # the same way we would compile the semantically equivalent model:
+    #
+    # @rv def n(x): return Normal(0., 1.)
+    # y = tensor([n(0), n(1)]).logsumexp(dim=1)
+    #
+    # TODO: Similarly we might want to support logsumexp on dimensions other than 1.
+
+    def __init__(self, inputs: List[BMGNode]):
+        OperatorNode.__init__(self, inputs)
+
+    def _compute_edge_names(self) -> List[str]:
+        return [str(x) for x in range(len(self.inputs))]
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        # We require:
+        # * at least two values
+        # * all values the same graph type
+        # * that type is R, R+ or R-.
+
+        if len(self.inputs) <= 1:
+            return Malformed
+        gt = self.inputs[0].graph_type
+        if gt not in {Real, NegativeReal, PositiveReal}:
+            return Malformed
+        if any(i.graph_type != gt for i in self.inputs):
+            return Malformed
+        return gt
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        # No matter what, logsumexp produces a real.
+
+        # TODO: If we support multiple dimensional tensors someday we will
+        # need to revisit this.
+
+        # TODO: We could do slightly better in the degenerate case of a singleton.
+        # If we have something like flip().logsumexp() where flip() produces a single
+        # bool, then that's equivalent to just plain flip(), and we could know that
+        # is a bool, not a real.  But this scenario is likely to be a bug in the
+        # model in the first place, so there's no reason to prioritize creating an
+        # optimization for its type analysis.
+
+        return Real
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        s = supremum(*[i.inf_type for i in self.inputs])
+        if s not in {Real, NegativeReal, PositiveReal}:
+            s = Real
+        return [s] * len(self.inputs)
+
+    @property
+    def label(self) -> str:
+        return "LogSumExp"
+
+    @property
+    def size(self) -> torch.Size:
+        # TODO: If we ever support logsumexp on a dimension other than 1
+        # then we will need to update this.
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        return "LogSumExp"
+
+    def support(self) -> Iterator[Any]:
+        raise ValueError("support of LogSumExp not yet implemented")
+
+    # TODO: Implement _add_to_graph
+    # TODO: Implement _to_python
+    # TODO: Implement _to_cpp
+    # TODO: Implement _supported_in_bmg
+
+
+# ####
 # #### Ternary operators
 # ####
 
