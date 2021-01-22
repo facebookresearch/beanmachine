@@ -46,18 +46,9 @@ def is_discrete(distribution: Distribution) -> bool:
     :returns: a boolean that is true if the distribution is discrete and false
     otherwise
     """
-    return any(
-        is_constraint_eq(
-            # pyre-fixme
-            distribution.support,
-            (
-                constraints.boolean,
-                constraints.integer_interval,
-                constraints._IntegerGreaterThan,
-                constraints._IntegerLessThan,
-            ),
-        )
-    )
+    # TODO: deprecate this function.
+    # pyre-fixme
+    return distribution.support.is_discrete
 
 
 def _unwrap(constraint: ConstraintType):
