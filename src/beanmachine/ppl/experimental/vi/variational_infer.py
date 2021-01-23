@@ -76,7 +76,6 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     base_args=copy.deepcopy(base_args),
                 )
             )
-            # pyre-fixme[16]: Module `tqdm.auto` has no attribute `tqdm`.
             for _ in tqdm(iterable=range(num_iter), desc="Training iterations"):
                 # sample world x ~ q_t
                 self.initialize_world(False, vi_dicts)

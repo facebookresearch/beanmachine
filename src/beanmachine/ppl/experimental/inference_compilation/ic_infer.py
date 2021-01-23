@@ -253,7 +253,6 @@ class ICInference(AbstractMHInference):
         rvs_in_optimizer = set()
 
         num_batches = int(math.ceil(num_worlds / batch_size))
-        # pyre-fixme
         for i in tqdm(range(num_batches)):
             optimizer.zero_grad()
             loss = torch.zeros(1)
@@ -305,7 +304,6 @@ class ICInference(AbstractMHInference):
 
             print_every = int(num_batches / 20)
             if (print_every == 0) or (i % print_every == 0):
-                # pyre-fixme
                 tqdm.write(f"Loss: {loss}", end="")
         self.reset()
         return self
