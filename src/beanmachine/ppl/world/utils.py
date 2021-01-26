@@ -15,6 +15,8 @@ ConstraintType = Union[constraints.Constraint, Type]
 
 class BetaDimensionTransform(Transform):
     bijective = True
+    domain = constraints.real
+    codomain = constraints.real_vector
 
     def __eq__(self, other):
         return isinstance(other, BetaDimensionTransform)
@@ -31,11 +33,17 @@ class BetaDimensionTransform(Transform):
         """
         return y.transpose(-1, 0)[0]
 
+    def forward_shape(self, shape):
+        return shape + (2,)
+
+    def inverse_shape(self, shape):
+        return shape[:-1]
+
     def log_abs_det_jacobian(self, x, y):
         """
         Computes the log det jacobian `log |dy/dx|` given input and output.
         """
-        return tensor(0.0)
+        return torch.zeros_like(x)
 
 
 def is_discrete(distribution: Distribution) -> bool:
