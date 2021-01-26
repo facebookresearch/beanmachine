@@ -1,12 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world_vars import WorldVars
-from torch import Tensor, tensor
+from torch import Tensor
 
 
 class DiffStack(object):
@@ -179,13 +179,13 @@ class DiffStack(object):
         """
         self.diff_.mark_for_delete(node)
 
-    def diffs_log_prob(self) -> Tensor:
+    def diffs_log_prob(self) -> Union[float, Tensor]:
         """
         :returns: the log_prob of all diffs in the diff stack.
         """
-        full_log_prob = tensor(0.0)
+        full_log_prob = 0.0
         for x in self.diff_stack_:
-            full_log_prob += x.log_prob().detach()
+            full_log_prob += x.log_prob()
         return full_log_prob
 
     def push_changes(self, world_vars: WorldVars) -> None:

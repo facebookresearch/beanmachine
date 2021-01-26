@@ -66,7 +66,7 @@ class PredictiveTest(unittest.TestCase):
         )
         assert post_samples[self.prior()].shape == (2, 10)
         predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=True)
-        predictives[self.likelihood_i(0)].shape == (2, 10)
+        assert predictives[self.likelihood_i(0)].shape == (2, 10)
         assert predictives[self.likelihood_i(1)].shape == (2, 10)
 
     def test_posterior_predictive_seq(self):
@@ -79,7 +79,7 @@ class PredictiveTest(unittest.TestCase):
         )
         assert post_samples[self.prior()].shape == (2, 10)
         predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=False)
-        predictives[self.likelihood_i(0)].shape == (2, 10)
+        assert predictives[self.likelihood_i(0)].shape == (2, 10)
         assert predictives[self.likelihood_i(1)].shape == (2, 10)
 
     def test_predictive_dynamic(self):

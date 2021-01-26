@@ -45,7 +45,7 @@ if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
 
 
 # get version string from module
-current_dir = os.path.dirname(__file__)
+current_dir = os.path.dirname(os.path.abspath(__file__))
 init_file = os.path.join(current_dir, "src", "beanmachine", "__init__.py")
 version_regexp = r"__version__ = ['\"]([^'\"]*)['\"]"
 with open(init_file, "r") as f:

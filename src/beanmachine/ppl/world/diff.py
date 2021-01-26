@@ -1,10 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.variable import Variable
-from torch import Tensor, tensor
+from torch import Tensor
 
 
 class Diff(object):
@@ -14,6 +14,8 @@ class Diff(object):
     inference.
     """
 
+    log_prob_: Union[float, Tensor]
+
     def __init__(self):
         """
         Diff contains data_, collection of random variables, the update to the
@@ -21,7 +23,7 @@ class Diff(object):
         marked to be deleted.
         """
         self.data_ = defaultdict()
-        self.log_prob_ = tensor(0.0)
+        self.log_prob_ = 0.0
         self.is_delete_ = defaultdict(bool)
 
     def add_node(self, node: RVIdentifier, value: Variable) -> None:
@@ -45,7 +47,7 @@ class Diff(object):
         """
         return node in self.data_
 
-    def log_prob(self) -> Tensor:
+    def log_prob(self) -> Union[float, Tensor]:
         """
         :returns: the log probability update of the diff.
         """

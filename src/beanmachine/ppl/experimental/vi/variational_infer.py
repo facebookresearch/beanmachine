@@ -43,6 +43,10 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         """
         Trains a set of mean-field variational approximation (one per site).
 
+        All tensors in `queries` and `observations` must be allocated on the
+        same `torch.device`. Inference algorithms will attempt to allocate
+        intermediate tensors on the same device.
+
         :param queries: queried random variables
         :param observations: observations dict
         :param num_iter: number of  worlds to train over

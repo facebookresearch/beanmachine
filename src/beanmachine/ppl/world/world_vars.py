@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.variable import Variable
-from torch import Tensor, tensor
+from torch import Tensor
 
 
 class WorldVars(object):
@@ -13,10 +13,12 @@ class WorldVars(object):
     Represents the collection of random variables in World based inference.
     """
 
+    log_prob_: Union[float, Tensor]
+
     def __init__(self):
         self.var_funcs_ = defaultdict(set)
         self.data_ = defaultdict()
-        self.log_prob_ = tensor(0.0)
+        self.log_prob_ = 0.0
 
     def add_node(self, node: RVIdentifier, value: Variable) -> None:
         """
@@ -117,4 +119,4 @@ class WorldVars(object):
 
         :params value: the value to update the log_prob with.
         """
-        self.log_prob_ += value.detach()
+        self.log_prob_ += value

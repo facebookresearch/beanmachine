@@ -53,7 +53,7 @@ class AbstractSingleSiteSingleStepProposer(
 
         new_value = proposal_distribution.sample()
         negative_proposal_log_update = (
-            -1 * proposal_distribution.log_prob(new_value).sum()
+            -1.0 * proposal_distribution.log_prob(new_value).sum()
         )
 
         if requires_reshape:
@@ -65,10 +65,14 @@ class AbstractSingleSiteSingleStepProposer(
                 negative_proposal_log_update - node_var.jacobian
             )
 
-        # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor, Dict[typing.Any,
-        #  typing.Any]]` but got `Tuple[typing.Any, typing.Union[Tensor, int],
-        #  Dict[typing.Any, typing.Any]]`.
-        return (new_value, negative_proposal_log_update, auxiliary_variables)
+        # pyre-fixme[7]: Expected Tuple[Tensor, Tensor, Dict[typing.Any,
+        # typing.Any]] but got Tuple[typing.Any, typing.Union[Tensor, float],
+        # Dict[typing.Any, typing.Any]].
+        return (
+            new_value,
+            negative_proposal_log_update,
+            auxiliary_variables,
+        )
 
     def post_process(
         self, node: RVIdentifier, world: World, auxiliary_variables: Dict
@@ -103,8 +107,10 @@ class AbstractSingleSiteSingleStepProposer(
 
         if requires_reshape:
             old_value = old_value.reshape(-1)
-
-        positive_log_update = safe_log_prob_sum(proposal_distribution, old_value)
+        positive_log_update = safe_log_prob_sum(
+            proposal_distribution,
+            old_value.to(proposal_distribution.sample().device),
+        ).to(old_value.device)
 
         if requires_transform:
             positive_log_update = positive_log_update + node_var.jacobian

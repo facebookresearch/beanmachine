@@ -75,7 +75,8 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
                 self.world_.reject_diff()
                 is_accepted = False
         acceptance_prob = torch.min(
-            tensor(1.0, dtype=log_update.dtype), torch.exp(log_update)
+            tensor(1.0, dtype=log_update.dtype, device=log_update.device),
+            torch.exp(log_update),
         )
 
         LOGGER_INFERENCE.log(

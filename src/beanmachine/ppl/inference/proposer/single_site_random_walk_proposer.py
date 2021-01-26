@@ -108,7 +108,11 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
                 ProposalDistribution(
                     proposal_distribution=dist.Normal(
                         node_var.transformed_value,
-                        torch.ones(node_var.transformed_value.shape) * self.step_size,
+                        torch.ones(
+                            node_var.transformed_value.shape,
+                            device=node_var.transformed_value.device,
+                        )
+                        * self.step_size,
                     ),
                     requires_transform=True,
                     requires_reshape=False,
@@ -141,7 +145,11 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
             # Compute first and second moments of the perturbation distribution
             # by rescaling the support
             mu = (node_var.value - lower_bound) / width
-            sigma = torch.ones(node_var.value.shape) * self.step_size / width
+            sigma = (
+                torch.ones(node_var.value.shape, device=node_var.value.device)
+                * self.step_size
+                / width
+            )
             proposal_distribution = self.beta_distbn_from_moments(mu, sigma)
             transform = dist.AffineTransform(loc=lower_bound, scale=width)
             transformed_proposal = dist.TransformedDistribution(

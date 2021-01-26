@@ -107,6 +107,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             )
 
         node_val = node_var.transformed_value
+        node_device = node_val.device
         score = world.compute_score(node_var)
         zero_grad(node_val)
         # pyre-fixme
@@ -136,13 +137,16 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             # pyre-fixme
             L = torch.from_numpy(numpy.linalg.cholesky(neg_hessian.numpy())).to(
                 # pyre-fixme
-                dtype=neg_hessian.dtype
+                dtype=neg_hessian.dtype,
+                device=node_device,
             )
             # H^{-1} = (L L^T)^{-1}
             #        = L^{-T} L^{-1}
             # so L^{-1} is (lower) cholesky factor of H^{-1}
             L_inv = torch.triangular_solve(
-                torch.eye(L.size(-1)).to(dtype=neg_hessian.dtype), L, upper=False
+                torch.eye(L.size(-1)).to(dtype=neg_hessian.dtype, device=node_device),
+                L,
+                upper=False,
             ).solution.t()
             distance = torch.cholesky_solve(first_gradient.unsqueeze(1), L).t()
             _arguments["distance"] = distance

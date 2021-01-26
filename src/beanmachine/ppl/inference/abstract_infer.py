@@ -176,6 +176,10 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
         """
         Run inference algorithms and reset the world/mode at the end.
 
+        All tensors in `queries` and `observations` must be allocated on the
+        same `torch.device`. Inference algorithms will attempt to allocate
+        intermediate tensors on the same device.
+
         :param queries: random variables to query
         :param observations: observed random variables with their values
         :params num_samples: number of samples excluding adaptation to collect.
