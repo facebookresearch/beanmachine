@@ -86,6 +86,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     LessThanEqualNode,
     LessThanNode,
     LogNode,
+    LogSumExpNode,
     MapNode,
     MatrixMultiplicationNode,
     MultiplicationNode,
@@ -175,6 +176,7 @@ known_tensor_instance_functions = [
     "float",
     "log",
     "logical_not",
+    "logsumexp",
     "mm",
     "mul",
     "neg",
@@ -348,6 +350,7 @@ class BMGraphBuilder:
             torch.Tensor.float: self.handle_to_real,
             torch.Tensor.logical_not: self.handle_not,
             torch.Tensor.log: self.handle_log,
+            torch.Tensor.logsumexp: self.handle_logsumexp,
             torch.Tensor.mm: self.handle_matrix_multiplication,
             torch.Tensor.mul: self.handle_multiplication,
             torch.Tensor.neg: self.handle_negate,
@@ -358,6 +361,7 @@ class BMGraphBuilder:
             torch.exp: self.handle_exp,
             # Note that torch.float is not a function.
             torch.log: self.handle_log,
+            torch.logsumexp: self.handle_logsumexp,
             torch.logical_not: self.handle_not,
             torch.mm: self.handle_matrix_multiplication,
             torch.mul: self.handle_multiplication,
@@ -1130,6 +1134,25 @@ class BMGraphBuilder:
         node = TensorNode(data, size)
         self.add_node(node)
         return node
+
+    @memoize
+    def add_logsumexp(self, *inputs: List[BMGNode]) -> TensorNode:
+        node = LogSumExpNode(inputs)
+        self.add_node(node)
+        return node
+
+    def handle_logsumexp(self, input: Any, dim: Any, keepdim: Any = False) -> Any:
+        # TODO: Handle the situation where dim or keepdim are graph nodes.
+        # Produce an error.
+        if not isinstance(input, BMGNode):
+            return torch.logsumexp(input=input, dim=dim, keepdim=keepdim)
+        if isinstance(input, ConstantTensorNode):
+            return torch.logsumexp(input=input.value, dim=dim, keepdim=keepdim)
+        if isinstance(input, ConstantNode):
+            return torch.logsumexp(input=tensor(input.value), dim=dim, keepdim=keepdim)
+        # TODO: Handle the situation where the dim is not 1 or the shape is not
+        # one-dimensional; produce an error.
+        return self.add_logsumexp(*[input])
 
     def _canonicalize_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
