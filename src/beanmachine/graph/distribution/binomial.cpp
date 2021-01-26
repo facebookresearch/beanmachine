@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
+#include <unsupported/Eigen/SpecialFunctions>
 
 #include "beanmachine/graph/distribution/binomial.h"
 
@@ -35,21 +36,56 @@ graph::natural_t Binomial::_natural_sampler(std::mt19937& gen) const {
 double Binomial::log_prob(const graph::NodeValue& value) const {
   graph::natural_t n = in_nodes[0]->value._natural;
   double p = in_nodes[1]->value._double;
-  graph::natural_t k = value._natural;
-  if (k > n) {
-    return -std::numeric_limits<double>::infinity();
-  }
-  // we will try not to evaluate log(p) or log(1-p) unless needed
   double ret_val = 0;
-  if (k > 0) {
-    ret_val += k * log(p);
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    graph::natural_t k = value._natural;
+    if (k > n) {
+      return -std::numeric_limits<double>::infinity();
+    }
+    // we will try not to evaluate log(p) or log(1-p) unless needed
+    if (k > 0) {
+      ret_val += k * log(p);
+    }
+    if (k < n) {
+      ret_val += (n - k) * log(1 - p);
+    }
+    // note: Gamma(n+1) = n!
+    ret_val += std::lgamma(n + 1) - std::lgamma(k + 1) - std::lgamma(n - k + 1);
+  } else if (
+      value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
+    if ((value._nmatrix.array() > n).any()) {
+      return -std::numeric_limits<double>::infinity();
+    }
+    int size = value._nmatrix.size();
+    double sum_k = value._nmatrix.sum();
+
+    // we will try not to evaluate log(p) or log(1-p) unless needed
+    if ((value._nmatrix.array() > 0).any()) {
+      ret_val += sum_k * log(p);
+    }
+    if ((value._nmatrix.array() < n).any()) {
+      ret_val += (n * size - sum_k) * log(1 - p);
+    }
+
+    // note: Gamma(n+1) = n!
+    Eigen::MatrixXd value_double = value._nmatrix.cast<double>();
+    double k_factorial_sum = (value_double.array() + 1).lgamma().sum();
+    double n_k_factorial_sum = (n - value_double.array() + 1).lgamma().sum();
+    ret_val += std::lgamma(n + 1) * size - k_factorial_sum - n_k_factorial_sum;
   }
-  if (k < n) {
-    ret_val += (n - k) * log(1 - p);
-  }
-  // note: Gamma(n+1) = n!
-  ret_val += std::lgamma(n + 1) - std::lgamma(k + 1) - std::lgamma(n - k + 1);
   return ret_val;
+}
+
+void Binomial::log_prob_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& log_probs) const {
+  graph::natural_t n = in_nodes[0]->value._natural;
+  double p = in_nodes[1]->value._double;
+  Eigen::MatrixXd value_double = value._nmatrix.cast<double>();
+  log_probs = value_double.array() * log(p) +
+      (n - value_double.array()) * log(1 - p) + std::lgamma(n + 1) -
+      (value_double.array() + 1).lgamma() -
+      (n - value_double.array() + 1).lgamma();
 }
 
 // log_prob is k log(p) + (n-k) log(1-p) as a function of k
@@ -83,6 +119,52 @@ void Binomial::gradient_log_prob_param(
   grad1 += grad_p * in_nodes[1]->grad1;
   grad2 += grad2_p2 * in_nodes[1]->grad1 * in_nodes[1]->grad1 +
       grad_p * in_nodes[1]->grad2;
+}
+
+// log_prob is k log(p) + (n-k) log(1-p) as a function of p
+// grad1 is  (k/p) * p' - ((n-k) / (1-p)) * p'
+void Binomial::backward_param(const graph::NodeValue& value, double adjunct)
+    const {
+  assert(value.type.variable_type == graph::VariableType::SCALAR);
+  double n = (double)in_nodes[0]->value._natural;
+  double p = in_nodes[1]->value._double;
+  double k = (double)value._natural;
+
+  if (in_nodes[1]->needs_gradient()) {
+    double grad = k / p - (n - k) / (1 - p);
+    in_nodes[1]->back_grad1._double += adjunct * grad;
+  }
+}
+
+void Binomial::backward_param_iid(const graph::NodeValue& value) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+
+  if (in_nodes[1]->needs_gradient()) {
+    double n = (double)in_nodes[0]->value._natural;
+    double p = in_nodes[1]->value._double;
+    int size = value._nmatrix.size();
+    double sum_k = value._nmatrix.sum();
+    double grad = sum_k / p - (size * n - sum_k) / (1 - p);
+    in_nodes[1]->back_grad1._double += grad;
+  }
+}
+
+void Binomial::backward_param_iid(
+    const graph::NodeValue& value,
+    Eigen::MatrixXd& adjunct) const {
+  assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
+
+  if (in_nodes[1]->needs_gradient()) {
+    double n = (double)in_nodes[0]->value._natural;
+    double p = in_nodes[1]->value._double;
+
+    double sum_adjunct = adjunct.sum();
+    double sum_k_adjunct =
+        (value._nmatrix.cast<double>().array() * adjunct.array()).sum();
+    double grad =
+        sum_k_adjunct / p - (sum_adjunct * n - sum_k_adjunct) / (1 - p);
+    in_nodes[1]->back_grad1._double += grad;
+  }
 }
 
 } // namespace distribution
