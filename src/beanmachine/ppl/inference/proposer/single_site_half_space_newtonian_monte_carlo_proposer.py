@@ -13,7 +13,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.utils import tensorops  # pyre-ignore
+from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
 
@@ -41,7 +41,6 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         node_val = node_var.transformed_value
         score = world.compute_score(node_var)
         zero_grad(node_val)
-        # pyre-fixme
         first_gradient, hessian_diag = tensorops.halfspace_gradients(score, node_val)
         zero_grad(node_val)
         if not is_valid(first_gradient) or not is_valid(hessian_diag):

@@ -13,7 +13,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.utils import tensorops  # pyre-ignore
+from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
 
@@ -45,7 +45,6 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         score = world.compute_score(node_var)
         # ensures gradient is zero at the end of each proposals.
         zero_grad(node_val)
-        # pyre-fixme
         first_gradient, hessian_diag_minus_max = tensorops.simplex_gradients(
             score, node_val
         )
