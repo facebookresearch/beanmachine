@@ -16,7 +16,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.utils import tensorops  # pyre-ignore
+from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor, tensor
 
@@ -110,7 +110,6 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         node_device = node_val.device
         score = world.compute_score(node_var)
         zero_grad(node_val)
-        # pyre-fixme
         first_gradient, hessian = tensorops.gradients(score, node_val)
         zero_grad(node_val)
         if not is_valid(first_gradient) or not is_valid(hessian):
@@ -134,9 +133,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         try:
             # TODO(nazaninkt): Change this back to torch once the issue with
             # cholesky runtime is fixed.
-            # pyre-fixme
             L = torch.from_numpy(numpy.linalg.cholesky(neg_hessian.numpy())).to(
-                # pyre-fixme
                 dtype=neg_hessian.dtype,
                 device=node_device,
             )
@@ -162,7 +159,6 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
                 "Error: Cholesky decomposition failed. "
                 + "Falls back to Eigen decomposition."
             )
-            # pyre-fixme
             eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
             # pyre-fixme
             distance = (
