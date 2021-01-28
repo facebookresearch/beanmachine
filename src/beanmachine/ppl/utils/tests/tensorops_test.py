@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-"""Tests for tensorops.cpp"""
 import unittest
 
 import torch

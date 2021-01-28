@@ -5,9 +5,8 @@ import re
 import sys
 from glob import glob
 
-from pybind11.setup_helpers import Pybind11Extension
+from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import find_packages, setup
-from torch.utils.cpp_extension import BuildExtension, CppExtension
 
 
 REQUIRED_MAJOR = 3
@@ -24,9 +23,6 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "sphinx-autodoc-typehints",
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
-
-TORCH_COMPILE_ARGS = ["-fopenmp"]
-
 CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
 
@@ -120,14 +116,9 @@ setup(
             ),
             include_dirs=INCLUDE_DIRS,
             extra_compile_args=CPP_COMPILE_ARGS,
-        ),
-        CppExtension(
-            name="beanmachine.ppl.utils.tensorops",
-            sources=["src/beanmachine/ppl/utils/tensorops.cpp"],
-            extra_compile_args=CPP_COMPILE_ARGS + TORCH_COMPILE_ARGS,
-        ),
+        )
     ],
-    cmdclass={"build_ext": BuildExtension},
+    cmdclass={"build_ext": build_ext},
     extras_require={
         "dev": DEV_REQUIRES,
         "test": TEST_REQUIRES,

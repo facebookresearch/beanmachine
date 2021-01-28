@@ -1,7 +1,7 @@
 from typing import Optional, Tuple, Union
 
 import torch
-from beanmachine.ppl.utils import tensorops  # pyre-ignore
+from beanmachine.ppl.utils import tensorops
 from torch import Tensor, tensor
 from torch.autograd import grad
 
@@ -122,7 +122,6 @@ def compute_eigvals_eigvecs(
     :returns: first gradient, eigen values and eigen vectors of the negative
     hessian inverse
     """
-    # pyre-fixme
     first_gradient, hessian = tensorops.gradients(score, node_val)
     is_valid_first_grad_and_hessian = is_valid(first_gradient) or is_valid(hessian)
     if not is_valid_first_grad_and_hessian:
@@ -130,6 +129,5 @@ def compute_eigvals_eigvecs(
     # to avoid problems with inverse, here we add a small value - 1e-7 to
     # the diagonals
     neg_hessian = -1 * hessian.detach()
-    # pyre-fixme
     eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
     return True, first_gradient, eig_vecs, eig_vals
