@@ -1336,7 +1336,13 @@ class SingleAssignment:
         #    return r
         # y=p()
         _empty_ast_arguments = ast.arguments(
-            args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
+            posonlyargs=[],
+            args=[],
+            vararg=None,
+            kwonlyargs=[],
+            kw_defaults=[],
+            kwarg=None,
+            defaults=[],
         )
         return PatternRule(
             assign(value=ast_listComp()),
@@ -1394,7 +1400,13 @@ class SingleAssignment:
         #    return r
         # y=p()
         _empty_ast_arguments = ast.arguments(
-            args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
+            posonlyargs=[],
+            args=[],
+            vararg=None,
+            kwonlyargs=[],
+            kw_defaults=[],
+            kwarg=None,
+            defaults=[],
         )
         return PatternRule(
             assign(value=ast_setComp()),
@@ -1456,7 +1468,13 @@ class SingleAssignment:
         #    return r
         # y=p()
         _empty_ast_arguments = ast.arguments(
-            args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
+            posonlyargs=[],
+            args=[],
+            vararg=None,
+            kwonlyargs=[],
+            kw_defaults=[],
+            kwarg=None,
+            defaults=[],
         )
         return PatternRule(
             assign(value=ast_dictComp()),
