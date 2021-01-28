@@ -19,6 +19,10 @@ def f(x):
     return math.exp(x)
 
 
+class C:
+    pass
+
+
 # TODO: support aliases on bm.random_variable
 
 counter = 0
@@ -70,6 +74,12 @@ def add_one(x):
 @bm.functional
 def exp_coin_3():
     return add_one(exp_coin_2(coin()))
+
+
+@bm.random_variable
+def coin_with_class():
+    C()
+    return Beta(2.0, 2.0)
 
 
 class JITTest(unittest.TestCase):
@@ -295,6 +305,25 @@ digraph "graph" {
   N4 -> N5[label=left];
   N5 -> N6[label=operator];
 }
+"""
+        self.assertEqual(dot.strip(), expected.strip())
+
+    def disabled_test_function_transformation_6(self) -> None:
+        """Unit tests for JIT functions"""
+
+        # TODO: This test fails because of a bug where we crash if
+        # an RV function contains a call to a class constructor.
+        # The test will be enabled to regress the bug when the
+        # bug is fixed.
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [coin_with_class()]
+        observations = {}
+        bmg.accumulate_graph(queries, observations)
+        dot = bmg.to_dot(point_at_input=True)
+        expected = """
 """
         self.assertEqual(dot.strip(), expected.strip())
 
