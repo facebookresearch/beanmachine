@@ -347,11 +347,11 @@ from beanmachine.ppl.utils.probabilistic import probabilistic"""
 
 
 def _prepend_statements(module: ast.Module, statements: List[ast.stmt]) -> ast.Module:
-    return ast.Module(body=statements + module.body)
+    return ast.Module(body=statements + module.body, type_ignores=[])
 
 
 def _append_statements(module: ast.Module, statements: List[ast.stmt]) -> ast.Module:
-    return ast.Module(body=module.body + statements)
+    return ast.Module(body=module.body + statements, type_ignores=[])
 
 
 _samples_to_calls = AllListMembers(
@@ -449,6 +449,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
     name = bmg_f.name
     helper_arg = ast.arg(arg="bmg", annotation=None)
     helper_args = ast.arguments(
+        posonlyargs=[],
         args=[helper_arg],
         vararg=None,
         kwonlyargs=[],
@@ -472,7 +473,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
         returns=None,
     )
 
-    helper = ast.Module(body=[helper_func])
+    helper = ast.Module(body=[helper_func], type_ignores=[])
     ast.fix_missing_locations(helper)
 
     return helper
