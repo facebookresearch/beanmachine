@@ -7,7 +7,11 @@ import beanmachine.ppl.compiler.ast_tools as ast_tools
 
 
 class ASTToolsTest(unittest.TestCase):
-    def test_ast_tools_print_tree(self) -> None:
+    def disabled_test_ast_tools_print_tree(self) -> None:
+        # PYTHON VERSIONING ISSUE
+        # TODO: This test is disabled because it has different output on
+        # different versions of Python. Enable the test once we have sorted
+        # out what our required version of Python is.
         """test_ast_tools_print_tree"""
         node = ast.parse("2 + 3")
         observed = ast_tools.print_tree(node, False)
@@ -25,8 +29,13 @@ Module
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
 
-    def test_ast_tools_print_graph(self) -> None:
+    def disabled_test_ast_tools_print_graph(self) -> None:
         """test_ast_tools_print_graph"""
+
+        # PYTHON VERSIONING ISSUE
+        # TODO: This test is disabled because it has different output on
+        # different versions of Python. Enable the test once we have sorted
+        # out what our required version of Python is.
         node = ast.parse("2 + 3")
         observed = ast_tools.print_graph(node)
         expected = """
@@ -52,8 +61,13 @@ digraph "graph" {
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
 
-    def test_ast_tools_print_python(self) -> None:
+    def disabled_test_ast_tools_print_python(self) -> None:
         """test_ast_tools_print_python"""
+
+        # PYTHON VERSIONING ISSUE
+        # TODO: This test is disabled because it has different output on
+        # different versions of Python. Enable the test once we have sorted
+        # out what our required version of Python is.
         node = ast.parse("x = f(2 + 3)")
         observed = ast_tools.print_python(node)
         expected = """
