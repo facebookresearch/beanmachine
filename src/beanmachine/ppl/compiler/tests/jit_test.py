@@ -335,6 +335,25 @@ digraph "graph" {
 """
         self.assertEqual(dot.strip(), expected.strip())
 
+    def disabled_test_function_transformation_6(self) -> None:
+        """Unit tests for JIT functions"""
+
+        # TODO: This test fails because of a bug where we crash if
+        # an RV function contains a call to a class constructor.
+        # The test will be enabled to regress the bug when the
+        # bug is fixed.
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [coin_with_class()]
+        observations = {}
+        bmg.accumulate_graph(queries, observations)
+        dot = bmg.to_dot(point_at_input=True)
+        expected = """
+"""
+        self.assertEqual(dot.strip(), expected.strip())
+
 
 # TODO: Also test lambdas and nested functions.
 # TODO: What should we do about closures?
