@@ -5,7 +5,6 @@ import unittest
 import astor
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bm_to_bmg import (
-    _bm_function_to_bmg_ast,
     _bm_function_to_bmg_function,
     to_bmg,
     to_cpp,

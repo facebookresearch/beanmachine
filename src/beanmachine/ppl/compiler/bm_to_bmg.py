@@ -5,7 +5,7 @@ import ast
 import inspect
 import sys
 import types
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 import astor
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -410,7 +410,7 @@ def _unindent(lines):
     return [(line[num_spaces:] if line.startswith(spaces) else line) for line in lines]
 
 
-def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
+def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str]:
     """This function takes a function such as
 
         @random_variable
@@ -480,7 +480,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
     helper = ast.Module(body=[helper_func], type_ignores=[])
     ast.fix_missing_locations(helper)
 
-    return helper
+    return helper, source
 
 
 def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
@@ -491,11 +491,14 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
         return f
 
     helper_name = f.__name__ + "_helper"
-    a = _bm_function_to_bmg_ast(f, helper_name)
+    a, source = _bm_function_to_bmg_ast(f, helper_name)
     filename = "<BMGJIT>"
-    # TODO: Put this in a try-except and raise a lifted compilation error
-    # TODO: if there is a failure.
-    c = compile(a, filename, "exec")
+
+    try:
+        c = compile(a, filename, "exec")
+    except Exception as ex:
+        raise LiftedCompilationError(source, a, ex) from ex
+
     if f.__module__ not in sys.modules:
         msg = (
             f"module {f.__module__} for function {f.__name__} not "
