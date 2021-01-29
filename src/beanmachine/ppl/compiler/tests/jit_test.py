@@ -93,7 +93,7 @@ class JITTest(unittest.TestCase):
 
         self.assertTrue(norm.is_random_variable)
 
-        bmgast = _bm_function_to_bmg_ast(f, "f_helper")
+        bmgast, _ = _bm_function_to_bmg_ast(f, "f_helper")
         observed = astor.to_source(bmgast)
         expected = """
 def f_helper(bmg):
@@ -109,7 +109,7 @@ def f_helper(bmg):
     return f"""
         self.assertEqual(observed.strip(), expected.strip())
 
-        bmgast = _bm_function_to_bmg_ast(norm, "norm_helper")
+        bmgast, _ = _bm_function_to_bmg_ast(norm, "norm_helper")
         observed = astor.to_source(bmgast)
         expected = """
 def norm_helper(bmg):
