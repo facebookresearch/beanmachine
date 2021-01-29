@@ -375,6 +375,9 @@ _to_bmg = all_of(
     ]
 )
 
+# TODO: Add classes, lambdas, and so on
+_supported_code_containers = {types.MethodType, types.FunctionType}
+
 
 def _bm_ast_to_bmg_ast(a: ast.AST, run_optimizer: bool) -> ast.AST:
     no_asserts = _eliminate_all_assertions(a).expect_success()
@@ -428,6 +431,8 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
                 return t5
             return coin"""
 
+    assert type(f) in _supported_code_containers
+
     # TODO: f.__class__ must be 'function' or 'method'
     # TODO: Verify that we can get the source, handle it appropriately if we cannot.
     # TODO: Verify that function is not closed over any local variables
@@ -437,10 +442,9 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
     source = "".join(_unindent(lines))
     a: ast.Module = ast.parse(source)
     assert len(a.body) == 1
-    # TODO: What if it is an async function? Give an appropriate error.
-    # TODO: Similarly for generators, lambdas, coroutines
+    assert isinstance(a.body[0], ast.FunctionDef), f"{str(type(a.body[0]))}\n{source}"
+    # TODO: Add support for classes, generators, lambdas, and so on.
 
-    assert isinstance(a.body[0], ast.FunctionDef)
     bmg = _bm_ast_to_bmg_ast(a, False)
     assert isinstance(bmg, ast.Module)
     assert len(bmg.body) == 1
@@ -480,6 +484,12 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
 
 
 def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
+    # We only know how to compile certain kinds of code containers.
+    # If we don't have one of those, just return the function unmodified
+    # and hope for the best.
+    if type(f) not in _supported_code_containers:
+        return f
+
     helper_name = f.__name__ + "_helper"
     a = _bm_function_to_bmg_ast(f, helper_name)
     filename = "<BMGJIT>"
