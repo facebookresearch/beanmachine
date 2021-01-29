@@ -79,6 +79,9 @@ def exp_coin_3():
 @bm.random_variable
 def coin_with_class():
     C()
+    f = True
+    while f:
+        f = not f
     return Beta(2.0, 2.0)
 
 
@@ -311,8 +314,11 @@ digraph "graph" {
     def test_function_transformation_6(self) -> None:
         """Unit tests for JIT functions"""
 
-        # This test regresses an issue where we had a crash when an RV contained
-        # a class constructor.
+        # This test regresses some crashing bugs. The compiler crashed if an
+        # RV function contained:
+        #
+        # * a class constructor
+        # * a while loop
 
         self.maxDiff = None
 

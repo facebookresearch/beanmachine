@@ -242,19 +242,17 @@ def f(x):
 
         source = """
 def f(x):
-    while not(True):
+    while c:
         x=x+1
-    else:
-        x=x-1
 """
         expected = """
 def f(x):
     while True:
-        w1 = False
+        w1 = c
         if w1:
             x = x + 1
-    if not w1:
-        x = x - 1
+        else:
+            break
 """
         self.check_rewrite(
             source, expected, _some_top_down(self.s._handle_while_not_True())
@@ -265,7 +263,36 @@ def f(x):
             source, expected, many(_some_top_down(self.s._handle_while_not_True()))
         )
 
-        # Check that while_True rule works (alone) on simple cases
+        # Check that while_not_True_else rule works (alone) on simple cases
+
+        source = """
+def f(x):
+    while c:
+        x=x+1
+    else:
+        x=x-1
+"""
+        expected = """
+def f(x):
+    while True:
+        w1 = c
+        if w1:
+            x = x + 1
+        else:
+            break
+    if not w1:
+        x = x - 1
+"""
+        self.check_rewrite(
+            source, expected, _some_top_down(self.s._handle_while_not_True_else())
+        )
+
+        # Check that the while_not_True_else rewrite reaches normal form
+        self.check_rewrite(
+            source, expected, many(_some_top_down(self.s._handle_while_not_True_else()))
+        )
+
+        # Check that while_True_else rule works (alone) on simple cases
 
         source = """
 def f(x):
@@ -280,39 +307,49 @@ def f(x):
         x = x + 1
 """
         self.check_rewrite(
-            source, expected, _some_top_down(self.s._handle_while_True())
+            source, expected, _some_top_down(self.s._handle_while_True_else())
         )
 
-        # Check that while_True rule, alone, on simple cases, reaches a normal form
+        # Check that while_True_else rule, alone, on simple cases, reaches a normal form
 
         self.check_rewrite(
-            source, expected, many(_some_top_down(self.s._handle_while_True()))
+            source, expected, many(_some_top_down(self.s._handle_while_True_else()))
         )
 
         # Check that (combined) while rule works (alone) on simple cases
 
         source = """
 def f(x):
-    while not(True):
+    while c:
         x=x+1
-    else:
-        x=x-1
-    while True:
+    while d:
         y=y+1
     else:
         y=y-1
+    while True:
+        z=z+1
+    else:
+        z=z-1
 
 """
         expected = """
 def f(x):
     while True:
-        w1 = False
+        w1 = c
         if w1:
             x = x + 1
-    if not w1:
-        x = x - 1
+        else:
+            break
     while True:
-        y = y + 1
+        w2 = d
+        if w2:
+            y = y + 1
+        else:
+            break
+    if not w2:
+        y = y - 1
+    while True:
+        z = z + 1
 """
 
         self.check_rewrite(source, expected, _some_top_down(self.s._handle_while()))
@@ -328,7 +365,7 @@ def f(x):
 
         source = """
 def f(x):
-    while not(True):
+    while c:
         x=(x+1)-s
     else:
         x=(x-1)+s
@@ -341,11 +378,13 @@ def f(x):
         expected = """
 def f(x):
     while True:
-        w1 = False
+        w1 = c
         if w1:
             a5 = 1
             a2 = x + a5
             x = a2 - s
+        else:
+            break
     r3 = not w1
     if r3:
         a8 = 1
