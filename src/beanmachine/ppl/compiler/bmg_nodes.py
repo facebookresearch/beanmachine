@@ -55,6 +55,7 @@ class InputList:
     inputs: List["BMGNode"]
 
     def __init__(self, node: "BMGNode", inputs: List["BMGNode"]) -> None:
+        assert isinstance(inputs, list)
         self.node = node
         self.inputs = inputs
         for i in inputs:
@@ -109,7 +110,7 @@ class BMGNode(ABC):
     # To avoid this confusion, in this class we will explicitly call out
     # that the edges represent inputs.
 
-    inputs: List["BMGNode"]
+    inputs: InputList
     outputs: ItemCounter
 
     # See comments in InputList above for invariants we maintain on these members.
@@ -120,6 +121,7 @@ class BMGNode(ABC):
     _edges: Optional[List[str]] = None
 
     def __init__(self, inputs: List["BMGNode"]):
+        assert isinstance(inputs, list)
         self.inputs = InputList(self, inputs)
         self.outputs = ItemCounter()
         # We cannot compute the inf type or graph type yet because
@@ -639,6 +641,7 @@ class TensorNode(BMGNode):
     _size: torch.Size
 
     def __init__(self, items: List[BMGNode], size: torch.Size):
+        assert isinstance(items, list)
         BMGNode.__init__(self, items)
         self._size = size
 
@@ -1673,6 +1676,7 @@ class OperatorNode(BMGNode, metaclass=ABCMeta):
     The inputs are the operands of each operator."""
 
     def __init__(self, inputs: List[BMGNode]):
+        assert isinstance(inputs, list)
         BMGNode.__init__(self, inputs)
 
 
@@ -1702,6 +1706,7 @@ class LogSumExpNode(OperatorNode):
     # TODO: Similarly we might want to support logsumexp on dimensions other than 1.
 
     def __init__(self, inputs: List[BMGNode]):
+        assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
 
     def _compute_edge_names(self) -> List[str]:

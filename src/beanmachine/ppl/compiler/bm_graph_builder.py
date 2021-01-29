@@ -1130,14 +1130,14 @@ class BMGraphBuilder:
         return self.add_log(input)
 
     @memoize
-    def add_tensor(self, size: torch.Size, *data: List[BMGNode]) -> TensorNode:
-        node = TensorNode(data, size)
+    def add_tensor(self, size: torch.Size, *data: BMGNode) -> TensorNode:
+        node = TensorNode(list(data), size)
         self.add_node(node)
         return node
 
     @memoize
-    def add_logsumexp(self, *inputs: List[BMGNode]) -> TensorNode:
-        node = LogSumExpNode(inputs)
+    def add_logsumexp(self, *inputs: BMGNode) -> TensorNode:
+        node = LogSumExpNode(list(inputs))
         self.add_node(node)
         return node
 
@@ -1288,6 +1288,7 @@ class BMGraphBuilder:
     def _handle_tensor_constructor(
         self, arguments: List[Any], kwargs: Dict[str, Any]
     ) -> Any:
+        assert isinstance(arguments, list)
         # TODO: Handle kwargs
         flattened_args = list(_flatten_all_lists(arguments))
         if not any(isinstance(arg, BMGNode) for arg in flattened_args):
@@ -1382,9 +1383,9 @@ class BMGraphBuilder:
         return self.rv_map[rv]
 
     @memoize
-    def add_map(self, *elements) -> MapNode:
+    def add_map(self, *elements: BMGNode) -> MapNode:
         # TODO: Verify that the list is well-formed.
-        node = MapNode(elements)
+        node = MapNode(list(elements))
         self.add_node(node)
         return node
 
