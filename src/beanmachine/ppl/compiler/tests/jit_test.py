@@ -79,6 +79,9 @@ def exp_coin_3():
 @bm.random_variable
 def coin_with_class():
     C()
+    f = True
+    while f:
+        f = not f
     return Beta(2.0, 2.0)
 
 
@@ -308,11 +311,14 @@ digraph "graph" {
 """
         self.assertEqual(dot.strip(), expected.strip())
 
-    def test_function_transformation_6(self) -> None:
+    def disabled_test_function_transformation_6(self) -> None:
         """Unit tests for JIT functions"""
 
         # This test regresses an issue where we had a crash when an RV contained
         # a class constructor.
+
+        # TODO: This test also regresses an unfixed issue where we have a crash
+        # when an RV contains a while loop. Enable it when that issue is fixed.
 
         self.maxDiff = None
 
