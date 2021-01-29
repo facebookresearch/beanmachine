@@ -335,7 +335,7 @@ digraph "graph" {
 """
         self.assertEqual(dot.strip(), expected.strip())
 
-    def disabled_test_function_transformation_6(self) -> None:
+    def test_function_transformation_6(self) -> None:
         """Unit tests for JIT functions"""
 
         # TODO: This test fails because of a bug where we crash if
@@ -351,6 +351,16 @@ digraph "graph" {
         bmg.accumulate_graph(queries, observations)
         dot = bmg.to_dot(point_at_input=True)
         expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1[label=alpha];
+  N0 -> N1[label=beta];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=operator];
+}
 """
         self.assertEqual(dot.strip(), expected.strip())
 
