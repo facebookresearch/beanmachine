@@ -83,6 +83,7 @@ from beanmachine.ppl.utils.patterns import (
     PatternBase,
     anyPattern,
     negate,
+    nonEmptyList,
     twoPlusList,
 )
 from beanmachine.ppl.utils.rules import (
@@ -399,7 +400,7 @@ class SingleAssignment:
 
         return _do_it
 
-    def _handle_while_True(self) -> Rule:
+    def _handle_while_True_else(self) -> Rule:
         # This rule eliminates a redundant "else" clause from a "while True:" statement.
         # The purpose of this rule will become clear upon examining the rule which follows.
         #
@@ -420,12 +421,12 @@ class SingleAssignment:
             lambda source_term: ListEdit(
                 [ast.While(test=source_term.test, body=source_term.body, orelse=[])]
             ),
-            "handle_while_True",
+            "handle_while_True_else",
         )
 
-    def _handle_while_not_True(self) -> Rule:
-        # This rule eliminates all while statements which are not "while True:",
-        # and eliminates all "else" clauses from while statements. We rewrite:
+    def _handle_while_not_True_else(self) -> Rule:
+        # This rule eliminates all "while condition:" statements where the condition is
+        # not "True", and there is an "else" clause. We rewrite
         #
         # while condition:
         #   body
@@ -445,21 +446,22 @@ class SingleAssignment:
         #
         # which has the same semantics.
         #
-        # TODO: It looks like we forgot to implement the break statement below!
-        #
         return PatternRule(
-            ast_while(test=negate(ast_true)),
+            ast_while(test=negate(ast_true), orelse=negate([])),
             self._transform_with_assign(
                 "w",
                 lambda source_term: source_term.test,
                 lambda source_term, new_name, new_assign: ListEdit(
                     [
                         ast.While(
-                            # TODO test=ast.Name(id="True", ctx=ast.Load()),
                             test=ast.NameConstant(value=True),
                             body=[
                                 new_assign,
-                                ast.If(test=new_name, body=source_term.body, orelse=[]),
+                                ast.If(
+                                    test=new_name,
+                                    body=source_term.body,
+                                    orelse=[ast.Break()],
+                                ),
                             ],
                             orelse=[],
                         ),
@@ -471,13 +473,62 @@ class SingleAssignment:
                     ]
                 ),
             ),
+            "handle_while_not_True_else",
+        )
+
+    def _handle_while_not_True(self) -> Rule:
+        # This rule eliminates all "while condition:" statements where the condition is
+        # not "True", and there is no "else" clause. We rewrite
+        #
+        # while condition:
+        #   body
+        #
+        # to
+        #
+        # while True:
+        #   t = condition
+        #   if t:
+        #     body
+        #   else:
+        #     break
+        #
+        # which has the same semantics.
+        #
+        return PatternRule(
+            ast_while(test=negate(ast_true), orelse=[]),
+            self._transform_with_assign(
+                "w",
+                lambda source_term: source_term.test,
+                lambda source_term, new_name, new_assign: ListEdit(
+                    [
+                        ast.While(
+                            test=ast.NameConstant(value=True),
+                            body=[
+                                new_assign,
+                                ast.If(
+                                    test=new_name,
+                                    body=source_term.body,
+                                    orelse=[ast.Break()],
+                                ),
+                            ],
+                            orelse=[],
+                        ),
+                    ]
+                ),
+            ),
             "handle_while_not_True",
         )
 
     def _handle_while(self) -> Rule:
         # This rule eliminates all "else" clauses from while statements and
         # makes every while of the form "while True". See above for details.
-        return first([self._handle_while_True(), self._handle_while_not_True()])
+        return first(
+            [
+                self._handle_while_True_else(),
+                self._handle_while_not_True_else(),
+                self._handle_while_not_True(),
+            ]
+        )
 
     def _handle_unassigned(self) -> Rule:
         # This rule eliminates all expressions that are used only for their side
