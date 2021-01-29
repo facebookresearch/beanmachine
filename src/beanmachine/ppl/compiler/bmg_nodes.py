@@ -1696,14 +1696,14 @@ class LogSumExpNode(OperatorNode):
     # For example, we might want to support compiling something like
     #
     # @rv def n(): return Normal(tensor(0., 0.), tensor(1., 1.))
-    # y = n().logsumexp(dim=1)
+    # y = n().logsumexp(dim=0)
     #
     # the same way we would compile the semantically equivalent model:
     #
     # @rv def n(x): return Normal(0., 1.)
-    # y = tensor([n(0), n(1)]).logsumexp(dim=1)
+    # y = tensor([n(0), n(1)]).logsumexp(dim=0)
     #
-    # TODO: Similarly we might want to support logsumexp on dimensions other than 1.
+    # TODO: Similarly we might want to support logsumexp on dimensions other than 0.
 
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
@@ -1765,10 +1765,32 @@ class LogSumExpNode(OperatorNode):
     def support(self) -> Iterator[Any]:
         raise ValueError("support of LogSumExp not yet implemented")
 
-    # TODO: Implement _add_to_graph
-    # TODO: Implement _to_python
-    # TODO: Implement _to_cpp
-    # TODO: Implement _supported_in_bmg
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_operator(
+            OperatorType.LOGSUMEXP,
+            [d[x] for x in self.inputs],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        args = ", ".join(f"n{d[x]}" for x in self.inputs)
+        return (
+            f"n{n} = g.add_operator(\n"
+            + "  graph.OperatorType.LOGSUMEXP,\n"
+            + f"  [{args}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        args = ", ".join(f"n{d[x]}" for x in self.inputs)
+        return (
+            f"n{n} = g.add_operator(\n"
+            + "  graph::OperatorType::LOGSUMEXP,\n"
+            + f"  std::vector<uint>({{{args}}}));"
+        )
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 # ####

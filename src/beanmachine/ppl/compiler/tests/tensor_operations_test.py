@@ -19,12 +19,12 @@ def make_a_tensor():
 
 @bm.functional
 def lse1():
-    return make_a_tensor().logsumexp(dim=1)
+    return make_a_tensor().logsumexp(dim=0)
 
 
 @bm.functional
 def lse2():
-    return logsumexp(make_a_tensor(), dim=1)
+    return logsumexp(make_a_tensor(), dim=0)
 
 
 class TensorOperationsTest(unittest.TestCase):
@@ -33,9 +33,7 @@ class TensorOperationsTest(unittest.TestCase):
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse1()], {})
-        observed = bmg.to_dot(
-            point_at_input=True,
-        )
+        observed = bmg.to_dot(point_at_input=True)
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -65,7 +63,35 @@ digraph "graph" {
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse2()], {})
-        observed = bmg.to_dot(
-            point_at_input=True,
-        )
+        observed = bmg.to_dot(point_at_input=True)
+        self.assertEqual(observed.strip(), expected.strip())
+
+        # Now try generating a BMG from them. The problem fixer should
+        # remove the unsupported tensor node.
+
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=Sample];
+  N5[label=1.25];
+  N6[label=LogSumExp];
+  N7[label=Query];
+  N0 -> N2[label=mu];
+  N1 -> N2[label=sigma];
+  N2 -> N3[label=operand];
+  N2 -> N4[label=operand];
+  N3 -> N6[label=0];
+  N3 -> N6[label=1];
+  N4 -> N6[label=2];
+  N5 -> N6[label=3];
+  N6 -> N7[label=operator];
+}
+"""
+
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph([lse1()], {})
+        observed = bmg.to_dot(point_at_input=True, after_transform=True)
         self.assertEqual(observed.strip(), expected.strip())

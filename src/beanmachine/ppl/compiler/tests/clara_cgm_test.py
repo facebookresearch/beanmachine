@@ -7,7 +7,7 @@ from typing import Dict
 
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from torch import tensor
+from torch import logsumexp, tensor
 from torch.distributions import Bernoulli, Beta
 
 
@@ -161,11 +161,7 @@ def observation():
                 pos_sum = pos_sum + (1 - sensitivity(labeler)).log()
                 neg_sum = neg_sum + specificity(labeler).log()
 
-        # TODO: Implement
-        # TODO: torch.logsumexp(torch.tensor([pos_sum, neg_sum]), dim=0)
-        # TODO: in the compiler
-
-        log_prob_item = (pos_sum.exp() + neg_sum.exp()).log()
+        log_prob_item = logsumexp(tensor([pos_sum, neg_sum]), dim=0)
         log_prob = log_prob + log_prob_item
     return Bernoulli(log_prob.exp())
 

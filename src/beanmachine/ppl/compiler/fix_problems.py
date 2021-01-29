@@ -18,6 +18,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DistributionNode,
     DivisionNode,
     IndexNode,
+    LogSumExpNode,
     MapNode,
     MultiplicationNode,
     NegateNode,
@@ -26,6 +27,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     PowerNode,
     Query,
     SampleNode,
+    TensorNode,
     UniformNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
@@ -543,7 +545,57 @@ class Fixer:
             # TODO: Handle the case where there are two inconsistent
             # TODO: observations of the same sample
 
+    def _is_fixable_logsumexp(self, n: BMGNode) -> bool:
+        return (
+            isinstance(n, LogSumExpNode)
+            and len(n.inputs) == 1
+            and isinstance(n.inputs[0], TensorNode)
+        )
+
+    def _fix_logsumexp(self, n: LogSumExpNode) -> BMGNode:
+        assert len(n.inputs) == 1
+        t = n.inputs[0]
+        assert isinstance(t, TensorNode)
+        # If the tensor is a singleton then logsumexp is
+        # an identity.
+        assert len(t.inputs) >= 1
+        if len(t.inputs) == 1:
+            return t.inputs[0]
+        # Otherwise, we just make a LogSumExp whose inputs are the
+        # tensor node elements.
+        elements = t.inputs.inputs
+        assert isinstance(elements, list)
+        return self.bmg.add_logsumexp(*elements)
+
+    def _fix_tensor_ops(self) -> None:
+        # Suppose we have a model with a query on some samples:
+        #
+        # @function def f():
+        #   return tensor([norm(), beta(), ... ]).logsumexp(dim=0)
+        #
+        # The graph accumulator will create a TensorNode containing the
+        # SampleNodes, and the LogSumExpNode's input will be the tensor.
+        # But we do not have a tensor-built-from-parts node in BMG.
+        #
+        # What we need to do is construct a new LogSumExpNode whose
+        # inputs are the samples; the TensorNode will become orphaned.
+        #
+        replacements = {}
+        nodes = self.bmg._traverse_from_roots()
+        for node in nodes:
+            for i in range(len(node.inputs)):
+                c = node.inputs[i]
+                if c in replacements:
+                    node.inputs[i] = replacements[c]
+                    continue
+                if self._is_fixable_logsumexp(c):
+                    assert isinstance(c, LogSumExpNode)
+                    replacement = self._fix_logsumexp(c)
+                    node.inputs[i] = replacement
+                    replacements[c] = replacement
+
     def fix_all_problems(self) -> None:
+        self._fix_tensor_ops()
         self._additions_to_complements()
         self._fix_unsupported_nodes()
         if self.errors.any():
