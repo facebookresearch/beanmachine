@@ -21,7 +21,7 @@ def f(x):
 
 class C:
     def m(self):
-        pass
+        return
 
 
 # TODO: support aliases on bm.random_variable
