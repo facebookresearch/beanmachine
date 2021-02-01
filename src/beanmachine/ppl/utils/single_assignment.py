@@ -69,6 +69,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     keyword,
     match,
     match_any,
+    match_every,
     name,
     starred,
     subscript,
@@ -102,6 +103,7 @@ _list_not_starred: PatternBase = ListAny(_not_starred)
 _list_all_identifiers: PatternBase = ListAll(name())
 _not_identifier_keyword: Pattern = keyword(value=_not_identifier)
 _not_identifier_keywords: PatternBase = ListAny(_not_identifier_keyword)
+_not_none = negate(None)
 
 # TODO: The identifier "dict" should be made global unique in target name space
 _keyword_with_dict = keyword(arg=None, value=call(func=name(id="dict"), args=[]))
@@ -546,8 +548,8 @@ class SingleAssignment:
         )
 
     def _handle_return(self) -> Rule:
-        # This rule eliminates all "return" statements where the returned value is
-        # not an identifier. It rewrites:
+        # This rule eliminates all "return" statements where there is a returned
+        # value that is not an identifier. We rewrite:
         #
         # return complex
         #
@@ -568,7 +570,7 @@ class SingleAssignment:
         # and thereby maintain the invariant that every return statement
         # returns an identifier.
         return PatternRule(
-            ast_return(value=_not_identifier),
+            ast_return(value=match_every(_not_identifier, _not_none)),
             self._transform_with_name(
                 "r",
                 lambda source_term: source_term.value,
