@@ -20,7 +20,8 @@ def f(x):
 
 
 class C:
-    pass
+    def m(self):
+        pass
 
 
 # TODO: support aliases on bm.random_variable
@@ -78,7 +79,7 @@ def exp_coin_3():
 
 @bm.random_variable
 def coin_with_class():
-    C()
+    C().m()
     f = True
     while f:
         f = not f
@@ -318,6 +319,7 @@ digraph "graph" {
         # RV function contained:
         #
         # * a class constructor
+        # * a call to a class method
         # * a while loop
 
         self.maxDiff = None
