@@ -48,6 +48,7 @@ import torch  # isort:skip  torch has to be imported before graph
 import inspect
 import math
 import sys
+from types import MethodType
 from typing import Any, Callable, Dict, List
 
 # TODO: For reasons unknown, Pyre is unable to find type information about
@@ -1176,6 +1177,24 @@ class BMGraphBuilder:
         ):
             f = getattr(Tensor, function.__name__)
             args = [function.__self__] + arguments
+        elif isinstance(function, MethodType):
+            # In Python, if we are calling a method of a class with a "self"
+            # parameter then the callable we get is already partially evaluated.
+            # That is, if we have
+            #
+            # class C:
+            #   def m(self, x):...
+            # c = C();
+            # cm = c.m
+            # cm(1)
+            #
+            # Then cm is a brand-new object with attributes __self__ and __func__,
+            # and calling cm(1) actually calls cm.__func__(cm.__self__, 1)
+            #
+            # We simulate that here.
+            f = function.__func__
+            args = [function.__self__] + arguments
+
         elif isinstance(function, Callable):
             f = function
             args = arguments
@@ -1318,6 +1337,13 @@ class BMGraphBuilder:
     def handle_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
     ) -> Any:
+
+        # We need to check whether this is a call to Normal(0., 1.).cdf(x)
+        # before we do any canonicalization.
+
+        if _is_phi(function):
+            return self.handle_phi(*arguments, **kwargs)
+
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
 
         if is_from_lifted_module(f):
@@ -1361,9 +1387,6 @@ class BMGraphBuilder:
             if only_ordinary_arguments(args, kwargs):
                 return f(*args, **kwargs)
             return self.function_map[f](*args, **kwargs)
-
-        if _is_phi(f):
-            return self.handle_phi(*args, **kwargs)
 
         return self._handle_ordinary_call(f, args, kwargs)
 
