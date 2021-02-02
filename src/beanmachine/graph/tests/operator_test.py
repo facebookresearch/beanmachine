@@ -133,13 +133,17 @@ class TestOperators(unittest.TestCase):
         c1 = g.add_constant(3)  # natural
         o0 = g.add_operator(bmg.OperatorType.TO_REAL, [c1])
         o1 = g.add_operator(bmg.OperatorType.NEGATE, [o0])
-        o2 = g.add_operator(bmg.OperatorType.EXP, [o1])
+        o2 = g.add_operator(bmg.OperatorType.EXP, [o1])  # positive real
         o2_real = g.add_operator(bmg.OperatorType.TO_REAL, [o2])
         o3 = g.add_operator(bmg.OperatorType.MULTIPLY, [o2_real, o0])
         o4 = g.add_operator(bmg.OperatorType.EXPM1, [o0])
         o5 = g.add_operator(bmg.OperatorType.ADD, [o0, o3, o4])
         o6 = g.add_operator(bmg.OperatorType.POW, [o5, o0])  # real
+        # Verify that EXPM1 on a negative real is legal.
+        o7 = g.add_operator(bmg.OperatorType.NEGATE, [o2])
+        o8 = g.add_operator(bmg.OperatorType.EXPM1, [o7])
         g.query(o6)
+        g.query(o8)
         samples = g.infer(2)
         # both samples should have exactly the same value since we are doing
         # deterministic operators only
@@ -147,8 +151,10 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(samples[0][0], samples[1][0])
         # the result should be identical to doing this math directly
         const1 = 3.0
-        result = (const1 + math.exp(-const1) * const1 + math.expm1(const1)) ** const1
-        self.assertAlmostEqual(samples[0][0], result, 3)
+        r6 = (const1 + math.exp(-const1) * const1 + math.expm1(const1)) ** const1
+        self.assertAlmostEqual(samples[0][0], r6, 3)
+        r8 = math.expm1(-math.exp(-const1))
+        self.assertAlmostEqual(samples[0][1], r8, 3)
 
     def test_probability(self) -> None:
         g = bmg.Graph()
