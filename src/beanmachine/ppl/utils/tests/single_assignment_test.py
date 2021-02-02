@@ -18,13 +18,13 @@ class SingleAssignmentTest(unittest.TestCase):
     s = SingleAssignment()
     default_rules = s._rules
 
-    def test_single_assignment_null_check(self) -> None:
-        """To check if you change one of the two numbers the test fails"""
+    def test_single_assignment_sanity_check(self) -> None:
+        """If you manually change one of the two numbers in the test it should fail"""
 
         self.assertEqual(3, 3)
 
-    def test_single_assignment_unique_id(self) -> None:
-        """Tests unique_uses intended preserves name prefix"""
+    def test_single_assignment_unique_id_preserves_prefix(self) -> None:
+        """The method unique_id preserves name prefix"""
 
         s = SingleAssignment()
         root = "root"
@@ -32,7 +32,7 @@ class SingleAssignmentTest(unittest.TestCase):
         self.assertEqual(root, name[0 : len(root)])
 
     def check_rewrite(self, source, expected, rules=default_rules):
-        """Tests that starting from applying rules to source yields expected"""
+        """Applying rules to source yields expected"""
 
         self.s._count = 0
         self.s._rules = rules
@@ -40,8 +40,8 @@ class SingleAssignmentTest(unittest.TestCase):
         result = self.s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip())
 
-    def check_rewrite_ast(self, source, expected, rules=default_rules):
-        """Tests that starting from applying rules to source yields expected ast"""
+    def check_rewrite_as_ast(self, source, expected, rules=default_rules):
+        """Applying rules to source yields expected -- checked as ASTs"""
 
         self.maxDiff = None
         self.s._count = 0
@@ -50,7 +50,7 @@ class SingleAssignmentTest(unittest.TestCase):
         self.assertEqual(ast.dump(result), ast.dump(ast.parse(expected)))
 
     def test_single_assignment_pre_unassigned_expressions(self) -> None:
-        """Tests need for a new rule to handle unassigned expressions"""
+        """Tests for state before adding rule to handle unassigned expressions"""
 
         source = """
 def f(x):
@@ -1235,7 +1235,7 @@ def flip_logit_constant():
 """
         self.check_rewrite(source, expected)
 
-        self.check_rewrite_ast(source, expected)
+        self.check_rewrite_as_ast(source, expected)
 
     def test_single_assignment_listComp(self) -> None:
         """Test the assign rule for desugaring listComps"""
