@@ -218,6 +218,12 @@ def math3():
     return Bernoulli(Normal(0.0, 1.0).cdf(hc(4)))
 
 
+@bm.random_variable
+def math4():
+    # PHI, alternative syntax
+    return Bernoulli(Normal.cdf(Normal(0.0, 1.0), hc(4)))
+
+
 expected_bmg_4 = """
 Node 0 type 1 parents [ ] children [ 1 ] positive real 1
 Node 1 type 2 parents [ 0 ] children [ 2 3 8 9 13 ] unknown
@@ -353,6 +359,13 @@ class GraphAccumulationTests(unittest.TestCase):
     def test_accumulate_math(self) -> None:
         self.maxDiff = None
         queries = [math1(), math2(), math3()]
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph(queries, {})
+        observed = bmg.to_bmg().to_string()
+        self.assertEqual(tidy(observed), tidy(expected_bmg_4))
+
+        # Try with a different version of CDF syntax.
+        queries = [math1(), math2(), math4()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
         observed = bmg.to_bmg().to_string()

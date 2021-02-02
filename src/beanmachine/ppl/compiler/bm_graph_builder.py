@@ -241,23 +241,15 @@ def _is_functional_call(f) -> bool:
     return hasattr(f, "is_functional")
 
 
-def _is_phi(f: Any) -> bool:
-    if not isinstance(f, Callable):
+def _is_phi(f: Any, arguments: List[Any], kwargs: Dict[str, Any]) -> bool:
+    # We need to know if this call is Normal.cdf(Normal(0.0, 1.0), x).
+    # (Note that we have already rewritten Normal(0.0, 1.0).cdf(x) into
+    # this form.)
+    # TODO: Support kwargs
+    if f is not Normal.cdf or len(arguments) < 2:
         return False
-    if not hasattr(f, "__name__"):
-        return False
-    if f.__name__ != "cdf":
-        return False
-    if not hasattr(f, "__self__"):
-        return False
-    s = f.__self__
-    if not isinstance(s, Normal):
-        return False
-    if s.mean != 0.0:
-        return False
-    if s.stddev != 1.0:
-        return False
-    return True
+    s = arguments[0]
+    return isinstance(s, Normal) and s.mean == 0.0 and s.stddev == 1.0
 
 
 def _has_source_code(function: Callable) -> bool:
@@ -1337,14 +1329,10 @@ class BMGraphBuilder:
     def handle_function(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
     ) -> Any:
-
-        # We need to check whether this is a call to Normal(0., 1.).cdf(x)
-        # before we do any canonicalization.
-
-        if _is_phi(function):
-            return self.handle_phi(*arguments, **kwargs)
-
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
+
+        if _is_phi(f, args, kwargs):
+            return self.handle_phi(*(args[1:]), **kwargs)
 
         if is_from_lifted_module(f):
             # It's already compiled; just call it.
