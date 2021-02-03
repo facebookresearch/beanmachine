@@ -71,6 +71,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     match_any,
     match_every,
     name,
+    slice_pattern,
     starred,
     subscript,
     unaryop,
@@ -97,6 +98,7 @@ from beanmachine.ppl.utils.rules import (
 
 _some_top_down = ast_domain.some_top_down
 _not_identifier: Pattern = negate(name())
+_neither_name_nor_none: Pattern = negate(match_any(name(), None))
 _not_starred: Pattern = negate(starred())
 _list_not_identifier: PatternBase = ListAny(_not_identifier)
 _list_not_starred: PatternBase = ListAny(_not_starred)
@@ -1888,6 +1890,7 @@ class SingleAssignment:
                 self._handle_left_value_attributeref(),
                 self._handle_left_value_subscript_value(),
                 self._handle_left_value_subscript_slice_index(),
+                self._handle_left_value_subscript_slice_lower(),
             ]
         )
 
@@ -1958,6 +1961,38 @@ class SingleAssignment:
                 ),
             ),
             "_handle_left_value_subscript_slice_index",
+        )
+
+    def _handle_left_value_subscript_slice_lower(self) -> Rule:
+        """Rewrites like a[b.c:] = z → x = b.c; a[x:] = z."""
+        return PatternRule(
+            assign(
+                targets=[
+                    subscript(
+                        value=name(), slice=slice_pattern(lower=_neither_name_nor_none)
+                    )
+                ],
+                value=name(),
+            ),
+            self._transform_with_name(
+                "x",
+                lambda source_term: source_term.targets[0].slice.lower,
+                lambda source_term, new_name: ast.Assign(
+                    targets=[
+                        ast.Subscript(
+                            value=source_term.targets[0].value,
+                            slice=ast.Slice(
+                                lower=ast.Name(id=new_name, ctx=ast.Load()),
+                                upper=source_term.targets[0].slice.upper,
+                                step=source_term.targets[0].slice.step,
+                            ),
+                            ctx=ast.Store(),
+                        )
+                    ],
+                    value=source_term.value,
+                ),
+            ),
+            "_handle_left_value_subscript_slice_lower",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
