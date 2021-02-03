@@ -2181,12 +2181,29 @@ x = dict(**c, **a1)
 
     def test_left_value_all(self) -> None:
         """General tests for the full set of assignment left value rules"""
-        # TODO: Add rest of set normal forms to this example
+        # First, some "most general" normal forms. These are terms that are not
+        # reduced by this set of rewrites, nor by all the other rules for that matter.
         normal_forms = [
             """
 def f(x):
-    x = y
+    a = z
+    a.b = z
+    a[b] = z
+    a[b:c] = z
+    a[b:c:d] = z
+    [] = z
+    [a] = z
+    [*a] = z
         """
         ]
 
+        # These terms are normal forms for this specific set
         self.check_rewrites(normal_forms, self.s._handle_left_value_all())
+        # They are also "in most general form" because they are also normal forms for all sets
+        self.check_rewrites(normal_forms)
+        # It would be nice of course if we could check that we have captured (at least
+        # representatives) of all normal form productions, but no idea how to do this yet.
+
+        # Second, some terms that are only in normal form for this set (but could be
+        # reducible by other rules). This type of terms helps us check the rules in
+        # this set do not rewrite terms prematurely (which could alter order of evaluation).
