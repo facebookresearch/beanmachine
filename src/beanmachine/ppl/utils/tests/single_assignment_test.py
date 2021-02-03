@@ -2232,3 +2232,20 @@ def f(x):
         ]
 
         self.check_rewrites(waiting_forms, self.s._handle_left_value_all())
+
+    def test_left_value_attributeref(self) -> None:
+        """Test rewrites like a.b.c = z → x = a.b; x.c = z"""
+
+        terms = [
+            """
+def f(x):
+    a.b.c = z""",
+            """
+def f(x):
+    x1 = a.b
+    x1.c = z""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_attributeref())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
