@@ -31,14 +31,143 @@ class SingleAssignmentTest(unittest.TestCase):
         name = s._unique_id(root)
         self.assertEqual(root, name[0 : len(root)])
 
-    def check_rewrite(self, source, expected, rules=default_rules):
+    def check_rewrite(self, source, expected, rules=default_rules, msg=None):
         """Applying rules to source yields expected"""
 
         self.s._count = 0
         self.s._rules = rules
         m = ast.parse(source)
         result = self.s.single_assignment(fold(m))
-        self.assertEqual(astor.to_source(result).strip(), expected.strip())
+        self.assertEqual(astor.to_source(result).strip(), expected.strip(), msg=msg)
+
+    def check_rewrites(self, sources, rules=default_rules):
+        """Applying rules to each element of sources yelds the next one"""
+
+        self.assertIsInstance(sources, list, msg="\nSources should be list of strings.")
+        self.assertGreater(len(sources), 0, msg="\nSources should be a non-empty list.")
+        if len(sources) == 1:
+            return self.check_rewrite(
+                sources[0],
+                sources[0],
+                many(_some_top_down(rules)),
+                msg="\nExpected the term to be a normal form for rule.",
+            )
+        source, *rest = sources
+        expected, *_ = rest
+        self.check_rewrite(
+            source,
+            expected,
+            _some_top_down(rules),
+            msg="\nExpected rule to rewrite one term to the other",
+        )
+        self.check_rewrites(rest, rules)
+
+    def test_check_rewrites(self) -> None:
+        """The method check_rewrites performs several common functions for it in one shot.
+        This method illustrates these functions."""
+
+        # The tests use a running example consisting of three terms that are the first,
+        # intermediate, and final terms in a sequence of rewrites by the rule
+        # self.s._handle_boolop_binarize()
+        # The three terms are simple as follows:
+
+        source1 = """
+def f(x):
+    x = a and b and c and d
+"""
+        source2 = """
+def f(x):
+    x = (a and b) and c and d
+"""
+        source3 = """
+def f(x):
+    x = ((a and b) and c) and d
+"""
+        # First, check that it raises errors on bad inputs
+        with self.assertRaises(
+            AssertionError, msg="The following line should raise an error!"
+        ):
+            self.check_rewrites(42, self.s._handle_boolop_binarize())
+
+        with self.assertRaises(
+            AssertionError, msg="The following line should raise an error!"
+        ):
+            self.check_rewrites([], self.s._handle_boolop_binarize())
+
+        # Second, make sure it it does what is expected on normal forms
+        self.check_rewrites([source3], self.s._handle_boolop_binarize())
+
+        with self.assertRaises(
+            AssertionError, msg="The following line should raise an error!"
+        ):
+            self.check_rewrites([source1], self.s._handle_boolop_binarize())
+
+        # Third, this predicate will catch you if you add on "many" too many
+        with self.assertRaises(
+            ValueError, msg="The following line should raise an error!"
+        ):
+            self.check_rewrites([source3], many(self.s._handle_boolop_binarize()))
+
+        with self.assertRaises(
+            ValueError, msg="The following line should raise an error!"
+        ):
+            self.check_rewrites([source1], many(self.s._handle_boolop_binarize()))
+
+        # Fourth, it will recognize valid rewrites
+        self.check_rewrites(
+            [source1, source2, source3], self.s._handle_boolop_binarize()
+        )
+
+        # In common use, it is expect that the intermediate expressions are
+        # all gathered in a list (if we would like to test the sequence in)
+        # multiple ways, or they may be inlined directly. To get a sense of
+        # the way the automatic formatting renders such uses, we include both
+        # here:
+
+        sources = [
+            """
+def f(x):
+    x = a and b and c and d
+""",
+            """
+def f(x):
+    x = (a and b) and c and d
+""",
+            """
+def f(x):
+    x = ((a and b) and c) and d
+""",
+        ]
+
+        self.check_rewrites(sources, self.s._handle_boolop_binarize())
+
+        # and
+
+        self.check_rewrites(
+            [
+                """
+def f(x):
+    x = a and b and c and d
+""",
+                """
+def f(x):
+    x = (a and b) and c and d
+""",
+                """
+def f(x):
+    x = ((a and b) and c) and d
+""",
+            ],
+            self.s._handle_boolop_binarize(),
+        )
+
+        # Both forms are a bit verbose, but the first is somewhat more passable
+
+        # Fifth, the above call is essentially the following reduction but
+        # with the intermediate term(s) spelled out:
+        self.check_rewrite(
+            source1, source3, many(_some_top_down(self.s._handle_boolop_binarize()))
+        )
 
     def check_rewrite_as_ast(self, source, expected, rules=default_rules):
         """Applying rules to source yields expected -- checked as ASTs"""
