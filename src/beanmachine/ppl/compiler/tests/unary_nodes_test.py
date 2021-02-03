@@ -10,6 +10,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ExpM1Node,
     ExpNode,
     HalfCauchyNode,
+    LogisticNode,
     LogNode,
     NaturalNode,
     NegateNode,
@@ -108,6 +109,14 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ExpM1Node(norm).inf_type, Real)
         self.assertEqual(ExpM1Node(neg).inf_type, NegativeReal)
 
+        # Logistic always produces a probability
+        self.assertEqual(LogisticNode(bern).inf_type, Probability)
+        self.assertEqual(LogisticNode(beta).inf_type, Probability)
+        self.assertEqual(LogisticNode(bino).inf_type, Probability)
+        self.assertEqual(LogisticNode(half).inf_type, Probability)
+        self.assertEqual(LogisticNode(norm).inf_type, Probability)
+        self.assertEqual(LogisticNode(neg).inf_type, Probability)
+
         # Log of prob is negative real, otherwise real.
         self.assertEqual(LogNode(bern).inf_type, NegativeReal)
         self.assertEqual(LogNode(beta).inf_type, NegativeReal)
@@ -191,6 +200,15 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ExpM1Node(half).requirements, [PositiveReal])
         self.assertEqual(ExpM1Node(norm).requirements, [Real])
         self.assertEqual(ExpM1Node(neg).requirements, [NegativeReal])
+
+        # Logistic requires that its operand be real.
+
+        self.assertEqual(LogisticNode(bern).requirements, [Real])
+        self.assertEqual(LogisticNode(beta).requirements, [Real])
+        self.assertEqual(LogisticNode(bino).requirements, [Real])
+        self.assertEqual(LogisticNode(half).requirements, [Real])
+        self.assertEqual(LogisticNode(norm).requirements, [Real])
+        self.assertEqual(LogisticNode(neg).requirements, [Real])
 
         # Log requires that its operand be probability or positive real.
         self.assertEqual(LogNode(bern).requirements, [Probability])

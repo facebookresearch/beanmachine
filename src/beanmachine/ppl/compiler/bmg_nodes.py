@@ -2808,6 +2808,46 @@ class ExpM1Node(UnaryOperatorNode):
         return True
 
 
+class LogisticNode(UnaryOperatorNode):
+    """This represents the operation 1/(1+exp(x)); it is generated when
+    a model contains calls to Tensor.sigmoid."""
+
+    operator_type = OperatorType.LOGISTIC
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def label(self) -> str:
+        return "Logistic"
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        return Probability
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        ot = self.operand.graph_type
+        if ot == Real:
+            return Probability
+        return Malformed
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [Real]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.operand.size
+
+    def __str__(self) -> str:
+        return "Logistic(" + str(self.operand) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(torch.sigmoid(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+
 class LogNode(UnaryOperatorNode):
     """This represents a log operation; it is generated when
     a model contains calls to Tensor.log or math.log."""
