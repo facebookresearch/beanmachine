@@ -87,6 +87,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     IndexNode,
     LessThanEqualNode,
     LessThanNode,
+    LogisticNode,
     LogNode,
     LogSumExpNode,
     MapNode,
@@ -184,6 +185,7 @@ known_tensor_instance_functions = [
     "mul",
     "neg",
     "pow",
+    "sigmoid",
 ]
 
 
@@ -351,6 +353,7 @@ class BMGraphBuilder:
             torch.Tensor.mul: self.handle_multiplication,
             torch.Tensor.neg: self.handle_negate,
             torch.Tensor.pow: self.handle_power,
+            torch.Tensor.sigmoid: self.handle_logistic,
             # Tensor static functions
             torch.add: self.handle_addition,
             torch.div: self.handle_division,
@@ -364,6 +367,7 @@ class BMGraphBuilder:
             torch.mul: self.handle_multiplication,
             torch.neg: self.handle_negate,
             torch.pow: self.handle_power,
+            torch.sigmoid: self.handle_logistic,
             # Distribution constructors
             Bernoulli: self.handle_bernoulli,
             Beta: self.handle_beta,
@@ -1110,6 +1114,27 @@ class BMGraphBuilder:
         if isinstance(input, ConstantNode):
             return torch.expm1(input.value)
         return self.add_expm1(input)
+
+    @memoize
+    def add_logistic(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantTensorNode):
+            return self.add_constant(torch.sigmoid(operand.value))
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(torch.sigmoid(torch.tensor(operand.value)))
+        node = LogisticNode(operand)
+        self.add_node(node)
+        return node
+
+    def handle_logistic(self, input: Any) -> Any:
+        if isinstance(input, Tensor):
+            return torch.sigmoid(input)
+        if isinstance(input, ConstantTensorNode):
+            return torch.sigmoid(input.value)
+        if not isinstance(input, BMGNode):
+            return torch.sigmoid(input)
+        if isinstance(input, ConstantNode):
+            return torch.sigmoid(input.value)
+        return self.add_logistic(input)
 
     @memoize
     def add_phi(self, operand: BMGNode) -> BMGNode:
