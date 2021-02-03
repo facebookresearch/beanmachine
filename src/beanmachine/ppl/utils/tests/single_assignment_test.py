@@ -39,6 +39,7 @@ class SingleAssignmentTest(unittest.TestCase):
     def check_rewrite(self, source, expected, rules=default_rules, msg=None):
         """Applying rules to source yields expected"""
 
+        self.maxDiff = None
         self.s._count = 0
         self.s._rules = rules
         m = ast.parse(source)
@@ -2212,3 +2213,40 @@ def f(x):
         # Second, some terms that are only in normal form for this set (but could be
         # reducible by other rules). This type of terms helps us check the rules in
         # this set do not rewrite terms prematurely (which could alter order of evaluation).
+        # Note: It's good for such terms to actually contain a reduction that can be done
+        # once the subterm that is "waited upon" is released. This means that if we want
+        # to systematically derive waiting terms from normal forms, two subterms would
+        # typically need to be changed.
+
+        waiting_forms = [
+            """
+def f(x):
+    x.y.a = z + 1
+    x.y[b] = z + 1
+    a[x.y] = z + 1
+    x.y[b:c] = z + 1
+    x.y[b:] = z + 1
+    x.y[:c] = z + 1
+    a[x.y:c] = z + 1
+    a[x.y:] = z + 1
+    a[b:x.y] = z + 1
+    a[:x.y] = z + 1
+    x.y[:c:d] = z + 1
+    x.y[b::d] = z + 1
+    x.y[::d] = z + 1
+    x.y[b:c:d] = z + 1
+    a[x.y:c:d] = z + 1
+    a[x.y::d] = z + 1
+    a[x.y:] = z + 1
+    a[b:x.y:d] = z + 1
+    a[b:x.y:d] = z + 1
+    a[b:x.y] = z + 1
+    a[:x.y:d] = z + 1
+    a[:c:x.y] = z + 1
+    a[::x.y] = z + 1
+    [x.y.a] = z + 1
+    [*x.y.a] = z + 1
+        """
+        ]
+
+        self.check_rewrites(waiting_forms, self.s._handle_left_value_all())
