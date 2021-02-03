@@ -287,6 +287,14 @@ def index(value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Index, {"value": value})
 
 
+def slice_pattern(
+    lower: Pattern = _any, upper: Pattern = _any, step: Pattern = _any
+) -> Pattern:
+    return type_and_attributes(
+        ast.Slice, {"lower": lower, "upper": upper, "step": step}
+    )
+
+
 def keyword(arg: Pattern = _any, value: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.keyword, {"arg": arg, "value": value})
 
