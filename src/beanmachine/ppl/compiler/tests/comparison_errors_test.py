@@ -8,18 +8,9 @@ from torch.distributions import Bernoulli, Normal, StudentT
 
 # Comparisons involving a graph node have no representation in
 # BMG and should produce an error.
-
-
-# TODO: Add a test case for multiple comparison operations such as
-# r = x < y < z.  We lower these to a simpler form:
-# t1 = x < y
-# if t1:
-#   r = y < z
-# else:
-#   r = t1
-# which means that we need to not only handle a potentially stochastic
-# comparison operator, but also a potentially stochastic "if".
-# We do not handle that yet, but when we do come back and add a test here.
+#
+# Tests which show how the comparison operators are lowered into
+# a more fundamental form are in comparison_rewriting_test.py.
 
 
 @bm.random_variable
