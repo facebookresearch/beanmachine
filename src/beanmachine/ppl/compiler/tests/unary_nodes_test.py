@@ -7,6 +7,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BetaNode,
     BinomialNode,
     ComplementNode,
+    ExpM1Node,
     ExpNode,
     HalfCauchyNode,
     LogNode,
@@ -93,6 +94,20 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ExpNode(norm).inf_type, PositiveReal)
         self.assertEqual(ExpNode(neg).inf_type, Probability)
 
+        # ExpM1
+        # expm1 Boolean -> PositiveReal
+        # expm1 Probability -> PositiveReal
+        # expm1 Natural -> PositiveReal
+        # expm1 PositiveReal -> PositiveReal
+        # expm1 Real -> Real
+        # expm1 NegativeReal -> NegativeReal
+        self.assertEqual(ExpM1Node(bern).inf_type, PositiveReal)
+        self.assertEqual(ExpM1Node(beta).inf_type, PositiveReal)
+        self.assertEqual(ExpM1Node(bino).inf_type, PositiveReal)
+        self.assertEqual(ExpM1Node(half).inf_type, PositiveReal)
+        self.assertEqual(ExpM1Node(norm).inf_type, Real)
+        self.assertEqual(ExpM1Node(neg).inf_type, NegativeReal)
+
         # Log of prob is negative real, otherwise real.
         self.assertEqual(LogNode(bern).inf_type, NegativeReal)
         self.assertEqual(LogNode(beta).inf_type, NegativeReal)
@@ -167,6 +182,15 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ExpNode(half).requirements, [PositiveReal])
         self.assertEqual(ExpNode(norm).requirements, [Real])
         self.assertEqual(ExpNode(neg).requirements, [NegativeReal])
+
+        # ExpM1 requires that its operand be negative real, positive real or real.
+
+        self.assertEqual(ExpM1Node(bern).requirements, [PositiveReal])
+        self.assertEqual(ExpM1Node(beta).requirements, [PositiveReal])
+        self.assertEqual(ExpM1Node(bino).requirements, [PositiveReal])
+        self.assertEqual(ExpM1Node(half).requirements, [PositiveReal])
+        self.assertEqual(ExpM1Node(norm).requirements, [Real])
+        self.assertEqual(ExpM1Node(neg).requirements, [NegativeReal])
 
         # Log requires that its operand be probability or positive real.
         self.assertEqual(LogNode(bern).requirements, [Probability])

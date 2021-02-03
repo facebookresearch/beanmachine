@@ -2755,6 +2755,59 @@ class ExpNode(UnaryOperatorNode):
         return True
 
 
+class ExpM1Node(UnaryOperatorNode):
+    """This represents the operation exp(x) - 1; it is generated when
+    a model contains calls to Tensor.expm1."""
+
+    # TODO: If we have exp(x) - 1 in the graph and x is known to be of type
+    # positive real or negative real then the expression as a whole is of
+    # type real. If we convert such expressions in the graph to expm1(x)
+    # then we can make the type more specific, and also possibly reduce
+    # the number of nodes in the graph.
+
+    operator_type = OperatorType.EXPM1
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def label(self) -> str:
+        return "ExpM1"
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        # ExpM1 takes a real, positive real or negative real. Its return has
+        # the same type as its input.
+        ot = self.operand.inf_type
+        if supremum(ot, PositiveReal) == PositiveReal:
+            return PositiveReal
+        if supremum(ot, NegativeReal) == NegativeReal:
+            return NegativeReal
+        return Real
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        ot = self.operand.graph_type
+        if ot in {Real, PositiveReal, NegativeReal}:
+            return ot
+        return Malformed
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [self.inf_type]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.operand.size
+
+    def __str__(self) -> str:
+        return "ExpM1(" + str(self.operand) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(torch.expm1(o) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+
 class LogNode(UnaryOperatorNode):
     """This represents a log operation; it is generated when
     a model contains calls to Tensor.log or math.log."""

@@ -76,6 +76,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     DistributionNode,
     DivisionNode,
     EqualNode,
+    ExpM1Node,
     ExpNode,
     FlatNode,
     GammaNode,
@@ -174,6 +175,7 @@ known_tensor_instance_functions = [
     "add",
     "div",
     "exp",
+    "expm1",
     "float",
     "log",
     "logical_not",
@@ -340,6 +342,7 @@ class BMGraphBuilder:
             torch.Tensor.add: self.handle_addition,
             torch.Tensor.div: self.handle_division,
             torch.Tensor.exp: self.handle_exp,
+            torch.Tensor.expm1: self.handle_expm1,
             torch.Tensor.float: self.handle_to_real,
             torch.Tensor.logical_not: self.handle_not,
             torch.Tensor.log: self.handle_log,
@@ -352,6 +355,7 @@ class BMGraphBuilder:
             torch.add: self.handle_addition,
             torch.div: self.handle_division,
             torch.exp: self.handle_exp,
+            torch.expm1: self.handle_expm1,
             # Note that torch.float is not a function.
             torch.log: self.handle_log,
             torch.logsumexp: self.handle_logsumexp,
@@ -1085,6 +1089,27 @@ class BMGraphBuilder:
         if isinstance(input, ConstantNode):
             return math.exp(input.value)
         return self.add_exp(input)
+
+    @memoize
+    def add_expm1(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantTensorNode):
+            return self.add_constant(torch.expm1(operand.value))
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(torch.expm1(torch.tensor(operand.value)))
+        node = ExpM1Node(operand)
+        self.add_node(node)
+        return node
+
+    def handle_expm1(self, input: Any) -> Any:
+        if isinstance(input, Tensor):
+            return torch.expm1(input)
+        if isinstance(input, ConstantTensorNode):
+            return torch.expm1(input.value)
+        if not isinstance(input, BMGNode):
+            return torch.expm1(input)
+        if isinstance(input, ConstantNode):
+            return torch.expm1(input.value)
+        return self.add_expm1(input)
 
     @memoize
     def add_phi(self, operand: BMGNode) -> BMGNode:
