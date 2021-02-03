@@ -1609,6 +1609,7 @@ class SingleAssignment:
                 self._handle_assign_unary_dict(),
                 self._handle_assign_binary_dict_left(),
                 self._handle_assign_binary_dict_right(),
+                self._handle_left_value_all(),
             ]
         )
 
@@ -1876,6 +1877,11 @@ class SingleAssignment:
                 self._handle_assign_compare_lefthandside(),
             ]
         )
+
+    def _handle_left_value_all(self) -> Rule:
+        """Put the left_value of an assignment in SSA form"""
+        # TODO: Add the various rewrite rules into the following list
+        return first([])
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
         return self._rules(node).expect_success()
