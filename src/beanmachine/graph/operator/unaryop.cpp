@@ -184,12 +184,13 @@ ExpM1::ExpM1(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::EXPM1, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::REAL and
-      type0 != graph::AtomicType::POS_REAL) {
+      type0 != graph::AtomicType::POS_REAL and
+      type0 != graph::AtomicType::NEG_REAL) {
     throw std::invalid_argument(
-        "operator EXPM1 requires a real or pos_real parent");
+        "operator EXPM1 requires a real, neg_real or pos_real parent");
   }
-  // pos_real -> e^x - 1 -> pos_real
-  // real -> e^x - 1 -> real
+  // If the input type is real, positive real or negative real, then the
+  // output type of exp(x) - 1 is the same.
   value = graph::NodeValue(type0);
 }
 
@@ -197,7 +198,8 @@ void ExpM1::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 1);
   const graph::NodeValue& parent = in_nodes[0]->value;
   if (parent.type == graph::AtomicType::REAL or
-      parent.type == graph::AtomicType::POS_REAL) {
+      parent.type == graph::AtomicType::POS_REAL or
+      parent.type == graph::AtomicType::NEG_REAL) {
     value._double = std::expm1(parent._double);
   } else {
     throw std::runtime_error(
