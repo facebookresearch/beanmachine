@@ -91,12 +91,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         expected_scale_tril = torch.cholesky(
             tensor([[0.5000, 0.4000], [0.4000, 0.5000]])
         )
-        self.assertAlmostEqual(
-            abs((mean - expected_mean).sum().item()), 0.0, delta=0.01
-        )
-        self.assertAlmostEqual(
-            abs((scale_tril - expected_scale_tril).sum().item()), 0.0, delta=0.01
-        )
+        self.assertTrue(torch.isclose(mean, expected_mean).all())
+        self.assertTrue(torch.isclose(scale_tril, expected_scale_tril).all())
 
     def test_mean_scale_tril(self):
         model = self.SampleNormalModel()
@@ -131,10 +127,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
 
         expected_mean = tensor([1.0, 1.0])
         expected_scale_tril = torch.cholesky(tensor([[1.0, 0.8], [0.8, 1]]))
-        self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
-        self.assertAlmostEqual(
-            (scale_tril - expected_scale_tril).sum().item(), 0.0, delta=0.01
-        )
+        self.assertTrue(torch.isclose(mean, expected_mean).all())
+        self.assertTrue(torch.isclose(scale_tril, expected_scale_tril).all())
 
     def test_mean_scale_tril_for_iids(self):
         model = self.SampleNormalModel()
@@ -169,10 +163,8 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
 
         expected_mean = tensor([1.0, 1.0, 1.0, 1.0])
         expected_scale_tril = torch.eye(4)
-        self.assertAlmostEqual((mean - expected_mean).sum().item(), 0.0, delta=0.01)
-        self.assertAlmostEqual(
-            (scale_tril - expected_scale_tril).sum().item(), 0.0, delta=0.01
-        )
+        self.assertTrue(torch.isclose(mean, expected_mean).all())
+        self.assertTrue(torch.isclose(scale_tril, expected_scale_tril).all())
 
     def test_multi_mean_scale_tril_computation_in_inference(self):
         model = self.SampleLogisticRegressionModel()
