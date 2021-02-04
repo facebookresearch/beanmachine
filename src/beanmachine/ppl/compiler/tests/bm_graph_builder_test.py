@@ -1430,22 +1430,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.add_log(t).size, Size([2]))
         self.assertEqual(bmg.add_log(s).size, Size([2]))
 
-    def test_supports(self) -> None:
-        bmg = BMGraphBuilder()
-        t5 = tensor(0.5)
-        t1 = tensor(1.0)
-        t2 = tensor(2.0)
-        t0 = tensor(0.0)
-        t = bmg.add_constant_tensor(t5)
-        bern = bmg.add_bernoulli(t)
-        s = bmg.add_sample(bern)
-        a1 = bmg.add_addition(s, t)
-        a2 = bmg.add_addition(s, s)
-        self.assertEqual(SetOfTensors(t.support()), SetOfTensors([t5]))
-        self.assertEqual(SetOfTensors(s.support()), SetOfTensors([t0, t1]))
-        self.assertEqual(SetOfTensors(a1.support()), SetOfTensors([t0 + t5, t1 + t5]))
-        self.assertEqual(SetOfTensors(a2.support()), SetOfTensors([t0, t1, t2]))
-
     def test_maps(self) -> None:
         bmg = BMGraphBuilder()
 
