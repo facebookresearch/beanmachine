@@ -16,6 +16,40 @@ void StochasticOperator::gradient_log_prob(
   }
 }
 
+graph::NodeValue* StochasticOperator::get_original_value(
+    bool sync_from_unconstrained) {
+  if (transform_type != graph::TransformType::NONE and
+      sync_from_unconstrained) {
+    transform->inverse(value, unconstrained_value);
+  }
+  return &value;
+}
+
+graph::NodeValue* StochasticOperator::get_unconstrained_value(
+    bool sync_from_constrained) {
+  if (transform_type == graph::TransformType::NONE) {
+    return &value;
+  }
+  if (sync_from_constrained) {
+    transform->operator()(value, unconstrained_value);
+  }
+  return &unconstrained_value;
+}
+
+double StochasticOperator::log_abs_jacobian_determinant() {
+  if (transform_type == graph::TransformType::NONE) {
+    return 0;
+  }
+  return transform->log_abs_jacobian_determinant(value, unconstrained_value);
+}
+
+graph::DoubleMatrix* StochasticOperator::get_unconstrained_gradient() {
+  if (transform_type != graph::TransformType::NONE) {
+    transform->unconstrained_gradient(back_grad1, value, unconstrained_value);
+  }
+  return &back_grad1;
+}
+
 void Sample::_backward(bool skip_observed) {
   const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
   dist->backward_param(value);

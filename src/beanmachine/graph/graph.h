@@ -352,6 +352,60 @@ struct InferConfig {
         step_size(step_size) {}
 };
 
+enum class TransformType { NONE = 0, LOG = 1 };
+
+class Transformation {
+ public:
+  Transformation() : transform_type(TransformType::NONE) {}
+  explicit Transformation(TransformType transform_type)
+      : transform_type(transform_type) {}
+  virtual ~Transformation() {}
+
+  /*
+  Overload the () to perform the variable transformation y=f(x) from the
+  constrained value x to unconstrained y
+  :param constrained: the node value x in constrained space
+  :param unconstrained: the node value y in unconstrained space
+  */
+  virtual void operator()(
+      const NodeValue& /* constrained */,
+      NodeValue& /* unconstrained */) {}
+  /*
+  Perform the inverse variable transformation x=f^{-1}(y) from the
+  unconstrained value y to the original constrained x
+  :param constrained: the node value x in constrained space
+  :param unconstrained: the node value y in unconstrained space
+  */
+  virtual void inverse(
+      NodeValue& /* constrained */,
+      const NodeValue& /* unconstrained */) {}
+  /*
+  Return the log of the absolute jacobian determinant:
+    log |det(d x / d y)|
+  :param constrained: the node value x in constrained space
+  :param unconstrained: the node value y in unconstrained space
+  */
+  virtual double log_abs_jacobian_determinant(
+      const NodeValue& /* constrained */,
+      const NodeValue& /* unconstrained */) {
+    return 0;
+  }
+  /*
+  Given the gradient of the joint log prob w.r.t x, update the value so
+  that it is taken w.r.t y:
+    back_grad = back_grad * dx / dy + d(log |det(d x / d y)|) / dy
+  :param back_grad: the gradient w.r.t x
+  :param constrained: the node value x in constrained space
+  :param unconstrained: the node value y in unconstrained space
+  */
+  virtual void unconstrained_gradient(
+      DoubleMatrix& /* back_grad */,
+      const NodeValue& /* constrained */,
+      const NodeValue& /* unconstrained */) {}
+
+  TransformType transform_type;
+};
+
 class Node {
  public:
   bool is_observed = false;
@@ -474,6 +528,15 @@ struct Graph {
   void observe(uint var, Eigen::MatrixXd& val);
   void observe(uint var, Eigen::MatrixXn& val);
   void observe(uint var, NodeValue val);
+  /*
+  Customize the type of transformation applied to a (set of)
+  stochasitc node(s)
+  :param transform_type: the type of transformation applied
+  :param node_ids: the node ids that the transformation applies to
+  */
+  void customize_transformation(
+      TransformType transform_type,
+      std::vector<uint> node_ids);
   /*
   Removes all observations added to the graph.
   */
@@ -619,6 +682,7 @@ struct Graph {
   */
   double full_log_prob();
   std::vector<std::vector<double>>& get_log_prob();
+  Node* check_node(uint node_id, NodeType node_type);
   uint thread_index;
 
  private:
@@ -626,7 +690,6 @@ struct Graph {
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
   std::vector<uint> get_parent_ids(
       const std::vector<Node*>& parent_nodes) const;
-  Node* check_node(uint node_id, NodeType node_type);
   void _infer(uint num_samples, InferenceType algorithm, uint seed);
   void _infer_parallel(
       uint num_samples,
@@ -668,6 +731,8 @@ struct Graph {
   void collect_log_prob(double log_prob);
   std::vector<double> log_prob_vals;
   std::vector<std::vector<double>> log_prob_allchains;
+  std::map<TransformType, std::unique_ptr<Transformation>>
+      common_transformations;
 };
 
 } // namespace graph
