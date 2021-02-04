@@ -7,35 +7,26 @@ are made; if there are nodes that cannot be represented in BMG
 or cannot be made to meet type requirements, an error report is
 returned."""
 
-from typing import Optional
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import (
-    AdditionNode,
     BMGNode,
-    Chi2Node,
     ConstantNode,
     DistributionNode,
-    DivisionNode,
     IndexNode,
-    LogSumExpNode,
     MapNode,
     MultiplicationNode,
-    NegateNode,
     Observation,
     OperatorNode,
     PowerNode,
     Query,
     SampleNode,
-    TensorNode,
-    UniformNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
     Boolean,
     Malformed,
     Natural,
-    One,
     PositiveReal,
     Probability,
     Real,
@@ -43,23 +34,19 @@ from beanmachine.ppl.compiler.bmg_types import (
     UpperBound,
     meets_requirement,
     supremum,
-    type_of_value,
     upper_bound,
 )
-from beanmachine.ppl.compiler.error_report import (
-    ErrorReport,
-    ImpossibleObservation,
-    UnsupportedNode,
-    Violation,
-)
+from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
+from beanmachine.ppl.compiler.fix_additions import AdditionFixer
+from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
+from beanmachine.ppl.compiler.fix_tensor_ops import TensorOpsFixer
+from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
 from torch import Tensor
 
 
-class Fixer:
+class RequirementsFixer:
     """This class takes a Bean Machine Graph builder and attempts to
-    fix all the problems which prevent it from being a legal Bean Machine
-    Graph, such as violations of type system requirements or use of
-    unsupported operators.
+    fix violations of BMG type system requirements.
 
     The basic idea is that every *edge* in the graph has a *requirement*, such as
     "the type of the input must be Probability".  We do a traversal of the input
@@ -402,84 +389,7 @@ class Fixer:
             return self._meet_operator_requirement(node, requirement, consumer, edge)
         raise AssertionError("Unexpected node type")
 
-    def _replace_division(self, node: DivisionNode) -> Optional[BMGNode]:
-        # x / const --> x * (1 / const)
-        # x / y --> x * (y ** (-1))
-        r = node.right
-        if isinstance(r, ConstantNode):
-            return self.bmg.add_multiplication(
-                node.left, self.bmg.add_constant(1.0 / r.value)
-            )
-        neg1 = self.bmg.add_constant(-1.0)
-        powr = self.bmg.add_power(r, neg1)
-        return self.bmg.add_multiplication(node.left, powr)
-
-    def _replace_uniform(self, node: UniformNode) -> Optional[BMGNode]:
-        # TODO: Suppose we have something like Uniform(1.0, 2.0).  Can we replace that
-        # with (Flat() + 1.0) ? The problem is that if there is an observation on
-        # a sample of the original uniform, we need to modify the observation to
-        # point to the sample, not the addition, and then we need to modify the value
-        # of the observation. But this is doable. Revisit this question later.
-        # For now, we can simply say that a uniform distribution over 0.0 to 1.0 can
-        # be replaced with a flat.
-        low = node.low
-        high = node.high
-        if (
-            isinstance(low, ConstantNode)
-            and float(low.value) == 0.0
-            and isinstance(high, ConstantNode)
-            and float(high.value) == 1.0
-        ):
-            return self.bmg.add_flat()
-        return None
-
-    def _replace_chi2(self, node: Chi2Node) -> BMGNode:
-        # Chi2(x), which BMG does not support, is exactly equivalent
-        # to Gamma(x * 0.5, 0.5), which BMG does support.
-        half = self.bmg.add_constant_of_type(0.5, PositiveReal)
-        mult = self.bmg.add_multiplication(node.df, half)
-        return self.bmg.add_gamma(mult, half)
-
-    def _replace_unsupported_node(self, node: BMGNode) -> Optional[BMGNode]:
-        # TODO:
-        # Not -> Complement
-        # Index/Map -> IfThenElse
-        if isinstance(node, Chi2Node):
-            return self._replace_chi2(node)
-        if isinstance(node, DivisionNode):
-            return self._replace_division(node)
-        if isinstance(node, UniformNode):
-            return self._replace_uniform(node)
-        return None
-
-    def _fix_unsupported_nodes(self) -> None:
-        replacements = {}
-        reported = set()
-        nodes = self.bmg._traverse_from_roots()
-        for node in nodes:
-            for i in range(len(node.inputs)):
-                c = node.inputs[i]
-                if c._supported_in_bmg():
-                    continue
-                # We have an unsupported node. Have we already worked out its
-                # replacement node?
-                if c in replacements:
-                    node.inputs[i] = replacements[c]
-                    continue
-                # We have an unsupported node; have we already reported it as
-                # having no replacement?
-                if c in reported:
-                    continue
-                # We have an unsupported node and we don't know what to do.
-                replacement = self._replace_unsupported_node(c)
-                if replacement is None:
-                    self.errors.add_error(UnsupportedNode(c, node, node.edges[i]))
-                    reported.add(c)
-                else:
-                    replacements[c] = replacement
-                    node.inputs[i] = replacement
-
-    def _fix_unmet_requirements(self) -> None:
+    def fix_unmet_requirements(self) -> None:
         nodes = self.bmg._traverse_from_roots()
         for node in nodes:
             requirements = node.requirements
@@ -488,125 +398,25 @@ class Fixer:
                     node.inputs[i], requirements[i], node, node.edges[i]
                 )
 
-    def _addition_to_complement(self, node: AdditionNode) -> BMGNode:
-        assert node.can_be_complement
-        # We have 1+(-x) or (-x)+1 where x is either P or B, and require
-        # a P or B. Complement(x) is of the same type as x if x is P or B.
-        if node.left.inf_type == One:
-            other = node.right
-        else:
-            assert node.right.inf_type == One
-            other = node.left
-        assert isinstance(other, NegateNode)
-        return self.bmg.add_complement(other.operand)
-
-    def _additions_to_complements(self) -> None:
-        # This pass has to run before general requirement checking. Why?
-        # The requirement fixing pass runs from leaves to roots, inserting
-        # conversions as it goes. If we have add(1, negate(p)) then we need
-        # to turn that into complement(p), but if we process the add *after*
-        # we process the negate(p) then we will already have generated
-        # add(1, negate(to_real(p)).  Better to turn it into complement(p)
-        # and orphan the negate(p) early.
-        replacements = {}
-        nodes = self.bmg._traverse_from_roots()
-        for node in nodes:
-            for i in range(len(node.inputs)):
-                c = node.inputs[i]
-                if not isinstance(c, AdditionNode):
-                    continue
-                assert isinstance(c, AdditionNode)
-                if not c.can_be_complement:
-                    continue
-                if c in replacements:
-                    node.inputs[i] = replacements[c]
-                    continue
-                replacement = self._addition_to_complement(c)
-                node.inputs[i] = replacement
-                replacements[c] = replacement
-
-    def _fix_observations(self) -> None:
-        for o in self.bmg.all_observations():
-            v = o.value
-            inf = type_of_value(v)
-            gt = o.operand.graph_type
-            if supremum(inf, gt) != gt:
-                self.errors.add_error(ImpossibleObservation(o))
-            elif gt == Boolean:
-                o.value = bool(v)
-            elif gt == Natural:
-                o.value = int(v)
-            elif gt in {Probability, PositiveReal, Real}:
-                o.value = float(v)
-            else:
-                # TODO: How should we deal with observations of
-                # TODO: matrix-valued samples?
-                pass
-            # TODO: Handle the case where there are two inconsistent
-            # TODO: observations of the same sample
-
-    def _is_fixable_logsumexp(self, n: BMGNode) -> bool:
-        return (
-            isinstance(n, LogSumExpNode)
-            and len(n.inputs) == 1
-            and isinstance(n.inputs[0], TensorNode)
-        )
-
-    def _fix_logsumexp(self, n: LogSumExpNode) -> BMGNode:
-        assert len(n.inputs) == 1
-        t = n.inputs[0]
-        assert isinstance(t, TensorNode)
-        # If the tensor is a singleton then logsumexp is
-        # an identity.
-        assert len(t.inputs) >= 1
-        if len(t.inputs) == 1:
-            return t.inputs[0]
-        # Otherwise, we just make a LogSumExp whose inputs are the
-        # tensor node elements.
-        elements = t.inputs.inputs
-        assert isinstance(elements, list)
-        return self.bmg.add_logsumexp(*elements)
-
-    def _fix_tensor_ops(self) -> None:
-        # Suppose we have a model with a query on some samples:
-        #
-        # @function def f():
-        #   return tensor([norm(), beta(), ... ]).logsumexp(dim=0)
-        #
-        # The graph accumulator will create a TensorNode containing the
-        # SampleNodes, and the LogSumExpNode's input will be the tensor.
-        # But we do not have a tensor-built-from-parts node in BMG.
-        #
-        # What we need to do is construct a new LogSumExpNode whose
-        # inputs are the samples; the TensorNode will become orphaned.
-        #
-        replacements = {}
-        nodes = self.bmg._traverse_from_roots()
-        for node in nodes:
-            for i in range(len(node.inputs)):
-                c = node.inputs[i]
-                if c in replacements:
-                    node.inputs[i] = replacements[c]
-                    continue
-                if self._is_fixable_logsumexp(c):
-                    assert isinstance(c, LogSumExpNode)
-                    replacement = self._fix_logsumexp(c)
-                    node.inputs[i] = replacement
-                    replacements[c] = replacement
-
-    def fix_all_problems(self) -> None:
-        self._fix_tensor_ops()
-        self._additions_to_complements()
-        self._fix_unsupported_nodes()
-        if self.errors.any():
-            return
-        self._fix_unmet_requirements()
-        if self.errors.any():
-            return
-        self._fix_observations()
-
 
 def fix_problems(bmg: BMGraphBuilder) -> ErrorReport:
-    fixer = Fixer(bmg)
-    fixer.fix_all_problems()
-    return fixer.errors
+    TensorOpsFixer(bmg).fix_tensor_ops()
+    # This pass has to run before general requirement checking. Why?
+    # The requirement fixing pass runs from leaves to roots, inserting
+    # conversions as it goes. If we have add(1, negate(p)) then we need
+    # to turn that into complement(p), but if we process the add *after*
+    # we process the negate(p) then we will already have generated
+    # add(1, negate(to_real(p)).  Better to turn it into complement(p)
+    # and orphan the negate(p) early.
+    AdditionFixer(bmg).additions_to_complements()
+    f = UnsupportedNodeFixer(bmg)
+    f.fix_unsupported_nodes()
+    if f.errors.any():
+        return f.errors
+    f = RequirementsFixer(bmg)
+    f.fix_unmet_requirements()
+    if f.errors.any():
+        return f.errors
+    f = ObservationsFixer(bmg)
+    f.fix_observations()
+    return f.errors
