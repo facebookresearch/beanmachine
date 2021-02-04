@@ -6,7 +6,11 @@ import unittest
 import astor
 from beanmachine.ppl.utils.ast_patterns import ast_domain
 from beanmachine.ppl.utils.fold_constants import fold
-from beanmachine.ppl.utils.rules import FirstMatch as first, TryMany as many
+from beanmachine.ppl.utils.rules import (
+    FirstMatch as first,
+    TryMany as many,
+    TryOnce as once,
+)
 from beanmachine.ppl.utils.single_assignment import SingleAssignment
 
 
@@ -16,6 +20,7 @@ _some_top_down = ast_domain.some_top_down
 class SingleAssignmentTest(unittest.TestCase):
 
     s = SingleAssignment()
+    default_rule = s._rule
     default_rules = s._rules
 
     def test_single_assignment_sanity_check(self) -> None:
@@ -40,7 +45,7 @@ class SingleAssignmentTest(unittest.TestCase):
         result = self.s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip(), msg=msg)
 
-    def check_rewrites(self, sources, rules=default_rules):
+    def check_rewrites(self, sources, rule=default_rule):
         """Applying rules to each element of sources yelds the next one"""
 
         self.assertIsInstance(sources, list, msg="\nSources should be list of strings.")
@@ -49,7 +54,7 @@ class SingleAssignmentTest(unittest.TestCase):
             return self.check_rewrite(
                 sources[0],
                 sources[0],
-                many(_some_top_down(rules)),
+                once(_some_top_down(rule)),
                 msg="\nExpected the term to be a normal form for rule.",
             )
         source, *rest = sources
@@ -57,13 +62,13 @@ class SingleAssignmentTest(unittest.TestCase):
         self.check_rewrite(
             source,
             expected,
-            _some_top_down(rules),
+            _some_top_down(rule),
             msg="\nExpected rule to rewrite one term to the other",
         )
-        self.check_rewrites(rest, rules)
+        self.check_rewrites(rest, rule)
 
     def test_check_rewrites(self) -> None:
-        """The method check_rewrites performs several common functions for it in one shot.
+        """The method check_rewrites performs several rewrites for it in one shot.
         This method illustrates these functions."""
 
         # The tests use a running example consisting of three terms that are the first,
@@ -102,14 +107,11 @@ def f(x):
         ):
             self.check_rewrites([source1], self.s._handle_boolop_binarize())
 
-        # Third, this predicate will catch you if you add on "many" too many
-        with self.assertRaises(
-            ValueError, msg="The following line should raise an error!"
-        ):
-            self.check_rewrites([source3], many(self.s._handle_boolop_binarize()))
+        # Third, normal forms are unchanged if we have one "many" too many
+        self.check_rewrites([source3], many(self.s._handle_boolop_binarize()))
 
         with self.assertRaises(
-            ValueError, msg="The following line should raise an error!"
+            AssertionError, msg="The following line should raise an error!"
         ):
             self.check_rewrites([source1], many(self.s._handle_boolop_binarize()))
 
@@ -168,6 +170,47 @@ def f(x):
         self.check_rewrite(
             source1, source3, many(_some_top_down(self.s._handle_boolop_binarize()))
         )
+
+        # Sixth, we can use the default rules to document full reduction sequences
+
+        sources_continued = [
+            source3,
+            """
+def f(x):
+    a1 = (a and b) and c
+    x = a1 and d
+""",
+            """
+def f(x):
+    a1 = a and b
+    a1 = a1 and c
+    if a1:
+        x = d
+    else:
+        x = a1
+""",
+            """
+def f(x):
+    if a:
+        a1 = b
+    else:
+        a1 = a
+    if a1:
+        a1 = c
+    else:
+        a1 = a1
+    if a1:
+        x = d
+    else:
+        x = a1
+""",
+        ]
+
+        self.check_rewrites(sources_continued)
+
+        # TODO: Remarks based on the sequence above:
+        # 1) At some point we may decide to use top_down rather than some_top_down
+        # 2) There is a potential new nameshadowing problem
 
     def check_rewrite_as_ast(self, source, expected, rules=default_rules):
         """Applying rules to source yields expected -- checked as ASTs"""
@@ -524,7 +567,6 @@ def f(x):
         a4 = y + a7
         y = a4 - s
 """
-
         self.check_rewrite(source, expected)
 
     def test_single_assignment_boolop_binarize(self) -> None:
