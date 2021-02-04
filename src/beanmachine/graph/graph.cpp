@@ -9,6 +9,7 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
 #include "beanmachine/graph/operator/stochasticop.h"
+#include "beanmachine/graph/transform/transform.h"
 
 namespace beanmachine {
 namespace graph {
@@ -329,6 +330,10 @@ void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
       sto_node->_backward(false);
+      if (sto_node->transform_type != TransformType::NONE) {
+        sto_node->get_unconstrained_value(true);
+        sto_node->get_unconstrained_gradient();
+      }
       grad1.push_back(&node->back_grad1);
     } else {
       node->backward();
@@ -430,6 +435,12 @@ double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
   for (auto node : ordered_supp) {
     if (node->is_stochastic()) {
       sum_log_prob += node->log_prob();
+      if (node->node_type == NodeType::OPERATOR) {
+        auto sto_node = static_cast<oper::StochasticOperator*>(node);
+        if (sto_node->transform_type != TransformType::NONE) {
+          sum_log_prob += sto_node->log_abs_jacobian_determinant();
+        }
+      }
     } else {
       node->eval(generator);
     }
@@ -680,6 +691,41 @@ void Graph::observe(uint node_id, NodeValue value) {
   node->value = value;
   node->is_observed = true;
   observed.insert(node_id);
+}
+
+void Graph::customize_transformation(
+    TransformType customized_type,
+    std::vector<uint> node_ids) {
+  if (common_transformations.empty()) {
+    common_transformations[TransformType::LOG] =
+        std::make_unique<transform::Log>();
+  }
+  auto iter = common_transformations.find(customized_type);
+  if (iter == common_transformations.end()) {
+    throw std::invalid_argument("Unsupported transformation type.");
+  }
+  Transformation* transform_ptr = common_transformations[customized_type].get();
+  for (auto node_id : node_ids) {
+    auto node = check_node(node_id, NodeType::OPERATOR);
+    if (not node->is_stochastic()) {
+      throw std::invalid_argument(
+          "Transformation only applies to Stochastic Operators.");
+    }
+    auto sto_node = static_cast<oper::StochasticOperator*>(node);
+
+    switch (customized_type) {
+      case TransformType::LOG:
+        if (sto_node->value.type.atomic_type != AtomicType::POS_REAL) {
+          throw std::invalid_argument(
+              "Log transformation requires POS_REAL value.");
+        }
+        break;
+      default:
+        throw std::invalid_argument("Unsupported transformation type.");
+    }
+    sto_node->transform = transform_ptr;
+    sto_node->transform_type = customized_type;
+  }
 }
 
 void Graph::remove_observations() {

@@ -2,6 +2,7 @@
 #pragma once
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/operator.h"
+#include "beanmachine/graph/transform/transform.h"
 
 namespace beanmachine {
 namespace oper {
@@ -9,7 +10,7 @@ namespace oper {
 class StochasticOperator : public Operator {
  public:
   explicit StochasticOperator(graph::OperatorType op_type)
-      : Operator(op_type) {}
+      : Operator(op_type), transform_type(graph::TransformType::NONE) {}
   ~StochasticOperator() override {}
 
   void eval(std::mt19937& gen) override {
@@ -30,6 +31,15 @@ class StochasticOperator : public Operator {
     _backward(true);
   }
   virtual void _backward(bool /* skip_observed */) {}
+
+  graph::NodeValue* get_original_value(bool sync_from_unconstrained);
+  graph::NodeValue* get_unconstrained_value(bool sync_from_constrained);
+  double log_abs_jacobian_determinant();
+  graph::DoubleMatrix* get_unconstrained_gradient();
+
+  graph::NodeValue unconstrained_value;
+  graph::TransformType transform_type;
+  graph::Transformation* transform;
 };
 
 class Sample : public oper::StochasticOperator {
