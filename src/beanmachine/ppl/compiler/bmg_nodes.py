@@ -44,6 +44,9 @@ def prod(x):
     return functools.reduce(operator.mul, x, 1)
 
 
+positive_infinity = float("inf")
+
+
 # Note that we're not going to subclass list or UserList here because we
 # only need to use the most basic list operations: initialization, getting
 # an item, and setting an item. We never want to delete items, append to
@@ -260,6 +263,21 @@ class BMGNode(ABC):
         the set be finite and will throw an exception if it is not."""
         pass
 
+    def support_size(self) -> float:
+        # It can be expensive to construct the support if it is large
+        # and we might wish to merely know how big it is.  By default
+        # assume that every node has infinite support and override this
+        # in nodes which have smaller support.
+        #
+        # Note that this is the *approximate* support size. For example,
+        # if we have a Boolean node then its support size is two. If we
+        # have the sum of two distinct Boolean nodes then the true size
+        # of the support of the sum node is 3 because the result will be
+        # 0, 1 or 2.  But we assume that there are two possibilities on
+        # the left, two on the right, so four possible outcomes. We can
+        # therefore over-estimate; we should however not under-estimate.
+        return positive_infinity
+
 
 # TODO: There is a bunch of replicated code in the various
 # _value_to_python code below; consider refactoring to match
@@ -365,6 +383,9 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
     # The support of a constant is just the value.
     def support(self) -> Iterator[Any]:
         yield self.value
+
+    def support_size(self) -> float:
+        return 1.0
 
 
 class BooleanNode(ConstantNode):
@@ -698,6 +719,9 @@ class TensorNode(BMGNode):
             for c in itertools.product(*(i.support() for i in self.inputs))
         )
 
+    def support_size(self) -> float:
+        return prod(i.support_size() for i in self.inputs)
+
 
 # ####
 # #### Nodes representing distributions
@@ -793,6 +817,9 @@ class BernoulliNode(DistributionNode):
     def support(self) -> Iterator[Any]:
         s = self.size
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
+
+    def support_size(self) -> float:
+        return 2.0 ** prod(self.size)
 
 
 class BetaNode(DistributionNode):
@@ -1094,6 +1121,10 @@ class CategoricalNode(DistributionNode):
         r = list(range(s[-1]))
         sr = s[:-1]
         return (tensor(i).view(sr) for i in itertools.product(*([r] * prod(sr))))
+
+    def support_size(self) -> float:
+        s = self.probability.size
+        return s[-1] ** prod(s[:-1])
 
 
 class Chi2Node(DistributionNode):
@@ -1964,6 +1995,9 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
             + f"  graph::{ot}, std::vector<uint>({{n{left}, n{right}}}));"
         )
 
+    def support_size(self) -> float:
+        return self.left.support_size() * self.right.support_size()
+
 
 class ComparisonNode(BinaryOperatorNode, metaclass=ABCMeta):
     """This is the base class for all comparison operators."""
@@ -1987,6 +2021,9 @@ class ComparisonNode(BinaryOperatorNode, metaclass=ABCMeta):
 
     def __str__(self) -> str:
         return "(" + str(self.left) + self.label + str(self.right) + ")"
+
+    def support_size(self) -> float:
+        return 2.0 ** prod(self.size)
 
 
 class GreaterThanNode(ComparisonNode):
@@ -2703,6 +2740,9 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
             f"uint n{n} = g.add_operator(\n"
             + f"  graph::{ot}, std::vector<uint>({{n{o}}}));"
         )
+
+    def support_size(self) -> float:
+        return self.operand.support_size()
 
 
 class ExpNode(UnaryOperatorNode):
