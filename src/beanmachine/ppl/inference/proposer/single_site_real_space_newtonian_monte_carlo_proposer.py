@@ -133,27 +133,39 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         try:
             # TODO(nazaninkt): Change this back to torch once the issue with
             # cholesky runtime is fixed.
-            L = torch.from_numpy(numpy.linalg.cholesky(neg_hessian.numpy())).to(
+            # See: N212219
+            L = torch.from_numpy(
+                numpy.linalg.cholesky(neg_hessian.flip([0, 1]).numpy())
+            ).to(
                 dtype=neg_hessian.dtype,
                 device=node_device,
             )
-            # H^{-1} = (L L^T)^{-1}
-            #        = L^{-T} L^{-1}
-            # so L^{-1} is (lower) cholesky factor of H^{-1}
+            # See: https://math.stackexchange.com/questions/1434899/is-there-a-decomposition-u-ut
+            # Let, flip(H) = L @ L' (`flip` flips the x, y axes of X: torch.flip(X, (0, 1)))
+            # equiv. to applying W @ X @ W'; where W is the permutation matrix
+            # [[0 ... 1], [0 ... 1 0], ..., [1 ... 0]]
+            # Note: flip(A @ B) = flip(A) @ flip(B) and flip(A^-1) = (flip(A))^-1
+
+            # (flip(H))^-1 = (L @ L')^-1 = L'^-1 @  L^-1
+            # flip(H^-1) = (L^-1)' @ (L^-1)
+            # Note that L^-1 is lower triangular and isn't the cholesky factor for (flip(H))^-1.
+            # flip(flip(H^-1)) = flip((L^-1)') @ flip(L^-1)
+            # H^-1 = flip(L^-1)' @ flip(L^-1)
+            # flip(L^-1)' is the lower triangular cholesky factor for H^-1.
             L_inv = torch.triangular_solve(
                 torch.eye(L.size(-1)).to(dtype=neg_hessian.dtype, device=node_device),
                 L,
                 upper=False,
-            ).solution.t()
+            ).solution
+            L_chol = L_inv.flip([0, 1]).T
             distance = torch.cholesky_solve(first_gradient.unsqueeze(1), L).t()
             _arguments["distance"] = distance
             mean = (
                 node_val_reshaped
                 + distance * frac_dist.to(dtype=node_val_reshaped.dtype)
             ).squeeze(0)
-            # TODO(@yucenli): set scale_tril to be lower triangular
-            _proposer = dist.MultivariateNormal(mean, scale_tril=L_inv)
-            _arguments["scale_tril"] = L_inv
+            _proposer = dist.MultivariateNormal(mean, scale_tril=L_chol)
+            _arguments["scale_tril"] = L_chol
         except numpy.linalg.LinAlgError:
             LOGGER.warning(
                 "Error: Cholesky decomposition failed. "

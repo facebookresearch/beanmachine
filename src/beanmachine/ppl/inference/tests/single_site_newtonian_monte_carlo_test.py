@@ -28,25 +28,6 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
-    class SampleLogisticRegressionModel(object):
-        @bm.random_variable
-        def theta_0(self):
-            return dist.Normal(tensor(0.0), tensor(1.0))
-
-        @bm.random_variable
-        def theta_1(self):
-            return dist.Normal(tensor(0.0), tensor(1.0))
-
-        @bm.random_variable
-        def x(self, i):
-            return dist.Normal(tensor(0.0), tensor(1.0))
-
-        @bm.random_variable
-        def y(self, i):
-            y = self.theta_1() * self.x(i) + self.theta_0()
-            probs = 1 / (1 + (y * -1).exp())
-            return dist.Bernoulli(probs)
-
     class SampleTransformModel(object):
         @sample
         def realspace(self):
