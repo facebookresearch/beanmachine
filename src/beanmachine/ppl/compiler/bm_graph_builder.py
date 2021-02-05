@@ -114,6 +114,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ToProbabilityNode,
     ToRealNode,
     UniformNode,
+    positive_infinity,
 )
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
@@ -1246,11 +1247,10 @@ class BMGraphBuilder:
             )
         return (f, args, kwargs)
 
-    def _handle_random_variable_call(
+    def _handle_random_variable_call_checked(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
     ) -> BMGNode:
-        # TODO: Random variable calls do not support kwargs.
-        # TODO: Throw an exception if we have some?
+        assert isinstance(arguments, list)
 
         # We have a call to a random variable function. There are two
         # cases. Either we have only ordinary values for arguments, or
@@ -1260,7 +1260,7 @@ class BMGraphBuilder:
             assert isinstance(rv, RVIdentifier)
             return self._rv_to_node(rv)
 
-        # TODO: We have a stochastic control flow; we need to make many
+        # TODO: We have a finite stochastic control flow; we need to make many
         # TODO: calls to the random variable function and record the
         # TODO: results for each.  Right now this is handled by the
         # TODO: generated @probabilistic decorator, but that mechanism
@@ -1268,6 +1268,36 @@ class BMGraphBuilder:
         # TODO: Just throw and we'll fix it later.
 
         raise ValueError("Jitted stochastic control flows are not yet implemented")
+
+    def _handle_random_variable_call(
+        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+    ) -> BMGNode:
+
+        # TODO: Random variable calls do not support kwargs.
+        # TODO: Throw an exception if we have some?
+
+        # If we have one or more graph nodes as arguments to an RV function call
+        # then we need to try every possible value for those arguments. We require
+        # that there be a finite number of possibilities, and that the total number
+        # of branches generated for this call is small. Check that *once* before
+        # recursively processing the call one argument at a time.
+
+        # TODO: Make this a global tweakable setting of the accumulator.
+        max_possibilities = 1000
+        possibilities = 1
+        for arg in arguments:
+            if isinstance(arg, BMGNode):
+                possibilities *= arg.support_size()
+                if possibilities == positive_infinity:
+                    # TODO: Better exception
+                    raise ValueError(
+                        "Stochastic control flow must have finite support."
+                    )
+                if possibilities > max_possibilities:
+                    # TODO: Better exception
+                    raise ValueError("Stochastic control flow is too complex.")
+
+        return self._handle_random_variable_call_checked(function, arguments, kwargs)
 
     def _handle_functional_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]

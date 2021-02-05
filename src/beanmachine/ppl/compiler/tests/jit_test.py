@@ -86,6 +86,41 @@ def coin_with_class():
     return Beta(2.0, 2.0)
 
 
+@bm.functional
+def bad_functional_1():
+    # It's not legal to call a random variable function with
+    # a stochastic value that has infinite support.
+    return norm(coin())
+
+
+@bm.random_variable
+def flips(n):
+    return Bernoulli(0.5)
+
+
+@bm.random_variable
+def norm_ten(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9):
+    return Normal(loc=0.0, scale=1.0)
+
+
+@bm.functional
+def bad_functional_2():
+    # There are 1024 possibilities for this call; we give an
+    # error when the control flow is this complex.
+    return norm_ten(
+        flips(0),
+        flips(1),
+        flips(2),
+        flips(3),
+        flips(4),
+        flips(5),
+        flips(6),
+        flips(7),
+        flips(8),
+        flips(9),
+    )
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -343,6 +378,33 @@ digraph "graph" {
 """
         self.assertEqual(dot.strip(), expected.strip())
 
+    # TODO: Also test lambdas and nested functions.
+    # TODO: What should we do about closures?
 
-# TODO: Also test lambdas and nested functions.
-# TODO: What should we do about closures?
+    def test_bad_control_flow_1(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [bad_functional_1()]
+        observations = {}
+        # TODO: Better exception class
+        with self.assertRaises(ValueError) as ex:
+            bmg.accumulate_graph(queries, observations)
+        self.assertEqual(
+            str(ex.exception), "Stochastic control flow must have finite support."
+        )
+
+    def test_bad_control_flow_2(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [bad_functional_2()]
+        observations = {}
+        # TODO: Better exception class
+        with self.assertRaises(ValueError) as ex:
+            bmg.accumulate_graph(queries, observations)
+        self.assertEqual(str(ex.exception), "Stochastic control flow is too complex.")
