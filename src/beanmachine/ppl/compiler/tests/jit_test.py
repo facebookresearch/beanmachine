@@ -121,6 +121,12 @@ def bad_functional_2():
     )
 
 
+@bm.functional
+def bad_functional_3():
+    # Calling rv functions with named arguments is not allowed.
+    return flips(n=1)
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -408,3 +414,19 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             bmg.accumulate_graph(queries, observations)
         self.assertEqual(str(ex.exception), "Stochastic control flow is too complex.")
+
+    def test_bad_control_flow_3(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [bad_functional_3()]
+        observations = {}
+        # TODO: Better exception class
+        with self.assertRaises(ValueError) as ex:
+            bmg.accumulate_graph(queries, observations)
+        self.assertEqual(
+            str(ex.exception),
+            "Random variable function calls must not have named arguments.",
+        )

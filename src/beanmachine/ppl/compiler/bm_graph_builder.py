@@ -1248,15 +1248,15 @@ class BMGraphBuilder:
         return (f, args, kwargs)
 
     def _handle_random_variable_call_checked(
-        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+        self, function: Any, arguments: List[Any]
     ) -> BMGNode:
         assert isinstance(arguments, list)
 
         # We have a call to a random variable function. There are two
         # cases. Either we have only ordinary values for arguments, or
         # we have one or more graph nodes.
-        if only_ordinary_arguments(arguments, kwargs):
-            rv = function(*arguments, **kwargs)
+        if only_ordinary_arguments(arguments, {}):
+            rv = function(*arguments)
             assert isinstance(rv, RVIdentifier)
             return self._rv_to_node(rv)
 
@@ -1273,8 +1273,11 @@ class BMGraphBuilder:
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
     ) -> BMGNode:
 
-        # TODO: Random variable calls do not support kwargs.
-        # TODO: Throw an exception if we have some?
+        if len(kwargs) != 0:
+            # TODO: Better error
+            raise ValueError(
+                "Random variable function calls must not have named arguments."
+            )
 
         # If we have one or more graph nodes as arguments to an RV function call
         # then we need to try every possible value for those arguments. We require
@@ -1297,7 +1300,7 @@ class BMGraphBuilder:
                     # TODO: Better exception
                     raise ValueError("Stochastic control flow is too complex.")
 
-        return self._handle_random_variable_call_checked(function, arguments, kwargs)
+        return self._handle_random_variable_call_checked(function, arguments)
 
     def _handle_functional_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
