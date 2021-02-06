@@ -4,13 +4,13 @@ from collections import namedtuple
 
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.world.variable import (
     BetaDimensionTransform,
     TransformData,
     TransformType,
     Variable,
 )
+from torch import tensor
 
 
 class VariableTest(unittest.TestCase):

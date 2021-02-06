@@ -5,7 +5,6 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import scipy.stats
 import torch
-import torch.tensor as tensor
 from beanmachine.ppl.diagnostics.common_statistics import effective_sample_size
 from beanmachine.ppl.examples.conjugate_models.beta_binomial import BetaBinomialModel
 from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
@@ -22,6 +21,7 @@ from beanmachine.ppl.testlib.hypothesis_testing import (
     variance_equality_hypothesis_confidence_interval,
 )
 from torch import Tensor
+from torch import tensor
 
 
 class AbstractConjugateTests(metaclass=ABCMeta):

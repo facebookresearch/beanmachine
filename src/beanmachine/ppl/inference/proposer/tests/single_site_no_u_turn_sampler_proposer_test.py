@@ -4,11 +4,11 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer import (
     SingleSiteNoUTurnSamplerProposer,
 )
 from beanmachine.ppl.world import Variable, World
+from torch import tensor
 from torch.autograd import grad
 
 

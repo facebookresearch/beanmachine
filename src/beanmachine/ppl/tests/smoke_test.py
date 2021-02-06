@@ -3,7 +3,7 @@ import unittest
 
 import beanmachine.ppl as bm
 import torch.distributions as dist
-import torch.tensor as tensor
+from torch import tensor
 
 
 class ToplevelSmokeTest(unittest.TestCase):

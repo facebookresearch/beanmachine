@@ -4,12 +4,12 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer import (
     SingleSiteHalfSpaceNewtonianMonteCarloProposer,
 )
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
+from torch import tensor
 
 
 class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):

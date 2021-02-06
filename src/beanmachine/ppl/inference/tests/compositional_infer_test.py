@@ -5,7 +5,6 @@ from unittest.mock import patch
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
@@ -23,6 +22,7 @@ from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.utils import BetaDimensionTransform
 from beanmachine.ppl.world.variable import TransformType, Variable
 from beanmachine.ppl.world.world import World
+from torch import tensor
 
 
 class CompositionalInferenceTest(unittest.TestCase):

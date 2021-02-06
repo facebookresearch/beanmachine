@@ -4,7 +4,6 @@ from typing import Dict, Tuple
 
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     is_valid,
     zero_grad,
@@ -16,6 +15,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
+from torch import tensor
 
 
 LOGGER = logging.getLogger("beanmachine")

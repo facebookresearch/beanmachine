@@ -2,10 +2,10 @@
 import unittest
 
 import torch
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer import (
     SingleSiteHamiltonianMonteCarloProposer,
 )
+from torch import tensor
 
 
 class SingleSiteHamiltonianMonteCarloProposerTest(unittest.TestCase):

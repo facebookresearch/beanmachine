@@ -4,7 +4,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
+from torch import tensor
 
 
 class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):

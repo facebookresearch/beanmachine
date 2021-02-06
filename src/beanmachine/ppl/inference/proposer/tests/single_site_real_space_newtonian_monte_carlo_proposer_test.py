@@ -4,12 +4,12 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
 )
 from beanmachine.ppl.world.variable import Variable
 from beanmachine.ppl.world.world import World
+from torch import tensor
 
 
 class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):

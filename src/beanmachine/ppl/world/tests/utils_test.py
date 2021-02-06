@@ -2,8 +2,8 @@
 import unittest
 
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.world.utils import get_default_transforms, is_discrete
+from torch import tensor
 
 
 class InferenceUtilsTest(unittest.TestCase):

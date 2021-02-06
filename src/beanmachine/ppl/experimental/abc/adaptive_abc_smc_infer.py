@@ -6,7 +6,6 @@ from typing import Callable, Dict, Union
 
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.experimental.abc.abc_infer import ApproximateBayesianComputation
 from beanmachine.ppl.inference.abstract_infer import VerboseLevel
 from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import (
@@ -17,6 +16,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
 from beanmachine.ppl.world import World
 from torch import Tensor
+from torch import tensor
 from tqdm.auto import tqdm
 
 

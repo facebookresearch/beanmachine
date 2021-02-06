@@ -3,8 +3,8 @@ import unittest
 
 import beanmachine.ppl as bm
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.world import Diff, Variable, World
+from torch import tensor
 
 
 class DiffStackTest(unittest.TestCase):

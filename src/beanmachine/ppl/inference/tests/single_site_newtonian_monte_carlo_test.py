@@ -4,7 +4,6 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteHalfSpaceNewtonianMonteCarloProposer,
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
@@ -16,6 +15,7 @@ from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
 from beanmachine.ppl.model.statistical_model import sample
 from beanmachine.ppl.world import TransformType
 from beanmachine.ppl.world.utils import BetaDimensionTransform
+from torch import tensor
 
 
 class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):

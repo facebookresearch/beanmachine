@@ -3,12 +3,12 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.distribution.flat import Flat
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
 from beanmachine.ppl.experimental.neutra.train import IAFMap
 from beanmachine.ppl.world import Variable, World
 from torch import nn
+from torch import tensor
 
 
 class TraininfTest(unittest.TestCase):

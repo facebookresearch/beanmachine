@@ -5,7 +5,6 @@ from typing import Dict, List, Optional, Tuple
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-import torch.tensor as tensor
 from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
@@ -16,6 +15,7 @@ from beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_c
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.world.world import TransformType
+from torch import tensor
 
 
 class SingleSiteCustomProposerTest(unittest.TestCase):
