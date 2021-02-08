@@ -47,6 +47,42 @@ def prod(x):
 positive_infinity = float("inf")
 
 
+def _recompute_types(node: "BMGNode") -> None:
+
+    # If a node is mutated -- say, by changing one of its inputs -- then
+    # its type might change. This can then cause the types of its outputs
+    # to change, and the change can thereby propagate through the graph.
+    # The path along which that change propagates can be arbitrarily long in
+    # large graphs, which means that we can exceed Python's recursion limit.
+    # We therefore need this algorithm to be iterative, not recursive.
+    #
+    # We depend on several invariants for this algorithm to be correct.
+    # First, of course, we require that the graph is acyclic. We also
+    # require that the types of all inputs are already correct. Given
+    # those invariants, what we can do when we believe that the type of
+    # a node might be wrong is: recompute the type of this node; if the
+    # new type is the same as the old type, we're done. If not, then
+    # we set the type of this node to the correct type and then propagate
+    # that change to its outputs, which might then need to recompute their
+    # type information in turn.
+    #
+
+    work = [node]
+
+    while len(work) != 0:
+        current = work.pop()
+        it = current._compute_inf_type()
+        gt = current._compute_graph_type()
+        changed = it != current._inf_type or gt != current._graph_type
+        if changed:
+            current._inf_type = it
+            current._graph_type = gt
+            # Types are now correct and cached; we can propagate that
+            # change if necessary to our outputs.
+            for o in current.outputs.items:
+                work.append(o)
+
+
 # Note that we're not going to subclass list or UserList here because we
 # only need to use the most basic list operations: initialization, getting
 # an item, and setting an item. We never want to delete items, append to
@@ -84,7 +120,7 @@ class InputList:
         # correct. That could in turn cause the type of the node's outputs to
         # change; the call to _recompute_types propagates the change to all
         # descendant outputs.
-        self.node._recompute_types()
+        _recompute_types(self.node)
 
     def __getitem__(self, index: int) -> "BMGNode":
         return self.inputs[index]
@@ -157,23 +193,6 @@ class BMGNode(ABC):
             "Internal bug in graph nodes. "
             + "Either initialize _edges or override this method."
         )
-
-    def _recompute_types(self) -> None:
-        # A change in the inputs might have caused the cached types
-        # to be incorrect. The types of the inputs are correct, so
-        # recompute the types of this node; if they changed, then
-        # propagate that change to the outputs of this node; they
-        # might not be correct.
-        it = self._compute_inf_type()
-        gt = self._compute_graph_type()
-        changed = it != self._inf_type or gt != self._graph_type
-        self._inf_type = it
-        self._graph_type = gt
-        # Types are now correct and cached; we can propagate that
-        # change if necessary to our outputs.
-        if changed:
-            for o in self.outputs.items:
-                o._recompute_types()
 
     @abstractmethod
     def _compute_graph_type(self) -> BMGLatticeType:
