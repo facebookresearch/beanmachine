@@ -14,8 +14,7 @@ from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import ProposalDistribution, Variable, World
-from torch import Tensor
-from torch import tensor
+from torch import Tensor, tensor
 
 
 LOGGER = logging.getLogger("beanmachine")
