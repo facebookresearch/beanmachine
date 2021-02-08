@@ -127,6 +127,12 @@ def bad_functional_3():
     return flips(n=1)
 
 
+@bm.functional
+def bad_functional_4():
+    # Calling functionals with named arguments is not allowed.
+    return exp_coin_2(c=1)
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -429,4 +435,20 @@ digraph "graph" {
         self.assertEqual(
             str(ex.exception),
             "Random variable function calls must not have named arguments.",
+        )
+
+    def test_bad_control_flow_4(self) -> None:
+        """Unit tests for JIT functions"""
+
+        self.maxDiff = None
+
+        bmg = BMGraphBuilder()
+        queries = [bad_functional_4()]
+        observations = {}
+        # TODO: Better exception class
+        with self.assertRaises(ValueError) as ex:
+            bmg.accumulate_graph(queries, observations)
+        self.assertEqual(
+            str(ex.exception),
+            "Functional calls must not have named arguments.",
         )

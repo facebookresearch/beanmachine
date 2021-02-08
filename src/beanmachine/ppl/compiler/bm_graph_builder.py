@@ -1306,13 +1306,14 @@ class BMGraphBuilder:
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
     ) -> BMGNode:
 
+        if len(kwargs) != 0:
+            # TODO: Better error
+            raise ValueError("Functional calls must not have named arguments.")
+
         # TODO: What happens if we have a @functional that does not return
         # TODO: a graph node? A functional that returns a constant is
         # TODO: weird, but it should be legal.  Figure out what the
         # TODO: right thing to do is for this scenario.
-
-        # TODO: Functional calls do not support kwargs.
-        # TODO: Throw an exception if we have some?
 
         # We have a call to a functional function. There are two
         # cases. Either we have only ordinary values for arguments, or
@@ -1338,7 +1339,7 @@ class BMGraphBuilder:
         # We lose nothing by doing this and we gain memoization that allows
         # us to skip doing the call if we have done it before. That's a win.
 
-        rv = function(*arguments, **kwargs)
+        rv = function(*arguments)
         assert isinstance(rv, RVIdentifier)
         return self._rv_to_node(rv)
 
