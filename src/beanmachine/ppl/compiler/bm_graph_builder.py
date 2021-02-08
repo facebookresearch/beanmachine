@@ -1731,19 +1731,15 @@ g = graph.Graph()
         (3) inputs to the "left" are enumerated before those to
         the "right"."""
 
-        # That we require here that the graph is acyclic.
+        # We require here that the graph is acyclic.
 
         # TODO: The graph should be acyclic by construction;
         # we detect cycles while executing the lifted model.
         # However, we might want to add a quick cycle checking
         # pass here as a sanity check.
 
-        # This is the sorted set of nodes that will be returned.
-        result = []
-        # These are nodes we've already added to the result
-        # buffer and therefore can be skipped.
-        seen = set()
-
+        # TODO: Do we require sample nodes to be roots? Could we
+        # get by with just observations and queries?
         def is_root(n: BMGNode) -> bool:
             return (
                 isinstance(n, SampleNode)
@@ -1754,17 +1750,54 @@ g = graph.Graph()
         def key(n: BMGNode) -> int:
             return self.nodes[n]
 
-        def visit(n: BMGNode) -> None:
-            if n in seen:
-                return
-            for i in n.inputs:
-                visit(i)
-            seen.add(n)
-            result.append(n)
+        # We cannot use a recursive algorithm because the graph may have
+        # paths that are deeper than the recursion limit in Python.
+        # Instead we'll use a list as a stack.  But we cannot simply do
+        # a normal iterative depth-first or postorder traversal because
+        # that violates our stated invariants above: all inputs are always
+        # enumerated before the node which inputs them, and nodes to the
+        # left are enumerated before nodes to the right.
+        #
+        # What we do here is a modified depth first traversal which maintains
+        # our invariants.
 
-        roots = sorted((n for n in self.nodes if is_root(n)), key=key, reverse=False)
-        for r in roots:
-            visit(r)
+        result = []
+        work_stack = sorted(
+            (n for n in self.nodes if is_root(n)), key=key, reverse=True
+        )
+        already_in_result = set()
+        inputs_already_pushed = set()
+
+        while len(work_stack) != 0:
+            # Peek the top of the stack but do not pop it yet.
+            current = work_stack[-1]
+            if current in already_in_result:
+                # The top of the stack has already been put into the
+                # result list. There is nothing more to do with this node,
+                # so we can simply pop it away.
+                work_stack.pop()
+            elif current in inputs_already_pushed:
+                # The top of the stack is not on the result list, but we have
+                # already pushed all of its inputs onto the stack. Since they
+                # are gone from the stack, we must have already put all of them
+                # onto the result list, and therefore we are justified in putting
+                # this node onto the result list too.
+                work_stack.pop()
+                result.append(current)
+                already_in_result.add(current)
+            else:
+                # The top of the stack is not on the result list and its inputs
+                # have never been put onto the stack. Leave it on the stack so that
+                # we come back to it later after all of its inputs have been
+                # put on the result list, and put its inputs on the stack.
+                #
+                # We want to process the left inputs before the right inputs, so
+                # reverse them so that the left inputs go on the stack last, and
+                # are therefore closer to the top.
+                for i in reversed(current.inputs):
+                    work_stack.append(i)
+                inputs_already_pushed.add(current)
+
         return result
 
     def all_observations(self) -> List[Observation]:
