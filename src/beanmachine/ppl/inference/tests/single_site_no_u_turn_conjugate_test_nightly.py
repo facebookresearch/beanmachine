@@ -59,9 +59,9 @@ class SingleSiteNoUTurnConjugateTest(unittest.TestCase, AbstractConjugateTests):
     def test_dirichlet_categorical_conjugate_run(self):
         nuts = SingleSiteNoUTurnSampler(use_dense_mass_matrix=False)
         self.dirichlet_categorical_conjugate_run(
-            nuts, num_samples=200, num_adaptive_samples=100
+            nuts, num_samples=800, num_adaptive_samples=100
         )
         nuts = SingleSiteNoUTurnSampler()
         self.dirichlet_categorical_conjugate_run(
-            nuts, num_samples=200, num_adaptive_samples=100
+            nuts, num_samples=800, num_adaptive_samples=100
         )

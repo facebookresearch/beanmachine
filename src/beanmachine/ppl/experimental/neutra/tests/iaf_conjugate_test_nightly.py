@@ -115,7 +115,7 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             [],
         )
         self.normal_normal_conjugate_run(
-            iaf, num_samples=2000, num_adaptive_samples=5000
+            iaf, num_samples=10000, num_adaptive_samples=5000
         )
 
     def test_distant_normal_normal_conjugate_run(self):

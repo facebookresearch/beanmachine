@@ -46,5 +46,5 @@ class SingleSiteAdaptiveRandomWalkConjugateTest(
     # TODO: Expected n_eff levels should be documented in tests
     def test_dirichlet_categorical_conjugate_run(self):
         self.dirichlet_categorical_conjugate_run(
-            self.mh, num_samples=1000, num_adaptive_samples=500
+            self.mh, num_samples=1500, num_adaptive_samples=500
         )
