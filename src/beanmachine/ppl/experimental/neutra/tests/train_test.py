@@ -7,8 +7,7 @@ from beanmachine.ppl.distribution.flat import Flat
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
 from beanmachine.ppl.experimental.neutra.train import IAFMap
 from beanmachine.ppl.world import Variable, World
-from torch import nn
-from torch import tensor
+from torch import nn, tensor
 
 
 class TraininfTest(unittest.TestCase):
