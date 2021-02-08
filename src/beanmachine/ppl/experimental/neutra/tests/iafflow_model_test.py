@@ -7,8 +7,7 @@ from beanmachine.ppl.distribution.flat import Flat
 from beanmachine.ppl.experimental.neutra.iafflow import InverseAutoregressiveFlow
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
 from beanmachine.ppl.world import Variable, World
-from torch import nn
-from torch import tensor
+from torch import nn, tensor
 
 
 class IAFTest(unittest.TestCase):

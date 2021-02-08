@@ -20,8 +20,7 @@ from beanmachine.ppl.testlib.hypothesis_testing import (
     mean_equality_hypothesis_test,
     variance_equality_hypothesis_confidence_interval,
 )
-from torch import Tensor
-from torch import tensor
+from torch import Tensor, tensor
 
 
 class AbstractConjugateTests(metaclass=ABCMeta):
