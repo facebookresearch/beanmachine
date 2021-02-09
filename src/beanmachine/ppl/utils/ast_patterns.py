@@ -303,6 +303,13 @@ def ast_list(elts: Pattern = _any, ctx: Pattern = _any, ast_op=ast.List) -> Patt
     return type_and_attributes(ast_op, {"elts": elts, "ctx": ctx})
 
 
+def ast_luple(elts: Pattern = _any, ctx: Pattern = _any) -> Pattern:
+    return match_any(
+        type_and_attributes(ast.List, {"elts": elts, "ctx": ctx}),
+        type_and_attributes(ast.Tuple, {"elts": elts, "ctx": ctx}),
+    )
+
+
 def ast_dict(keys: Pattern = _any, values: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.Dict, {"keys": keys, "values": values})
 

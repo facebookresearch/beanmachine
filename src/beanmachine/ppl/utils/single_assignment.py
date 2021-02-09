@@ -57,6 +57,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     ast_if,
     ast_list,
     ast_listComp,
+    ast_luple,
     ast_return,
     ast_setComp,
     ast_true,
@@ -1898,6 +1899,7 @@ class SingleAssignment:
                 self._handle_left_value_subscript_slice_upper(),
                 self._handle_left_value_subscript_slice_step(),
                 self._handle_left_value_list_star(),
+                self._handle_left_value_list_list_star(),
             ]
         )
 
@@ -2079,12 +2081,10 @@ class SingleAssignment:
         # Note: This type of rewrite should not be "generalized" to
         # have anything come after *a.b because that would change order
         # of evaluation within the pattern.
+
         return PatternRule(
             assign(
-                targets=match_any(
-                    [ast_list(elts=[starred(value=_not_identifier)])],
-                    [ast_list(elts=[starred(value=_not_identifier)], ast_op=ast.Tuple)],
-                ),
+                targets=[ast_luple(elts=[starred(value=_not_identifier)])],
                 value=name(),
             ),
             self._transform_with_name(
@@ -2099,6 +2099,28 @@ class SingleAssignment:
                 ],
             ),
             "_handle_left_value_list_star",
+        )
+
+    def _handle_left_value_list_list_star(self) -> Rule:
+        """Rewrites like [[e]] = z → [y] = z; [e] = y."""
+        # Note: This type of rewrite should not be "generalized" to
+        # have anything come after [e] because that would change order
+        # of evaluation within the pattern.
+        return PatternRule(
+            assign(
+                targets=[ast_luple(elts=[ast_luple(elts=[anyPattern])])],
+                value=name(),
+            ),
+            self._transform_with_name(
+                "x",
+                lambda source_term: source_term.value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=[ast.List(elts=[source_term.targets[0].elts[0].elts[0]])],
+                    value=new_name,
+                ),
+                lambda source_term, new_name: [ast.List(elts=[new_name])],
+            ),
+            "_handle_left_value_list_list_star",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
