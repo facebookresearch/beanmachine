@@ -133,6 +133,23 @@ def bad_functional_4():
     return exp_coin_2(c=1)
 
 
+@bm.random_variable
+def beta(n):
+    return Beta(2.0, 2.0)
+
+
+@bm.functional
+def beta_tensor_1a():
+    # What happens if we have two uses of the same RV indexed
+    # with a tensor?
+    return beta(tensor(1)).log()
+
+
+@bm.functional
+def beta_tensor_1b():
+    return beta(tensor(1)).exp()
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -452,3 +469,50 @@ digraph "graph" {
             str(ex.exception),
             "Functional calls must not have named arguments.",
         )
+
+    def test_rv_identity(self) -> None:
+        self.maxDiff = None
+
+        # This test demonstrates an invariant which we must maintain as we modify
+        # the implementation details of the jitter: two calls to the same RV with
+        # the same arguments must produce the same sample node.  Here the two calls
+        # to beta(tensor(1)) must both produce the same sample node, not two samples.
+        #
+        # TODO:
+        #
+        # Right now this invariant is maintained by the @memoize modifier that is
+        # automatically generated on a lifted rv function, but that mechanism
+        # is redundant to the rv_map inside the graph builder, so we will eventually
+        # remove it. When we do so, we'll need to ensure that one of the following
+        # happens:
+        #
+        # * We add a hash function to RVIdentifier that treats identical-content tensors
+        #   as the same argument
+        # * We build a special-purpose map for tracking RVID -> Sample node mappings.
+        # * We restrict arguments to rv functions to be hashable (and canonicalize tensor
+        #   arguments to single values.)
+        # * Or some other similar mechanism for maintaining this invariant.
+
+        bmg = BMGraphBuilder()
+        queries = [beta_tensor_1a(), beta_tensor_1b()]
+        observations = {}
+        bmg.accumulate_graph(queries, observations)
+        observed = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=Log];
+  N4[label=Query];
+  N5[label=Exp];
+  N6[label=Query];
+  N0 -> N1[label=alpha];
+  N0 -> N1[label=beta];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=operand];
+  N2 -> N5[label=operand];
+  N3 -> N4[label=operator];
+  N5 -> N6[label=operator];
+}"""
+        self.assertEqual(expected.strip(), observed.strip())
