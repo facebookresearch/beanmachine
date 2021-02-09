@@ -1900,6 +1900,7 @@ class SingleAssignment:
                 self._handle_left_value_subscript_slice_step(),
                 self._handle_left_value_list_star(),
                 self._handle_left_value_list_list_star(),
+                self._handle_left_value_list_not_starred(),
             ]
         )
 
@@ -2121,6 +2122,45 @@ class SingleAssignment:
                 lambda source_term, new_name: [ast.List(elts=[new_name])],
             ),
             "_handle_left_value_list_list_star",
+        )
+
+    def _handle_left_value_list_not_starred(self) -> Rule:
+        """Rewrites like [a.b.c, d] = z → a.b.c = z[0]; [d] = z[1:]."""
+        # Here we are handling lists with more than one element.
+        return PatternRule(
+            assign(
+                targets=[
+                    ast_luple(
+                        elts=HeadTail(_not_starred, HeadTail(anyPattern, anyPattern))
+                    )
+                ],
+                value=name(),
+            ),
+            lambda source_term: ListEdit(
+                [
+                    ast.Assign(
+                        targets=[source_term.targets[0].elts[0]],
+                        value=ast.Subscript(
+                            value=source_term.value,
+                            slice=ast.Index(value=ast.Num(n=0)),
+                            ctx=ast.Load(),
+                        ),
+                    ),
+                    ast.Assign(
+                        targets=[
+                            ast.List(
+                                elts=source_term.targets[0].elts[1:], ctx=ast.Store()
+                            )
+                        ],
+                        value=ast.Subscript(
+                            value=source_term.value,
+                            slice=ast.Slice(lower=ast.Num(n=1), upper=None, step=None),
+                            ctx=ast.Load(),
+                        ),
+                    ),
+                ],
+            ),
+            "_handle_left_value_list_not_starred",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
