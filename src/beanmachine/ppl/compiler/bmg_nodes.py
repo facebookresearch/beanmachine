@@ -153,8 +153,8 @@ class BMGNode(ABC):
     outputs: ItemCounter
 
     # See comments in InputList above for invariants we maintain on these members.
-    _inf_type: Optional[BMGLatticeType]
-    _graph_type: Optional[BMGLatticeType]
+    _inf_type: BMGLatticeType
+    _graph_type: BMGLatticeType
 
     # These are the names of the edges; computed on demand and cached.
     _edges: Optional[List[str]] = None
@@ -163,12 +163,29 @@ class BMGNode(ABC):
         assert isinstance(inputs, list)
         self.inputs = InputList(self, inputs)
         self.outputs = ItemCounter()
-        # We cannot compute the inf type or graph type yet because
-        # that's a virtual method call and the constructors of the
-        # derived classes have not finished yet. Compute them on
-        # demand.
-        self._inf_type = None
-        self._graph_type = None
+
+        # The inf type and graph type of a node may depend upon the
+        # type of the nodes inputs. However we cannot compute them
+        # lazily using a standard recursive algorithm, because that
+        # could do a recursive traversal of the entire graph. If the
+        # graph has a path longer than the Python recursion limit
+        # then a recursive algorithm can crash. We therefore maintain
+        # the invariant that types of inputs are already known, and
+        # types of their outputs are computed on construction.
+        #
+        # See notes above for how types are recomputed upon a graph mutation.
+        #
+        # Note: We're doing virtual calls from inside a base class
+        # constructor, which requires some care. We require that the
+        # derived types have already set up all the state they need
+        # to successfully make these calls at this time!
+
+        # TODO: We will probably have to do the same thing for
+        # computing the tensor shape, since at present that algorithm
+        # is recursive.
+
+        self._inf_type = self._compute_inf_type()
+        self._graph_type = self._compute_graph_type()
 
     @property
     def edges(self) -> List[str]:
@@ -202,11 +219,7 @@ class BMGNode(ABC):
     @property
     def graph_type(self) -> BMGLatticeType:
         """The type of the node in the graph type system."""
-        if self._graph_type is not None:
-            return self._graph_type
-        t = self._compute_graph_type()
-        self._graph_type = t
-        return t
+        return self._graph_type
 
     @abstractmethod
     def _compute_inf_type(self) -> BMGLatticeType:
@@ -217,11 +230,7 @@ class BMGNode(ABC):
         """BMG nodes have type requirements on their inputs; the *infimum type* of
         a node is the *smallest* BMG type that a node may be converted to if required by
         an input."""
-        if self._inf_type is not None:
-            return self._inf_type
-        t = self._compute_inf_type()
-        self._inf_type = t
-        return t
+        return self._inf_type
 
     @property
     @abstractmethod
@@ -413,8 +422,8 @@ class BooleanNode(ConstantNode):
     value: bool
 
     def __init__(self, value: bool):
-        ConstantNode.__init__(self)
         self.value = value
+        ConstantNode.__init__(self)
 
     def __str__(self) -> str:
         return str(self.value)
@@ -443,8 +452,8 @@ class NaturalNode(ConstantNode):
     value: int
 
     def __init__(self, value: int):
-        ConstantNode.__init__(self)
         self.value = value
+        ConstantNode.__init__(self)
 
     def __str__(self) -> str:
         return str(self.value)
@@ -483,8 +492,8 @@ class PositiveRealNode(ConstantNode):
     value: float
 
     def __init__(self, value: float):
-        ConstantNode.__init__(self)
         self.value = value
+        ConstantNode.__init__(self)
 
     def __str__(self) -> str:
         return str(self.value)
@@ -523,8 +532,8 @@ class NegativeRealNode(ConstantNode):
     value: float
 
     def __init__(self, value: float):
-        ConstantNode.__init__(self)
         self.value = value
+        ConstantNode.__init__(self)
 
     def __str__(self) -> str:
         return str(self.value)
@@ -563,8 +572,8 @@ class ProbabilityNode(ConstantNode):
     value: float
 
     def __init__(self, value: float):
-        ConstantNode.__init__(self)
         self.value = value
+        ConstantNode.__init__(self)
 
     def __str__(self) -> str:
         return str(self.value)
@@ -603,8 +612,8 @@ class RealNode(ConstantNode):
     value: float
 
     def __init__(self, value: float):
-        ConstantNode.__init__(self)
         self.value = value
+        ConstantNode.__init__(self)
 
     def __str__(self) -> str:
         return str(self.value)
@@ -633,8 +642,8 @@ class ConstantTensorNode(ConstantNode):
     value: Tensor
 
     def __init__(self, value: Tensor):
-        ConstantNode.__init__(self)
         self.value = value
+        ConstantNode.__init__(self)
 
     def __str__(self) -> str:
         return str(self.value)
@@ -682,8 +691,8 @@ class TensorNode(BMGNode):
 
     def __init__(self, items: List[BMGNode], size: torch.Size):
         assert isinstance(items, list)
-        BMGNode.__init__(self, items)
         self._size = size
+        BMGNode.__init__(self, items)
 
     def _compute_edge_names(self) -> List[str]:
         # TODO: Base this on size rather than ordinal position.
