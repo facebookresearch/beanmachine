@@ -2267,3 +2267,49 @@ def f(x):
         self.check_rewrites(terms, self.s._handle_left_value_attributeref())
         self.check_rewrites(terms, self.s._handle_left_value_all())
         self.check_rewrites(terms)
+
+    def test_left_value_subscript_value(self) -> None:
+        """Test rewrites like a.b[c] = z → x = a.b; x[c] = z.
+        It also handles [c], [c:d], and [c:d:e] in the same way."""
+
+        terms = [
+            """
+def f(x):
+    a.b[c] = z""",
+            """
+def f(x):
+    x1 = a.b
+    x1[c] = z""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_subscript_value())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
+
+        terms = [
+            """
+def f(x):
+    a.b[c:d] = z""",
+            """
+def f(x):
+    x1 = a.b
+    x1[c:d] = z""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_subscript_value())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
+
+        terms = [
+            """
+def f(x):
+    a.b[c:d:e] = z""",
+            """
+def f(x):
+    x1 = a.b
+    x1[c:d:e] = z""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_subscript_value())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
