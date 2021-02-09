@@ -2563,3 +2563,38 @@ def f(x):
         ]
 
         self.check_rewrites(terms)
+
+    def test_left_value_list_starred(self) -> None:
+        """Test rewrites [*c, d] = z → [*c] = z[:-1]; d = z[-1].
+        It also pattern matches both tuples and lists as if they are the same."""
+
+        terms = [
+            """
+def f(x):
+    [*a,b] = z""",
+            """
+def f(x):
+    [*a] = z[:-1]
+    b = z[-1]""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_list_starred())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        # TODO: To fully process such terms, we need to support slicing in target language
+        # TODO: We also need to fix the initialization of variable names in the new
+        #       check_rewrites method.
+        terms += [
+            """
+def f(x):
+    [*a] = z[:-1]
+    a1 = -1
+    b = z[a1]""",
+            """
+def f(x):
+    [*a] = z[:-1]
+    a1 = 1
+    a1 = -a1
+    b = z[a1]""",
+        ]
+
+        self.check_rewrites(terms)
