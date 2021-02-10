@@ -2439,3 +2439,36 @@ def f(x):
         self.check_rewrites(terms, self.s._handle_left_value_list_star())
         self.check_rewrites(terms, self.s._handle_left_value_all())
         self.check_rewrites(terms)
+
+    def test_left_value_list_list(self) -> None:
+        """Test rewrites like [[a.b]] = z → [y] = z; [a.b] = y.
+        Note that this should also work for things where a.b is simply c.
+        It also pattern matches both tuples and lists as if they are the same."""
+
+        terms = [
+            """
+def f(x):
+    [[a.b]] = z
+    [[a[b]]] = z
+    ([a.b],) = z
+    ([a[b]],) = z
+    [[a]] = z
+    [[a],b] = z""",
+            """
+def f(x):
+    [x1] = z
+    [a.b] = x1
+    [x2] = z
+    [a[b]] = x2
+    [x3] = z
+    [a.b] = x3
+    [x4] = z
+    [a[b]] = x4
+    [x5] = z
+    [a] = x5
+    [[a], b] = z""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_list_list())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
