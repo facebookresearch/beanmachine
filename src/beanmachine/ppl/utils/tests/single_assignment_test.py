@@ -2313,3 +2313,21 @@ def f(x):
         self.check_rewrites(terms, self.s._handle_left_value_subscript_value())
         self.check_rewrites(terms, self.s._handle_left_value_all())
         self.check_rewrites(terms)
+
+    def test_left_value_subscript_slice_index(self) -> None:
+        """Test rewrites like a[b.c] = z → x = b.c; a[x] = z.
+        It also handles [c], [c:d], and [c:d:e] in the same way."""
+
+        terms = [
+            """
+def f(x):
+    a[b.c] = z""",
+            """
+def f(x):
+    x1 = b.c
+    a[x1] = z""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_subscript_slice_index())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
