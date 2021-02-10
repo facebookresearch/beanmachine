@@ -2470,5 +2470,70 @@ def f(x):
         ]
 
         self.check_rewrites(terms, self.s._handle_left_value_list_list())
+        # The last line above is simplified by another rule in the set, so,
+        terms[
+            1
+        ] = """
+def f(x):
+    [x1] = z
+    [a.b] = x1
+    [x2] = z
+    [a[b]] = x2
+    [x3] = z
+    [a.b] = x3
+    [x4] = z
+    [a[b]] = x4
+    [x5] = z
+    [a] = x5
+    [a] = z[0]
+    [b] = z[1:]"""
+
         self.check_rewrites(terms, self.s._handle_left_value_all())
+        # As a result of the change in the last line, further simplifications
+        # are triggered by other rewrites outside the set
+        terms += [
+            """
+def f(x):
+    [x1] = z
+    [a.b] = x1
+    [x2] = z
+    [a[b]] = x2
+    [x3] = z
+    [a.b] = x3
+    [x4] = z
+    [a[b]] = x4
+    [x5] = z
+    [a] = x5
+    a1 = 0
+    [a] = z[a1]
+    [b] = z[1:]"""
+        ]
+        self.check_rewrites(terms)
+
+    def test_left_value_list_not_starred(self) -> None:
+        """Test rewrites like [a.b.c, d] = z → a.b.c = z[0]; [d] = z[1:].
+        Note that this should also work for things where a.b is simply c.
+        It also pattern matches both tuples and lists as if they are the same."""
+
+        terms = [
+            """
+def f(x):
+    [a.b.c, d] = z""",
+            """
+def f(x):
+    a.b.c = z[0]
+    [d] = z[1:]""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_list_not_starred())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        # TODO: To fully process such terms, we need to support slicing in target language
+        terms += [
+            """
+def f(x):
+    a1 = 0
+    a.b.c = z[a1]
+    [d] = z[1:]"""
+        ]
+
         self.check_rewrites(terms)
