@@ -49,7 +49,7 @@ class SingleAssignmentTest(unittest.TestCase):
         result = self.s.single_assignment(fold(m))
         self.assertEqual(astor.to_source(result).strip(), expected.strip(), msg=msg)
 
-    def check_rewrites(self, sources, rule=default_rule):
+    def check_rewrites(self, sources, rule=default_rule, reset=True):
         """Applying rules to each element of sources yelds the next one"""
 
         self.assertIsInstance(sources, list, msg="\nSources should be list of strings.")
@@ -60,6 +60,7 @@ class SingleAssignmentTest(unittest.TestCase):
                 sources[0],
                 once(_some_top_down(rule)),
                 msg="\nExpected the term to be a normal form for rule.",
+                reset=reset,
             )
         source, *rest = sources
         expected, *_ = rest
@@ -68,8 +69,9 @@ class SingleAssignmentTest(unittest.TestCase):
             expected,
             _some_top_down(rule),
             msg="\nExpected rule to rewrite one term to the other",
+            reset=reset,
         )
-        self.check_rewrites(rest, rule)
+        self.check_rewrites(rest, rule, reset=reset)  # TODO: reset=false
 
     def test_check_rewrites(self) -> None:
         """The method check_rewrites performs several rewrites for it in one shot.
