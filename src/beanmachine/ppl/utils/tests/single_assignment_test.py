@@ -2255,6 +2255,35 @@ def f(x):
 
         self.check_rewrites(waiting_forms, self.s._handle_left_value_all())
 
+        # Third, an example that involves several of the rewrite rules in this
+        # set
+
+        # TODO: The following reduction sequence is incomplete (and does not
+        # reach a normal form) because we need rewrite rules for splicing
+        # terms such as z[1:]. That functionality is in place we should
+        # be able to continue this rewrite until the whole LHS pattern has been
+        # converted into SSA form.
+
+        terms = [
+            """
+def f(x):
+    [[a],b,*[c],d,(e.f[g:h[i]].j)] = z
+        """,
+            """
+def f(x):
+    [a] = z[0]
+    [b, *[c], d, e.f[g:h[i]].j] = z[1:]
+        """,
+            """
+def f(x):
+    a1 = 0
+    [a] = z[a1]
+    [b, *[c], d, e.f[g:h[i]].j] = z[1:]
+        """,
+        ]
+
+        self.check_rewrites(terms)
+
     def test_left_value_attributeref(self) -> None:
         """Test rewrites like a.b.c = z → x = a.b; x.c = z"""
 
