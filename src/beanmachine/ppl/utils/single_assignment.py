@@ -137,26 +137,28 @@ _unops: Pattern = match_any(ast.USub, ast.UAdd, ast.Invert, ast.Not)
 
 class SingleAssignment:
     _count: int
+    # TODO: Better naming convention. In particular, _rules is the reflexive
+    # transitive congruent extension of _rule. It would be nice to find
+    # terminology or refactoring that would make this easy to express more
+    # clearly than "s" does, but while still being concise.
+    _rule: Rule
     _rules: Rule
 
     def __init__(self) -> None:
         self._count = 0
-        self._rules = many(
-            _some_top_down(
-                first(
-                    [
-                        self._handle_compare_all(),
-                        self._handle_boolop_all(),
-                        self._handle_while(),
-                        self._handle_if(),
-                        self._handle_unassigned(),
-                        self._handle_return(),
-                        self._handle_for(),
-                        self._handle_assign(),
-                    ]
-                )
-            )
+        self._rule = first(
+            [
+                self._handle_compare_all(),
+                self._handle_boolop_all(),
+                self._handle_while(),
+                self._handle_if(),
+                self._handle_unassigned(),
+                self._handle_return(),
+                self._handle_for(),
+                self._handle_assign(),
+            ]
         )
+        self._rules = many(_some_top_down(self._rule))
 
     def _unique_id(self, prefix: str) -> str:
         self._count = self._count + 1
