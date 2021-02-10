@@ -1901,6 +1901,7 @@ class SingleAssignment:
                 self._handle_left_value_list_star(),
                 self._handle_left_value_list_list(),
                 self._handle_left_value_list_not_starred(),
+                self._handle_left_value_list_starred(),
             ]
         )
 
@@ -2161,6 +2162,45 @@ class SingleAssignment:
                 ],
             ),
             "_handle_left_value_list_not_starred",
+        )
+
+    def _handle_left_value_list_starred(self) -> Rule:
+        """Rewrites like [*c, d] = z → [*c] = z[:-1]; d = z[-1]."""
+        # Here we are handling lists with more than one element.
+        return PatternRule(
+            assign(
+                targets=[
+                    ast_luple(
+                        elts=HeadTail(starred(), HeadTail(anyPattern, anyPattern))
+                    )
+                ],
+                value=name(),
+            ),
+            lambda source_term: ListEdit(
+                [
+                    ast.Assign(
+                        targets=[
+                            ast.List(
+                                elts=source_term.targets[0].elts[:-1], ctx=ast.Store()
+                            )
+                        ],
+                        value=ast.Subscript(
+                            value=source_term.value,
+                            slice=ast.Slice(lower=None, upper=ast.Num(n=-1), step=None),
+                            ctx=ast.Load(),
+                        ),
+                    ),
+                    ast.Assign(
+                        targets=[source_term.targets[0].elts[-1]],
+                        value=ast.Subscript(
+                            value=source_term.value,
+                            slice=ast.Index(value=ast.Num(n=-1)),
+                            ctx=ast.Load(),
+                        ),
+                    ),
+                ],
+            ),
+            "_handle_left_value_list_starred",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
