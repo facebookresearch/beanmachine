@@ -1893,6 +1893,7 @@ class SingleAssignment:
                 self._handle_left_value_subscript_slice_index(),
                 self._handle_left_value_subscript_slice_lower(),
                 self._handle_left_value_subscript_slice_upper(),
+                self._handle_left_value_subscript_slice_step(),
             ]
         )
 
@@ -2030,6 +2031,43 @@ class SingleAssignment:
                 ),
             ),
             "_handle_left_value_subscript_slice_upper",
+        )
+
+    def _handle_left_value_subscript_slice_step(self) -> Rule:
+        """Rewrites like a[:c:d.e] = z → x = c.d; a[b:c:x] = z."""
+        return PatternRule(
+            assign(
+                targets=[
+                    subscript(
+                        value=name(),
+                        slice=slice_pattern(
+                            lower=_name_or_none,
+                            upper=_name_or_none,
+                            step=_neither_name_nor_none,
+                        ),
+                    )
+                ],
+                value=name(),
+            ),
+            self._transform_with_name(
+                "x",
+                lambda source_term: source_term.targets[0].slice.step,
+                lambda source_term, new_name: ast.Assign(
+                    targets=[
+                        ast.Subscript(
+                            value=source_term.targets[0].value,
+                            slice=ast.Slice(
+                                lower=source_term.targets[0].slice.lower,
+                                upper=source_term.targets[0].slice.upper,
+                                step=ast.Name(id=new_name, ctx=ast.Load()),
+                            ),
+                            ctx=ast.Store(),
+                        )
+                    ],
+                    value=source_term.value,
+                ),
+            ),
+            "_handle_left_value_subscript_slice_step",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
