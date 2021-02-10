@@ -192,6 +192,9 @@ class SingleAssignment:
         prefix: str,
         extract_expr: Callable[[ast.AST], ast.expr],
         build_new_term: Callable[[ast.AST, ast.AST], ast.AST],
+        extract_pattern: Callable[[ast.AST, ast.AST], List[ast.expr]] = lambda s, n: [
+            n
+        ],
     ) -> Callable[[ast.AST], ListEdit]:
         # Given its arguments (p,e,b) produces a term transformer
         #   r -> p_i = e(r) ; b(r,p_i) where p_i is a new name
@@ -200,7 +203,7 @@ class SingleAssignment:
             return ListEdit(
                 [
                     ast.Assign(
-                        targets=[ast.Name(id=id, ctx=ast.Store())],
+                        targets=extract_pattern(r, ast.Name(id=id, ctx=ast.Store())),
                         value=extract_expr(r),
                     ),
                     build_new_term(r, ast.Name(id=id, ctx=ast.Load())),
@@ -1894,6 +1897,7 @@ class SingleAssignment:
                 self._handle_left_value_subscript_slice_lower(),
                 self._handle_left_value_subscript_slice_upper(),
                 self._handle_left_value_subscript_slice_step(),
+                self._handle_left_value_list_star(),
             ]
         )
 
@@ -2068,6 +2072,33 @@ class SingleAssignment:
                 ),
             ),
             "_handle_left_value_subscript_slice_step",
+        )
+
+    def _handle_left_value_list_star(self) -> Rule:
+        """Rewrites like [*a.b] = z → [*y] = z; a.b = y."""
+        # Note: This type of rewrite should not be "generalized" to
+        # have anything come after *a.b because that would change order
+        # of evaluation within the pattern.
+        return PatternRule(
+            assign(
+                targets=match_any(
+                    [ast_list(elts=[starred(value=_not_identifier)])],
+                    [ast_list(elts=[starred(value=_not_identifier)], ast_op=ast.Tuple)],
+                ),
+                value=name(),
+            ),
+            self._transform_with_name(
+                "x",
+                lambda source_term: source_term.value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=[source_term.targets[0].elts[0].value],
+                    value=new_name,
+                ),
+                lambda source_term, new_name: [
+                    ast.List(elts=[ast.Starred(value=new_name)])
+                ],
+            ),
+            "_handle_left_value_list_star",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
