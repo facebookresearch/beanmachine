@@ -2178,3 +2178,15 @@ x = dict(**c, **a1)
         self.check_rewrite(
             source, expected, _some_top_down(self.s._handle_assign_binary_dict_right())
         )
+
+    def test_left_value_all(self) -> None:
+        """General tests for the full set of assignment left value rules"""
+        # TODO: Add rest of set normal forms to this example
+        normal_forms = [
+            """
+def f(x):
+    x = y
+        """
+        ]
+
+        self.check_rewrites(normal_forms, self.s._handle_left_value_all())
