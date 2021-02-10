@@ -71,7 +71,7 @@ class SingleAssignmentTest(unittest.TestCase):
             msg="\nExpected rule to rewrite one term to the other",
             reset=reset,
         )
-        self.check_rewrites(rest, rule, reset=reset)  # TODO: reset=false
+        self.check_rewrites(rest, rule, reset=False)
 
     def test_check_rewrites(self) -> None:
         """The method check_rewrites performs several rewrites for it in one shot.
@@ -188,8 +188,8 @@ def f(x):
 """,
             """
 def f(x):
-    a1 = a and b
-    a1 = a1 and c
+    a2 = a and b
+    a1 = a2 and c
     if a1:
         x = d
     else:
@@ -198,13 +198,13 @@ def f(x):
             """
 def f(x):
     if a:
-        a1 = b
+        a2 = b
     else:
-        a1 = a
-    if a1:
+        a2 = a
+    if a2:
         a1 = c
     else:
-        a1 = a1
+        a1 = a2
     if a1:
         x = d
     else:
@@ -215,8 +215,7 @@ def f(x):
         self.check_rewrites(sources_continued)
 
         # TODO: Remarks based on the sequence above:
-        # 1) At some point we may decide to use top_down rather than some_top_down
-        # 2) There is a potential new nameshadowing problem
+        #    At some point we may decide to use top_down rather than some_top_down
 
     def check_rewrite_as_ast(self, source, expected, rules=default_rules):
         """Applying rules to source yields expected -- checked as ASTs"""
@@ -2509,8 +2508,8 @@ def f(x):
     [a[b]] = x4
     [x5] = z
     [a] = x5
-    a1 = 0
-    [a] = z[a1]
+    a6 = 0
+    [a] = z[a6]
     [b] = z[1:]"""
         ]
         self.check_rewrites(terms)
@@ -2560,8 +2559,6 @@ def f(x):
         self.check_rewrites(terms, self.s._handle_left_value_list_starred())
         self.check_rewrites(terms, self.s._handle_left_value_all())
         # TODO: To fully process such terms, we need to support slicing in target language
-        # TODO: We also need to fix the initialization of variable names in the new
-        #       check_rewrites method.
         terms += [
             """
 def f(x):
@@ -2571,8 +2568,8 @@ def f(x):
             """
 def f(x):
     [*a] = z[:-1]
-    a1 = 1
-    a1 = -a1
+    a2 = 1
+    a1 = -a2
     b = z[a1]""",
         ]
 
