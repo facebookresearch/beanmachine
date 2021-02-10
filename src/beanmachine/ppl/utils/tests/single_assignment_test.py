@@ -36,11 +36,14 @@ class SingleAssignmentTest(unittest.TestCase):
         name = s._unique_id(root)
         self.assertEqual(root, name[0 : len(root)])
 
-    def check_rewrite(self, source, expected, rules=default_rules, msg=None):
+    def check_rewrite(
+        self, source, expected, rules=default_rules, msg=None, reset=True
+    ):
         """Applying rules to source yields expected"""
 
         self.maxDiff = None
-        self.s._count = 0
+        if reset:
+            self.s._count = 0
         self.s._rules = rules
         m = ast.parse(source)
         result = self.s.single_assignment(fold(m))
