@@ -1883,7 +1883,12 @@ class SingleAssignment:
     def _handle_left_value_all(self) -> Rule:
         """Put the left_value of an assignment in SSA form"""
         # TODO: Add the various rewrite rules into the following list
-        return first([self._handle_left_value_attributeref()])
+        return first(
+            [
+                self._handle_left_value_attributeref(),
+                self._handle_left_value_subscript_value(),
+            ]
+        )
 
     def _handle_left_value_attributeref(self) -> Rule:
         """Rewrites like a.b.c = z → x = a.b; x.c = z"""
@@ -1904,6 +1909,27 @@ class SingleAssignment:
                 ),
             ),
             "handle_left_value_attributeref",
+        )
+
+    def _handle_left_value_subscript_value(self) -> Rule:
+        """Rewrites like a.b[c] = z → x = a.b; x[c] = z"""
+        return PatternRule(
+            assign(targets=[subscript(value=_not_identifier)], value=name()),
+            self._transform_with_name(
+                "x",
+                lambda source_term: source_term.targets[0].value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=[
+                        ast.Subscript(
+                            value=ast.Name(id=new_name, ctx=ast.Load()),
+                            slice=source_term.targets[0].slice,
+                            ctx=ast.Store(),
+                        )
+                    ],
+                    value=source_term.value,
+                ),
+            ),
+            "_handle_left_value_subscript_value",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
