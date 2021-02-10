@@ -2355,3 +2355,32 @@ def f(x):
         self.check_rewrites(terms, self.s._handle_left_value_subscript_slice_lower())
         self.check_rewrites(terms, self.s._handle_left_value_all())
         self.check_rewrites(terms)
+
+    def test_left_value_subscript_slice_upper(self) -> None:
+        """Test rewrites like a[:b.c] = z → x = b.c; a[:x] = z."""
+
+        terms = [
+            """
+def f(x):
+    a[:c.d] = z
+    a[b:c.d] = z
+    a[b:c.d:e] = z
+    a[a::e] = z
+    a[::e] = z
+    a[:] = z""",
+            """
+def f(x):
+    x1 = c.d
+    a[:x1] = z
+    x2 = c.d
+    a[b:x2] = z
+    x3 = c.d
+    a[b:x3:e] = z
+    a[a::e] = z
+    a[::e] = z
+    a[:] = z""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_left_value_subscript_slice_upper())
+        self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
