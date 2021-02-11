@@ -2662,19 +2662,13 @@ def f(x):
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
         self.check_rewrites(terms)
 
-    def test_assign_subscript_slice_index_too_soon(self) -> None:
+    def test_assign_subscript_slice_index_2_not_too_soon(self) -> None:
         """Test rewrites like a,b = c[d.e] → x = d.e; a,b = c[x]."""
 
         terms = [
             """
 def f(x):
-    a,b = c.c[d.e]""",
-            """
-def f(x):
-    a1 = d.e
-    a, b = c.c[a1]""",
+    a, b = c.c[d.e]""",
         ]
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_index_2())
-        # self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
-        # self.check_rewrites(terms)
