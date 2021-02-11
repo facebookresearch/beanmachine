@@ -14,3 +14,15 @@ class RVIdentifier:
     @property
     def function(self):
         return self.wrapper.__wrapped__
+
+    @property
+    def is_functional(self):
+        w = self.wrapper
+        assert hasattr(w, "is_functional")
+        return w.is_functional
+
+    @property
+    def is_random_variable(self):
+        w = self.wrapper
+        assert hasattr(w, "is_random_variable")
+        return w.is_random_variable

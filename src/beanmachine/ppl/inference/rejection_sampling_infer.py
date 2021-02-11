@@ -22,6 +22,8 @@ class RejectionSampling(AbstractMCInference, metaclass=ABCMeta):
     algorithms will inherit from this class, and override the single_inference_step method
     """
 
+    _observations_must_be_rv = False
+
     def __init__(self, max_attempts_per_sample=1e4, tolerance=0.0):
         super().__init__()
         self.num_accepted_samples = 0

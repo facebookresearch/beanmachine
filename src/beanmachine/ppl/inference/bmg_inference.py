@@ -22,7 +22,7 @@ class BMGInference:
         observations: Dict[RVIdentifier, Tensor],
         num_samples: int,
     ) -> MonteCarloSamples:
-        _verify_queries_and_observations(queries, observations)
+        _verify_queries_and_observations(queries, observations, True)
         # TODO: Add num_chains
         # TODO: Add verbose level
         # TODO: Add logging

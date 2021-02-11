@@ -50,7 +50,7 @@ class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
         mh = bm.SingleSiteAncestralMetropolisHastings()
 
         queries = [model.mu()]
-        observations = {model.K(): torch.tensor(2.0)}
+        observations = {}
 
         torch.manual_seed(42)
         samples = mh.infer(queries, observations, num_samples=5, num_chains=1)

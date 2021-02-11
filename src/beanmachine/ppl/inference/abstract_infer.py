@@ -21,9 +21,7 @@ from .monte_carlo_samples import MonteCarloSamples
 LOGGER = logging.getLogger("beanmachine")
 
 # Detect and report if a user fails to meet the inference contract.
-def _verify_queries_and_observations(
-    queries: List[RVIdentifier], observations: Dict[RVIdentifier, Tensor]
-) -> None:
+def _verify_queries(queries: List[RVIdentifier]) -> None:
     if not isinstance(queries, list):
         t = type(queries).__name__
         raise TypeError(
@@ -36,7 +34,16 @@ def _verify_queries_and_observations(
             raise TypeError(
                 f"A query is required to be a random variable but is of type {t}."
             )
+        for arg in query.arguments:
+            if isinstance(arg, RVIdentifier):
+                raise TypeError(
+                    "The arguments to a query must not be random variables."
+                )
 
+
+def _verify_observations(
+    observations: Dict[RVIdentifier, Tensor], must_be_rv: bool
+) -> None:
     if not isinstance(observations, dict):
         t = type(observations).__name__
         raise TypeError(
@@ -54,6 +61,24 @@ def _verify_queries_and_observations(
             raise TypeError(
                 f"An observed value is required to be a tensor but is of type {t}."
             )
+        if must_be_rv and rv.is_functional:
+            raise TypeError(
+                "An observation must observe a random_variable, not a functional."
+            )
+        for arg in rv.arguments:
+            if isinstance(arg, RVIdentifier):
+                raise TypeError(
+                    "The arguments to an observation must not be random variables."
+                )
+
+
+def _verify_queries_and_observations(
+    queries: List[RVIdentifier],
+    observations: Dict[RVIdentifier, Tensor],
+    observations_must_be_rv: bool,
+) -> None:
+    _verify_queries(queries)
+    _verify_observations(observations, observations_must_be_rv)
 
 
 class VerboseLevel(Enum):
@@ -124,6 +149,8 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
     Abstract inference object for Monte Carlo inference.
     """
 
+    _observations_must_be_rv: bool = True
+
     @staticmethod
     def set_seed_for_chain(random_seed: int, chain: int):
         AbstractInference.set_seed(random_seed + chain * 31)
@@ -190,7 +217,9 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
         :returns: view of data for chains and samples for query
         """
 
-        _verify_queries_and_observations(queries, observations)
+        _verify_queries_and_observations(
+            queries, observations, self._observations_must_be_rv
+        )
         try:
             random_seed = (
                 torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
