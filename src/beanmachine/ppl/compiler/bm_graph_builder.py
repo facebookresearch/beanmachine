@@ -239,11 +239,11 @@ def only_ordinary_arguments(args, kwargs) -> bool:
 
 
 def _is_random_variable_call(f) -> bool:
-    return hasattr(f, "is_random_variable")
+    return hasattr(f, "is_random_variable") and f.is_random_variable
 
 
 def _is_functional_call(f) -> bool:
-    return hasattr(f, "is_functional")
+    return hasattr(f, "is_functional") and f.is_functional
 
 
 def _is_phi(f: Any, arguments: List[Any], kwargs: Dict[str, Any]) -> bool:

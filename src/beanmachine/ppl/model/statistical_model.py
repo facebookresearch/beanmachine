@@ -74,6 +74,7 @@ class StatisticalModel(object):
             setattr(f.__self__, meth_name, wrapper)
         else:
             f._wrapper = wrapper
+        wrapper.is_functional = False
         wrapper.is_random_variable = True
         return wrapper
 
@@ -107,6 +108,7 @@ class StatisticalModel(object):
         else:
             f._wrapper = wrapper
         wrapper.is_functional = True
+        wrapper.is_random_variable = False
         return wrapper
 
 
