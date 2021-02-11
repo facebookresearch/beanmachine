@@ -545,9 +545,7 @@ def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
     # that is greater than or equal to the smallest type of
     # all the elements?
 
-    sup = supremum(
-        *[type_of_value(element) for row in v for element in row]  # pyre-fixme
-    )
+    sup = supremum(*[type_of_value(element) for row in v for element in row])
 
     # We should get a 1x1 matrix out; there should be no way to get
     # top or bottom out.
