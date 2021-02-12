@@ -106,9 +106,7 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
                     "Node {n} has unsupported constraints. ".format(n=node)
                     + "Proposer falls back to SingleSiteAncestralProposer.\n"
                 )
-                return super().get_proposal_distribution(
-                    node, node_var, world, auxiliary_variables
-                )
+                self.proposers_[node] = super()
         return self.proposers_[node].get_proposal_distribution(
             node, node_var, world, auxiliary_variables
         )
