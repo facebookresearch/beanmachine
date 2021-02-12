@@ -171,6 +171,16 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         """
         self.assertIn(False, [0 == pred for pred in predictions])
 
+    def test_single_site_random_walk_parallel_full_support(self):
+        model = self.RealSupportModel()
+        mh = bm.SingleSiteRandomWalk()
+        p_key = model.p()
+        queries = [p_key]
+        observations = {model.q(): torch.tensor(1.0)}
+        predictions = mh.infer(queries, observations, 100, run_in_parallel=True)
+        predictions = predictions.get_chain()[p_key]
+        self.assertIn(False, [0 == pred for pred in predictions])
+
     def test_single_site_random_walk_half_support(self):
         model = self.HalfRealSupportModel()
         mh = bm.SingleSiteRandomWalk()

@@ -232,7 +232,14 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
                 for chain in range(num_chains):
                     p = mp.Process(
                         target=self._parallel_infer,
-                        args=(q, chain, num_samples, random_seed),
+                        args=(
+                            q,
+                            chain,
+                            num_samples,
+                            random_seed,
+                            num_adaptive_samples,
+                            verbose,
+                        ),
                     )
                     p.start()
 
