@@ -87,11 +87,12 @@ def is_constraint_eq(
 ) -> Union[bool, IterableType[bool]]:
     """
     This provides an equality check that works for different constraints
-    specified in :mod:`torch.distributions.constraints`. If `check_constraints`
-    is a single `Constraint` type or instance this returns a `True` if the
-    given `constraint` matches  `check_constraints`. Otherwise, if
-    `check_constraints` is an iterable, this returns a `bool` list that
-    represents an element-wise check.
+    specified in :mod:`torch.distributions.constraints`. If `constraint` is
+    `constraints.Independent`, then the `base_constraint` is checked. If
+    `check_constraints` is a single `Constraint` type or instance this
+    returns a `True` if the given `constraint` matches `check_constraints`.
+    Otherwise, if `check_constraints` is an iterable, this returns a `bool`
+    list that represents an element-wise check.
 
     :param constraint: A constraint class or instance.
     :param check_constraints: A constraint class or instance or an iterable
@@ -99,6 +100,8 @@ def is_constraint_eq(
     :returns: bool (or a list of bool) values indicating if the given constraint
         equals the constraint in `check_constraints`.
     """
+    if isinstance(constraint, constraints.independent):
+        return is_constraint_eq(constraint.base_constraint, check_constraints)
     if isinstance(check_constraints, Iterable):
         return [_is_constraint_eq(constraint, c) for c in check_constraints]
     return _is_constraint_eq(constraint, check_constraints)

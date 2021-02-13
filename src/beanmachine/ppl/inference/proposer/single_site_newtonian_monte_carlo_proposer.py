@@ -83,17 +83,10 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         if node not in self.proposers_:
             # pyre-fixme
             node_distribution_support = node_var.distribution.support
-            if (
-                world.get_transforms_for_node(node).transform_type != TransformType.NONE
-                or is_constraint_eq(node_distribution_support, dist.constraints.real)
-                or (
-                    is_constraint_eq(
-                        node_distribution_support, dist.constraints.independent
-                    )
-                    and is_constraint_eq(
-                        node_distribution_support.base_constraint, dist.constraints.real
-                    )
-                )
+            if world.get_transforms_for_node(
+                node
+            ).transform_type != TransformType.NONE or is_constraint_eq(
+                node_distribution_support, dist.constraints.real
             ):
                 self.proposers_[node] = SingleSiteRealSpaceNewtonianMonteCarloProposer(
                     self.alpha_, self.beta_
@@ -104,9 +97,17 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             ):
                 self.proposers_[node] = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
 
-            elif is_constraint_eq(
-                node_distribution_support, dist.constraints.simplex
-            ) or isinstance(node_var.distribution, dist.Beta):
+            elif (
+                is_constraint_eq(node_distribution_support, dist.constraints.simplex)
+                or isinstance(node_var.distribution, dist.Beta)
+                or (
+                    isinstance(node_distribution_support, dist.constraints.independent)
+                    and (
+                        node_distribution_support.base_constraint
+                        == dist.constraints.unit_interval
+                    )
+                )
+            ):
                 self.proposers_[node] = SingleSiteSimplexNewtonianMonteCarloProposer()
             else:
                 LOGGER.warning(

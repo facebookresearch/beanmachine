@@ -134,6 +134,8 @@ class Variable(object):
         sample_val = distribution.sample()
         # pyre-fixme
         support = distribution.support
+        if isinstance(support, dist.constraints.independent):
+            support = support.base_constraint
         if initialize_from_prior:
             return sample_val
         elif is_constraint_eq(support, dist.constraints.real):
