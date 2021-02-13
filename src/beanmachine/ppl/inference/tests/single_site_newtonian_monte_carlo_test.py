@@ -2,9 +2,6 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
-    SingleSiteAncestralProposer,
-)
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
