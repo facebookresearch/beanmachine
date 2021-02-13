@@ -83,10 +83,17 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         if node not in self.proposers_:
             # pyre-fixme
             node_distribution_support = node_var.distribution.support
-            if world.get_transforms_for_node(
-                node
-            ).transform_type != TransformType.NONE or is_constraint_eq(
-                node_distribution_support, dist.constraints.real
+            if (
+                world.get_transforms_for_node(node).transform_type != TransformType.NONE
+                or is_constraint_eq(node_distribution_support, dist.constraints.real)
+                or (
+                    is_constraint_eq(
+                        node_distribution_support, dist.constraints.independent
+                    )
+                    and is_constraint_eq(
+                        node_distribution_support.base_constraint, dist.constraints.real
+                    )
+                )
             ):
                 self.proposers_[node] = SingleSiteRealSpaceNewtonianMonteCarloProposer(
                     self.alpha_, self.beta_
