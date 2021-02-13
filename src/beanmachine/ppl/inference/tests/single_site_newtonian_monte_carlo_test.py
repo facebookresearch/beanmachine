@@ -55,10 +55,6 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
             return dist.Normal(torch.zeros(2, 4), tensor(1.0))
 
         @sample
-        def realspace_independent(self):
-            return dist.Independent(dist.Normal(torch.zeros(2, 4), tensor(1.0)), 1)
-
-        @sample
         def halfspace(self):
             return dist.Gamma(torch.zeros(1, 2, 4) + tensor(2.0), tensor(2.0))
 
@@ -73,6 +69,11 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         @sample
         def beta(self):
             return dist.Beta(tensor([1.0, 2.0, 3.0]), tensor([1.0, 2.0, 3.0]))
+
+    class SampleIndependentShapeModel(object):
+        @sample
+        def realspace(self):
+            return dist.Independent(dist.Normal(torch.zeros(2, 4), tensor(1.0)), 1)
 
     def test_single_site_newtonian_monte_carlo(self):
         model = self.SampleNormalModel()
@@ -258,7 +259,6 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
 
         proposer = nw.find_best_single_site_proposer(interval_key)
         proposed_value = proposer.propose(interval_key, nw.world_)[0]
-        self.assertNotIn(interval_key, proposer.proposers_)
         self.assertEqual(proposed_value.shape, torch.Size([]))
 
         proposer = nw.find_best_single_site_proposer(beta_key)
@@ -309,22 +309,14 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         proposed_value = proposer.propose(beta_key, nw.world_)[0]
         self.assertEqual(proposed_value.shape, torch.Size([3]))
 
-    def test_single_site_newtonian_monte_carlo_no_transform_shape(self):
-        model = self.SampleShapeModel()
+    def test_single_site_newtonian_monte_carlo_no_transform_independent_shape(self):
+        model = self.SampleIndependentShapeModel()
         nw = SingleSiteNewtonianMonteCarlo(transform_type=TransformType.NONE)
 
-        real_key = model.realspace_independent()
-        half_key = model.halfspace()
-        simplex_key = model.simplex()
-        interval_key = model.interval()
-        beta_key = model.beta()
+        real_key = model.realspace()
 
         nw.queries_ = [
             real_key,
-            half_key,
-            simplex_key,
-            interval_key,
-            beta_key,
         ]
         nw.observations_ = {}
         nw.initialize_world()
@@ -337,19 +329,3 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
             SingleSiteRealSpaceNewtonianMonteCarloProposer,
         )
         self.assertEqual(proposed_value.shape, torch.Size([2, 4]))
-
-        # proposer = nw.find_best_single_site_proposer(half_key)
-        # proposed_value = proposer.propose(half_key, nw.world_)[0]
-        # self.assertEqual(proposed_value.shape, torch.Size([1, 2, 4]))
-
-        # proposer = nw.find_best_single_site_proposer(simplex_key)
-        # proposed_value = proposer.propose(simplex_key, nw.world_)[0]
-        # self.assertEqual(proposed_value.shape, torch.Size([2]))
-
-        # proposer = nw.find_best_single_site_proposer(interval_key)
-        # proposed_value = proposer.propose(interval_key, nw.world_)[0]
-        # self.assertEqual(proposed_value.shape, torch.Size([]))
-
-        # proposer = nw.find_best_single_site_proposer(beta_key)
-        # proposed_value = proposer.propose(beta_key, nw.world_)[0]
-        # self.assertEqual(proposed_value.shape, torch.Size([3]))
