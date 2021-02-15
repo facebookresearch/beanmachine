@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import warnings
 from typing import Optional, Tuple
 
 import numpy as np
@@ -45,7 +46,7 @@ def _compute_var(query_samples: Tensor) -> Tuple[Tensor, Tensor]:
         b = 0
     w = torch.mean(torch.var(query_samples, dim=1), dim=0)
     var_hat = (n_samples - 1) / n_samples * w + (1 / n_samples) * b
-    return w, var_hat
+    return w, var_hat.clamp(min=1e-3)
 
 
 def r_hat(query_samples: Tensor) -> Optional[Tensor]:
@@ -118,4 +119,9 @@ def effective_sample_size(query_samples: Tensor) -> Tensor:
         rho_sum[i] = total_sum
 
     rho_sum = torch.reshape(rho_sum, query_dim)
-    return torch.div(n_chains * n_samples, -1 + 2 * rho_sum)
+    tau = -1 + 2 * rho_sum
+    n_eff = torch.div(n_chains * n_samples, tau)
+    if n_eff.isnan().any():
+        warnings.warn("NaN encountered in computing effective sample size.")
+        return torch.tensor(0.0)
+    return n_eff
