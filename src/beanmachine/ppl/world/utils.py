@@ -60,6 +60,8 @@ def is_discrete(distribution: Distribution) -> bool:
 
 
 def _unwrap(constraint: ConstraintType):
+    if isinstance(constraint, constraints.independent):
+        return _unwrap(constraint.base_constraint)
     return constraint if isinstance(constraint, type) else constraint.__class__
 
 
@@ -87,11 +89,12 @@ def is_constraint_eq(
 ) -> Union[bool, IterableType[bool]]:
     """
     This provides an equality check that works for different constraints
-    specified in :mod:`torch.distributions.constraints`. If `check_constraints`
-    is a single `Constraint` type or instance this returns a `True` if the
-    given `constraint` matches  `check_constraints`. Otherwise, if
-    `check_constraints` is an iterable, this returns a `bool` list that
-    represents an element-wise check.
+    specified in :mod:`torch.distributions.constraints`. If `constraint` is
+    `constraints.Independent`, then the `base_constraint` is checked. If
+    `check_constraints` is a single `Constraint` type or instance this
+    returns a `True` if the given `constraint` matches `check_constraints`.
+    Otherwise, if `check_constraints` is an iterable, this returns a `bool`
+    list that represents an element-wise check.
 
     :param constraint: A constraint class or instance.
     :param check_constraints: A constraint class or instance or an iterable

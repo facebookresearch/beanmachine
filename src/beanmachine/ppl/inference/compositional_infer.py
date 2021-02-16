@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import copy
+import logging
 from typing import Dict, List
 
 import torch.distributions as dist
@@ -16,6 +17,9 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.utils import is_constraint_eq
+
+
+LOGGER = logging.getLogger("beanmachine")
 
 
 class CompositionalInference(AbstractMHInference):
@@ -103,5 +107,9 @@ class CompositionalInference(AbstractMHInference):
         ):
             self.proposers_per_rv_[node] = SingleSiteUniformProposer()
         else:
+            LOGGER.warning(
+                "Node {n} has unsupported constraints. ".format(n=node)
+                + "Proposer falls back to SingleSiteAncestralProposer.\n"
+            )
             self.proposers_per_rv_[node] = SingleSiteAncestralProposer()
         return self.proposers_per_rv_[node]
