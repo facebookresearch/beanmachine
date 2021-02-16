@@ -14,7 +14,7 @@ commands:
       - run:
           name: "Install pytorch"
           command: >
-            pip install --progress-bar off --pre torch -f
+            pip install --progress-bar off --pre torch==1.8.0.dev20210205 -f
             https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 
   dev_install_beanmachine:
@@ -156,7 +156,7 @@ commands:
           command: pip install pytest pytest-xdist
       - run:
           name: "Run nightly tests and report overall runtimes"
-          no_output_timeout: 30m
+          no_output_timeout: 1h
           command: |
             export PYTHONUNBUFFERED=1
             pytest -n auto -o python_files="*_nightly.py" --durations=0
