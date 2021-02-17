@@ -40,7 +40,6 @@ class AbstractSingleSiteSingleStepProposer(
             auxiliary_variables,
         ) = self.get_proposal_distribution(node, node_var, world, {})
         node_var.proposal_distribution = proposal_distribution_struct
-        proposal_distribution_struct = node_var.proposal_distribution
         proposal_distribution = proposal_distribution_struct.proposal_distribution
         requires_transform = proposal_distribution_struct.requires_transform
         requires_reshape = proposal_distribution_struct.requires_reshape
@@ -93,7 +92,6 @@ class AbstractSingleSiteSingleStepProposer(
         )
         node_var.proposal_distribution = proposal_distribution_struct
 
-        proposal_distribution_struct = node_var.proposal_distribution
         proposal_distribution = proposal_distribution_struct.proposal_distribution
         requires_transform = proposal_distribution_struct.requires_transform
         requires_reshape = proposal_distribution_struct.requires_reshape

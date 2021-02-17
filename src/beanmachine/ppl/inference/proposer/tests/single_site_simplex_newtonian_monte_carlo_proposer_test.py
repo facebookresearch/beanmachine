@@ -50,11 +50,6 @@ class SingleSiteSimplexNewtonianMonteCarloProposerTest(unittest.TestCase):
             distribution=distribution,
             value=val,
             log_prob=distribution.log_prob(val).sum(),
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=val,
             jacobian=tensor(0.0),
         )

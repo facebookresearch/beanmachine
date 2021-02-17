@@ -28,11 +28,7 @@ class DiffStackTest(unittest.TestCase):
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
-            parent=set(),
             children=set({bar_key}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor(0.5),
             jacobian=tensor(0.0),
         )
@@ -42,10 +38,6 @@ class DiffStackTest(unittest.TestCase):
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor(0.1),
             jacobian=tensor(0.0),
         )

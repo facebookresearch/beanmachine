@@ -2,18 +2,11 @@
 import unittest
 
 import torch.distributions as dist
-from beanmachine.ppl.world.utils import get_default_transforms, is_discrete
+from beanmachine.ppl.world.utils import get_default_transforms
 from torch import tensor
 
 
 class InferenceUtilsTest(unittest.TestCase):
-    def test_is_discrete(self):
-        self.assertTrue(is_discrete(dist.Bernoulli(0.1)))
-        self.assertTrue(is_discrete(dist.Categorical(tensor([0.5, 0.5]))))
-        self.assertTrue(is_discrete(dist.Multinomial(10, tensor([1.0, 1.0, 1.0, 1.0]))))
-        self.assertTrue(is_discrete(dist.Geometric(tensor([0.3]))))
-        self.assertFalse(is_discrete(dist.Normal(0, 1)))
-
     def test_get_default_transforms(self):
         bernoulli = dist.Bernoulli(0.1)
         transforms = get_default_transforms(bernoulli)

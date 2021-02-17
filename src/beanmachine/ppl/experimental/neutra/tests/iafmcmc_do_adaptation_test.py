@@ -66,11 +66,7 @@ class IAFMCMCProposerDoAdaptationTest(unittest.TestCase):
             distribution=Flat(2),
             value=tensor([0.0, 0.0]),
             log_prob=Flat(2).log_prob(tensor([0.0, 0.0])),
-            parent=set(),
             children=set({bar_key}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor([0.0, 0.0]),
             jacobian=tensor(0.0),
         )
@@ -84,10 +80,6 @@ class IAFMCMCProposerDoAdaptationTest(unittest.TestCase):
                 tensor([0.1, 0.1])[0], tensor([0.1, 0.1])[1]
             ).log_prob(tensor([0.1, 0.1])),
             parent=set({foo_key}),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor([0.1, 0.1]),
             jacobian=tensor(0.0),
         )

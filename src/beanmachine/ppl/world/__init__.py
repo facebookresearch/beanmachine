@@ -1,11 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
-from beanmachine.ppl.world.utils import (
-    BetaDimensionTransform,
-    get_default_transforms,
-    is_discrete,
-)
+from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
 from beanmachine.ppl.world.variable import (
     ProposalDistribution,
     TransformData,
@@ -21,7 +17,6 @@ __all__ = [
     "Variable",
     "World",
     "get_default_transforms",
-    "is_discrete",
     "Diff",
     "DiffStack",
     "WorldVars",

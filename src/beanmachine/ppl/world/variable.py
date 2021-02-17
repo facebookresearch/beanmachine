@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from dataclasses import dataclass, fields
+import dataclasses
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
@@ -11,13 +11,12 @@ from beanmachine.ppl.world.utils import (
     BetaDimensionTransform,
     get_default_transforms,
     is_constraint_eq,
-    is_discrete,
 )
 from torch import Tensor
 from torch.distributions import Distribution
 
 
-@dataclass(eq=True, frozen=True)
+@dataclasses.dataclass(eq=True, frozen=True)
 class ProposalDistribution:
     proposal_distribution: Optional[Any]
     requires_transform: bool
@@ -38,14 +37,14 @@ class TransformType(Enum):
     CUSTOM = 2
 
 
-@dataclass
+@dataclasses.dataclass
 class TransformData:
     transform_type: TransformType
     transforms: Optional[List]
 
 
-@dataclass
-class Variable(object):
+@dataclasses.dataclass
+class Variable:
     """
     Represents each random variable instantiation in the World:
 
@@ -81,17 +80,21 @@ class Variable(object):
 
     distribution: Distribution
     value: Tensor
-    parent: Set[Optional[RVIdentifier]]
-    children: Set[Optional[RVIdentifier]]
     log_prob: Tensor
-    proposal_distribution: ProposalDistribution
-    is_discrete: bool
-    transforms: List
     transformed_value: Tensor
     jacobian: Tensor
+    proposal_distribution: Optional[ProposalDistribution] = None
+    parent: Set[Optional[RVIdentifier]] = dataclasses.field(default_factory=set)
+    children: Set[Optional[RVIdentifier]] = dataclasses.field(default_factory=set)
+    transforms: List = dataclasses.field(default_factory=list)
+
+    @property
+    def is_discrete(self) -> bool:
+        # pyre-fixme
+        return self.distribution.support.is_discrete
 
     def __post_init__(self) -> None:
-        for field in fields(self):
+        for field in dataclasses.fields(self):
             value = getattr(self, field.name)
             if (
                 value is not None
@@ -178,17 +181,10 @@ class Variable(object):
 
         :returns: copy of self.
         """
-        return Variable(
-            self.distribution,
-            self.value,
-            self.parent.copy(),
-            self.children.copy(),
-            self.log_prob,
-            self.proposal_distribution,
-            self.is_discrete,
-            self.transforms,
-            self.transformed_value,
-            self.jacobian,
+        return dataclasses.replace(
+            self,
+            parent=self.parent.copy(),
+            children=self.children.copy(),
         )
 
     def update_value(self, value: Tensor) -> None:
@@ -227,8 +223,6 @@ class Variable(object):
         else:
             self.set_transform(transform_data, proposer)
 
-        if self.is_discrete is None:
-            self.is_discrete = is_discrete(self.distribution)
         if value is None:
             value = self.initialize_value(obs_value, initialize_from_prior)
         self.update_value(value)
