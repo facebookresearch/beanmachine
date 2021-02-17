@@ -4,8 +4,8 @@ from collections import namedtuple
 
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.world.utils import get_default_transforms
 from beanmachine.ppl.world.variable import (
-    BetaDimensionTransform,
     TransformData,
     TransformType,
     Variable,
@@ -83,59 +83,7 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=None,
             log_prob=expected_log_prob,
-            transforms=[dist.ExpTransform()],
-            transformed_value=None,
-            jacobian=tensor(0.0),
-        )
-
-        var.update_fields(val, None, TransformData(TransformType.NONE, []), None)
-        self.assertAlmostEqual(val.item(), var.transformed_value.item(), delta=0.01)
-        log_prob = var.log_prob + var.jacobian
-        self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
-
-        var.update_fields(
-            val,
-            None,
-            TransformData(TransformType.CUSTOM, [dist.ExpTransform().inv]),
-            None,
-        )
-        unconstrained_sample = var.transformed_value
-        jacobian = var.jacobian
-        log = var.log_prob
-        log_prob = log + jacobian
-        transform = dist.ExpTransform().inv
-        expected_unconstrained_sample = transform(val)
-        expected_constrained_sample = transform.inv(expected_unconstrained_sample)
-        expected_log_prob = distribution.log_prob(
-            expected_constrained_sample
-        ) - transform.log_abs_det_jacobian(
-            expected_constrained_sample, expected_unconstrained_sample
-        )
-        self.assertAlmostEqual(
-            expected_unconstrained_sample.item(),
-            unconstrained_sample.item(),
-            delta=0.01,
-        )
-        self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
-
-        var.update_fields(val, None, TransformData(TransformType.DEFAULT, []), None)
-        self.assertAlmostEqual(
-            expected_unconstrained_sample.item(),
-            var.transformed_value.item(),
-            delta=0.01,
-        )
-        log_prob = var.log_prob + var.jacobian
-        self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
-
-    def test_transform_beta_log_prob(self):
-        distribution = dist.Beta(2.0, 2.0)
-        val = distribution.sample()
-        expected_log_prob = distribution.log_prob(val)
-        var = Variable(
-            distribution=distribution,
-            value=None,
-            log_prob=expected_log_prob,
-            transforms=[dist.ExpTransform()],
+            transforms=dist.ExpTransform(),
             transformed_value=None,
             jacobian=tensor(0.0),
         )
@@ -150,9 +98,7 @@ class VariableTest(unittest.TestCase):
         jacobian = var.jacobian
         log = var.log_prob
         log_prob = log + jacobian
-        transform = dist.ComposeTransform(
-            [BetaDimensionTransform(), dist.StickBreakingTransform().inv]
-        )
+        transform = get_default_transforms(var.distribution)
         expected_unconstrained_sample = transform(val)
         expected_constrained_sample = transform.inv(expected_unconstrained_sample)
         expected_log_prob = distribution.log_prob(
@@ -173,7 +119,63 @@ class VariableTest(unittest.TestCase):
             None,
             TransformData(
                 TransformType.CUSTOM,
-                [BetaDimensionTransform(), dist.StickBreakingTransform().inv],
+                [transform],
+            ),
+            None,
+        )
+        self.assertAlmostEqual(
+            expected_unconstrained_sample.item(),
+            var.transformed_value.item(),
+            delta=0.01,
+        )
+        log_prob = var.log_prob + var.jacobian
+        self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
+
+    def test_transform_beta_log_prob(self):
+        distribution = dist.Beta(2.0, 2.0)
+        val = distribution.sample()
+        expected_log_prob = distribution.log_prob(val)
+        var = Variable(
+            distribution=distribution,
+            value=None,
+            log_prob=expected_log_prob,
+            transforms=dist.ExpTransform(),
+            transformed_value=None,
+            jacobian=tensor(0.0),
+        )
+
+        var.update_fields(val, None, TransformData(TransformType.NONE, []), None)
+        self.assertAlmostEqual(val.item(), var.transformed_value.item(), delta=0.01)
+        log_prob = var.log_prob + var.jacobian
+        self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
+
+        var.update_fields(val, None, TransformData(TransformType.DEFAULT, []), None)
+        unconstrained_sample = var.transformed_value
+        jacobian = var.jacobian
+        log = var.log_prob
+        log_prob = log + jacobian
+        transform = get_default_transforms(var.distribution)
+        expected_unconstrained_sample = transform(val)
+        expected_constrained_sample = transform.inv(expected_unconstrained_sample)
+        expected_log_prob = distribution.log_prob(
+            expected_constrained_sample
+        ) - transform.log_abs_det_jacobian(
+            expected_constrained_sample, expected_unconstrained_sample
+        )
+        self.assertAlmostEqual(
+            expected_unconstrained_sample.item(),
+            unconstrained_sample.item(),
+            delta=0.01,
+        )
+        log_prob = var.log_prob + var.jacobian
+        self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
+
+        var.update_fields(
+            val,
+            None,
+            TransformData(
+                TransformType.CUSTOM,
+                [transform],
             ),
             None,
         )
@@ -193,7 +195,7 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=None,
             log_prob=expected_log_prob,
-            transforms=[dist.ExpTransform()],
+            transforms=dist.ExpTransform(),
             transformed_value=None,
             jacobian=tensor(0.0),
         )
@@ -208,7 +210,7 @@ class VariableTest(unittest.TestCase):
         jacobian = var.jacobian
         log = var.log_prob
         log_prob = log + jacobian
-        transform = dist.StickBreakingTransform().inv
+        transform = get_default_transforms(var.distribution)
         expected_unconstrained_sample = transform(val)
         expected_constrained_sample = transform.inv(expected_unconstrained_sample)
         expected_log_prob = distribution.log_prob(
@@ -227,7 +229,7 @@ class VariableTest(unittest.TestCase):
         var.update_fields(
             val,
             None,
-            TransformData(TransformType.CUSTOM, [dist.StickBreakingTransform().inv]),
+            TransformData(TransformType.CUSTOM, [transform]),
             None,
         )
         self.assertAlmostEqual(

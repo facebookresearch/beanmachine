@@ -13,9 +13,8 @@ from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_propos
 from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
     SingleSiteNewtonianMonteCarlo,
 )
-from beanmachine.ppl.model.statistical_model import sample
 from beanmachine.ppl.world import TransformType
-from beanmachine.ppl.world.utils import BetaDimensionTransform
+from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
 from torch import tensor
 
 
@@ -30,69 +29,69 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
     class SampleTransformModel(object):
-        @sample
+        @bm.random_variable
         def realspace(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def halfspace(self):
             return dist.Gamma(tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def simplex(self):
             return dist.Dirichlet(tensor([0.1, 0.9]))
 
-        @sample
+        @bm.random_variable
         def interval(self):
             return dist.Uniform(tensor(1.0), tensor(3.0))
 
-        @sample
+        @bm.random_variable
         def beta(self):
             return dist.Beta(tensor(1.0), tensor(1.0))
 
     class SampleShapeModel(object):
-        @sample
+        @bm.random_variable
         def realspace(self):
             return dist.Normal(torch.zeros(2, 4), tensor(1.0))
 
-        @sample
+        @bm.random_variable
         def halfspace(self):
             return dist.Gamma(torch.zeros(1, 2, 4) + tensor(2.0), tensor(2.0))
 
-        @sample
+        @bm.random_variable
         def simplex(self):
             return dist.Dirichlet(tensor([0.1, 0.9]))
 
-        @sample
+        @bm.random_variable
         def interval(self):
             return dist.Uniform(tensor(1.0), tensor(3.0))
 
-        @sample
+        @bm.random_variable
         def beta(self):
             return dist.Beta(tensor([1.0, 2.0, 3.0]), tensor([1.0, 2.0, 3.0]))
 
     class SampleIndependentShapeModel(object):
-        @sample
+        @bm.random_variable
         def realspace(self):
             return dist.Independent(dist.Normal(torch.zeros(2, 4), tensor(1.0)), 1)
 
-        @sample
+        @bm.random_variable
         def halfspace(self):
             return dist.Independent(
                 dist.Gamma(torch.zeros(1, 2, 4) + tensor(2.0), tensor(2.0)), 1
             )
 
-        @sample
+        @bm.random_variable
         def simplex(self):
             return dist.Independent(dist.Dirichlet(tensor([[0.1, 0.9], [0.1, 0.9]])), 1)
 
-        @sample
+        @bm.random_variable
         def interval(self):
             return dist.Independent(
                 dist.Uniform(tensor([1.0, 1.0]), tensor([3.0, 3.0])), 1
             )
 
-        @sample
+        @bm.random_variable
         def beta(self):
             return dist.Independent(
                 dist.Beta(tensor([1.0, 2.0, 3.0]), tensor([1.0, 2.0, 3.0])), 1
@@ -125,57 +124,25 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         interval_key = model.interval()
         beta_key = model.beta()
 
-        nw.queries_ = [
+        queries = [
             model.realspace(),
             model.halfspace(),
             model.simplex(),
             model.interval(),
             model.beta(),
         ]
+        nw.queries_ = queries
         nw.observations_ = {}
         nw.initialize_world()
         var_dict = nw.world_.variables_.vars()
 
         # test that transforms in variable are correct
-        self.assertTrue(real_key in var_dict)
-        self.assertEqual(var_dict[real_key].transforms, [])
-
-        self.assertTrue(half_key in var_dict)
-        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
-        log_transform = dist.ExpTransform().inv
-        expected_transforms = [lower_bound_zero, log_transform]
-        self.assertEqual(var_dict[half_key].transforms, expected_transforms)
-
-        self.assertTrue(simplex_key in var_dict)
-        self.assertEqual(
-            var_dict[simplex_key].transforms, [dist.StickBreakingTransform().inv]
-        )
-
-        self.assertTrue(interval_key in var_dict)
-        lower_bound_zero = dist.AffineTransform(-1.0, 1.0)
-        upper_bound_one = dist.AffineTransform(0, 1.0 / 2.0)
-        beta_dimension = BetaDimensionTransform()
-        stick_breaking = dist.StickBreakingTransform().inv
-        expected_transforms = [
-            lower_bound_zero,
-            upper_bound_one,
-            beta_dimension,
-            stick_breaking,
-        ]
-        self.assertEqual(var_dict[interval_key].transforms, expected_transforms)
-
-        self.assertTrue(beta_key in var_dict)
-        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
-        upper_bound_one = dist.AffineTransform(0.0, 1.0)
-        beta_dimension = BetaDimensionTransform()
-        stick_breaking = dist.StickBreakingTransform().inv
-        expected_transforms = [
-            lower_bound_zero,
-            upper_bound_one,
-            beta_dimension,
-            stick_breaking,
-        ]
-        self.assertEqual(var_dict[beta_key].transforms, expected_transforms)
+        for key in queries:
+            self.assertIn(key, var_dict)
+            self.assertEqual(
+                var_dict[key].transforms,
+                get_default_transforms(var_dict[key].distribution),
+            )
 
         # test that correct proposer was used
         # and resulting shapes of proposed values are correct
@@ -240,20 +207,25 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         nw.initialize_world()
         var_dict = nw.world_.variables_.vars()
 
+        identity_transform = dist.transforms.identity_transform
+
         self.assertTrue(real_key in var_dict)
-        self.assertEqual(var_dict[real_key].transforms, [])
+        self.assertEqual(var_dict[real_key].transforms, identity_transform)
 
         self.assertTrue(half_key in var_dict)
-        self.assertEqual(var_dict[half_key].transforms, [])
+        self.assertEqual(var_dict[half_key].transforms, identity_transform)
 
         self.assertTrue(simplex_key in var_dict)
-        self.assertEqual(var_dict[simplex_key].transforms, [])
+        self.assertEqual(var_dict[simplex_key].transforms, identity_transform)
 
         self.assertTrue(interval_key in var_dict)
-        self.assertEqual(var_dict[interval_key].transforms, [])
+        self.assertEqual(var_dict[interval_key].transforms, identity_transform)
 
         self.assertTrue(beta_key in var_dict)
-        self.assertEqual(var_dict[beta_key].transforms, [BetaDimensionTransform()])
+        self.assertEqual(
+            var_dict[beta_key].transforms,
+            BetaDimensionTransform(),
+        )
 
         # test that resulting shapes of proposed values are correct
         proposer = nw.find_best_single_site_proposer(real_key)
