@@ -46,19 +46,6 @@ class BetaDimensionTransform(Transform):
         return torch.zeros_like(x)
 
 
-def is_discrete(distribution: Distribution) -> bool:
-    """
-    Checks whether a distribution is discrete or not.
-
-    :param distribution: the distribution to check
-    :returns: a boolean that is true if the distribution is discrete and false
-    otherwise
-    """
-    # TODO: deprecate this function.
-    # pyre-fixme
-    return distribution.support.is_discrete
-
-
 def _unwrap(constraint: ConstraintType):
     if isinstance(constraint, constraints.independent):
         return _unwrap(constraint.base_constraint)
@@ -120,7 +107,7 @@ def get_default_transforms(distribution: Distribution) -> List:
     support = distribution.support
     # pyre-fixme
     sample = distribution.sample()
-    if is_discrete(distribution):
+    if support.is_discrete:
         return []
     elif is_constraint_eq(support, constraints.real):
         return []

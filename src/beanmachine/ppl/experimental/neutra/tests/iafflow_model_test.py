@@ -67,11 +67,7 @@ class IAFTest(unittest.TestCase):
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
-            parent=set(),
             children=set({bar_key}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor(0.5),
             jacobian=tensor(0.0),
         )
@@ -81,10 +77,6 @@ class IAFTest(unittest.TestCase):
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor(0.1),
             jacobian=tensor(0.0),
         )
@@ -142,11 +134,7 @@ class IAFTest(unittest.TestCase):
             distribution=dist.Normal(tensor(0.0), tensor(1.0)),
             value=tensor(0.5),
             log_prob=dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor(0.5)),
-            parent=set(),
             children=set({bar_key}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor(0.5),
             jacobian=tensor(0.0),
         )
@@ -156,10 +144,6 @@ class IAFTest(unittest.TestCase):
             value=tensor(0.1),
             log_prob=dist.Normal(tensor(0.5), tensor(1.0)).log_prob(tensor(0.1)),
             parent=set({foo_key}),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor(0.1),
             jacobian=tensor(0.0),
         )
@@ -217,11 +201,7 @@ class IAFTest(unittest.TestCase):
             distribution=Flat(2),
             value=tensor([0.0, 0.0]),
             log_prob=Flat(2).log_prob(tensor([0.0, 0.0])),
-            parent=set(),
             children=set({bar_key}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor([0.0, 0.0]),
             jacobian=tensor(0.0),
         )
@@ -233,10 +213,6 @@ class IAFTest(unittest.TestCase):
                 tensor([0.1, 0.1])[0], tensor([0.1, 0.1])[1]
             ).log_prob(tensor([0.1, 0.1])),
             parent=set({foo_key}),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor([0.1, 0.1]),
             jacobian=tensor(0.0),
         )

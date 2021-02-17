@@ -84,8 +84,9 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             frac_dist = auxiliary_variables["frac_dist"]
         self.learning_rate_ = frac_dist.detach()
         number_of_variables = world.get_number_of_variables()
-        if node_var.proposal_distribution is not None and number_of_variables == 1:
-            _arguments = node_var.proposal_distribution.arguments
+        proposal_distribution = node_var.proposal_distribution
+        if proposal_distribution is not None and number_of_variables == 1:
+            _arguments = proposal_distribution.arguments
             distance = _arguments["distance"]
             node_val_reshaped = _arguments["node_val_reshaped"]
             mean = (node_val_reshaped + distance * frac_dist).squeeze(0)

@@ -63,11 +63,7 @@ class IAFJacobainTest(unittest.TestCase):
                 tensor([0.5, 0.5])[0]
             )
             + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(tensor([0.5, 0.5])[1]),
-            parent=set(),
             children=set({bar_key}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor([0.5, 0.5]),
             jacobian=tensor(0.0),
         )
@@ -82,10 +78,6 @@ class IAFJacobainTest(unittest.TestCase):
                 tensor([0.1, 0.1])[1]
             ),
             parent=set({foo_key}),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=tensor([0.1, 0.1]),
             jacobian=tensor(0.0),
         )
