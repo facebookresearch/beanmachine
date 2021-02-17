@@ -11,15 +11,18 @@ ExpProduct::ExpProduct(const std::vector<graph::Node*>& in_nodes)
     : Factor(graph::FactorType::EXP_PRODUCT) {
   // an ExpProduct factor must have at least one parent
   if (in_nodes.size() < 1) {
-    throw std::invalid_argument("ExpProduct factor needs at least one parent");
+    throw std::invalid_argument(
+        "factor EXP_PRODUCT requires one or more parents");
   }
-  // the parent should be real, positive, or probability
+
+  // the parent should be real, positive, negative, or probability
   for (const graph::Node* parent : in_nodes) {
     if (parent->value.type != graph::AtomicType::REAL and
         parent->value.type != graph::AtomicType::POS_REAL and
+        parent->value.type != graph::AtomicType::NEG_REAL and
         parent->value.type != graph::AtomicType::PROBABILITY) {
       throw std::invalid_argument(
-          "ExpProduct parents must be real, positive, or a probability");
+          "factor EXP_PRODUCT requires real, pos_real, neg_real or probability parents");
     }
   }
 }
