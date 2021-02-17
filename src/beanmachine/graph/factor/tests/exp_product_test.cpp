@@ -20,7 +20,10 @@ TEST(testfactor, exp_product) {
   uint pos1 = g.add_constant_pos_real(2.0);
   uint real1 = g.add_constant(3.0);
   uint prob1 = g.add_constant_probability(0.4);
-  g.add_factor(FactorType::EXP_PRODUCT, std::vector<uint>{pos1, real1, prob1});
+  uint neg1 = g.add_constant_neg_real(-1.0);
+  g.add_factor(
+      FactorType::EXP_PRODUCT,
+      std::vector<uint>{pos1, real1, prob1, neg1, neg1});
   uint dist1 = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
