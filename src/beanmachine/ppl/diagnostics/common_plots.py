@@ -62,7 +62,7 @@ def plot_helper(
         for i in range(numel):
             index = np.unravel_index(i, single_sample_sz)
             data = flattened_data[:, i]
-            partial_label = f" for {[j for j in index]}"
+            partial_label = f" for {list(index)}"
 
             x_data, y_data = func(data.detach())
             x_axis_data.append(x_data)
@@ -87,9 +87,9 @@ def autocorr(x: Tensor) -> Tuple[List[int], List[float]]:
 
     max_lag = x.size(0)
     y_axis_data = [autocorr_calculation(x, lag).item() for lag in range(max_lag)]
-    x_axis_data = [k for k in range(max_lag)]
+    x_axis_data = list(range(max_lag))
     return (x_axis_data, y_axis_data)
 
 
 def trace_plot(x: Tensor) -> Tuple[List[int], Tensor]:
-    return ([k for k in range(x.size(0))], x)
+    return (list(range(x.size(0))), x)
