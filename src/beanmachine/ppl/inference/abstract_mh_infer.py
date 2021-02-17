@@ -360,7 +360,13 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
             for query in self.queries_:
                 # unsqueeze the sampled value tensor, which adds an extra dimension
                 # along which we'll be adding samples generated at each iteration
-                query_val = self.world_.call(query).unsqueeze(0).clone().detach()
+                raw_val = self.world_.call(query)
+                # TODO: Consider allowing values that can be converted to tensors.
+                if not isinstance(raw_val, Tensor):
+                    raise TypeError(
+                        "The value returned by a queried function must be a tensor."
+                    )
+                query_val = raw_val.unsqueeze(0).clone().detach()
                 if query not in queries_sample:
                     queries_sample[query] = query_val
                 else:
