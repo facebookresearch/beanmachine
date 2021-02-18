@@ -2618,7 +2618,7 @@ def f(x):
         ]
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_index_1())
-        # self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
         self.check_rewrites(terms)
 
     def test_assign_subscript_slice_index_2(self) -> None:
@@ -2635,5 +2635,5 @@ def f(x):
         ]
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_index_2())
-        # self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
         self.check_rewrites(terms)
