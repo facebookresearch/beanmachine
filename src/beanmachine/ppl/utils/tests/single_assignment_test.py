@@ -2604,6 +2604,23 @@ def f(x):
 
         self.check_rewrites(terms)
 
+    def test_assign_subscript_slice_index_1(self) -> None:
+        """Test rewrites like a,b = c.d[e] → x = c.d; a,b = x[e]."""
+
+        terms = [
+            """
+def f(x):
+    a,b = c.d[e]""",
+            """
+def f(x):
+    a1 = c.d
+    a, b = a1[e]""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_assign_subscript_slice_index_1())
+        # self.check_rewrites(terms, self.s._handle_left_value_all())
+        self.check_rewrites(terms)
+
     def test_assign_subscript_slice_index_2(self) -> None:
         """Test rewrites like a,b = c[d.e] → x = d.e; a,b = c[x]."""
 
