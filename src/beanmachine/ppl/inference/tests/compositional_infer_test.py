@@ -19,7 +19,7 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
 )
 from beanmachine.ppl.inference.utils import Block, BlockType
 from beanmachine.ppl.model.utils import get_wrapper
-from beanmachine.ppl.world.utils import BetaDimensionTransform
+from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
 from beanmachine.ppl.world.variable import TransformType, Variable
 from beanmachine.ppl.world.world import World
 from torch import tensor
@@ -349,62 +349,25 @@ class CompositionalInferenceTest(unittest.TestCase):
             }
         )
 
-        real_key = model.realspace()
-        half_key = model.halfspace()
-        simplex_key = model.simplex()
-        interval_key = model.interval()
-        beta_key = model.beta()
-
-        ci.queries_ = [
+        queries = [
             model.realspace(),
             model.halfspace(),
             model.simplex(),
             model.interval(),
             model.beta(),
         ]
+
+        ci.queries_ = queries
         ci.observations_ = {}
         ci.initialize_world()
         var_dict = ci.world_.variables_.vars()
 
-        self.assertTrue(real_key in var_dict)
-        self.assertEqual(var_dict[real_key].transforms, [])
-
-        self.assertTrue(half_key in var_dict)
-        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
-        log_transform = dist.ExpTransform().inv
-        expected_transforms = [lower_bound_zero, log_transform]
-        self.assertEqual(var_dict[half_key].transforms, expected_transforms)
-
-        self.assertTrue(simplex_key in var_dict)
-        self.assertEqual(
-            var_dict[simplex_key].transforms, [dist.StickBreakingTransform().inv]
-        )
-
-        self.assertTrue(interval_key in var_dict)
-        lower_bound_zero = dist.AffineTransform(-1.0, 1.0)
-        upper_bound_one = dist.AffineTransform(0, 1.0 / 2.0)
-        beta_dimension = BetaDimensionTransform()
-        stick_breaking = dist.StickBreakingTransform().inv
-        expected_transforms = [
-            lower_bound_zero,
-            upper_bound_one,
-            beta_dimension,
-            stick_breaking,
-        ]
-        self.assertEqual(var_dict[interval_key].transforms, expected_transforms)
-
-        self.assertTrue(beta_key in var_dict)
-        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
-        upper_bound_one = dist.AffineTransform(0.0, 1.0)
-        beta_dimension = BetaDimensionTransform()
-        stick_breaking = dist.StickBreakingTransform().inv
-        expected_transforms = [
-            lower_bound_zero,
-            upper_bound_one,
-            beta_dimension,
-            stick_breaking,
-        ]
-        self.assertEqual(var_dict[beta_key].transforms, expected_transforms)
+        for key in queries:
+            self.assertIn(key, var_dict)
+            self.assertEqual(
+                var_dict[key].transform,
+                get_default_transforms(var_dict[key].distribution),
+            )
 
     def test_single_site_compositional_inference_transform_mixed(self):
         model = self.SampleTransformModel()
@@ -453,27 +416,37 @@ class CompositionalInferenceTest(unittest.TestCase):
         var_dict = ci.world_.variables_.vars()
 
         self.assertTrue(real_key in var_dict)
-        self.assertEqual(var_dict[real_key].transforms, [dist.ExpTransform()])
+        self.assertEqual(
+            var_dict[real_key].transform, dist.ComposeTransform([dist.ExpTransform()])
+        )
 
         self.assertTrue(half_key in var_dict)
-        lower_bound_zero = dist.AffineTransform(0.0, 1.0)
-        log_transform = dist.ExpTransform().inv
-        expected_transforms = [lower_bound_zero, log_transform]
-        self.assertEqual(var_dict[half_key].transforms, expected_transforms)
+        self.assertEqual(
+            var_dict[half_key].transform,
+            get_default_transforms(var_dict[half_key].distribution),
+        )
 
         self.assertTrue(simplex_key in var_dict)
-        self.assertEqual(var_dict[simplex_key].transforms, [])
+        self.assertEqual(
+            var_dict[simplex_key].transform, dist.transforms.identity_transform
+        )
 
         self.assertTrue(interval_key in var_dict)
         self.assertEqual(
-            var_dict[interval_key].transforms, [dist.AffineTransform(1.0, 2.0)]
+            var_dict[interval_key].transform,
+            dist.ComposeTransform([dist.AffineTransform(1.0, 2.0)]),
         )
 
         self.assertTrue(beta_key in var_dict)
-        self.assertEqual(var_dict[beta_key].transforms, [BetaDimensionTransform()])
+        self.assertEqual(
+            var_dict[beta_key].transform,
+            BetaDimensionTransform(),
+        )
 
         self.assertTrue(discrete_key in var_dict)
-        self.assertEqual(var_dict[discrete_key].transforms, [])
+        self.assertEqual(
+            var_dict[discrete_key].transform, dist.transforms.identity_transform
+        )
 
     def test_single_site_compositional_inference_ancestral_beta(self):
         model = self.SampleTransformModel()
@@ -489,4 +462,6 @@ class CompositionalInferenceTest(unittest.TestCase):
         var_dict = ci.world_.variables_.vars()
 
         self.assertTrue(beta_key in var_dict)
-        self.assertEqual(var_dict[beta_key].transforms, [])
+        self.assertEqual(
+            var_dict[beta_key].transform, dist.transforms.identity_transform
+        )

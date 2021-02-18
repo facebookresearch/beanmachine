@@ -18,7 +18,7 @@ The `Variable` represents the instantiation of each random variable in a model. 
 * `log_prob: Tensor` - the log probability of the value with the prior distribution
 * `proposal_distribution: ProposalDistribution` - the proposal distribution used during inference
 * `is_discrete: bool` - an indicator of whether it is a discrete variable as opposed to a continuous variable
-* `transforms: List` - a list of Transforms to be applied in order to reshape the state space, see Transform documentation
+* `transform: Transform` - a Transform to be applied in order to reshape the state space, see Transform documentation
 * `transformed_value: Tensor` - the value of the variable in the transformed space. This value will be the same as `value` when no transforms are specified.
 * `jacobian: Tensor` - the log Jacobian determinant of the transforms
 

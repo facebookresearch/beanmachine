@@ -86,7 +86,7 @@ class Variable:
     proposal_distribution: Optional[ProposalDistribution] = None
     parent: Set[Optional[RVIdentifier]] = dataclasses.field(default_factory=set)
     children: Set[Optional[RVIdentifier]] = dataclasses.field(default_factory=set)
-    transforms: List = dataclasses.field(default_factory=list)
+    transform: dist.Transform = dist.transforms.identity_transform
 
     @property
     def is_discrete(self) -> bool:
@@ -219,7 +219,7 @@ class Variable:
         transforms and transformed values.
         """
         if obs_value is not None:
-            self.transforms = []
+            self.transform = dist.transforms.identity_transform
         else:
             self.set_transform(transform_data, proposer)
 
@@ -242,33 +242,25 @@ class Variable:
         to
         """
         if transform_data.transform_type == TransformType.DEFAULT:
-            self.transforms = get_default_transforms(self.distribution)
+            self.transform = get_default_transforms(self.distribution)
         elif transform_data.transform_type == TransformType.NONE:
-            if (
-                isinstance(self.distribution, dist.Beta)
-                and proposer is not None
-                and hasattr(proposer, "reshape_untransformed_beta_to_dirichlet")
-                and proposer.reshape_untransformed_beta_to_dirichlet
+            if isinstance(self.distribution, dist.Beta) and getattr(
+                proposer, "reshape_untransformed_beta_to_dirichlet", False
             ):
-                self.transforms = [BetaDimensionTransform()]
+                self.transform = BetaDimensionTransform()
             else:
-                self.transforms = []
+                self.transform = dist.transforms.identity_transform
         else:
             if transform_data.transforms is None:
-                self.transforms = []
+                self.transform = dist.transforms.identity_transform
             else:
-                # pyre-fixme
-                self.transforms = transform_data.transforms
+                self.transform = dist.ComposeTransform(transform_data.transforms)
 
     def update_jacobian(self):
-        temp = self.value
-        self.jacobian = torch.zeros((), dtype=temp.dtype)
-        for transform in self.transforms:
-            transformed_value = transform(temp)
-            self.jacobian -= transform.log_abs_det_jacobian(
-                temp, transformed_value
-            ).sum()
-            temp = transformed_value
+        transformed_value = self.transform(self.value)
+        self.jacobian = -self.transform.log_abs_det_jacobian(
+            self.value, transformed_value
+        ).sum()
 
     def inverse_transform_value(self, transformed_value: Tensor) -> Tensor:
         """
@@ -277,10 +269,7 @@ class Variable:
         :param transformed_value: transformed space sample
         :returns: original space sample
         """
-        temp = transformed_value
-        for transform in reversed(self.transforms):
-            temp = transform.inv(temp)
-        return temp
+        return self.transform.inv(transformed_value)
 
     def transform_value(self, value: Tensor) -> Tensor:
         """
@@ -289,7 +278,4 @@ class Variable:
         :param value: value in original space
         :returns: value in transformed space
         """
-        temp = value
-        for transform in self.transforms:
-            temp = transform(temp)
-        return temp
+        return self.transform(value)

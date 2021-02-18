@@ -721,7 +721,7 @@ class World(object):
             value=None,
             log_prob=None,
             children=set() if len(self.stack_) == 0 else set({self.stack_[-1]}),
-            transforms=None,
+            transform=None,
             transformed_value=None,
             jacobian=None,
         )
