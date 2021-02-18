@@ -749,7 +749,7 @@ class SingleAssignment:
             "handle_assign_dict",
         )
 
-    def _handle_assign_subscript(self) -> Rule:
+    def _handle_assign_subscript_slice_index_1(self) -> Rule:
         # This rule eliminates indexing expressions where the collection
         # indexed is not an identifier. We rewrite:
         #
@@ -776,7 +776,7 @@ class SingleAssignment:
             "handle_assign_subscript",
         )
 
-    def _handle_assign_subscript_slice_index(self) -> Rule:
+    def _handle_assign_subscript_slice_index_2(self) -> Rule:
         # This rule eliminates indexing expressions where the collection
         # indexed is an identifier but the index is not. We rewrite:
         #
@@ -803,7 +803,7 @@ class SingleAssignment:
                     ),
                 ),
             ),
-            "handle_assign_subscript_slice_index",
+            "handle_assign_subscript_slice_index_2",
         )
 
     def _handle_assign_binop_left(self) -> Rule:
@@ -1587,8 +1587,8 @@ class SingleAssignment:
         return first(
             [
                 self._handle_assign_unaryop(),
-                self._handle_assign_subscript(),
-                self._handle_assign_subscript_slice_index(),
+                self._handle_assign_subscript_slice_index_1(),
+                self._handle_assign_subscript_slice_index_2(),
                 self._handle_assign_binop_left(),
                 self._handle_assign_binop_right(),
                 self._handle_assign_attribute(),
