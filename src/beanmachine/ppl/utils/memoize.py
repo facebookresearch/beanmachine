@@ -1,20 +1,58 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import inspect
 from functools import wraps
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
-from beanmachine.ppl.model import StatisticalModel
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor
 
 
-def _get_memoization_key(wrapper, args):
-    # The problem is that tensors can only be compared for equality with
-    # torch.equal(t1, t2), and tensors do not hash via value equality.
-    # If we have an argument that is a tensor, we'll replace it with
-    # the tensor as a string and hope for the best.
-    new_args = tuple(str(a) if isinstance(a, Tensor) else a for a in args)
-    return StatisticalModel.get_func_key(wrapper, new_args)
+def _tuplify(t: Any) -> Any:
+    if isinstance(t, list):
+        return tuple(_tuplify(y) for y in t)
+    return t
+
+
+class MemoizationKey:
+    # It would be nice to just use a tuple (wrapper, args) for the memoization
+    # key, but tensors can only be compared for equality with torch.equal(t1, t2),
+    # and tensors do not hash via value equality.
+    #
+    # We therefore replace tensors with tuples that contain all the values of the
+    # tensor.  For example, if our arguments are (1, tensor([2, 3]), 4) then our
+    # new arguments are (1, (2, 3), 4)
+
+    wrapper: Callable
+    arguments: Tuple
+    hashcode: int
+
+    def __init__(self, wrapper: Callable, arguments: Tuple) -> None:
+        self.arguments = (
+            wrapper,
+            tuple(
+                _tuplify(a.tolist()) if isinstance(a, Tensor) else a for a in arguments
+            ),
+        )
+        self.wrapper = wrapper
+        self.hashcode = hash(self.arguments)
+
+    def __hash__(self) -> int:
+        return self.hashcode
+
+    def __eq__(self, o) -> bool:
+        return (
+            isinstance(o, MemoizationKey)
+            and self.hashcode == o.hashcode
+            and self.wrapper == o.wrapper
+            and self.arguments == o.arguments
+        )
+
+
+# TODO: This memoizer detects loops in which a memoized function is called
+# by itself, directly or indirectly, and thereby detects attempts to create
+# a graph with a cycle in it. This is not the right place in the code for
+# that functionality though; we should be detecting graph cycles during the
+# accumulation of the graph explicitly there, not in this low-level mechanism.
 
 
 class RecursionError(Exception):
@@ -60,7 +98,7 @@ def memoize(f):
             total_memoized_calls += 1
             function_calls.add_item(f)
 
-        key = _get_memoization_key(wrapper, args)
+        key = MemoizationKey(wrapper, args)
         if key not in cache:
             global total_cache_misses
             total_cache_misses += 1
