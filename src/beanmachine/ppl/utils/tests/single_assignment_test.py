@@ -2604,6 +2604,30 @@ def f(x):
 
         self.check_rewrites(terms)
 
+    def test_assign_subscript_slice_all(self) -> None:
+        """General tests for the subsript rewrite set."""
+        # First, we give examples of regular normal forms, that is, forms
+        # where no more reduction is possible.
+
+        normal_forms = [
+            """
+def f(x):
+    a = b[c]
+    a = b[c:]
+    a = b[:d]
+    a = b[c:d]
+    a = b[c::e]
+    a = b[:d:e]
+    a = b[c:d:e]
+    a = b[::e]"""
+        ]
+
+        self.check_rewrites(normal_forms, self.s._handle_assign_subscript_slice_all())
+        self.check_rewrites(normal_forms)
+
+        # TODO: It could be nice to give some examples of waiting/stuck terms at
+        # some point.
+
     def test_assign_subscript_slice_index_1(self) -> None:
         """Test rewrites like a,b = c.d[e] → x = c.d; a,b = x[e]."""
 
