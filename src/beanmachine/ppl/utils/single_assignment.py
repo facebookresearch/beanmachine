@@ -1689,6 +1689,7 @@ class SingleAssignment:
             [
                 self._handle_assign_unaryop(),
                 self._handle_assign_subscript_slice_all(),
+                self._handle_assign_possibly_blocking_right_value(),
                 self._handle_assign_binop_left(),
                 self._handle_assign_binop_right(),
                 self._handle_assign_attribute(),
@@ -2301,6 +2302,22 @@ class SingleAssignment:
                 ],
             ),
             "_handle_left_value_list_starred",
+        )
+
+    def _handle_assign_possibly_blocking_right_value(self) -> Rule:
+        """ Rewrite e1 = e2 → x = e2; e1 = x, as long as e1 and e2 are not names."""
+
+        return PatternRule(
+            assign(targets=[_not_identifier], value=_not_identifier),
+            self._transform_with_name(
+                "a",
+                lambda source_term: source_term.value,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=new_name,
+                ),
+            ),
+            "_handle_assign_possibly_blocking_right_value",
         )
 
     def single_assignment(self, node: ast.AST) -> ast.AST:
