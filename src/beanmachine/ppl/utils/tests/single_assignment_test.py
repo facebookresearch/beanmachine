@@ -2631,6 +2631,30 @@ def f(x):
         self.check_rewrites(normal_forms, self.s._handle_assign_subscript_slice_all())
         self.check_rewrites(normal_forms)
 
+        progression = [
+            """
+def f(x):
+    a,b = c[d.e:f.g:h.i]""",
+            """
+def f(x):
+    a1 = d.e
+    a, b = c[a1:f.g:h.i]""",
+            """
+def f(x):
+    a1 = d.e
+    a2 = f.g
+    a, b = c[a1:a2:h.i]""",
+            """
+def f(x):
+    a1 = d.e
+    a2 = f.g
+    a3 = h.i
+    a, b = c[a1:a2:a3]""",
+        ]
+
+        self.check_rewrites(progression, self.s._handle_assign_subscript_slice_all())
+        self.check_rewrites(progression)
+
         # TODO: It could be nice to give some examples of waiting/stuck terms at
         # some point.
 
