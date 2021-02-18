@@ -799,7 +799,7 @@ class SingleAssignment:
         # TODO: We do not yet handle slices other than straightforward
         # indices; we should also handle the other kinds of slices.
         return PatternRule(
-            assign(value=subscript(slice=index(value=_not_identifier))),
+            assign(value=subscript(value=name(), slice=index(value=_not_identifier))),
             self._transform_with_name(
                 "a",
                 lambda source_term: source_term.value.slice.value,
