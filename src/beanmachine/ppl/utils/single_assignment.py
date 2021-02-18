@@ -776,7 +776,7 @@ class SingleAssignment:
             "handle_assign_subscript",
         )
 
-    def _handle_assign_subscript_slice(self) -> Rule:
+    def _handle_assign_subscript_slice_index(self) -> Rule:
         # This rule eliminates indexing expressions where the collection
         # indexed is an identifier but the index is not. We rewrite:
         #
@@ -803,7 +803,7 @@ class SingleAssignment:
                     ),
                 ),
             ),
-            "handle_assign_subscript_slice",
+            "handle_assign_subscript_slice_index",
         )
 
     def _handle_assign_binop_left(self) -> Rule:
@@ -1588,7 +1588,7 @@ class SingleAssignment:
             [
                 self._handle_assign_unaryop(),
                 self._handle_assign_subscript(),
-                self._handle_assign_subscript_slice(),
+                self._handle_assign_subscript_slice_index(),
                 self._handle_assign_binop_left(),
                 self._handle_assign_binop_right(),
                 self._handle_assign_attribute(),
