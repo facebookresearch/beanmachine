@@ -94,8 +94,9 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
         # in the world that may change the gradient and the old one is still
         # correct.
         number_of_variables = world.get_number_of_variables()
-        if node_var.proposal_distribution is not None and number_of_variables == 1:
-            return (node_var.proposal_distribution, {})
+        proposal_distribution = node_var.proposal_distribution
+        if proposal_distribution is not None and number_of_variables == 1:
+            return (proposal_distribution, {})
 
         is_valid, alpha = self.compute_alpha(node_var, world)
         if not is_valid:

@@ -16,7 +16,7 @@ from torch import tensor
 class VariableTest(unittest.TestCase):
     def test_variable_types(self):
         with self.assertRaises(ValueError):
-            Variable(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+            Variable(1, 1, 1, 1, 1, 1, 1, 1, 1)
 
     def test_variable_assignments(self):
         distribution = dist.Normal(0, 1)
@@ -26,11 +26,6 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=val,
             log_prob=log_prob,
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=val,
             jacobian=tensor(0.0),
         )
@@ -51,9 +46,6 @@ class VariableTest(unittest.TestCase):
             log_prob=log_prob,
             parent=set({tmp(name="name")}),
             children=set({tmp(name="name")}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=val,
             jacobian=tensor(0.0),
         )
@@ -74,11 +66,6 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=val,
             log_prob=log_prob,
-            parent=set({}),
-            children=set({}),
-            proposal_distribution=None,
-            is_discrete=False,
-            transforms=[],
             transformed_value=None,
             jacobian=tensor(0.0),
         )
@@ -96,10 +83,6 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=None,
             log_prob=expected_log_prob,
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
             transforms=[dist.ExpTransform()],
             transformed_value=None,
             jacobian=tensor(0.0),
@@ -152,10 +135,6 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=None,
             log_prob=expected_log_prob,
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
             transforms=[dist.ExpTransform()],
             transformed_value=None,
             jacobian=tensor(0.0),
@@ -214,10 +193,6 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=None,
             log_prob=expected_log_prob,
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=False,
             transforms=[dist.ExpTransform()],
             transformed_value=None,
             jacobian=tensor(0.0),
@@ -269,11 +244,6 @@ class VariableTest(unittest.TestCase):
             distribution=distribution,
             value=None,
             log_prob=None,
-            parent=set(),
-            children=set(),
-            proposal_distribution=None,
-            is_discrete=None,
-            transforms=[],
             transformed_value=None,
             jacobian=None,
         )
