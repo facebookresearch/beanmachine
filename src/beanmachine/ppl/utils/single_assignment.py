@@ -755,6 +755,7 @@ class SingleAssignment:
             [
                 self._handle_assign_subscript_slice_index_1(),
                 self._handle_assign_subscript_slice_index_2(),
+                self._handle_assign_subscript_slice_lower(),
             ]
         )
 
@@ -813,6 +814,33 @@ class SingleAssignment:
                 ),
             ),
             "handle_assign_subscript_slice_index_2",
+        )
+
+    def _handle_assign_subscript_slice_lower(self) -> Rule:
+        """Rewrites like e = a[b.c:] → x = b.c; e = a[x:]."""
+        return PatternRule(
+            assign(
+                value=subscript(
+                    value=name(), slice=slice_pattern(lower=_neither_name_nor_none)
+                )
+            ),
+            self._transform_with_name(
+                "a",
+                lambda source_term: source_term.value.slice.lower,
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=ast.Subscript(
+                        value=source_term.value.value,
+                        slice=ast.Slice(
+                            lower=ast.Name(id=new_name, ctx=ast.Load()),
+                            upper=source_term.value.slice.upper,
+                            step=source_term.value.slice.step,
+                        ),
+                        ctx=ast.Store(),
+                    ),
+                ),
+            ),
+            "_handle_assign_subscript_slice_lower",
         )
 
     def _handle_assign_binop_left(self) -> Rule:
