@@ -2631,6 +2631,8 @@ def f(x):
         self.check_rewrites(normal_forms, self.s._handle_assign_subscript_slice_all())
         self.check_rewrites(normal_forms)
 
+        ## Second, an example of the natural order of evaluation for these rewrite rules
+
         progression = [
             """
 def f(x):
@@ -2655,8 +2657,53 @@ def f(x):
         self.check_rewrites(progression, self.s._handle_assign_subscript_slice_all())
         self.check_rewrites(progression)
 
-        # TODO: It could be nice to give some examples of waiting/stuck terms at
-        # some point.
+        # Third, some stuck terms. The following form cannot go anywhere with any of the rules:
+
+        stuck = [
+            """
+def f(x):
+    a, b = 1 + c[d.e:f.g:h.i]"""
+        ]
+
+        self.check_rewrites(stuck, self.s._handle_assign_subscript_slice_all())
+
+        # More specific stuck terms are also useful to express:
+
+        stuck = [
+            """
+def f(x):
+    a, b = 1 + c[d.e:f.g:h.i]"""
+        ]
+
+        self.check_rewrites(stuck, self.s._handle_assign_subscript_slice_index_1())
+        stuck = [
+            """
+def f(x):
+    a, b = c.c[d.e]"""
+        ]
+
+        self.check_rewrites(stuck, self.s._handle_assign_subscript_slice_index_2())
+        stuck = [
+            """
+def f(x):
+    a, b = c.c[d.e:]"""
+        ]
+
+        self.check_rewrites(stuck, self.s._handle_assign_subscript_slice_lower())
+        stuck = [
+            """
+def f(x):
+    a, b = c[d.e:f.g]"""
+        ]
+
+        self.check_rewrites(stuck, self.s._handle_assign_subscript_slice_upper())
+        stuck = [
+            """
+def f(x):
+    a, b = c[d:f.g:h.i]"""
+        ]
+
+        self.check_rewrites(stuck, self.s._handle_assign_subscript_slice_step())
 
     def test_assign_subscript_slice_index_1(self) -> None:
         """Test rewrites like a,b = c.d[e] → x = c.d; a,b = x[e]."""
