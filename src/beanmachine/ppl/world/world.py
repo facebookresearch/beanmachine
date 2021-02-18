@@ -13,6 +13,7 @@ from beanmachine.ppl.world.diff_stack import DiffStack
 from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
 from beanmachine.ppl.world.world_vars import WorldVars
 from torch import Tensor
+from torch.distributions import Distribution
 
 
 world_context = contextvars.ContextVar("beanmachine.ppl.world", default=None)
@@ -729,7 +730,12 @@ class World(object):
         self.add_node_to_world(node, node_var)
         self.stack_.append(node)
         with self:
-            node_var.distribution = node.function(*node.arguments)
+            d = node.function(*node.arguments)
+            if not isinstance(d, Distribution):
+                raise TypeError(
+                    "A random_variable is required to return a distribution."
+                )
+            node_var.distribution = d
         self.stack_.pop()
 
         obs_value = self.observations_[node] if node in self.observations_ else None

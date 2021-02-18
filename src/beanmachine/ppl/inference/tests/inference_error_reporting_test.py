@@ -7,7 +7,7 @@ from torch import tensor
 
 @bm.random_variable
 def f():
-    pass
+    return 123  # BAD, needs to be a distribution
 
 
 @bm.random_variable
@@ -91,4 +91,12 @@ class InferenceErrorReportingTest(unittest.TestCase):
         self.assertEqual(
             str(ex.exception),
             "The value returned by a queried function must be a tensor.",
+        )
+
+        # A random_variable is required to return a distribution
+        with self.assertRaises(TypeError) as ex:
+            mh.infer([f()], {}, 10)
+        self.assertEqual(
+            str(ex.exception),
+            "A random_variable is required to return a distribution.",
         )
