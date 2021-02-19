@@ -150,6 +150,21 @@ def beta_tensor_1b():
     return beta(tensor(1)).exp()
 
 
+observable_side_effect = 0
+
+
+def cause_side_effect():
+    global observable_side_effect
+    observable_side_effect = 1
+    return True
+
+
+@bm.random_variable
+def assertions_are_removed():
+    assert cause_side_effect()
+    return Bernoulli(0.5)
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -516,3 +531,23 @@ digraph "graph" {
   N5 -> N6[label=operator];
 }"""
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_assertions_are_removed(self) -> None:
+        # The lifted form of a function removes all assertion statements.
+        # We can demonstrate this by making an assertion that causes an
+        # observable effect, and then showing that the effect does not
+        # happen when the lifted form is executed.
+        global observable_side_effect
+        self.maxDiff = None
+        self.assertEqual(observable_side_effect, 0)
+
+        # In non-lifted code, the assertion causes a side effect.
+        assert cause_side_effect()
+        self.assertEqual(observable_side_effect, 1)
+        observable_side_effect = 0
+
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph([assertions_are_removed()], {})
+
+        # The side effect is not caused.
+        self.assertEqual(observable_side_effect, 0)

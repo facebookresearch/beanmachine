@@ -65,7 +65,7 @@ def stochastic_arithmetic():
     s = 0.0
     for n in [0, 1]:
         s = s + torch.log(torch.tensor(0.01)) * ordinary_arithmetic(n)
-    return Bernoulli(1 - torch.exp(torch.log(torch.tensor(0.99)) + s))
+    return Bernoulli(1 - torch.exp(input=torch.log(torch.tensor(0.99)) + s))
 
 
 class BMGArithmeticTest(unittest.TestCase):
