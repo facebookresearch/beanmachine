@@ -22,6 +22,11 @@ def do_it():
     return norm(flip())
 
 
+@bm.functional
+def bad_functional():
+    return 123
+
+
 class BMGBadModelsTest(unittest.TestCase):
     def test_bmg_inference_error_reporting(self):
 
@@ -87,9 +92,18 @@ class BMGBadModelsTest(unittest.TestCase):
             "An observation must observe a random_variable, not a functional.",
         )
 
-        # TODO: Verify that a query that returns a non-node fails at runtime.
+        # A functional must always return a value that can be represented
+        # in the graph.
+        with self.assertRaises(TypeError) as ex:
+            BMGInference().infer([bad_functional()], {}, 10)
+        self.assertEqual(
+            str(ex.exception),
+            "A functional must return a tensor.",
+        )
+
         # TODO: Verify we handle correctly the case where a queried value is
         # a constant, because that is not directly supported by BMG but
         # it would be nice to have.
+
         # TODO: Verify that an RV that returns an unsupported distribution
         # is an error.
