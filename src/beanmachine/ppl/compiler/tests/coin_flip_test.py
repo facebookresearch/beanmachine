@@ -50,7 +50,7 @@ class CoinFlipTest(unittest.TestCase):
         expected = 0.37
         self.assertAlmostEqual(first=observed, second=expected, delta=0.05)
 
-    def test_coin_flip_to_dot(self) -> None:
+    def test_coin_flip_to_dot_cpp_python(self) -> None:
         self.maxDiff = None
         queries = [beta()]
         observations = {
@@ -59,8 +59,7 @@ class CoinFlipTest(unittest.TestCase):
             flip(2): tensor(1.0),
             flip(3): tensor(0.0),
         }
-        inference = BMGInference()
-        observed = inference.to_dot(queries, observations)
+        observed = BMGInference().to_dot(queries, observations)
         expected = """
 digraph "graph" {
   N00[label=2.0];
@@ -90,5 +89,61 @@ digraph "graph" {
   N08 -> N09;
   N10 -> N11;
 }
+        """
+        self.assertEqual(observed.strip(), expected.strip())
+
+        observed = BMGInference().to_cpp(queries, observations)
+        expected = """
+graph::Graph g;
+uint n0 = g.add_constant_pos_real(2.0);
+uint n1 = g.add_distribution(
+  graph::DistributionType::BETA,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({n0, n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n3 = g.add_distribution(
+  graph::DistributionType::BERNOULLI,
+  graph::AtomicType::BOOLEAN,
+  std::vector<uint>({n2}));
+uint n4 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
+g.observe([n4], false);
+uint n6 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
+g.observe([n6], false);
+uint n8 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
+g.observe([n8], true);
+uint n10 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
+g.observe([n10], false);
+g.query(n2);"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+        observed = BMGInference().to_python(queries, observations)
+        expected = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_pos_real(2.0)
+n1 = g.add_distribution(
+  graph.DistributionType.BETA,
+  graph.AtomicType.PROBABILITY,
+  [n0, n0])
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+n3 = g.add_distribution(
+  graph.DistributionType.BERNOULLI,
+  graph.AtomicType.BOOLEAN,
+  [n2])
+n4 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+g.observe(n4, False)
+n6 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+g.observe(n6, False)
+n8 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+g.observe(n8, True)
+n10 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+g.observe(n10, False)
+g.query(n2)
         """
         self.assertEqual(observed.strip(), expected.strip())
