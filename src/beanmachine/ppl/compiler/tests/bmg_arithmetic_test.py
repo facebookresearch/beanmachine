@@ -7,7 +7,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from torch.distributions import Beta, HalfCauchy, Normal
+from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal
 
 
 @bm.random_variable
@@ -53,6 +53,19 @@ def logistic_real():
 @bm.functional
 def logistic_negreal():
     return torch.Tensor.sigmoid(-hc())
+
+
+@bm.random_variable
+def ordinary_arithmetic(n):
+    return Bernoulli(torch.tensor(0.5) + torch.log(torch.exp(n * torch.tensor(0.1))))
+
+
+@bm.random_variable
+def stochastic_arithmetic():
+    s = 0.0
+    for n in [0, 1]:
+        s = s + torch.log(torch.tensor(0.01)) * ordinary_arithmetic(n)
+    return Bernoulli(1 - torch.exp(torch.log(torch.tensor(0.99)) + s))
 
 
 class BMGArithmeticTest(unittest.TestCase):
@@ -166,4 +179,50 @@ digraph "graph" {
   N4 -> N5;
   N5 -> N6;
 }"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_misc_arithmetic(self) -> None:
+        self.maxDiff = None
+        observed = BMGInference().to_dot([stochastic_arithmetic()], {})
+        expected = """
+digraph "graph" {
+  N00[label=0.5];
+  N01[label=Bernoulli];
+  N02[label=Sample];
+  N03[label=0.6000000238418579];
+  N04[label=Bernoulli];
+  N05[label=Sample];
+  N06[label=-0.010050326585769653];
+  N07[label=-4.605170249938965];
+  N08[label=0.0];
+  N09[label=if];
+  N10[label=if];
+  N11[label="+"];
+  N12[label="+"];
+  N13[label=Exp];
+  N14[label=complement];
+  N15[label=Bernoulli];
+  N16[label=Sample];
+  N17[label=Query];
+  N00 -> N01;
+  N01 -> N02;
+  N02 -> N09;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N10;
+  N06 -> N12;
+  N07 -> N09;
+  N07 -> N10;
+  N08 -> N09;
+  N08 -> N10;
+  N09 -> N11;
+  N10 -> N11;
+  N11 -> N12;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N17;
+}
+"""
         self.assertEqual(observed.strip(), expected.strip())
