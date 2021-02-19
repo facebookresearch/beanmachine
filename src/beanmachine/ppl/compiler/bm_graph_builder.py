@@ -131,7 +131,7 @@ from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
-from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.memoize import MemoizationKey, memoize
 from torch import Tensor, tensor
 from torch.distributions import (
     Bernoulli,
@@ -322,9 +322,12 @@ class BMGraphBuilder:
 
     # As we construct the graph we may encounter "random variable" values; these
     # refer to a function that we need to transform into the "lifted" form. This
-    # map tracks those so that we do not repeat work.
+    # map tracks those so that we do not repeat work. However, RVIDs contain a
+    # tuple of arguments which might contain tensors, and tensors are hashed by
+    # reference, not by value. We therefore construct a map of RVID-equivalents
+    # which is hashable by the values of the arguments.
 
-    rv_map: Dict[RVIdentifier, BMGNode]
+    rv_map: Dict[MemoizationKey, BMGNode]
     lifted_map: Dict[Callable, Callable]
 
     # We also need to keep track of which query nodes are associated
@@ -1473,9 +1476,12 @@ class BMGraphBuilder:
         return self.lifted_map[function]
 
     def _rv_to_node(self, rv: RVIdentifier) -> BMGNode:
-        if rv not in self.rv_map:
-            self.rv_map[rv] = self._function_to_bmg_function(rv.function)(*rv.arguments)
-        return self.rv_map[rv]
+        key = MemoizationKey(rv.wrapper, rv.arguments)
+        if key not in self.rv_map:
+            value = self._function_to_bmg_function(rv.function)(*rv.arguments)
+            self.rv_map[key] = value
+            return value
+        return self.rv_map[key]
 
     @memoize
     def add_map(self, *elements: BMGNode) -> MapNode:
