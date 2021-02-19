@@ -1479,6 +1479,10 @@ class BMGraphBuilder:
         key = MemoizationKey(rv.wrapper, rv.arguments)
         if key not in self.rv_map:
             value = self._function_to_bmg_function(rv.function)(*rv.arguments)
+            if isinstance(value, Tensor):
+                value = self.add_constant_tensor(value)
+            if not isinstance(value, BMGNode):
+                raise TypeError("A functional must return a tensor.")
             self.rv_map[key] = value
             return value
         return self.rv_map[key]
