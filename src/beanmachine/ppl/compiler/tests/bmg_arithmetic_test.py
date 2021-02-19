@@ -57,7 +57,9 @@ def logistic_negreal():
 
 @bm.random_variable
 def ordinary_arithmetic(n):
-    return Bernoulli(torch.tensor(0.5) + torch.log(torch.exp(n * torch.tensor(0.1))))
+    return Bernoulli(
+        probs=torch.tensor(0.5) + torch.log(torch.exp(n * torch.tensor(0.1)))
+    )
 
 
 @bm.random_variable
@@ -66,6 +68,11 @@ def stochastic_arithmetic():
     for n in [0, 1]:
         s = s + torch.log(torch.tensor(0.01)) * ordinary_arithmetic(n)
     return Bernoulli(1 - torch.exp(input=torch.log(torch.tensor(0.99)) + s))
+
+
+@bm.random_variable
+def neg_of_neg():
+    return Normal(-torch.neg(norm()), 1.0)
 
 
 class BMGArithmeticTest(unittest.TestCase):
@@ -223,6 +230,40 @@ digraph "graph" {
   N14 -> N15;
   N15 -> N16;
   N16 -> N17;
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_neg_of_neg(self) -> None:
+        # This test shows that we treat torch.neg the same as the unary negation
+        # operator when generating a graph.
+        #
+        # TODO: This test also shows that we do NOT optimize away negative-of-negative
+        # which we certainly could. Once we implement that optimization, come back
+        # and fix up this test accordingly.
+
+        self.maxDiff = None
+        observed = BMGInference().to_dot([neg_of_neg()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label="-"];
+  N5[label="-"];
+  N6[label=Normal];
+  N7[label=Sample];
+  N8[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N1 -> N6;
+  N2 -> N3;
+  N3 -> N4;
+  N4 -> N5;
+  N5 -> N6;
+  N6 -> N7;
+  N7 -> N8;
 }
 """
         self.assertEqual(observed.strip(), expected.strip())

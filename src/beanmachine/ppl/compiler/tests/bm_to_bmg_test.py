@@ -23,144 +23,6 @@ def tidy(s: str) -> str:
     return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
 
 
-source2 = """
-import beanmachine.ppl as bm
-import torch
-from torch import exp, log, tensor, neg
-from torch.distributions import Bernoulli
-
-
-@bm.random_variable
-def x(n):
-    return Bernoulli(probs=tensor(0.5) + log(input=exp(input=n * tensor(0.1))))
-
-
-@bm.random_variable
-def z():
-    return Bernoulli(
-        tensor(0.3) ** x(0) + x(0) / tensor(10.0) - neg(x(1) * tensor(0.4))
-    )
-"""
-
-# In the medium term, we need to create a mechanism in BMG to represent
-# "random variable with index".  This in particular will be necessary
-# for scenarios like "Bernoulli(y(x())"; suppose x is a random variable
-# either True and False and y(n) is a random variable that takes in True
-# or False and produces a sample from 0.0 to 1.0. We do not have
-# a way in BMG today to represent this because we require exactly as many
-# sample nodes in the graph as there are samples in the program.
-#
-# However, because we do hoist the indices of x(0) and x(1) as nodes
-# in the graph here, and because nodes are deduplicated, we end
-# up doing the right thing when the indices are constants.
-
-expected_raw_2 = """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-import torch
-from torch import exp, log, tensor, neg
-from torch.distributions import Bernoulli
-
-
-@probabilistic(bmg)
-@memoize
-def x(n):
-    a11 = 0.5
-    r8 = [a11]
-    a4 = bmg.handle_function(tensor, [*r8], {})
-    a25 = 0.1
-    r21 = [a25]
-    a15 = bmg.handle_function(tensor, [*r21], {})
-    a12 = bmg.handle_multiplication(n, a15)
-    a9 = bmg.handle_function(exp, [], {**{'input': a12}})
-    a6 = bmg.handle_function(log, [], {**{'input': a9}})
-    a3 = bmg.handle_addition(a4, a6)
-    r1 = bmg.handle_function(Bernoulli, [], {**{'probs': a3}})
-    return bmg.handle_sample(r1)
-
-
-@probabilistic(bmg)
-@memoize
-def z():
-    a26 = 0.3
-    r22 = [a26]
-    a16 = bmg.handle_function(tensor, [*r22], {})
-    a30 = 0
-    r27 = [a30]
-    a19 = bmg.handle_function(x, [*r27], {})
-    a13 = bmg.handle_power(a16, a19)
-    a31 = 0
-    r28 = [a31]
-    a20 = bmg.handle_function(x, [*r28], {})
-    a34 = 10.0
-    r32 = [a34]
-    a23 = bmg.handle_function(tensor, [*r32], {})
-    a17 = bmg.handle_division(a20, a23)
-    a10 = bmg.handle_addition(a13, a17)
-    a37 = 1
-    r36 = [a37]
-    a33 = bmg.handle_function(x, [*r36], {})
-    a39 = 0.4
-    r38 = [a39]
-    a35 = bmg.handle_function(tensor, [*r38], {})
-    a29 = bmg.handle_multiplication(a33, a35)
-    r24 = [a29]
-    a18 = bmg.handle_function(neg, [*r24], {})
-    a14 = bmg.handle_negate(a18)
-    a7 = bmg.handle_addition(a10, a14)
-    r5 = [a7]
-    r2 = bmg.handle_function(Bernoulli, [*r5], {})
-    return bmg.handle_sample(r2)
-
-
-roots = [z()]
-"""
-
-expected_dot_2 = """
-digraph "graph" {
-  N00[label=0.5];
-  N01[label=Bernoulli];
-  N02[label=Sample];
-  N03[label=0.30000001192092896];
-  N04[label="**"];
-  N05[label=10.0];
-  N06[label="/"];
-  N07[label="+"];
-  N08[label=0.6000000238418579];
-  N09[label=Bernoulli];
-  N10[label=Sample];
-  N11[label=0.4000000059604645];
-  N12[label="*"];
-  N13[label="-"];
-  N14[label="-"];
-  N15[label="+"];
-  N16[label=Bernoulli];
-  N17[label=Sample];
-  N01 -> N00[label=probability];
-  N02 -> N01[label=operand];
-  N04 -> N02[label=right];
-  N04 -> N03[label=left];
-  N06 -> N02[label=left];
-  N06 -> N05[label=right];
-  N07 -> N04[label=left];
-  N07 -> N06[label=right];
-  N09 -> N08[label=probability];
-  N10 -> N09[label=operand];
-  N12 -> N10[label=left];
-  N12 -> N11[label=right];
-  N13 -> N12[label=operand];
-  N14 -> N13[label=operand];
-  N15 -> N07[label=left];
-  N15 -> N14[label=right];
-  N16 -> N15[label=probability];
-  N17 -> N16[label=operand];
-}
-"""
-
-
 # Demonstrate that function calls work as expected when the
 # function called is NOT a sample function.
 source5 = """
@@ -1063,11 +925,6 @@ digraph "graph" {
 
 
 class CompilerTest(unittest.TestCase):
-    def disabled_test_to_python_raw_2(self) -> None:
-        self.maxDiff = None
-        observed = to_python_raw(source2)
-        self.assertEqual(observed.strip(), expected_raw_2.strip())
-
     def test_to_python_raw_5(self) -> None:
         self.maxDiff = None
         observed = to_python_raw(source5)
@@ -1103,11 +960,6 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_python_raw(source11)
         self.assertEqual(observed.strip(), expected_raw_11.strip())
-
-    def disabled_test_to_dot_2(self) -> None:
-        self.maxDiff = None
-        observed = to_dot(source2)
-        self.assertEqual(observed.strip(), expected_dot_2.strip())
 
     def test_to_dot_5(self) -> None:
         self.maxDiff = None
