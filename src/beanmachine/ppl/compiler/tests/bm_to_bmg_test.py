@@ -925,74 +925,6 @@ digraph "graph" {
 }
 """
 
-# Mint an unfair coin, then flip it.
-source8 = """
-import beanmachine.ppl as bm
-from torch.distributions import Beta, Bernoulli
-
-# What is the unfairness of the coins from this mint?
-@bm.random_variable
-def mint():
-    return Beta(1.0, 1.0)
-
-# Mint a coin and then toss it.
-@bm.random_variable
-def toss():
-    return Bernoulli(mint())
-"""
-
-expected_raw_8 = """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-import beanmachine.ppl as bm
-from torch.distributions import Beta, Bernoulli
-
-
-@probabilistic(bmg)
-@memoize
-def mint():
-    a9 = 1.0
-    a7 = [a9]
-    a12 = 1.0
-    a10 = [a12]
-    r5 = bmg.handle_addition(a7, a10)
-    r11 = {}
-    r1 = bmg.handle_function(Beta, r5, r11)
-    return bmg.handle_sample(r1)
-
-
-@probabilistic(bmg)
-@memoize
-def toss():
-    r8 = []
-    r13 = {}
-    a4 = bmg.handle_function(mint, r8, r13)
-    r3 = [a4]
-    r6 = {}
-    r2 = bmg.handle_function(Bernoulli, r3, r6)
-    return bmg.handle_sample(r2)
-
-
-roots = [mint(), toss()]
-"""
-
-expected_dot_8 = """
-digraph "graph" {
-  N0[label=1.0];
-  N1[label=Beta];
-  N2[label=Sample];
-  N3[label=Bernoulli];
-  N4[label=Sample];
-  N1 -> N0[label=alpha];
-  N1 -> N0[label=beta];
-  N2 -> N1[label=operand];
-  N3 -> N2[label=probability];
-  N4 -> N3[label=operand];
-}
-"""
 
 # Testing support for calls with keyword args
 source9 = """
@@ -1639,11 +1571,6 @@ class CompilerTest(unittest.TestCase):
         observed = to_python_raw(source7)
         self.assertEqual(observed.strip(), expected_raw_7.strip())
 
-    def test_to_python_raw_8(self) -> None:
-        self.maxDiff = None
-        observed = to_python_raw(source8)
-        self.assertEqual(observed.strip(), expected_raw_8.strip())
-
     def disabled_test_to_python_raw_9(self) -> None:
         # TODO: Enable this test when named arguments are fixed.
         self.maxDiff = None
@@ -1703,11 +1630,6 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_dot(source7)
         self.assertEqual(observed.strip(), expected_dot_7.strip())
-
-    def test_to_dot_8(self) -> None:
-        self.maxDiff = None
-        observed = to_dot(source8)
-        self.assertEqual(observed.strip(), expected_dot_8.strip())
 
     def disabled_test_to_dot_9(self) -> None:
         # TODO: Enable this test when named arguments are fixed.
