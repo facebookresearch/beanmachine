@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import inspect
 from functools import wraps
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, Tuple
 
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor
@@ -48,17 +48,6 @@ class MemoizationKey:
         )
 
 
-# TODO: This memoizer detects loops in which a memoized function is called
-# by itself, directly or indirectly, and thereby detects attempts to create
-# a graph with a cycle in it. This is not the right place in the code for
-# that functionality though; we should be detecting graph cycles during the
-# accumulation of the graph explicitly there, not in this low-level mechanism.
-
-
-class RecursionError(Exception):
-    pass
-
-
 total_memoized_functions = 0
 total_memoized_calls = 0
 total_cache_misses = 0
@@ -87,9 +76,6 @@ def memoize(f):
     total_memoized_functions += 1
 
     cache: Dict[Any, Any] = {}
-    # TODO: Can we use a more efficient type than a list? We don't know
-    # TODO: if the key is hashable.
-    in_flight: List[Any] = []
 
     @wraps(f)
     def wrapper(*args):
@@ -102,15 +88,9 @@ def memoize(f):
         if key not in cache:
             global total_cache_misses
             total_cache_misses += 1
-            if key in in_flight:
-                # TODO: Better error
-                raise RecursionError()
-            in_flight.append(key)
-            try:
-                result = f(*args)
-                cache[key] = result
-            finally:
-                in_flight.pop()
+            result = f(*args)
+            cache[key] = result
+            return result
         return cache[key]
 
     if inspect.ismethod(f):

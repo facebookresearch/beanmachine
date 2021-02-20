@@ -49,7 +49,7 @@ import inspect
 import math
 import sys
 from types import MethodType
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Set
 
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
@@ -332,6 +332,17 @@ class BMGraphBuilder:
     rv_map: Dict[MemoizationKey, BMGNode]
     lifted_map: Dict[Callable, Callable]
 
+    # The graph we accumulate must be acyclic. We assume that an RVID-returning
+    # function is pure, so if at any time such a function calls itself, either
+    # it is impure or it is in an infinite recursion; either way, we will not
+    # be able to construct a correct graph. When we are calling the lifted
+    # form of a functional or random_variable method we track the RVID that
+    # was used to trigger the call; if we ever encounter a call with the same
+    # RVID while the lifted execution is "in flight", we throw an exception
+    # and stop accumulating the graph.
+
+    in_flight: Set[MemoizationKey]
+
     # We also need to keep track of which query nodes are associated
     # with which RVIDs:
 
@@ -345,6 +356,7 @@ class BMGraphBuilder:
     def __init__(self) -> None:
         self.rv_map = {}
         self.lifted_map = {}
+        self.in_flight = set()
         self.nodes = {}
         self.query_rv_map = {}
         self.function_map = {
@@ -1496,7 +1508,14 @@ class BMGraphBuilder:
     def _rv_to_node(self, rv: RVIdentifier) -> BMGNode:
         key = MemoizationKey(rv.wrapper, rv.arguments)
         if key not in self.rv_map:
-            value = self._function_to_bmg_function(rv.function)(*rv.arguments)
+            if key in self.in_flight:
+                # TODO: Better error message
+                raise RecursionError()
+            self.in_flight.add(key)
+            try:
+                value = self._function_to_bmg_function(rv.function)(*rv.arguments)
+            finally:
+                self.in_flight.remove(key)
             if isinstance(value, Tensor):
                 value = self.add_constant_tensor(value)
             if not isinstance(value, BMGNode):
