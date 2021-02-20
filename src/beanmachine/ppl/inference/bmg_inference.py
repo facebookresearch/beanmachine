@@ -13,6 +13,9 @@ from torch import Tensor
 
 
 class BMGInference:
+
+    _fix_observe_true: bool = False
+
     def __init__(self):
         pass
 
@@ -21,6 +24,7 @@ class BMGInference:
     ) -> BMGraphBuilder:
         _verify_queries_and_observations(queries, observations, True)
         bmg = BMGraphBuilder()
+        bmg._fix_observe_true = self._fix_observe_true
         bmg.accumulate_graph(queries, observations)
         return bmg
 
