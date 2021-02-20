@@ -3,7 +3,6 @@ import unittest
 
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from beanmachine.ppl.utils.memoize import RecursionError
 from torch.distributions import Bernoulli
 
 
