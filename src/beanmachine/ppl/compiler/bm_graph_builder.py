@@ -1537,8 +1537,16 @@ class BMGraphBuilder:
         time a model function decorated with @bm.random_variable returns; we verify that the
         returned value is a distribution that we know how to accumulate into the
         graph, and add a sample node to the graph."""
+
+        # TODO: There is no need to generate a handle_sample call in the
+        # lifted code once we are correctly memoizing the result in the rv map.
+        # We can just call it directly from the graph builder itself.
+
         if isinstance(operand, DistributionNode):
             return self.add_sample(operand)
+        if not isinstance(operand, torch.distributions.Distribution):
+            # TODO: Better error
+            raise TypeError("A random_variable is required to return a distribution.")
         if isinstance(operand, Bernoulli):
             b = self.handle_bernoulli(operand.probs)
             return self.add_sample(b)
@@ -1573,9 +1581,9 @@ class BMGraphBuilder:
         if isinstance(operand, Beta):
             b = self.handle_beta(operand.concentration1, operand.concentration0)
             return self.add_sample(b)
-        raise ValueError(
-            f"Operand {str(operand)} is not a valid target for a sample operation."
-        )
+        # TODO: Better error
+        n = type(operand).__name__
+        raise TypeError(f"Distribution '{n}' is not supported by Bean Machine Graph.")
 
     def handle_dot_get(self, operand: Any, name: str) -> Any:
         # If we have x = foo.bar, foo must not be a sample; we have no way of

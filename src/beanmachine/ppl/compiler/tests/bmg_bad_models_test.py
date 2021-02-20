@@ -4,7 +4,7 @@ import unittest
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Normal
+from torch.distributions import Bernoulli, Cauchy, Normal
 
 
 @bm.random_variable
@@ -25,6 +25,16 @@ def do_it():
 @bm.functional
 def bad_functional():
     return 123
+
+
+@bm.random_variable
+def no_distribution_rv():
+    return 123
+
+
+@bm.random_variable
+def unsupported_distribution_rv():
+    return Cauchy(1.0, 2.0)
 
 
 class BMGBadModelsTest(unittest.TestCase):
@@ -105,5 +115,18 @@ class BMGBadModelsTest(unittest.TestCase):
         # a constant, because that is not directly supported by BMG but
         # it would be nice to have.
 
-        # TODO: Verify that an RV that returns an unsupported distribution
-        # is an error.
+        # An rv must return a distribution.
+        with self.assertRaises(TypeError) as ex:
+            BMGInference().infer([no_distribution_rv()], {}, 10)
+        self.assertEqual(
+            str(ex.exception),
+            "A random_variable is required to return a distribution.",
+        )
+
+        # An rv must return a supported distribution.
+        with self.assertRaises(TypeError) as ex:
+            BMGInference().infer([unsupported_distribution_rv()], {}, 10)
+        self.assertEqual(
+            str(ex.exception),
+            "Distribution 'Cauchy' is not supported by Bean Machine Graph.",
+        )
