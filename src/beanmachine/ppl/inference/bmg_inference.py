@@ -16,19 +16,24 @@ class BMGInference:
     def __init__(self):
         pass
 
+    def _accumulate_graph(
+        self, queries: List[RVIdentifier], observations: Dict[RVIdentifier, Tensor]
+    ) -> BMGraphBuilder:
+        _verify_queries_and_observations(queries, observations, True)
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph(queries, observations)
+        return bmg
+
     def infer(
         self,
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, Tensor],
         num_samples: int,
     ) -> MonteCarloSamples:
-        _verify_queries_and_observations(queries, observations, True)
         # TODO: Add num_chains
         # TODO: Add verbose level
         # TODO: Add logging
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph(queries, observations)
-        return bmg.infer(num_samples)
+        return self._accumulate_graph(queries, observations).infer(num_samples)
 
     def to_dot(
         self,
@@ -39,13 +44,11 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a program in the GraphViz DOT language
         representing the graph deduced from the model."""
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph(queries, observations)
         graph_types = False
         inf_types = False
         point_at_input = True
         edge_requirements = False
-        return bmg.to_dot(
+        return self._accumulate_graph(queries, observations).to_dot(
             graph_types,
             inf_types,
             edge_requirements,
@@ -61,9 +64,7 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a C++ program fragment which
         produces the graph deduced from the model."""
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph(queries, observations)
-        return bmg.to_cpp()
+        return self._accumulate_graph(queries, observations).to_cpp()
 
     def to_python(
         self,
@@ -72,6 +73,4 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a Python program fragment which
         produces the graph deduced from the model."""
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph(queries, observations)
-        return bmg.to_python()
+        return self._accumulate_graph(queries, observations).to_python()
