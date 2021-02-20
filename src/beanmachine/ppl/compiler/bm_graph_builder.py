@@ -337,6 +337,11 @@ class BMGraphBuilder:
 
     query_rv_map: Dict[Query, RVIdentifier]
 
+    # This allows us to turn on a special problem-fixing pass to help
+    # work around problems under investigation.
+
+    _fix_observe_true: bool = False
+
     def __init__(self) -> None:
         self.rv_map = {}
         self.lifted_map = {}
@@ -1846,7 +1851,7 @@ g = graph.Graph()
     def _fix_problems(self) -> None:
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 
-        fix_problems(self).raise_errors()
+        fix_problems(self, self._fix_observe_true).raise_errors()
 
     def infer(
         self,

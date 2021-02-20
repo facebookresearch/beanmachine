@@ -39,6 +39,7 @@ from beanmachine.ppl.compiler.bmg_types import (
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
 from beanmachine.ppl.compiler.fix_additions import AdditionFixer
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
+from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_tensor_ops import TensorOpsFixer
 from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
 from torch import Tensor
@@ -399,7 +400,7 @@ class RequirementsFixer:
                 )
 
 
-def fix_problems(bmg: BMGraphBuilder) -> ErrorReport:
+def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorReport:
     TensorOpsFixer(bmg).fix_tensor_ops()
     # This pass has to run before general requirement checking. Why?
     # The requirement fixing pass runs from leaves to roots, inserting
@@ -419,4 +420,9 @@ def fix_problems(bmg: BMGraphBuilder) -> ErrorReport:
         return f.errors
     f = ObservationsFixer(bmg)
     f.fix_observations()
-    return f.errors
+    if f.errors.any():
+        return f.errors
+    if fix_observe_true:
+        # This pass has to run after everything else.
+        ObserveTrueFixer(bmg).fix_observe_true()
+    return ErrorReport()
