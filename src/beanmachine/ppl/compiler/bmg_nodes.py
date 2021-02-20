@@ -9,7 +9,13 @@ import operator
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Dict, Iterator, List, Optional
 
-from beanmachine.graph import AtomicType, DistributionType as dt, Graph, OperatorType
+from beanmachine.graph import (
+    AtomicType,
+    DistributionType as dt,
+    FactorType,
+    Graph,
+    OperatorType,
+)
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
     Boolean,
@@ -3389,8 +3395,6 @@ class ToProbabilityNode(UnaryOperatorNode):
 # #### Marker nodes
 # ####
 
-# TODO: Do we also need to represent factors?
-
 
 class Observation(BMGNode):
     """This represents an observed value of a sample. For example
@@ -3549,3 +3553,102 @@ class Query(BMGNode):
 
     def support(self) -> Iterator[Any]:
         return []
+
+
+# The basic idea of the Metropolis algorithm is: each possible state of
+# the graph is assigned a "score" proportional to the probability density
+# of that state. We do not know the proportionality constant but we do not
+# need to because we take the ratio of the current state's score to a proposed
+# new state's score, and accept or reject the proposal based on the ratio.
+#
+# The idea of a "factor" node is that we also multiply the score by a real number
+# which is high for "more likely" states and low for "less likely" states. By
+# carefully choosing a factor function we can express our additional knowledge of
+# the model.
+#
+# Factors (like observations and queries) are never used as inputs even though they
+# compute a value.
+
+
+class FactorNode(BMGNode, metaclass=ABCMeta):
+    """This is the base class for all factors.
+    The inputs are the operands of each factor."""
+
+    def __init__(self, inputs: List[BMGNode]):
+        assert isinstance(inputs, list)
+        BMGNode.__init__(self, inputs)
+
+
+# The ExpProduct factor takes one or more inputs, computes their product,
+# and then multiplies the score by exp(product), so if the product is large
+# then the factor will be very large; if the product is zero then the factor
+# will be one, and if the product is negative then the factor will be small.
+
+
+class ExpProductFactorNode(FactorNode):
+    def __init__(self, inputs: List[BMGNode]):
+        assert isinstance(inputs, list)
+        FactorNode.__init__(self, inputs)
+
+    def _compute_edge_names(self) -> List[str]:
+        return [str(x) for x in range(len(self.inputs))]
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        return Real
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        return Real
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        # Each input to an exp-power is required to be a
+        # real, negative real, positive real or probability.
+        return [
+            i.inf_type
+            if i.inf_type in {Real, NegativeReal, PositiveReal, Probability}
+            else Real
+            for i in self.inputs
+        ]
+
+    @property
+    def label(self) -> str:
+        return "ExpProduct"
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        return "ExpProduct"
+
+    def support(self) -> Iterator[Any]:
+        # Factors never produce output so it is not meaningful to compute
+        # their support
+        return []
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_factor(
+            FactorType.EXP_PRODUCT,
+            [d[x] for x in self.inputs],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        args = ", ".join(f"n{d[x]}" for x in self.inputs)
+        return (
+            f"n{n} = g.add_factor(\n"
+            + "  graph.FactorType.EXP_PRODUCT,\n"
+            + f"  [{args}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        args = ", ".join(f"n{d[x]}" for x in self.inputs)
+        return (
+            f"n{n} = g.add_factor(\n"
+            + "  graph::FactorType::EXP_PRODUCT,\n"
+            + f"  std::vector<uint>({{{args}}}));"
+        )
+
+    def _supported_in_bmg(self) -> bool:
+        return True
