@@ -426,6 +426,17 @@ class BMGraphBuilder:
                 self.add_node(i)
             self.nodes[node] = len(self.nodes)
 
+    def remove_leaf(self, node: BMGNode) -> None:
+        """This removes a leaf node from the builder, and ensures that the
+        output edges of all its input nodes are removed as well."""
+        if len(node.outputs.items) != 0:
+            raise ValueError("remove_leaf requires a leaf node")
+        if node not in self.nodes:
+            raise ValueError("remove_leaf called with node from wrong builder")
+        for i in node.inputs.inputs:
+            i.outputs.remove_item(node)
+        del self.nodes[node]
+
     # ####
     # #### Graph accumulation for constant values
     # ####
