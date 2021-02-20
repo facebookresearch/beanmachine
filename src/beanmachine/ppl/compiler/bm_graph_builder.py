@@ -78,6 +78,8 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     EqualNode,
     ExpM1Node,
     ExpNode,
+    ExpProductFactorNode,
+    FactorNode,
     FlatNode,
     GammaNode,
     GreaterThanEqualNode,
@@ -1614,6 +1616,12 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    @memoize
+    def add_exp_product(self, *inputs: BMGNode) -> TensorNode:
+        node = ExpProductFactorNode(list(inputs))
+        self.add_node(node)
+        return node
+
     # ####
     # #### Output
     # ####
@@ -1735,8 +1743,8 @@ g = graph.Graph()
     def _traverse_from_roots(self) -> List[BMGNode]:
         """This returns a list of the reachable graph nodes
         in topologically sorted order. The ordering invariants are
-        (1) all sample, observation and query nodes are enumerated
-        in the order they were added, and
+        (1) all sample, observation, query and factor nodes are
+        enumerated in the order they were added, and
         (2) all inputs are enumerated before their outputs, and
         (3) inputs to the "left" are enumerated before those to
         the "right"."""
@@ -1749,12 +1757,13 @@ g = graph.Graph()
         # pass here as a sanity check.
 
         # TODO: Do we require sample nodes to be roots? Could we
-        # get by with just observations and queries?
+        # get by with just observations, queries and factors?
         def is_root(n: BMGNode) -> bool:
             return (
                 isinstance(n, SampleNode)
                 or isinstance(n, Observation)
                 or isinstance(n, Query)
+                or isinstance(n, FactorNode)
             )
 
         def key(n: BMGNode) -> int:
