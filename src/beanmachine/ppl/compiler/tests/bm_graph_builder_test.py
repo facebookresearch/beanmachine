@@ -1657,3 +1657,53 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_remove_leaf_from_builder(self) -> None:
+        bmg = BMGraphBuilder()
+        p = bmg.add_constant(0.5)
+        b = bmg.add_bernoulli(p)
+        s = bmg.add_sample(b)
+        o = bmg.add_observation(s, True)
+
+        observed = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label="Observation True"];
+  N0 -> N1[label=probability];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=operand];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+        with self.assertRaises(ValueError):
+            # Not a leaf
+            bmg.remove_leaf(s)
+
+        bmg.remove_leaf(o)
+        observed = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N0 -> N1[label=probability];
+  N1 -> N2[label=operand];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+        # Is a leaf now.
+        bmg.remove_leaf(s)
+        observed = bmg.to_dot(point_at_input=True)
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N0 -> N1[label=probability];
+}
+"""
+        self.assertEqual(observed.strip(), expected.strip())
