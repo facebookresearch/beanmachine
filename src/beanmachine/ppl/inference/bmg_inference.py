@@ -37,6 +37,8 @@ class BMGInference:
         after_transform: bool = True,
         label_edges: bool = False,
     ) -> str:
+        """Produce a string containing a program in the GraphViz DOT language
+        representing the graph deduced from the model."""
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, observations)
         graph_types = False
@@ -51,3 +53,25 @@ class BMGInference:
             after_transform,
             label_edges,
         )
+
+    def to_cpp(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
+    ) -> str:
+        """Produce a string containing a C++ program fragment which
+        produces the graph deduced from the model."""
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph(queries, observations)
+        return bmg.to_cpp()
+
+    def to_python(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
+    ) -> str:
+        """Produce a string containing a Python program fragment which
+        produces the graph deduced from the model."""
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph(queries, observations)
+        return bmg.to_python()
