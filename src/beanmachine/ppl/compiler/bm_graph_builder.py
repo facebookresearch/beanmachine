@@ -1667,9 +1667,7 @@ class BMGraphBuilder:
         db = DotBuilder()
 
         if after_transform:
-            from beanmachine.ppl.compiler.fix_problems import fix_problems
-
-            fix_problems(self).raise_errors()
+            self._fix_problems()
             nodes = self._resort_nodes()
         else:
             nodes = self.nodes
@@ -1708,9 +1706,7 @@ class BMGraphBuilder:
     def to_bmg(self) -> Graph:
         """This transforms the accumulated graph into a BMG type system compliant
         graph and then creates the graph nodes in memory."""
-        from beanmachine.ppl.compiler.fix_problems import fix_problems
-
-        fix_problems(self).raise_errors()
+        self._fix_problems()
         g = Graph()
         d: Dict[BMGNode, int] = {}
         for node in self._traverse_from_roots():
@@ -1728,9 +1724,7 @@ class BMGraphBuilder:
     def to_python(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
         graph and then creates a Python program which creates the graph."""
-        from beanmachine.ppl.compiler.fix_problems import fix_problems
-
-        fix_problems(self).raise_errors()
+        self._fix_problems()
 
         header = """from beanmachine import graph
 from torch import tensor
@@ -1742,10 +1736,7 @@ g = graph.Graph()
     def to_cpp(self) -> str:
         """This transforms the accumulatled graph into a BMG type system compliant
         graph and then creates a C++ program which creates the graph."""
-
-        from beanmachine.ppl.compiler.fix_problems import fix_problems
-
-        fix_problems(self).raise_errors()
+        self._fix_problems()
         sorted_nodes = self._resort_nodes()
         return "graph::Graph g;\n" + "\n".join(
             n._to_cpp(sorted_nodes) for n in sorted_nodes
@@ -1852,15 +1843,18 @@ g = graph.Graph()
             q = self.add_query(node)
             self.query_rv_map[q] = qrv
 
+    def _fix_problems(self) -> None:
+        from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+        fix_problems(self).raise_errors()
+
     def infer(
         self,
         num_samples: int,
     ) -> MonteCarloSamples:
         # TODO: Add num_chains to API
         # TODO: Add inference kind to API
-        from beanmachine.ppl.compiler.fix_problems import fix_problems
-
-        fix_problems(self).raise_errors()
+        self._fix_problems()
         g = Graph()
 
         d: Dict[BMGNode, int] = {}
@@ -1911,8 +1905,6 @@ g = graph.Graph()
     ) -> List[Any]:
         # TODO: Remove this method
 
-        from beanmachine.ppl.compiler.fix_problems import fix_problems
-
         # TODO: Error checking; verify that all observations are samples
         # TODO: and all queries are operators.
 
@@ -1922,7 +1914,7 @@ g = graph.Graph()
         for q in queries:
             self.add_query(q)
 
-        fix_problems(self).raise_errors()
+        self._fix_problems()
         g = Graph()
 
         d: Dict[BMGNode, int] = {}
