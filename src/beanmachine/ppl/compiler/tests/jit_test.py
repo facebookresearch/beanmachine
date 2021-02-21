@@ -180,8 +180,6 @@ class JITTest(unittest.TestCase):
         observed = astor.to_source(bmgast)
         expected = """
 def f_helper(bmg):
-    from beanmachine.ppl.utils.memoize import memoize
-    from beanmachine.ppl.utils.probabilistic import probabilistic
 
     def f(x):
         a2 = bmg.handle_dot_get(math, 'exp')
@@ -196,11 +194,7 @@ def f_helper(bmg):
         observed = astor.to_source(bmgast)
         expected = """
 def norm_helper(bmg):
-    from beanmachine.ppl.utils.memoize import memoize
-    from beanmachine.ppl.utils.probabilistic import probabilistic
 
-    @probabilistic(bmg)
-    @memoize
     def norm(n):
         global counter
         a1 = 1

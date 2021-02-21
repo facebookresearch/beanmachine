@@ -37,7 +37,7 @@ from beanmachine.ppl.utils.ast_patterns import (
 )
 from beanmachine.ppl.utils.fold_constants import _fold_unary_op, fold
 from beanmachine.ppl.utils.optimize import optimize
-from beanmachine.ppl.utils.patterns import ListAny, match_any
+from beanmachine.ppl.utils.patterns import ListAny, match_any, nonEmptyList
 from beanmachine.ppl.utils.rules import (
     AllListMembers,
     AllOf as all_of,
@@ -48,6 +48,7 @@ from beanmachine.ppl.utils.rules import (
     SomeListMembers,
     TryMany as many,
     TryOnce as once,
+    always_replace,
     if_then,
     projection_rule,
     remove_from_list,
@@ -273,7 +274,8 @@ _math_to_bmg: Rule = _top_down(
     )
 )
 
-
+# TODO: This assumes that the syntax is of the form "something.random_variable"
+# or "something.sample".  Can we be more general than that?
 _is_sample: PatternRule = PatternRule(
     function_def(
         decorator_list=ListAny(
@@ -282,6 +284,8 @@ _is_sample: PatternRule = PatternRule(
     )
 )
 
+# TODO: This assumes that the syntax is of the form "something.functional"
+# or "something.query". Can we be more general than that?
 _is_query: PatternRule = PatternRule(
     function_def(
         decorator_list=ListAny(
@@ -292,6 +296,9 @@ _is_query: PatternRule = PatternRule(
 
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
 
+
+# TODO: We can get rid of the rule that we insert a handle_sample call
+# on a return by making the graph accumulator take care of this detail.
 _sample_returns: Rule = _descend_until(_is_sample, _top_down(once(_handle_sample)))
 
 _remove_query_decorator: Rule = _descend_until(
@@ -330,6 +337,18 @@ _sample_to_memoize: Rule = _descend_until(
     ),
 )
 
+_replace_with_empty_list = always_replace([])
+
+_remove_all_decorators: Rule = _descend_until(
+    PatternRule(function_def(decorator_list=nonEmptyList)),
+    _specific_child(
+        "decorator_list",
+        _replace_with_empty_list,
+    ),
+)
+
+
+# TODO: When we eliminate the all-module compiler workflow we can delete this.
 _header: ast.Module = ast.parse(
     """
 from beanmachine.ppl.utils.memoize import memoize
@@ -337,12 +356,6 @@ from beanmachine.ppl.utils.probabilistic import probabilistic
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 _lifted_to_bmg : bool = True
 bmg = BMGraphBuilder()"""
-)
-
-_short_header: ast.Module = ast.parse(
-    """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic"""
 )
 
 
@@ -366,20 +379,14 @@ _samples_to_calls = AllListMembers(
     )
 )
 
-_to_bmg = all_of(
-    [
-        _math_to_bmg,
-        _sample_returns,
-        _sample_to_memoize,
-        _remove_query_decorator,
-    ]
-)
 
 # TODO: Add classes, lambdas, and so on
 _supported_code_containers = {types.MethodType, types.FunctionType}
 
 
-def _bm_ast_to_bmg_ast(a: ast.AST, run_optimizer: bool) -> ast.AST:
+def _bm_ast_to_bmg_ast(
+    a: ast.AST, run_optimizer: bool, remove_all_decorators: bool
+) -> ast.AST:
     no_asserts = _eliminate_all_assertions(a).expect_success()
     # TODO: Eventually remove the folder / optimizer; we can do optimization
     # TODO: and folding when we generate the graph. No need to do it on source.
@@ -394,7 +401,14 @@ def _bm_ast_to_bmg_ast(a: ast.AST, run_optimizer: bool) -> ast.AST:
     sa = single_assignment(arithmetic_fixed)
     assert isinstance(sa, ast.Module)
     # Now we're in single assignment form.
-    bmg = _to_bmg(sa).expect_success()
+
+    rewrites = [_math_to_bmg, _sample_returns]
+    if remove_all_decorators:
+        rewrites += [_remove_all_decorators]
+    else:
+        rewrites += [_sample_to_memoize, _remove_query_decorator]
+
+    bmg = all_of(rewrites)(sa).expect_success()
     assert isinstance(bmg, ast.Module)
     return bmg
 
@@ -420,8 +434,6 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
     and transforms it to
 
         def coin_helper(bmg):
-            @probabilistic
-            @memoize
             def coin():
                 t1 = 1
                 t2 = 2
@@ -445,7 +457,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
     assert isinstance(a.body[0], ast.FunctionDef), f"{str(type(a.body[0]))}\n{source}"
     # TODO: Add support for classes, generators, lambdas, and so on.
 
-    bmg = _bm_ast_to_bmg_ast(a, False)
+    bmg = _bm_ast_to_bmg_ast(a, False, True)
     assert isinstance(bmg, ast.Module)
     assert len(bmg.body) == 1
     bmg_f = bmg.body[0]
@@ -462,9 +474,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
         defaults=[],
     )
 
-    # TODO: Eliminate the need to do these imports?
-
-    helper_body = _short_header.body + [
+    helper_body = [
         bmg.body[0],
         ast.Return(value=ast.Name(id=name, ctx=ast.Load())),
     ]
@@ -520,7 +530,7 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
 
 def _bm_module_to_bmg_ast(source: str) -> ast.AST:
     a: ast.Module = ast.parse(source)
-    bmg = _bm_ast_to_bmg_ast(a, True)
+    bmg = _bm_ast_to_bmg_ast(a, True, False)
     assert isinstance(bmg, ast.Module)
     bmg = _prepend_statements(bmg, _header.body)
     assert isinstance(bmg, ast.Module)
