@@ -49,11 +49,7 @@ class ComparisonRewritingTest(unittest.TestCase):
         observed = astor.to_source(bmgast)
         expected = """
 def y_helper(bmg):
-    from beanmachine.ppl.utils.memoize import memoize
-    from beanmachine.ppl.utils.probabilistic import probabilistic
 
-    @probabilistic(bmg)
-    @memoize
     def y():
         a1 = 0.0
         r4 = []

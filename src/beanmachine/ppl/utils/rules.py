@@ -196,6 +196,12 @@ fail: Rule = PatternRule(failPattern, _identity, "fail")
 is_list: Rule = PatternRule(list, _identity, "is_list")
 
 
+def always_replace(value: Any, name: str = "always_replace") -> Rule:
+    """always_replace(value) produces a rule that replaces anything with
+    the given value. It always succeeds."""
+    return projection_rule(lambda x: value, name)
+
+
 def pattern_rules(
     pairs: List[Tuple[Pattern, Callable[[Any], Any]]], name: str = "pattern_rules"
 ) -> Rule:
@@ -1041,6 +1047,8 @@ class RuleDomain:
     def specific_child(
         self, child: str, rule: Rule, name: str = "specific_child"
     ) -> Rule:
+        """Apply a rule to a specific child.  If it succeeds, replace the child
+        with the new value; otherwise, fail. The child is required to exist."""
         return SpecificChild(child, rule, self.get_children, self.construct, name)
 
     # CONSIDER: Should we implement a class for bottom-up traversal, so that
