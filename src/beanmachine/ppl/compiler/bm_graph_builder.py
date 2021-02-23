@@ -1285,22 +1285,43 @@ class BMGraphBuilder:
     ) -> BMGNode:
         assert isinstance(arguments, list)
 
-        # We have a call to a random variable function. There are two
-        # cases. Either we have only ordinary values for arguments, or
-        # we have one or more graph nodes.
-        if only_ordinary_arguments(arguments, {}):
+        # Identify the index of the leftmost graph node argument:
+
+        index = next(
+            (i for i, arg in enumerate(arguments) if isinstance(arg, BMGNode)), -1
+        )
+        if index == -1:
+            # There were no graph node arguments. Just make an ordinary
+            # function call
             rv = function(*arguments)
             assert isinstance(rv, RVIdentifier)
             return self._rv_to_node(rv)
 
-        # TODO: We have a finite stochastic control flow; we need to make many
-        # TODO: calls to the random variable function and record the
-        # TODO: results for each.  Right now this is handled by the
-        # TODO: generated @probabilistic decorator, but that mechanism
-        # TODO: should be removed and instead inlined in this function.
-        # TODO: Just throw and we'll fix it later.
+        # We have an RV call where one or more arguments are graph nodes;
+        # each graph node has finite support and the estimate of the number
+        # of combinations we have to try is small.
 
-        raise ValueError("Jitted stochastic control flows are not yet implemented")
+        # Replace the given argument with all possible values and recurse.
+        #
+        # TODO: Note that we only memoize calls to RVs when the arguments
+        # contain no graph nodes. Is this acceptable? We could save some
+        # work if we also memoized calls of the form "rv1(rv2()". Right now
+        # we would recompute the support of rv2() on the second such call,
+        # and only get the savings of skipping the method calls on each
+        # individual call.  Do some performance testing.
+
+        replaced_arg = arguments[index]
+        key_value_pairs = []
+        for new_arg in replaced_arg.support():
+            key = self.add_constant(new_arg)
+            new_arguments = list(arguments)
+            new_arguments[index] = new_arg
+            value = self._handle_random_variable_call_checked(function, new_arguments)
+            key_value_pairs.append(key)
+            key_value_pairs.append(value)
+        map_node = self.add_map(*key_value_pairs)
+        index_node = self.add_index(map_node, replaced_arg)
+        return index_node
 
     def _handle_random_variable_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
@@ -1451,6 +1472,8 @@ class BMGraphBuilder:
         if _is_phi(f, args, kwargs):
             return self.handle_phi(*(args[1:]), **kwargs)
 
+        # TODO: When we stop supporting the all-module compiler workflow
+        # this code can be deleted
         if is_from_lifted_module(f):
             # It's already compiled; just call it.
             return function(*arguments, **kwargs)
