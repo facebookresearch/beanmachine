@@ -171,22 +171,6 @@ def assertions_are_removed():
     return Bernoulli(0.5)
 
 
-@bm.random_variable
-def spike_and_slab(n):
-    if n:
-        return Bernoulli(0.5)
-    else:
-        return Normal(0, 1)
-
-
-# Try out a stochastic control flow where we choose
-# a mean from one of two distributions depending on
-# a coin flip.
-@bm.random_variable
-def choose_your_mean():
-    return Normal(spike_and_slab(flip()), 1)
-
-
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -567,62 +551,3 @@ digraph "graph" {
 
         # The side effect is not caused.
         self.assertEqual(observable_side_effect, 0)
-
-    def test_stochastic_control_flow_1(self) -> None:
-        self.maxDiff = None
-
-        bmg = BMGraphBuilder()
-        queries = [choose_your_mean()]
-        observations = {}
-        bmg.accumulate_graph(queries, observations)
-        # TODO: We cannot turn this into a BMG graph yet because we
-        # do not support the map/index nodes. But we could turn this
-        # particular model into an IF-THEN-ELSE control flow, which
-        # we do support. Consider making that transformation when the
-        # graph is accumulated.
-        observed = bmg.to_dot(
-            point_at_input=True, after_transform=False, label_edges=False
-        )
-        expected = """
-digraph "graph" {
-  N00[label=2.0];
-  N01[label=Beta];
-  N02[label=Sample];
-  N03[label=Bernoulli];
-  N04[label=Sample];
-  N05[label=0.0];
-  N06[label=1.0];
-  N07[label=Normal];
-  N08[label=Sample];
-  N09[label=0.5];
-  N10[label=Bernoulli];
-  N11[label=Sample];
-  N12[label=map];
-  N13[label=index];
-  N14[label=1];
-  N15[label=Normal];
-  N16[label=Sample];
-  N17[label=Query];
-  N00 -> N01;
-  N00 -> N01;
-  N01 -> N02;
-  N02 -> N03;
-  N03 -> N04;
-  N04 -> N13;
-  N05 -> N07;
-  N05 -> N12;
-  N06 -> N07;
-  N06 -> N12;
-  N07 -> N08;
-  N08 -> N12;
-  N09 -> N10;
-  N10 -> N11;
-  N11 -> N12;
-  N12 -> N13;
-  N13 -> N15;
-  N14 -> N15;
-  N15 -> N16;
-  N16 -> N17;
-}
-"""
-        self.assertEqual(expected.strip(), observed.strip())

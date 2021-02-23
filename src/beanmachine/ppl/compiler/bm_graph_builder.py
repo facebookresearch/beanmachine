@@ -1280,6 +1280,45 @@ class BMGraphBuilder:
             )
         return (f, args, kwargs)
 
+    def _create_optimized_map(
+        self, choice: BMGNode, key_value_pairs: List[BMGNode]
+    ) -> BMGNode:
+        assert len(key_value_pairs) % 2 == 0
+
+        num_pairs = len(key_value_pairs) / 2
+
+        # It should be impossible to have a distribution with no support.
+        assert num_pairs != 0
+
+        # It is bizarre to have a distribution with support of one but
+        # I suppose it could happen if we had something like a categorical
+        # with only one category, or we had a Boolean multiplied by zero.
+        # In this case we can simply use the value.
+
+        if num_pairs == 1:
+            return key_value_pairs[1]
+
+        # If we have a map where the keys are 0 and 1 then we can
+        # create an if-then-else. (It is easier to simply do it here
+        # where the map is created, than to add the map and then transform
+        # it in a problem fixing pass later. No reason to not do it right
+        # the first time.)
+
+        if num_pairs == 2 and choice.inf_type == Boolean:
+            first_key_type = key_value_pairs[0].inf_type
+            first_value = key_value_pairs[1]
+            second_key_type = key_value_pairs[2].inf_type
+            second_value = key_value_pairs[3]
+            if first_key_type == Zero and second_key_type == One:
+                return self.add_if_then_else(choice, first_value, second_value)
+            if first_key_type == One and second_key_type == Zero:
+                return self.add_if_then_else(choice, second_value, first_value)
+
+        # Otherwise, just make a map node.
+        map_node = self.add_map(*key_value_pairs)
+        index_node = self.add_index(map_node, choice)
+        return index_node
+
     def _handle_random_variable_call_checked(
         self, function: Any, arguments: List[Any]
     ) -> BMGNode:
@@ -1319,9 +1358,7 @@ class BMGraphBuilder:
             value = self._handle_random_variable_call_checked(function, new_arguments)
             key_value_pairs.append(key)
             key_value_pairs.append(value)
-        map_node = self.add_map(*key_value_pairs)
-        index_node = self.add_index(map_node, replaced_arg)
-        return index_node
+        return self._create_optimized_map(replaced_arg, key_value_pairs)
 
     def _handle_random_variable_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
