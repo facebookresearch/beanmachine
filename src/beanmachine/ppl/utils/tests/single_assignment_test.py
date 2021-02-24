@@ -2278,7 +2278,8 @@ def f(x):
 def f(x):
     a1 = 0
     [a] = z[a1]
-    [b, *[c], d, e.f[g:h[i]].j] = z[1:]
+    a2 = 1
+    [b, *[c], d, e.f[g:h[i]].j] = z[a2:]
         """,
         ]
 
@@ -2539,7 +2540,8 @@ def f(x):
     [a] = x5
     a6 = 0
     [a] = z[a6]
-    [b] = z[1:]"""
+    a7 = 1
+    [b] = z[a7:]""",
         ]
         self.check_rewrites(terms)
 
@@ -2566,7 +2568,8 @@ def f(x):
 def f(x):
     a1 = 0
     a.b.c = z[a1]
-    [d] = z[1:]"""
+    a2 = 1
+    [d] = z[a2:]""",
         ]
 
         self.check_rewrites(terms)
@@ -2672,3 +2675,23 @@ def f(x):
         ]
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_index_2())
+
+    def test_assign_subscript_slice_lower(self) -> None:
+        """Test rewrites like e = a[b.c:] → x = b.c; e = a[x:]."""
+
+        terms = [
+            """
+def f(x):
+    a,b = c[d.e:]
+    a = b[c.d:e:f]""",
+            """
+def f(x):
+    a1 = d.e
+    a, b = c[a1:]
+    a2 = c.d
+    a = b[a2:e:f]""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_assign_subscript_slice_lower())
+        self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
+        self.check_rewrites(terms)
