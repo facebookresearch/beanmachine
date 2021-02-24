@@ -6,14 +6,12 @@ from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch.distributions import Bernoulli
 
 
-# TODO: An equality comparison involving two Booleans could be
-# TODO: turned into an if-then-else.  That is, for Booleans x, y:
-# TODO: x == y  -->  if x then y else not y
 # TODO: x != y  -->  if x then not y else y
 # TODO: x > y   -->  if x then not y else false
 # TODO: x >= y  -->  if x then true else not y
 # TODO: x < y   -->  if x then false else y
 # TODO: x <= y  -->  if x then y else true
+# TODO: x is y  -->  same as ==
 
 
 @bm.random_variable
@@ -22,12 +20,102 @@ def flip(n):
 
 
 @bm.functional
-def f1():
+def eq_x_0():
+    # not flip(0)
+    return flip(0) == 0.0
+
+
+@bm.functional
+def eq_x_1():
+    # flip(0)
+    return flip(0) == 1.0
+
+
+@bm.functional
+def eq_0_y():
+    # not flip(1)
+    return 0 == flip(1)
+
+
+@bm.functional
+def eq_1_y():
+    # flip(1)
+    return 1 == flip(0)
+
+
+@bm.functional
+def eq_x_y():
+    # if flip(0) then flip(1) else not flip(1)
+    return flip(0) == flip(1)
+
+
+@bm.functional
+def ne_x_1():
     return flip(0) != 1.0
 
 
 class BooleanComparisonsTest(unittest.TestCase):
-    def test_boolean_comparison_errors_1(self) -> None:
+    def test_boolean_comparison_errors_eq(self) -> None:
+
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([eq_x_y()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Sample];
+  N4[label=complement];
+  N5[label=if];
+  N6[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N1 -> N3;
+  N2 -> N5;
+  N3 -> N4;
+  N3 -> N5;
+  N4 -> N5;
+  N5 -> N6;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([eq_x_0()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=complement];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+        observed = BMGInference().to_dot([eq_0_y()], {})
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([eq_x_1()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+        observed = BMGInference().to_dot([eq_1_y()], {})
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_boolean_comparison_errors_ne(self) -> None:
 
         self.maxDiff = None
         bmg = BMGInference()
@@ -36,7 +124,7 @@ class BooleanComparisonsTest(unittest.TestCase):
         # TODO: This error is poorly phrased. "The operator of a query"?
         # TODO: Surely that should be "operand".
         with self.assertRaises(ValueError) as ex:
-            bmg.infer([f1()], {}, 10)
+            bmg.infer([ne_x_1()], {}, 10)
         expected = """
 The model uses a != operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
