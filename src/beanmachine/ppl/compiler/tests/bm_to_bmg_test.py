@@ -857,72 +857,6 @@ digraph "graph" {
 }
 """
 
-# Gaussian mixture model.  Suppose we have a mixture of k normal distributions
-# each with standard deviation equal to 1, but different means. Our prior
-# on means is that mu(0), ... mu(k) are normally distributed.
-# To make samples y(0), ... from this distribution we first choose which
-# mean we want with z(0), ..., use that to sample mu(z(0)) to get the mean,
-# and then use that mean to sample from a normal distribution.
-source15 = """
-import beanmachine.ppl as bm
-from torch import tensor
-from torch.distributions import Categorical, Normal
-
-@bm.random_variable
-def mu(k):
-    # Means of the components are normally distributed
-    return Normal(0, 1)
-
-@bm.random_variable
-def z(i):
-    # Choose a category, 0, 1 or 2 with ratio 1:3:4.
-    return Categorical(tensor([1., 3., 4.]))
-
-@bm.random_variable
-def y(i):
-    return Normal(mu(z(i)), 1)
-
-y0 = y(0)
-"""
-
-expected_dot_15 = """
-digraph "graph" {
-  N00[label="[0.125,0.375,0.5]"];
-  N01[label=Categorical];
-  N02[label=Sample];
-  N03[label=0.0];
-  N04[label=1.0];
-  N05[label=Normal];
-  N06[label=Sample];
-  N07[label=Sample];
-  N08[label=Sample];
-  N09[label=2];
-  N10[label=map];
-  N11[label=index];
-  N12[label=1];
-  N13[label=Normal];
-  N14[label=Sample];
-  N01 -> N00[label=probability];
-  N02 -> N01[label=operand];
-  N05 -> N03[label=mu];
-  N05 -> N04[label=sigma];
-  N06 -> N05[label=operand];
-  N07 -> N05[label=operand];
-  N08 -> N05[label=operand];
-  N10 -> N03[label=0];
-  N10 -> N04[label=2];
-  N10 -> N06[label=1];
-  N10 -> N07[label=3];
-  N10 -> N08[label=5];
-  N10 -> N09[label=4];
-  N11 -> N02[label=right];
-  N11 -> N10[label=left];
-  N13 -> N11[label=mu];
-  N13 -> N12[label=sigma];
-  N14 -> N13[label=operand];
-}
-"""
-
 
 class CompilerTest(unittest.TestCase):
     def test_to_python_raw_5(self) -> None:
@@ -1009,8 +943,3 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_dot(source14)
         self.assertEqual(observed.strip(), expected_dot_14.strip())
-
-    def test_to_dot_15(self) -> None:
-        self.maxDiff = None
-        observed = to_dot(source15)
-        self.assertEqual(observed.strip(), expected_dot_15.strip())
