@@ -2280,6 +2280,206 @@ def f(x):
     [a] = z[a1]
     a2 = 1
     [b, *[c], d, e.f[g:h[i]].j] = z[a2:]
+        """,  # Name RHS:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    [b, *[c], d, e.f[g:h[i]].j] = a4
+        """,  # Process first element:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    b = a4[0]
+    [*[c], d, e.f[g:h[i]].j] = a4[1:]
+        """,  # Name constants:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    [*[c], d, e.f[g:h[i]].j] = a4[a6:]
+        """,  # Name RHS:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    [*[c], d, e.f[g:h[i]].j] = a7
+        """,  # Process last element:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    [*[c], d] = a7[:-1]
+    e.f[g:h[i]].j = a7[-1]
+        """,  # Name constants:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    a8 = -1
+    [*[c], d] = a7[:a8]
+    a9 = -1
+    e.f[g:h[i]].j = a7[a9]
+        """,  # Name RHS:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    a10 = 1
+    a8 = -a10
+    a11 = a7[:a8]
+    [*[c], d] = a11
+    a12 = 1
+    a9 = -a12
+    a13 = a7[a9]
+    e.f[g:h[i]].j = a13
+        """,  # Process last element and name LHS expression:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    a10 = 1
+    a8 = -a10
+    a11 = a7[:a8]
+    [*[c]] = a11[:-1]
+    d = a11[-1]
+    a12 = 1
+    a9 = -a12
+    a13 = a7[a9]
+    x14 = e.f[g:h[i]]
+    x14.j = a13
+        """,  # Name RHS expression:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    a10 = 1
+    a8 = -a10
+    a11 = a7[:a8]
+    a15 = -1
+    [*[c]] = a11[:a15]
+    a16 = -1
+    d = a11[a16]
+    a12 = 1
+    a9 = -a12
+    a13 = a7[a9]
+    a17 = e.f
+    x14 = a17[g:h[i]]
+    x14.j = a13
+        """,  # Name RHS expression:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    a10 = 1
+    a8 = -a10
+    a11 = a7[:a8]
+    a18 = 1
+    a15 = -a18
+    a19 = a11[:a15]
+    [*[c]] = a19
+    a20 = 1
+    a16 = -a20
+    d = a11[a16]
+    a12 = 1
+    a9 = -a12
+    a13 = a7[a9]
+    a17 = e.f
+    a21 = h[i]
+    x14 = a17[g:a21]
+    x14.j = a13
+        """,  # Name LHS expression:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    [a] = a3
+    a2 = 1
+    a4 = z[a2:]
+    a5 = 0
+    b = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    a10 = 1
+    a8 = -a10
+    a11 = a7[:a8]
+    a18 = 1
+    a15 = -a18
+    a19 = a11[:a15]
+    [*x22] = a19
+    [c] = x22
+    a20 = 1
+    a16 = -a20
+    d = a11[a16]
+    a12 = 1
+    a9 = -a12
+    a13 = a7[a9]
+    a17 = e.f
+    a21 = h[i]
+    x14 = a17[g:a21]
+    x14.j = a13
         """,
         ]
 
@@ -2541,7 +2741,25 @@ def f(x):
     a6 = 0
     [a] = z[a6]
     a7 = 1
-    [b] = z[a7:]""",
+    [b] = z[a7:]""",  # Name RHS:
+            """
+def f(x):
+    [x1] = z
+    [a.b] = x1
+    [x2] = z
+    [a[b]] = x2
+    [x3] = z
+    [a.b] = x3
+    [x4] = z
+    [a[b]] = x4
+    [x5] = z
+    [a] = x5
+    a6 = 0
+    a8 = z[a6]
+    [a] = a8
+    a7 = 1
+    a9 = z[a7:]
+    [b] = a9""",
         ]
         self.check_rewrites(terms)
 
@@ -2569,7 +2787,24 @@ def f(x):
     a1 = 0
     a.b.c = z[a1]
     a2 = 1
-    [d] = z[a2:]""",
+    [d] = z[a2:]""",  # Name RHS:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    a.b.c = a3
+    a2 = 1
+    a4 = z[a2:]
+    [d] = a4""",  # Name LHS expression:
+            """
+def f(x):
+    a1 = 0
+    a3 = z[a1]
+    x5 = a.b
+    x5.c = a3
+    a2 = 1
+    a4 = z[a2:]
+    [d] = a4""",
         ]
 
         self.check_rewrites(terms)
@@ -2597,14 +2832,15 @@ def f(x):
     a1 = -1
     [*a] = z[:a1]
     a2 = -1
-    b = z[a2]""",
+    b = z[a2]""",  # Name RHS:
             """
 def f(x):
     a3 = 1
     a1 = -a3
-    [*a] = z[:a1]
-    a4 = 1
-    a2 = -a4
+    a4 = z[:a1]
+    [*a] = a4
+    a5 = 1
+    a2 = -a5
     b = z[a2]""",
         ]
 
@@ -2655,6 +2891,46 @@ def f(x):
         ]
 
         self.check_rewrites(progression, self.s._handle_assign_subscript_slice_all())
+
+        progression += [  # Name RHS:
+            """
+def f(x):
+    a1 = d.e
+    a2 = f.g
+    a3 = h.i
+    a4 = c[a1:a2:a3]
+    a, b = a4""",  # Process first element:
+            """
+def f(x):
+    a1 = d.e
+    a2 = f.g
+    a3 = h.i
+    a4 = c[a1:a2:a3]
+    a = a4[0]
+    [b] = a4[1:]""",  # Name constants:
+            """
+def f(x):
+    a1 = d.e
+    a2 = f.g
+    a3 = h.i
+    a4 = c[a1:a2:a3]
+    a5 = 0
+    a = a4[a5]
+    a6 = 1
+    [b] = a4[a6:]""",  # Name RHS:
+            """
+def f(x):
+    a1 = d.e
+    a2 = f.g
+    a3 = h.i
+    a4 = c[a1:a2:a3]
+    a5 = 0
+    a = a4[a5]
+    a6 = 1
+    a7 = a4[a6:]
+    [b] = a7""",
+        ]
+
         self.check_rewrites(progression)
 
         # Third, some stuck terms. The following form cannot go anywhere with any of the rules:
@@ -2720,6 +2996,38 @@ def f(x):
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_index_1())
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
+
+        terms += [  # Name RHS:
+            """
+def f(x):
+    a1 = c.d
+    a2 = a1[e]
+    a, b = a2""",  # Process first element:
+            """
+def f(x):
+    a1 = c.d
+    a2 = a1[e]
+    a = a2[0]
+    [b] = a2[1:]""",  # Name constants:
+            """
+def f(x):
+    a1 = c.d
+    a2 = a1[e]
+    a3 = 0
+    a = a2[a3]
+    a4 = 1
+    [b] = a2[a4:]""",  # Name RHS:
+            """
+def f(x):
+    a1 = c.d
+    a2 = a1[e]
+    a3 = 0
+    a = a2[a3]
+    a4 = 1
+    a5 = a2[a4:]
+    [b] = a5""",
+        ]
+
         self.check_rewrites(terms)
 
     def test_assign_subscript_slice_index_2(self) -> None:
@@ -2737,6 +3045,38 @@ def f(x):
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_index_2())
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
+
+        terms += [  # Name RHS:
+            """
+def f(x):
+    a1 = d.e
+    a2 = c[a1]
+    a, b = a2""",  # Process first element:
+            """
+def f(x):
+    a1 = d.e
+    a2 = c[a1]
+    a = a2[0]
+    [b] = a2[1:]""",  # Name constants:
+            """
+def f(x):
+    a1 = d.e
+    a2 = c[a1]
+    a3 = 0
+    a = a2[a3]
+    a4 = 1
+    [b] = a2[a4:]""",  # Name RHS:
+            """
+def f(x):
+    a1 = d.e
+    a2 = c[a1]
+    a3 = 0
+    a = a2[a3]
+    a4 = 1
+    a5 = a2[a4:]
+    [b] = a5""",
+        ]
+
         self.check_rewrites(terms)
 
     def test_assign_subscript_slice_index_2_not_too_soon(self) -> None:
@@ -2768,6 +3108,46 @@ def f(x):
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_lower())
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
+
+        terms += [  # Name RHS:
+            """
+def f(x):
+    a1 = d.e
+    a3 = c[a1:]
+    a, b = a3
+    a2 = c.d
+    a = b[a2:e:f]""",  # Process first element:
+            """
+def f(x):
+    a1 = d.e
+    a3 = c[a1:]
+    a = a3[0]
+    [b] = a3[1:]
+    a2 = c.d
+    a = b[a2:e:f]""",  # Name constants:
+            """
+def f(x):
+    a1 = d.e
+    a3 = c[a1:]
+    a4 = 0
+    a = a3[a4]
+    a5 = 1
+    [b] = a3[a5:]
+    a2 = c.d
+    a = b[a2:e:f]""",  # Process RHS:
+            """
+def f(x):
+    a1 = d.e
+    a3 = c[a1:]
+    a4 = 0
+    a = a3[a4]
+    a5 = 1
+    a6 = a3[a5:]
+    [b] = a6
+    a2 = c.d
+    a = b[a2:e:f]""",
+        ]
+
         self.check_rewrites(terms)
 
     def test_assign_subscript_slice_upper(self) -> None:
@@ -2820,4 +3200,130 @@ def f(x):
 
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_step())
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
+
+        terms += [  # Name RHS:
+            """
+def f(x):
+    a1 = e.f
+    a5 = c[d::a1]
+    a, b = a5
+    a2 = e.f
+    a = b[c:d:a2]
+    a3 = e.f
+    a6 = c[::a3]
+    a, b = a6
+    a4 = f.g
+    a7 = c[:e:a4]
+    a, b = a7""",  # Process first element:
+            """
+def f(x):
+    a1 = e.f
+    a5 = c[d::a1]
+    a = a5[0]
+    [b] = a5[1:]
+    a2 = e.f
+    a = b[c:d:a2]
+    a3 = e.f
+    a6 = c[::a3]
+    a = a6[0]
+    [b] = a6[1:]
+    a4 = f.g
+    a7 = c[:e:a4]
+    a = a7[0]
+    [b] = a7[1:]""",  # Name constants:
+            """
+def f(x):
+    a1 = e.f
+    a5 = c[d::a1]
+    a8 = 0
+    a = a5[a8]
+    a9 = 1
+    [b] = a5[a9:]
+    a2 = e.f
+    a = b[c:d:a2]
+    a3 = e.f
+    a6 = c[::a3]
+    a10 = 0
+    a = a6[a10]
+    a11 = 1
+    [b] = a6[a11:]
+    a4 = f.g
+    a7 = c[:e:a4]
+    a12 = 0
+    a = a7[a12]
+    a13 = 1
+    [b] = a7[a13:]""",  # Name RHS:
+            """
+def f(x):
+    a1 = e.f
+    a5 = c[d::a1]
+    a8 = 0
+    a = a5[a8]
+    a9 = 1
+    a14 = a5[a9:]
+    [b] = a14
+    a2 = e.f
+    a = b[c:d:a2]
+    a3 = e.f
+    a6 = c[::a3]
+    a10 = 0
+    a = a6[a10]
+    a11 = 1
+    a15 = a6[a11:]
+    [b] = a15
+    a4 = f.g
+    a7 = c[:e:a4]
+    a12 = 0
+    a = a7[a12]
+    a13 = 1
+    a16 = a7[a13:]
+    [b] = a16""",
+        ]
+        self.check_rewrites(terms)
+
+    def test_assign_possibly_blocking_right_value(self) -> None:
+        """Test rewrites like e1 = e2 → x = e2; e1 = x, as long as e1 and e2 are not names."""
+
+        # Here is what this rule achieves in isolation
+
+        terms = [
+            """
+def f(x):
+    a, b = a, b""",
+            """
+def f(x):
+    a1 = a, b
+    a, b = a1""",
+        ]
+
+        self.check_rewrites(
+            terms, self.s._handle_assign_possibly_blocking_right_value()
+        )
+
+        # And here is what it achieves in the context of the other rules. In particular,
+        # it enables the left_value rules to go further than they can without it.
+
+        terms += [  # Process first element:
+            """
+def f(x):
+    a1 = a, b
+    a = a1[0]
+    [b] = a1[1:]""",  # Name constants:
+            """
+def f(x):
+    a1 = a, b
+    a2 = 0
+    a = a1[a2]
+    a3 = 1
+    [b] = a1[a3:]""",  # Name RHS:
+            """
+def f(x):
+    a1 = a, b
+    a2 = 0
+    a = a1[a2]
+    a3 = 1
+    a4 = a1[a3:]
+    [b] = a4""",
+        ]
+
         self.check_rewrites(terms)
