@@ -377,7 +377,7 @@ class SingleAssignment:
 
         return _do_it
 
-    def _transform_list(  # TODO: Generalization of ast_op to Callable is tentative
+    def _transform_list(
         self, ast_op: Callable[[ast.Assign], type] = lambda a: ast.List
     ) -> Callable[[ast.Assign], ListEdit]:
         def _do_it(a: ast.Assign) -> ListEdit:
@@ -799,8 +799,6 @@ class SingleAssignment:
         # t = complex
         # x = c[t]
         #
-        # TODO: We do not yet handle slices other than straightforward
-        # indices; we should also handle the other kinds of slices.
         return PatternRule(
             assign(value=subscript(value=name(), slice=index(value=_not_identifier))),
             self._transform_with_name(
@@ -1990,7 +1988,6 @@ class SingleAssignment:
 
     def _handle_left_value_all(self) -> Rule:
         """Put the left_value of an assignment in SSA form"""
-        # TODO: Add the various rewrite rules into the following list
         return first(
             [
                 self._handle_left_value_attributeref(),
