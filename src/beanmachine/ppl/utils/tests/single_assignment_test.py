@@ -2724,3 +2724,29 @@ def f(x):
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_upper())
         self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
         self.check_rewrites(terms)
+
+    def test_assign_subscript_slice_upper(self) -> None:
+        """Test rewrites like e = a[::b.c] → x = b.c; e = a[::x]."""
+
+        terms = [
+            """
+def f(x):
+    a,b = c[d::e.f]
+    a = b[c:d:e.f]
+    a,b = c [::e.f]
+    a,b = c [:e:f.g]""",
+            """
+def f(x):
+    a1 = e.f
+    a, b = c[d::a1]
+    a2 = e.f
+    a = b[c:d:a2]
+    a3 = e.f
+    a, b = c[::a3]
+    a4 = f.g
+    a, b = c[:e:a4]""",
+        ]
+
+        self.check_rewrites(terms, self.s._handle_assign_subscript_slice_step())
+        self.check_rewrites(terms, self.s._handle_assign_subscript_slice_all())
+        self.check_rewrites(terms)
