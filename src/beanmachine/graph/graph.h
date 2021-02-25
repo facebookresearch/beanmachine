@@ -305,6 +305,7 @@ enum class DistributionType {
   BERNOULLI_NOISY_OR,
   BETA,
   BINOMIAL,
+  DIRICHLET,
   FLAT,
   NORMAL,
   HALF_CAUCHY,

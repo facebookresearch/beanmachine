@@ -106,6 +106,10 @@ class Distribution : public graph::Node {
     throw std::runtime_error(
         "_natural_sampler has not been implemented for this distribution.");
   }
+  virtual Eigen::MatrixXd _matrix_sampler(std::mt19937& /* gen */) const {
+    throw std::runtime_error(
+        "_matrix_sampler has not been implemented for this distribution.");
+  }
 };
 
 } // namespace distribution

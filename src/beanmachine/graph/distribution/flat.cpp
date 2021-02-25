@@ -16,12 +16,21 @@ Flat::Flat(AtomicType sample_type, const std::vector<Node*>& in_nodes)
   }
 }
 
+Flat::Flat(ValueType sample_type, const std::vector<Node*>& in_nodes)
+    : Distribution(DistributionType::FLAT, sample_type) {
+  // a Flat distribution has no parents
+  if (in_nodes.size() != 0) {
+    throw std::invalid_argument("Flat distribution has no parents");
+  }
+}
+
 bool Flat::_bool_sampler(std::mt19937& gen) const {
   std::bernoulli_distribution dist(0.5);
   return (bool)dist(gen);
 }
 
-double Flat::_double_sampler(std::mt19937& gen) const {
+std::uniform_real_distribution<double> Flat::_get_uniform_real_distribution()
+    const {
   std::uniform_real_distribution<double> dist;
   switch (sample_type.atomic_type) {
     case graph::AtomicType::REAL:
@@ -40,13 +49,31 @@ double Flat::_double_sampler(std::mt19937& gen) const {
       throw std::runtime_error(
           "Unsupported sample type for _double_sampler of Flat.");
   }
-  return dist(gen);
+  return dist;
+}
+
+double Flat::_double_sampler(std::mt19937& gen) const {
+  return _get_uniform_real_distribution()(gen);
 }
 
 natural_t Flat::_natural_sampler(std::mt19937& gen) const {
   std::uniform_int_distribution<natural_t> dist(
       0, std::numeric_limits<natural_t>::max());
   return (natural_t)dist(gen);
+}
+
+Eigen::MatrixXd Flat::_matrix_sampler(std::mt19937& gen) const {
+  int rows = sample_type.rows;
+  int cols = sample_type.cols;
+  Eigen::MatrixXd result(rows, cols);
+  std::uniform_real_distribution<double> dist =
+      _get_uniform_real_distribution();
+  for (int j = 0; j < cols; j++) {
+    for (int i = 0; i < rows; i++) {
+      result(i, j) = dist(gen);
+    }
+  }
+  return result;
 }
 
 // A Flat distribution is really easy in terms of computing the log_prob and the
