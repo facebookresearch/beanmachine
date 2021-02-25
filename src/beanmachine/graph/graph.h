@@ -296,6 +296,7 @@ enum class OperatorType {
   LOG1MEXP,
   MATRIX_MULTIPLY,
   TO_PROBABILITY,
+  INDEX,
 };
 
 enum class DistributionType {

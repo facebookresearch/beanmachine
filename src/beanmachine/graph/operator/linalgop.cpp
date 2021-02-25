@@ -62,5 +62,52 @@ void MatrixMultiply::eval(std::mt19937& /* gen */) {
   }
 }
 
+Index::Index(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::INDEX) {
+  if (in_nodes.size() != 2) {
+    throw std::invalid_argument("INDEX requires two parent nodes");
+  }
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  if ((type0.cols != 1) or
+      !((type0.variable_type == graph::VariableType::BROADCAST_MATRIX) or
+        (type0.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX))) {
+    throw std::invalid_argument(
+        "the first parent of INDEX must be a MATRIX with one column");
+  }
+  graph::ValueType type1 = in_nodes[1]->value.type;
+  if (type1 != graph::AtomicType::NATURAL) {
+    // TODO: change type to ranged natural
+    throw std::invalid_argument(
+        "the second parent of INDEX must be NATURAL number");
+  }
+  value = graph::NodeValue(graph::ValueType(type0.atomic_type));
+}
+
+void Index::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 2);
+  const graph::NodeValue& matrix = in_nodes[0]->value;
+  graph::natural_t matrix_index = in_nodes[1]->value._natural;
+  if (matrix_index >= matrix.type.rows) {
+    throw std::runtime_error(
+        "invalid index for INDEX operator at node_id " + std::to_string(index));
+  }
+  graph::AtomicType matrix_type = matrix.type.atomic_type;
+  if (matrix_type == graph::AtomicType::BOOLEAN) {
+    value._bool = matrix._bmatrix(matrix_index);
+  } else if (
+      matrix_type == graph::AtomicType::REAL or
+      matrix_type == graph::AtomicType::POS_REAL or
+      matrix_type == graph::AtomicType::NEG_REAL or
+      matrix_type == graph::AtomicType::PROBABILITY) {
+    value._double = matrix._matrix(matrix_index);
+  } else if (matrix_type == graph::AtomicType::NATURAL) {
+    value._natural = matrix._nmatrix(matrix_index);
+  } else {
+    throw std::runtime_error(
+        "invalid parent type " + matrix.type.to_string() +
+        " for INDEX operator at node_id " + std::to_string(index));
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

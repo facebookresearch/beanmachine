@@ -797,3 +797,36 @@ TEST(testoperator, matrix_multiply) {
   EXPECT_NEAR(grad1[3]->_matrix.coeff(0), -2.8570, 1e-3);
   EXPECT_NEAR(grad1[3]->_matrix.coeff(1), 0.8053, 1e-3);
 }
+
+TEST(testoperator, index) {
+  Graph g;
+  // negative initialization
+  EXPECT_THROW(
+      g.add_operator(OperatorType::INDEX, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(2, 1);
+  m1 << 2.0, -1.0;
+  auto cm1 = g.add_constant_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::INDEX, std::vector<uint>{cm1}),
+      std::invalid_argument);
+  // requires matrix and natural number
+  uint real = g.add_constant(0.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::INDEX, std::vector<uint>{cm1, real}),
+      std::invalid_argument);
+
+  uint zero = g.add_constant((natural_t)0);
+  uint first_element =
+      g.add_operator(OperatorType::INDEX, std::vector<uint>{cm1, zero});
+  g.query(first_element);
+
+  uint real_three = g.add_constant(3.0);
+  uint times_three = g.add_operator(
+      OperatorType::MULTIPLY, std::vector<uint>{first_element, real_three});
+  g.query(times_three);
+
+  const auto& xy_eval = g.infer(2, InferenceType::REJECTION);
+  EXPECT_EQ(xy_eval[0][0]._double, 2.0);
+  EXPECT_EQ(xy_eval[0][1]._double, 6.0);
+}
