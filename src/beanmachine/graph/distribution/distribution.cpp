@@ -6,6 +6,7 @@
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/distribution/bimixture.h"
 #include "beanmachine/graph/distribution/binomial.h"
+#include "beanmachine/graph/distribution/dirichlet.h"
 #include "beanmachine/graph/distribution/flat.h"
 #include "beanmachine/graph/distribution/gamma.h"
 #include "beanmachine/graph/distribution/half_cauchy.h"
@@ -67,13 +68,30 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
             " for univariate sample type.");
       }
     }
-  }
-  switch (dist_type) {
-    default: {
-      throw std::invalid_argument(
-          "Unknown distribution " +
-          std::to_string(static_cast<int>(dist_type)) +
-          " for multivariate sample type.");
+  } else if (
+      sample_type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX) {
+    switch (dist_type) {
+      case graph::DistributionType::DIRICHLET: {
+        return std::make_unique<Dirichlet>(sample_type, in_nodes);
+      }
+      default: {
+        throw std::invalid_argument(
+            "Unknown distribution " +
+            std::to_string(static_cast<int>(dist_type)) +
+            " for multivariate sample type.");
+      }
+    }
+  } else {
+    switch (dist_type) {
+      case graph::DistributionType::FLAT: {
+        return std::make_unique<Flat>(sample_type, in_nodes);
+      }
+      default: {
+        throw std::invalid_argument(
+            "Unknown distribution " +
+            std::to_string(static_cast<int>(dist_type)) +
+            " for multivariate sample type.");
+      }
     }
   }
 }
@@ -129,6 +147,30 @@ void Distribution::sample(std::mt19937& gen, graph::NodeValue& sample_value)
         for (uint i = 0; i < size; i++) {
           *(sample_value._nmatrix.data() + i) = _natural_sampler(gen);
         }
+        break;
+      default:
+        throw std::runtime_error("Unsupported sample type.");
+        break;
+    }
+    return;
+  } else if (
+      sample_type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX) {
+    switch (sample_type.atomic_type) {
+      case graph::AtomicType::PROBABILITY:
+        sample_value._matrix = _matrix_sampler(gen);
+        break;
+      default:
+        throw std::runtime_error("Unsupported sample type.");
+        break;
+    }
+    return;
+  } else if (
+      sample_type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
+    switch (sample_type.atomic_type) {
+      case graph::AtomicType::REAL:
+      case graph::AtomicType::POS_REAL:
+      case graph::AtomicType::PROBABILITY:
+        sample_value._matrix = _matrix_sampler(gen);
         break;
       default:
         throw std::runtime_error("Unsupported sample type.");
