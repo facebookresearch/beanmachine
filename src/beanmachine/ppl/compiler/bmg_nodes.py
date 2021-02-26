@@ -3524,9 +3524,7 @@ class Query(BMGNode):
 
     @property
     def requirements(self) -> List[Requirement]:
-        # TODO: Rather than passing along the inf type as the
-        # requirement, consider simply creating an "any" requirement object.
-        return [self.inf_type]
+        return [self.graph_type]
 
     @property
     def size(self) -> torch.Size:

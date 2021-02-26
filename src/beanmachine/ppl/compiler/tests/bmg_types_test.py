@@ -152,7 +152,12 @@ class BMGTypesTest(unittest.TestCase):
         bmg.add_sample(bern)
         bmg.add_query(mult)
 
-        observed = bmg.to_dot(True, True, True, True)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="1.0:T>=OH"];
@@ -174,7 +179,7 @@ digraph "graph" {
   N04 -> N05[label="right:P"];
   N05 -> N06[label="mu:R"];
   N05 -> N07[label="probability:P"];
-  N05 -> N10[label="operator:P"];
+  N05 -> N10[label="operator:M"];
   N06 -> N08[label="operand:R"];
   N07 -> N09[label="operand:B"];
 }"""
