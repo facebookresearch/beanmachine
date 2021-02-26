@@ -7,6 +7,7 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
@@ -34,15 +35,20 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
     Node* node = node_ptrs[node_id];
     bool node_is_not_observed = observed.find(node_id) == observed.end();
     if (node->is_stochastic() and node_is_not_observed) {
-      if (node->value.type != AtomicType::PROBABILITY and
-          node->value.type != AtomicType::REAL and
-          node->value.type != AtomicType::POS_REAL and
-          node->value.type != AtomicType::BOOLEAN) {
-        throw std::runtime_error(
-            "NMC only supported on bool/probability/real/positive -- failing on node " +
-            std::to_string(node_id));
+      if (node->value.type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
+        auto sto_node = static_cast<oper::StochasticOperator*>(node);
+        sto_node->unconstrained_value = sto_node->value;
+      } else {
+        if (node->value.type != AtomicType::PROBABILITY and
+            node->value.type != AtomicType::REAL and
+            node->value.type != AtomicType::POS_REAL and
+            node->value.type != AtomicType::BOOLEAN) {
+          throw std::runtime_error(
+              "NMC only supported on bool/probability/real/positive -- failing on node " +
+              std::to_string(node_id));
+        }
+        node->value = proposer::uniform_initializer(gen, node->value.type);
       }
-      node->value = proposer::uniform_initializer(gen, node->value.type);
       std::vector<uint> det_nodes;
       std::vector<uint> sto_nodes;
       std::tie(det_nodes, sto_nodes) = compute_descendants(node_id, supp);
@@ -76,6 +82,12 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
       // - add gradient_log_prob of stochastic nodes
       // Note: all gradients are w.r.t. the current node that we are sampling
       Node* tgt_node = node_ptrs[it->first];
+      if (tgt_node->value.type.variable_type ==
+          VariableType::COL_SIMPLEX_MATRIX) {
+        nmc_step_for_dirichlet(
+            tgt_node, det_nodes, sto_nodes, node_ptrs, old_values, gen);
+        continue;
+      }
       tgt_node->grad1 = 1;
       tgt_node->grad2 = 0;
       for (uint node_id : det_nodes) {
@@ -144,6 +156,129 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
       collect_log_prob(_full_log_prob(ordered_supp));
     }
     collect_sample();
+  }
+}
+
+/*
+We treat the K-dimensional Dirichlet sample as K independent Gamma samples
+divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
+Y_k = X_k / sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
+the attribute value, and X in unconstrainted_value.
+*/
+void nmc_step_for_dirichlet(
+    Node* tgt_node,
+    const std::vector<uint>& det_nodes,
+    const std::vector<uint>& sto_nodes,
+    const std::vector<Node*>& node_ptrs,
+    std::vector<NodeValue>& old_values,
+    std::mt19937& gen) {
+  uint K = tgt_node->value._matrix.size();
+  auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
+  // @lint-ignore CLANGTIDY
+  auto param_node = src_node->in_nodes[0]->in_nodes[0];
+  double param_a, old_X_k, sum;
+  for (uint k = 0; k < K; k++) {
+    // Prepare gradients
+    // Grad1 = (dY_1/dX_k, dY_2/dX_k, ..., dY_K/X_k)
+    // where dY_k/dX_k = (sum(X) - X_k)/sum(X)^2
+    //       dY_j/dX_k = - X_j/sum(X)^2, for j != k
+    // Grad2 = (d^2Y_1/dX^2_k, ..., d^2Y_K/X^2_k)
+    // where d2Y_k/dX2_k = -2 * (sum(X) - X_k)/sum(X)^3
+    //       d2Y_j/dX2_k = -2 * X_j/sum(X)^3
+    param_a = param_node->value._matrix.coeff(k);
+    old_X_k = src_node->unconstrained_value._matrix.coeff(k);
+    sum = src_node->unconstrained_value._matrix.sum();
+    src_node->Grad1 =
+        -src_node->unconstrained_value._matrix.array() / (sum * sum);
+    *(src_node->Grad1.data() + k) += 1 / sum;
+    src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
+    src_node->grad1 = 1;
+    src_node->grad2 = 0;
+    // Propagate gradients
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      old_values[node_id] = node->value;
+      node->compute_gradients();
+    }
+    double old_logweight = 0;
+    double old_grad1 = 0;
+    double old_grad2 = 0;
+    for (uint node_id : sto_nodes) {
+      const Node* node = node_ptrs[node_id];
+      if (node == tgt_node) {
+        // X_k ~ Gamma(param_a, 1)
+        old_logweight +=
+            (param_a - 1.0) * std::log(old_X_k) - old_X_k - lgamma(param_a);
+        old_grad1 += (param_a - 1.0) / old_X_k - 1.0;
+        old_grad2 += (1.0 - param_a) / (old_X_k * old_X_k);
+      } else {
+        old_logweight += node->log_prob();
+        node->gradient_log_prob(old_grad1, old_grad2);
+      }
+    }
+    // Create forward(old) proposer, propose new value of X_k
+    NodeValue old_value(AtomicType::POS_REAL, old_X_k);
+    std::unique_ptr<proposer::Proposer> old_prop =
+        proposer::nmc_proposer(old_value, old_grad1, old_grad2);
+    NodeValue new_value = old_prop->sample(gen);
+    *(src_node->unconstrained_value._matrix.data() + k) = new_value._double;
+    sum = src_node->unconstrained_value._matrix.sum();
+    src_node->value._matrix =
+        src_node->unconstrained_value._matrix.array() / sum;
+
+    // Prapagate values and gradients at new value of X_k
+    src_node->Grad1 =
+        -src_node->unconstrained_value._matrix.array() / (sum * sum);
+    *(src_node->Grad1.data() + k) += 1 / sum;
+    src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      node->eval(gen);
+      node->compute_gradients();
+    }
+    double new_logweight = 0;
+    double new_grad1 = 0;
+    double new_grad2 = 0;
+    for (uint node_id : sto_nodes) {
+      const Node* node = node_ptrs[node_id];
+      if (node == tgt_node) {
+        // X_k ~ Gamma(param_a, 1)
+        new_logweight += (param_a - 1.0) * std::log(new_value._double) -
+            new_value._double - lgamma(param_a);
+        new_grad1 += (param_a - 1.0) / new_value._double - 1.0;
+        new_grad2 += (1.0 - param_a) / (new_value._double * new_value._double);
+      } else {
+        new_logweight += node->log_prob();
+        node->gradient_log_prob(new_grad1, new_grad2);
+      }
+    }
+    // Create the reverse(new) proposer
+    std::unique_ptr<proposer::Proposer> new_prop =
+        proposer::nmc_proposer(new_value, new_grad1, new_grad2);
+    double logacc = new_logweight - old_logweight +
+        new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
+    // Accept or reject, reset (values and) gradients
+    if (logacc > 0 or util::sample_logprob(gen, logacc)) {
+      // accepted:
+      for (uint node_id : det_nodes) {
+        Node* node = node_ptrs[node_id];
+        node->grad1 = node->grad2 = 0;
+      }
+    } else {
+      // rejected:
+      for (uint node_id : det_nodes) {
+        // @lint-ignore CLANGTIDY
+        Node* node = node_ptrs[node_id];
+        // @lint-ignore CLANGTIDY
+        node->value = old_values[node_id];
+        node->grad1 = node->grad2 = 0;
+      }
+      *(src_node->unconstrained_value._matrix.data() + k) = old_X_k;
+      sum = src_node->unconstrained_value._matrix.sum();
+      src_node->value._matrix =
+          src_node->unconstrained_value._matrix.array() / sum;
+    }
+    tgt_node->grad1 = tgt_node->grad2 = 0;
   }
 }
 
