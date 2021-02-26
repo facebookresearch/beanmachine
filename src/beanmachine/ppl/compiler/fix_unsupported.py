@@ -10,6 +10,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ConstantNode,
     DivisionNode,
     EqualNode,
+    NotEqualNode,
     UniformNode,
 )
 from beanmachine.ppl.compiler.bmg_types import (
@@ -85,28 +86,49 @@ class UnsupportedNodeFixer:
             and supremum(node.left.inf_type, node.right.inf_type, Boolean) == Boolean
         )
 
-    def _replace_bool_comparison(self, node: ComparisonNode) -> Optional[BMGNode]:
-        # x == y        -->  if x then y else not y
-        # x == 1        -->  x
+    def _replace_bool_equals(self, node: EqualNode) -> BMGNode:
         # 1 == y        -->  y
-        # x == 0        -->  not x
+        # x == 1        -->  x
         # 0 == y        -->  not y
-        # TODO: x != y  -->  if x then not y else y
+        # x == 0        -->  not x
+        # x == y        -->  if x then y else not y
+        if node.left.inf_type == One:
+            return node.right
+        if node.right.inf_type == One:
+            return node.left
+        if node.left.inf_type == Zero:
+            return self.bmg.add_complement(node.right)
+        if node.right.inf_type == Zero:
+            return self.bmg.add_complement(node.left)
+        alt = self.bmg.add_complement(node.right)
+        return self.bmg.add_if_then_else(node.left, node.right, alt)
+
+    def _replace_bool_not_equals(self, node: NotEqualNode) -> BMGNode:
+        # 1 != y        -->  not y
+        # x != 1        -->  not x
+        # 0 != y        -->  y
+        # x != 0        -->  x
+        # x != y        -->  if x then not y else y
+        if node.left.inf_type == One:
+            return self.bmg.add_complement(node.right)
+        if node.right.inf_type == One:
+            return self.bmg.add_complement(node.left)
+        if node.left.inf_type == Zero:
+            return node.right
+        if node.right.inf_type == Zero:
+            return node.left
+        cons = self.bmg.add_complement(node.right)
+        return self.bmg.add_if_then_else(node.left, cons, node.right)
+
+    def _replace_bool_comparison(self, node: ComparisonNode) -> Optional[BMGNode]:
         # TODO: x > y   -->  if x then not y else false
         # TODO: x >= y  -->  if x then true else not y
         # TODO: x < y   -->  if x then false else y
         # TODO: x <= y  -->  if x then y else true
         if isinstance(node, EqualNode):
-            if node.left.inf_type == One:
-                return node.right
-            if node.right.inf_type == One:
-                return node.left
-            if node.left.inf_type == Zero:
-                return self.bmg.add_complement(node.right)
-            if node.right.inf_type == Zero:
-                return self.bmg.add_complement(node.left)
-            alt = self.bmg.add_complement(node.right)
-            return self.bmg.add_if_then_else(node.left, node.right, alt)
+            return self._replace_bool_equals(node)
+        if isinstance(node, NotEqualNode):
+            return self._replace_bool_not_equals(node)
         return None
 
     def _replace_unsupported_node(self, node: BMGNode) -> Optional[BMGNode]:
