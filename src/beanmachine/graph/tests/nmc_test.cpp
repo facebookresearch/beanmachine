@@ -317,3 +317,65 @@ TEST(testnmc, infinite_grad) {
   EXPECT_NEAR(mean, 0.5, 0.1);
   EXPECT_LT(0.0, var);
 }
+
+TEST(testnmc, bernoulli_dirichlet) {
+  /*
+  Model:
+    (p0, p1) ~ Dirichlet(1, 2)
+    y ~ Bernoulli(p1)
+  Data:
+    y = true
+  Posterior:
+    p0 ~ Beta(1, 3)
+    p1 ~ Beta(3, 1)
+  */
+  Graph g;
+  Eigen::MatrixXd m1(2, 1);
+  m1 << 1.0, 2.0;
+  uint alphas = g.add_constant_pos_matrix(m1);
+  uint dirich_dist = g.add_distribution(
+      DistributionType::DIRICHLET,
+      ValueType(
+          VariableType::COL_SIMPLEX_MATRIX, AtomicType::PROBABILITY, 2, 1),
+      std::vector<uint>{alphas});
+  uint dirich_vec =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dirich_dist});
+
+  for (uint k = 0; k < 2; k++) {
+    uint idx = g.add_constant((natural_t)k);
+    uint p =
+        g.add_operator(OperatorType::INDEX, std::vector<uint>{dirich_vec, idx});
+    uint bern_dist = g.add_distribution(
+        DistributionType::BERNOULLI, AtomicType::BOOLEAN, std::vector<uint>{p});
+    uint y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{bern_dist});
+    g.query(p);
+    if (k == 1) {
+      g.observe(y, true);
+    }
+  }
+  int num_samples = 1000;
+  std::vector<std::vector<NodeValue>> samples =
+      g.infer(num_samples, InferenceType::NMC);
+  double sum0 = 0, sum1 = 0;
+  double sum0sq = 0, sum1sq = 0;
+  for (const auto& sample : samples) {
+    const auto& p0 = sample.front();
+    ASSERT_EQ(p0.type, AtomicType::PROBABILITY);
+    sum0 += p0._double;
+    sum0sq += p0._double * p0._double;
+    const auto& p1 = sample.back();
+    ASSERT_EQ(p1.type, AtomicType::PROBABILITY);
+    sum1 += p1._double;
+    sum1sq += p1._double * p1._double;
+  }
+  // p0 ~ Beta(1, 3)
+  double mean = sum0 / num_samples;
+  double var = sum0sq / num_samples - mean * mean;
+  EXPECT_NEAR(mean, 0.25, 0.01);
+  EXPECT_NEAR(var, 3.0 / (4 * 4 * 5), 0.01);
+  // p1 ~ Beta(3, 1)
+  mean = sum1 / num_samples;
+  var = sum1sq / num_samples - mean * mean;
+  EXPECT_NEAR(mean, 0.75, 0.01);
+  EXPECT_NEAR(var, 3.0 / (4 * 4 * 5), 0.01);
+}

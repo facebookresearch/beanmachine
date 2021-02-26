@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "beanmachine/graph/operator/controlop.h"
+#include "beanmachine/graph/operator/linalgop.h"
 #include "beanmachine/graph/operator/multiaryop.h"
 #include "beanmachine/graph/operator/unaryop.h"
 
@@ -240,6 +241,12 @@ void IfThenElse::compute_gradients() {
     grad1 = in_nodes[2]->grad1;
     grad2 = in_nodes[2]->grad2;
   }
+}
+
+void Index::compute_gradients() {
+  assert(in_nodes.size() == 2);
+  grad1 = in_nodes[0]->Grad1.coeff(in_nodes[1]->value._natural);
+  grad2 = in_nodes[0]->Grad2.coeff(in_nodes[1]->value._natural);
 }
 
 } // namespace oper

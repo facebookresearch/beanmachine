@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
 #include "beanmachine/graph/operator/stochasticop.h"
+#include "beanmachine/graph/graph.h"
 
 namespace beanmachine {
 namespace oper {
@@ -78,6 +79,8 @@ Sample::Sample(const std::vector<graph::Node*>& in_nodes)
   // the type of value of a SAMPLE node is obviously the sample type
   // of the distribution parent
   value = graph::NodeValue(dist->sample_type);
+  unconstrained_value = graph::NodeValue(graph::ValueType(
+      dist->sample_type.variable_type, graph::AtomicType::REAL, 1, 0));
 }
 
 IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
@@ -132,6 +135,8 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
       throw std::invalid_argument("Invalid sample type for for iid sample. ");
   }
   value = graph::NodeValue(vtype);
+  unconstrained_value = graph::NodeValue(graph::ValueType(
+      dist->sample_type.variable_type, graph::AtomicType::REAL, 1, 0));
   return;
 }
 

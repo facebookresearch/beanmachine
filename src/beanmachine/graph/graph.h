@@ -737,5 +737,16 @@ struct Graph {
       common_transformations;
 };
 
+/*
+A temporary solution to use NMC sampler on Dirichlet sample.
+*/
+void nmc_step_for_dirichlet(
+    Node* tgt_node,
+    const std::vector<uint>& det_nodes,
+    const std::vector<uint>& sto_nodes,
+    const std::vector<Node*>& node_ptrs,
+    std::vector<NodeValue>& old_values,
+    std::mt19937& gen);
+
 } // namespace graph
 } // namespace beanmachine
