@@ -32,27 +32,42 @@ def c():
 
 
 class BMGQueryTest(unittest.TestCase):
-    def disabled_test_constant_functional(self) -> None:
-
-        # TODO: This test is disabled because there is a bug
-        # in the type checker which crashes when it tries
-        # to verify the type of a queried one-hot tensor.
-        # Fix that bug and then re-enable this test
-
+    def test_constant_functional(self) -> None:
         self.maxDiff = None
 
         observed = BMGInference().to_dot([c()], {})
-        expected = """ """
+        expected = """
+digraph "graph" {
+  N0[label=1.0];
+  N1[label=Query];
+  N0 -> N1;
+}"""
         self.assertEqual(expected.strip(), observed.strip())
 
+        # TODO: This is wrong; we need to ensure that we do NOT
+        # TODO: emit the g.query(n0) when the node is a constant.
         observed = BMGInference().to_cpp([c()], {})
-        expected = """ """
+        expected = """
+graph::Graph g;
+uint n0 = g.add_constant(torch::from_blob((float[]){1.0}, {}));
+g.query(n0);
+         """
         self.assertEqual(expected.strip(), observed.strip())
 
+        # TODO: This is wrong; we need to ensure that we do NOT
+        # TODO: emit the g.query(n0) when the node is a constant.
         observed = BMGInference().to_python([c()], {})
-        expected = """ """
+        expected = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant(tensor(1.0))
+g.query(n0)
+        """
         self.assertEqual(expected.strip(), observed.strip())
 
-        observed = BMGInference().infer([c()], {}, 1)[c()]
-        expected = """ """
-        self.assertEqual(str(expected).strip(), observed.strip())
+        # TODO: This part of the test is disabled because it raises
+        # an exception when we add a query on a constant.
+        # observed = BMGInference().infer([c()], {}, 1)[c()]
+        # expected = """ """
+        # self.assertEqual(str(expected).strip(), observed.strip())
