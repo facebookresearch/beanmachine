@@ -8,6 +8,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ComparisonNode,
     EqualNode,
     GreaterThanEqualNode,
+    LessThanEqualNode,
     NotEqualNode,
 )
 from beanmachine.ppl.compiler.bmg_types import Boolean, One, Zero, supremum
@@ -80,16 +81,34 @@ class BoolComparisonFixer:
         alt = self.bmg.add_complement(node.right)
         return self.bmg.add_if_then_else(node.left, cons, alt)
 
+    def _replace_bool_lte(self, node: LessThanEqualNode) -> BMGNode:
+        # 1 <= y        -->  y
+        # x <= 1        -->  true
+        # 0 <= y        -->  true
+        # x <= 0        -->  not x
+        # x <= y        -->  if x then y else true
+        if node.left.inf_type == One:
+            return node.right
+        if node.right.inf_type == One:
+            return self.bmg.add_constant_of_type(True, Boolean)
+        if node.left.inf_type == Zero:
+            return self.bmg.add_constant_of_type(True, Boolean)
+        if node.right.inf_type == Zero:
+            return self.bmg.add_complement(node.left)
+        alt = self.bmg.add_constant_of_type(True, Boolean)
+        return self.bmg.add_if_then_else(node.left, node.right, alt)
+
     def _replace_bool_comparison(self, node: ComparisonNode) -> Optional[BMGNode]:
         # TODO: x > y   -->  if x then not y else false
         # TODO: x < y   -->  if x then false else y
-        # TODO: x <= y  -->  if x then y else true
         if isinstance(node, EqualNode):
             return self._replace_bool_equals(node)
         if isinstance(node, NotEqualNode):
             return self._replace_bool_not_equals(node)
         if isinstance(node, GreaterThanEqualNode):
             return self._replace_bool_gte(node)
+        if isinstance(node, LessThanEqualNode):
+            return self._replace_bool_lte(node)
 
         return None
 
