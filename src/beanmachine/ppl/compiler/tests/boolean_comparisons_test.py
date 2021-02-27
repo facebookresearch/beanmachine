@@ -122,6 +122,41 @@ def gte_x_y():
     return flip(0) >= flip(1)
 
 
+#
+# >=
+#
+
+
+@bm.functional
+def lte_x_0():
+    # not flip(0)
+    return flip(0) <= 0.0
+
+
+@bm.functional
+def lte_x_1():
+    # true
+    return flip(0) <= 1.0
+
+
+@bm.functional
+def lte_0_y():
+    # true
+    return 0 <= flip(1)
+
+
+@bm.functional
+def lte_1_y():
+    # flip(1)
+    return 1 <= flip(1)
+
+
+@bm.functional
+def lte_x_y():
+    # if flip(0) then flip(1) else true
+    return flip(0) <= flip(1)
+
+
 class BooleanComparisonsTest(unittest.TestCase):
     def test_boolean_comparison_eq(self) -> None:
 
@@ -329,6 +364,79 @@ digraph "graph" {
   N0 -> N1;
   N1 -> N2;
   N3 -> N4;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_boolean_comparison_lte(self) -> None:
+
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([lte_x_y()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Sample];
+  N4[label=True];
+  N5[label=if];
+  N6[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N1 -> N3;
+  N2 -> N5;
+  N3 -> N5;
+  N4 -> N5;
+  N5 -> N6;
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([lte_x_0()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=complement];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([lte_0_y()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=True];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N3 -> N4;
+}
+"""
+
+        self.assertEqual(expected.strip(), observed.strip())
+        observed = BMGInference().to_dot([lte_x_1()], {})
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([lte_1_y()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
