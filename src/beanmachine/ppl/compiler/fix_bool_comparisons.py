@@ -9,6 +9,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     EqualNode,
     GreaterThanEqualNode,
     LessThanEqualNode,
+    LessThanNode,
     NotEqualNode,
 )
 from beanmachine.ppl.compiler.bmg_types import Boolean, One, Zero, supremum
@@ -98,9 +99,27 @@ class BoolComparisonFixer:
         alt = self.bmg.add_constant_of_type(True, Boolean)
         return self.bmg.add_if_then_else(node.left, node.right, alt)
 
+    def _replace_bool_lt(self, node: LessThanNode) -> BMGNode:
+        # 1 < y        -->  false
+        # x < 1        -->  not x
+        # 0 < y        -->  y
+        # x < 0        -->  false
+        # x < y        -->  if x then false else y
+        if node.left.inf_type == One:
+            return self.bmg.add_constant_of_type(False, Boolean)
+        if node.right.inf_type == One:
+            return self.bmg.add_complement(node.left)
+        if node.left.inf_type == Zero:
+            return node.right
+        if node.right.inf_type == Zero:
+            return self.bmg.add_constant_of_type(False, Boolean)
+        cons = self.bmg.add_constant_of_type(False, Boolean)
+        return self.bmg.add_if_then_else(node.left, cons, node.right)
+
     def _replace_bool_comparison(self, node: ComparisonNode) -> Optional[BMGNode]:
+        # TODO: Should we treat "x is y" the same as "x == y" when they are
+        # bools, or should that be an error?
         # TODO: x > y   -->  if x then not y else false
-        # TODO: x < y   -->  if x then false else y
         if isinstance(node, EqualNode):
             return self._replace_bool_equals(node)
         if isinstance(node, NotEqualNode):
@@ -109,10 +128,19 @@ class BoolComparisonFixer:
             return self._replace_bool_gte(node)
         if isinstance(node, LessThanEqualNode):
             return self._replace_bool_lte(node)
+        if isinstance(node, LessThanNode):
+            return self._replace_bool_lt(node)
 
         return None
 
     def fix_bool_comparisons(self) -> None:
+        # TODO: An alternative approach to this traversal would be:
+        # * Do a linear search to find the set of all bool comparisons.
+        # * For each original bool comparison:
+        #   * generate the replacement IF node
+        #   * for each output node of the original, replace the corresponding input
+        #   * the original now has no outputs and is a deletable leaf,
+        #     so delete it.
         replacements = {}
         nodes = self.bmg._traverse_from_roots()
         for node in nodes:
