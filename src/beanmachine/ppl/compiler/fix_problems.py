@@ -38,6 +38,7 @@ from beanmachine.ppl.compiler.bmg_types import (
 )
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
 from beanmachine.ppl.compiler.fix_additions import AdditionFixer
+from beanmachine.ppl.compiler.fix_bool_comparisons import BoolComparisonFixer
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_tensor_ops import TensorOpsFixer
@@ -410,6 +411,7 @@ def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorRe
     # add(1, negate(to_real(p)).  Better to turn it into complement(p)
     # and orphan the negate(p) early.
     AdditionFixer(bmg).additions_to_complements()
+    BoolComparisonFixer(bmg).fix_bool_comparisons()
     f = UnsupportedNodeFixer(bmg)
     f.fix_unsupported_nodes()
     if f.errors.any():
