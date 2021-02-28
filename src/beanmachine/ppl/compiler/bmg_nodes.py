@@ -3544,10 +3544,20 @@ class Query(BMGNode):
         return g.query(d[self.operator])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        return f"g.query(n{d[self.operator]})"
+        # BMG does not allow a query on a constant, but it is possible
+        # to end up with one in the graph. Suppress those from codegen.
+        q = self.operator
+        if isinstance(q, ConstantNode):
+            return ""
+        return f"g.query(n{d[q]})"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return f"g.query(n{d[self.operator]});"
+        # BMG does not allow a query on a constant, but it is possible
+        # to end up with one in the graph. Suppress those from codegen.
+        q = self.operator
+        if isinstance(q, ConstantNode):
+            return ""
+        return f"g.query(n{d[q]});"
 
     def support(self) -> Iterator[Any]:
         return []
