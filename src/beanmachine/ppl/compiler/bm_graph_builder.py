@@ -343,10 +343,12 @@ class BMGraphBuilder:
 
     in_flight: Set[MemoizationKey]
 
-    # We also need to keep track of which query nodes are associated
-    # with which RVIDs:
+    # We also need to keep track of which query node is associated
+    # with each RVID queried by the user. Query nodes are deduplicated
+    # so it is possible that two different RVIDs are associated with
+    # the same query node.
 
-    query_rv_map: Dict[Query, RVIdentifier]
+    _rv_to_query: Dict[RVIdentifier, Query]
 
     # This allows us to turn on a special problem-fixing pass to help
     # work around problems under investigation.
@@ -358,7 +360,7 @@ class BMGraphBuilder:
         self.lifted_map = {}
         self.in_flight = set()
         self.nodes = {}
-        self.query_rv_map = {}
+        self._rv_to_query = {}
         self.function_map = {
             # Math functions
             math.exp: self.handle_exp,
@@ -1924,16 +1926,13 @@ g = graph.Graph()
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, Any],
     ) -> None:
-        # TODO: Add error handling and tests for scenarios where
-        # an rv does not return a distribution or a functional does
-        # not return an operation.
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
             self.add_observation(node, val)
         for qrv in queries:
             node = self._rv_to_node(qrv)
             q = self.add_query(node)
-            self.query_rv_map[q] = qrv
+            self._rv_to_query[qrv] = q
 
     def _fix_problems(self) -> None:
         from beanmachine.ppl.compiler.fix_problems import fix_problems
@@ -1946,47 +1945,83 @@ g = graph.Graph()
     ) -> MonteCarloSamples:
         # TODO: Add num_chains to API
         # TODO: Add inference kind to API
+        # TODO: Test duplicated observations.
+        # TODO: Test duplicated queries.
         self._fix_problems()
         g = Graph()
 
-        d: Dict[BMGNode, int] = {}
-        q: Dict[int, RVIdentifier] = {}
+        node_to_graph_id: Dict[BMGNode, int] = {}
+        query_to_query_id: Dict[Query, int] = {}
         for node in self._traverse_from_roots():
-            # When we add a query to the graph, we get back the
-            # column index in the sample set for that query.
-            # Make a note of what RVID that is associated with.
-            d[node] = node._add_to_graph(g, d)
-            if isinstance(node, Query) and node in self.query_rv_map:
-                q[d[node]] = self.query_rv_map[node]
+            # We add all nodes that are reachable from a query, observation or
+            # sample to the BMG graph such that inputs are always added before
+            # outputs.
+            #
+            # TODO: We could consider traversing only nodes reachable from
+            # observations or queries.
+            #
+            # There are four cases to consider:
+            #
+            # * Observations: there is no associated value returned by the graph
+            #   when we add an observation, so there is nothing to track.
+            #
+            # * Query of a constant: BMG does not support query on a constant.
+            #   We skip adding these; when it comes time to fill in the results
+            #   dictionary we will just make a vector of the constant value.
+            #
+            # * Query of an operator: The graph gives us the column index in the
+            #   list of samples it returns for this query. We track it in
+            #   query_to_query_id.
+            #
+            # * Any other node: the graph gives us the graph identifier of the new
+            #   node. We need to know this for each node that will be used as an input
+            #   later, so we track that in node_to_graph_id.
 
-        # Suppose we have two queries and three samples; the shape we get
-        # from BMG is:
-        #
-        # [ [s00, s01], [s10, s11], [s20, s21] ]
-        #
-        # But what we need is:
-        #
-        # {
-        #   RV0: tensor([[s00, s10, s20]]),
-        #   RV1: tensor([[s01, s11, s21]])
-        # }
-        #
-        # Start by taking the transpose.
+            if isinstance(node, Observation):
+                node._add_to_graph(g, node_to_graph_id)
+            elif isinstance(node, Query):
+                if not isinstance(node.operator, ConstantNode):
+                    query_id = node._add_to_graph(g, node_to_graph_id)
+                    query_to_query_id[node] = query_id
+            else:
+                graph_id = node._add_to_graph(g, node_to_graph_id)
+                node_to_graph_id[node] = graph_id
 
-        samples = g.infer(num_samples, InferenceType.NMC)
-        transp = tensor(samples).transpose(0, 1)
+        samples = tensor([])
 
-        # Now we've got
-        #
-        # [ [s00, s10, s20], [s01, s11, s21] ]
-        #
-        # And we can turn this into a dictionary with a comprehension:
+        # BMG requires that we have at least one query.
+        if len(query_to_query_id) != 0:
+            raw = g.infer(num_samples, InferenceType.NMC)
+            # Suppose we have two queries and three samples; the shape we get
+            # from BMG is:
+            #
+            # [ [s00, s01], [s10, s11], [s20, s21] ]
+            #
+            # But what we need in the final dictionary is:
+            #
+            # {
+            #   RV0: tensor([[s00, s10, s20]]),
+            #   RV1: tensor([[s01, s11, s21]])
+            # }
+            #
+            # Start by taking the transpose.
+            samples = tensor(raw).transpose(0, 1)
+            # Now we've got
+            #
+            # [ [s00, s10, s20], [s01, s11, s21] ]
 
-        result: Dict[RVIdentifier, Tensor] = {
-            q[index]: samples.reshape([1] + list(samples.shape))
-            for index, samples in enumerate(transp)
-            if index in q
-        }
+        result: Dict[RVIdentifier, Tensor] = {}
+
+        for (rv, query) in self._rv_to_query.items():
+            if isinstance(query.operator, ConstantNode):
+                # TODO: Test this with tensor and normal constants
+                result[rv] = tensor([[query.operator.value] * num_samples])
+            else:
+                query_id = query_to_query_id[query]
+                data = samples[query_id]
+                new_shape = [1] + list(data.shape)
+                result[rv] = data.reshape(new_shape)
+
         return MonteCarloSamples(result)
 
     def infer_deprecated(
