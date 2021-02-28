@@ -190,6 +190,41 @@ def lt_x_y():
     return flip(0) < flip(1)
 
 
+#
+# >
+#
+
+
+@bm.functional
+def gt_x_0():
+    # flip(0)
+    return flip(0) > 0.0
+
+
+@bm.functional
+def gt_x_1():
+    # false
+    return flip(0) > 1.0
+
+
+@bm.functional
+def gt_0_y():
+    # false
+    return 0 > flip(1)
+
+
+@bm.functional
+def gt_1_y():
+    # not flip(1)
+    return 1 > flip(1)
+
+
+@bm.functional
+def gt_x_y():
+    # if flip(0) then not flip(1) else false
+    return flip(0) > flip(1)
+
+
 class BooleanComparisonsTest(unittest.TestCase):
     def test_boolean_comparison_eq(self) -> None:
 
@@ -545,4 +580,79 @@ digraph "graph" {
 }
 """
 
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_boolean_comparison_gt(self) -> None:
+
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([gt_x_y()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Sample];
+  N4[label=complement];
+  N5[label=False];
+  N6[label=if];
+  N7[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N1 -> N3;
+  N2 -> N6;
+  N3 -> N4;
+  N4 -> N6;
+  N5 -> N6;
+  N6 -> N7;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([gt_x_0()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([gt_1_y()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=complement];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([gt_0_y()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=False];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N3 -> N4;
+}
+"""
+
+        self.assertEqual(expected.strip(), observed.strip())
+        observed = BMGInference().to_dot([gt_x_1()], {})
         self.assertEqual(expected.strip(), observed.strip())

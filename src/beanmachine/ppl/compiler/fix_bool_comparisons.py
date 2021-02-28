@@ -8,6 +8,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ComparisonNode,
     EqualNode,
     GreaterThanEqualNode,
+    GreaterThanNode,
     LessThanEqualNode,
     LessThanNode,
     NotEqualNode,
@@ -82,6 +83,24 @@ class BoolComparisonFixer:
         alt = self.bmg.add_complement(node.right)
         return self.bmg.add_if_then_else(node.left, cons, alt)
 
+    def _replace_bool_gt(self, node: GreaterThanNode) -> BMGNode:
+        # 1 > y        -->  not y
+        # x > 1        -->  false
+        # 0 > y        -->  false
+        # x > 0        -->  x
+        # x > y        -->  if x then not y else false
+        if node.left.inf_type == One:
+            return self.bmg.add_complement(node.right)
+        if node.right.inf_type == One:
+            return self.bmg.add_constant_of_type(False, Boolean)
+        if node.left.inf_type == Zero:
+            return self.bmg.add_constant_of_type(False, Boolean)
+        if node.right.inf_type == Zero:
+            return node.left
+        cons = self.bmg.add_complement(node.right)
+        alt = self.bmg.add_constant_of_type(False, Boolean)
+        return self.bmg.add_if_then_else(node.left, cons, alt)
+
     def _replace_bool_lte(self, node: LessThanEqualNode) -> BMGNode:
         # 1 <= y        -->  y
         # x <= 1        -->  true
@@ -119,13 +138,14 @@ class BoolComparisonFixer:
     def _replace_bool_comparison(self, node: ComparisonNode) -> Optional[BMGNode]:
         # TODO: Should we treat "x is y" the same as "x == y" when they are
         # bools, or should that be an error?
-        # TODO: x > y   -->  if x then not y else false
         if isinstance(node, EqualNode):
             return self._replace_bool_equals(node)
         if isinstance(node, NotEqualNode):
             return self._replace_bool_not_equals(node)
         if isinstance(node, GreaterThanEqualNode):
             return self._replace_bool_gte(node)
+        if isinstance(node, GreaterThanNode):
+            return self._replace_bool_gt(node)
         if isinstance(node, LessThanEqualNode):
             return self._replace_bool_lte(node)
         if isinstance(node, LessThanNode):
