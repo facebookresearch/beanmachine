@@ -64,8 +64,7 @@ n0 = g.add_constant(tensor(1.0))
         """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: This part of the test is disabled because it raises
-        # an exception when we add a query on a constant.
-        # observed = BMGInference().infer([c()], {}, 1)[c()]
-        # expected = """ """
-        # self.assertEqual(str(expected).strip(), observed.strip())
+        samples = BMGInference().infer([c()], {}, 10)
+        observed = samples[c()]
+        expected = "tensor([[1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])"
+        self.assertEqual(expected.strip(), str(observed).strip())
