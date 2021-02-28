@@ -44,25 +44,23 @@ digraph "graph" {
 }"""
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: This is wrong; we need to ensure that we do NOT
-        # TODO: emit the g.query(n0) when the node is a constant.
+        # We do not emit the query instruction when the queried node
+        # is a constant.
         observed = BMGInference().to_cpp([c()], {})
         expected = """
 graph::Graph g;
 uint n0 = g.add_constant(torch::from_blob((float[]){1.0}, {}));
-g.query(n0);
          """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: This is wrong; we need to ensure that we do NOT
-        # TODO: emit the g.query(n0) when the node is a constant.
+        # We do not emit the query instruction when the queried node
+        # is a constant.
         observed = BMGInference().to_python([c()], {})
         expected = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant(tensor(1.0))
-g.query(n0)
         """
         self.assertEqual(expected.strip(), observed.strip())
 
