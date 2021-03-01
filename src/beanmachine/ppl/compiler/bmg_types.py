@@ -544,12 +544,29 @@ simplex_precision = 1e-10
 
 
 def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
-    # There is more than one element. Can we represent this as a
-    # two-dimensional matrix?
-    if v.numel() == 1:
+    elements = v.numel()
+
+    # If we have tensor([]) then that is not useful as a value
+    # or a matrix; just call it a tensor.
+    if elements == 0:
+        return Tensor
+
+    # If we have a single element tensor no matter what its dimensionality,
+    # treat it as a single value.
+
+    if elements == 1:
         return type_of_value(float(v))  # pyre-fixme
+
+    # We have more than one element. What's the shape?
+
     shape = v.shape
     dimensions = len(shape)
+
+    # If we have more than two dimensions then we cannot make it a matrix.
+    # CONSIDER: Suppose we have something like [[[10, 20]]]] which is 1 x 1 x 2.
+    # We could reduce that to a 1 x 2 matrix if we needed to. We might discard
+    # sizes on the right equal to one.
+
     if dimensions > 2:
         return Tensor
     r, c = _size_to_rc(shape)

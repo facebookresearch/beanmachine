@@ -1267,18 +1267,31 @@ class DirichletNode(DistributionNode):
         self.inputs[0] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
+        # TODO: Fix this; it should be a simplex
         return BMGTensor
 
     def _compute_inf_type(self) -> BMGLatticeType:
+        # TODO: Fix this; it should be a simplex
         return BMGTensor
 
     @property
     def requirements(self) -> List[Requirement]:
-        # The input to a Direchlet must be a tensor.
-        # TODO: We do not yet support Dirichlet in BMG; when we do
-        # verify that this is correct. Also, we may wish at that
-        # time to also note that the sample type is a simplex.
-        return [BMGTensor]
+        # BMG's Dirichlet node requires that the input be exactly one
+        # vector of positive reals, and the length of the vector is
+        # the number of elements in the simplex we produce. We can
+        # express that restriction as a positive real matrix with
+        # row count equal to 1 and column count equal to the final
+        # dimension of the size.
+        #
+        # The "max" is needed to handle the degenerate case of
+        # Dirichlet(tensor([])) -- in this case we will say that we require
+        # a single positive real and that the requirement cannot be met.
+
+        required_rows = 1
+        size = self.size
+        dimensions = len(size)
+        required_columns = max(1, size[dimensions - 1]) if dimensions > 0 else 1
+        return [PositiveReal.with_dimensions(required_rows, required_columns)]
 
     @property
     def size(self) -> torch.Size:

@@ -5,6 +5,7 @@
 
 import unittest
 
+import beanmachine.ppl as bm
 from beanmachine.graph import (
     AtomicType,
     DistributionType,
@@ -16,6 +17,7 @@ from beanmachine.graph import (
 )
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from torch import tensor
+from torch.distributions import Dirichlet
 
 
 def tidy(s: str) -> str:
@@ -41,6 +43,60 @@ s3x1 = ValueType(simplex, prob, 3, 1)
 r3x1 = ValueType(broadcast, real, 3, 1)
 nmc = InferenceType.NMC
 rejection = InferenceType.REJECTION
+
+# Here are some simple models we'll use to test the compiler.
+
+
+@bm.random_variable
+def d0():
+    return Dirichlet(tensor([]))
+
+
+# Torch rejects this one.
+# @bm.random_variable
+# def d1a():
+#     return Dirichlet(tensor(0.5))
+
+
+@bm.random_variable
+def d1b():
+    return Dirichlet(tensor([1.0]))
+
+
+@bm.random_variable
+def d1c():
+    return Dirichlet(tensor([[1.5]]))
+
+
+@bm.random_variable
+def d1d():
+    return Dirichlet(tensor([[[2.0]]]))
+
+
+# Torch rejects this one
+# @bm.random_variable
+# def d1e():
+#     return Dirichlet(tensor([[[-2.0]]]))
+
+
+@bm.random_variable
+def d2a():
+    return Dirichlet(tensor([2.5, 3.0]))
+
+
+@bm.random_variable
+def d2b():
+    return Dirichlet(tensor([[3.5, 4.0]]))
+
+
+@bm.random_variable
+def d2c():
+    return Dirichlet(tensor([[[4.5, 5.0]]]))
+
+
+@bm.random_variable
+def d23():
+    return Dirichlet(tensor([[5.5, 6.0, 6.5], [7.0, 7.5, 8.0]]))
 
 
 class DirichletTest(unittest.TestCase):
@@ -166,3 +222,78 @@ Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1 1.5
  2 2.5"""
         observed = g.to_string()
         self.assertEqual(tidy(expected), tidy(observed))
+
+    def test_dirichlet_type_analysis(self) -> None:
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+        queries = [d0(), d1b(), d1c(), d1d(), d2a(), d2b(), d2c(), d23()]
+        bmg.accumulate_graph(queries, {})
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+            after_transform=False,
+            label_edges=False,
+        )
+        expected = """
+digraph "graph" {
+  N00[label="[]:T>=T"];
+  N01[label="Dirichlet:T>=T"];
+  N02[label="Sample:T>=T"];
+  N03[label="Query:T>=T"];
+  N04[label="[1.0]:T>=OH"];
+  N05[label="Dirichlet:T>=T"];
+  N06[label="Sample:T>=T"];
+  N07[label="Query:T>=T"];
+  N08[label="[[1.5]]:T>=R+"];
+  N09[label="Dirichlet:T>=T"];
+  N10[label="Sample:T>=T"];
+  N11[label="Query:T>=T"];
+  N12[label="[[[2.0]]]:T>=N"];
+  N13[label="Dirichlet:T>=T"];
+  N14[label="Sample:T>=T"];
+  N15[label="Query:T>=T"];
+  N16[label="[2.5,3.0]:T>=MR+[1,2]"];
+  N17[label="Dirichlet:T>=T"];
+  N18[label="Sample:T>=T"];
+  N19[label="Query:T>=T"];
+  N20[label="[[3.5,4.0]]:T>=MR+[1,2]"];
+  N21[label="Dirichlet:T>=T"];
+  N22[label="Sample:T>=T"];
+  N23[label="Query:T>=T"];
+  N24[label="[[[4.5,5.0]]]:T>=T"];
+  N25[label="Dirichlet:T>=T"];
+  N26[label="Sample:T>=T"];
+  N27[label="Query:T>=T"];
+  N28[label="[[5.5,6.0,6.5],\\\\n[7.0,7.5,8.0]]:T>=MR+[2,3]"];
+  N29[label="Dirichlet:T>=T"];
+  N30[label="Sample:T>=T"];
+  N31[label="Query:T>=T"];
+  N00 -> N01[label="R+"];
+  N01 -> N02[label=T];
+  N02 -> N03[label=T];
+  N04 -> N05[label="R+"];
+  N05 -> N06[label=T];
+  N06 -> N07[label=T];
+  N08 -> N09[label="R+"];
+  N09 -> N10[label=T];
+  N10 -> N11[label=T];
+  N12 -> N13[label="R+"];
+  N13 -> N14[label=T];
+  N14 -> N15[label=T];
+  N16 -> N17[label="MR+[1,2]"];
+  N17 -> N18[label=T];
+  N18 -> N19[label=T];
+  N20 -> N21[label="MR+[1,2]"];
+  N21 -> N22[label=T];
+  N22 -> N23[label=T];
+  N24 -> N25[label="MR+[1,2]"];
+  N25 -> N26[label=T];
+  N26 -> N27[label=T];
+  N28 -> N29[label="MR+[1,3]"];
+  N29 -> N30[label=T];
+  N30 -> N31[label=T];
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())
