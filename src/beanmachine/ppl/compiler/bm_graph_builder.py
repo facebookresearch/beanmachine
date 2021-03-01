@@ -71,6 +71,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     Chi2Node,
     ComplementNode,
     ConstantNode,
+    ConstantPositiveRealMatrixNode,
     ConstantTensorNode,
     DirichletNode,
     DistributionNode,
@@ -522,6 +523,13 @@ class BMGraphBuilder:
     @memoize
     def add_pos_real(self, value: float) -> PositiveRealNode:
         node = PositiveRealNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_pos_real_matrix(self, value: Tensor) -> ConstantPositiveRealMatrixNode:
+        assert len(value.size()) <= 2
+        node = ConstantPositiveRealMatrixNode(value)
         self.add_node(node)
         return node
 

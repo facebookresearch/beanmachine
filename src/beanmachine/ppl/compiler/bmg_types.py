@@ -5,6 +5,7 @@ from typing import Any, Union
 
 import torch
 from beanmachine.ppl.utils.memoize import memoize
+from torch import Size
 
 
 """This module contains class definitions and helper functions
@@ -58,6 +59,16 @@ See below for further details.
 # TODO: We might also need:
 # * Bounded natural -- a sample from a categorical
 # * Positive definite -- a real matrix with positive eigenvalues
+
+
+def _size_to_rc(size: Size):
+    dimensions = len(size)
+    assert dimensions <= 2
+    if dimensions == 0:
+        return 1, 1
+    r = 1 if dimensions == 1 else size[0]
+    c = size[0] if dimensions == 1 else size[1]
+    return r, c
 
 
 class BMGLatticeType:
@@ -118,6 +129,10 @@ class BMGMatrixType(BMGLatticeType):
     @abstractmethod
     def with_dimensions(self, rows: int, columns: int) -> "BMGMatrixType":
         pass
+
+    def with_size(self, size: Size) -> "BMGMatrixType":
+        r, c = _size_to_rc(size)
+        return self.with_dimensions(r, c)
 
 
 class BroadcastMatrixType(BMGMatrixType):
@@ -537,8 +552,7 @@ def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
     dimensions = len(shape)
     if dimensions > 2:
         return Tensor
-    r = 1 if dimensions == 1 else shape[0]
-    c = shape[0] if dimensions == 1 else shape[1]
+    r, c = _size_to_rc(shape)
     v = v.view(r, c)
 
     # We've got the shape. What is the smallest type

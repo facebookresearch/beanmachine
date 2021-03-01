@@ -28,6 +28,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Real,
     Requirement,
     Tensor as BMGTensor,
+    _size_to_rc,
     supremum,
     type_of_value,
     upper_bound,
@@ -330,6 +331,16 @@ def _value_to_cpp(value: Any) -> str:
         dims = ",".join(str(dim) for dim in value.shape)
         return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
     return str(value).lower()
+
+
+def _value_to_cpp_eigen(value: Tensor, variable: str) -> str:
+    # Torch tensors are row major but Eigen matrices are column major;
+    # a torch Dirichlet distribution expects a row of parameters;
+    # BMG expects a column.  That's why we swap rows with columns here.
+    r, c = _size_to_rc(value.size())
+    # TODO: Is this enumeration order correct for 2d arrays?
+    values = ", ".join(str(element) for element in value.storage())
+    return f"Eigen::MatrixXd {variable}({c}, {r})\n{variable} << {values};\n"
 
 
 # When constructing the support of various nodes we are often
@@ -670,8 +681,6 @@ class ConstantTensorNode(ConstantNode):
         )
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        # TODO: If this is a single value, single row, or two-dimensional
-        # TODO: tensor then we can give a more specific type.
         return BMGTensor
 
     @property
@@ -688,6 +697,29 @@ class ConstantTensorNode(ConstantNode):
     def _value_to_python(self) -> str:
         t = ConstantTensorNode._tensor_to_python(self.value)
         return f"tensor({t})"
+
+
+class ConstantPositiveRealMatrixNode(ConstantTensorNode):
+    def __init__(self, value: Tensor):
+        assert len(value.size()) <= 2
+        ConstantTensorNode.__init__(self, value)
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        return PositiveReal.with_size(self.size)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        r, c = _size_to_rc(self.value.size())
+        return g.add_constant_pos_matrix(self.value.reshape(r, c))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp_eigen(self.value, f"m{n}")
+        return f"{v}uint n{n} = g.add_constant_pos_matrix(m{n});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = self._value_to_python()
+        return f"n{n} = g.add_constant_pos_matrix({v})"
 
 
 class TensorNode(BMGNode):
@@ -3541,6 +3573,9 @@ class Query(BMGNode):
         return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        if isinstance(self.operator, ConstantNode):
+            # BMG does not allow queries on constants.
+            return -1
         return g.query(d[self.operator])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
