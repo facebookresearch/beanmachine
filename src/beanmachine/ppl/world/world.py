@@ -6,7 +6,6 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import torch
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
@@ -164,7 +163,7 @@ class World(object):
         :param node: the node to look up
         :returns: whether the node has transform enabled or not
         """
-        return self.transforms_[get_wrapper(node.function)]
+        return self.transforms_[node.wrapper]
 
     def set_proposer(self, func_wrapper, proposer):
         """
@@ -199,7 +198,7 @@ class World(object):
         :param node: the node to look up
         :returns: the associate proposer
         """
-        return self.proposer_[get_wrapper(node.function)]
+        return self.proposer_[node.wrapper]
 
     def __str__(self) -> str:
         return (
@@ -789,4 +788,4 @@ class World(object):
         A helper function that invokes the random variable and return its value
         """
         with self:
-            return get_wrapper(node.function)(*node.arguments)
+            return node.wrapper(*node.arguments)

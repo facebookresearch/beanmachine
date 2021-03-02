@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import inspect
 import warnings
 from functools import wraps
 
@@ -69,11 +68,6 @@ class StatisticalModel(object):
             else:
                 return func_key
 
-        if inspect.ismethod(f):
-            meth_name = f.__name__ + "_wrapper"
-            setattr(f.__self__, meth_name, wrapper)
-        else:
-            f._wrapper = wrapper
         wrapper.is_functional = False
         wrapper.is_random_variable = True
         return wrapper
@@ -102,11 +96,6 @@ class StatisticalModel(object):
             else:
                 return StatisticalModel.get_func_key(wrapper, args)
 
-        if inspect.ismethod(f):
-            meth_name = f.__name__ + "_wrapper"
-            setattr(f.__self__, meth_name, wrapper)
-        else:
-            f._wrapper = wrapper
         wrapper.is_functional = True
         wrapper.is_random_variable = False
         return wrapper

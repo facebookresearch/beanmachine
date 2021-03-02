@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import Dict, Optional, Union
 
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.variable import Variable
 from torch import Tensor
 
@@ -32,7 +31,7 @@ class WorldVars(object):
         """
         self.data_[node] = value
         if hasattr(node, "function"):
-            self.var_funcs_[get_wrapper(node.function)].add(node)
+            self.var_funcs_[node.wrapper].add(node)
 
     def contains_node_by_func(self, node_func: str) -> bool:
         """
@@ -99,7 +98,7 @@ class WorldVars(object):
         :param node: the node to delete
         """
         del self.data_[node]
-        self.var_funcs_[get_wrapper(node.function)].remove(node)
+        self.var_funcs_[node.wrapper].remove(node)
 
     def len(self) -> int:
         """

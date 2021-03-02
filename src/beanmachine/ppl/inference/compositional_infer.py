@@ -15,7 +15,6 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.model.utils import get_wrapper
 from beanmachine.ppl.world.utils import is_constraint_eq
 
 
@@ -77,7 +76,7 @@ class CompositionalInference(AbstractMHInference):
         if node in self.proposers_per_rv_:
             return self.proposers_per_rv_[node]
 
-        wrapped_fn = get_wrapper(node.function)
+        wrapped_fn = node.wrapper
         if wrapped_fn in self.proposers_per_family_:
             proposer_inst = self.proposers_per_family_[wrapped_fn]
             self.proposers_per_rv_[node] = copy.deepcopy(proposer_inst)
