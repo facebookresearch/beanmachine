@@ -130,6 +130,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Real,
     Zero,
 )
+from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
@@ -1934,6 +1935,7 @@ g = graph.Graph()
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, Any],
     ) -> None:
+        _verify_queries_and_observations(queries, observations, True)
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
             self.add_observation(node, val)
