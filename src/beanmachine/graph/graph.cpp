@@ -573,6 +573,13 @@ uint Graph::add_constant_pos_matrix(Eigen::MatrixXd& value) {
   return add_constant(NodeValue(AtomicType::POS_REAL, value));
 }
 
+uint Graph::add_constant_neg_matrix(Eigen::MatrixXd& value) {
+  if ((value.array() > 0).any()) {
+    throw std::invalid_argument("All elements in neg_matrix must be <=0");
+  }
+  return add_constant(NodeValue(AtomicType::NEG_REAL, value));
+}
+
 uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
   if ((value.array() < 0).any()) {
     throw std::invalid_argument(

@@ -510,6 +510,7 @@ struct Graph {
   uint add_constant_matrix(Eigen::MatrixXd& value);
   uint add_constant_matrix(Eigen::MatrixXn& value);
   uint add_constant_pos_matrix(Eigen::MatrixXd& value);
+  uint add_constant_neg_matrix(Eigen::MatrixXd& value);
   uint add_constant_probability_matrix(Eigen::MatrixXd& value);
   uint add_constant_col_simplex_matrix(Eigen::MatrixXd& value);
   uint add_distribution(

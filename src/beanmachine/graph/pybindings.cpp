@@ -156,6 +156,11 @@ PYBIND11_MODULE(graph, module) {
           "add a Node with a constant element-wise positive valued matrix",
           py::arg("value"))
       .def(
+          "add_constant_neg_matrix",
+          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_neg_matrix,
+          "add a Node with a constant element-wise negative valued matrix",
+          py::arg("value"))
+      .def(
           "add_constant_col_simplex_matrix",
           (uint(Graph::*)(Eigen::MatrixXd&)) &
               Graph::add_constant_col_simplex_matrix,
