@@ -3,7 +3,7 @@
 
 # This is a simplified version of the CLARA model which uses categorical
 # distributions. We do not support compiling this to BMG yet because
-# we do not have categorical or Dirichlet distributions in BMG or
+# we do not have categorical distributions in BMG or
 # stochastic control flows other than if-then-else.
 #
 # This module tests whether we can (1) accumulate a graph for this
@@ -188,7 +188,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: We do not yet support Dirichlet, Categorical
+        # TODO: We do not yet support Categorical
         # or map/index nodes in BMG.  Revisit this test when we do.
         # TODO: Raise a better error than a generic ValueError
         # TODO: These error messages are needlessly repetitive.
@@ -208,14 +208,6 @@ The unsupported node is the operand of a Sample.
 The model uses a Categorical operation unsupported by Bean Machine Graph.
 The unsupported node is the operand of a Sample.
 The model uses a Categorical operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Dirichlet operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Dirichlet operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Dirichlet operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Dirichlet operation unsupported by Bean Machine Graph.
 The unsupported node is the operand of a Sample.
 The model uses a index operation unsupported by Bean Machine Graph.
 The unsupported node is the probability of a Categorical.

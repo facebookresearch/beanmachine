@@ -1312,6 +1312,18 @@ class DirichletNode(DistributionNode):
         # TODO: n() is a sample that returns a Dirichlet.
         raise ValueError("Dirichlet distribution does not have finite support.")
 
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        raise NotImplementedError("DirichletNode._add_to_graph not yet implemented")
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        raise NotImplementedError("DirichletNode._to_python not yet implemented")
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        raise NotImplementedError("DirichletNode._to_cpp not yet implemented")
+
 
 class FlatNode(DistributionNode):
 

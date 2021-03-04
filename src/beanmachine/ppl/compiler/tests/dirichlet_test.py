@@ -16,6 +16,7 @@ from beanmachine.graph import (
     VariableType,
 )
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.inference import BMGInference
 from torch import tensor
 from torch.distributions import Dirichlet
 
@@ -45,6 +46,8 @@ nmc = InferenceType.NMC
 rejection = InferenceType.REJECTION
 
 # Here are some simple models we'll use to test the compiler.
+
+# TODO: Test Dirichlets with non-constant inputs.
 
 
 @bm.random_variable
@@ -297,3 +300,39 @@ digraph "graph" {
 }
         """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_dirichlet_errors(self) -> None:
+        self.maxDiff = None
+
+        # These are the cases above where we cannot convert the
+        # given tensor to a one-row vector of positive reals.
+
+        # TODO: Error message could be more specific here than "a tensor".
+        # We could say what is wrong: its size.
+
+        expected = (
+            "The concentration of a Dirichlet is required to be"
+            + " a positive real but is a tensor."
+        )
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([d0()], {}, 1)
+        self.assertEqual(expected, str(ex.exception))
+
+        expected = (
+            "The concentration of a Dirichlet is required to be"
+            + " a 1 x 2 positive real matrix but is a tensor."
+        )
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([d2c()], {}, 1)
+        self.assertEqual(expected, str(ex.exception))
+
+        expected = (
+            "The concentration of a Dirichlet is required to be"
+            + " a 1 x 3 positive real matrix but is"
+            + " a 2 x 3 positive real matrix."
+        )
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([d23()], {}, 1)
+        self.assertEqual(expected, str(ex.exception))
