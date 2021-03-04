@@ -24,6 +24,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 )
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
+    BMGMatrixType,
     Boolean,
     Malformed,
     Natural,
@@ -31,9 +32,11 @@ from beanmachine.ppl.compiler.bmg_types import (
     Probability,
     Real,
     Requirement,
-    UpperBound,
-    meets_requirement,
+    must_be_matrix,
+    node_meets_requirement,
+    requirement_to_type,
     supremum,
+    type_meets_requirement,
     upper_bound,
 )
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
@@ -68,7 +71,7 @@ class RequirementsFixer:
         self, node: ConstantNode, requirement: Requirement, consumer: BMGNode, edge: str
     ) -> BMGNode:
         # If the constant node already meets the requirement, we're done.
-        if meets_requirement(node.graph_type, requirement):
+        if node_meets_requirement(node, requirement):
             return node
 
         # It does not meet the requirement. Is there a semantically equivalent node
@@ -78,19 +81,21 @@ class RequirementsFixer:
         # If the infimum type is smaller than or equal to the required type, then the
         # node can definitely be converted to a type which meets the requirement.
 
-        if meets_requirement(node.inf_type, upper_bound(requirement)):
+        if type_meets_requirement(node.inf_type, upper_bound(requirement)):
 
             # To what type should we convert the node to meet the requirement?
             # If the requirement is an exact bound, then that's the type we need to
             # convert to. If the requirement is an upper bound, there's no reason
             # why we can't just convert to that type.
 
-            required_type = (
-                requirement.bound
-                if isinstance(requirement, UpperBound)
-                else requirement
-            )
-            return self.bmg.add_constant_of_type(node.value, required_type)
+            required_type = requirement_to_type(requirement)
+            if must_be_matrix(requirement):
+                assert isinstance(required_type, BMGMatrixType)
+                result = self.bmg.add_constant_of_matrix_type(node.value, required_type)
+            else:
+                result = self.bmg.add_constant_of_type(node.value, required_type)
+            assert node_meets_requirement(result, requirement)
+            return result
 
         # We cannot convert this node to any type that meets the requirement.
         # Add an error.
@@ -321,7 +326,7 @@ class RequirementsFixer:
         self, node: OperatorNode, requirement: Requirement, consumer: BMGNode, edge: str
     ) -> BMGNode:
         # If the operator node already meets the requirement, we're done.
-        if meets_requirement(node.graph_type, requirement):
+        if node_meets_requirement(node, requirement):
             return node
 
         # It does not meet the requirement. Can we convert this thing to a node
@@ -331,7 +336,7 @@ class RequirementsFixer:
 
         it = node.inf_type
 
-        if not meets_requirement(it, upper_bound(requirement)):
+        if not type_meets_requirement(it, upper_bound(requirement)):
             # We cannot make the node meet the requirement "implicitly". However
             # there is one situation where we can "explicitly" meet a requirement:
             # an operator of type real or positive real used as a probability.
@@ -340,7 +345,7 @@ class RequirementsFixer:
                 operand = self.meet_requirement(node, it, consumer, edge)
                 # Force the real / positive real to probability:
                 result = self.bmg.add_to_probability(operand)
-                assert meets_requirement(result.graph_type, requirement)
+                assert node_meets_requirement(result, requirement)
                 return result
 
             # We have no way to make the conversion we need, so add an error.
@@ -364,7 +369,11 @@ class RequirementsFixer:
         else:
             result = self._convert_node(node, it, consumer, edge)
 
-        assert meets_requirement(result.graph_type, requirement)
+        # TODO: This assertion could fire if we require a positive real matrix
+        # but the result of the conversion is a positive real value.  We need
+        # to handle that case.
+
+        assert node_meets_requirement(result, requirement)
         return result
 
     def meet_requirement(
