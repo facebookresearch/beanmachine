@@ -17,6 +17,7 @@ from beanmachine.graph import (
     OperatorType,
 )
 from beanmachine.ppl.compiler.bmg_types import (
+    AnyRequirement,
     BMGLatticeType,
     Boolean,
     Malformed,
@@ -46,6 +47,10 @@ from torch.distributions.utils import broadcast_all
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
 # TODO: for now, we'll just turn off error checking in this mModuleNotFoundError
 # pyre-ignore-all-errors
+
+# TODO: Extract inf type, graph type and requirements computations to own module
+# TODO: Add assertions which ensure that type requirements are never "fake" types
+# like Zero or OneHot.  Also assert that a requirement is never Malformed.
 
 
 def prod(x):
@@ -3534,7 +3539,7 @@ class Observation(BMGNode):
 
     @property
     def requirements(self) -> List[Requirement]:
-        return [self.inf_type]
+        return [AnyRequirement()]
 
     @property
     def size(self) -> torch.Size:
@@ -3604,7 +3609,7 @@ class Query(BMGNode):
 
     @property
     def requirements(self) -> List[Requirement]:
-        return [self.graph_type]
+        return [AnyRequirement()]
 
     @property
     def size(self) -> torch.Size:

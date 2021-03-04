@@ -8,9 +8,7 @@ from torch import tensor
 
 
 class FixProblemsTest(unittest.TestCase):
-    def test_fix_problems_1(self) -> None:
-        """test_fix_problems_1"""
-
+    def test_fix_problems_01(self) -> None:
         # Problems that need to be fixed:
         #
         # * Single-valued tensors are used in contexts where scalars are needed.
@@ -64,7 +62,7 @@ digraph "graph" {
   N04 -> N05[label="right:P"];
   N05 -> N06[label="mu:R"];
   N05 -> N07[label="probability:P"];
-  N05 -> N10[label="operator:M"];
+  N05 -> N10[label="operator:any"];
   N06 -> N08[label="operand:R"];
   N07 -> N09[label="operand:B"];
 }"""
@@ -97,7 +95,7 @@ digraph "graph" {
   N03 -> N04[label="operand:P"];
   N04 -> N05[label="right:P"];
   N05 -> N07[label="probability:P"];
-  N05 -> N10[label="operator:P"];
+  N05 -> N10[label="operator:any"];
   N05 -> N13[label="operand:<=R"];
   N06 -> N08[label="operand:R"];
   N07 -> N09[label="operand:B"];
@@ -996,18 +994,18 @@ digraph "graph" {
   N15[label="1.0:R+>=OH"];
   N00 -> N08[label="mu:R"];
   N04 -> N05[label="operand:B"];
-  N05 -> N10[label="operand:B"];
+  N05 -> N10[label="operand:any"];
   N06 -> N07[label="operand:N"];
-  N07 -> N11[label="operand:N"];
+  N07 -> N11[label="operand:any"];
   N08 -> N09[label="operand:R"];
-  N09 -> N12[label="operand:R"];
+  N09 -> N12[label="operand:any"];
   N13 -> N04[label="probability:P"];
   N13 -> N06[label="probability:P"];
   N14 -> N06[label="count:N"];
   N15 -> N08[label="sigma:R+"];
 }
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_fix_problems_14(self) -> None:
         """test_fix_problems_14"""

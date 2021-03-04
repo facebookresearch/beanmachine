@@ -179,7 +179,7 @@ digraph "graph" {
   N04 -> N05[label="right:P"];
   N05 -> N06[label="mu:R"];
   N05 -> N07[label="probability:P"];
-  N05 -> N10[label="operator:M"];
+  N05 -> N10[label="operator:any"];
   N06 -> N08[label="operand:R"];
   N07 -> N09[label="operand:B"];
 }"""
