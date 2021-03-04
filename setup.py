@@ -104,6 +104,8 @@ setup(
         "black>=19.3b0",
         "gpytorch>=1.3.0",
         "botorch>=0.3.3",
+        "xarray>=0.16.0",
+        "arviz>=0.11.0",
     ],
     packages=find_packages("src/"),
     package_dir={"": "src"},

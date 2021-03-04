@@ -59,9 +59,8 @@ class Predictive(object):
         sampler = SingleSiteAncestralMetropolisHastings()
         if posterior:
             n_warmup = posterior.num_adaptive_samples
-            post_dict = posterior.data.rv_dict
             # drop the warm up samples
-            obs = {k: v[:, n_warmup:] for k, v in post_dict.items()}
+            obs = {k: v[:, n_warmup:] for k, v in posterior.items()}
             if vectorized:
                 # predictives are jointly sampled
                 sampler.queries_ = queries
@@ -78,13 +77,10 @@ class Predictive(object):
                 # predictives are sequentially sampled
                 preds = []
 
-                for c in range(posterior.get_num_chains()):
+                for c in range(posterior.num_chains):
                     rv_dicts = []
                     for i in range(posterior.get_num_samples()):
-                        obs = {
-                            rv: posterior.get_chain(c)[rv][i]
-                            for rv in posterior.get_rv_names()
-                        }
+                        obs = {rv: posterior.get_chain(c)[rv][i] for rv in posterior}
                         sampler.queries_ = queries
                         sampler.observations_ = obs
                         try:
@@ -136,7 +132,7 @@ class Predictive(object):
         :returns: ``MonteCarloSamples`` object containing the sampled random variables.
         """
         rv_dict = {}
-        num_chains = samples.get_num_chains()
+        num_chains = samples.num_chains
         total_num_samples = samples.get_num_samples()
         chain_indices = Categorical(torch.ones(num_chains)).sample((num_samples,))
         sample_indices = Categorical(torch.ones(total_num_samples)).sample(

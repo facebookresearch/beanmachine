@@ -212,7 +212,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             num_adaptive_samples=num_adaptive_samples,
         )
 
-        for i in range(predictions.get_num_chains()):
+        for i in range(predictions.num_chains):
             sample = predictions.get_chain(i)[queries[0]]
             mean, std = self.compute_statistics(sample)
             total_samples = tensor(sample.size())[0].item()

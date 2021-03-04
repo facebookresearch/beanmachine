@@ -150,6 +150,6 @@ class PredictiveTest(unittest.TestCase):
         assert empirical[self.prior()].shape == (1, 26)
         predictives = bm.simulate(list(obs.keys()), post_samples, vectorized=True)
         empirical = bm.empirical(list(obs.keys()), predictives, num_samples=27)
-        assert len(empirical.data.rv_dict.keys()) == 3
+        assert len(empirical) == 3
         assert empirical[self.likelihood_i(0)].shape == (1, 27)
         assert empirical[self.likelihood_i(1)].shape == (1, 27)

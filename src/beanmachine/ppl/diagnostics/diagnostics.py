@@ -26,9 +26,9 @@ class BaseDiagnostics:
         self, query_list: Optional[List[RVIdentifier]] = None
     ) -> List[RVIdentifier]:
         if query_list is None:
-            return list(self.samples.get_rv_names())
+            return list(self.samples.keys())
         for query in query_list:
-            if not (query in self.samples.get_rv_names()):
+            if not (query in self.samples):
                 raise ValueError(f"query {self._stringify_query(query)} does not exist")
         return query_list
 
