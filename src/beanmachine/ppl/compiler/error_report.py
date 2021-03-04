@@ -7,7 +7,11 @@ from abc import ABC
 from typing import List
 
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, Observation
-from beanmachine.ppl.compiler.bmg_types import BMGLatticeType, Requirement, UpperBound
+from beanmachine.ppl.compiler.bmg_types import (
+    BMGLatticeType,
+    Requirement,
+    requirement_to_type,
+)
 
 
 class BMGError(ABC):
@@ -30,8 +34,10 @@ class Violation(BMGError):
 
     def __str__(self) -> str:
         r = self.requirement
-        t = r.bound if isinstance(r, UpperBound) else r
+        t = requirement_to_type(r)
         assert isinstance(t, BMGLatticeType)
+        # TODO: Fix this error message for the case where we require
+        # a matrix but we can only get a scalar value
         msg = (
             f"The {self.edge} of a {self.consumer.label} "
             + f"is required to be a {t.long_name} "

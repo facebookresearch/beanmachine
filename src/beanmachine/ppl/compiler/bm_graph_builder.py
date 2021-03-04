@@ -121,6 +121,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 )
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
+    BMGMatrixType,
     Boolean,
     Natural,
     NegativeReal,
@@ -129,6 +130,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Probability,
     Real,
     Zero,
+    positive_real_element,
 )
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
@@ -486,6 +488,16 @@ class BMGraphBuilder:
             return self.add_constant_tensor(value)
         raise TypeError("value must be a bool, real or tensor")
 
+    def add_constant_of_matrix_type(
+        self, value: Any, node_type: BMGMatrixType
+    ) -> ConstantNode:
+        if node_type.element_type == positive_real_element:
+            return self.add_pos_real_matrix(value)
+        raise NotImplementedError(
+            "add_constant_of_matrix_type not yet "
+            + f"implemented for {node_type.long_name}"
+        )
+
     def add_constant_of_type(
         self, value: Any, node_type: BMGLatticeType
     ) -> ConstantNode:
@@ -507,7 +519,11 @@ class BMGraphBuilder:
             if isinstance(value, Tensor):
                 return self.add_constant_tensor(value)
             return self.add_constant_tensor(tensor(value))
-        raise TypeError("node type must be a valid BMG type")
+        if isinstance(node_type, BMGMatrixType):
+            return self.add_constant_of_matrix_type(value, node_type)
+        raise NotImplementedError(
+            "add_constant_of_type not yet " + f"implemented for {node_type.long_name}"
+        )
 
     @memoize
     def add_real(self, value: float) -> RealNode:

@@ -336,3 +336,67 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer([d23()], {}, 1)
         self.assertEqual(expected, str(ex.exception))
+
+    def test_dirichlet_fix_problems(self) -> None:
+
+        # Can we take an input that is a valid tensor and deduce that we must
+        # replace it with a positive real constant matrix node?
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+        queries = [d2a()]
+        bmg.accumulate_graph(queries, {})
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+            after_transform=True,
+            label_edges=False,
+        )
+
+        expected = """
+digraph "graph" {
+  N0[label="[2.5,3.0]:MR+[1,2]>=MR+[1,2]"];
+  N1[label="Dirichlet:S[1,2]>=S[1,2]"];
+  N2[label="Sample:S[1,2]>=S[1,2]"];
+  N3[label="Query:S[1,2]>=S[1,2]"];
+  N0 -> N1[label="MR+[1,2]"];
+  N1 -> N2[label="S[1,2]"];
+  N2 -> N3[label="S[1,2]"];
+}
+        """
+
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # This is the tricky case: the degenerate case where we have only
+        # one value, and we need to make sure that we generate a matrix
+        # constant rather than a regular positive real constant:
+
+        bmg = BMGraphBuilder()
+        queries = [d1b()]
+        bmg.accumulate_graph(queries, {})
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+            point_at_input=True,
+            after_transform=True,
+            label_edges=False,
+        )
+
+        # This is subtle, but notice that we have a constant matrix here rather
+        # than a constant; the value is [1.0], not 1.0.
+
+        expected = """
+digraph "graph" {
+  N0[label="[1.0]:R+>=OH"];
+  N1[label="Dirichlet:S[1,1]>=S[1,1]"];
+  N2[label="Sample:S[1,1]>=S[1,1]"];
+  N3[label="Query:S[1,1]>=S[1,1]"];
+  N0 -> N1[label="R+"];
+  N1 -> N2[label="S[1,1]"];
+  N2 -> N3[label="S[1,1]"];
+}"""
+
+        self.assertEqual(expected.strip(), observed.strip())

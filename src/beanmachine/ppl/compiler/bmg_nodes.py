@@ -30,6 +30,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     SimplexMatrix,
     Tensor as BMGTensor,
     _size_to_rc,
+    always_matrix,
     supremum,
     type_of_value,
     upper_bound,
@@ -239,6 +240,11 @@ class BMGNode(ABC):
         a node is the *smallest* BMG type that a node may be converted to if required by
         an input."""
         return self._inf_type
+
+    @property
+    def is_matrix(self) -> BMGLatticeType:
+        """Is this node classified as a matrix in BMG?"""
+        return False
 
     @property
     @abstractmethod
@@ -721,6 +727,10 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
         n = d[self]
         v = self._value_to_python()
         return f"n{n} = g.add_constant_pos_matrix({v})"
+
+    @property
+    def is_matrix(self) -> bool:
+        return True
 
 
 class TensorNode(BMGNode):
@@ -1288,9 +1298,23 @@ class DirichletNode(DistributionNode):
         # express that restriction as a positive real matrix with
         # row count equal to 1 and column count equal to the final
         # dimension of the size.
+        #
+        # A degenerate case here is Dirichlet(tensor([1.0])); we would
+        # normally generate the input as a positive real constant, but
+        # we require that it be a positive real constant 1x1 *matrix*,
+        # which is a different node. The "always matrix" requirement
+        # forces the problem fixer to ensure that the input node is
+        # always considered by BMG to be a matrix.
+        #
+        # TODO: BMG requires it to be a *broadcast* matrix; what happens
+        # if we feed one Dirichlet into another?  That would be a simplex,
+        # not a broadcast matrix. Do some research here; do we actually
+        # need the semantics of "always a broadcast matrix" ?
+
         required_rows = 1
         required_columns = self._required_columns
-        return [PositiveReal.with_dimensions(required_rows, required_columns)]
+        t = PositiveReal.with_dimensions(required_rows, required_columns)
+        return [always_matrix(t)]
 
     @property
     def size(self) -> torch.Size:

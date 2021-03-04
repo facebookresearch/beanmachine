@@ -54,8 +54,6 @@ To facilitate analysis, we organize the infinite set of types into a *lattice*.
 See below for further details.
 """
 
-# TODO: We have not yet made the scalar types into aliases for the 1x1 types.
-
 # TODO: We might also need:
 # * Bounded natural -- a sample from a categorical
 # * Positive definite -- a real matrix with positive eigenvalues
@@ -78,17 +76,6 @@ class BMGLatticeType:
     def __init__(self, short_name: str, long_name: str) -> None:
         self.short_name = short_name
         self.long_name = long_name
-
-
-# I want to keep the marker values for "elements of this matrix are
-# R, R+, R-, P, N, B" separate from the hierarchy that expresses "this is
-# a scalar R, R+, R-, P, N, B" because in an upcoming diff I am going to
-# eliminate "scalar R, R+, R-, P, N, B" entirely from our type analysis;
-# if we determine that a thing is a scalar probability, we will simply
-# express that as being a [1,1] matrix of probabilities. When two
-# types are freely convertible to each other and have all the same
-# operations, you might as well treat them as the same type and
-# simplify the whole system.
 
 
 class BMGElementType:
@@ -147,7 +134,7 @@ class BroadcastMatrixType(BMGMatrixType):
             if rows == 1 and columns == 1
             else f"{rows} x {columns} {element_type.long_name} matrix"
         )
-        BMGMatrixType.__init__(self, bool_element, short_name, long_name, rows, columns)
+        BMGMatrixType.__init__(self, element_type, short_name, long_name, rows, columns)
 
 
 # Note that all matrix type constructors are memoized in their initializer
@@ -674,6 +661,19 @@ def type_of_value(v: Any) -> BMGLatticeType:
 # object itself; the vast majority of bounds will be exact bounds
 # and I do not want to litter the code with calls to an "exact"
 # helper method.
+#
+# The fact that we have unified the types which mean "a single value
+# of a given type" and "a 1x1 matrix of that type" leads to an unfortunate
+# wrinkle: there are a small number of rare situations where we must
+# distinguish between the two.  For example, it is bizarre to have the input
+# tensor([1]) to a Dirichlet, but it is legal. When we generate the BMG code
+# for that, we need to ensure that the corresponding constant node is created
+# via add_constant_pos_matrix(), not add_constant_pos().
+#
+# Rather than change the type system so that it distinguishes more clearly
+# between single values and 1x1 matrices, we will just add a "force it to
+# be a matrix" requirement; the problem fixer can then use that to ensure
+# that the correct node is generated.
 
 
 class UpperBound:
@@ -687,20 +687,71 @@ class UpperBound:
         self.long_name = f"<={bound.long_name}"
 
 
-Requirement = Union[BMGLatticeType, UpperBound]
+class AlwaysMatrix:
+    bound: BMGMatrixType
+    short_name: str
+    long_name: str
+
+    def __init__(self, bound: BMGMatrixType) -> None:
+        self.bound = bound
+        # We won't bother to make these have a special representation
+        # when we display requirements on edges in DOT.
+        self.short_name = bound.short_name
+        self.long_name = bound.long_name
+
+
+Requirement = Union[BMGLatticeType, UpperBound, AlwaysMatrix]
 
 
 @memoize
 def upper_bound(bound: Requirement) -> UpperBound:
     if isinstance(bound, UpperBound):
         return bound
-    return UpperBound(bound)
+    if isinstance(bound, AlwaysMatrix):
+        return upper_bound(bound.bound)
+    if isinstance(bound, BMGLatticeType):
+        return UpperBound(bound)
 
 
-def meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
+@memoize
+def always_matrix(bound: BMGMatrixType) -> Requirement:
+    if bound.rows != 1 or bound.columns != 1:
+        # No need for a special annotation if it already
+        # is a multi-dimensional matrix.
+        return bound
+    return AlwaysMatrix(bound)
+
+
+def node_meets_requirement(node, r: Requirement) -> bool:
+    if isinstance(r, AlwaysMatrix):
+        return node.is_matrix and type_meets_requirement(node.graph_type, r.bound)
+    return type_meets_requirement(node.graph_type, r)
+
+
+def type_meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
     # A malformed node meets no requirements
     if t == Malformed:
         return False
     if isinstance(r, UpperBound):
         return _supremum(t, r.bound) == r.bound
+    if isinstance(r, AlwaysMatrix):
+        return t == r.bound
     return t == r
+
+
+def requirement_to_type(r: Requirement) -> BMGLatticeType:
+    if isinstance(r, UpperBound):
+        return r.bound
+    if isinstance(r, AlwaysMatrix):
+        return r.bound
+    assert isinstance(r, BMGLatticeType)
+    return r
+
+
+def must_be_matrix(r: Requirement) -> bool:
+    if isinstance(r, AlwaysMatrix):
+        return True
+    t = requirement_to_type(r)
+    if isinstance(t, BMGMatrixType):
+        return t.rows != 1 or t.columns != 1
+    return False
