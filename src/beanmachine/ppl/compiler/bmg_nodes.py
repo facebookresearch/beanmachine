@@ -27,6 +27,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     Probability,
     Real,
     Requirement,
+    SimplexMatrix,
     Tensor as BMGTensor,
     _size_to_rc,
     supremum,
@@ -1251,8 +1252,6 @@ class DirichletNode(DistributionNode):
     so it is useful for generating inputs to the categorical
     distribution."""
 
-    # TODO: We do not yet have a BMG node for Dirichlet
-    # distributions; when we do, finish this implementation.
     _edges = ["concentration"]
 
     def __init__(self, concentration: BMGNode):
@@ -1267,12 +1266,19 @@ class DirichletNode(DistributionNode):
         self.inputs[0] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        # TODO: Fix this; it should be a simplex
-        return BMGTensor
+        return SimplexMatrix(1, self._required_columns)
 
     def _compute_inf_type(self) -> BMGLatticeType:
-        # TODO: Fix this; it should be a simplex
-        return BMGTensor
+        return SimplexMatrix(1, self._required_columns)
+
+    @property
+    def _required_columns(self) -> int:
+        # The "max" is needed to handle the degenerate case of
+        # Dirichlet(tensor([])) -- in this case we will say that we require
+        # a single positive real and that the requirement cannot be met.
+        size = self.size
+        dimensions = len(size)
+        return max(1, size[dimensions - 1]) if dimensions > 0 else 1
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -1282,15 +1288,8 @@ class DirichletNode(DistributionNode):
         # express that restriction as a positive real matrix with
         # row count equal to 1 and column count equal to the final
         # dimension of the size.
-        #
-        # The "max" is needed to handle the degenerate case of
-        # Dirichlet(tensor([])) -- in this case we will say that we require
-        # a single positive real and that the requirement cannot be met.
-
         required_rows = 1
-        size = self.size
-        dimensions = len(size)
-        required_columns = max(1, size[dimensions - 1]) if dimensions > 0 else 1
+        required_columns = self._required_columns
         return [PositiveReal.with_dimensions(required_rows, required_columns)]
 
     @property
