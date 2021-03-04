@@ -642,7 +642,7 @@ def type_of_value(v: Any) -> BMGLatticeType:
     raise ValueError("Unexpected value passed to type_of_value")
 
 
-# We will need to be able to express requirements on inputs;
+# We need to be able to express requirements on inputs;
 # for example the input to a Bernoulli must be *exactly* a
 # Probability, but the input to a ToPositiveReal must have
 # any type smaller than or equal to PositiveReal.
@@ -674,43 +674,58 @@ def type_of_value(v: Any) -> BMGLatticeType:
 # between single values and 1x1 matrices, we will just add a "force it to
 # be a matrix" requirement; the problem fixer can then use that to ensure
 # that the correct node is generated.
+#
+# We also occasionally need to express that an input edge has no restriction
+# on it whatsoever; we'll use a singleton object for that.
 
 
-class UpperBound:
-    bound: BMGLatticeType
+# TODO: Mark this as abstract
+class BaseRequirement:
     short_name: str
     long_name: str
+
+    def __init__(self, short_name: str, long_name: str) -> None:
+        self.short_name = short_name
+        self.long_name = long_name
+
+
+# TODO: Memoize these, remove memoization of construction functions below.
+class AnyRequirement(BaseRequirement):
+    def __init__(self) -> None:
+        BaseRequirement.__init__(self, "any", "any")
+
+
+class UpperBound(BaseRequirement):
+    bound: BMGLatticeType
 
     def __init__(self, bound: BMGLatticeType) -> None:
         self.bound = bound
-        self.short_name = f"<={bound.short_name}"
-        self.long_name = f"<={bound.long_name}"
+        BaseRequirement.__init__(self, f"<={bound.short_name}", f"<={bound.long_name}")
 
 
-class AlwaysMatrix:
+class AlwaysMatrix(BaseRequirement):
     bound: BMGMatrixType
-    short_name: str
-    long_name: str
 
     def __init__(self, bound: BMGMatrixType) -> None:
         self.bound = bound
         # We won't bother to make these have a special representation
         # when we display requirements on edges in DOT.
-        self.short_name = bound.short_name
-        self.long_name = bound.long_name
+        BaseRequirement.__init__(self, bound.short_name, bound.long_name)
 
 
-Requirement = Union[BMGLatticeType, UpperBound, AlwaysMatrix]
+Requirement = Union[BMGLatticeType, BaseRequirement]
 
 
 @memoize
-def upper_bound(bound: Requirement) -> UpperBound:
+def upper_bound(bound: Requirement) -> BaseRequirement:
     if isinstance(bound, UpperBound):
         return bound
     if isinstance(bound, AlwaysMatrix):
         return upper_bound(bound.bound)
     if isinstance(bound, BMGLatticeType):
         return UpperBound(bound)
+    assert isinstance(bound, AnyRequirement)
+    return bound
 
 
 @memoize
@@ -729,7 +744,8 @@ def node_meets_requirement(node, r: Requirement) -> bool:
 
 
 def type_meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
-    # A malformed node meets no requirements
+    if isinstance(r, AnyRequirement):
+        return True
     if t == Malformed:
         return False
     if isinstance(r, UpperBound):
@@ -749,6 +765,9 @@ def requirement_to_type(r: Requirement) -> BMGLatticeType:
 
 
 def must_be_matrix(r: Requirement) -> bool:
+    """Does the requirement indicate that the edge must be a matrix?"""
+    if isinstance(r, AnyRequirement):
+        return False
     if isinstance(r, AlwaysMatrix):
         return True
     t = requirement_to_type(r)

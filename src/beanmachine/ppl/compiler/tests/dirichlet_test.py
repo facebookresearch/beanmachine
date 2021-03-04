@@ -275,28 +275,28 @@ digraph "graph" {
   N31[label="Query:S[1,3]>=S[1,3]"];
   N00 -> N01[label="R+"];
   N01 -> N02[label="S[1,1]"];
-  N02 -> N03[label="S[1,1]"];
+  N02 -> N03[label=any];
   N04 -> N05[label="R+"];
   N05 -> N06[label="S[1,1]"];
-  N06 -> N07[label="S[1,1]"];
+  N06 -> N07[label=any];
   N08 -> N09[label="R+"];
   N09 -> N10[label="S[1,1]"];
-  N10 -> N11[label="S[1,1]"];
+  N10 -> N11[label=any];
   N12 -> N13[label="R+"];
   N13 -> N14[label="S[1,1]"];
-  N14 -> N15[label="S[1,1]"];
+  N14 -> N15[label=any];
   N16 -> N17[label="MR+[1,2]"];
   N17 -> N18[label="S[1,2]"];
-  N18 -> N19[label="S[1,2]"];
+  N18 -> N19[label=any];
   N20 -> N21[label="MR+[1,2]"];
   N21 -> N22[label="S[1,2]"];
-  N22 -> N23[label="S[1,2]"];
+  N22 -> N23[label=any];
   N24 -> N25[label="MR+[1,2]"];
   N25 -> N26[label="S[1,2]"];
-  N26 -> N27[label="S[1,2]"];
+  N26 -> N27[label=any];
   N28 -> N29[label="MR+[1,3]"];
   N29 -> N30[label="S[1,3]"];
-  N30 -> N31[label="S[1,3]"];
+  N30 -> N31[label=any];
 }
         """
         self.assertEqual(expected.strip(), observed.strip())
@@ -363,7 +363,7 @@ digraph "graph" {
   N3[label="Query:S[1,2]>=S[1,2]"];
   N0 -> N1[label="MR+[1,2]"];
   N1 -> N2[label="S[1,2]"];
-  N2 -> N3[label="S[1,2]"];
+  N2 -> N3[label=any];
 }
         """
 
@@ -396,7 +396,7 @@ digraph "graph" {
   N3[label="Query:S[1,1]>=S[1,1]"];
   N0 -> N1[label="R+"];
   N1 -> N2[label="S[1,1]"];
-  N2 -> N3[label="S[1,1]"];
+  N2 -> N3[label=any];
 }"""
 
         self.assertEqual(expected.strip(), observed.strip())
