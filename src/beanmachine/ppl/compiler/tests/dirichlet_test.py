@@ -353,7 +353,8 @@ digraph "graph" {
         self.maxDiff = None
         bmg = BMGraphBuilder()
         queries = [d2a()]
-        bmg.accumulate_graph(queries, {})
+        observations = {d2a(): tensor([0.5, 0.5])}
+        bmg.accumulate_graph(queries, observations)
         observed = bmg.to_dot(
             graph_types=True,
             inf_types=True,
@@ -368,10 +369,12 @@ digraph "graph" {
   N0[label="[2.5,3.0]:MR+[1,2]>=MR+[1,2]"];
   N1[label="Dirichlet:S[1,2]>=S[1,2]"];
   N2[label="Sample:S[1,2]>=S[1,2]"];
-  N3[label="Query:S[1,2]>=S[1,2]"];
+  N3[label="Observation tensor([0.5000, 0.5000]):S[1,2]>=S[1,2]"];
+  N4[label="Query:S[1,2]>=S[1,2]"];
   N0 -> N1[label="MR+[1,2]"];
   N1 -> N2[label="S[1,2]"];
   N2 -> N3[label=any];
+  N2 -> N4[label=any];
 }
         """
 
