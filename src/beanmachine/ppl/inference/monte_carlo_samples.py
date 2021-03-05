@@ -143,14 +143,14 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         """
         Return an xarray.Dataset from MonteCarloSamples.
         """
-        inferece_data = self.to_inference_data(include_adapt_steps)
+        inference_data = self.to_inference_data(include_adapt_steps)
         if not include_adapt_steps:
             # pyre-ignore
-            return inferece_data.posterior
+            return inference_data.posterior
         else:
             return xr.concat(
                 # pyre-ignore
-                [inferece_data.warmup_posterior, inferece_data.posterior],
+                [inference_data.warmup_posterior, inference_data.posterior],
                 dim="draw",
             )
 
