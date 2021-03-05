@@ -224,14 +224,13 @@ n4 = g.add_constant_pos_matrix(tensor([[1.0,1.5],[2.0,2.5]]))
         # Let's actually get the graph.
 
         # Note that what was a row vector in the original code is now a column vector.
-        # TODO: The 2x2 matrix has not been similarly rotated and that seems wrong.
         g = bmg.to_bmg()
         expected = """
 Node 0 type 1 parents [ ] children [ ] matrix<positive real> 1
 Node 1 type 1 parents [ ] children [ ] matrix<positive real>   1
  1.5
-Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1 1.5
- 2 2.5"""
+Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1   2
+ 1.5 2.5"""
         observed = g.to_string()
         self.assertEqual(tidy(expected), tidy(observed))
 
