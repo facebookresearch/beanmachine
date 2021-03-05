@@ -3064,6 +3064,52 @@ class LogNode(UnaryOperatorNode):
         return True
 
 
+# TODO: replace "log" with "log1mexp" as needed below and update defs
+
+
+class Log1mexpNode(UnaryOperatorNode):
+    """This represents a log1mexp operation; it is generated when
+    a model contains calls to log1mexp or math_log1mexp."""
+
+    operator_type = OperatorType.LOG1MEXP
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    # The log1mexp node can only:
+    # * Take a negative real and produce a negative real
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        return NegativeReal
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        ot = self.operand.graph_type
+        if ot == NegativeReal:
+            return NegativeReal
+        return Malformed
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [NegativeReal]
+
+    @property
+    def label(self) -> str:
+        return "Log1mexp"
+
+    @property
+    def size(self) -> torch.Size:
+        return self.operand.size
+
+    def __str__(self) -> str:
+        return "Log1mexp(" + str(self.operand) + ")"
+
+    def support(self) -> Iterator[Any]:
+        return SetOfTensors(torch.log(1 - torch.exp(o)) for o in self.operand.support())
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+
 # BMG supports three different kinds of negation:
 
 # * The "complement" node with a Boolean operand has the semantics
