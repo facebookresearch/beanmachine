@@ -17,7 +17,7 @@ from beanmachine.graph import (
 )
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.inference import BMGInference
-from torch import tensor
+from torch import Size, tensor
 from torch.distributions import Dirichlet
 
 
@@ -100,6 +100,11 @@ def d2c():
 @bm.random_variable
 def d23():
     return Dirichlet(tensor([[5.5, 6.0, 6.5], [7.0, 7.5, 8.0]]))
+
+
+@bm.random_variable
+def d3():
+    return Dirichlet(tensor([1.0, 1.0, 1.0]))
 
 
 class DirichletTest(unittest.TestCase):
@@ -216,11 +221,15 @@ n4 = g.add_constant_pos_matrix(tensor([[1.0,1.5],[2.0,2.5]]))
         observed = bmg.to_python()
         self.assertEqual(expected.strip(), observed.strip())
 
-        # Let's actually get the graph
+        # Let's actually get the graph.
+
+        # Note that what was a row vector in the original code is now a column vector.
+        # TODO: The 2x2 matrix has not been similarly rotated and that seems wrong.
         g = bmg.to_bmg()
         expected = """
 Node 0 type 1 parents [ ] children [ ] matrix<positive real> 1
-Node 1 type 1 parents [ ] children [ ] matrix<positive real>   1 1.5
+Node 1 type 1 parents [ ] children [ ] matrix<positive real>   1
+ 1.5
 Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1 1.5
  2 2.5"""
         observed = g.to_string()
@@ -400,3 +409,19 @@ digraph "graph" {
 }"""
 
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_dirichlet_bmg_inference(self) -> None:
+
+        # Get Dirichlet samples; verify that the sample set
+        # is in rows, not columns.
+
+        self.maxDiff = None
+
+        results = BMGInference().infer([d2a()], {}, 10, nmc)
+        samples = results[d2a()]
+        # Ten samples, each is a vector with 1 row and 2 columns.
+        self.assertEqual(Size([1, 10, 1, 2]), samples.size())
+
+        results = BMGInference().infer([d3()], {}, 20, rejection)
+        samples = results[d3()]
+        self.assertEqual(Size([1, 20, 1, 3]), samples.size())

@@ -15,6 +15,8 @@ from beanmachine.graph import (
     FactorType,
     Graph,
     OperatorType,
+    ValueType,
+    VariableType,
 )
 from beanmachine.ppl.compiler.bmg_types import (
     AnyRequirement,
@@ -721,7 +723,8 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         r, c = _size_to_rc(self.value.size())
-        return g.add_constant_pos_matrix(self.value.reshape(r, c))
+        # Note that we swap the rows and columns
+        return g.add_constant_pos_matrix(self.value.reshape(c, r))
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
@@ -1345,7 +1348,17 @@ class DirichletNode(DistributionNode):
         return True
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        raise NotImplementedError("DirichletNode._add_to_graph not yet implemented")
+        # Note that we swap rows and columns here
+        return g.add_distribution(
+            dt.DIRICHLET,
+            ValueType(
+                VariableType.COL_SIMPLEX_MATRIX,
+                AtomicType.PROBABILITY,
+                self._required_columns,
+                1,
+            ),
+            [d[self.concentration]],
+        )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         raise NotImplementedError("DirichletNode._to_python not yet implemented")
