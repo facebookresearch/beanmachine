@@ -53,7 +53,7 @@ from typing import Any, Callable, Dict, List, Set
 
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
-# TODO: for now, we'll just turn off error checking in this mModuleNotFoundError
+# TODO: for now, we'll just turn off error checking in this module.
 # pyre-ignore-all-errors
 # TODO: It is somewhat confusing to import a type named "Graph" here;
 # Consider renaming it to NativeGraph or some other more descriptive
@@ -1966,8 +1966,7 @@ g = graph.Graph()
         fix_problems(self, self._fix_observe_true).raise_errors()
 
     def infer(
-        self,
-        num_samples: int,
+        self, num_samples: int, inference_type: InferenceType = InferenceType.NMC
     ) -> MonteCarloSamples:
         # TODO: Add num_chains to API
         # TODO: Add inference kind to API
@@ -2017,7 +2016,7 @@ g = graph.Graph()
 
         # BMG requires that we have at least one query.
         if len(query_to_query_id) != 0:
-            raw = g.infer(num_samples, InferenceType.NMC)
+            raw = g.infer(num_samples, inference_type)
             # Suppose we have two queries and three samples; the shape we get
             # from BMG is:
             #

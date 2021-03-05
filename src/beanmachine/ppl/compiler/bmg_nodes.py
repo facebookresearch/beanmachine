@@ -45,7 +45,7 @@ from torch.distributions.utils import broadcast_all
 
 # TODO: For reasons unknown, Pyre is unable to find type information about
 # TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
-# TODO: for now, we'll just turn off error checking in this mModuleNotFoundError
+# TODO: for now, we'll just turn off error checking in this module.
 # pyre-ignore-all-errors
 
 # TODO: Extract inf type, graph type and requirements computations to own module
