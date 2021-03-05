@@ -1363,7 +1363,16 @@ class DirichletNode(DistributionNode):
         )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        raise NotImplementedError("DirichletNode._to_python not yet implemented")
+        return f"""n{d[self]} = g.add_distribution(
+  graph.DistributionType.DIRICHLET,
+  graph.ValueType(
+    graph.VariableType.COL_SIMPLEX_MATRIX,
+    graph.AtomicType.PROBABILITY,
+    {self._required_columns},
+    1,
+  ),
+  [n{d[self.concentration]}],
+)"""
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         raise NotImplementedError("DirichletNode._to_cpp not yet implemented")
