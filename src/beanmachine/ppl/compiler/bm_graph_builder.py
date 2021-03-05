@@ -48,6 +48,7 @@ import torch  # isort:skip  torch has to be imported before graph
 import inspect
 import math
 import sys
+from collections.abc import Iterable
 from types import MethodType
 from typing import Any, Callable, Dict, List, Set
 
@@ -1841,7 +1842,7 @@ class BMGraphBuilder:
         return sorted_nodes
 
     def to_python(self) -> str:
-        """This transforms the accumulatled graph into a BMG type system compliant
+        """This transforms the accumulated graph into a BMG type system compliant
         graph and then creates a Python program which creates the graph."""
         self._fix_problems()
 
@@ -1853,7 +1854,7 @@ g = graph.Graph()
         return header + "\n".join(n._to_python(sorted_nodes) for n in sorted_nodes)
 
     def to_cpp(self) -> str:
-        """This transforms the accumulatled graph into a BMG type system compliant
+        """This transforms the accumulated graph into a BMG type system compliant
         graph and then creates a C++ program which creates the graph."""
         self._fix_problems()
         sorted_nodes = self._resort_nodes()
@@ -1977,6 +1978,7 @@ g = graph.Graph()
 
         node_to_graph_id: Dict[BMGNode, int] = {}
         query_to_query_id: Dict[Query, int] = {}
+        bmg_query_count = 0
         for node in self._traverse_from_roots():
             # We add all nodes that are reachable from a query, observation or
             # sample to the BMG graph such that inputs are always added before
@@ -2008,6 +2010,7 @@ g = graph.Graph()
                 if not isinstance(node.operator, ConstantNode):
                     query_id = node._add_to_graph(g, node_to_graph_id)
                     query_to_query_id[node] = query_id
+                    bmg_query_count += 1
             else:
                 graph_id = node._add_to_graph(g, node_to_graph_id)
                 node_to_graph_id[node] = graph_id
@@ -2017,11 +2020,17 @@ g = graph.Graph()
         # BMG requires that we have at least one query.
         if len(query_to_query_id) != 0:
             raw = g.infer(num_samples, inference_type)
-            # Suppose we have two queries and three samples; the shape we get
-            # from BMG is:
+            assert len(raw) == num_samples
+            assert len(raw[0]) == bmg_query_count
+
+            # TODO: Test what happens if num_samples is <= 0
+
+            # Suppose we have two queries and three samples;
+            # the shape we get from BMG is:
             #
             # [ [s00, s01], [s10, s11], [s20, s21] ]
             #
+            # That is, each entry in the list has values from both queries.
             # But what we need in the final dictionary is:
             #
             # {
@@ -2029,11 +2038,38 @@ g = graph.Graph()
             #   RV1: tensor([[s01, s11, s21]])
             # }
             #
-            # Start by taking the transpose.
-            samples = tensor(raw).transpose(0, 1)
+            # We have an additional problem: if the the sample is a matrix
+            # then it is in columns but we need it in rows.
+            #
+            # We'll start by solving this problem first. For every sample that
+            # is an array, replace it with a tensor and take the transpose. For
+            # single values, replace them with a single value tensor.
+
+            row_major = [
+                [
+                    tensor(item).transpose(0, 1)
+                    if isinstance(item, Iterable)
+                    else tensor(item)
+                    for item in entry
+                ]
+                for entry in raw
+            ]
+
+            #
+            # Now take the transpose of that list and stack all the tensors
+            # together into one big tensor for each query.
+            #
+
+            samples = [
+                torch.stack([entry[i] for entry in row_major])
+                for i in range(bmg_query_count)
+            ]
+
             # Now we've got
             #
-            # [ [s00, s10, s20], [s01, s11, s21] ]
+            # [ tensor([s00, s10, s20]), tensor([s01, s11, s21]) ]
+            #
+            # which is almost the shape we need.
 
         result: Dict[RVIdentifier, Tensor] = {}
 
@@ -2044,8 +2080,7 @@ g = graph.Graph()
             else:
                 query_id = query_to_query_id[query]
                 data = samples[query_id]
-                new_shape = [1] + list(data.shape)
-                result[rv] = data.reshape(new_shape)
+                result[rv] = data.reshape([1] + list(data.shape))
 
         return MonteCarloSamples(result)
 
