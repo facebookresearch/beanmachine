@@ -431,7 +431,10 @@ digraph "graph" {
     def test_dirichlet_to_python(self) -> None:
         self.maxDiff = None
 
-        observed = BMGInference().to_python([d2a()], {})
+        queries = [d2a()]
+        observations = {d2a(): tensor([0.5, 0.5])}
+
+        observed = BMGInference().to_python(queries, observations)
         expected = """
 from beanmachine import graph
 from torch import tensor
@@ -448,6 +451,7 @@ n1 = g.add_distribution(
   [n0],
 )
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+g.observe(n2, tensor([0.5000, 0.5000]))
 g.query(n2)
         """
         self.assertEqual(expected.strip(), observed.strip())
@@ -455,7 +459,10 @@ g.query(n2)
     def test_dirichlet_to_cpp(self) -> None:
         self.maxDiff = None
 
-        observed = BMGInference().to_cpp([d2a()], {})
+        queries = [d2a()]
+        observations = {d2a(): tensor([0.5, 0.5])}
+
+        observed = BMGInference().to_cpp(queries, observations)
         expected = """
 graph::Graph g;
 Eigen::MatrixXd m0(2, 1)
@@ -472,6 +479,9 @@ uint n1 = g.add_distribution(
   std::vector<uint>({n0}));
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+Eigen::MatrixXd m3(2, 1)
+m3 << 0.5, 0.5;
+g.observe([n2], m3);
 g.query(n2);"""
         self.assertEqual(expected.strip(), observed.strip())
 

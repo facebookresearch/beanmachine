@@ -3643,6 +3643,10 @@ class Observation(BMGNode):
         return f"g.observe(n{d[self.observed]}, {self.value})"
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        if isinstance(self.value, Tensor):
+            v = f"m{d[self]}"
+            s = _value_to_cpp_eigen(self.value, v)
+            return f"{s}g.observe([n{d[self.observed]}], {v});"
         v = _value_to_cpp(self.value)
         return f"g.observe([n{d[self.observed]}], {v});"
 
