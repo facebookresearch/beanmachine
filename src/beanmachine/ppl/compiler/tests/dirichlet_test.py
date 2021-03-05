@@ -18,7 +18,7 @@ from beanmachine.graph import (
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.inference import BMGInference
 from torch import Size, tensor
-from torch.distributions import Dirichlet
+from torch.distributions import Bernoulli, Dirichlet
 
 
 def tidy(s: str) -> str:
@@ -105,6 +105,21 @@ def d23():
 @bm.random_variable
 def d3():
     return Dirichlet(tensor([1.0, 1.0, 1.0]))
+
+
+@bm.functional
+def d3_index_0():
+    return d3()[0]
+
+
+@bm.random_variable
+def flip():
+    return Bernoulli(0.5)
+
+
+@bm.functional
+def d2a_index_flip():
+    return d2a()[flip()]
 
 
 class DirichletTest(unittest.TestCase):
@@ -532,3 +547,62 @@ g.query(n2);"""
             + "but only produces samples of type 1 x 2 simplex matrix."
         )
         self.assertEqual(expected, str(ex.exception))
+
+    def test_dirichlet_index(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([d3_index_0()], {})
+        expected = """
+digraph "graph" {
+  N0[label="[1.0,1.0,1.0]"];
+  N1[label=Dirichlet];
+  N2[label=Sample];
+  N3[label=0];
+  N4[label=index];
+  N5[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N4;
+  N3 -> N4;
+  N4 -> N5;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = BMGInference().to_dot([d2a_index_flip()], {})
+        expected = """
+digraph "graph" {
+  N00[label="[2.5,3.0]"];
+  N01[label=Dirichlet];
+  N02[label=Sample];
+  N03[label=0.5];
+  N04[label=Bernoulli];
+  N05[label=Sample];
+  N06[label=1];
+  N07[label=0];
+  N08[label=if];
+  N09[label=index];
+  N10[label=Query];
+  N00 -> N01;
+  N01 -> N02;
+  N02 -> N09;
+  N03 -> N04;
+  N04 -> N05;
+  N05 -> N08;
+  N06 -> N08;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N10;
+}
+"""
+
+        self.assertEqual(expected.strip(), observed.strip())
+
+        queries = [d2a(), d2a_index_flip()]
+        observations = {flip(): tensor(1.0)}
+
+        results = BMGInference().infer(queries, observations, 1)
+        d2a_sample = results[d2a()][0, 0, 0]
+        index_sample = results[d2a_index_flip()][0]
+        # The sample and the indexed sample must be the same value
+        self.assertEqual(d2a_sample[1], index_sample)

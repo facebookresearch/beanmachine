@@ -21,17 +21,20 @@ from beanmachine.graph import (
 from beanmachine.ppl.compiler.bmg_types import (
     AnyRequirement,
     BMGLatticeType,
+    BMGMatrixType,
     Boolean,
     Malformed,
     Natural,
     NegativeReal,
     One,
+    OneHotMatrix,
     PositiveReal,
     Probability,
     Real,
     Requirement,
     SimplexMatrix,
     Tensor as BMGTensor,
+    ZeroMatrix,
     _size_to_rc,
     always_matrix,
     supremum,
@@ -2583,6 +2586,172 @@ class IndexNodeDeprecated(BinaryOperatorNode):
         return SetOfTensors(
             el for ar in self.right.support() for el in self.left[ar].support()
         )
+
+
+class IndexNode(BinaryOperatorNode):
+    """This represents a stochastic index into a vector. The left operand
+    is the vector and the right operand is the index."""
+
+    operator_type = OperatorType.INDEX
+
+    def __init__(self, left: MapNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    @property
+    def label(self) -> str:
+        return "index"
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        # The inf type of an index is derived from the inf type of
+        # the vector, but it's not as straightforward as just
+        # shrinking the type down to a 1x1 matrix. The elements of
+        # a one-hot vector are bools, for instance, not all one.
+        # The elements of a simplex are probabilities.
+        lt = self.left.inf_type
+        if isinstance(lt, OneHotMatrix):
+            return Boolean
+        # See notes in "requirements", below.
+        if isinstance(lt, ZeroMatrix):
+            return Boolean
+        if isinstance(lt, SimplexMatrix):
+            return Probability
+        if isinstance(lt, BMGMatrixType):
+            return lt.with_dimensions(1, 1)
+        # The only other possibility is that we have a tensor, so let's say
+        # its elements are reals.
+        return Real
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        lt = self.left.graph_type
+        # These should be impossible
+        assert not isinstance(lt, OneHotMatrix)
+        assert not isinstance(lt, ZeroMatrix)
+        if isinstance(lt, SimplexMatrix):
+            return Probability
+        if isinstance(lt, BMGMatrixType):
+            return lt.with_dimensions(1, 1)
+        return Malformed
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        # The index operator introduces an interesting wrinkle into the
+        # "requirements" computation. Until now we have always had the property
+        # that queries and observations are "sinks" of the graph, and the transitive
+        # closure of the inputs to the sinks can have their requirements checked in
+        # order going from the nodes farthest from the sinks down to the sinks.
+        # That is, each node can meet its input requirements *before* its output
+        # nodes meet their requirements. We now have a case where doing so creates
+        # potential inefficiencies.
+        #
+        # B is the constant vector [0, 1, 1]
+        # N is any node of type natural.
+        # I is an index
+        # F is Bernoulli.
+        #
+        #   B N
+        #   | |
+        #    I
+        #    |
+        #    F
+        #
+        # The requirement on edge I->F is Probability
+        # The requirement on edge N->I is Natural.
+        # What is the requirement on the B->I edge?
+        #
+        # If we say that it is Boolean[1, 3], its inf type, then the graph we end up
+        # generating is
+        #
+        # b = const_bool_matrix([0, 1, 1])  # bool matrix
+        # n = whatever                      # natural
+        # i = index(b, i)                   # bool
+        # z = const_prob(0)                 # prob
+        # o = const_prob(1)                 # prob
+        # c = if_then_else(i, o, z)         # prob
+        # f = Bernoulli(c)                  # bool
+        #
+        # But it would be arguably better to produce
+        #
+        # b = const_prob_matrix([0, 1, 1])  # prob matrix
+        # n = whatever                      # natural
+        # i = index(b, i)                   # prob
+        # f = Bernoulli(i)                  # bool
+        #
+        # TODO: We might consider an optimization pass which does so.
+        #
+        # However there is an even worse situation. Suppose we have
+        # this unlikely-but-legal graph:
+        #
+        # Z is [0, 0, 0]
+        # N is any natural
+        # I is an index
+        # C requires a Boolean input
+        # L requires a NegativeReal input
+        #
+        #    Z   N
+        #     | |
+        #      I
+        #     | |
+        #    C   L
+        #
+        # The inf type of Z is Zero[1, 3].
+        # The I->C edge requirement is Boolean
+        # The I->L edge requirement is NegativeReal
+        #
+        # Now what requirement do we impose on the Z->I edge? We have our choice
+        # of "matrix of negative reals" or "matrix of bools", and whichever we
+        # pick will disappoint someone.
+        #
+        # Fortunately for us, this situation is unlikely; a model writer who
+        # contrives a situation where they are making a stochastic choice where
+        # all choices are all zero AND that zero needs to be used as both
+        # false and a negative number is not writing realistic models.
+        #
+        # What we will do in this unlikely situation is decide that the intended
+        # output type is Boolean and therefore the vector is a vector of bools.
+        #
+        # -----
+        #
+        # We require:
+        # * the vector must be one row
+        # * the vector must be a matrix, not a single value
+        # * the vector must be either a simplex, or a matrix where the element
+        #   type is the output type of the indexing operation
+        # * the index must be a natural
+        #
+
+        lt = self.left.inf_type
+
+        # If we have a tensor that has more than two dimensions, who can
+        # say what the column count should be?
+
+        # TODO: We need a better error message for that scenario.
+        # It will be common for people to use tensors that are too high
+        # dimension for BMG to handle and we should say that clearly.
+
+        required_columns = lt.columns if isinstance(lt, BMGMatrixType) else 1
+        required_rows = 1
+
+        if isinstance(lt, SimplexMatrix):
+            vector_req = lt.with_dimensions(required_rows, required_columns)
+        else:
+            it = self.inf_type
+            assert isinstance(it, BMGMatrixType)
+            vector_req = it.with_dimensions(required_rows, required_columns)
+
+        return [always_matrix(vector_req), Natural]
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        return str(self.left) + "[" + str(self.right) + "]"
+
+    def support(self) -> Iterator[Any]:
+        raise NotImplementedError("support of index operator not implemented")
+
+    def _supported_in_bmg(self) -> bool:
+        return True
 
 
 class MatrixMultiplicationNode(BinaryOperatorNode):

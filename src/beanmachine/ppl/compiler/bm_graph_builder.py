@@ -88,6 +88,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     GreaterThanNode,
     HalfCauchyNode,
     IfThenElseNode,
+    IndexNode,
     IndexNodeDeprecated,
     LessThanEqualNode,
     LessThanNode,
@@ -1043,18 +1044,24 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    @memoize
+    def add_index(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = IndexNode(left, right)
+        self.add_node(node)
+        return node
+
     def handle_index(self, left: Any, right: Any) -> Any:
-        if isinstance(left, BMGNode) and not isinstance(left, MapNode):
-            # TODO: Improve this error message
-            raise ValueError("handle_index requires a collection")
-        if isinstance(right, ConstantNode):
-            result = left[right.value]
-            return result.value if isinstance(result, ConstantNode) else result
+        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
+            return left[right]
+
+        # TODO: If we have a constant index and a stochastic
+        # tensor we could optimize this.
+
+        if not isinstance(left, BMGNode):
+            left = self.add_constant(left)
         if not isinstance(right, BMGNode):
-            result = left[right]
-            return result.value if isinstance(result, ConstantNode) else result
-        m = self.collection_to_map(left)
-        return self.add_index_deprecated(m, right)
+            right = self.add_constant(right)
+        return self.add_index(left, right)
 
     @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
