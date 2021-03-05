@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import Any, Union
 
 import torch
-from beanmachine.ppl.utils.memoize import memoize
+from beanmachine.ppl.utils.memoize import MemoizedClass, memoize
 from torch import Size
 
 
@@ -142,8 +142,7 @@ class BroadcastMatrixType(BMGMatrixType):
 # which is a nice property to have.
 
 
-@memoize
-class BooleanMatrix(BroadcastMatrixType):
+class BooleanMatrix(BroadcastMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         BroadcastMatrixType.__init__(self, bool_element, rows, columns)
 
@@ -151,8 +150,7 @@ class BooleanMatrix(BroadcastMatrixType):
         return BooleanMatrix(rows, columns)
 
 
-@memoize
-class NaturalMatrix(BroadcastMatrixType):
+class NaturalMatrix(BroadcastMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         BroadcastMatrixType.__init__(self, natural_element, rows, columns)
 
@@ -160,8 +158,7 @@ class NaturalMatrix(BroadcastMatrixType):
         return NaturalMatrix(rows, columns)
 
 
-@memoize
-class ProbabilityMatrix(BroadcastMatrixType):
+class ProbabilityMatrix(BroadcastMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         BroadcastMatrixType.__init__(self, probability_element, rows, columns)
 
@@ -169,8 +166,7 @@ class ProbabilityMatrix(BroadcastMatrixType):
         return ProbabilityMatrix(rows, columns)
 
 
-@memoize
-class PositiveRealMatrix(BroadcastMatrixType):
+class PositiveRealMatrix(BroadcastMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         BroadcastMatrixType.__init__(self, positive_real_element, rows, columns)
 
@@ -178,8 +174,7 @@ class PositiveRealMatrix(BroadcastMatrixType):
         return PositiveRealMatrix(rows, columns)
 
 
-@memoize
-class NegativeRealMatrix(BroadcastMatrixType):
+class NegativeRealMatrix(BroadcastMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         BroadcastMatrixType.__init__(self, negative_real_element, rows, columns)
 
@@ -187,8 +182,7 @@ class NegativeRealMatrix(BroadcastMatrixType):
         return NegativeRealMatrix(rows, columns)
 
 
-@memoize
-class RealMatrix(BroadcastMatrixType):
+class RealMatrix(BroadcastMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         BroadcastMatrixType.__init__(self, real_element, rows, columns)
 
@@ -196,8 +190,7 @@ class RealMatrix(BroadcastMatrixType):
         return RealMatrix(rows, columns)
 
 
-@memoize
-class SimplexMatrix(BMGMatrixType):
+class SimplexMatrix(BMGMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         BMGMatrixType.__init__(
             self,
@@ -212,8 +205,7 @@ class SimplexMatrix(BMGMatrixType):
         return SimplexMatrix(rows, columns)
 
 
-@memoize
-class OneHotMatrix(BMGMatrixType):
+class OneHotMatrix(BMGMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         short_name = "OH" if rows == 1 and columns == 1 else f"OH[{rows},{columns}]"
         long_name = (
@@ -227,8 +219,7 @@ class OneHotMatrix(BMGMatrixType):
         return OneHotMatrix(rows, columns)
 
 
-@memoize
-class ZeroMatrix(BMGMatrixType):
+class ZeroMatrix(BMGMatrixType, metaclass=MemoizedClass):
     def __init__(self, rows: int, columns: int) -> None:
         short_name = "Z" if rows == 1 and columns == 1 else f"Z[{rows},{columns}]"
         long_name = (
