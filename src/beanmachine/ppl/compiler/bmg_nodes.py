@@ -1375,7 +1375,15 @@ class DirichletNode(DistributionNode):
 )"""
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        raise NotImplementedError("DirichletNode._to_cpp not yet implemented")
+        return f"""uint n{d[self]} = g.add_distribution(
+  graph::DistributionType::DIRICHLET,
+  graph::ValueType(
+    graph::VariableType::COL_SIMPLEX_MATRIX,
+    graph::AtomicType::PROBABILITY,
+    {self._required_columns},
+    1
+  )
+  std::vector<uint>({{n{d[self.concentration]}}}));"""
 
 
 class FlatNode(DistributionNode):

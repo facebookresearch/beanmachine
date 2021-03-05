@@ -448,3 +448,26 @@ n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 g.query(n2)
         """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_dirichlet_to_cpp(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_cpp([d2a()], {})
+        expected = """
+graph::Graph g;
+Eigen::MatrixXd m0(2, 1)
+m0 << 2.5, 3.0;
+uint n0 = g.add_constant_pos_matrix(m0);
+uint n1 = g.add_distribution(
+  graph::DistributionType::DIRICHLET,
+  graph::ValueType(
+    graph::VariableType::COL_SIMPLEX_MATRIX,
+    graph::AtomicType::PROBABILITY,
+    2,
+    1
+  )
+  std::vector<uint>({n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+g.query(n2);"""
+        self.assertEqual(expected.strip(), observed.strip())
