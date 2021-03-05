@@ -91,6 +91,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     IndexNode,
     LessThanEqualNode,
     LessThanNode,
+    Log1mexpNode,
     LogisticNode,
     LogNode,
     LogSumExpNode,
@@ -138,6 +139,7 @@ from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
+from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import MemoizationKey, memoize
 from torch import Tensor, tensor
 from torch.distributions import (
@@ -410,6 +412,9 @@ class BMGraphBuilder:
             Normal: self.handle_normal,
             StudentT: self.handle_studentt,
             Uniform: self.handle_uniform,
+            # Beanstalk hints
+            log1mexp: self.handle_log1mexp,
+            math_log1mexp: self.handle_log1mexp,
         }
 
     # ####
@@ -1233,6 +1238,27 @@ class BMGraphBuilder:
         if isinstance(input, ConstantNode):
             return math.log(input.value)
         return self.add_log(input)
+
+    @memoize
+    def add_log1mexp(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, ConstantTensorNode):
+            return self.add_constant(log1mexp(operand.value))
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(math_log1mexp(operand.value))
+        node = Log1mexpNode(operand)
+        self.add_node(node)
+        return node
+
+    def handle_log1mexp(self, input: Any) -> Any:
+        if isinstance(input, Tensor):
+            return log1mexp(input)
+        if isinstance(input, ConstantTensorNode):
+            return log1mexp(input.value)
+        if not isinstance(input, BMGNode):
+            return math_log1mexp(input)
+        if isinstance(input, ConstantNode):
+            return math_log1mexp(input.value)
+        return self.add_log1mexp(input)
 
     @memoize
     def add_tensor(self, size: torch.Size, *data: BMGNode) -> TensorNode:
