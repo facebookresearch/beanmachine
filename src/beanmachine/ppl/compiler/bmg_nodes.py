@@ -352,8 +352,8 @@ def _value_to_cpp_eigen(value: Tensor, variable: str) -> str:
     # a torch Dirichlet distribution expects a row of parameters;
     # BMG expects a column.  That's why we swap rows with columns here.
     r, c = _size_to_rc(value.size())
-    # TODO: Is this enumeration order correct for 2d arrays?
-    values = ", ".join(str(element) for element in value.storage())
+    v = value.reshape(r, c).transpose(0, 1)
+    values = ", ".join(str(element) for element in v.storage())
     return f"Eigen::MatrixXd {variable}({c}, {r})\n{variable} << {values};\n"
 
 
@@ -723,8 +723,9 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         r, c = _size_to_rc(self.value.size())
-        # Note that we swap the rows and columns
-        return g.add_constant_pos_matrix(self.value.reshape(c, r))
+        # Note that we take the transpose; BMG expects columns,
+        # BM provides rows.
+        return g.add_constant_pos_matrix(self.value.reshape(r, c).transpose(0, 1))
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
@@ -734,6 +735,7 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         v = self._value_to_python()
+        # TODO: Do we have to take the transpose of the tensor here?
         return f"n{n} = g.add_constant_pos_matrix({v})"
 
     @property
