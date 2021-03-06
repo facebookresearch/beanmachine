@@ -424,9 +424,21 @@ digraph "graph" {
         # Ten samples, each is a vector with 1 row and 2 columns.
         self.assertEqual(Size([1, 10, 1, 2]), samples.size())
 
-        results = BMGInference().infer([d3()], {}, 20, rejection)
+        queries = [d3()]
+        observations = {}
+
+        results = BMGInference().infer(queries, observations, 20, rejection)
         samples = results[d3()]
         self.assertEqual(Size([1, 20, 1, 3]), samples.size())
+
+        # If we observe a Dirichlet sample to be a value, we'd better get
+        # that value when we query.
+        observations = {d3(): tensor([0.5, 0.25, 0.25])}
+        results = BMGInference().infer(queries, observations, 1, nmc)
+        samples = results[d3()]
+
+        expected = "tensor([[[[0.5000, 0.2500, 0.2500]]]], dtype=torch.float64)"
+        self.assertEqual(expected, str(samples))
 
     def test_dirichlet_to_python(self) -> None:
         self.maxDiff = None
