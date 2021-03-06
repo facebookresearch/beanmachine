@@ -471,3 +471,39 @@ uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 g.query(n2);"""
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_dirichlet_observation_errors(self) -> None:
+        self.maxDiff = None
+
+        queries = [d2a()]
+        # Wrong size, wrong sum
+        observations = {d2a(): tensor(2.0)}
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, observations, 1)
+        expected = (
+            "A Dirichlet distribution is observed to have value 2.0 "
+            + "but only produces samples of type 1 x 2 simplex matrix."
+        )
+        self.assertEqual(expected, str(ex.exception))
+
+        # Wrong size, right sum
+        observations = {d2a(): tensor([0.25, 0.25, 0.25, 0.25])}
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, observations, 1)
+        expected = (
+            "A Dirichlet distribution is observed to have value "
+            + "tensor([0.2500, 0.2500, 0.2500, 0.2500]) "
+            + "but only produces samples of type 1 x 2 simplex matrix."
+        )
+        self.assertEqual(expected, str(ex.exception))
+
+        # Right size, wrong sum
+        observations = {d2a(): tensor([0.25, 0.25])}
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, observations, 1)
+        expected = (
+            "A Dirichlet distribution is observed to have value "
+            + "tensor([0.2500, 0.2500]) "
+            + "but only produces samples of type 1 x 2 simplex matrix."
+        )
+        self.assertEqual(expected, str(ex.exception))
