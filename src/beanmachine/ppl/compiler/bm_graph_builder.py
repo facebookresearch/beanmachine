@@ -88,7 +88,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     GreaterThanNode,
     HalfCauchyNode,
     IfThenElseNode,
-    IndexNode,
+    IndexNodeDeprecated,
     LessThanEqualNode,
     LessThanNode,
     Log1mexpNode,
@@ -1031,16 +1031,15 @@ class BMGraphBuilder:
             return input.value ** exponent.value
         return self.add_power(input, exponent)
 
-    # TODO: Indexes and maps are slightly tricky; add some comments here
-    # explaining what's going on.
+    # TODO: Remove this.
 
     @memoize
-    def add_index(self, left: MapNode, right: BMGNode) -> BMGNode:
+    def add_index_deprecated(self, left: MapNode, right: BMGNode) -> BMGNode:
         # TODO: Is there a better way to say "if list length is 1" that bails out
         # TODO: if it is greater than 1?
         if len(list(right.support())) == 1:
             return left[right]
-        node = IndexNode(left, right)
+        node = IndexNodeDeprecated(left, right)
         self.add_node(node)
         return node
 
@@ -1055,7 +1054,7 @@ class BMGraphBuilder:
             result = left[right]
             return result.value if isinstance(result, ConstantNode) else result
         m = self.collection_to_map(left)
-        return self.add_index(m, right)
+        return self.add_index_deprecated(m, right)
 
     @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
@@ -1369,8 +1368,9 @@ class BMGraphBuilder:
                 return self.add_if_then_else(choice, second_value, first_value)
 
         # Otherwise, just make a map node.
+        # TODO: Fix this. We need a better abstraction that is supported by BMG.
         map_node = self.add_map(*key_value_pairs)
-        index_node = self.add_index(map_node, choice)
+        index_node = self.add_index_deprecated(map_node, choice)
         return index_node
 
     def _handle_random_variable_call_checked(

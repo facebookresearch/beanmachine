@@ -1483,6 +1483,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.add_log1mexp(s).size, Size([2]))
 
     def test_maps(self) -> None:
+        # TODO: Eliminate map nodes and delete this test
         bmg = BMGraphBuilder()
 
         t0 = bmg.add_constant_tensor(tensor(0.0))
@@ -1495,7 +1496,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         s3 = bmg.add_sample(bern)
         a = bmg.add_addition(s2, t2)
         m = bmg.add_map(t0, s1, t1, a)
-        i = bmg.add_index(m, s3)
+        i = bmg.add_index_deprecated(m, s3)
         self.assertEqual(
             SetOfTensors(i.support()),
             SetOfTensors([tensor(0.0), tensor(1.0), tensor(2.0), tensor(3.0)]),

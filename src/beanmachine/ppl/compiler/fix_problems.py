@@ -13,7 +13,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     BMGNode,
     ConstantNode,
     DistributionNode,
-    IndexNode,
+    IndexNodeDeprecated,
     MapNode,
     MultiplicationNode,
     Observation,
@@ -126,7 +126,7 @@ class RequirementsFixer:
         # TODO: (2) until we do support map nodes in BMG, we should add an
         # TODO: error reporting pass to this code that detects map nodes
         # TODO: and gives an unsupported node type error.
-        assert isinstance(consumer, IndexNode)
+        assert isinstance(consumer, IndexNodeDeprecated)
         assert requirement == node.inf_type
         return node
 
