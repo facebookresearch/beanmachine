@@ -2538,7 +2538,13 @@ class MapNode(BMGNode):
         raise ValueError("Key not found in map")
 
 
-class IndexNode(BinaryOperatorNode):
+class IndexNodeDeprecated(BinaryOperatorNode):
+
+    # TODO: The index / map node combination that we originally envisioned
+    # does not work well with BMGs indexing operator; we will eventually
+    # remove it. Until then, just mark it as deprecated to minimize
+    # disruption while we get indexing support working.
+
     """This represents a stochastic choice of multiple options; the left
     operand must be a map, and the right is the stochastic value used to
     choose an element from the map."""
