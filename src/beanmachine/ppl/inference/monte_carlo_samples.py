@@ -97,6 +97,13 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             chain should be included with the healthy samples.
         :returns: samples drawn during inference for the specified variable
         """
+
+        if not isinstance(rv, RVIdentifier):
+            raise TypeError(
+                "The key is required to be a random variable "
+                + f"but is of type {type(rv).__name__}."
+            )
+
         samples = self.samples[rv]
 
         if include_adapt_steps:
