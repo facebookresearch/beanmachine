@@ -3,6 +3,7 @@ import unittest
 
 import beanmachine.ppl as bm
 from torch import tensor
+from torch.distributions import Bernoulli
 
 
 @bm.random_variable
@@ -18,6 +19,11 @@ def g(n):
 @bm.functional
 def h():
     return 123  # BAD; needs to be a tensor
+
+
+@bm.random_variable
+def flip():
+    return Bernoulli(0.5)
 
 
 class InferenceErrorReportingTest(unittest.TestCase):
@@ -99,4 +105,12 @@ class InferenceErrorReportingTest(unittest.TestCase):
         self.assertEqual(
             str(ex.exception),
             "A random_variable is required to return a distribution.",
+        )
+
+        # The lookup key to the samples object is required to be an RVID.
+        with self.assertRaises(TypeError) as ex:
+            mh.infer([flip()], {}, 10)[flip]
+        self.assertEqual(
+            str(ex.exception),
+            "The key is required to be a random variable but is of type function.",
         )
