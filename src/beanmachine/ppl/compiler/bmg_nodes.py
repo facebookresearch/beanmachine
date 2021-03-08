@@ -2586,12 +2586,9 @@ class IndexNodeDeprecated(BinaryOperatorNode):
 
 
 class MatrixMultiplicationNode(BinaryOperatorNode):
-
     """"This represents a matrix multiplication."""
 
-    # TODO: We do not yet have an implementation of matrix
-    # multiplication as a BMG node. When we do, implement the
-    # feature here.
+    # TODO: We now have matrix multiplication in BMG; finish this implementation
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -2601,19 +2598,18 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         return "*"
 
     def _compute_inf_type(self) -> BMGLatticeType:
-        # TODO: We do not yet support matrix multiplication in BMG;
-        # when we do, revisit this code.
+        # TODO: Fix this
         return supremum(self.left.inf_type, self.right.inf_type)
 
     def _compute_graph_type(self) -> BMGLatticeType:
+        # TODO: Fix this
         if self.left.graph_type == self.right.graph_type:
             return self.left.graph_type
         return Malformed
 
     @property
     def requirements(self) -> List[Requirement]:
-        # TODO: We do not yet support matrix multiplication in BMG;
-        # when we do, revisit this code.
+        # TODO: Fix this
         it = self.inf_type
         return [it, it]
 
