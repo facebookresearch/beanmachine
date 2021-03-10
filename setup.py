@@ -60,7 +60,13 @@ if "CONDA_PREFIX" in os.environ:
     INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "eigen3")])
 
 if sys.platform.startswith("linux"):
-    INCLUDE_DIRS.extend(["/usr/include", "/usr/include/eigen3"])
+    INCLUDE_DIRS.extend(
+        [
+            "/usr/include",
+            "/usr/include/eigen3",
+            "/usr/include/x86_64-linux-gnu",
+        ]
+    )
 
 setup(
     name="beanmachine",
@@ -106,6 +112,7 @@ setup(
         "botorch>=0.3.3",
         "xarray>=0.16.0",
         "arviz>=0.11.0",
+        "flowtorch>=0.0.dev2",
     ],
     packages=find_packages("src/"),
     package_dir={"": "src"},
