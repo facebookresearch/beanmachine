@@ -6,11 +6,18 @@ import beanmachine.graph as bmg
 import numpy as np
 
 
+def tidy(s: str) -> str:
+    return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
+
+
 class TestOperators(unittest.TestCase):
     def test_oper_args(self) -> None:
         """
         We will test test number of arguments for each operator 0, 1, 2, 3 etc.
         """
+
+        self.maxDiff = None
+
         g = bmg.Graph()
         c1 = g.add_constant(2.5)
         c2 = g.add_constant(-1.5)
@@ -24,6 +31,9 @@ class TestOperators(unittest.TestCase):
         # add const matrices, operators on matrix to be added
         g.add_constant_matrix(np.array([[True, False], [False, True]]))
         g.add_constant_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
+        # TODO: This adds a real-valued matrix, not a natural-valued matrix
+        # as was likely intended. Figure out how to fix that.  See line
+        # marked "Node 11" at the bottom of this function.
         g.add_constant_matrix(np.array([[1, 2], [0, 999]]))
         g.add_constant_pos_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
         g.add_constant_neg_matrix(np.array(([-0.3, -0.4])))
@@ -130,6 +140,52 @@ class TestOperators(unittest.TestCase):
         with self.assertRaises(ValueError):
             g.add_operator(bmg.OperatorType.POW, [c1, c1, c1])
         g.add_operator(bmg.OperatorType.POW, [c1, c2])
+
+        observed = g.to_string()
+        expected = """
+Node 0 type 1 parents [ ] children [ 24 30 31 31 33 ] real 2.5
+Node 1 type 1 parents [ ] children [ 19 23 30 31 33 ] real -1.5
+Node 2 type 1 parents [ ] children [ 22 29 ] probability 0.5
+Node 3 type 1 parents [ ] children [ 16 26 28 29 ] probability 0.6
+Node 4 type 1 parents [ ] children [ 28 29 ] probability 0.7
+Node 5 type 1 parents [ ] children [ 17 ] natural 23
+Node 6 type 1 parents [ ] children [ 27 ] boolean 0
+Node 7 type 1 parents [ ] children [ 18 20 25 32 32 32 ] negative real -1.25
+Node 8 type 1 parents [ ] children [ 21 ] positive real 1.25
+Node 9 type 1 parents [ ] children [ ] matrix<boolean> 1 0
+0 1
+Node 10 type 1 parents [ ] children [ ] matrix<real> -0.1    0
+2   -1
+Node 11 type 1 parents [ ] children [ ] matrix<real>   1   2
+0 999
+Node 12 type 1 parents [ ] children [ ] matrix<positive real> 0.1   0
+2   1
+Node 13 type 1 parents [ ] children [ ] matrix<negative real> -0.3
+-0.4
+Node 14 type 1 parents [ ] children [ ] matrix<probability> 0.1
+0.9
+Node 15 type 1 parents [ ] children [ ] col_simplex_matrix<probability> 0.1   1
+0.9   0
+Node 16 type 3 parents [ 3 ] children [ ] real 0
+Node 17 type 3 parents [ 5 ] children [ ] real 0
+Node 18 type 3 parents [ 7 ] children [ ] real 0
+Node 19 type 3 parents [ 1 ] children [ ] positive real 1e-10
+Node 20 type 3 parents [ 7 ] children [ ] probability 1e-10
+Node 21 type 3 parents [ 8 ] children [ ] positive real 1e-10
+Node 22 type 3 parents [ 2 ] children [ ] negative real -1e-10
+Node 23 type 3 parents [ 1 ] children [ ] real 0
+Node 24 type 3 parents [ 0 ] children [ ] real 0
+Node 25 type 3 parents [ 7 ] children [ ] positive real 1e-10
+Node 26 type 3 parents [ 3 ] children [ ] probability 1e-10
+Node 27 type 3 parents [ 6 ] children [ ] boolean 0
+Node 28 type 3 parents [ 3 4 ] children [ ] probability 1e-10
+Node 29 type 3 parents [ 2 3 4 ] children [ ] probability 1e-10
+Node 30 type 3 parents [ 0 1 ] children [ ] real 0
+Node 31 type 3 parents [ 0 1 0 ] children [ ] real 0
+Node 32 type 3 parents [ 7 7 7 ] children [ ] negative real -1e-10
+Node 33 type 3 parents [ 0 1 ] children [ ] real 0
+        """
+        self.assertEqual(tidy(expected), tidy(observed))
 
     def test_arithmetic(self) -> None:
         g = bmg.Graph()

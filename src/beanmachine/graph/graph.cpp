@@ -162,7 +162,7 @@ std::string NodeValue::to_string() const {
         os << type_str << _double;
         break;
       default:
-        os << "BAD value";
+        os << "Unsupported SCALAR value";
         break;
     }
   } else if (type.variable_type == VariableType::BROADCAST_MATRIX) {
@@ -176,8 +176,16 @@ std::string NodeValue::to_string() const {
       case AtomicType::PROBABILITY:
         os << type_str << _matrix;
         break;
+      case AtomicType::BOOLEAN:
+        os << type_str << _bmatrix;
+        break;
+      case AtomicType::NATURAL:
+        os << type_str << _nmatrix;
+        break;
+
+        break;
       default:
-        os << "BAD value";
+        os << "Unsupported BROADCAST_MATRIX value";
     }
   } else if (type.variable_type == VariableType::COL_SIMPLEX_MATRIX) {
     switch (type.atomic_type) {
@@ -188,10 +196,10 @@ std::string NodeValue::to_string() const {
         os << type_str << _matrix;
         break;
       default:
-        os << "BAD value";
+        os << "Unsupported COL_SIMPLEX_MATRIX value";
     }
   } else {
-    os << "BAD value";
+    os << "Unsupported NodeValue";
   }
   return os.str();
 }
