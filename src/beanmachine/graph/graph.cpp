@@ -562,15 +562,15 @@ uint Graph::add_constant_neg_real(double value) {
   return add_constant(NodeValue(AtomicType::NEG_REAL, value));
 }
 
-uint Graph::add_constant_matrix(Eigen::MatrixXb& value) {
+uint Graph::add_constant_bool_matrix(Eigen::MatrixXb& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_matrix(Eigen::MatrixXd& value) {
+uint Graph::add_constant_real_matrix(Eigen::MatrixXd& value) {
   return add_constant(NodeValue(value));
 }
 
-uint Graph::add_constant_matrix(Eigen::MatrixXn& value) {
+uint Graph::add_constant_natural_matrix(Eigen::MatrixXn& value) {
   return add_constant(NodeValue(value));
 }
 

@@ -29,12 +29,9 @@ class TestOperators(unittest.TestCase):
         c8 = g.add_constant_neg_real(-1.25)
         c9 = g.add_constant_pos_real(1.25)
         # add const matrices, operators on matrix to be added
-        g.add_constant_matrix(np.array([[True, False], [False, True]]))
-        g.add_constant_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
-        # TODO: This adds a real-valued matrix, not a natural-valued matrix
-        # as was likely intended. Figure out how to fix that.  See line
-        # marked "Node 11" at the bottom of this function.
-        g.add_constant_matrix(np.array([[1, 2], [0, 999]]))
+        g.add_constant_bool_matrix(np.array([[True, False], [False, True]]))
+        g.add_constant_real_matrix(np.array([[-0.1, 0.0], [2.0, -1.0]]))
+        g.add_constant_natural_matrix(np.array([[1, 2], [0, 999]]))
         g.add_constant_pos_matrix(np.array([[0.1, 0.0], [2.0, 1.0]]))
         g.add_constant_neg_matrix(np.array(([-0.3, -0.4])))
         g.add_constant_probability_matrix(np.array([0.1, 0.9]))
@@ -156,7 +153,7 @@ Node 9 type 1 parents [ ] children [ ] matrix<boolean> 1 0
 0 1
 Node 10 type 1 parents [ ] children [ ] matrix<real> -0.1    0
 2   -1
-Node 11 type 1 parents [ ] children [ ] matrix<real>   1   2
+Node 11 type 1 parents [ ] children [ ] matrix<natural>   1   2
 0 999
 Node 12 type 1 parents [ ] children [ ] matrix<positive real> 0.1   0
 2   1

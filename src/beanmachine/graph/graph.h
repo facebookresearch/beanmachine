@@ -506,9 +506,9 @@ struct Graph {
   uint add_constant_probability(double value);
   uint add_constant_pos_real(double value);
   uint add_constant_neg_real(double value);
-  uint add_constant_matrix(Eigen::MatrixXb& value);
-  uint add_constant_matrix(Eigen::MatrixXd& value);
-  uint add_constant_matrix(Eigen::MatrixXn& value);
+  uint add_constant_bool_matrix(Eigen::MatrixXb& value);
+  uint add_constant_real_matrix(Eigen::MatrixXd& value);
+  uint add_constant_natural_matrix(Eigen::MatrixXn& value);
   uint add_constant_pos_matrix(Eigen::MatrixXd& value);
   uint add_constant_neg_matrix(Eigen::MatrixXd& value);
   uint add_constant_probability_matrix(Eigen::MatrixXd& value);
