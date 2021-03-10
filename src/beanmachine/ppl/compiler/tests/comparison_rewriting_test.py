@@ -70,7 +70,7 @@ def y_helper(bmg):
         r8 = bmg.handle_addition(a9, a11)
         r12 = {}
         r2 = bmg.handle_function(StudentT, r8, r12)
-        return bmg.handle_sample(r2)
+        return r2
     return y
 """
         self.assertEqual(observed.strip(), expected.strip())

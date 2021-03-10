@@ -297,8 +297,8 @@ _is_query: PatternRule = PatternRule(
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
 
 
-# TODO: We can get rid of the rule that we insert a handle_sample call
-# on a return by making the graph accumulator take care of this detail.
+# TODO: Delete this rule once we have eliminated all the tests that
+# use the whole-module compiler workflow
 _sample_returns: Rule = _descend_until(_is_sample, _top_down(once(_handle_sample)))
 
 _remove_query_decorator: Rule = _descend_until(
@@ -385,7 +385,7 @@ _supported_code_containers = {types.MethodType, types.FunctionType}
 
 
 def _bm_ast_to_bmg_ast(
-    a: ast.AST, run_optimizer: bool, remove_all_decorators: bool
+    a: ast.AST, run_optimizer: bool, remove_all_decorators: bool, sample_returns: bool
 ) -> ast.AST:
     no_asserts = _eliminate_all_assertions(a).expect_success()
     # TODO: Eventually remove the folder / optimizer; we can do optimization
@@ -402,7 +402,11 @@ def _bm_ast_to_bmg_ast(
     assert isinstance(sa, ast.Module)
     # Now we're in single assignment form.
 
-    rewrites = [_math_to_bmg, _sample_returns]
+    rewrites = [_math_to_bmg]
+
+    if sample_returns:
+        rewrites += [_sample_returns]
+
     if remove_all_decorators:
         rewrites += [_remove_all_decorators]
     else:
@@ -457,7 +461,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
     assert isinstance(a.body[0], ast.FunctionDef), f"{str(type(a.body[0]))}\n{source}"
     # TODO: Add support for classes, generators, lambdas, and so on.
 
-    bmg = _bm_ast_to_bmg_ast(a, False, True)
+    bmg = _bm_ast_to_bmg_ast(a, False, True, False)
     assert isinstance(bmg, ast.Module)
     assert len(bmg.body) == 1
     bmg_f = bmg.body[0]
@@ -530,7 +534,7 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
 
 def _bm_module_to_bmg_ast(source: str) -> ast.AST:
     a: ast.Module = ast.parse(source)
-    bmg = _bm_ast_to_bmg_ast(a, True, False)
+    bmg = _bm_ast_to_bmg_ast(a, True, False, True)
     assert isinstance(bmg, ast.Module)
     bmg = _prepend_statements(bmg, _header.body)
     assert isinstance(bmg, ast.Module)
