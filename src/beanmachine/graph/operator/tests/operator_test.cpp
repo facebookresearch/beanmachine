@@ -687,9 +687,9 @@ TEST(testoperator, matrix_multiply) {
       std::invalid_argument);
   Eigen::MatrixXd m1(3, 2);
   m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
-  auto cm1 = g.add_constant_matrix(m1);
+  auto cm1 = g.add_constant_real_matrix(m1);
   Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
-  auto cm2 = g.add_constant_matrix(m2);
+  auto cm2 = g.add_constant_bool_matrix(m2);
   // requires real/pos_real/neg_real/probability types
   EXPECT_THROW(
       g.add_operator(
@@ -806,7 +806,7 @@ TEST(testoperator, index) {
       std::invalid_argument);
   Eigen::MatrixXd m1(2, 1);
   m1 << 2.0, -1.0;
-  auto cm1 = g.add_constant_matrix(m1);
+  auto cm1 = g.add_constant_real_matrix(m1);
   EXPECT_THROW(
       g.add_operator(OperatorType::INDEX, std::vector<uint>{cm1}),
       std::invalid_argument);

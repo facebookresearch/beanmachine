@@ -157,16 +157,16 @@ TEST(testgraph, clone_graph) {
   Eigen::MatrixXd m1 = Eigen::MatrixXd::Identity(2, 2);
   g.add_constant_pos_matrix(m1);
   Eigen::MatrixXd m2 = Eigen::MatrixXd::Random(2, 2);
-  g.add_constant_matrix(m2);
+  g.add_constant_real_matrix(m2);
   Eigen::MatrixXd m3(2, 1);
   m3 << 0.2, 0.8;
   g.add_constant_col_simplex_matrix(m3);
   Eigen::MatrixXb m4(1, 2);
   m4 << true, false;
-  g.add_constant_matrix(m4);
+  g.add_constant_bool_matrix(m4);
   Eigen::MatrixXn m5(2, 1);
   m5 << 1, 2;
-  g.add_constant_matrix(m5);
+  g.add_constant_natural_matrix(m5);
   // distributions
   uint d_bernoulli = g.add_distribution(
       graph::DistributionType::BERNOULLI,

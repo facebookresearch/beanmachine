@@ -74,7 +74,7 @@ class TestBayesNet(unittest.TestCase):
             )
         self.assertTrue("only supports boolean parents" in str(cm.exception))
 
-        c3 = g.add_constant_matrix(np.array([1.1, -0.1]))
+        c3 = g.add_constant_real_matrix(np.array([1.1, -0.1]))
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.TABULAR, graph.AtomicType.BOOLEAN, [c3]

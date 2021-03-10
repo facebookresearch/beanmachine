@@ -291,7 +291,7 @@ TEST(testgradient, backward_vector_linearmodel) {
   Xmat << 1.0, 0.5, 1.0, -1.5, 1.0, 2.1;
   for (uint i = 0; i < 3; ++i) {
     Eigen::MatrixXd x = Xmat.row(i);
-    uint x_i = g.add_constant_matrix(x);
+    uint x_i = g.add_constant_real_matrix(x);
     uint mu_i = g.add_operator(
         OperatorType::MATRIX_MULTIPLY, std::vector<uint>{x_i, betas});
     uint dist_i = g.add_distribution(

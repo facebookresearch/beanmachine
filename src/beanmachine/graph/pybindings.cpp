@@ -137,18 +137,19 @@ PYBIND11_MODULE(graph, module) {
           "add a Node with a constant negative real (<=0) value",
           py::arg("value"))
       .def(
-          "add_constant_matrix",
-          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_matrix,
+          "add_constant_real_matrix",
+          (uint(Graph::*)(Eigen::MatrixXd&)) & Graph::add_constant_real_matrix,
           "add a Node with a constant real-valued matrix",
           py::arg("value"))
       .def(
-          "add_constant_matrix",
-          (uint(Graph::*)(Eigen::MatrixXb&)) & Graph::add_constant_matrix,
-          "add a Node with a constant boolean-valued matrix",
+          "add_constant_bool_matrix",
+          (uint(Graph::*)(Eigen::MatrixXb&)) & Graph::add_constant_bool_matrix,
+          "add a Node with a constant Boolean-valued matrix",
           py::arg("value"))
       .def(
-          "add_constant_matrix",
-          (uint(Graph::*)(Eigen::MatrixXn&)) & Graph::add_constant_matrix,
+          "add_constant_natural_matrix",
+          (uint(Graph::*)(Eigen::MatrixXn&)) &
+              Graph::add_constant_natural_matrix,
           "add a Node with a constant natural-valued matrix",
           py::arg("value"))
       .def(
