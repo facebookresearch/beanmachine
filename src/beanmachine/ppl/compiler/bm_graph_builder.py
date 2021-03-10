@@ -1635,6 +1635,14 @@ class BMGraphBuilder:
             self.in_flight.add(key)
             try:
                 value = self._function_to_bmg_function(rv.function)(*rv.arguments)
+                # If we are calling a random_variable then we must have gotten
+                # back a distribution. This is the first time we have called this
+                # rv with these arguments -- because we had a cache miss -- and
+                # therefore we should generate a new sample node.  If by contrast
+                # we are calling a functional then we check below that we got
+                # back either a graph node or a tensor that we can make into a constant.
+                if rv.is_random_variable:
+                    value = self.handle_sample(value)
             finally:
                 self.in_flight.remove(key)
             if isinstance(value, Tensor):
@@ -1677,10 +1685,6 @@ class BMGraphBuilder:
         time a model function decorated with @bm.random_variable returns; we verify that the
         returned value is a distribution that we know how to accumulate into the
         graph, and add a sample node to the graph."""
-
-        # TODO: There is no need to generate a handle_sample call in the
-        # lifted code once we are correctly memoizing the result in the rv map.
-        # We can just call it directly from the graph builder itself.
 
         if isinstance(operand, DistributionNode):
             return self.add_sample(operand)

@@ -171,6 +171,21 @@ def assertions_are_removed():
     return Bernoulli(0.5)
 
 
+@bm.random_variable
+def flip_with_comprehension():
+    _ = [0 for x in []]
+    return Bernoulli(0.5)
+
+
+@bm.random_variable
+def flip_with_nested_function():
+    def x():
+        return 0.5
+
+    x()
+    return Bernoulli(0.5)
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -212,7 +227,7 @@ def norm_helper(bmg):
         a7 = dict(scale=a8)
         r4 = dict(**a5, **a7)
         r2 = bmg.handle_function(Normal, r3, r4)
-        return bmg.handle_sample(r2)
+        return r2
     return norm
 """
         self.assertEqual(observed.strip(), expected.strip())
@@ -551,3 +566,17 @@ digraph "graph" {
 
         # The side effect is not caused.
         self.assertEqual(observable_side_effect, 0)
+
+    def test_nested_functions_and_comprehensions(self) -> None:
+        self.maxDiff = None
+
+        # We had a bug where a nested function or comprehension inside a
+        # random_variable would crash while accumulating the graph;
+        # this test regresses that bug by simply verifying that we do
+        # not crash in those scenarios now.
+
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph([flip_with_nested_function()], {})
+
+        bmg = BMGraphBuilder()
+        bmg.accumulate_graph([flip_with_comprehension()], {})
