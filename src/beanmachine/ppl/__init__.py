@@ -17,7 +17,7 @@ from .inference import (
     empirical,
     simulate,
 )
-from .model import functional, get_beanmachine_logger, random_variable
+from .model import functional, get_beanmachine_logger, param, random_variable
 
 
 LOGGER = get_beanmachine_logger()
@@ -36,6 +36,7 @@ __all__ = [
     "SingleSiteUniformMetropolisHastings",
     "experimental",
     "functional",
+    "param",
     "random_variable",
     "effective_sample_size",
     "split_r_hat",

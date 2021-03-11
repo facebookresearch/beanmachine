@@ -143,3 +143,126 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         finally:
             self.reset()
         return vi_dicts
+
+
+class VariationalInference(AbstractInference, metaclass=ABCMeta):
+    """
+    Stochastic Variational Inference.
+
+    Fits a variational approximation represented as a guide program by
+    Monte-Carlo approximating ELBO and optimizing over any `bm.param`s
+    used in the guide.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def infer(
+        self,
+        model_to_guide_ids: Dict[RVIdentifier, RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
+        num_iter: int = 100,
+        lr: float = 1e-3,
+        random_seed: Optional[int] = None,
+    ) -> Dict[RVIdentifier, Tensor]:
+        """
+        Perform stochastic variational inference.
+
+        All `bm.param`s referenced in guide random variables are optimized to
+        minimize a Monte Carlo approximation of negative ELBO loss. The
+        negative ELBO loss is Monte-Carlo approximated by sampling the guide
+        `bm.random_variable`s (i.e. values of `model_to_guide_ids`) to draw
+        trace samples from the variational approximation and scored against
+        the model `bm.random_variables` (i.e. keys of `model_to_guide_ids`).
+        It is the end-user's responsibility to interpret the optimized values
+        for the `bm.param`s returned.
+
+        NOTE: only sequential SVI is supported; parallel is blocked until
+        we consistently handle batch vs event dimensions within beanmachine.
+
+        :param model_to_guide_ids: mapping from latent variables to their
+        respective guide random variables
+        :param observations: observed random variables with their values
+        :param num_iter: number of iterations of optimizer steps
+        :param lr: learning rate
+        :param random_seed: random seed
+
+        :returns: mapping from all `bm.param` `RVIdentifier`s encountered
+        to their optimized values
+        """
+        optimizer = None
+
+        try:
+            if not random_seed:
+                random_seed = (
+                    torch.randint(MeanFieldVariationalInference._rand_int_max, (1,))
+                    .int()
+                    .item()
+                )
+            self.set_seed(random_seed)
+            self.queries_ = list(model_to_guide_ids.keys())
+            self.observations_ = observations
+
+            params = {}
+
+            for _ in tqdm(iterable=range(num_iter), desc="Training iterations"):
+                # sample world x ~ q_t
+                self.initialize_world(
+                    False,
+                    model_to_guide_ids=model_to_guide_ids,
+                    params=params,
+                )
+                if not optimizer:
+                    optimizer = torch.optim.Adam(self.world_.params_.values(), lr=lr)
+                # TODO: add new guide params not already in optimizer
+
+                nodes = self.world_.get_all_world_vars()
+                latent_rvids = list(
+                    filter(
+                        lambda rvid: (
+                            rvid not in self.observations_
+                            and rvid not in model_to_guide_ids.values()
+                        ),
+                        nodes.keys(),
+                    )
+                )
+                loss = torch.zeros(1)
+                # -ELBO == E[log p(obs, x) - log q(x)] ~= log p(obs | x) +
+                # \sum_s (log p(x_s) - log q(x_s)) where x_s ~ q_t were sampled
+                # during `initialize_world`.
+                # Here we compute the second term suming over latent sites x_s.
+                for rvid in latent_rvids:
+                    assert (
+                        rvid in model_to_guide_ids
+                    ), f"expected every latent to have a guide, but did not find one for {rvid}"
+                    node_var = nodes[rvid]
+                    v_approx = nodes[model_to_guide_ids[rvid]]
+
+                    loss += v_approx.distribution.log_prob(node_var.value).sum()
+                    loss -= node_var.distribution.log_prob(node_var.value).sum()
+
+                # Add the remaining likelihood term log p(obs | x)
+                for obs_rvid in self.observations_:
+                    obs_var = nodes[obs_rvid]
+                    loss -= obs_var.distribution.log_prob(
+                        self.observations_[obs_rvid]
+                    ).sum()
+
+                if not torch.isnan(loss):
+                    loss.backward()
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    params = self.world_.params_
+                else:
+                    # TODO: caused by e.g. negative scales in `dist.Normal`;
+                    # fix using pytorch's `constraint_registry` to account for
+                    # `Distribution.arg_constraints`
+                    LOGGER.log(
+                        LogLevel.INFO.value, "Encountered NaNs in loss, skipping epoch"
+                    )
+
+        except BaseException as x:
+            raise x
+        finally:
+            self.reset()
+        return params
