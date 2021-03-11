@@ -38,6 +38,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         base_args: Optional[dict] = None,
         random_seed: Optional[int] = None,
         num_elbo_mc_samples=100,
+        on_iter: Optional[Callable] = None,
     ) -> Callable[[RVIdentifier], MeanFieldVariationalApproximation]:
         """
         Trains a set of mean-field variational approximation (one per site).
@@ -84,7 +85,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                 )
 
             vi_dicts = lru_cache(maxsize=None)(_get_var_approx)
-            for _ in tqdm(iterable=range(num_iter), desc="Training iterations"):
+            for it in tqdm(iterable=range(num_iter), desc="Training iterations"):
                 # sample world x ~ q_t
                 self.initialize_world(False, vi_dicts)
 
@@ -131,6 +132,9 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                         v_approx = vi_dicts(rvid)
                         v_approx.optim.step()
                         v_approx.recompute_transformed_distribution()
+
+                    if on_iter:
+                        on_iter(it, loss)
                 else:
                     # TODO: caused by e.g. negative scales in `dist.Normal`;
                     # fix using pytorch's `constraint_registry` to account for
