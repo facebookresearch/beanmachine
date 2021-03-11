@@ -80,11 +80,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
                 "MeanFieldVariationalApproximation only supports 0D/1D distributions"
             )
 
-        # TODO: remove once fixed upstream
-        _tmp = flowtorch.params.DenseAutoregressive()
-        # pyre-ignore
-        _tmp._init_weights = lambda layers: None
-        self.flow = flowtorch.bijectors.AffineAutoregressive(_tmp)
+        self.flow = flowtorch.bijectors.AffineAutoregressive()
 
         assert len(base_dist(**base_args).event_shape) <= 1
         self.new_dist, self._flow_params = self.flow(
