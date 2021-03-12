@@ -4,8 +4,10 @@ from abc import ABCMeta
 from functools import lru_cache
 from typing import Callable, Dict, List, Optional
 
+import flowtorch
 import torch
 import torch.distributions as dist
+import torch.nn as nn
 import torch.optim
 from torch import Tensor
 from tqdm.auto import tqdm
@@ -34,6 +36,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         observations: Dict[RVIdentifier, Tensor],
         num_iter: int = 100,
         lr: float = 1e-3,
+        flow: Optional[Callable[[], flowtorch.Bijector]] = None,
         base_dist: Optional[dist.Distribution] = None,
         base_args: Optional[dict] = None,
         random_seed: Optional[int] = None,
@@ -55,8 +58,12 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         :param base_args: arguments to base_dist (will optimize any `nn.Parameter`s)
         """
         if not base_dist:
+            # default to mean-field ADVI
             base_dist = dist.Normal
-            base_args = {"loc": torch.tensor([0.0]), "scale": torch.tensor([1.0])}
+            base_args = {
+                "loc": nn.Parameter(torch.tensor([0.0])),
+                "scale": nn.Parameter(torch.tensor([1.0])),
+            }
             # TODO: reinterpret batch dimension?
         if not base_args:
             base_args = {}
@@ -80,6 +87,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                 return MeanFieldVariationalApproximation(
                     lr=lr,
                     target_dist=target_dist,
+                    flow=flow,
                     base_dist=base_dist,
                     base_args=copy.deepcopy(base_args),
                 )
@@ -134,7 +142,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                         v_approx.recompute_transformed_distribution()
 
                     if on_iter:
-                        on_iter(it, loss)
+                        on_iter(it, loss, vi_dicts)
                 else:
                     # TODO: caused by e.g. negative scales in `dist.Normal`;
                     # fix using pytorch's `constraint_registry` to account for

@@ -1,7 +1,8 @@
 import itertools
 import logging
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 
+import flowtorch
 import flowtorch.bijectors
 import flowtorch.params
 import torch
@@ -34,6 +35,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
         self,
         target_dist: dist.Distribution,
         lr=1e-2,
+        flow: Optional[Callable[[], flowtorch.Bijector]] = None,
         base_dist=dist.Normal,
         base_args=None,
         validate_args=None,
@@ -80,7 +82,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
                 "MeanFieldVariationalApproximation only supports 0D/1D distributions"
             )
 
-        self.flow = flowtorch.bijectors.AffineAutoregressive()
+        self.flow = flow() if flow else flowtorch.bijectors.AffineAutoregressive()
 
         assert len(base_dist(**base_args).event_shape) <= 1
         self.new_dist, self._flow_params = self.flow(
