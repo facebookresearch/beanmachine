@@ -73,7 +73,8 @@ def target():
         log_probs = tensor(
             # TODO: Hard-coded k in {0,1}
             # [log_item_prob(i, 0), log_item_prob(i, 1), log_item_prob(i, 2)]
-            [log_item_prob(i, 0), log_item_prob(i, 1)]
+            # [log_item_prob(i, 0), log_item_prob(i, 1)]
+            [log_item_prob(i, k) for k in range(NUM_CLASS)]
         )
         joint_log_prob = joint_log_prob + log_probs.logsumexp(0)
     return dist.Bernoulli(joint_log_prob.exp())
