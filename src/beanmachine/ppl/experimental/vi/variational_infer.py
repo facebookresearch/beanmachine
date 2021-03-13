@@ -42,6 +42,9 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         random_seed: Optional[int] = None,
         num_elbo_mc_samples=100,
         on_iter: Optional[Callable] = None,
+        vi_dicts: Optional[
+            Callable[[RVIdentifier], MeanFieldVariationalApproximation]
+        ] = None,
     ) -> Callable[[RVIdentifier], MeanFieldVariationalApproximation]:
         """
         Trains a set of mean-field variational approximation (one per site).
@@ -93,7 +96,8 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                 )
 
             vi_dicts = lru_cache(maxsize=None)(_get_var_approx)
-            for it in tqdm(iterable=range(num_iter), desc="Training iterations"):
+            # for it in tqdm(iterable=range(num_iter), desc="Training iterations"):
+            for it in range(num_iter):
                 # sample world x ~ q_t
                 self.initialize_world(False, vi_dicts)
 
