@@ -13,6 +13,7 @@ class Flat(dist.Distribution):
 
     def __init__(self, shape):
         self.shape = shape
+        self._event_shape = [shape]
 
     def rsample(self, sample_shape):
         return torch.zeros(sample_shape)

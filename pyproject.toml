@@ -13,5 +13,7 @@ filterwarnings = [
     # pytorch warns about vmap usage since it's experimental
     "ignore:torch.vmap is an experimental prototype.*:UserWarning",
     # pandas sometimes complains about binary compatibility with numpy
-    "default:numpy.ufunc size changed, may indicate binary incompatibility.*:RuntimeWarning"
+    "default:numpy.ufunc size changed, may indicate binary incompatibility.*:RuntimeWarning",
+    # flowtorch warnings
+    "ignore:DenseAutoregressive input_dim = 1. Consider using an affine transformation instead.*:UserWarning"
 ]
