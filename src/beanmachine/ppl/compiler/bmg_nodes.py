@@ -360,6 +360,13 @@ def _value_to_cpp_eigen(value: Tensor, variable: str) -> str:
     return f"Eigen::MatrixXd {variable}({c}, {r})\n{variable} << {values};\n"
 
 
+def _matrix_value_to_python(value: Tensor) -> str:
+    r, c = _size_to_rc(value.size())
+    v = value.reshape(r, c).transpose(0, 1)
+    t = ConstantTensorNode._tensor_to_python(v)
+    return f"tensor({t})"
+
+
 # When constructing the support of various nodes we are often
 # having to remove duplicates from a set of possible values.
 # Unfortunately, it is not easy to do so with torch tensors.
@@ -737,9 +744,145 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
-        v = self._value_to_python()
-        # TODO: Do we have to take the transpose of the tensor here?
+        v = _matrix_value_to_python(self.value)
         return f"n{n} = g.add_constant_pos_matrix({v})"
+
+    @property
+    def is_matrix(self) -> bool:
+        return True
+
+
+class ConstantRealMatrixNode(ConstantTensorNode):
+    def __init__(self, value: Tensor):
+        assert len(value.size()) <= 2
+        ConstantTensorNode.__init__(self, value)
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        return Real.with_size(self.size)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        r, c = _size_to_rc(self.value.size())
+        return g.add_constant_real_matrix(self.value.reshape(r, c).transpose(0, 1))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp_eigen(self.value, f"m{n}")
+        return f"{v}uint n{n} = g.add_constant_real_matrix(m{n});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _matrix_value_to_python(self.value)
+        return f"n{n} = g.add_constant_real_matrix({v})"
+
+    @property
+    def is_matrix(self) -> bool:
+        return True
+
+
+class ConstantNegativeRealMatrixNode(ConstantTensorNode):
+    def __init__(self, value: Tensor):
+        assert len(value.size()) <= 2
+        ConstantTensorNode.__init__(self, value)
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        return NegativeReal.with_size(self.size)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        r, c = _size_to_rc(self.value.size())
+        return g.add_constant_neg_matrix(self.value.reshape(r, c).transpose(0, 1))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp_eigen(self.value, f"m{n}")
+        return f"{v}uint n{n} = g.add_constant_neg_matrix(m{n});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _matrix_value_to_python(self.value)
+        return f"n{n} = g.add_constant_neg_matrix({v})"
+
+    @property
+    def is_matrix(self) -> bool:
+        return True
+
+
+class ConstantProbabilityMatrixNode(ConstantTensorNode):
+    def __init__(self, value: Tensor):
+        assert len(value.size()) <= 2
+        ConstantTensorNode.__init__(self, value)
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        return Probability.with_size(self.size)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        r, c = _size_to_rc(self.value.size())
+        return g.add_constant_probability_matrix(
+            self.value.reshape(r, c).transpose(0, 1)
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp_eigen(self.value, f"m{n}")
+        return f"{v}uint n{n} = g.add_constant_probability_matrix(m{n});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _matrix_value_to_python(self.value)
+        return f"n{n} = g.add_constant_probability_matrix({v})"
+
+    @property
+    def is_matrix(self) -> bool:
+        return True
+
+
+class ConstantNaturalMatrixNode(ConstantTensorNode):
+    def __init__(self, value: Tensor):
+        assert len(value.size()) <= 2
+        ConstantTensorNode.__init__(self, value)
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        return Natural.with_size(self.size)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        r, c = _size_to_rc(self.value.size())
+        return g.add_constant_natural_matrix(self.value.reshape(r, c).transpose(0, 1))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp_eigen(self.value, f"m{n}")
+        return f"{v}uint n{n} = g.add_constant_natural_matrix(m{n});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _matrix_value_to_python(self.value)
+        return f"n{n} = g.add_constant_natural_matrix({v})"
+
+    @property
+    def is_matrix(self) -> bool:
+        return True
+
+
+class ConstantBooleanMatrixNode(ConstantTensorNode):
+    def __init__(self, value: Tensor):
+        assert len(value.size()) <= 2
+        ConstantTensorNode.__init__(self, value)
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        return Boolean.with_size(self.size)
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        r, c = _size_to_rc(self.value.size())
+        return g.add_constant_bool_matrix(self.value.reshape(r, c).transpose(0, 1))
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _value_to_cpp_eigen(self.value, f"m{n}")
+        return f"{v}uint n{n} = g.add_constant_bool_matrix(m{n});"
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        v = _matrix_value_to_python(self.value)
+        return f"n{n} = g.add_constant_bool_matrix({v})"
 
     @property
     def is_matrix(self) -> bool:

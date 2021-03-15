@@ -71,8 +71,13 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     CategoricalNode,
     Chi2Node,
     ComplementNode,
+    ConstantBooleanMatrixNode,
+    ConstantNaturalMatrixNode,
+    ConstantNegativeRealMatrixNode,
     ConstantNode,
     ConstantPositiveRealMatrixNode,
+    ConstantProbabilityMatrixNode,
+    ConstantRealMatrixNode,
     ConstantTensorNode,
     DirichletNode,
     DistributionNode,
@@ -133,7 +138,12 @@ from beanmachine.ppl.compiler.bmg_types import (
     Probability,
     Real,
     Zero,
+    bool_element,
+    natural_element,
+    negative_real_element,
     positive_real_element,
+    probability_element,
+    real_element,
 )
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
@@ -498,8 +508,18 @@ class BMGraphBuilder:
     def add_constant_of_matrix_type(
         self, value: Any, node_type: BMGMatrixType
     ) -> ConstantNode:
+        if node_type.element_type == real_element:
+            return self.add_real_matrix(value)
         if node_type.element_type == positive_real_element:
             return self.add_pos_real_matrix(value)
+        if node_type.element_type == negative_real_element:
+            return self.add_neg_real_matrix(value)
+        if node_type.element_type == probability_element:
+            return self.add_probability_matrix(value)
+        if node_type.element_type == natural_element:
+            return self.add_natural_matrix(value)
+        if node_type.element_type == bool_element:
+            return self.add_boolean_matrix(value)
         raise NotImplementedError(
             "add_constant_of_matrix_type not yet "
             + f"implemented for {node_type.long_name}"
@@ -551,9 +571,44 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_boolean_matrix(self, value: Tensor) -> ConstantBooleanMatrixNode:
+        assert len(value.size()) <= 2
+        node = ConstantBooleanMatrixNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_natural_matrix(self, value: Tensor) -> ConstantNaturalMatrixNode:
+        assert len(value.size()) <= 2
+        node = ConstantNaturalMatrixNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_probability_matrix(self, value: Tensor) -> ConstantProbabilityMatrixNode:
+        assert len(value.size()) <= 2
+        node = ConstantProbabilityMatrixNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_pos_real_matrix(self, value: Tensor) -> ConstantPositiveRealMatrixNode:
         assert len(value.size()) <= 2
         node = ConstantPositiveRealMatrixNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_neg_real_matrix(self, value: Tensor) -> ConstantPositiveRealMatrixNode:
+        assert len(value.size()) <= 2
+        node = ConstantNegativeRealMatrixNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_real_matrix(self, value: Tensor) -> ConstantRealMatrixNode:
+        assert len(value.size()) <= 2
+        node = ConstantRealMatrixNode(value)
         self.add_node(node)
         return node
 

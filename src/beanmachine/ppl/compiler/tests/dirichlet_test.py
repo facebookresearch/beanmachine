@@ -223,15 +223,18 @@ uint n4 = g.add_constant_pos_matrix(m4);
         observed = bmg.to_cpp()
         self.assertEqual(expected.strip(), observed.strip())
 
+        # Notice that constant matrices are always expressed as a
+        # 2-d matrix, and we transpose them so that they are column-major.
+
         expected = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant_pos_matrix(tensor(1.0))
+n0 = g.add_constant_pos_matrix(tensor([[1.0]]))
 
-n2 = g.add_constant_pos_matrix(tensor([1.0,1.5]))
+n2 = g.add_constant_pos_matrix(tensor([[1.0],[1.5]]))
 
-n4 = g.add_constant_pos_matrix(tensor([[1.0,1.5],[2.0,2.5]]))
+n4 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))
         """
         observed = bmg.to_python()
         self.assertEqual(expected.strip(), observed.strip())
@@ -466,7 +469,7 @@ digraph "graph" {
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant_pos_matrix(tensor([2.5,3.0]))
+n0 = g.add_constant_pos_matrix(tensor([[2.5],[3.0]]))
 n1 = g.add_distribution(
   graph.DistributionType.DIRICHLET,
   graph.ValueType(
