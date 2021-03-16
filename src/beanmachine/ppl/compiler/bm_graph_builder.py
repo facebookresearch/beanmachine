@@ -44,6 +44,12 @@ execution of the lifted program; it implements phases
 three, four and five.
 """
 
+# TODO: For reasons unknown, Pyre is unable to find type information about
+# TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
+# TODO: for now, we'll just turn off error checking in this module.
+# pyre-ignore-all-errors
+
+
 import torch  # isort:skip  torch has to be imported before graph
 import inspect
 import math
@@ -52,99 +58,11 @@ from collections.abc import Iterable
 from types import MethodType
 from typing import Any, Callable, Dict, List, Set
 
-# TODO: For reasons unknown, Pyre is unable to find type information about
-# TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
-# TODO: for now, we'll just turn off error checking in this module.
-# pyre-ignore-all-errors
-# TODO: It is somewhat confusing to import a type named "Graph" here;
-# Consider renaming it to NativeGraph or some other more descriptive
-# name that tells the reader that this is a really-truly BMG graph
-# that we are constructing in memory.
+import beanmachine.ppl.compiler.bmg_nodes as bn
+import beanmachine.ppl.compiler.bmg_types as bt
+import torch.distributions as dist
 from beanmachine.graph import Graph, InferenceType
-from beanmachine.ppl.compiler.bmg_nodes import (
-    AdditionNode,
-    BernoulliNode,
-    BetaNode,
-    BinomialNode,
-    BMGNode,
-    BooleanNode,
-    CategoricalNode,
-    Chi2Node,
-    ComplementNode,
-    ConstantBooleanMatrixNode,
-    ConstantNaturalMatrixNode,
-    ConstantNegativeRealMatrixNode,
-    ConstantNode,
-    ConstantPositiveRealMatrixNode,
-    ConstantProbabilityMatrixNode,
-    ConstantRealMatrixNode,
-    ConstantTensorNode,
-    DirichletNode,
-    DistributionNode,
-    DivisionNode,
-    EqualNode,
-    ExpM1Node,
-    ExpNode,
-    ExpProductFactorNode,
-    FactorNode,
-    FlatNode,
-    GammaNode,
-    GreaterThanEqualNode,
-    GreaterThanNode,
-    HalfCauchyNode,
-    IfThenElseNode,
-    IndexNode,
-    IndexNodeDeprecated,
-    LessThanEqualNode,
-    LessThanNode,
-    Log1mexpNode,
-    LogisticNode,
-    LogNode,
-    LogSumExpNode,
-    MapNode,
-    MatrixMultiplicationNode,
-    MultiplicationNode,
-    NaturalNode,
-    NegateNode,
-    NegativeRealNode,
-    NormalNode,
-    NotEqualNode,
-    NotNode,
-    Observation,
-    OperatorNode,
-    PhiNode,
-    PositiveRealNode,
-    PowerNode,
-    ProbabilityNode,
-    Query,
-    RealNode,
-    SampleNode,
-    StudentTNode,
-    TensorNode,
-    ToPositiveRealNode,
-    ToProbabilityNode,
-    ToRealNode,
-    UniformNode,
-    positive_infinity,
-)
-from beanmachine.ppl.compiler.bmg_types import (
-    BMGLatticeType,
-    BMGMatrixType,
-    Boolean,
-    Natural,
-    NegativeReal,
-    One,
-    PositiveReal,
-    Probability,
-    Real,
-    Zero,
-    bool_element,
-    natural_element,
-    negative_real_element,
-    positive_real_element,
-    probability_element,
-    real_element,
-)
+from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
@@ -152,20 +70,6 @@ from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import MemoizationKey, memoize
-from torch import Tensor, tensor
-from torch.distributions import (
-    Bernoulli,
-    Beta,
-    Binomial,
-    Categorical,
-    Chi2,
-    Dirichlet,
-    Gamma,
-    HalfCauchy,
-    Normal,
-    StudentT,
-    Uniform,
-)
 
 
 def _flatten_all_lists(lst):
@@ -271,10 +175,10 @@ def _is_phi(f: Any, arguments: List[Any], kwargs: Dict[str, Any]) -> bool:
     # (Note that we have already rewritten Normal(0.0, 1.0).cdf(x) into
     # this form.)
     # TODO: Support kwargs
-    if f is not Normal.cdf or len(arguments) < 2:
+    if f is not dist.Normal.cdf or len(arguments) < 2:
         return False
     s = arguments[0]
-    return isinstance(s, Normal) and s.mean == 0.0 and s.stddev == 1.0
+    return isinstance(s, dist.Normal) and s.mean == 0.0 and s.stddev == 1.0
 
 
 def _has_source_code(function: Callable) -> bool:
@@ -285,7 +189,7 @@ def _has_source_code(function: Callable) -> bool:
     return True
 
 
-standard_normal = Normal(0.0, 1.0)
+standard_normal = dist.Normal(0.0, 1.0)
 
 
 def phi(x: Any) -> Any:
@@ -366,7 +270,7 @@ class BMGraphBuilder:
     # so it is possible that two different RVIDs are associated with
     # the same query node.
 
-    _rv_to_query: Dict[RVIdentifier, Query]
+    _rv_to_query: Dict[RVIdentifier, bn.Query]
 
     # This allows us to turn on a special problem-fixing pass to help
     # work around problems under investigation.
@@ -412,17 +316,17 @@ class BMGraphBuilder:
             torch.pow: self.handle_power,
             torch.sigmoid: self.handle_logistic,
             # Distribution constructors
-            Bernoulli: self.handle_bernoulli,
-            Beta: self.handle_beta,
-            Binomial: self.handle_binomial,
-            Categorical: self.handle_categorical,
-            Dirichlet: self.handle_dirichlet,
-            Chi2: self.handle_chi2,
-            Gamma: self.handle_gamma,
-            HalfCauchy: self.handle_halfcauchy,
-            Normal: self.handle_normal,
-            StudentT: self.handle_studentt,
-            Uniform: self.handle_uniform,
+            dist.Bernoulli: self.handle_bernoulli,
+            dist.Beta: self.handle_beta,
+            dist.Binomial: self.handle_binomial,
+            dist.Categorical: self.handle_categorical,
+            dist.Dirichlet: self.handle_dirichlet,
+            dist.Chi2: self.handle_chi2,
+            dist.Gamma: self.handle_gamma,
+            dist.HalfCauchy: self.handle_halfcauchy,
+            dist.Normal: self.handle_normal,
+            dist.StudentT: self.handle_studentt,
+            dist.Uniform: self.handle_uniform,
             # Beanstalk hints
             log1mexp: self.handle_log1mexp,
             math_log1mexp: self.handle_log1mexp,
@@ -501,24 +405,24 @@ class BMGraphBuilder:
             return self.add_real(value)
         if isinstance(value, float):
             return self.add_real(value)
-        if isinstance(value, Tensor):
+        if isinstance(value, torch.Tensor):
             return self.add_constant_tensor(value)
         raise TypeError("value must be a bool, real or tensor")
 
     def add_constant_of_matrix_type(
-        self, value: Any, node_type: BMGMatrixType
+        self, value: Any, node_type: bt.BMGMatrixType
     ) -> ConstantNode:
-        if node_type.element_type == real_element:
+        if node_type.element_type == bt.real_element:
             return self.add_real_matrix(value)
-        if node_type.element_type == positive_real_element:
+        if node_type.element_type == bt.positive_real_element:
             return self.add_pos_real_matrix(value)
-        if node_type.element_type == negative_real_element:
+        if node_type.element_type == bt.negative_real_element:
             return self.add_neg_real_matrix(value)
-        if node_type.element_type == probability_element:
+        if node_type.element_type == bt.probability_element:
             return self.add_probability_matrix(value)
-        if node_type.element_type == natural_element:
+        if node_type.element_type == bt.natural_element:
             return self.add_natural_matrix(value)
-        if node_type.element_type == bool_element:
+        if node_type.element_type == bt.bool_element:
             return self.add_boolean_matrix(value)
         raise NotImplementedError(
             "add_constant_of_matrix_type not yet "
@@ -526,113 +430,119 @@ class BMGraphBuilder:
         )
 
     def add_constant_of_type(
-        self, value: Any, node_type: BMGLatticeType
+        self, value: Any, node_type: bt.BMGLatticeType
     ) -> ConstantNode:
         """This takes any constant value of a supported type and creates a
         constant graph node of the stated type for it, and adds it to the builder"""
-        if node_type == Boolean:
+        if node_type == bt.Boolean:
             return self.add_boolean(bool(value))
-        if node_type == Probability:
+        if node_type == bt.Probability:
             return self.add_probability(float(value))
-        if node_type == Natural:
+        if node_type == bt.Natural:
             return self.add_natural(int(value))
-        if node_type == PositiveReal:
+        if node_type == bt.PositiveReal:
             return self.add_pos_real(float(value))
-        if node_type == NegativeReal:
+        if node_type == bt.NegativeReal:
             return self.add_neg_real(float(value))
-        if node_type == Real:
+        if node_type == bt.Real:
             return self.add_real(float(value))
-        if node_type == Tensor:
-            if isinstance(value, Tensor):
+        if node_type == bt.Tensor:
+            if isinstance(value, torch.Tensor):
                 return self.add_constant_tensor(value)
-            return self.add_constant_tensor(tensor(value))
-        if isinstance(node_type, BMGMatrixType):
+            return self.add_constant_tensor(torch.tensor(value))
+        if isinstance(node_type, bt.BMGMatrixType):
             return self.add_constant_of_matrix_type(value, node_type)
         raise NotImplementedError(
             "add_constant_of_type not yet " + f"implemented for {node_type.long_name}"
         )
 
     @memoize
-    def add_real(self, value: float) -> RealNode:
-        node = RealNode(value)
+    def add_real(self, value: float) -> bn.RealNode:
+        node = bn.RealNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_probability(self, value: float) -> ProbabilityNode:
-        node = ProbabilityNode(value)
+    def add_probability(self, value: float) -> bn.ProbabilityNode:
+        node = bn.ProbabilityNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_pos_real(self, value: float) -> PositiveRealNode:
-        node = PositiveRealNode(value)
+    def add_pos_real(self, value: float) -> bn.PositiveRealNode:
+        node = bn.PositiveRealNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_boolean_matrix(self, value: Tensor) -> ConstantBooleanMatrixNode:
+    def add_boolean_matrix(self, value: torch.Tensor) -> bn.ConstantBooleanMatrixNode:
         assert len(value.size()) <= 2
-        node = ConstantBooleanMatrixNode(value)
+        node = bn.ConstantBooleanMatrixNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_natural_matrix(self, value: Tensor) -> ConstantNaturalMatrixNode:
+    def add_natural_matrix(self, value: torch.Tensor) -> bn.ConstantNaturalMatrixNode:
         assert len(value.size()) <= 2
-        node = ConstantNaturalMatrixNode(value)
+        node = bn.ConstantNaturalMatrixNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_probability_matrix(self, value: Tensor) -> ConstantProbabilityMatrixNode:
+    def add_probability_matrix(
+        self, value: torch.Tensor
+    ) -> bn.ConstantProbabilityMatrixNode:
         assert len(value.size()) <= 2
-        node = ConstantProbabilityMatrixNode(value)
+        node = bn.ConstantProbabilityMatrixNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_pos_real_matrix(self, value: Tensor) -> ConstantPositiveRealMatrixNode:
+    def add_pos_real_matrix(
+        self, value: torch.Tensor
+    ) -> bn.ConstantPositiveRealMatrixNode:
         assert len(value.size()) <= 2
-        node = ConstantPositiveRealMatrixNode(value)
+        node = bn.ConstantPositiveRealMatrixNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_neg_real_matrix(self, value: Tensor) -> ConstantPositiveRealMatrixNode:
+    def add_neg_real_matrix(
+        self, value: torch.Tensor
+    ) -> bn.ConstantNegativeRealMatrixNode:
         assert len(value.size()) <= 2
-        node = ConstantNegativeRealMatrixNode(value)
+        node = bn.ConstantNegativeRealMatrixNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_real_matrix(self, value: Tensor) -> ConstantRealMatrixNode:
+    def add_real_matrix(self, value: torch.Tensor) -> bn.ConstantRealMatrixNode:
         assert len(value.size()) <= 2
-        node = ConstantRealMatrixNode(value)
+        node = bn.ConstantRealMatrixNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_neg_real(self, value: float) -> NegativeRealNode:
-        node = NegativeRealNode(value)
+    def add_neg_real(self, value: float) -> bn.NegativeRealNode:
+        node = bn.NegativeRealNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_natural(self, value: int) -> NaturalNode:
-        node = NaturalNode(value)
+    def add_natural(self, value: int) -> bn.NaturalNode:
+        node = bn.NaturalNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_boolean(self, value: bool) -> BooleanNode:
-        node = BooleanNode(value)
+    def add_boolean(self, value: bool) -> bn.BooleanNode:
+        node = bn.BooleanNode(value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_constant_tensor(self, value: Tensor) -> ConstantTensorNode:
-        node = ConstantTensorNode(value)
+    def add_constant_tensor(self, value: torch.Tensor) -> bn.ConstantTensorNode:
+        node = bn.ConstantTensorNode(value)
         self.add_node(node)
         return node
 
@@ -647,12 +557,14 @@ class BMGraphBuilder:
     @memoize
     def add_bernoulli(
         self, probability: BMGNode, is_logits: bool = False
-    ) -> BernoulliNode:
-        node = BernoulliNode(probability, is_logits)
+    ) -> bn.BernoulliNode:
+        node = bn.BernoulliNode(probability, is_logits)
         self.add_node(node)
         return node
 
-    def handle_bernoulli(self, probs: Any = None, logits: Any = None) -> BernoulliNode:
+    def handle_bernoulli(
+        self, probs: Any = None, logits: Any = None
+    ) -> bn.BernoulliNode:
         if (probs is None and logits is None) or (
             probs is not None and logits is not None
         ):
@@ -665,8 +577,8 @@ class BMGraphBuilder:
     @memoize
     def add_binomial(
         self, count: BMGNode, probability: BMGNode, is_logits: bool = False
-    ) -> BinomialNode:
-        node = BinomialNode(count, probability, is_logits)
+    ) -> bn.BinomialNode:
+        node = bn.BinomialNode(count, probability, is_logits)
         self.add_node(node)
         return node
 
@@ -678,7 +590,7 @@ class BMGraphBuilder:
 
     def handle_binomial(
         self, total_count: Any, probs: Any = None, logits: Any = None
-    ) -> BinomialNode:
+    ) -> bn.BinomialNode:
         if (probs is None and logits is None) or (
             probs is not None and logits is not None
         ):
@@ -693,14 +605,14 @@ class BMGraphBuilder:
     @memoize
     def add_categorical(
         self, probability: BMGNode, is_logits: bool = False
-    ) -> CategoricalNode:
-        node = CategoricalNode(probability, is_logits)
+    ) -> bn.CategoricalNode:
+        node = bn.CategoricalNode(probability, is_logits)
         self.add_node(node)
         return node
 
     def handle_categorical(
         self, probs: Any = None, logits: Any = None
-    ) -> CategoricalNode:
+    ) -> bn.CategoricalNode:
         if (probs is None and logits is None) or (
             probs is not None and logits is not None
         ):
@@ -713,25 +625,25 @@ class BMGraphBuilder:
         return self.add_categorical(probability, logits is not None)
 
     @memoize
-    def add_chi2(self, df: BMGNode) -> Chi2Node:
-        node = Chi2Node(df)
+    def add_chi2(self, df: BMGNode) -> bn.Chi2Node:
+        node = bn.Chi2Node(df)
         self.add_node(node)
         return node
 
-    def handle_chi2(self, df: Any, validate_args=None) -> Chi2Node:
+    def handle_chi2(self, df: Any, validate_args=None) -> bn.Chi2Node:
         if not isinstance(df, BMGNode):
             df = self.add_constant(df)
         return self.add_chi2(df)
 
     @memoize
-    def add_gamma(self, concentration: BMGNode, rate: BMGNode) -> GammaNode:
-        node = GammaNode(concentration, rate)
+    def add_gamma(self, concentration: BMGNode, rate: BMGNode) -> bn.GammaNode:
+        node = bn.GammaNode(concentration, rate)
         self.add_node(node)
         return node
 
     def handle_gamma(
         self, concentration: Any, rate: Any, validate_args=None
-    ) -> GammaNode:
+    ) -> bn.GammaNode:
         if not isinstance(concentration, BMGNode):
             concentration = self.add_constant(concentration)
         if not isinstance(rate, BMGNode):
@@ -739,23 +651,23 @@ class BMGraphBuilder:
         return self.add_gamma(concentration, rate)
 
     @memoize
-    def add_halfcauchy(self, scale: BMGNode) -> HalfCauchyNode:
-        node = HalfCauchyNode(scale)
+    def add_halfcauchy(self, scale: BMGNode) -> bn.HalfCauchyNode:
+        node = bn.HalfCauchyNode(scale)
         self.add_node(node)
         return node
 
-    def handle_halfcauchy(self, scale: Any, validate_args=None) -> HalfCauchyNode:
+    def handle_halfcauchy(self, scale: Any, validate_args=None) -> bn.HalfCauchyNode:
         if not isinstance(scale, BMGNode):
             scale = self.add_constant(scale)
         return self.add_halfcauchy(scale)
 
     @memoize
-    def add_normal(self, mu: BMGNode, sigma: BMGNode) -> NormalNode:
-        node = NormalNode(mu, sigma)
+    def add_normal(self, mu: BMGNode, sigma: BMGNode) -> bn.NormalNode:
+        node = bn.NormalNode(mu, sigma)
         self.add_node(node)
         return node
 
-    def handle_normal(self, loc: Any, scale: Any, validate_args=None) -> NormalNode:
+    def handle_normal(self, loc: Any, scale: Any, validate_args=None) -> bn.NormalNode:
         if not isinstance(loc, BMGNode):
             loc = self.add_constant(loc)
         if not isinstance(scale, BMGNode):
@@ -763,25 +675,29 @@ class BMGraphBuilder:
         return self.add_normal(loc, scale)
 
     @memoize
-    def add_dirichlet(self, concentration: BMGNode) -> DirichletNode:
-        node = DirichletNode(concentration)
+    def add_dirichlet(self, concentration: BMGNode) -> bn.DirichletNode:
+        node = bn.DirichletNode(concentration)
         self.add_node(node)
         return node
 
-    def handle_dirichlet(self, concentration: Any, validate_args=None) -> DirichletNode:
+    def handle_dirichlet(
+        self, concentration: Any, validate_args=None
+    ) -> bn.DirichletNode:
         if not isinstance(concentration, BMGNode):
             concentration = self.add_constant(concentration)
         return self.add_dirichlet(concentration)
 
     @memoize
-    def add_studentt(self, df: BMGNode, loc: BMGNode, scale: BMGNode) -> StudentTNode:
-        node = StudentTNode(df, loc, scale)
+    def add_studentt(
+        self, df: BMGNode, loc: BMGNode, scale: BMGNode
+    ) -> bn.StudentTNode:
+        node = bn.StudentTNode(df, loc, scale)
         self.add_node(node)
         return node
 
     def handle_studentt(
         self, df: Any, loc: Any = 0.0, scale: Any = 1.0, validate_args=None
-    ) -> StudentTNode:
+    ) -> bn.StudentTNode:
         if not isinstance(df, BMGNode):
             df = self.add_constant(df)
         if not isinstance(loc, BMGNode):
@@ -791,12 +707,12 @@ class BMGraphBuilder:
         return self.add_studentt(df, loc, scale)
 
     @memoize
-    def add_uniform(self, low: BMGNode, high: BMGNode) -> UniformNode:
-        node = UniformNode(low, high)
+    def add_uniform(self, low: BMGNode, high: BMGNode) -> bn.UniformNode:
+        node = bn.UniformNode(low, high)
         self.add_node(node)
         return node
 
-    def handle_uniform(self, low: Any, high: Any, validate_args=None) -> UniformNode:
+    def handle_uniform(self, low: Any, high: Any, validate_args=None) -> bn.UniformNode:
         if not isinstance(low, BMGNode):
             low = self.add_constant(low)
         if not isinstance(high, BMGNode):
@@ -804,14 +720,14 @@ class BMGraphBuilder:
         return self.add_uniform(low, high)
 
     @memoize
-    def add_beta(self, alpha: BMGNode, beta: BMGNode) -> BetaNode:
-        node = BetaNode(alpha, beta)
+    def add_beta(self, alpha: BMGNode, beta: BMGNode) -> bn.BetaNode:
+        node = bn.BetaNode(alpha, beta)
         self.add_node(node)
         return node
 
     def handle_beta(
         self, concentration1: Any, concentration0: Any, validate_args=None
-    ) -> BetaNode:
+    ) -> bn.BetaNode:
         if not isinstance(concentration1, BMGNode):
             concentration1 = self.add_constant(concentration1)
         if not isinstance(concentration0, BMGNode):
@@ -819,8 +735,8 @@ class BMGraphBuilder:
         return self.add_beta(concentration1, concentration0)
 
     @memoize
-    def add_flat(self) -> FlatNode:
-        node = FlatNode()
+    def add_flat(self) -> bn.FlatNode:
+        node = bn.FlatNode()
         self.add_node(node)
         return node
 
@@ -842,7 +758,7 @@ class BMGraphBuilder:
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value > right.value)
 
-        node = GreaterThanNode(left, right)
+        node = bn.GreaterThanNode(left, right)
         self.add_node(node)
         return node
 
@@ -863,7 +779,7 @@ class BMGraphBuilder:
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value >= right.value)
 
-        node = GreaterThanEqualNode(left, right)
+        node = bn.GreaterThanEqualNode(left, right)
         self.add_node(node)
         return node
 
@@ -884,7 +800,7 @@ class BMGraphBuilder:
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value < right.value)
 
-        node = LessThanNode(left, right)
+        node = bn.LessThanNode(left, right)
         self.add_node(node)
         return node
 
@@ -905,7 +821,7 @@ class BMGraphBuilder:
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value <= right.value)
 
-        node = LessThanEqualNode(left, right)
+        node = bn.LessThanEqualNode(left, right)
         self.add_node(node)
         return node
 
@@ -926,7 +842,7 @@ class BMGraphBuilder:
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value == right.value)
 
-        node = EqualNode(left, right)
+        node = bn.EqualNode(left, right)
         self.add_node(node)
         return node
 
@@ -947,7 +863,7 @@ class BMGraphBuilder:
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value != right.value)
 
-        node = NotEqualNode(left, right)
+        node = bn.NotEqualNode(left, right)
         self.add_node(node)
         return node
 
@@ -967,13 +883,13 @@ class BMGraphBuilder:
         if isinstance(left, ConstantNode):
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value + right.value)
-            if left.inf_type == Zero:
+            if left.inf_type == bt.Zero:
                 return right
         if isinstance(right, ConstantNode):
-            if right.inf_type == Zero:
+            if right.inf_type == bt.Zero:
                 return left
 
-        node = AdditionNode(left, right)
+        node = bn.AdditionNode(left, right)
         self.add_node(node)
         return node
 
@@ -994,17 +910,17 @@ class BMGraphBuilder:
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value * right.value)
             t = left.inf_type
-            if t == One:
+            if t == bt.One:
                 return right
-            if t == Zero:
+            if t == bt.Zero:
                 return left
         if isinstance(right, ConstantNode):
             t = right.inf_type
-            if t == One:
+            if t == bt.One:
                 return left
-            if t == Zero:
+            if t == bt.Zero:
                 return right
-        node = MultiplicationNode(left, right)
+        node = bn.MultiplicationNode(left, right)
         self.add_node(node)
         return node
 
@@ -1023,9 +939,9 @@ class BMGraphBuilder:
     def add_if_then_else(
         self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode
     ) -> BMGNode:
-        if isinstance(condition, BooleanNode):
+        if isinstance(condition, bn.BooleanNode):
             return consequence if condition.value else alternative
-        node = IfThenElseNode(condition, consequence, alternative)
+        node = bn.IfThenElseNode(condition, consequence, alternative)
         self.add_node(node)
         return node
 
@@ -1033,7 +949,7 @@ class BMGraphBuilder:
     def add_matrix_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(torch.mm(left.value, right.value))
-        node = MatrixMultiplicationNode(left, right)
+        node = bn.MatrixMultiplicationNode(left, right)
         self.add_node(node)
         return node
 
@@ -1052,7 +968,7 @@ class BMGraphBuilder:
     def add_division(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value / right.value)
-        node = DivisionNode(left, right)
+        node = bn.DivisionNode(left, right)
         self.add_node(node)
         return node
 
@@ -1072,7 +988,7 @@ class BMGraphBuilder:
     def add_power(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value ** right.value)
-        node = PowerNode(left, right)
+        node = bn.PowerNode(left, right)
         self.add_node(node)
         return node
 
@@ -1090,18 +1006,18 @@ class BMGraphBuilder:
     # TODO: Remove this.
 
     @memoize
-    def add_index_deprecated(self, left: MapNode, right: BMGNode) -> BMGNode:
+    def add_index_deprecated(self, left: bn.MapNode, right: BMGNode) -> BMGNode:
         # TODO: Is there a better way to say "if list length is 1" that bails out
         # TODO: if it is greater than 1?
         if len(list(right.support())) == 1:
             return left[right]
-        node = IndexNodeDeprecated(left, right)
+        node = bn.IndexNodeDeprecated(left, right)
         self.add_node(node)
         return node
 
     @memoize
-    def add_index(self, left: BMGNode, right: BMGNode) -> BMGNode:
-        node = IndexNode(left, right)
+    def add_index(self, left: BMGNode, right: BMGNode) -> bn.IndexNode:
+        node = bn.IndexNode(left, right)
         self.add_node(node)
         return node
 
@@ -1122,7 +1038,7 @@ class BMGraphBuilder:
     def add_negate(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
             return self.add_constant(-operand.value)
-        node = NegateNode(operand)
+        node = bn.NegateNode(operand)
         self.add_node(node)
         return node
 
@@ -1137,7 +1053,7 @@ class BMGraphBuilder:
     def add_complement(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
             return self.add_constant(1 - operand.value)
-        node = ComplementNode(operand)
+        node = bn.ComplementNode(operand)
         self.add_node(node)
         return node
 
@@ -1150,7 +1066,7 @@ class BMGraphBuilder:
     def add_not(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
             return self.add_constant(not operand.value)
-        node = NotNode(operand)
+        node = bn.NotNode(operand)
         self.add_node(node)
         return node
 
@@ -1166,11 +1082,11 @@ class BMGraphBuilder:
 
     @memoize
     def add_to_real(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, RealNode):
+        if isinstance(operand, bn.RealNode):
             return operand
         if isinstance(operand, ConstantNode):
             return self.add_real(float(operand.value))
-        node = ToRealNode(operand)
+        node = bn.ToRealNode(operand)
         self.add_node(node)
         return node
 
@@ -1183,38 +1099,38 @@ class BMGraphBuilder:
 
     @memoize
     def add_to_positive_real(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, PositiveRealNode):
+        if isinstance(operand, bn.PositiveRealNode):
             return operand
         if isinstance(operand, ConstantNode):
             return self.add_positive_real(float(operand.value))
-        node = ToPositiveRealNode(operand)
+        node = bn.ToPositiveRealNode(operand)
         self.add_node(node)
         return node
 
     @memoize
     def add_to_probability(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, ProbabilityNode):
+        if isinstance(operand, bn.ProbabilityNode):
             return operand
         if isinstance(operand, ConstantNode):
             return self.add_probability(float(operand.value))
-        node = ToProbabilityNode(operand)
+        node = bn.ToProbabilityNode(operand)
         self.add_node(node)
         return node
 
     @memoize
     def add_exp(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, ConstantTensorNode):
+        if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(torch.exp(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.exp(operand.value))
-        node = ExpNode(operand)
+        node = bn.ExpNode(operand)
         self.add_node(node)
         return node
 
     def handle_exp(self, input: Any) -> Any:
-        if isinstance(input, Tensor):
+        if isinstance(input, torch.Tensor):
             return torch.exp(input)
-        if isinstance(input, ConstantTensorNode):
+        if isinstance(input, bn.ConstantTensorNode):
             return torch.exp(input.value)
         if not isinstance(input, BMGNode):
             return math.exp(input)
@@ -1224,18 +1140,18 @@ class BMGraphBuilder:
 
     @memoize
     def add_expm1(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, ConstantTensorNode):
+        if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(torch.expm1(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(torch.expm1(torch.tensor(operand.value)))
-        node = ExpM1Node(operand)
+        node = bn.ExpM1Node(operand)
         self.add_node(node)
         return node
 
     def handle_expm1(self, input: Any) -> Any:
-        if isinstance(input, Tensor):
+        if isinstance(input, torch.Tensor):
             return torch.expm1(input)
-        if isinstance(input, ConstantTensorNode):
+        if isinstance(input, bn.ConstantTensorNode):
             return torch.expm1(input.value)
         if not isinstance(input, BMGNode):
             return torch.expm1(input)
@@ -1245,18 +1161,18 @@ class BMGraphBuilder:
 
     @memoize
     def add_logistic(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, ConstantTensorNode):
+        if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(torch.sigmoid(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(torch.sigmoid(torch.tensor(operand.value)))
-        node = LogisticNode(operand)
+        node = bn.LogisticNode(operand)
         self.add_node(node)
         return node
 
     def handle_logistic(self, input: Any) -> Any:
-        if isinstance(input, Tensor):
+        if isinstance(input, torch.Tensor):
             return torch.sigmoid(input)
-        if isinstance(input, ConstantTensorNode):
+        if isinstance(input, bn.ConstantTensorNode):
             return torch.sigmoid(input.value)
         if not isinstance(input, BMGNode):
             return torch.sigmoid(input)
@@ -1268,7 +1184,7 @@ class BMGraphBuilder:
     def add_phi(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
             return self.add_constant(phi(operand.value))
-        node = PhiNode(operand)
+        node = bn.PhiNode(operand)
         self.add_node(node)
         return node
 
@@ -1281,18 +1197,18 @@ class BMGraphBuilder:
 
     @memoize
     def add_log(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, ConstantTensorNode):
+        if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(torch.log(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(math.log(operand.value))
-        node = LogNode(operand)
+        node = bn.LogNode(operand)
         self.add_node(node)
         return node
 
     def handle_log(self, input: Any) -> Any:
-        if isinstance(input, Tensor):
+        if isinstance(input, torch.Tensor):
             return torch.log(input)
-        if isinstance(input, ConstantTensorNode):
+        if isinstance(input, bn.ConstantTensorNode):
             return torch.log(input.value)
         if not isinstance(input, BMGNode):
             return math.log(input)
@@ -1302,18 +1218,18 @@ class BMGraphBuilder:
 
     @memoize
     def add_log1mexp(self, operand: BMGNode) -> BMGNode:
-        if isinstance(operand, ConstantTensorNode):
+        if isinstance(operand, bn.ConstantTensorNode):
             return self.add_constant(log1mexp(operand.value))
         if isinstance(operand, ConstantNode):
             return self.add_constant(math_log1mexp(operand.value))
-        node = Log1mexpNode(operand)
+        node = bn.Log1mexpNode(operand)
         self.add_node(node)
         return node
 
     def handle_log1mexp(self, input: Any) -> Any:
-        if isinstance(input, Tensor):
+        if isinstance(input, torch.Tensor):
             return log1mexp(input)
-        if isinstance(input, ConstantTensorNode):
+        if isinstance(input, bn.ConstantTensorNode):
             return log1mexp(input.value)
         if not isinstance(input, BMGNode):
             return math_log1mexp(input)
@@ -1322,14 +1238,14 @@ class BMGraphBuilder:
         return self.add_log1mexp(input)
 
     @memoize
-    def add_tensor(self, size: torch.Size, *data: BMGNode) -> TensorNode:
-        node = TensorNode(list(data), size)
+    def add_tensor(self, size: torch.Size, *data: BMGNode) -> bn.TensorNode:
+        node = bn.TensorNode(list(data), size)
         self.add_node(node)
         return node
 
     @memoize
-    def add_logsumexp(self, *inputs: BMGNode) -> TensorNode:
-        node = LogSumExpNode(list(inputs))
+    def add_logsumexp(self, *inputs: BMGNode) -> bn.LogSumExpNode:
+        node = bn.LogSumExpNode(list(inputs))
         self.add_node(node)
         return node
 
@@ -1338,10 +1254,12 @@ class BMGraphBuilder:
         # Produce an error.
         if not isinstance(input, BMGNode):
             return torch.logsumexp(input=input, dim=dim, keepdim=keepdim)
-        if isinstance(input, ConstantTensorNode):
+        if isinstance(input, bn.ConstantTensorNode):
             return torch.logsumexp(input=input.value, dim=dim, keepdim=keepdim)
         if isinstance(input, ConstantNode):
-            return torch.logsumexp(input=tensor(input.value), dim=dim, keepdim=keepdim)
+            return torch.logsumexp(
+                input=torch.tensor(input.value), dim=dim, keepdim=keepdim
+            )
         # TODO: Handle the situation where the dim is not 1 or the shape is not
         # one-dimensional; produce an error.
         return self.add_logsumexp(*[input])
@@ -1363,10 +1281,10 @@ class BMGraphBuilder:
             args = [function.receiver] + arguments
         elif (
             isinstance(function, builtin_function_or_method)
-            and isinstance(function.__self__, Tensor)
+            and isinstance(function.__self__, torch.Tensor)
             and function.__name__ in known_tensor_instance_functions
         ):
-            f = getattr(Tensor, function.__name__)
+            f = getattr(torch.Tensor, function.__name__)
             args = [function.__self__] + arguments
         elif isinstance(function, MethodType):
             # In Python, if we are calling a method of a class with a "self"
@@ -1419,14 +1337,14 @@ class BMGraphBuilder:
         # it in a problem fixing pass later. No reason to not do it right
         # the first time.)
 
-        if num_pairs == 2 and choice.inf_type == Boolean:
+        if num_pairs == 2 and choice.inf_type == bt.Boolean:
             first_key_type = key_value_pairs[0].inf_type
             first_value = key_value_pairs[1]
             second_key_type = key_value_pairs[2].inf_type
             second_value = key_value_pairs[3]
-            if first_key_type == Zero and second_key_type == One:
+            if first_key_type == bt.Zero and second_key_type == bt.One:
                 return self.add_if_then_else(choice, first_value, second_value)
-            if first_key_type == One and second_key_type == Zero:
+            if first_key_type == bt.One and second_key_type == bt.Zero:
                 return self.add_if_then_else(choice, second_value, first_value)
 
         # Otherwise, just make a map node.
@@ -1498,7 +1416,7 @@ class BMGraphBuilder:
         for arg in arguments:
             if isinstance(arg, BMGNode):
                 possibilities *= arg.support_size()
-                if possibilities == positive_infinity:
+                if possibilities == bn.positive_infinity:
                     # TODO: Better exception
                     raise ValueError(
                         "Stochastic control flow must have finite support."
@@ -1596,7 +1514,7 @@ class BMGraphBuilder:
         if not any(isinstance(arg, BMGNode) for arg in flattened_args):
             # None of the arguments are graph nodes. We can just
             # construct the tensor normally.
-            return tensor(*arguments, **kwargs)
+            return torch.tensor(*arguments, **kwargs)
         # At least one of the arguments is a graph node.
         #
         # If we're constructing a singleton tensor and the single value
@@ -1613,7 +1531,7 @@ class BMGraphBuilder:
         # What shape is this tensor? Rather than duplicating the logic in the
         # tensor class, let's just construct the same shape made of entirely
         # zeros and then ask what shape it is.
-        size = tensor(_list_to_zeros(arguments)).size()
+        size = torch.tensor(_list_to_zeros(arguments)).size()
 
         return self.add_tensor(size, *flattened_args)
 
@@ -1651,7 +1569,7 @@ class BMGraphBuilder:
         # if any element of the new tensor is a graph node then we'll
         # need to create a TensorNode.
 
-        if f is tensor:
+        if f is torch.tensor:
             return self._handle_tensor_constructor(args, kwargs)
 
         # Some functions we already have special-purpose handlers for,
@@ -1700,7 +1618,7 @@ class BMGraphBuilder:
                     value = self.handle_sample(value)
             finally:
                 self.in_flight.remove(key)
-            if isinstance(value, Tensor):
+            if isinstance(value, torch.Tensor):
                 value = self.add_constant_tensor(value)
             if not isinstance(value, BMGNode):
                 raise TypeError("A functional must return a tensor.")
@@ -1709,14 +1627,14 @@ class BMGraphBuilder:
         return self.rv_map[key]
 
     @memoize
-    def add_map(self, *elements: BMGNode) -> MapNode:
+    def add_map(self, *elements: BMGNode) -> bn.MapNode:
         # TODO: Verify that the list is well-formed.
-        node = MapNode(list(elements))
+        node = bn.MapNode(list(elements))
         self.add_node(node)
         return node
 
-    def collection_to_map(self, collection) -> MapNode:
-        if isinstance(collection, MapNode):
+    def collection_to_map(self, collection) -> bn.MapNode:
+        if isinstance(collection, bn.MapNode):
             return collection
         if isinstance(collection, list):
             copy = []
@@ -1730,54 +1648,54 @@ class BMGraphBuilder:
         raise ValueError("collection_to_map requires a list")
 
     # Do NOT memoize add_sample; each sample node must be unique
-    def add_sample(self, operand: DistributionNode) -> SampleNode:
-        node = SampleNode(operand)
+    def add_sample(self, operand: bn.DistributionNode) -> bn.SampleNode:
+        node = bn.SampleNode(operand)
         self.add_node(node)
         return node
 
-    def handle_sample(self, operand: Any) -> SampleNode:  # noqa
+    def handle_sample(self, operand: Any) -> bn.SampleNode:  # noqa
         """As we execute the lifted program, this method is called every
         time a model function decorated with @bm.random_variable returns; we verify that the
         returned value is a distribution that we know how to accumulate into the
         graph, and add a sample node to the graph."""
 
-        if isinstance(operand, DistributionNode):
+        if isinstance(operand, bn.DistributionNode):
             return self.add_sample(operand)
         if not isinstance(operand, torch.distributions.Distribution):
             # TODO: Better error
             raise TypeError("A random_variable is required to return a distribution.")
-        if isinstance(operand, Bernoulli):
+        if isinstance(operand, dist.Bernoulli):
             b = self.handle_bernoulli(operand.probs)
             return self.add_sample(b)
-        if isinstance(operand, Binomial):
+        if isinstance(operand, dist.Binomial):
             b = self.handle_binomial(operand.total_count, operand.probs)
             return self.add_sample(b)
-        if isinstance(operand, Categorical):
+        if isinstance(operand, dist.Categorical):
             b = self.handle_categorical(operand.probs)
             return self.add_sample(b)
-        if isinstance(operand, Dirichlet):
+        if isinstance(operand, dist.Dirichlet):
             b = self.handle_dirichlet(operand.concentration)
             return self.add_sample(b)
-        if isinstance(operand, Chi2):
+        if isinstance(operand, dist.Chi2):
             b = self.handle_chi2(operand.df)
             return self.add_sample(b)
-        if isinstance(operand, Gamma):
+        if isinstance(operand, dist.Gamma):
             b = self.handle_gamma(operand.concentration, operand.rate)
             return self.add_sample(b)
-        if isinstance(operand, HalfCauchy):
+        if isinstance(operand, dist.HalfCauchy):
             b = self.handle_halfcauchy(operand.scale)
             return self.add_sample(b)
-        if isinstance(operand, Normal):
+        if isinstance(operand, dist.Normal):
             b = self.handle_normal(operand.mean, operand.stddev)
             return self.add_sample(b)
-        if isinstance(operand, StudentT):
+        if isinstance(operand, dist.StudentT):
             b = self.handle_studentt(operand.df, operand.loc, operand.scale)
             return self.add_sample(b)
-        if isinstance(operand, Uniform):
+        if isinstance(operand, dist.Uniform):
             b = self.handle_uniform(operand.low, operand.high)
             return self.add_sample(b)
         # TODO: Get this into alpha order
-        if isinstance(operand, Beta):
+        if isinstance(operand, dist.Beta):
             b = self.handle_beta(operand.concentration1, operand.concentration0)
             return self.add_sample(b)
         # TODO: Better error
@@ -1804,7 +1722,7 @@ class BMGraphBuilder:
             # in the original program; assume that it is, and see if this is
             # a function on a tensor that we know how to accumulate into the graph.
             if name in known_tensor_instance_functions:
-                return KnownFunction(operand, getattr(Tensor, name))
+                return KnownFunction(operand, getattr(torch.Tensor, name))
             raise ValueError(
                 f"Fetching the value of attribute {name} is not "
                 + "supported in Bean Machine Graph."
@@ -1823,25 +1741,25 @@ class BMGraphBuilder:
 
     # TODO: Should this be idempotent?
     # TODO: Should it be an error to add two unequal observations to one node?
-    def add_observation(self, observed: SampleNode, value: Any) -> Observation:
-        node = Observation(observed, value)
+    def add_observation(self, observed: bn.SampleNode, value: Any) -> bn.Observation:
+        node = bn.Observation(observed, value)
         self.add_node(node)
         return node
 
     @memoize
-    def add_query(self, operator: BMGNode) -> Query:
+    def add_query(self, operator: BMGNode) -> bn.Query:
         # TODO: BMG requires that the target of a query be classified
         # as an operator and that queries be unique; that is, every node
         # is queried *exactly* zero or one times. Rather than making
         # those restrictions here, instead detect bad queries in the
         # problem fixing phase and report accordingly.
-        node = Query(operator)
+        node = bn.Query(operator)
         self.add_node(node)
         return node
 
     @memoize
-    def add_exp_product(self, *inputs: BMGNode) -> TensorNode:
-        node = ExpProductFactorNode(list(inputs))
+    def add_exp_product(self, *inputs: BMGNode) -> bn.ExpProductFactorNode:
+        node = bn.ExpProductFactorNode(list(inputs))
         self.add_node(node)
         return node
 
@@ -1974,10 +1892,10 @@ g = graph.Graph()
         # get by with just observations, queries and factors?
         def is_root(n: BMGNode) -> bool:
             return (
-                isinstance(n, SampleNode)
-                or isinstance(n, Observation)
-                or isinstance(n, Query)
-                or isinstance(n, FactorNode)
+                isinstance(n, bn.SampleNode)
+                or isinstance(n, bn.Observation)
+                or isinstance(n, bn.Query)
+                or isinstance(n, bn.FactorNode)
             )
 
         def key(n: BMGNode) -> int:
@@ -2033,9 +1951,9 @@ g = graph.Graph()
 
         return result
 
-    def all_observations(self) -> List[Observation]:
+    def all_observations(self) -> List[bn.Observation]:
         return sorted(
-            (n for n in self.nodes if isinstance(n, Observation)),
+            (n for n in self.nodes if isinstance(n, bn.Observation)),
             key=lambda n: self.nodes[n],
         )
 
@@ -2062,14 +1980,14 @@ g = graph.Graph()
         self, num_samples: int, inference_type: InferenceType = InferenceType.NMC
     ) -> MonteCarloSamples:
         # TODO: Add num_chains to API
-        # TODO: Add inference kind to API
         # TODO: Test duplicated observations.
         # TODO: Test duplicated queries.
+        # TODO: Move this logic to BMGInference
         self._fix_problems()
         g = Graph()
 
         node_to_graph_id: Dict[BMGNode, int] = {}
-        query_to_query_id: Dict[Query, int] = {}
+        query_to_query_id: Dict[bn.Query, int] = {}
         bmg_query_count = 0
         for node in self._traverse_from_roots():
             # We add all nodes that are reachable from a query, observation or
@@ -2096,9 +2014,9 @@ g = graph.Graph()
             #   node. We need to know this for each node that will be used as an input
             #   later, so we track that in node_to_graph_id.
 
-            if isinstance(node, Observation):
+            if isinstance(node, bn.Observation):
                 node._add_to_graph(g, node_to_graph_id)
-            elif isinstance(node, Query):
+            elif isinstance(node, bn.Query):
                 if not isinstance(node.operator, ConstantNode):
                     query_id = node._add_to_graph(g, node_to_graph_id)
                     query_to_query_id[node] = query_id
@@ -2107,7 +2025,7 @@ g = graph.Graph()
                 graph_id = node._add_to_graph(g, node_to_graph_id)
                 node_to_graph_id[node] = graph_id
 
-        samples = tensor([])
+        samples = torch.tensor([])
 
         # BMG requires that we have at least one query.
         if len(query_to_query_id) != 0:
@@ -2139,9 +2057,9 @@ g = graph.Graph()
 
             row_major = [
                 [
-                    tensor(item).transpose(0, 1)
+                    torch.tensor(item).transpose(0, 1)
                     if isinstance(item, Iterable)
-                    else tensor(item)
+                    else torch.tensor(item)
                     for item in entry
                 ]
                 for entry in raw
@@ -2163,12 +2081,12 @@ g = graph.Graph()
             #
             # which is almost the shape we need.
 
-        result: Dict[RVIdentifier, Tensor] = {}
+        result: Dict[RVIdentifier, torch.Tensor] = {}
 
         for (rv, query) in self._rv_to_query.items():
             if isinstance(query.operator, ConstantNode):
                 # TODO: Test this with tensor and normal constants
-                result[rv] = tensor([[query.operator.value] * num_samples])
+                result[rv] = torch.tensor([[query.operator.value] * num_samples])
             else:
                 query_id = query_to_query_id[query]
                 data = samples[query_id]
@@ -2178,8 +2096,8 @@ g = graph.Graph()
 
     def infer_deprecated(
         self,
-        queries: List[OperatorNode],
-        observations: Dict[SampleNode, Any],
+        queries: List[bn.OperatorNode],
+        observations: Dict[bn.SampleNode, Any],
         num_samples: int,
     ) -> List[Any]:
         # TODO: Remove this method
