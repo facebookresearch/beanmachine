@@ -623,7 +623,9 @@ def type_of_value(v: Any) -> BMGLatticeType:
             return Natural
         return NegativeReal
     if isinstance(v, float):
-        if v == int(v):
+        # TODO: add a range check to make sure it fits into the integer
+        # size expected by BMG
+        if v.is_integer():
             return type_of_value(int(v))
         if 0.0 <= v:
             if v <= 1.0:
