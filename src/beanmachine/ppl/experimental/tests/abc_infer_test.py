@@ -56,7 +56,7 @@ class ApproximateBayesianComputationTest(unittest.TestCase):
 
     def test_abc_inference_with_singleton_arguments(self):
         model = self.CoinTossModel(observation_shape=10)
-        COIN_TOSS_DATA = dist.Bernoulli(0.9).sample([10])
+        COIN_TOSS_DATA = dist.Bernoulli(0.95).sample([10])
         abc = ApproximateBayesianComputation(
             distance_function=torch.dist, tolerance=1.0
         )
