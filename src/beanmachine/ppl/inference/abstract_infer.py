@@ -7,6 +7,7 @@ from typing import Callable, ClassVar, Dict, List, Optional
 
 import torch
 import torch.multiprocessing as mp
+import torch.nn as nn
 from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
     MeanFieldVariationalApproximation,
 )
@@ -119,17 +120,28 @@ class AbstractInference(object, metaclass=ABCMeta):
         vi_dicts: Optional[
             Callable[[RVIdentifier], MeanFieldVariationalApproximation]
         ] = None,
+        model_to_guide_ids: Optional[Dict[RVIdentifier, RVIdentifier]] = None,
+        params: Optional[Dict[RVIdentifier, nn.Parameter]] = None,
     ):
         """
         Initializes the world variables with queries and observation calls.
 
         :param initialize_from_prior: boolean to initialize samples from prior
+        :param vi_dicts: mapping from `RVIdentifier`s to their corresponding mean-field
+        approximation. Only used for `MeanFieldVariationalInference`.
+        :param model_to_guide_ids: mapping between model `RVIdentifier`s and their
+        corresponding guide `RVIdentifier`. Every `random_variable` in `self.queries_`
+        must be present as a key. Only used for `VariationalInference`.
+        :params: mapping from `bm.param`s to their current values. Only used
+        for `VariationalInference`.
         """
         self.world_ = self.initial_world_.copy()
-        self.world_.vi_dicts = vi_dicts
         self.world_.set_observations(self.observations_)
         self.world_.set_initialize_from_prior(initialize_from_prior)
 
+        self.world_.vi_dicts = vi_dicts
+        self.world_.model_to_guide_ids_ = model_to_guide_ids
+        self.world_.params_ = params or {}
         for node in self.observations_:
             # makes the call for the observation node, which will run sample(node())
             # that results in adding its corresponding Variable and its dependent
@@ -140,9 +152,9 @@ class AbstractInference(object, metaclass=ABCMeta):
             # that results in adding its corresponding Variable and its dependent
             # Variable to the world.
             self.world_.call(node)
-
         self.world_.accept_diff()
         self.world_.vi_dicts = None
+        self.world_.model_to_guide_ids_ = None
 
     def reset(self):
         """

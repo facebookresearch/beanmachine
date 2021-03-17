@@ -3,6 +3,7 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.statistical_model import (
     StatisticalModel,
     functional,
+    param,
     query,
     random_variable,
     sample,
@@ -15,6 +16,7 @@ __all__ = [
     "RVIdentifier",
     "StatisticalModel",
     "functional",
+    "param",
     "query",
     "random_variable",
     "sample",

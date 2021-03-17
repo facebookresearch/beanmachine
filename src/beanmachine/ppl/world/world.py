@@ -5,6 +5,7 @@ from collections import defaultdict
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import torch
+import torch.nn as nn
 from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
     MeanFieldVariationalApproximation,
 )
@@ -85,6 +86,8 @@ class World(object):
     """
 
     vi_dicts: Optional[Callable[[RVIdentifier], MeanFieldVariationalApproximation]]
+    params_: Dict[RVIdentifier, nn.Parameter]
+    model_to_guide_ids_: Optional[Dict[RVIdentifier, RVIdentifier]]
 
     def __init__(self):
         self.variables_ = WorldVars()
@@ -98,6 +101,8 @@ class World(object):
         self.cache_functionals_ = False
         self.cached_functionals_ = defaultdict()
         self.vi_dicts = None
+        self.params_ = {}
+        self.model_to_guide_ids_ = None
 
         # The token used to restore context to previous state. It's used in __enter__
         # and __exit__ to control the scope of the world.
@@ -692,6 +697,16 @@ class World(object):
             proposed_score,
         )
 
+    def get_param(self, param: RVIdentifier) -> nn.Parameter:
+        "Gets a parameter or initializes it if not found."
+        if param not in self.params_:
+            self.params_[param] = nn.Parameter(param.function(*param.arguments))
+        return self.params_[param]
+
+    def set_params(self, params: Dict[RVIdentifier, nn.Parameter]):
+        "Sets the parameters in this World to specified values."
+        self.params_ = params
+
     def update_graph(self, node: RVIdentifier) -> Tensor:
         """
         Updates the parents and children of the node based on the stack
@@ -742,16 +757,33 @@ class World(object):
             node_var.distribution = d
         self.stack_.pop()
 
-        obs_value = self.observations_[node] if node in self.observations_ else None
+        obs_value = self.observations_.get(node)
 
-        value = None
         # resample latents from q
+        value = None
+        vi_dicts = self.vi_dicts
+        model_to_guide_ids = self.model_to_guide_ids_
         if obs_value is None:
             # TODO: messy, consider strategy pattern
-            if self.vi_dicts is not None:
+            if vi_dicts is not None:
                 # mean-field VI
-                variational_approx = self.vi_dicts(node)  # pyre-ignore[29]
+                variational_approx = vi_dicts(node)
                 value = variational_approx.rsample((1,)).squeeze()
+            elif (
+                isinstance(model_to_guide_ids, dict)
+                and node not in model_to_guide_ids.values()  # is not a model RV
+            ):
+                # guide-based VI on non-guide nodes only
+                assert (
+                    node in model_to_guide_ids
+                ), f"Could not find a guide for {node}. VariationalInference requires every latent variable in the model to have a corresponding guide."
+                guide_node = model_to_guide_ids[node]
+                guide_var = self.get_node_in_world(guide_node)
+                if not guide_var:
+                    # initialize guide node if missing
+                    self.call(guide_node)
+                guide_var = self.get_node_in_world_raise_error(guide_node)
+                value = guide_var.distribution.rsample(torch.Size((1,)))
 
         node_var.update_fields(
             value,

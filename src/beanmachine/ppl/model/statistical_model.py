@@ -100,9 +100,30 @@ class StatisticalModel(object):
         wrapper.is_random_variable = False
         return wrapper
 
+    @staticmethod
+    def param(init_fn):
+        """
+        Decorator to be used for params (variable to be optimized).
+
+        TODO: DRY out with `random_variable`
+        """
+
+        @wraps(init_fn)
+        def wrapper(*args):
+            func_key = StatisticalModel.get_func_key(wrapper, args)
+            world = world_context.get()
+            if world:
+                return world.get_param(func_key)
+            else:
+                return func_key
+
+        return wrapper
+
 
 random_variable = StatisticalModel.random_variable
 sample = random_variable
 
 functional = StatisticalModel.functional
 query = functional
+
+param = StatisticalModel.param
