@@ -688,6 +688,9 @@ struct Graph {
   Node* check_node(uint node_id, NodeType node_type);
   uint thread_index;
 
+  void collect_performance_data(bool b);
+  std::string performance_report();
+
  private:
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
@@ -736,6 +739,10 @@ struct Graph {
   std::vector<std::vector<double>> log_prob_allchains;
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
+
+  bool _collect_performance_data = false;
+  std::string _performance_report;
+  void _produce_performance_report();
 };
 
 /*

@@ -3,7 +3,7 @@
 """An inference engine which uses Bean Machine Graph to make
 inferences on Bean Machine models."""
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from beanmachine.graph import InferenceType
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -34,6 +34,17 @@ class BMGInference:
         bmg._fix_observe_true = self._fix_observe_true
         bmg.accumulate_graph(queries, observations)
         return bmg
+
+    def _infer(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
+        num_samples: int,
+        inference_type: InferenceType = InferenceType.NMC,
+    ) -> Tuple[MonteCarloSamples, str]:
+        return self._accumulate_graph(queries, observations)._infer(
+            num_samples, inference_type, True
+        )
 
     def infer(
         self,

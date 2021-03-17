@@ -303,7 +303,16 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "get_log_prob",
           &Graph::get_log_prob,
-          "get the log probabilities of all chains");
+          "get the log probabilities of all chains")
+      .def(
+          "collect_performance_data",
+          &Graph::collect_performance_data,
+          "collect performance data",
+          py::arg("b"))
+      .def(
+          "performance_report",
+          &Graph::performance_report,
+          "performance report");
 }
 
 } // namespace graph
