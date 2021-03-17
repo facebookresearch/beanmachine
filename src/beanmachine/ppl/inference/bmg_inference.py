@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple
 
 from beanmachine.graph import InferenceType
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
@@ -41,7 +42,7 @@ class BMGInference:
         observations: Dict[RVIdentifier, Tensor],
         num_samples: int,
         inference_type: InferenceType = InferenceType.NMC,
-    ) -> Tuple[MonteCarloSamples, str]:
+    ) -> Tuple[MonteCarloSamples, PerformanceReport]:
         return self._accumulate_graph(queries, observations)._infer(
             num_samples, inference_type, True
         )

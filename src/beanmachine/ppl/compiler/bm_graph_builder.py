@@ -64,6 +64,7 @@ import numpy as np
 import torch.distributions as dist
 from beanmachine.graph import Graph, InferenceType
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
+from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
@@ -1999,7 +2000,7 @@ g = graph.Graph()
 
     def _infer(
         self, num_samples: int, inference_type: InferenceType, produce_report: bool
-    ) -> Tuple[MonteCarloSamples, str]:
+    ) -> Tuple[MonteCarloSamples, PerformanceReport]:
         # TODO: Add num_chains to API
         # TODO: Test duplicated observations.
         # TODO: Test duplicated queries.
@@ -2007,7 +2008,7 @@ g = graph.Graph()
         self._fix_problems()
         g = Graph()
 
-        report = ""
+        report = PerformanceReport()
         node_to_graph_id: Dict[BMGNode, int] = {}
         query_to_query_id: Dict[bn.Query, int] = {}
         bmg_query_count = 0
@@ -2053,7 +2054,8 @@ g = graph.Graph()
         if len(query_to_query_id) != 0:
             g.collect_performance_data(produce_report)
             raw = g.infer(num_samples, inference_type)
-            report = g.performance_report()
+            if produce_report:
+                report = PerformanceReport(json=g.performance_report())
             assert len(raw) == num_samples
             assert len(raw[0]) == bmg_query_count
 

@@ -742,7 +742,10 @@ struct Graph {
 
   bool _collect_performance_data = false;
   std::string _performance_report;
-  void _produce_performance_report();
+  void _produce_performance_report(
+      uint num_samples,
+      InferenceType algorithm,
+      uint seed);
 };
 
 /*

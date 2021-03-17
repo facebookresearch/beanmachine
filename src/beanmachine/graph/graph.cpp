@@ -852,7 +852,7 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   log_prob_vals.clear();
   log_prob_allchains.clear();
   _infer(num_samples, algorithm, seed);
-  _produce_performance_report();
+  _produce_performance_report(num_samples, algorithm, seed);
   return samples;
 }
 
@@ -1023,21 +1023,6 @@ Graph::Graph(const Graph& other) {
   agg_type = other.agg_type;
   agg_samples = other.agg_samples;
   infer_config = other.infer_config;
-}
-
-void Graph::collect_performance_data(bool b) {
-  _collect_performance_data = b;
-}
-
-std::string Graph::performance_report() {
-  return _performance_report;
-}
-
-void Graph::_produce_performance_report() {
-  _performance_report = "";
-  if (!_collect_performance_data)
-    return;
-  _performance_report = "Bean Machine Graph performance report\n";
 }
 
 } // namespace graph
