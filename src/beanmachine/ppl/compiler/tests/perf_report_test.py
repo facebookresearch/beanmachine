@@ -22,6 +22,11 @@ class PerfReportTest(unittest.TestCase):
         self.maxDiff = None
         queries = [coin()]
         observations = {flip(): tensor(1.0)}
-        _, report = BMGInference()._infer(queries, observations, 1000)
-        expected = """Bean Machine Graph performance report"""
-        self.assertEqual(expected.strip(), report.strip())
+        num_samples = 1000
+        _, report = BMGInference()._infer(queries, observations, num_samples)
+
+        self.assertEqual("Bean Machine Graph performance report", report.title)
+        self.assertEqual(3, report.algorithm)
+        self.assertEqual(num_samples, report.num_samples)
+        self.assertEqual(5, report.node_count)
+        self.assertEqual(5, report.edge_count)
