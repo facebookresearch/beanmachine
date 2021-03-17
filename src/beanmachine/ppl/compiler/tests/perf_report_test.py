@@ -30,3 +30,7 @@ class PerfReportTest(unittest.TestCase):
         self.assertEqual(num_samples, report.num_samples)
         self.assertEqual(5, report.node_count)
         self.assertEqual(5, report.edge_count)
+        self.assertLess(0, report.time_in_accumulate_graph)
+        self.assertLess(0, report.time_in_infer)
+        self.assertLess(0, report.time_in_fix_problems)
+        self.assertLess(0, report.time_in_graph_infer)

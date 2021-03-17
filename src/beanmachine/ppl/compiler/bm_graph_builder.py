@@ -60,6 +60,7 @@ from typing import Any, Callable, Dict, List, Set, Tuple
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
+import beanmachine.ppl.compiler.profiler as prof
 import numpy as np
 import torch.distributions as dist
 from beanmachine.graph import Graph, InferenceType
@@ -285,7 +286,10 @@ class BMGraphBuilder:
 
     _fix_observe_true: bool = False
 
+    pd: prof.ProfilerData
+
     def __init__(self) -> None:
+        self.pd = prof.ProfilerData()
         self.rv_map = {}
         self.lifted_map = {}
         self.in_flight = set()
@@ -1979,6 +1983,7 @@ g = graph.Graph()
         observations: Dict[RVIdentifier, Any],
     ) -> None:
         _verify_queries_and_observations(queries, observations, True)
+        self.pd.begin(prof.accumulate)
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
             self.add_observation(node, val)
@@ -1986,16 +1991,21 @@ g = graph.Graph()
             node = self._rv_to_node(qrv)
             q = self.add_query(node)
             self._rv_to_query[qrv] = q
+        self.pd.finish(prof.accumulate)
 
     def _fix_problems(self) -> None:
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 
+        self.pd.begin(prof.fix_problems)
         fix_problems(self, self._fix_observe_true).raise_errors()
+        self.pd.finish(prof.fix_problems)
 
     def infer(
         self, num_samples: int, inference_type: InferenceType = InferenceType.NMC
     ) -> MonteCarloSamples:
+
         samples, _ = self._infer(num_samples, inference_type, False)
+
         return samples
 
     def _infer(
@@ -2005,10 +2015,17 @@ g = graph.Graph()
         # TODO: Test duplicated observations.
         # TODO: Test duplicated queries.
         # TODO: Move this logic to BMGInference
-        self._fix_problems()
-        g = Graph()
 
         report = PerformanceReport()
+        self.pd.begin(prof.infer)
+        self._fix_problems()
+
+        # TODO: Extract this logic to its own graph-building module.
+
+        g = Graph()
+
+        self.pd.begin(prof.build_bmg_graph)
+
         node_to_graph_id: Dict[BMGNode, int] = {}
         query_to_query_id: Dict[bn.Query, int] = {}
         bmg_query_count = 0
@@ -2048,12 +2065,16 @@ g = graph.Graph()
                 graph_id = node._add_to_graph(g, node_to_graph_id)
                 node_to_graph_id[node] = graph_id
 
+        self.pd.finish(prof.build_bmg_graph)
+
         samples = torch.tensor([])
 
         # BMG requires that we have at least one query.
         if len(query_to_query_id) != 0:
             g.collect_performance_data(produce_report)
+            self.pd.begin(prof.graph_infer)
             raw = g.infer(num_samples, inference_type)
+            self.pd.finish(prof.graph_infer)
             if produce_report:
                 report = PerformanceReport(json=g.performance_report())
             assert len(raw) == num_samples
@@ -2081,6 +2102,8 @@ g = graph.Graph()
             # is an array, replace it with a tensor and take the transpose. For
             # single values, replace them with a single value tensor.
 
+            self.pd.begin(prof.transpose_samples)
+
             row_major = [
                 [
                     torch.tensor(item).transpose(0, 1)
@@ -2101,11 +2124,15 @@ g = graph.Graph()
                 for i in range(bmg_query_count)
             ]
 
+            self.pd.finish(prof.transpose_samples)
+
             # Now we've got
             #
             # [ tensor([s00, s10, s20]), tensor([s01, s11, s21]) ]
             #
             # which is almost the shape we need.
+
+        self.pd.begin(prof.build_mcsamples)
 
         result: Dict[RVIdentifier, torch.Tensor] = {}
 
@@ -2118,7 +2145,29 @@ g = graph.Graph()
                 data = samples[query_id]
                 result[rv] = data.reshape([1] + list(data.shape))
 
-        return MonteCarloSamples(result), report
+        mcsamples = MonteCarloSamples(result)
+
+        self.pd.finish(prof.build_mcsamples)
+        self.pd.finish(prof.infer)
+
+        # TODO: Automate this
+        report.time_in_accumulate_graph = self.pd.time_in(prof.accumulate)
+        report.time_in_infer = self.pd.time_in(prof.infer)
+        report.time_in_fix_problems = self.pd.time_in(prof.fix_problems)
+        report.time_in_build_bmg_graph = self.pd.time_in(prof.build_bmg_graph)
+        report.time_in_graph_infer = self.pd.time_in(prof.graph_infer)
+        report.time_in_transpose_samples = self.pd.time_in(prof.transpose_samples)
+        report.time_in_build_mcsamples = self.pd.time_in(prof.build_mcsamples)
+        report.unattributed_infer_time = (
+            report.time_in_infer
+            - report.time_in_fix_problems
+            - report.time_in_build_bmg_graph
+            - report.time_in_graph_infer
+            - report.time_in_transpose_samples
+            - report.time_in_build_mcsamples
+        )
+
+        return mcsamples, report
 
     def infer_deprecated(
         self,
