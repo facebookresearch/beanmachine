@@ -56,7 +56,7 @@ import math
 import sys
 from collections.abc import Iterable
 from types import MethodType
-from typing import Any, Callable, Dict, List, Set
+from typing import Any, Callable, Dict, List, Set, Tuple
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
@@ -1994,6 +1994,12 @@ g = graph.Graph()
     def infer(
         self, num_samples: int, inference_type: InferenceType = InferenceType.NMC
     ) -> MonteCarloSamples:
+        samples, _ = self._infer(num_samples, inference_type, False)
+        return samples
+
+    def _infer(
+        self, num_samples: int, inference_type: InferenceType, produce_report: bool
+    ) -> Tuple[MonteCarloSamples, str]:
         # TODO: Add num_chains to API
         # TODO: Test duplicated observations.
         # TODO: Test duplicated queries.
@@ -2001,6 +2007,7 @@ g = graph.Graph()
         self._fix_problems()
         g = Graph()
 
+        report = ""
         node_to_graph_id: Dict[BMGNode, int] = {}
         query_to_query_id: Dict[bn.Query, int] = {}
         bmg_query_count = 0
@@ -2044,7 +2051,9 @@ g = graph.Graph()
 
         # BMG requires that we have at least one query.
         if len(query_to_query_id) != 0:
+            g.collect_performance_data(produce_report)
             raw = g.infer(num_samples, inference_type)
+            report = g.performance_report()
             assert len(raw) == num_samples
             assert len(raw[0]) == bmg_query_count
 
@@ -2107,7 +2116,7 @@ g = graph.Graph()
                 data = samples[query_id]
                 result[rv] = data.reshape([1] + list(data.shape))
 
-        return MonteCarloSamples(result)
+        return MonteCarloSamples(result), report
 
     def infer_deprecated(
         self,
