@@ -46,7 +46,7 @@ def _compute_var(query_samples: Tensor) -> Tuple[Tensor, Tensor]:
         b = 0
     w = torch.mean(torch.var(query_samples, dim=1), dim=0)
     var_hat = (n_samples - 1) / n_samples * w + (1 / n_samples) * b
-    return w, var_hat.clamp(min=1e-3)
+    return w, var_hat.clamp(min=1e-10)
 
 
 def r_hat(query_samples: Tensor) -> Optional[Tensor]:
