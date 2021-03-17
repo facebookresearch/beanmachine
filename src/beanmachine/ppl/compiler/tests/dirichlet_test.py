@@ -16,7 +16,7 @@ from beanmachine.graph import (
     VariableType,
 )
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.inference import BMGInference
+from beanmachine.ppl.inference import BMGInference, SingleSiteNewtonianMonteCarlo
 from torch import Size, tensor
 from torch.distributions import Bernoulli, Dirichlet
 
@@ -437,25 +437,53 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        results = BMGInference().infer([d2a()], {}, 10, nmc)
+        # 2-element Dirichlet
+
+        queries = [d2a()]
+        observations = {}
+        num_samples = 10
+
+        results = BMGInference().infer(queries, observations, num_samples, nmc)
         samples = results[d2a()]
-        # Ten samples, each is a vector with 1 row and 2 columns.
-        self.assertEqual(Size([1, 10, 1, 2]), samples.size())
+        self.assertEqual(Size([1, num_samples, 2]), samples.size())
+
+        # Make sure we get the same thing when we use Bean Machine proper:
+
+        results = SingleSiteNewtonianMonteCarlo().infer(
+            queries, observations, num_samples, 1
+        )
+        samples = results[d2a()]
+        self.assertEqual(Size([1, num_samples, 2]), samples.size())
+
+        # 3-element Dirichlet
 
         queries = [d3()]
         observations = {}
+        num_samples = 20
 
-        results = BMGInference().infer(queries, observations, 20, rejection)
+        results = BMGInference().infer(queries, observations, num_samples, rejection)
         samples = results[d3()]
-        self.assertEqual(Size([1, 20, 1, 3]), samples.size())
+        self.assertEqual(Size([1, num_samples, 3]), samples.size())
 
         # If we observe a Dirichlet sample to be a value, we'd better get
         # that value when we query.
-        observations = {d3(): tensor([0.5, 0.25, 0.25])}
-        results = BMGInference().infer(queries, observations, 1, nmc)
-        samples = results[d3()]
 
-        expected = "tensor([[[[0.5000, 0.2500, 0.2500]]]], dtype=torch.float64)"
+        queries = [d3()]
+        observations = {d3(): tensor([0.5, 0.25, 0.25])}
+        num_samples = 1
+
+        results = BMGInference().infer(queries, observations, num_samples, nmc)
+        samples = results[d3()]
+        expected = "tensor([[[0.5000, 0.2500, 0.2500]]], dtype=torch.float64)"
+        self.assertEqual(expected, str(samples))
+
+        # Make sure we get the same thing when we use Bean Machine proper:
+
+        results = SingleSiteNewtonianMonteCarlo().infer(
+            queries, observations, num_samples, 1
+        )
+        samples = results[d3()]
+        expected = "tensor([[[0.5000, 0.2500, 0.2500]]])"
         self.assertEqual(expected, str(samples))
 
     def test_dirichlet_to_python(self) -> None:
@@ -605,7 +633,7 @@ digraph "graph" {
         observations = {flip(): tensor(1.0)}
 
         results = BMGInference().infer(queries, observations, 1)
-        d2a_sample = results[d2a()][0, 0, 0]
+        d2a_sample = results[d2a()][0, 0]
         index_sample = results[d2a_index_flip()][0]
         # The sample and the indexed sample must be the same value
         self.assertEqual(d2a_sample[1], index_sample)

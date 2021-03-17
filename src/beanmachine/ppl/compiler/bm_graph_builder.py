@@ -54,7 +54,6 @@ import torch  # isort:skip  torch has to be imported before graph
 import inspect
 import math
 import sys
-from collections.abc import Iterable
 from types import MethodType
 from typing import Any, Callable, Dict, List, Set, Tuple
 
@@ -2004,9 +2003,95 @@ g = graph.Graph()
         self, num_samples: int, inference_type: InferenceType = InferenceType.NMC
     ) -> MonteCarloSamples:
 
+        # TODO: Test what happens if num_samples is <= 0
+
         samples, _ = self._infer(num_samples, inference_type, False)
 
         return samples
+
+    def _transpose_samples(self, raw):
+        self.pd.begin(prof.transpose_samples)
+        samples = []
+        num_samples = len(raw)
+        bmg_query_count = len(raw[0])
+
+        # Suppose we have two queries and three samples;
+        # the shape we get from BMG is:
+        #
+        # [
+        #   [s00, s01],
+        #   [s10, s11],
+        #   [s20, s21]
+        # ]
+        #
+        # That is, each entry in the list has values from both queries.
+        # But what we need in the final dictionary is:
+        #
+        # {
+        #   RV0: tensor([[s00, s10, s20]]),
+        #   RV1: tensor([[s01, s11, s21]])
+        # }
+
+        transposed = [torch.tensor([x]) for x in zip(*raw)]
+        assert len(transposed) == bmg_query_count
+        assert len(transposed[0]) == 1
+        assert len(transposed[0][0]) == num_samples
+
+        # We now have
+        #
+        # [
+        #   tensor([[s00, s10, s20]]),
+        #   tensor([[s01, s11, s21]])
+        # ]
+        #
+        # which looks like what we need. But we have an additional problem:
+        # if the the sample is a matrix then it is in columns but we need it in rows.
+        #
+        # If an element of transposed is (1 x num_samples x rows x 1) then we
+        # will just reshape it to (1 x num_samples x rows).
+        #
+        # If it is (1 x num_samples x rows x columns) for columns > 1 then
+        # we transpose it to (1 x num_samples x columns x rows)
+        #
+        # If it is any other shape we leave it alone.
+
+        for i in range(len(transposed)):
+            t = transposed[i]
+            if len(t.shape) == 4:
+                if t.shape[3] == 1:
+                    assert t.shape[0] == 1
+                    assert t.shape[1] == num_samples
+                    samples.append(t.reshape(1, num_samples, t.shape[2]))
+                else:
+                    samples.append(t.transpose(2, 3))
+            else:
+                samples.append(t)
+
+        assert len(samples) == bmg_query_count
+        assert len(samples[0]) == 1
+        assert len(samples[0][0]) == num_samples
+
+        self.pd.finish(prof.transpose_samples)
+        return samples
+
+    def _build_mcsamples(
+        self, samples, query_to_query_id, num_samples: int
+    ) -> MonteCarloSamples:
+        self.pd.begin(prof.build_mcsamples)
+
+        result: Dict[RVIdentifier, torch.Tensor] = {}
+        for (rv, query) in self._rv_to_query.items():
+            if isinstance(query.operator, ConstantNode):
+                # TODO: Test this with tensor and normal constants
+                result[rv] = torch.tensor([[query.operator.value] * num_samples])
+            else:
+                query_id = query_to_query_id[query]
+                result[rv] = samples[query_id]
+        mcsamples = MonteCarloSamples(result)
+
+        self.pd.finish(prof.build_mcsamples)
+
+        return mcsamples
 
     def _infer(
         self, num_samples: int, inference_type: InferenceType, produce_report: bool
@@ -2067,7 +2152,7 @@ g = graph.Graph()
 
         self.pd.finish(prof.build_bmg_graph)
 
-        samples = torch.tensor([])
+        samples = []
 
         # BMG requires that we have at least one query.
         if len(query_to_query_id) != 0:
@@ -2079,75 +2164,10 @@ g = graph.Graph()
                 report = PerformanceReport(json=g.performance_report())
             assert len(raw) == num_samples
             assert len(raw[0]) == bmg_query_count
+            samples = self._transpose_samples(raw)
 
-            # TODO: Test what happens if num_samples is <= 0
+        mcsamples = self._build_mcsamples(samples, query_to_query_id, num_samples)
 
-            # Suppose we have two queries and three samples;
-            # the shape we get from BMG is:
-            #
-            # [ [s00, s01], [s10, s11], [s20, s21] ]
-            #
-            # That is, each entry in the list has values from both queries.
-            # But what we need in the final dictionary is:
-            #
-            # {
-            #   RV0: tensor([[s00, s10, s20]]),
-            #   RV1: tensor([[s01, s11, s21]])
-            # }
-            #
-            # We have an additional problem: if the the sample is a matrix
-            # then it is in columns but we need it in rows.
-            #
-            # We'll start by solving this problem first. For every sample that
-            # is an array, replace it with a tensor and take the transpose. For
-            # single values, replace them with a single value tensor.
-
-            self.pd.begin(prof.transpose_samples)
-
-            row_major = [
-                [
-                    torch.tensor(item).transpose(0, 1)
-                    if isinstance(item, Iterable)
-                    else torch.tensor(item)
-                    for item in entry
-                ]
-                for entry in raw
-            ]
-
-            #
-            # Now take the transpose of that list and stack all the tensors
-            # together into one big tensor for each query.
-            #
-
-            samples = [
-                torch.stack([entry[i] for entry in row_major])
-                for i in range(bmg_query_count)
-            ]
-
-            self.pd.finish(prof.transpose_samples)
-
-            # Now we've got
-            #
-            # [ tensor([s00, s10, s20]), tensor([s01, s11, s21]) ]
-            #
-            # which is almost the shape we need.
-
-        self.pd.begin(prof.build_mcsamples)
-
-        result: Dict[RVIdentifier, torch.Tensor] = {}
-
-        for (rv, query) in self._rv_to_query.items():
-            if isinstance(query.operator, ConstantNode):
-                # TODO: Test this with tensor and normal constants
-                result[rv] = torch.tensor([[query.operator.value] * num_samples])
-            else:
-                query_id = query_to_query_id[query]
-                data = samples[query_id]
-                result[rv] = data.reshape([1] + list(data.shape))
-
-        mcsamples = MonteCarloSamples(result)
-
-        self.pd.finish(prof.build_mcsamples)
         self.pd.finish(prof.infer)
 
         # TODO: Automate this
