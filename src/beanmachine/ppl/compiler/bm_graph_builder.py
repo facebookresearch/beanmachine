@@ -60,6 +60,7 @@ from typing import Any, Callable, Dict, List, Set
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
+import numpy as np
 import torch.distributions as dist
 from beanmachine.graph import Graph, InferenceType
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
@@ -194,6 +195,12 @@ standard_normal = dist.Normal(0.0, 1.0)
 
 def phi(x: Any) -> Any:
     return standard_normal.cdf(x)
+
+
+supported_bool_types = {bool, np.bool_}
+supported_float_types = {np.float128, np.float16, np.float32, np.float64, float}
+supported_int_types = {np.int16, np.int32, np.int64, np.int8, np.longlong}
+supported_int_types |= {np.uint16, np.uint32, np.uint64, np.uint8, np.ulonglong, int}
 
 
 class BMGraphBuilder:
@@ -399,15 +406,23 @@ class BMGraphBuilder:
     def add_constant(self, value: Any) -> ConstantNode:
         """This takes any constant value of a supported type,
         creates a constant graph node for it, and adds it to the builder"""
-        if isinstance(value, bool):
-            return self.add_boolean(value)
-        if isinstance(value, int):
-            return self.add_real(value)
-        if isinstance(value, float):
-            return self.add_real(value)
+        t = type(value)
+        if t in supported_bool_types:
+            return self.add_boolean(bool(value))
+        # TODO: When converting natural nodes to BMG we might lose
+        # precision; should we put a range check here to ensure that the
+        # value is not too big?
+        if t in supported_int_types:
+            v = int(value)
+            if v >= 0:
+                return self.add_natural(v)
+            return self.add_real(float(value))
+        if t in supported_float_types:
+            return self.add_real(float(value))
         if isinstance(value, torch.Tensor):
             return self.add_constant_tensor(value)
-        raise TypeError("value must be a bool, real or tensor")
+        # TODO: Improve this error message
+        raise TypeError("value must be a bool, integer, real or tensor")
 
     def add_constant_of_matrix_type(
         self, value: Any, node_type: bt.BMGMatrixType
