@@ -43,9 +43,8 @@ class BMGInference:
         num_samples: int,
         inference_type: InferenceType = InferenceType.NMC,
     ) -> Tuple[MonteCarloSamples, PerformanceReport]:
-        return self._accumulate_graph(queries, observations)._infer(
-            num_samples, inference_type, True
-        )
+        bmg = self._accumulate_graph(queries, observations)
+        return bmg._infer(num_samples, inference_type, True)
 
     def infer(
         self,
