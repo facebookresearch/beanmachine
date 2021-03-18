@@ -5,6 +5,7 @@ from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 import arviz as az
 import torch
 import xarray as xr
+from beanmachine.ppl.inference.utils import merge_dicts
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
@@ -170,16 +171,3 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
             warmup_posterior=self.adaptive_samples,
             save_warmup=include_adapt_steps,
         )
-
-
-def merge_dicts(dicts: List[RVDict], dim: int = 0) -> RVDict:
-    """
-    A helper function that merge multiple dicts of samples into a single dictionary,
-    stacking across a new dimension
-    """
-    rv_keys = set().union(*(rv_dict.keys() for rv_dict in dicts))
-    for idx, d in enumerate(dicts):
-        if not rv_keys.issubset(d.keys()):
-            raise ValueError(f"{rv_keys - d.keys()} are missing in dict {idx}")
-
-    return {rv: torch.stack([d[rv] for d in dicts], dim=dim) for rv in rv_keys}
