@@ -112,28 +112,32 @@ class ProfilerData:
         return total_time
 
     def to_report(self) -> ProfileReport:
-        root = ProfileReport()
-        current = root
-        begins = []
-        for e in self.events:
-            if e.begin:
-                if e.kind in current.children:
-                    p = current.children[e.kind]
-                else:
-                    p = ProfileReport()
-                    p.parent = current
-                    current.children[e.kind] = p
-                    setattr(current, e.kind, p)
-                p.calls += 1
-                current = p
-                begins.append(e)
+        return event_list_to_report(self.events)
+
+
+def event_list_to_report(events) -> ProfileReport:
+    root = ProfileReport()
+    current = root
+    begins = []
+    for e in events:
+        if e.begin:
+            if e.kind in current.children:
+                p = current.children[e.kind]
             else:
-                assert len(begins) > 0
-                b = begins[-1]
-                assert e.kind == b.kind
-                current.total_time += e.timestamp - b.timestamp
-                begins.pop()
-                current = current.parent
-        assert len(begins) == 0
-        assert current == root
-        return root
+                p = ProfileReport()
+                p.parent = current
+                current.children[e.kind] = p
+                setattr(current, e.kind, p)
+            p.calls += 1
+            current = p
+            begins.append(e)
+        else:
+            assert len(begins) > 0
+            b = begins[-1]
+            assert e.kind == b.kind
+            current.total_time += e.timestamp - b.timestamp
+            begins.pop()
+            current = current.parent
+    assert len(begins) == 0
+    assert current == root
+    return root

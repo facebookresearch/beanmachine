@@ -2163,6 +2163,9 @@ g = graph.Graph()
             if produce_report:
                 js = g.performance_report()
                 report = pr.json_to_perf_report(js)
+                report.bmg_profiler_report = prof.event_list_to_report(
+                    report.profiler_data
+                )
             assert len(raw) == num_samples
             assert len(raw[0]) == bmg_query_count
             samples = self._transpose_samples(raw)

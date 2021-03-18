@@ -35,3 +35,9 @@ class PerfReportTest(unittest.TestCase):
         self.assertLess(0, report.profiler_report.infer.graph_infer.total_time)
         self.assertLess(0, len(report.profiler_data))
         self.assertLess(0, report.profiler_data[0].timestamp)
+        self.assertNotEqual("", str(report.bmg_profiler_report))
+        self.assertLess(0, report.bmg_profiler_report.nmc_infer.total_time)
+        self.assertLess(0, report.bmg_profiler_report.nmc_infer.initialize.total_time)
+        self.assertLess(
+            0, report.bmg_profiler_report.nmc_infer.collect_samples.total_time
+        )
