@@ -10,6 +10,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include "beanmachine/graph/profiler.h"
 
 #define NATURAL_TYPE unsigned long long int
 
@@ -740,12 +741,23 @@ struct Graph {
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
 
+  ProfilerData profiler_data;
   bool _collect_performance_data = false;
   std::string _performance_report;
   void _produce_performance_report(
       uint num_samples,
       InferenceType algorithm,
       uint seed);
+  void pd_begin(ProfilerEvent kind) {
+    if (_collect_performance_data) {
+      profiler_data.begin(kind);
+    }
+  }
+  void pd_finish(ProfilerEvent kind) {
+    if (_collect_performance_data) {
+      profiler_data.finish(kind);
+    }
+  }
 };
 
 /*

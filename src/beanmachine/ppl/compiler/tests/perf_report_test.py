@@ -33,3 +33,5 @@ class PerfReportTest(unittest.TestCase):
         self.assertLess(0, report.profiler_report.accumulate.total_time)
         self.assertLess(0, report.profiler_report.infer.total_time)
         self.assertLess(0, report.profiler_report.infer.graph_infer.total_time)
+        self.assertLess(0, len(report.profiler_data))
+        self.assertLess(0, report.profiler_data[0].timestamp)

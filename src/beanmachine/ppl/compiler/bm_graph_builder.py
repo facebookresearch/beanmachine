@@ -59,12 +59,12 @@ from typing import Any, Callable, Dict, List, Set, Tuple
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
+import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import numpy as np
 import torch.distributions as dist
 from beanmachine.graph import Graph, InferenceType
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
-from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
@@ -2095,13 +2095,13 @@ g = graph.Graph()
 
     def _infer(
         self, num_samples: int, inference_type: InferenceType, produce_report: bool
-    ) -> Tuple[MonteCarloSamples, PerformanceReport]:
+    ) -> Tuple[MonteCarloSamples, pr.PerformanceReport]:
         # TODO: Add num_chains to API
         # TODO: Test duplicated observations.
         # TODO: Test duplicated queries.
         # TODO: Move this logic to BMGInference
 
-        report = PerformanceReport()
+        report = pr.PerformanceReport()
         self.pd.begin(prof.infer)
         self._fix_problems()
 
@@ -2161,7 +2161,8 @@ g = graph.Graph()
             raw = g.infer(num_samples, inference_type)
             self.pd.finish(prof.graph_infer)
             if produce_report:
-                report = PerformanceReport(json=g.performance_report())
+                js = g.performance_report()
+                report = pr.json_to_perf_report(js)
             assert len(raw) == num_samples
             assert len(raw[0]) == bmg_query_count
             samples = self._transpose_samples(raw)

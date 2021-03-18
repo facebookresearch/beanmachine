@@ -8,6 +8,7 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/stochasticop.h"
+#include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
@@ -15,8 +16,10 @@ namespace beanmachine {
 namespace graph {
 
 void Graph::nmc(uint num_samples, std::mt19937& gen) {
+  pd_begin(ProfilerEvent::NMC_INFER);
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
+  pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
   std::vector<Node*> node_ptrs;
   for (uint node_id = 0; node_id < nodes.size(); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
@@ -61,6 +64,8 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
     }
   }
 
+  pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
+  pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
   std::vector<NodeValue> old_values = std::vector<NodeValue>(nodes.size());
   assert(old_values.size() > 0); // keep linter happy
   // sampling outer loop
@@ -157,6 +162,8 @@ void Graph::nmc(uint num_samples, std::mt19937& gen) {
     }
     collect_sample();
   }
+  pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
+  pd_finish(ProfilerEvent::NMC_INFER);
 }
 
 /*
