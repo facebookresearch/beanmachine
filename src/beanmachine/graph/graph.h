@@ -722,6 +722,7 @@ struct Graph {
   void collect_sample();
   void rejection(uint num_samples, std::mt19937& gen);
   void gibbs(uint num_samples, std::mt19937& gen);
+  class NMC;
   void nmc(uint num_samples, std::mt19937& gen);
   void cavi(
       uint num_iters,
@@ -734,6 +735,9 @@ struct Graph {
   :param ordered_supp: node pointers in the support in topological order.
   :returns: The sum of log_prob of stochastic nodes in the support.
   */
+
+  // TODO: Review what members of this class can be made static.
+
   double _full_log_prob(std::vector<Node*>& ordered_supp);
   void collect_log_prob(double log_prob);
   std::vector<double> log_prob_vals;
