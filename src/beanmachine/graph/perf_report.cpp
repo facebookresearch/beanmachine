@@ -165,7 +165,7 @@ void Graph::_produce_performance_report(
     js.comma();
     js.start_object();
     js.boolean("begin", e.begin);
-    js.event("event", e.kind);
+    js.event("kind", e.kind);
     js.ticks("timestamp", e.timestamp);
     js.end_object();
   }
