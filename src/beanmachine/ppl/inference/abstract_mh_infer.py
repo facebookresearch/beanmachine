@@ -1,14 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict
 from random import shuffle
 from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.abstract_infer import AbstractMCInference, VerboseLevel
-from beanmachine.ppl.inference.utils import Block, BlockType
+from beanmachine.ppl.inference.sampler import Sampler
+from beanmachine.ppl.inference.utils import Block, BlockType, merge_dicts
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
 from beanmachine.ppl.world.variable import TransformType
@@ -300,86 +300,97 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
         """
         self.initialize_world(initialize_from_prior)
         self.world_.set_initialize_from_prior(True)
-        queries_sample = defaultdict()
         LOGGER_WORLD.log(
             LogLevel.DEBUG_GRAPH.value,
             "=" * 30 + "\n" + "Initialized graph:\n{g}\n".format(g=str(self.world_)),
         )
+        query_samples = []
         for iteration in tqdm(
             iterable=range(num_samples + num_adaptive_samples),
             desc="Samples collected",
             disable=not verbose == VerboseLevel.LOAD_BAR,
         ):
-            blocks = self.process_blocks()
-            shuffle(blocks)
-            for block in blocks:
-                if block.type == BlockType.SINGLENODE:
-                    node = block.first_node
-                    if node in self.observations_ or not self.world_.contains_in_world(
-                        node
-                    ):
-                        continue
-
-                    proposer = self.find_best_single_site_proposer(node)
-
-                    LOGGER_PROPOSER.log(
-                        LogLevel.DEBUG_PROPOSER.value,
-                        "=" * 30
-                        + "\n"
-                        + "Proposer info for node: {n}\n".format(n=node)
-                        + "- Type: {pt}\n".format(pt=str(type(proposer))),
-                    )
-                    if (
-                        not self.skip_single_inference_run
-                        or iteration >= num_adaptive_samples
-                    ):
-                        is_accepted, acceptance_probability = self.single_inference_run(
-                            node, proposer
-                        )
-
-                    if iteration < num_adaptive_samples:
-                        if self.skip_single_inference_run:
-                            is_accepted = True
-                            acceptance_probability = tensor(1.0)
-
-                        proposer.do_adaptation(
-                            node,
-                            self.world_,
-                            acceptance_probability,
-                            iteration,
-                            num_adaptive_samples,
-                            is_accepted,
-                        )
-
-                if (
-                    block.type == BlockType.SEQUENTIAL
-                    and iteration >= num_adaptive_samples
-                ):
-                    self.single_inference_run_with_sequential_block_update(block)
-
-            for query in self.queries_:
-                # unsqueeze the sampled value tensor, which adds an extra dimension
-                # along which we'll be adding samples generated at each iteration
-                raw_val = self.world_.call(query)
-                # TODO: Consider allowing values that can be converted to tensors.
-                if not isinstance(raw_val, Tensor):
-                    raise TypeError(
-                        "The value returned by a queried function must be a tensor."
-                    )
-                query_val = raw_val.unsqueeze(0).clone().detach()
-                if query not in queries_sample:
-                    queries_sample[query] = query_val
-                else:
-                    queries_sample[query] = torch.cat(
-                        [
-                            queries_sample[query],
-                            query_val,
-                        ],
-                        dim=0,
-                    )
-            self.world_.accept_diff()
-            LOGGER_WORLD.log(
-                LogLevel.DEBUG_GRAPH.value,
-                "=" * 30 + "\n" + "Graph update:\n{g}\n".format(g=str(self.world_)),
+            query_samples.append(
+                self._single_iteration_run(iteration, num_adaptive_samples)
             )
-        return queries_sample
+        return merge_dicts(query_samples)
+
+    def _single_iteration_run(
+        self, iteration: int, num_adaptive_samples: int
+    ) -> Dict[RVIdentifier, Tensor]:
+        blocks = self.process_blocks()
+        shuffle(blocks)
+        for block in blocks:
+            if block.type == BlockType.SINGLENODE:
+                node = block.first_node
+                if node in self.observations_ or not self.world_.contains_in_world(
+                    node
+                ):
+                    continue
+
+                proposer = self.find_best_single_site_proposer(node)
+
+                LOGGER_PROPOSER.log(
+                    LogLevel.DEBUG_PROPOSER.value,
+                    "=" * 30
+                    + "\n"
+                    + "Proposer info for node: {n}\n".format(n=node)
+                    + "- Type: {pt}\n".format(pt=str(type(proposer))),
+                )
+                if (
+                    not self.skip_single_inference_run
+                    or iteration >= num_adaptive_samples
+                ):
+                    is_accepted, acceptance_probability = self.single_inference_run(
+                        node, proposer
+                    )
+
+                if iteration < num_adaptive_samples:
+                    if self.skip_single_inference_run:
+                        is_accepted = True
+                        acceptance_probability = tensor(1.0)
+
+                    proposer.do_adaptation(
+                        node,
+                        self.world_,
+                        acceptance_probability,
+                        iteration,
+                        num_adaptive_samples,
+                        is_accepted,
+                    )
+
+            if block.type == BlockType.SEQUENTIAL and iteration >= num_adaptive_samples:
+                self.single_inference_run_with_sequential_block_update(block)
+
+        query_vals = {}
+        for query in self.queries_:
+            raw_val = self.world_.call(query)
+            # TODO: Consider allowing values that can be converted to tensors.
+            if not isinstance(raw_val, Tensor):
+                raise TypeError(
+                    "The value returned by a queried function must be a tensor."
+                )
+            query_vals[query] = raw_val.clone().detach()
+        self.world_.accept_diff()
+        LOGGER_WORLD.log(
+            LogLevel.DEBUG_GRAPH.value,
+            "=" * 30 + "\n" + "Graph update:\n{g}\n".format(g=str(self.world_)),
+        )
+        return query_vals
+
+    def sampler(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
+        num_samples: Optional[int] = None,
+        num_adaptive_samples: int = 0,
+        return_adaptive_samples: bool = False,
+    ) -> Sampler:
+        return Sampler(
+            self,
+            queries,
+            observations,
+            num_samples,
+            num_adaptive_samples,
+            return_adaptive_samples,
+        )
