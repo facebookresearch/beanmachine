@@ -2169,23 +2169,7 @@ g = graph.Graph()
         mcsamples = self._build_mcsamples(samples, query_to_query_id, num_samples)
 
         self.pd.finish(prof.infer)
-
-        # TODO: Automate this
-        report.time_in_accumulate_graph = self.pd.time_in(prof.accumulate)
-        report.time_in_infer = self.pd.time_in(prof.infer)
-        report.time_in_fix_problems = self.pd.time_in(prof.fix_problems)
-        report.time_in_build_bmg_graph = self.pd.time_in(prof.build_bmg_graph)
-        report.time_in_graph_infer = self.pd.time_in(prof.graph_infer)
-        report.time_in_transpose_samples = self.pd.time_in(prof.transpose_samples)
-        report.time_in_build_mcsamples = self.pd.time_in(prof.build_mcsamples)
-        report.unattributed_infer_time = (
-            report.time_in_infer
-            - report.time_in_fix_problems
-            - report.time_in_build_bmg_graph
-            - report.time_in_graph_infer
-            - report.time_in_transpose_samples
-            - report.time_in_build_mcsamples
-        )
+        report.profiler_report = self.pd.to_report()
 
         return mcsamples, report
 

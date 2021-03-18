@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 import time
-from typing import List
+from typing import Dict, List, Optional
 
 
 accumulate = "accumulate"
@@ -28,6 +28,36 @@ class Event:
         return f"{s} {self.kind} {self.timestamp}"
 
 
+class ProfileReport:
+    calls: int
+    total_time: int
+    children: Dict[str, "ProfileReport"]
+    parent: Optional["ProfileReport"]
+
+    def __init__(self) -> None:
+        self.calls = 0
+        self.total_time = 0
+        self.children = {}
+        self.parent = None
+
+    def _to_string(self, indent: str) -> str:
+        s = ""
+        attributed = 0
+        # TODO: Sort by total time of children
+        # TODO: compute unattributed via property
+        for key, value in self.children.items():
+            s += f"{indent}{key}:({value.calls}) {value.total_time // 1000000} ms\n"
+            s += value._to_string(indent + "  ")
+            attributed += value.total_time
+        if len(self.children) > 0 and self.total_time > 0:
+            unattributed = self.total_time - attributed
+            s += f"{indent}unattributed: {unattributed // 1000000} ms\n"
+        return s
+
+    def __str__(self) -> str:
+        return self._to_string("")
+
+
 class ProfilerData:
     events: List[Event]
     in_flight: List[Event]
@@ -36,14 +66,15 @@ class ProfilerData:
         self.events = []
         self.in_flight = []
 
-    def begin(self, kind: str) -> None:
-        t = time.time_ns()
+    def begin(self, kind: str, timestamp: Optional[int] = None) -> None:
+
+        t = time.time_ns() if timestamp is None else timestamp
         e = Event(True, kind, t)
         self.events.append(e)
         self.in_flight.append(e)
 
-    def finish(self, kind: str) -> None:
-        t = time.time_ns()
+    def finish(self, kind: str, timestamp: Optional[int] = None) -> None:
+        t = time.time_ns() if timestamp is None else timestamp
         while len(self.in_flight) > 0:
             top = self.in_flight.pop()
             e = Event(False, top.kind, t)
@@ -79,3 +110,30 @@ class ProfilerData:
                 else:
                     nesting -= 1
         return total_time
+
+    def to_report(self) -> ProfileReport:
+        root = ProfileReport()
+        current = root
+        begins = []
+        for e in self.events:
+            if e.begin:
+                if e.kind in current.children:
+                    p = current.children[e.kind]
+                else:
+                    p = ProfileReport()
+                    p.parent = current
+                    current.children[e.kind] = p
+                    setattr(current, e.kind, p)
+                p.calls += 1
+                current = p
+                begins.append(e)
+            else:
+                assert len(begins) > 0
+                b = begins[-1]
+                assert e.kind == b.kind
+                current.total_time += e.timestamp - b.timestamp
+                begins.pop()
+                current = current.parent
+        assert len(begins) == 0
+        assert current == root
+        return root
