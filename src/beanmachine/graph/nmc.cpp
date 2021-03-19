@@ -16,13 +16,21 @@ namespace beanmachine {
 namespace graph {
 
 class Graph::NMC {
+ private:
+  Graph* g;
+  std::mt19937& gen;
+  std::vector<Node*> node_ptrs;
+  std::vector<NodeValue> old_values;
+
  public:
-  void infer(Graph* g, uint num_samples, std::mt19937& gen) {
+  NMC(Graph* g, std::mt19937& gen) : g(g), gen(gen) {}
+
+  void infer(uint num_samples) {
     g->pd_begin(ProfilerEvent::NMC_INFER);
     // convert the smart pointers in nodes to dumb pointers in node_ptrs
     // for faster access
     g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
-    std::vector<Node*> node_ptrs;
+
     for (uint node_id = 0; node_id < g->nodes.size(); node_id++) {
       node_ptrs.push_back(g->nodes[node_id].get());
     }
@@ -70,7 +78,7 @@ class Graph::NMC {
 
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
     g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
-    std::vector<NodeValue> old_values = std::vector<NodeValue>(g->nodes.size());
+    old_values = std::vector<NodeValue>(g->nodes.size());
     // sampling outer loop
     for (uint snum = 0; snum < num_samples; snum++) {
       for (auto it = pool.begin(); it != pool.end(); ++it) {
@@ -93,8 +101,7 @@ class Graph::NMC {
         Node* tgt_node = node_ptrs[it->first];
         if (tgt_node->value.type.variable_type ==
             VariableType::COL_SIMPLEX_MATRIX) {
-          nmc_step_for_dirichlet(
-              tgt_node, det_nodes, sto_nodes, node_ptrs, old_values, gen);
+          nmc_step_for_dirichlet(tgt_node, det_nodes, sto_nodes);
           continue;
         }
         tgt_node->grad1 = 1;
@@ -172,6 +179,7 @@ class Graph::NMC {
     g->pd_finish(ProfilerEvent::NMC_INFER);
   }
 
+ private:
   /*
   We treat the K-dimensional Dirichlet sample as K independent Gamma samples
   divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
@@ -181,10 +189,7 @@ class Graph::NMC {
   void nmc_step_for_dirichlet(
       Node* tgt_node,
       const std::vector<uint>& det_nodes,
-      const std::vector<uint>& sto_nodes,
-      const std::vector<Node*>& node_ptrs,
-      std::vector<NodeValue>& old_values,
-      std::mt19937& gen) {
+      const std::vector<uint>& sto_nodes) {
     uint K = tgt_node->value._matrix.size();
     auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
     // @lint-ignore CLANGTIDY
@@ -300,8 +305,7 @@ class Graph::NMC {
 };
 
 void Graph::nmc(uint num_samples, std::mt19937& gen) {
-  Graph::NMC nmc;
-  nmc.infer(this, num_samples, gen);
+  Graph::NMC(this, gen).infer(num_samples);
 }
 
 } // namespace graph
