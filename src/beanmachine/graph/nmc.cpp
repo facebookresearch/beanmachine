@@ -19,8 +19,15 @@ class Graph::NMC {
  private:
   Graph* g;
   std::mt19937& gen;
+  // Map from node id to Node*.
   std::vector<Node*> node_ptrs;
   std::vector<NodeValue> old_values;
+  // IDs of all nodes in the graph that are directly or
+  // indirectly observed or queried.
+  std::set<uint> supp;
+  std::vector<Node*> ordered_supp;
+  // Nodes in supp that are not directly observed.
+  std::set<uint> unobserved_supp;
 
  public:
   NMC(Graph* g, std::mt19937& gen) : g(g), gen(gen) {}
@@ -34,21 +41,23 @@ class Graph::NMC {
     for (uint node_id = 0; node_id < g->nodes.size(); node_id++) {
       node_ptrs.push_back(g->nodes[node_id].get());
     }
+
+    compute_support();
+    compute_unobserved_support();
+
     // eval each node so that we have a starting value and verify that these
     // values are all continuous-valued scalars
     // also compute the pool of variables that we will infer over and
     // compute their descendants -- i.e. all stochastic non-observed nodes
     // that are in the support of the graph
     // pool : nodes that we will infer over -> det_desc, sto_desc
-    std::set<uint> supp = g->compute_support();
+
     std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
     std::vector<Node*> ordered_supp;
-    for (uint node_id : supp) {
+    for (uint node_id : unobserved_supp) {
       // @lint-ignore CLANGTIDY
       Node* node = node_ptrs[node_id];
-      bool node_is_not_observed =
-          g->observed.find(node_id) == g->observed.end();
-      if (node->is_stochastic() and node_is_not_observed) {
+      if (node->is_stochastic()) {
         if (node->value.type.variable_type ==
             VariableType::COL_SIMPLEX_MATRIX) {
           auto sto_node = static_cast<oper::StochasticOperator*>(node);
@@ -68,13 +77,12 @@ class Graph::NMC {
         std::vector<uint> sto_nodes;
         std::tie(det_nodes, sto_nodes) = g->compute_descendants(node_id, supp);
         pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
-      } else if (node_is_not_observed) {
+      } else {
         node->eval(gen); // evaluate the value of non-observed operator nodes
       }
-      if (g->infer_config.keep_log_prob) {
-        ordered_supp.push_back(node);
-      }
     }
+
+    compute_ordered_support();
 
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
     g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
@@ -180,6 +188,27 @@ class Graph::NMC {
   }
 
  private:
+  void compute_support() {
+    supp = g->compute_support();
+  }
+
+  void compute_unobserved_support() {
+    for (uint node_id : supp) {
+      bool node_is_not_observed =
+          g->observed.find(node_id) == g->observed.end();
+      if (node_is_not_observed) {
+        unobserved_supp.insert(node_id);
+      }
+    }
+  }
+
+  void compute_ordered_support() {
+    if (g->infer_config.keep_log_prob) {
+      for (uint node_id : supp) {
+        ordered_supp.push_back(node_ptrs[node_id]);
+      }
+    }
+  }
   /*
   We treat the K-dimensional Dirichlet sample as K independent Gamma samples
   divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
