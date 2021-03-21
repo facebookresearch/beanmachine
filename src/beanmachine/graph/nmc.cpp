@@ -34,19 +34,14 @@ class Graph::NMC {
 
   void infer(uint num_samples) {
     g->pd_begin(ProfilerEvent::NMC_INFER);
-    // convert the smart pointers in nodes to dumb pointers in node_ptrs
-    // for faster access
     g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
 
-    for (uint node_id = 0; node_id < g->nodes.size(); node_id++) {
-      node_ptrs.push_back(g->nodes[node_id].get());
-    }
-
+    smart_to_dumb();
     compute_support();
     compute_unobserved_support();
+    ensure_continuous();
 
-    // eval each node so that we have a starting value and verify that these
-    // values are all continuous-valued scalars
+    // eval each node so that we have a starting value
     // also compute the pool of variables that we will infer over and
     // compute their descendants -- i.e. all stochastic non-observed nodes
     // that are in the support of the graph
@@ -62,14 +57,6 @@ class Graph::NMC {
           auto sto_node = static_cast<oper::StochasticOperator*>(node);
           sto_node->unconstrained_value = sto_node->value;
         } else {
-          if (node->value.type != AtomicType::PROBABILITY and
-              node->value.type != AtomicType::REAL and
-              node->value.type != AtomicType::POS_REAL and
-              node->value.type != AtomicType::BOOLEAN) {
-            throw std::runtime_error(
-                "NMC only supported on bool/probability/real/positive -- failing on node " +
-                std::to_string(node_id));
-          }
           node->value = proposer::uniform_initializer(gen, node->value.type);
         }
         std::vector<uint> det_nodes;
@@ -187,6 +174,14 @@ class Graph::NMC {
   }
 
  private:
+  void smart_to_dumb() {
+    // Convert the smart pointers in nodes to dumb pointers in node_ptrs
+    // for faster access.
+    for (uint node_id = 0; node_id < g->nodes.size(); node_id++) {
+      node_ptrs.push_back(g->nodes[node_id].get());
+    }
+  }
+
   void compute_support() {
     supp = g->compute_support();
   }
@@ -197,6 +192,26 @@ class Graph::NMC {
           g->observed.find(node_id) == g->observed.end();
       if (node_is_not_observed) {
         unobserved_supp.insert(node_id);
+      }
+    }
+  }
+
+  static bool is_not_supported(Node* node) {
+    return node->is_stochastic() and
+        node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX and
+        node->value.type != AtomicType::PROBABILITY and
+        node->value.type != AtomicType::REAL and
+        node->value.type != AtomicType::POS_REAL and
+        node->value.type != AtomicType::BOOLEAN;
+  }
+
+  void ensure_continuous() {
+    for (uint node_id : unobserved_supp) {
+      Node* node = node_ptrs[node_id];
+      if (is_not_supported(node)) {
+        throw std::runtime_error(
+            "NMC only supported on bool/probability/real/positive -- failing on node " +
+            std::to_string(node_id));
       }
     }
   }
