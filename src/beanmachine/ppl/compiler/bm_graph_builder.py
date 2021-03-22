@@ -141,9 +141,18 @@ known_tensor_instance_functions = [
 
 class KnownFunction:
     receiver: BMGNode
-    function: Any
+    function: Callable
 
-    def __init__(self, receiver: BMGNode, function: Any) -> None:
+    def __init__(self, receiver: BMGNode, function: Callable) -> None:
+        if not isinstance(receiver, BMGNode):
+            raise TypeError(
+                f"KnownFunction receiver must be BMGNode but is {type(receiver)}"
+            )
+        if not isinstance(function, Callable):
+            raise TypeError(
+                f"KnownFunction function must be Callable but is {type(function)}"
+            )
+
         self.receiver = receiver
         self.function = function
 
@@ -1298,6 +1307,7 @@ class BMGraphBuilder:
         if isinstance(function, KnownFunction):
             f = function.function
             args = [function.receiver] + arguments
+            assert isinstance(f, Callable)
         elif (
             isinstance(function, builtin_function_or_method)
             and isinstance(function.__self__, torch.Tensor)
@@ -1305,6 +1315,7 @@ class BMGraphBuilder:
         ):
             f = getattr(torch.Tensor, function.__name__)
             args = [function.__self__] + arguments
+            assert isinstance(f, Callable)
         elif isinstance(function, MethodType):
             # In Python, if we are calling a method of a class with a "self"
             # parameter then the callable we get is already partially evaluated.
@@ -1322,6 +1333,7 @@ class BMGraphBuilder:
             # We simulate that here.
             f = function.__func__
             args = [function.__self__] + arguments
+            assert isinstance(f, Callable)
 
         elif isinstance(function, Callable):
             f = function
@@ -1488,8 +1500,12 @@ class BMGraphBuilder:
         return self._rv_to_node(rv)
 
     def _handle_ordinary_call(
-        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+        self, function: Callable, arguments: List[Any], kwargs: Dict[str, Any]
     ) -> Any:
+        if not isinstance(function, Callable):
+            raise TypeError(
+                f"_handle_ordinary_call requires Callable but got {type(function)}"
+            )
         # We have an ordinary function call to a function that is not on
         # our list of special functions, and is not a functional, and
         # is not a random variable.  We still need to lift the function
