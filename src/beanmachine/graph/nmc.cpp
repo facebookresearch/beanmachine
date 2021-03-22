@@ -170,17 +170,42 @@ class Graph::NMC {
     }
   }
 
+  void save_old_values(const std::vector<uint>& det_nodes) {
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      old_values[node_id] = node->value;
+    }
+  }
+
+  void restore_old_values(const std::vector<uint>& det_nodes) {
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      node->value = old_values[node_id];
+    }
+  }
+
+  void compute_gradients(const std::vector<uint>& det_nodes) {
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      node->compute_gradients();
+    }
+  }
+
+  void clear_gradients(const std::vector<uint>& det_nodes) {
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      node->grad1 = node->grad2 = 0;
+    }
+  }
+
   void nmc_step(
       Node* tgt_node,
       const std::vector<uint>& det_nodes,
       const std::vector<uint>& sto_nodes) {
     tgt_node->grad1 = 1;
     tgt_node->grad2 = 0;
-    for (uint node_id : det_nodes) {
-      Node* node = node_ptrs[node_id];
-      old_values[node_id] = node->value;
-      node->compute_gradients();
-    }
+    save_old_values(det_nodes);
+    compute_gradients(det_nodes);
     double old_logweight = 0;
     double old_grad1 = 0;
     double old_grad2 = 0;
@@ -223,19 +248,12 @@ class Graph::NMC {
     // get a true Otherwise we reject the move and restore all the
     // deterministic children and the value of the target node. In either
     // case we need to restore the gradients.
-    if (logacc > 0 or util::sample_logprob(gen, logacc)) {
-      for (uint node_id : det_nodes) {
-        Node* node = node_ptrs[node_id];
-        node->grad1 = node->grad2 = 0;
-      }
-    } else {
-      for (uint node_id : det_nodes) {
-        Node* node = node_ptrs[node_id];
-        node->value = old_values[node_id];
-        node->grad1 = node->grad2 = 0;
-      }
+    bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
+    if (!accepted) {
+      restore_old_values(det_nodes);
       tgt_node->value = old_value;
     }
+    clear_gradients(det_nodes);
     tgt_node->grad1 = tgt_node->grad2 = 0;
   }
 
@@ -272,13 +290,8 @@ class Graph::NMC {
       src_node->grad1 = 1;
       src_node->grad2 = 0;
       // Propagate gradients
-      for (uint node_id : det_nodes) {
-        // @lint-ignore CLANGTIDY
-        Node* node = node_ptrs[node_id];
-        // @lint-ignore CLANGTIDY
-        old_values[node_id] = node->value;
-        node->compute_gradients();
-      }
+      save_old_values(det_nodes);
+      compute_gradients(det_nodes);
       double old_logweight = 0;
       double old_grad1 = 0;
       double old_grad2 = 0;
@@ -338,26 +351,15 @@ class Graph::NMC {
       double logacc = new_logweight - old_logweight +
           new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
       // Accept or reject, reset (values and) gradients
-      if (logacc > 0 or util::sample_logprob(gen, logacc)) {
-        // accepted:
-        for (uint node_id : det_nodes) {
-          Node* node = node_ptrs[node_id];
-          node->grad1 = node->grad2 = 0;
-        }
-      } else {
-        // rejected:
-        for (uint node_id : det_nodes) {
-          // @lint-ignore CLANGTIDY
-          Node* node = node_ptrs[node_id];
-          // @lint-ignore CLANGTIDY
-          node->value = old_values[node_id];
-          node->grad1 = node->grad2 = 0;
-        }
+      bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
+      if (!accepted) {
+        restore_old_values(det_nodes);
         *(src_node->unconstrained_value._matrix.data() + k) = old_X_k;
         sum = src_node->unconstrained_value._matrix.sum();
         src_node->value._matrix =
             src_node->unconstrained_value._matrix.array() / sum;
       }
+      clear_gradients(det_nodes);
       tgt_node->grad1 = tgt_node->grad2 = 0;
     }
   }
