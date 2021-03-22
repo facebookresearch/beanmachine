@@ -65,73 +65,9 @@ class Graph::NMC {
         if (tgt_node->value.type.variable_type ==
             VariableType::COL_SIMPLEX_MATRIX) {
           nmc_step_for_dirichlet(tgt_node, det_nodes, sto_nodes);
-          continue;
-        }
-        tgt_node->grad1 = 1;
-        tgt_node->grad2 = 0;
-        for (uint node_id : det_nodes) {
-          // @lint-ignore CLANGTIDY
-          Node* node = node_ptrs[node_id];
-          // @lint-ignore CLANGTIDY
-          old_values[node_id] = node->value;
-          node->compute_gradients();
-        }
-        double old_logweight = 0;
-        double old_grad1 = 0;
-        double old_grad2 = 0;
-        for (uint node_id : sto_nodes) {
-          const Node* node = node_ptrs[node_id];
-          old_logweight += node->log_prob();
-          node->gradient_log_prob(old_grad1, old_grad2);
-        }
-        // now create a proposer object, save the value of tgt_node and propose
-        // a new value
-        std::unique_ptr<proposer::Proposer> old_prop =
-            proposer::nmc_proposer(tgt_node->value, old_grad1, old_grad2);
-        graph::NodeValue old_value = tgt_node->value;
-        tgt_node->value = old_prop->sample(gen);
-        // similar to the above process we will go through all the children and
-        // - compute new value of deterministic nodes
-        // - propagate gradients
-        // - add log_prob of stochastic nodes
-        // - add gradient_log_prob of stochastic nodes
-        for (uint node_id : det_nodes) {
-          Node* node = node_ptrs[node_id];
-          node->eval(gen);
-          node->compute_gradients();
-        }
-        double new_logweight = 0;
-        double new_grad1 = 0;
-        double new_grad2 = 0;
-        for (uint node_id : sto_nodes) {
-          const Node* node = node_ptrs[node_id];
-          new_logweight += node->log_prob();
-          node->gradient_log_prob(new_grad1, new_grad2);
-        }
-        // construct the reverse proposer and use it to compute the
-        // log acceptance probability of the move
-        std::unique_ptr<proposer::Proposer> new_prop =
-            proposer::nmc_proposer(tgt_node->value, new_grad1, new_grad2);
-        double logacc = new_logweight - old_logweight +
-            new_prop->log_prob(old_value) - old_prop->log_prob(tgt_node->value);
-        // The move is accepted if the probability is > 1 or if we sample and
-        // get a true Otherwise we reject the move and restore all the
-        // deterministic children and the value of the target node. In either
-        // case we need to restore the gradients.
-        if (logacc > 0 or util::sample_logprob(gen, logacc)) {
-          for (uint node_id : det_nodes) {
-            Node* node = node_ptrs[node_id];
-            node->grad1 = node->grad2 = 0;
-          }
         } else {
-          for (uint node_id : det_nodes) {
-            Node* node = node_ptrs[node_id];
-            node->value = old_values[node_id];
-            node->grad1 = node->grad2 = 0;
-          }
-          tgt_node->value = old_value;
+          nmc_step(tgt_node, det_nodes, sto_nodes);
         }
-        tgt_node->grad1 = tgt_node->grad2 = 0;
       }
       if (g->infer_config.keep_log_prob) {
         g->collect_log_prob(g->_full_log_prob(ordered_supp));
@@ -233,6 +169,76 @@ class Graph::NMC {
       }
     }
   }
+
+  void nmc_step(
+      Node* tgt_node,
+      const std::vector<uint>& det_nodes,
+      const std::vector<uint>& sto_nodes) {
+    tgt_node->grad1 = 1;
+    tgt_node->grad2 = 0;
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      old_values[node_id] = node->value;
+      node->compute_gradients();
+    }
+    double old_logweight = 0;
+    double old_grad1 = 0;
+    double old_grad2 = 0;
+    for (uint node_id : sto_nodes) {
+      const Node* node = node_ptrs[node_id];
+      old_logweight += node->log_prob();
+      node->gradient_log_prob(old_grad1, old_grad2);
+    }
+    // now create a proposer object, save the value of tgt_node and propose
+    // a new value
+    std::unique_ptr<proposer::Proposer> old_prop =
+        proposer::nmc_proposer(tgt_node->value, old_grad1, old_grad2);
+    graph::NodeValue old_value = tgt_node->value;
+    tgt_node->value = old_prop->sample(gen);
+    // similar to the above process we will go through all the children and
+    // - compute new value of deterministic nodes
+    // - propagate gradients
+    // - add log_prob of stochastic nodes
+    // - add gradient_log_prob of stochastic nodes
+    for (uint node_id : det_nodes) {
+      Node* node = node_ptrs[node_id];
+      node->eval(gen);
+      node->compute_gradients();
+    }
+    double new_logweight = 0;
+    double new_grad1 = 0;
+    double new_grad2 = 0;
+    for (uint node_id : sto_nodes) {
+      const Node* node = node_ptrs[node_id];
+      new_logweight += node->log_prob();
+      node->gradient_log_prob(new_grad1, new_grad2);
+    }
+    // construct the reverse proposer and use it to compute the
+    // log acceptance probability of the move
+    std::unique_ptr<proposer::Proposer> new_prop =
+        proposer::nmc_proposer(tgt_node->value, new_grad1, new_grad2);
+    double logacc = new_logweight - old_logweight +
+        new_prop->log_prob(old_value) - old_prop->log_prob(tgt_node->value);
+    // The move is accepted if the probability is > 1 or if we sample and
+    // get a true Otherwise we reject the move and restore all the
+    // deterministic children and the value of the target node. In either
+    // case we need to restore the gradients.
+    if (logacc > 0 or util::sample_logprob(gen, logacc)) {
+      for (uint node_id : det_nodes) {
+        Node* node = node_ptrs[node_id];
+        node->grad1 = node->grad2 = 0;
+      }
+    } else {
+      for (uint node_id : det_nodes) {
+        Node* node = node_ptrs[node_id];
+        node->value = old_values[node_id];
+        node->grad1 = node->grad2 = 0;
+      }
+      tgt_node->value = old_value;
+    }
+    tgt_node->grad1 = tgt_node->grad2 = 0;
+  }
+
   /*
   We treat the K-dimensional Dirichlet sample as K independent Gamma samples
   divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
