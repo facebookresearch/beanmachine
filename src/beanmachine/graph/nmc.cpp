@@ -28,51 +28,20 @@ class Graph::NMC {
   std::vector<Node*> ordered_supp;
   // Nodes in supp that are not directly observed.
   std::set<uint> unobserved_supp;
+  // A map from node id to its deterministic and stochastic operator
+  // descendant nodes that are in the support.
+  std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
 
  public:
   NMC(Graph* g, std::mt19937& gen) : g(g), gen(gen) {}
 
   void infer(uint num_samples) {
     g->pd_begin(ProfilerEvent::NMC_INFER);
-    g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
 
-    smart_to_dumb();
-    compute_support();
-    compute_unobserved_support();
-    ensure_continuous();
+    initialize();
 
-    // eval each node so that we have a starting value
-    // also compute the pool of variables that we will infer over and
-    // compute their descendants -- i.e. all stochastic non-observed nodes
-    // that are in the support of the graph
-    // pool : nodes that we will infer over -> det_desc, sto_desc
-
-    std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
-    for (uint node_id : unobserved_supp) {
-      // @lint-ignore CLANGTIDY
-      Node* node = node_ptrs[node_id];
-      if (node->is_stochastic()) {
-        if (node->value.type.variable_type ==
-            VariableType::COL_SIMPLEX_MATRIX) {
-          auto sto_node = static_cast<oper::StochasticOperator*>(node);
-          sto_node->unconstrained_value = sto_node->value;
-        } else {
-          node->value = proposer::uniform_initializer(gen, node->value.type);
-        }
-        std::vector<uint> det_nodes;
-        std::vector<uint> sto_nodes;
-        std::tie(det_nodes, sto_nodes) = g->compute_descendants(node_id, supp);
-        pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
-      } else {
-        node->eval(gen); // evaluate the value of non-observed operator nodes
-      }
-    }
-
-    compute_ordered_support();
-
-    g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
     g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
-    old_values = std::vector<NodeValue>(g->nodes.size());
+    assert(old_values.size() > 0); // keep linter happy
     // sampling outer loop
     for (uint snum = 0; snum < num_samples; snum++) {
       for (auto it = pool.begin(); it != pool.end(); ++it) {
@@ -174,6 +143,19 @@ class Graph::NMC {
   }
 
  private:
+  void initialize() {
+    g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
+    smart_to_dumb();
+    compute_support();
+    compute_unobserved_support();
+    ensure_continuous();
+    compute_initial_values();
+    compute_pool();
+    compute_ordered_support();
+    old_values = std::vector<NodeValue>(g->nodes.size());
+    g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
+  }
+
   void smart_to_dumb() {
     // Convert the smart pointers in nodes to dumb pointers in node_ptrs
     // for faster access.
@@ -212,6 +194,34 @@ class Graph::NMC {
         throw std::runtime_error(
             "NMC only supported on bool/probability/real/positive -- failing on node " +
             std::to_string(node_id));
+      }
+    }
+  }
+
+  void compute_initial_values() {
+    for (uint node_id : unobserved_supp) {
+      Node* node = node_ptrs[node_id];
+      if (node->is_stochastic()) {
+        if (node->value.type.variable_type ==
+            VariableType::COL_SIMPLEX_MATRIX) {
+          auto sto_node = static_cast<oper::StochasticOperator*>(node);
+          sto_node->unconstrained_value = sto_node->value;
+        } else {
+          node->value = proposer::uniform_initializer(gen, node->value.type);
+        }
+      } else {
+        node->eval(gen); // evaluate the value of non-observed operator nodes
+      }
+    }
+  }
+
+  void compute_pool() {
+    for (uint node_id : unobserved_supp) {
+      if (node_ptrs[node_id]->is_stochastic()) {
+        std::vector<uint> det_nodes;
+        std::vector<uint> sto_nodes;
+        std::tie(det_nodes, sto_nodes) = g->compute_descendants(node_id, supp);
+        pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
       }
     }
   }
