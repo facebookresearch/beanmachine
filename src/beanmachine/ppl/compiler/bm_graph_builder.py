@@ -74,6 +74,28 @@ from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import MemoizationKey, memoize
 
 
+def _hashable(x: Any) -> bool:
+    # Oddly enough, Python does not allow you to test for set inclusion
+    # if the object is not hashable. Since it is impossible for an unhashable
+    # object to be in a set, Python could simply say no when asked if a set
+    # contains any unhashable object. It does not, so we are forced to do so.
+
+    # All hashable objects have a callable __hash__ attribute.
+    if not hasattr(x, "__hash__"):
+        return False
+    if not isinstance(x.__hash__, Callable):
+        return False
+
+    # It is possible that callable __hash__ exists but throws, which makes it
+    # unhashable. Eliminate that possibility as well.
+    try:
+        hash(x)
+    except Exception:
+        return False
+
+    return True
+
+
 def _flatten_all_lists(lst):
     """Takes a list-of-lists, with arbitrary nesting level;
     returns an iteration of all elements."""
@@ -1574,6 +1596,10 @@ class BMGraphBuilder:
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
     ) -> Any:
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
+        assert isinstance(f, Callable), (
+            "_canonicalize_function should return callable "
+            + f"but got {type(f)} {str(f)}"
+        )
 
         if _is_phi(f, args, kwargs):
             return self.handle_phi(*(args[1:]), **kwargs)
@@ -1594,12 +1620,6 @@ class BMGraphBuilder:
         # is not already compiled, and it is not a random variable
         # or functional.
 
-        # Some functions are perfectly safe for a graph node.
-        # We do not need to compile them.
-
-        if f in allowed_functions:
-            return f(*args, **kwargs)
-
         # We have special processing if we're trying to create a tensor;
         # if any element of the new tensor is a graph node then we'll
         # need to create a TensorNode.
@@ -1607,20 +1627,26 @@ class BMGraphBuilder:
         if f is torch.tensor:
             return self._handle_tensor_constructor(args, kwargs)
 
-        # Some functions we already have special-purpose handlers for,
-        # like calls to math.exp or tensor.log. If we know there are no
-        # graph nodes in the arguments we can just call the function directly
-        # and get the values. If there are graph nodes in the arguments then
-        # we can call our special handlers.
-
-        # TODO: Do a sanity check that the arguments match and give
-        # TODO: a good error if they do not. Alternatively, catch
-        # TODO: the exception if the call fails and replace it with
-        # TODO: a more informative error.
-        if f in self.function_map:
-            if only_ordinary_arguments(args, kwargs):
+        if _hashable(f):
+            # Some functions are perfectly safe for a graph node.
+            # We do not need to compile them.
+            if f in allowed_functions:
                 return f(*args, **kwargs)
-            return self.function_map[f](*args, **kwargs)
+
+            # Some functions we already have special-purpose handlers for,
+            # like calls to math.exp or tensor.log. If we know there are no
+            # graph nodes in the arguments we can just call the function directly
+            # and get the values. If there are graph nodes in the arguments then
+            # we can call our special handlers.
+
+            # TODO: Do a sanity check that the arguments match and give
+            # TODO: a good error if they do not. Alternatively, catch
+            # TODO: the exception if the call fails and replace it with
+            # TODO: a more informative error.
+            if f in self.function_map:
+                if only_ordinary_arguments(args, kwargs):
+                    return f(*args, **kwargs)
+                return self.function_map[f](*args, **kwargs)
 
         return self._handle_ordinary_call(f, args, kwargs)
 
