@@ -24,10 +24,12 @@ class Graph::NMC {
   std::vector<NodeValue> old_values;
   // IDs of all nodes in the graph that are directly or
   // indirectly observed or queried.
-  std::set<uint> supp;
-  std::vector<Node*> ordered_supp;
-  // Nodes in supp that are not directly observed.
-  std::set<uint> unobserved_supp;
+  std::set<uint> supp_ids;
+  std::vector<Node*> supp;
+  // Nodes in supp that are not directly observed.  Note that
+  // the order of nodes in this vector matters! We must enumerate
+  // them in order from lowest node identifier to highest.
+  std::vector<Node*> unobserved_supp;
   // A map from node id to its deterministic and stochastic operator
   // descendant nodes that are in the support.
   std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
@@ -70,7 +72,7 @@ class Graph::NMC {
         }
       }
       if (g->infer_config.keep_log_prob) {
-        g->collect_log_prob(g->_full_log_prob(ordered_supp));
+        g->collect_log_prob(g->_full_log_prob(supp));
       }
       g->collect_sample();
     }
@@ -87,7 +89,6 @@ class Graph::NMC {
     ensure_continuous();
     compute_initial_values();
     compute_pool();
-    compute_ordered_support();
     old_values = std::vector<NodeValue>(g->nodes.size());
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
   }
@@ -101,15 +102,18 @@ class Graph::NMC {
   }
 
   void compute_support() {
-    supp = g->compute_support();
+    supp_ids = g->compute_support();
+    for (uint node_id : supp_ids) {
+      supp.push_back(node_ptrs[node_id]);
+    }
   }
 
   void compute_unobserved_support() {
-    for (uint node_id : supp) {
+    for (Node* node : supp) {
       bool node_is_not_observed =
-          g->observed.find(node_id) == g->observed.end();
+          g->observed.find(node->index) == g->observed.end();
       if (node_is_not_observed) {
-        unobserved_supp.insert(node_id);
+        unobserved_supp.push_back(node);
       }
     }
   }
@@ -124,19 +128,17 @@ class Graph::NMC {
   }
 
   void ensure_continuous() {
-    for (uint node_id : unobserved_supp) {
-      Node* node = node_ptrs[node_id];
+    for (Node* node : unobserved_supp) {
       if (is_not_supported(node)) {
         throw std::runtime_error(
             "NMC only supported on bool/probability/real/positive -- failing on node " +
-            std::to_string(node_id));
+            std::to_string(node->index));
       }
     }
   }
 
   void compute_initial_values() {
-    for (uint node_id : unobserved_supp) {
-      Node* node = node_ptrs[node_id];
+    for (Node* node : unobserved_supp) {
       if (node->is_stochastic()) {
         if (node->value.type.variable_type ==
             VariableType::COL_SIMPLEX_MATRIX) {
@@ -152,20 +154,13 @@ class Graph::NMC {
   }
 
   void compute_pool() {
-    for (uint node_id : unobserved_supp) {
-      if (node_ptrs[node_id]->is_stochastic()) {
+    for (Node* node : unobserved_supp) {
+      if (node->is_stochastic()) {
         std::vector<uint> det_nodes;
         std::vector<uint> sto_nodes;
-        std::tie(det_nodes, sto_nodes) = g->compute_descendants(node_id, supp);
-        pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
-      }
-    }
-  }
-
-  void compute_ordered_support() {
-    if (g->infer_config.keep_log_prob) {
-      for (uint node_id : supp) {
-        ordered_supp.push_back(node_ptrs[node_id]);
+        std::tie(det_nodes, sto_nodes) =
+            g->compute_descendants(node->index, supp_ids);
+        pool[node->index] = std::make_tuple(det_nodes, sto_nodes);
       }
     }
   }
