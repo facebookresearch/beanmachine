@@ -204,6 +204,7 @@ class Graph::NMC {
       const std::vector<uint>& sto_nodes) {
     tgt_node->grad1 = 1;
     tgt_node->grad2 = 0;
+    graph::NodeValue old_value = tgt_node->value;
     save_old_values(det_nodes);
     compute_gradients(det_nodes);
     double old_logweight = 0;
@@ -214,12 +215,12 @@ class Graph::NMC {
       old_logweight += node->log_prob();
       node->gradient_log_prob(old_grad1, old_grad2);
     }
-    // now create a proposer object, save the value of tgt_node and propose
-    // a new value
+    // Propose a new value.
     std::unique_ptr<proposer::Proposer> old_prop =
-        proposer::nmc_proposer(tgt_node->value, old_grad1, old_grad2);
-    graph::NodeValue old_value = tgt_node->value;
-    tgt_node->value = old_prop->sample(gen);
+        proposer::nmc_proposer(old_value, old_grad1, old_grad2);
+    graph::NodeValue new_value = old_prop->sample(gen);
+    tgt_node->value = new_value;
+
     // similar to the above process we will go through all the children and
     // - compute new value of deterministic nodes
     // - propagate gradients
@@ -241,9 +242,9 @@ class Graph::NMC {
     // construct the reverse proposer and use it to compute the
     // log acceptance probability of the move
     std::unique_ptr<proposer::Proposer> new_prop =
-        proposer::nmc_proposer(tgt_node->value, new_grad1, new_grad2);
+        proposer::nmc_proposer(new_value, new_grad1, new_grad2);
     double logacc = new_logweight - old_logweight +
-        new_prop->log_prob(old_value) - old_prop->log_prob(tgt_node->value);
+        new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
     // The move is accepted if the probability is > 1 or if we sample and
     // get a true Otherwise we reject the move and restore all the
     // deterministic children and the value of the target node. In either
