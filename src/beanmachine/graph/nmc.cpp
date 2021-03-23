@@ -198,51 +198,82 @@ class Graph::NMC {
     }
   }
 
+  std::unique_ptr<proposer::Proposer> create_proposer(
+      const std::vector<uint>& sto_nodes,
+      NodeValue value,
+      /* out */ double& logweight) {
+    logweight = 0;
+    double grad1 = 0;
+    double grad2 = 0;
+    for (uint node_id : sto_nodes) {
+      const Node* node = node_ptrs[node_id];
+      logweight += node->log_prob();
+      node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
+    }
+    std::unique_ptr<proposer::Proposer> prop =
+        proposer::nmc_proposer(value, grad1, grad2);
+    return prop;
+  }
+
+  std::unique_ptr<proposer::Proposer> create_proposer_dirichlet(
+      const std::vector<uint>& sto_nodes,
+      Node* tgt_node,
+      double param_a,
+      NodeValue value,
+      /* out */ double& logweight) {
+    logweight = 0;
+    double grad1 = 0;
+    double grad2 = 0;
+    for (uint node_id : sto_nodes) {
+      const Node* node = node_ptrs[node_id];
+      if (node == tgt_node) {
+        // X_k ~ Gamma(param_a, 1)
+        logweight += (param_a - 1.0) * std::log(value._double) - value._double -
+            lgamma(param_a);
+        grad1 += (param_a - 1.0) / value._double - 1.0;
+        grad2 += (1.0 - param_a) / (value._double * value._double);
+      } else {
+        logweight += node->log_prob();
+        node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
+      }
+    }
+    std::unique_ptr<proposer::Proposer> prop =
+        proposer::nmc_proposer(value, grad1, grad2);
+    return prop;
+  }
+
   void nmc_step(
       Node* tgt_node,
       const std::vector<uint>& det_nodes,
       const std::vector<uint>& sto_nodes) {
     tgt_node->grad1 = 1;
     tgt_node->grad2 = 0;
-    graph::NodeValue old_value = tgt_node->value;
+    NodeValue old_value = tgt_node->value;
     save_old_values(det_nodes);
     compute_gradients(det_nodes);
-    double old_logweight = 0;
-    double old_grad1 = 0;
-    double old_grad2 = 0;
-    for (uint node_id : sto_nodes) {
-      const Node* node = node_ptrs[node_id];
-      old_logweight += node->log_prob();
-      node->gradient_log_prob(old_grad1, old_grad2);
-    }
+
     // Propose a new value.
-    std::unique_ptr<proposer::Proposer> old_prop =
-        proposer::nmc_proposer(old_value, old_grad1, old_grad2);
-    graph::NodeValue new_value = old_prop->sample(gen);
-    tgt_node->value = new_value;
+    double old_logweight;
+    auto old_prop =
+        create_proposer(sto_nodes, old_value, /* out */ old_logweight);
+    NodeValue new_value = old_prop->sample(gen);
 
     // similar to the above process we will go through all the children and
     // - compute new value of deterministic nodes
     // - propagate gradients
     // - add log_prob of stochastic nodes
     // - add gradient_log_prob of stochastic nodes
+    tgt_node->value = new_value;
     for (uint node_id : det_nodes) {
       Node* node = node_ptrs[node_id];
       node->eval(gen);
       node->compute_gradients();
     }
-    double new_logweight = 0;
-    double new_grad1 = 0;
-    double new_grad2 = 0;
-    for (uint node_id : sto_nodes) {
-      const Node* node = node_ptrs[node_id];
-      new_logweight += node->log_prob();
-      node->gradient_log_prob(new_grad1, new_grad2);
-    }
     // construct the reverse proposer and use it to compute the
     // log acceptance probability of the move
-    std::unique_ptr<proposer::Proposer> new_prop =
-        proposer::nmc_proposer(new_value, new_grad1, new_grad2);
+    double new_logweight;
+    auto new_prop =
+        create_proposer(sto_nodes, new_value, /* out */ new_logweight);
     double logacc = new_logweight - old_logweight +
         new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
     // The move is accepted if the probability is > 1 or if we sample and
@@ -291,35 +322,19 @@ class Graph::NMC {
       src_node->grad1 = 1;
       src_node->grad2 = 0;
       // Propagate gradients
+      NodeValue old_value(AtomicType::POS_REAL, old_X_k);
       save_old_values(det_nodes);
       compute_gradients(det_nodes);
-      double old_logweight = 0;
-      double old_grad1 = 0;
-      double old_grad2 = 0;
-      for (uint node_id : sto_nodes) {
-        const Node* node = node_ptrs[node_id];
-        if (node == tgt_node) {
-          // X_k ~ Gamma(param_a, 1)
-          old_logweight +=
-              (param_a - 1.0) * std::log(old_X_k) - old_X_k - lgamma(param_a);
-          old_grad1 += (param_a - 1.0) / old_X_k - 1.0;
-          old_grad2 += (1.0 - param_a) / (old_X_k * old_X_k);
-        } else {
-          old_logweight += node->log_prob();
-          node->gradient_log_prob(old_grad1, old_grad2);
-        }
-      }
-      // Create forward(old) proposer, propose new value of X_k
-      NodeValue old_value(AtomicType::POS_REAL, old_X_k);
-      std::unique_ptr<proposer::Proposer> old_prop =
-          proposer::nmc_proposer(old_value, old_grad1, old_grad2);
+      double old_logweight;
+      auto old_prop = create_proposer_dirichlet(
+          sto_nodes, tgt_node, param_a, old_value, /* out */ old_logweight);
       NodeValue new_value = old_prop->sample(gen);
       *(src_node->unconstrained_value._matrix.data() + k) = new_value._double;
       sum = src_node->unconstrained_value._matrix.sum();
       src_node->value._matrix =
           src_node->unconstrained_value._matrix.array() / sum;
 
-      // Prapagate values and gradients at new value of X_k
+      // Propagate values and gradients at new value of X_k
       src_node->Grad1 =
           -src_node->unconstrained_value._matrix.array() / (sum * sum);
       *(src_node->Grad1.data() + k) += 1 / sum;
@@ -329,26 +344,9 @@ class Graph::NMC {
         node->eval(gen);
         node->compute_gradients();
       }
-      double new_logweight = 0;
-      double new_grad1 = 0;
-      double new_grad2 = 0;
-      for (uint node_id : sto_nodes) {
-        const Node* node = node_ptrs[node_id];
-        if (node == tgt_node) {
-          // X_k ~ Gamma(param_a, 1)
-          new_logweight += (param_a - 1.0) * std::log(new_value._double) -
-              new_value._double - lgamma(param_a);
-          new_grad1 += (param_a - 1.0) / new_value._double - 1.0;
-          new_grad2 +=
-              (1.0 - param_a) / (new_value._double * new_value._double);
-        } else {
-          new_logweight += node->log_prob();
-          node->gradient_log_prob(new_grad1, new_grad2);
-        }
-      }
-      // Create the reverse(new) proposer
-      std::unique_ptr<proposer::Proposer> new_prop =
-          proposer::nmc_proposer(new_value, new_grad1, new_grad2);
+      double new_logweight;
+      auto new_prop = create_proposer_dirichlet(
+          sto_nodes, tgt_node, param_a, new_value, /* out */ new_logweight);
       double logacc = new_logweight - old_logweight +
           new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
       // Accept or reject, reset (values and) gradients
