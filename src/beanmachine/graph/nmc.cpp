@@ -30,9 +30,14 @@ class Graph::NMC {
   // the order of nodes in this vector matters! We must enumerate
   // them in order from lowest node identifier to highest.
   std::vector<Node*> unobserved_supp;
-  // A map from node id to its deterministic and stochastic operator
-  // descendant nodes that are in the support.
-  std::map<uint, std::tuple<std::vector<uint>, std::vector<uint>>> pool;
+  // Nodes in unobserved_supp that are stochastic.
+  std::vector<Node*> unobserved_sto_supp;
+  // These vectors are the same size as unobserved_sto_support.
+  // The elements are vectors of nodes; those nodes are in
+  // the support and are the stochastic or deterministic
+  // descendents of the corresponding unobserved stochastic node.
+  std::vector<std::vector<uint>> sto_descendants;
+  std::vector<std::vector<uint>> det_descendants;
 
  public:
   NMC(Graph* g, std::mt19937& gen) : g(g), gen(gen) {}
@@ -46,24 +51,11 @@ class Graph::NMC {
     assert(old_values.size() > 0); // keep linter happy
     // sampling outer loop
     for (uint snum = 0; snum < num_samples; snum++) {
-      for (auto it = pool.begin(); it != pool.end(); ++it) {
-        // for the target sampled node grab its deterministic and stochastic
-        // children
-        // the following dance of getting into a tuple is needed because this
-        // version of C++ doesn't have structured bindings
-        std::tuple<const std::vector<uint>&, const std::vector<uint>&>
-            tmp_tuple = it->second;
-        const std::vector<uint>& det_nodes = std::get<0>(tmp_tuple);
-        const std::vector<uint>& sto_nodes = std::get<1>(tmp_tuple);
-        assert(it->first == sto_nodes.front());
-        // Go through all the children of this node and
-        // - propagate gradients
-        // - save old values of deterministic nodes
-        // - add log_prob of stochastic nodes
-        // - add gradient_log_prob of stochastic nodes
-        // Note: all gradients are w.r.t. the current node that we are sampling
-        // @lint-ignore CLANGTIDY
-        Node* tgt_node = node_ptrs[it->first];
+      for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
+        Node* tgt_node = unobserved_sto_supp[i];
+        const std::vector<uint>& det_nodes = det_descendants[i];
+        const std::vector<uint>& sto_nodes = sto_descendants[i];
+        assert(tgt_node->index == sto_nodes.front());
         if (tgt_node->value.type.variable_type ==
             VariableType::COL_SIMPLEX_MATRIX) {
           nmc_step_for_dirichlet(tgt_node, det_nodes, sto_nodes);
@@ -88,7 +80,7 @@ class Graph::NMC {
     compute_unobserved_support();
     ensure_continuous();
     compute_initial_values();
-    compute_pool();
+    compute_descendants();
     old_values = std::vector<NodeValue>(g->nodes.size());
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
   }
@@ -114,13 +106,16 @@ class Graph::NMC {
           g->observed.find(node->index) == g->observed.end();
       if (node_is_not_observed) {
         unobserved_supp.push_back(node);
+        if (node->is_stochastic()) {
+          unobserved_sto_supp.push_back(node);
+        }
       }
     }
   }
 
   static bool is_not_supported(Node* node) {
-    return node->is_stochastic() and
-        node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX and
+    return node->value.type.variable_type !=
+        VariableType::COL_SIMPLEX_MATRIX and
         node->value.type != AtomicType::PROBABILITY and
         node->value.type != AtomicType::REAL and
         node->value.type != AtomicType::POS_REAL and
@@ -128,7 +123,7 @@ class Graph::NMC {
   }
 
   void ensure_continuous() {
-    for (Node* node : unobserved_supp) {
+    for (Node* node : unobserved_sto_supp) {
       if (is_not_supported(node)) {
         throw std::runtime_error(
             "NMC only supported on bool/probability/real/positive -- failing on node " +
@@ -153,15 +148,14 @@ class Graph::NMC {
     }
   }
 
-  void compute_pool() {
-    for (Node* node : unobserved_supp) {
-      if (node->is_stochastic()) {
-        std::vector<uint> det_nodes;
-        std::vector<uint> sto_nodes;
-        std::tie(det_nodes, sto_nodes) =
-            g->compute_descendants(node->index, supp_ids);
-        pool[node->index] = std::make_tuple(det_nodes, sto_nodes);
-      }
+  void compute_descendants() {
+    for (Node* node : unobserved_sto_supp) {
+      std::vector<uint> det_nodes;
+      std::vector<uint> sto_nodes;
+      std::tie(det_nodes, sto_nodes) =
+          g->compute_descendants(node->index, supp_ids);
+      det_descendants.push_back(det_nodes);
+      sto_descendants.push_back(sto_nodes);
     }
   }
 
