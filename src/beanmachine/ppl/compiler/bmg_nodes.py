@@ -969,26 +969,10 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
         BMGNode.__init__(self, inputs)
 
 
-class BernoulliNode(DistributionNode):
-    """The Bernoulli distribution is a coin flip; it takes
-    a probability and each sample is either 0.0 or 1.0.
-
-    The probability can be expressed either as a normal
-    probability between 0.0 and 1.0, or as log-odds, which
-    is any real number. That is, to represent, say,
-    13 heads for every 17 tails, the logits would be log(13/17).
-
-    If the model gave the probability as a value when executing
-    the program then torch will automatically translate
-    logits to normal probabilities. If however the model gives
-    a stochastic node as the argument and uses logits, then
-    we generate a different node in BMG."""
-
+class BernoulliBase(DistributionNode):
     _edges = ["probability"]
-    is_logits: bool
 
-    def __init__(self, probability: BMGNode, is_logits: bool = False):
-        self.is_logits = is_logits
+    def __init__(self, probability: BMGNode):
         DistributionNode.__init__(self, [probability])
 
     @property
@@ -1006,46 +990,11 @@ class BernoulliNode(DistributionNode):
         return Boolean
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # The input to a Bernoulli must be exactly a real number if "logits",
-        # and otherwise must be a Probability.
-        return [Real if self.is_logits else Probability]
-
-    @property
     def size(self) -> torch.Size:
         return self.probability.size
 
-    @property
-    def label(self) -> str:
-        return "Bernoulli" + ("(logits)" if self.is_logits else "")
-
-    def __str__(self) -> str:
-        return "Bernoulli(" + str(self.probability) + ")"
-
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        dist_type = dt.BERNOULLI_LOGIT if self.is_logits else dt.BERNOULLI
-        return g.add_distribution(dist_type, AtomicType.BOOLEAN, [d[self.probability]])
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        logit = "_LOGIT" if self.is_logits else ""
-        return (
-            f"n{d[self]} = g.add_distribution(\n"
-            + f"  graph.DistributionType.BERNOULLI{logit},\n"
-            + "  graph.AtomicType.BOOLEAN,\n"
-            + f"  [n{d[self.probability]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        logit = "_LOGIT" if self.is_logits else ""
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + f"  graph::DistributionType::BERNOULLI{logit},\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         s = self.size
@@ -1053,6 +1002,86 @@ class BernoulliNode(DistributionNode):
 
     def support_size(self) -> float:
         return 2.0 ** prod(self.size)
+
+
+class BernoulliNode(BernoulliBase):
+    """The Bernoulli distribution is a coin flip; it takes
+    a probability and each sample is either 0.0 or 1.0."""
+
+    def __init__(self, probability: BMGNode):
+        BernoulliBase.__init__(self, probability)
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [Probability]
+
+    @property
+    def label(self) -> str:
+        return "Bernoulli"
+
+    def __str__(self) -> str:
+        return "Bernoulli(" + str(self.probability) + ")"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            dt.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.BERNOULLI,\n"
+            + "  graph.AtomicType.BOOLEAN,\n"
+            + f"  [n{d[self.probability]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
+        )
+
+
+class BernoulliLogitNode(BernoulliBase):
+    """The Bernoulli distribution is a coin flip; it takes
+    a probability and each sample is either 0.0 or 1.0."""
+
+    def __init__(self, probability: BMGNode):
+        BernoulliBase.__init__(self, probability)
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [Real]
+
+    @property
+    def label(self) -> str:
+        return "Bernoulli(logits)"
+
+    def __str__(self) -> str:
+        return "Bernoulli(" + str(self.probability) + ")"
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            dt.BERNOULLI_LOGIT, AtomicType.BOOLEAN, [d[self.probability]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.BERNOULLI_LOGIT,\n"
+            + "  graph.AtomicType.BOOLEAN,\n"
+            + f"  [n{d[self.probability]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BERNOULLI_LOGIT,\n"
+            + "  graph::AtomicType::BOOLEAN,\n"
+            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
+        )
 
 
 class BetaNode(DistributionNode):

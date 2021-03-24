@@ -605,10 +605,14 @@ class BMGraphBuilder:
     # slightly easier to follow.
 
     @memoize
-    def add_bernoulli(
-        self, probability: BMGNode, is_logits: bool = False
-    ) -> bn.BernoulliNode:
-        node = bn.BernoulliNode(probability, is_logits)
+    def add_bernoulli(self, probability: BMGNode) -> bn.BernoulliNode:
+        node = bn.BernoulliNode(probability)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_bernoulli_logit(self, probability: BMGNode) -> bn.BernoulliLogitNode:
+        node = bn.BernoulliLogitNode(probability)
         self.add_node(node)
         return node
 
@@ -622,7 +626,9 @@ class BMGraphBuilder:
         probability = logits if probs is None else probs
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
-        return self.add_bernoulli(probability, logits is not None)
+        if logits is None:
+            return self.add_bernoulli(probability)
+        return self.add_bernoulli_logit(probability)
 
     @memoize
     def add_binomial(
