@@ -2,9 +2,12 @@
 import json as json_
 from typing import Any, Optional
 
+from beanmachine.ppl.compiler.profiler import event_list_to_report
+
 
 class PerformanceReport:
     json: Optional[str] = None
+    # TODO: Add a __str__ function
 
 
 def _to_perf_rep(v: Any) -> Any:
@@ -26,4 +29,7 @@ def json_to_perf_report(json: str) -> PerformanceReport:
     p = _to_perf_rep(d)
     assert isinstance(p, PerformanceReport)
     p.json = json
+    if hasattr(p, "profiler_data"):
+        # pyre-ignore
+        p.bmg_profiler_report = event_list_to_report(p.profiler_data)
     return p
