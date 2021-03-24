@@ -1165,33 +1165,11 @@ class BetaNode(DistributionNode):
         raise ValueError("Beta distribution does not have finite support.")
 
 
-class BinomialNode(DistributionNode):
-    """The Binomial distribution is the extension of the
-    Bernoulli distribution to multiple flips. The input
-    is the count of flips and the probability of each
-    coming up heads; each sample is the number of heads
-    after "count" flips.
-
-    The probability can be expressed either as a normal
-    probability between 0.0 and 1.0, or as log-odds, which
-    is any real number. That is, to represent, say,
-    13 heads for every 17 tails, the logits would be log(13/17).
-
-    If the model gave the probability as a value when executing
-    the program then torch will automatically translate
-    logits to normal probabilities. If however the model gives
-    a stochastic node as the argument and uses logits, then
-    we generate a different node in BMG."""
-
-    # TODO: We do not yet have a BMG node for Binomial
-    # with logits. When we do, add support for it as we
-    # did with Bernoulli above.
+class BinomialNodeBase(DistributionNode):
 
     _edges = ["count", "probability"]
-    is_logits: bool
 
-    def __init__(self, count: BMGNode, probability: BMGNode, is_logits: bool = False):
-        self.is_logits = is_logits
+    def __init__(self, count: BMGNode, probability: BMGNode):
         DistributionNode.__init__(self, [count, probability])
 
     @property
@@ -1217,58 +1195,13 @@ class BinomialNode(DistributionNode):
         return Natural
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # The left input to a binomial must be a natural; the right
-        # input must be a real number if "logits" and a Probability
-        # otherwise.
-        return [Natural, Real if self.is_logits else Probability]
-
-    @property
     def size(self) -> torch.Size:
         return broadcast_all(
             torch.zeros(self.count.size), torch.zeros(self.probability.size)
         ).size()
 
-    @property
-    def label(self) -> str:
-        return "Binomial" + ("(logits)" if self.is_logits else "")
-
     def __str__(self) -> str:
         return f"Binomial({self.count}, {self.probability})"
-
-    def _supported_in_bmg(self) -> bool:
-        return not self.is_logits
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: Fix this when we support binomial logits.
-        if self.is_logits:
-            raise InternalError("Binomial with logits is not supported in BMG.")
-        return g.add_distribution(
-            dt.BINOMIAL, AtomicType.NATURAL, [d[self.count], d[self.probability]]
-        )
-
-    def _to_python(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
-        if self.is_logits:
-            raise InternalError("Binomial with logits is not supported in BMG.")
-        return (
-            f"n{d[self]} = g.add_distribution(\n"
-            + "  graph.DistributionType.BINOMIAL,\n"
-            + "  graph.AtomicType.NATURAL,\n"
-            + f"  [n{d[self.count]}, n{d[self.probability]}])"
-        )
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
-        if self.is_logits:
-            raise InternalError("Binomial with logits is not supported in BMG.")
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BINOMIAL,\n"
-            + "  graph::AtomicType::NATURAL,\n"
-            + f"  std::vector<uint>({{n{d[self.count]}, "
-            + f"n{d[self.probability]}}}));"
-        )
 
     # TODO: We will need to implement computation of the support
     # of an arbitrary binomial distribution because samples are
@@ -1307,6 +1240,87 @@ class BinomialNode(DistributionNode):
     # "what is the minimum value you support?" and so on.
     def support(self) -> Iterator[Any]:
         raise ValueError("Support of binomial is not yet implemented.")
+
+
+class BinomialNode(BinomialNodeBase):
+    """The Binomial distribution is the extension of the
+    Bernoulli distribution to multiple flips. The input
+    is the count of flips and the probability of each
+    coming up heads; each sample is the number of heads
+    after "count" flips."""
+
+    def __init__(self, count: BMGNode, probability: BMGNode, is_logits: bool = False):
+        BinomialNodeBase.__init__(self, count, probability)
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [Natural, Probability]
+
+    @property
+    def label(self) -> str:
+        return "Binomial"
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_distribution(
+            dt.BINOMIAL, AtomicType.NATURAL, [d[self.count], d[self.probability]]
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"n{d[self]} = g.add_distribution(\n"
+            + "  graph.DistributionType.BINOMIAL,\n"
+            + "  graph.AtomicType.NATURAL,\n"
+            + f"  [n{d[self.count]}, n{d[self.probability]}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        return (
+            f"uint n{d[self]} = g.add_distribution(\n"
+            + "  graph::DistributionType::BINOMIAL,\n"
+            + "  graph::AtomicType::NATURAL,\n"
+            + f"  std::vector<uint>({{n{d[self.count]}, "
+            + f"n{d[self.probability]}}}));"
+        )
+
+
+class BinomialLogitNode(BinomialNodeBase):
+    """The Binomial distribution is the extension of the
+    Bernoulli distribution to multiple flips. The input
+    is the count of flips and the probability of each
+    coming up heads; each sample is the number of heads
+    after "count" flips."""
+
+    # TODO: We do not yet have a BMG node for Binomial
+    # with logits. When we do, add support for it.
+
+    def __init__(self, count: BMGNode, probability: BMGNode):
+        BinomialNodeBase.__init__(self, count, probability)
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        return [Natural, Real]
+
+    @property
+    def label(self) -> str:
+        return "Binomial(logits)"
+
+    def _supported_in_bmg(self) -> bool:
+        return False
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        # TODO: Fix this when we support binomial logits.
+        raise InternalError("Binomial with logits is not supported in BMG.")
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
+        raise InternalError("Binomial with logits is not supported in BMG.")
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        # TODO: Handle case where child is logits
+        raise InternalError("Binomial with logits is not supported in BMG.")
 
 
 class CategoricalNode(DistributionNode):

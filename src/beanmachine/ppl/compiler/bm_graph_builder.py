@@ -631,10 +631,16 @@ class BMGraphBuilder:
         return self.add_bernoulli_logit(probability)
 
     @memoize
-    def add_binomial(
-        self, count: BMGNode, probability: BMGNode, is_logits: bool = False
-    ) -> bn.BinomialNode:
-        node = bn.BinomialNode(count, probability, is_logits)
+    def add_binomial(self, count: BMGNode, probability: BMGNode) -> bn.BinomialNode:
+        node = bn.BinomialNode(count, probability)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_binomial_logit(
+        self, count: BMGNode, probability: BMGNode
+    ) -> bn.BinomialLogitNode:
+        node = bn.BinomialLogitNode(count, probability)
         self.add_node(node)
         return node
 
@@ -656,7 +662,9 @@ class BMGraphBuilder:
             total_count = self.add_constant(total_count)
         if not isinstance(probability, BMGNode):
             probability = self.add_constant(probability)
-        return self.add_binomial(total_count, probability, logits is not None)
+        if logits is None:
+            return self.add_binomial(total_count, probability)
+        return self.add_binomial_logit(total_count, probability)
 
     @memoize
     def add_categorical(
