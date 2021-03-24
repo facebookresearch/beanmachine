@@ -19,19 +19,33 @@ class Graph::NMC {
  private:
   Graph* g;
   std::mt19937& gen;
-  // Map from node id to Node*.
+
+  // A graph maintains of a vector of nodes; the index into that vector is
+  // the id of the node. We often need to translate from node ids into node
+  // pointers in this algorithm; to do so quickly we obtain the address of
+  // every node in the graph up front and then look it up when we need it.
   std::vector<Node*> node_ptrs;
+
+  // Every node in the graph has a value; when we propose a new graph state,
+  // we update the values. If we then reject the proposed new state, we need
+  // to restore the values. This vector stores the original values of the
+  // nodes that we change during the proposal step.
   std::vector<NodeValue> old_values;
-  // IDs of all nodes in the graph that are directly or
-  // indirectly observed or queried.
+
+  // The support is the set of all nodes in the graph that are queried or
+  // observed, directly or indirectly. We need both the support as nodes
+  // and as pointers in this algorithm.
   std::set<uint> supp_ids;
   std::vector<Node*> supp;
+
   // Nodes in supp that are not directly observed.  Note that
   // the order of nodes in this vector matters! We must enumerate
   // them in order from lowest node identifier to highest.
   std::vector<Node*> unobserved_supp;
-  // Nodes in unobserved_supp that are stochastic.
+
+  // Nodes in unobserved_supp that are stochastic; similarly, order matters.
   std::vector<Node*> unobserved_sto_supp;
+
   // These vectors are the same size as unobserved_sto_support.
   // The elements are vectors of nodes; those nodes are in
   // the support and are the stochastic or deterministic
@@ -50,11 +64,13 @@ class Graph::NMC {
   }
 
  private:
+  // The initialization phase precomputes the vectors we are going to
+  // need during inference, and verifies that the NMC algorithm can
+  // compute gradients of every node we need to.
   void initialize() {
     g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
     smart_to_dumb();
     compute_support();
-    compute_unobserved_support();
     ensure_continuous();
     compute_initial_values();
     compute_descendants();
@@ -63,8 +79,6 @@ class Graph::NMC {
   }
 
   void smart_to_dumb() {
-    // Convert the smart pointers in nodes to dumb pointers in node_ptrs
-    // for faster access.
     for (uint node_id = 0; node_id < g->nodes.size(); node_id++) {
       node_ptrs.push_back(g->nodes[node_id].get());
     }
@@ -75,9 +89,6 @@ class Graph::NMC {
     for (uint node_id : supp_ids) {
       supp.push_back(node_ptrs[node_id]);
     }
-  }
-
-  void compute_unobserved_support() {
     for (Node* node : supp) {
       bool node_is_not_observed =
           g->observed.find(node->index) == g->observed.end();
@@ -109,6 +120,10 @@ class Graph::NMC {
     }
   }
 
+  // We can now compute the initial state of the graph. Observed nodes
+  // will have values given by the observation, so we can ignore those.
+  // Unobserved stochastic nodes are assigned a value by the uniform
+  // initializer. Deterministic nodes are computed from their inputs.
   void compute_initial_values() {
     for (Node* node : unobserved_supp) {
       if (node->is_stochastic()) {
@@ -125,6 +140,10 @@ class Graph::NMC {
     }
   }
 
+  // For every unobserved stochastic node in the graph, we will need to
+  // repeatedly know the set of deterministic and stochastic descendant
+  // nodes. Because this can be expensive, we compute those sets once
+  // and cache them.
   void compute_descendants() {
     for (Node* node : unobserved_sto_supp) {
       std::vector<uint> det_node_ids;
@@ -206,6 +225,12 @@ class Graph::NMC {
     }
   }
 
+  // This method performs two tasks:
+  // * Compute the "score" for a given collection of stochastic
+  //   nodes; that is, how likely is this combination of samples?
+  // * Create a proposer that can randomly choose a new value for a node
+  //   based on the current value and the gradients of the stochastic
+  //   nodes.
   std::unique_ptr<proposer::Proposer> create_proposer(
       const std::vector<Node*>& sto_nodes,
       NodeValue value,
@@ -252,46 +277,50 @@ class Graph::NMC {
       Node* tgt_node,
       const std::vector<Node*>& det_nodes,
       const std::vector<Node*>& sto_nodes) {
-    tgt_node->grad1 = 1;
-    tgt_node->grad2 = 0;
+    // We are given an unobserved stochastic "target" node and we wish
+    // to compute a new value for it. The basic idea of the algorithm is:
+    //
+    // * Save the current state of the graph.
+    // * Compute the "score" of the current state: how likely is this state?
+    // * Propose a new value for the target node.
+    // * Changing the value of the target node changes the values and gradients
+    //   of its descendents; make those updates.
+    // * Evaluate the "score" of the proposed new state.
+    // * Accept or reject the proposed new value based on the relative scores.
+    // * If we rejected it, restore the saved state.
+
     NodeValue old_value = tgt_node->value;
     save_old_values(det_nodes);
-    compute_gradients(det_nodes);
 
-    // Propose a new value.
+    tgt_node->grad1 = 1;
+    tgt_node->grad2 = 0;
+    // Deterministic node values are already evaluated but gradients
+    // are not.
+    compute_gradients(det_nodes);
     double old_logweight;
     auto old_prop =
         create_proposer(sto_nodes, old_value, /* out */ old_logweight);
-    NodeValue new_value = old_prop->sample(gen);
 
-    // similar to the above process we will go through all the children and
-    // - compute new value of deterministic nodes
-    // - propagate gradients
-    // - add log_prob of stochastic nodes
-    // - add gradient_log_prob of stochastic nodes
+    NodeValue new_value = old_prop->sample(gen);
 
     tgt_node->value = new_value;
     eval(det_nodes);
     compute_gradients(det_nodes);
-
-    // construct the reverse proposer and use it to compute the
-    // log acceptance probability of the move
     double new_logweight;
     auto new_prop =
         create_proposer(sto_nodes, new_value, /* out */ new_logweight);
+
     double logacc = new_logweight - old_logweight +
         new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
-    // The move is accepted if the probability is > 1 or if we sample and
-    // get a true Otherwise we reject the move and restore all the
-    // deterministic children and the value of the target node. In either
-    // case we need to restore the gradients.
     bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
     if (!accepted) {
       restore_old_values(det_nodes);
       tgt_node->value = old_value;
     }
+
     clear_gradients(det_nodes);
-    tgt_node->grad1 = tgt_node->grad2 = 0;
+    tgt_node->grad1 = 0;
+    tgt_node->grad2 = 0;
   }
 
   /*
@@ -362,7 +391,8 @@ class Graph::NMC {
             src_node->unconstrained_value._matrix.array() / sum;
       }
       clear_gradients(det_nodes);
-      tgt_node->grad1 = tgt_node->grad2 = 0;
+      tgt_node->grad1 = 0;
+      tgt_node->grad2 = 0;
     }
   }
 };
