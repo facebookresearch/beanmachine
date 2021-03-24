@@ -277,6 +277,7 @@ class Graph::NMC {
       Node* tgt_node,
       const std::vector<Node*>& det_nodes,
       const std::vector<Node*>& sto_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_STEP);
     // We are given an unobserved stochastic "target" node and we wish
     // to compute a new value for it. The basic idea of the algorithm is:
     //
@@ -321,6 +322,7 @@ class Graph::NMC {
     clear_gradients(det_nodes);
     tgt_node->grad1 = 0;
     tgt_node->grad2 = 0;
+    g->pd_finish(ProfilerEvent::NMC_STEP);
   }
 
   /*
@@ -333,6 +335,7 @@ class Graph::NMC {
       Node* tgt_node,
       const std::vector<Node*>& det_nodes,
       const std::vector<Node*>& sto_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
     uint K = tgt_node->value._matrix.size();
     auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
     // @lint-ignore CLANGTIDY
@@ -393,7 +396,8 @@ class Graph::NMC {
       clear_gradients(det_nodes);
       tgt_node->grad1 = 0;
       tgt_node->grad2 = 0;
-    }
+    } // k
+    g->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
   }
 };
 

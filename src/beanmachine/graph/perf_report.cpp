@@ -104,6 +104,13 @@ class JSON {
       case ProfilerEvent::NMC_INFER_INITIALIZE:
         text("initialize");
         break;
+      case ProfilerEvent::NMC_STEP:
+        text("step");
+        break;
+      case ProfilerEvent::NMC_STEP_DIRICHLET:
+        text("step_dirichlet");
+        break;
+
       default:
         number((int)v);
         break;

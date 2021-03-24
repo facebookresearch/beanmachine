@@ -13,6 +13,8 @@ enum class ProfilerEvent {
   NMC_INFER,
   NMC_INFER_INITIALIZE,
   NMC_INFER_COLLECT_SAMPLES,
+  NMC_STEP,
+  NMC_STEP_DIRICHLET,
 };
 
 struct Event {
