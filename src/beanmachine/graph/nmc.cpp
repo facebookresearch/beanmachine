@@ -44,31 +44,8 @@ class Graph::NMC {
 
   void infer(uint num_samples) {
     g->pd_begin(ProfilerEvent::NMC_INFER);
-
     initialize();
-
-    g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
-    assert(old_values.size() > 0); // keep linter happy
-    // sampling outer loop
-    for (uint snum = 0; snum < num_samples; snum++) {
-      for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
-        Node* tgt_node = unobserved_sto_supp[i];
-        const std::vector<Node*>& det_nodes = det_descendants[i];
-        const std::vector<Node*>& sto_nodes = sto_descendants[i];
-        assert(tgt_node == sto_nodes.front());
-        if (tgt_node->value.type.variable_type ==
-            VariableType::COL_SIMPLEX_MATRIX) {
-          nmc_step_for_dirichlet(tgt_node, det_nodes, sto_nodes);
-        } else {
-          nmc_step(tgt_node, det_nodes, sto_nodes);
-        }
-      }
-      if (g->infer_config.keep_log_prob) {
-        g->collect_log_prob(g->_full_log_prob(supp));
-      }
-      g->collect_sample();
-    }
-    g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
+    collect_samples(num_samples);
     g->pd_finish(ProfilerEvent::NMC_INFER);
   }
 
@@ -167,6 +144,37 @@ class Graph::NMC {
     }
   }
 
+  void generate_sample() {
+    for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
+      Node* tgt_node = unobserved_sto_supp[i];
+      const std::vector<Node*>& det_nodes = det_descendants[i];
+      const std::vector<Node*>& sto_nodes = sto_descendants[i];
+      assert(tgt_node == sto_nodes.front());
+      if (tgt_node->value.type.variable_type ==
+          VariableType::COL_SIMPLEX_MATRIX) {
+        nmc_step_for_dirichlet(tgt_node, det_nodes, sto_nodes);
+      } else {
+        nmc_step(tgt_node, det_nodes, sto_nodes);
+      }
+    }
+  }
+
+  void collect_samples(uint num_samples) {
+    g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
+    for (uint snum = 0; snum < num_samples; snum++) {
+      generate_sample();
+      collect_sample();
+    }
+    g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
+  }
+
+  void collect_sample() {
+    if (g->infer_config.keep_log_prob) {
+      g->collect_log_prob(g->_full_log_prob(supp));
+    }
+    g->collect_sample();
+  }
+
   void save_old_values(const std::vector<Node*>& det_nodes) {
     for (Node* node : det_nodes) {
       old_values[node->index] = node->value;
@@ -185,9 +193,16 @@ class Graph::NMC {
     }
   }
 
+  void eval(const std::vector<Node*>& det_nodes) {
+    for (Node* node : det_nodes) {
+      node->eval(gen);
+    }
+  }
+
   void clear_gradients(const std::vector<Node*>& det_nodes) {
     for (Node* node : det_nodes) {
-      node->grad1 = node->grad2 = 0;
+      node->grad1 = 0;
+      node->grad2 = 0;
     }
   }
 
@@ -254,11 +269,11 @@ class Graph::NMC {
     // - propagate gradients
     // - add log_prob of stochastic nodes
     // - add gradient_log_prob of stochastic nodes
+
     tgt_node->value = new_value;
-    for (Node* node : det_nodes) {
-      node->eval(gen);
-      node->compute_gradients();
-    }
+    eval(det_nodes);
+    compute_gradients(det_nodes);
+
     // construct the reverse proposer and use it to compute the
     // log acceptance probability of the move
     double new_logweight;
@@ -329,10 +344,9 @@ class Graph::NMC {
           -src_node->unconstrained_value._matrix.array() / (sum * sum);
       *(src_node->Grad1.data() + k) += 1 / sum;
       src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
-      for (Node* node : det_nodes) {
-        node->eval(gen);
-        node->compute_gradients();
-      }
+      eval(det_nodes);
+      compute_gradients(det_nodes);
+
       double new_logweight;
       auto new_prop = create_proposer_dirichlet(
           sto_nodes, tgt_node, param_a, new_value, /* out */ new_logweight);
