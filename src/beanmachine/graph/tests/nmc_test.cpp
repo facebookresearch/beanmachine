@@ -318,7 +318,7 @@ TEST(testnmc, infinite_grad) {
   EXPECT_LT(0.0, var);
 }
 
-TEST(testnmc, bernoulli_dirichlet) {
+TEST(testnmc, bernoulli_dirichlet_beta) {
   /*
   Model:
     (p0, p1) ~ Dirichlet(1, 2)
@@ -378,4 +378,48 @@ TEST(testnmc, bernoulli_dirichlet) {
   var = sum1sq / num_samples - mean * mean;
   EXPECT_NEAR(mean, 0.75, 0.01);
   EXPECT_NEAR(var, 3.0 / (4 * 4 * 5), 0.01);
+}
+
+TEST(testnmc, dirichlet_gamma) {
+  /*
+  Model:
+    y ~ Dirichlet(1, 2, 2)
+  */
+  Graph g;
+  Eigen::MatrixXd m1(3, 1);
+  m1 << 1.0, 2.0, 2.0;
+  uint alphas = g.add_constant_pos_matrix(m1);
+  uint dirich_dist = g.add_distribution(
+      DistributionType::DIRICHLET,
+      ValueType(
+          VariableType::COL_SIMPLEX_MATRIX, AtomicType::PROBABILITY, 3, 1),
+      std::vector<uint>{alphas});
+  uint dirich_vec =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{dirich_dist});
+  g.query(dirich_vec);
+
+  int num_samples = 2000;
+  std::vector<std::vector<NodeValue>> samples =
+      g.infer(num_samples, InferenceType::NMC);
+
+  Eigen::MatrixXd sum = Eigen::MatrixXd::Zero(3, 1);
+
+  for (const auto& s : samples) {
+    const auto& sample = s[0];
+    sum += sample._matrix;
+  }
+  Eigen::MatrixXd mean = sum / num_samples;
+  EXPECT_NEAR(mean(0), 0.2, 0.01);
+  EXPECT_NEAR(mean(1), 0.4, 0.01);
+  EXPECT_NEAR(mean(2), 0.4, 0.01);
+
+  Eigen::MatrixXd var = Eigen::MatrixXd::Zero(3, 1);
+  for (const auto& s : samples) {
+    const auto& sample = s[0]._matrix;
+    var += ((sample - mean).array() * (sample - mean).array()).matrix();
+  }
+  var /= num_samples;
+  EXPECT_NEAR(var(0), 0.2 * 0.8 / 6.0, 0.01);
+  EXPECT_NEAR(var(1), 0.4 * 0.6 / 6.0, 0.01);
+  EXPECT_NEAR(var(2), 0.4 * 0.6 / 6.0, 0.01);
 }

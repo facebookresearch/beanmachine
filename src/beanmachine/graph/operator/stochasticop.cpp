@@ -135,8 +135,8 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
       throw std::invalid_argument("Invalid sample type for for iid sample. ");
   }
   value = graph::NodeValue(vtype);
-  unconstrained_value = graph::NodeValue(graph::ValueType(
-      dist->sample_type.variable_type, graph::AtomicType::REAL, 1, 0));
+  unconstrained_value = graph::NodeValue(
+      graph::ValueType(vtype.variable_type, graph::AtomicType::REAL, 1, 0));
   return;
 }
 
