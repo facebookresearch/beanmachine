@@ -7,7 +7,7 @@ import unittest
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Binomial, Normal
+from torch.distributions import Bernoulli, Binomial, HalfCauchy, Normal
 
 
 # Simplexes are tested in dirichlet_test.py
@@ -42,6 +42,22 @@ def prob():
 @bm.random_variable
 def natural():
     return Binomial(tensor([2, 3])[flip()], 0.75)
+
+
+@bm.random_variable
+def normal():
+    return Normal(0.0, 1.0)
+
+
+@bm.random_variable
+def hc():
+    return HalfCauchy(0.0)
+
+
+@bm.random_variable
+def optimize_away_index():
+    t = tensor([normal(), hc()])
+    return Normal(t[0], t[1])
 
 
 class IndexTest(unittest.TestCase):
@@ -123,6 +139,42 @@ digraph "graph" {
   N31 -> N32;
   N32 -> N33;
   N33 -> N34;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_index_stochastic_tensor_constant_index(self) -> None:
+        self.maxDiff = None
+
+        # Here we demonstrate that we can make a tensor containing graph
+        # nodes and index into that with a constant; the indexing operation
+        # is optimized out.
+
+        # TODO: Why is the 0.0 node not deduplicated?  It is harmless
+        # but something is not working according to plan; investigate later.
+
+        observed = BMGInference().to_dot([optimize_away_index()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=0.0];
+  N5[label=HalfCauchy];
+  N6[label=Sample];
+  N7[label=Normal];
+  N8[label=Sample];
+  N9[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N7;
+  N4 -> N5;
+  N5 -> N6;
+  N6 -> N7;
+  N7 -> N8;
+  N8 -> N9;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
