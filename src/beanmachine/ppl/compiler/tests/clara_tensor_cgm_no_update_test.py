@@ -23,14 +23,14 @@ CONF_MATRIX_PRIOR = tensor([1.0, 0.0])  # prior on confusion matrix
 IDX_RATINGS = [[0]]  # indexed ratings that labelers assigned to items
 IDX_LABELERS = [[0]]  # indexed list of labelers who labeled items
 EXPERT_CONF_MATRIX = tensor(
-    [[1, 0], [0, 1]]
+    [[0.99, 0.01], [0.01, 0.99]]
 )  # confusion matrix of an expert (if we have true ratings)
 # EXPERT_CONF_MATRIX is of size NUM_CLASS x NUM_CLASS
 # Row (first) index is true class, and column (second) index is observed
 IDX_TRUE_RATINGS = [0]
 # Of size NUM_ITEMS
 # Represents true class of items by a perfect labler
-# When information is missing, use value -1
+# When information is missing, use value NUM_CLASS
 
 # MODEL
 
@@ -58,7 +58,7 @@ def log_item_prob(i, k):
         label = IDX_RATINGS[i][r]
         labeler = IDX_LABELERS[i][r]
         prob = prob + confusion_matrix(labeler, k)[label].log()
-    if IDX_TRUE_RATINGS[i] != 0:  # TODO: This should actuall be -1
+    if IDX_TRUE_RATINGS[i] != NUM_CLASS:  # Value NUM_CLASS means missing value
         prob = prob + EXPERT_CONF_MATRIX[k, IDX_TRUE_RATINGS[i]].log()
     return prob
 
@@ -143,53 +143,61 @@ digraph "graph" {
   N08[label=index];
   N09[label=Log];
   N10[label="+"];
-  N11[label=1];
-  N12[label=index];
-  N13[label=Log];
+  N11[label=-0.010050326585769653];
+  N12[label="+"];
+  N13[label=1];
   N14[label=index];
   N15[label=Log];
-  N16[label="+"];
-  N17[label=LogSumExp];
-  N18[label=ToReal];
-  N19[label=Exp];
-  N20[label=ToProb];
-  N21[label=Bernoulli];
-  N22[label=Sample];
-  N23[label="Observation True"];
-  N24[label=Query];
-  N25[label=Query];
-  N26[label=Query];
+  N16[label=index];
+  N17[label=Log];
+  N18[label="+"];
+  N19[label=-4.605170249938965];
+  N20[label="+"];
+  N21[label=LogSumExp];
+  N22[label=ToReal];
+  N23[label=Exp];
+  N24[label=ToProb];
+  N25[label=Bernoulli];
+  N26[label=Sample];
+  N27[label="Observation True"];
+  N28[label=Query];
+  N29[label=Query];
+  N30[label=Query];
   N00 -> N01;
   N01 -> N02;
   N01 -> N03;
   N01 -> N04;
   N02 -> N06;
-  N02 -> N12;
-  N02 -> N25;
+  N02 -> N14;
+  N02 -> N29;
   N03 -> N08;
-  N03 -> N26;
-  N04 -> N14;
+  N03 -> N30;
+  N04 -> N16;
   N05 -> N06;
   N05 -> N08;
-  N05 -> N14;
+  N05 -> N16;
   N06 -> N07;
   N07 -> N10;
   N08 -> N09;
   N09 -> N10;
-  N10 -> N17;
-  N10 -> N24;
+  N10 -> N12;
   N11 -> N12;
-  N12 -> N13;
-  N13 -> N16;
+  N12 -> N21;
+  N12 -> N28;
+  N13 -> N14;
   N14 -> N15;
-  N15 -> N16;
+  N15 -> N18;
   N16 -> N17;
   N17 -> N18;
-  N18 -> N19;
+  N18 -> N20;
   N19 -> N20;
   N20 -> N21;
   N21 -> N22;
   N22 -> N23;
+  N23 -> N24;
+  N24 -> N25;
+  N25 -> N26;
+  N26 -> N27;
 }
         """
         self.assertEqual(observed.strip(), expected.strip())
@@ -226,34 +234,40 @@ uint n9 = g.add_operator(
   graph::OperatorType::LOG, std::vector<uint>({n8}));
 uint n10 = g.add_operator(
   graph::OperatorType::ADD, std::vector<uint>({n7, n9}));
-uint n11 = g.add_constant(1);
+uint n11 = g.add_constant_neg_real(-0.010050326585769653);
 uint n12 = g.add_operator(
-  graph::OperatorType::INDEX, std::vector<uint>({n2, n11}));
-uint n13 = g.add_operator(
-  graph::OperatorType::LOG, std::vector<uint>({n12}));
+  graph::OperatorType::ADD, std::vector<uint>({n10, n11}));
+uint n13 = g.add_constant(1);
 uint n14 = g.add_operator(
-  graph::OperatorType::INDEX, std::vector<uint>({n4, n5}));
+  graph::OperatorType::INDEX, std::vector<uint>({n2, n13}));
 uint n15 = g.add_operator(
   graph::OperatorType::LOG, std::vector<uint>({n14}));
 uint n16 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n13, n15}));
-n17 = g.add_operator(
-  graph::OperatorType::LOGSUMEXP,
-  std::vector<uint>({n10, n16}));
+  graph::OperatorType::INDEX, std::vector<uint>({n4, n5}));
+uint n17 = g.add_operator(
+  graph::OperatorType::LOG, std::vector<uint>({n16}));
 uint n18 = g.add_operator(
-  graph::OperatorType::TO_REAL, std::vector<uint>({n17}));
-uint n19 = g.add_operator(
-  graph::OperatorType::EXP, std::vector<uint>({n18}));
+  graph::OperatorType::ADD, std::vector<uint>({n15, n17}));
+uint n19 = g.add_constant_neg_real(-4.605170249938965);
 uint n20 = g.add_operator(
-  graph::OperatorType::TO_PROBABILITY, std::vector<uint>({n19}));
-uint n21 = g.add_distribution(
+  graph::OperatorType::ADD, std::vector<uint>({n18, n19}));
+n21 = g.add_operator(
+  graph::OperatorType::LOGSUMEXP,
+  std::vector<uint>({n12, n20}));
+uint n22 = g.add_operator(
+  graph::OperatorType::TO_REAL, std::vector<uint>({n21}));
+uint n23 = g.add_operator(
+  graph::OperatorType::EXP, std::vector<uint>({n22}));
+uint n24 = g.add_operator(
+  graph::OperatorType::TO_PROBABILITY, std::vector<uint>({n23}));
+uint n25 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
-  std::vector<uint>({n20}));
-uint n22 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n21}));
-g.observe([n22], true);
-g.query(n10);
+  std::vector<uint>({n24}));
+uint n26 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
+g.observe([n26], true);
+g.query(n12);
 g.query(n2);
 g.query(n3);
 """
@@ -284,26 +298,30 @@ n7 = g.add_operator(graph.OperatorType.LOG, [n6])
 n8 = g.add_operator(graph.OperatorType.INDEX, [n3, n5])
 n9 = g.add_operator(graph.OperatorType.LOG, [n8])
 n10 = g.add_operator(graph.OperatorType.ADD, [n7, n9])
-n11 = g.add_constant(1)
-n12 = g.add_operator(graph.OperatorType.INDEX, [n2, n11])
-n13 = g.add_operator(graph.OperatorType.LOG, [n12])
-n14 = g.add_operator(graph.OperatorType.INDEX, [n4, n5])
+n11 = g.add_constant_neg_real(-0.010050326585769653)
+n12 = g.add_operator(graph.OperatorType.ADD, [n10, n11])
+n13 = g.add_constant(1)
+n14 = g.add_operator(graph.OperatorType.INDEX, [n2, n13])
 n15 = g.add_operator(graph.OperatorType.LOG, [n14])
-n16 = g.add_operator(graph.OperatorType.ADD, [n13, n15])
-n17 = g.add_operator(
+n16 = g.add_operator(graph.OperatorType.INDEX, [n4, n5])
+n17 = g.add_operator(graph.OperatorType.LOG, [n16])
+n18 = g.add_operator(graph.OperatorType.ADD, [n15, n17])
+n19 = g.add_constant_neg_real(-4.605170249938965)
+n20 = g.add_operator(graph.OperatorType.ADD, [n18, n19])
+n21 = g.add_operator(
   graph.OperatorType.LOGSUMEXP,
-  [n10, n16])
-n18 = g.add_operator(graph.OperatorType.TO_REAL, [n17])
-n19 = g.add_operator(graph.OperatorType.EXP, [n18])
-n20 = g.add_operator(graph.OperatorType.TO_PROBABILITY, [n19])
-n21 = g.add_distribution(
+  [n12, n20])
+n22 = g.add_operator(graph.OperatorType.TO_REAL, [n21])
+n23 = g.add_operator(graph.OperatorType.EXP, [n22])
+n24 = g.add_operator(graph.OperatorType.TO_PROBABILITY, [n23])
+n25 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n20])
-n22 = g.add_operator(graph.OperatorType.SAMPLE, [n21])
-g.observe(n22, True)
-g.query(n10)
+  [n24])
+n26 = g.add_operator(graph.OperatorType.SAMPLE, [n25])
+g.observe(n26, True)
+g.query(n12)
 g.query(n2)
 g.query(n3)
-        """
+"""
         self.assertEqual(observed.strip(), expected.strip())
