@@ -36,8 +36,8 @@ class Graph::NMC {
   // The elements are vectors of nodes; those nodes are in
   // the support and are the stochastic or deterministic
   // descendents of the corresponding unobserved stochastic node.
-  std::vector<std::vector<uint>> sto_descendants;
-  std::vector<std::vector<uint>> det_descendants;
+  std::vector<std::vector<Node*>> sto_descendants;
+  std::vector<std::vector<Node*>> det_descendants;
 
  public:
   NMC(Graph* g, std::mt19937& gen) : g(g), gen(gen) {}
@@ -53,9 +53,9 @@ class Graph::NMC {
     for (uint snum = 0; snum < num_samples; snum++) {
       for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
         Node* tgt_node = unobserved_sto_supp[i];
-        const std::vector<uint>& det_nodes = det_descendants[i];
-        const std::vector<uint>& sto_nodes = sto_descendants[i];
-        assert(tgt_node->index == sto_nodes.front());
+        const std::vector<Node*>& det_nodes = det_descendants[i];
+        const std::vector<Node*>& sto_nodes = sto_descendants[i];
+        assert(tgt_node == sto_nodes.front());
         if (tgt_node->value.type.variable_type ==
             VariableType::COL_SIMPLEX_MATRIX) {
           nmc_step_for_dirichlet(tgt_node, det_nodes, sto_nodes);
@@ -150,52 +150,55 @@ class Graph::NMC {
 
   void compute_descendants() {
     for (Node* node : unobserved_sto_supp) {
-      std::vector<uint> det_nodes;
-      std::vector<uint> sto_nodes;
-      std::tie(det_nodes, sto_nodes) =
+      std::vector<uint> det_node_ids;
+      std::vector<uint> sto_node_ids;
+      std::vector<Node*> det_nodes;
+      std::vector<Node*> sto_nodes;
+      std::tie(det_node_ids, sto_node_ids) =
           g->compute_descendants(node->index, supp_ids);
+      for (uint id : det_node_ids) {
+        det_nodes.push_back(node_ptrs[id]);
+      }
+      for (uint id : sto_node_ids) {
+        sto_nodes.push_back(node_ptrs[id]);
+      }
       det_descendants.push_back(det_nodes);
       sto_descendants.push_back(sto_nodes);
     }
   }
 
-  void save_old_values(const std::vector<uint>& det_nodes) {
-    for (uint node_id : det_nodes) {
-      Node* node = node_ptrs[node_id];
-      old_values[node_id] = node->value;
+  void save_old_values(const std::vector<Node*>& det_nodes) {
+    for (Node* node : det_nodes) {
+      old_values[node->index] = node->value;
     }
   }
 
-  void restore_old_values(const std::vector<uint>& det_nodes) {
-    for (uint node_id : det_nodes) {
-      Node* node = node_ptrs[node_id];
-      node->value = old_values[node_id];
+  void restore_old_values(const std::vector<Node*>& det_nodes) {
+    for (Node* node : det_nodes) {
+      node->value = old_values[node->index];
     }
   }
 
-  void compute_gradients(const std::vector<uint>& det_nodes) {
-    for (uint node_id : det_nodes) {
-      Node* node = node_ptrs[node_id];
+  void compute_gradients(const std::vector<Node*>& det_nodes) {
+    for (Node* node : det_nodes) {
       node->compute_gradients();
     }
   }
 
-  void clear_gradients(const std::vector<uint>& det_nodes) {
-    for (uint node_id : det_nodes) {
-      Node* node = node_ptrs[node_id];
+  void clear_gradients(const std::vector<Node*>& det_nodes) {
+    for (Node* node : det_nodes) {
       node->grad1 = node->grad2 = 0;
     }
   }
 
   std::unique_ptr<proposer::Proposer> create_proposer(
-      const std::vector<uint>& sto_nodes,
+      const std::vector<Node*>& sto_nodes,
       NodeValue value,
       /* out */ double& logweight) {
     logweight = 0;
     double grad1 = 0;
     double grad2 = 0;
-    for (uint node_id : sto_nodes) {
-      const Node* node = node_ptrs[node_id];
+    for (Node* node : sto_nodes) {
       logweight += node->log_prob();
       node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
     }
@@ -205,7 +208,7 @@ class Graph::NMC {
   }
 
   std::unique_ptr<proposer::Proposer> create_proposer_dirichlet(
-      const std::vector<uint>& sto_nodes,
+      const std::vector<Node*>& sto_nodes,
       Node* tgt_node,
       double param_a,
       NodeValue value,
@@ -213,8 +216,7 @@ class Graph::NMC {
     logweight = 0;
     double grad1 = 0;
     double grad2 = 0;
-    for (uint node_id : sto_nodes) {
-      const Node* node = node_ptrs[node_id];
+    for (Node* node : sto_nodes) {
       if (node == tgt_node) {
         // X_k ~ Gamma(param_a, 1)
         logweight += (param_a - 1.0) * std::log(value._double) - value._double -
@@ -233,8 +235,8 @@ class Graph::NMC {
 
   void nmc_step(
       Node* tgt_node,
-      const std::vector<uint>& det_nodes,
-      const std::vector<uint>& sto_nodes) {
+      const std::vector<Node*>& det_nodes,
+      const std::vector<Node*>& sto_nodes) {
     tgt_node->grad1 = 1;
     tgt_node->grad2 = 0;
     NodeValue old_value = tgt_node->value;
@@ -253,8 +255,7 @@ class Graph::NMC {
     // - add log_prob of stochastic nodes
     // - add gradient_log_prob of stochastic nodes
     tgt_node->value = new_value;
-    for (uint node_id : det_nodes) {
-      Node* node = node_ptrs[node_id];
+    for (Node* node : det_nodes) {
       node->eval(gen);
       node->compute_gradients();
     }
@@ -286,8 +287,8 @@ class Graph::NMC {
   */
   void nmc_step_for_dirichlet(
       Node* tgt_node,
-      const std::vector<uint>& det_nodes,
-      const std::vector<uint>& sto_nodes) {
+      const std::vector<Node*>& det_nodes,
+      const std::vector<Node*>& sto_nodes) {
     uint K = tgt_node->value._matrix.size();
     auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
     // @lint-ignore CLANGTIDY
@@ -328,8 +329,7 @@ class Graph::NMC {
           -src_node->unconstrained_value._matrix.array() / (sum * sum);
       *(src_node->Grad1.data() + k) += 1 / sum;
       src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
-      for (uint node_id : det_nodes) {
-        Node* node = node_ptrs[node_id];
+      for (Node* node : det_nodes) {
         node->eval(gen);
         node->compute_gradients();
       }
