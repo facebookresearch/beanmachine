@@ -1080,7 +1080,18 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_index(self, left: BMGNode, right: BMGNode) -> bn.IndexNode:
+    def add_index(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.BMGNode:
+        # If we have a constant index into a stochastic or constant tensor
+        # then we can optimize this by simply fetching the value we need
+        # out of the tensor and returning it directly.
+
+        # TODO: Type check that the constant index is a positive integer.
+        if isinstance(right, bn.ConstantNode):
+            # TODO: Range check these
+            if isinstance(left, bn.ConstantTensorNode):
+                return self.add_constant(left.value[right.value])
+            if isinstance(left, bn.TensorNode):
+                return left.inputs[right.value]
         node = bn.IndexNode(left, right)
         self.add_node(node)
         return node
@@ -1088,10 +1099,6 @@ class BMGraphBuilder:
     def handle_index(self, left: Any, right: Any) -> Any:
         if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
             return left[right]
-
-        # TODO: If we have a constant index and a stochastic
-        # tensor we could optimize this.
-
         if not isinstance(left, BMGNode):
             left = self.add_constant(left)
         if not isinstance(right, BMGNode):
