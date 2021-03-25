@@ -241,6 +241,45 @@ class TestBayesNet(unittest.TestCase):
         g.query(GrassWet)
         g.infer(1)
 
+    def test_to_dot(self):
+        self.maxDiff = None
+        g, Rain, Sprinkler, GrassWet = self._create_graph()
+        g.query(Rain)
+        g.query(Sprinkler)
+        g.query(GrassWet)
+        g.observe(GrassWet, True)
+        observed = g.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label="simplex"];
+  N1[label="simplex"];
+  N2[label="simplex"];
+  N3[label="Tabular"];
+  N4[label="~"];
+  N5[label="Tabular"];
+  N6[label="~"];
+  N7[label="Tabular"];
+  N8[label="~"];
+  N0 -> N3;
+  N1 -> N5;
+  N2 -> N7;
+  N3 -> N4;
+  N4 -> N5;
+  N4 -> N7;
+  N5 -> N6;
+  N6 -> N7;
+  N7 -> N8;
+  O0[label="Observation"];
+  N8 -> O0;
+  Q0[label="Query"];
+  N4 -> Q0;
+  Q1[label="Query"];
+  N6 -> Q1;
+  Q2[label="Query"];
+  N8 -> Q2;
+}"""
+        self.assertEqual(expected.strip(), observed.strip())
+
     def test_observe(self):
         g, Rain, Sprinkler, GrassWet = self._create_graph()
         g.observe(GrassWet, True)
