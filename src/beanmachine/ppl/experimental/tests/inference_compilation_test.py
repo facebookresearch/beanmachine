@@ -18,13 +18,13 @@ class InferenceCompilationTest(unittest.TestCase):
             return dist.Categorical(probs=torch.ones(k) * 1.0 / k)
 
         @bm.random_variable
-        def x(self, i, j):
+        def x(self, i):
             return dist.Normal(loc=tensor(1.0), scale=tensor(1.0))
 
         @bm.random_variable
-        def S(self, j):
+        def S(self):
             "The Markov blanket of S varies depending on the value of N"
-            loc = sum(self.x(i, j) for i in range(self.N().int().item()))
+            loc = sum(self.x(i) for i in range(self.N().int().item()))
             return dist.Normal(loc=loc, scale=tensor(1.0))
 
     class GMM:
@@ -86,7 +86,7 @@ class InferenceCompilationTest(unittest.TestCase):
     def test_random_sum(self):
         model = self.RandomGaussianSum()
         ic = ICInference()
-        observations = {model.S(0): tensor(1.8), model.S(1): tensor(2.2)}
+        observations = {model.S(): tensor(2.0)}
         ic.compile(observations.keys(), num_worlds=100)
         queries = [model.N()]
         samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
