@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/operator/operator.h"
 
 using namespace std::chrono;
 
@@ -110,6 +111,33 @@ class JSON {
       case ProfilerEvent::NMC_STEP_DIRICHLET:
         text("step_dirichlet");
         break;
+      case ProfilerEvent::NMC_COMPUTE_GRADS:
+        text("compute_grads");
+        break;
+      case ProfilerEvent::NMC_EVAL:
+        text("eval");
+        break;
+      case ProfilerEvent::NMC_CLEAR_GRADS:
+        text("clear_grads");
+        break;
+      case ProfilerEvent::NMC_CREATE_PROP:
+        text("create_prop");
+        break;
+      case ProfilerEvent::NMC_CREATE_PROP_DIR:
+        text("create_prop_dir");
+        break;
+      case ProfilerEvent::NMC_SAMPLE:
+        text("sample");
+        break;
+      case ProfilerEvent::NMC_INFER_COLLECT_SAMPLE:
+        text("collect_sample");
+        break;
+      case ProfilerEvent::NMC_SAVE_OLD:
+        text("save_old");
+        break;
+      case ProfilerEvent::NMC_RESTORE_OLD:
+        text("restore_old");
+        break;
 
       default:
         number((int)v);
@@ -154,9 +182,38 @@ void Graph::_produce_performance_report(
     return;
 
   uint edge_count = 0;
+  uint factor_count = 0;
+  uint const_count = 0;
+  uint dist_count = 0;
+  uint op_count = 0;
+  uint add_count = 0;
+
   for (uint node_id = 0; node_id < nodes.size(); node_id++) {
-    edge_count += nodes[node_id]->in_nodes.size();
+    Node* node = nodes[node_id].get();
+    edge_count += node->in_nodes.size();
+    switch (node->node_type) {
+      case NodeType::FACTOR:
+        factor_count += 1;
+        break;
+      case NodeType::CONSTANT:
+        const_count += 1;
+        break;
+      case NodeType::DISTRIBUTION:
+        dist_count += 1;
+        break;
+      case NodeType::OPERATOR: {
+        op_count += 1;
+        auto op = static_cast<oper::Operator*>(node);
+        if (op->op_type == OperatorType::ADD) {
+          add_count += 1;
+        }
+        break;
+      }
+      default:
+        break;
+    }
   }
+
   js.start_object();
   js.text("title", "Bean Machine Graph performance report");
   js.date("generated_at", system_clock::now());
@@ -165,7 +222,12 @@ void Graph::_produce_performance_report(
   js.number("seed", seed);
   js.number("node_count", nodes.size());
   js.number("edge_count", edge_count);
-  js.number("edge_count", edge_count);
+  js.number("factor_count", factor_count);
+  js.number("dist_count", dist_count);
+  js.number("const_count", const_count);
+  js.number("op_count", op_count);
+  js.number("add_count", add_count);
+
   js.member("profiler_data");
   js.start_array();
   for (auto e : profiler_data.events) {
@@ -176,7 +238,13 @@ void Graph::_produce_performance_report(
     js.ticks("timestamp", e.timestamp);
     js.end_object();
   }
-
+  js.end_array();
+  js.member("det_supp_count");
+  js.start_array();
+  for (auto pair : profiler_data.det_supp_count) {
+    js.comma();
+    js.number(pair.second);
+  }
   js.end_array();
   js.end_object();
   _performance_report = js.str();

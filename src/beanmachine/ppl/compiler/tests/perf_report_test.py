@@ -20,30 +20,76 @@ def flip():
     return Bernoulli(coin())
 
 
+def tidy(s):
+    s = re.sub(r"generated_at:.*\n", "generated_at: --\n", s)
+    s = re.sub(r"\d+ ms", "-- ms", s)
+    s = re.sub(r"\(\d+\)", "(--)", s)
+    return s
+
+
 class PerfReportTest(unittest.TestCase):
     def test_bmg_performance_report_1(self) -> None:
+        # How to obtain the performance report from BMGInference
+
         self.maxDiff = None
         queries = [coin()]
         observations = {flip(): tensor(1.0)}
         num_samples = 1000
+
+        # We have an _infer method which returns both samples and a
+        # performance report.
         _, report = BMGInference()._infer(queries, observations, num_samples)
 
-        self.assertEqual("Bean Machine Graph performance report", report.title)
-        self.assertEqual(3, report.algorithm)
-        self.assertEqual(num_samples, report.num_samples)
-        self.assertEqual(5, report.node_count)
-        self.assertEqual(5, report.edge_count)
-        self.assertLess(0, report.profiler_report.accumulate.total_time)
-        self.assertLess(0, report.profiler_report.infer.total_time)
-        self.assertLess(0, report.profiler_report.infer.graph_infer.total_time)
-        self.assertLess(0, len(report.profiler_data))
-        self.assertLess(0, report.profiler_data[0].timestamp)
-        self.assertNotEqual("", str(report.bmg_profiler_report))
-        self.assertLess(0, report.bmg_profiler_report.nmc_infer.total_time)
-        self.assertLess(0, report.bmg_profiler_report.nmc_infer.initialize.total_time)
-        self.assertLess(
-            0, report.bmg_profiler_report.nmc_infer.collect_samples.total_time
-        )
+        # You can convert the report to a string:
+
+        observed = str(report)
+        expected = """
+title: Bean Machine Graph performance report
+generated_at: --
+num_samples: 1000
+algorithm: 3
+seed: 5123401
+node_count: 5
+edge_count: 5
+factor_count: 0
+dist_count: 2
+const_count: 1
+op_count: 2
+add_count: 0
+det_supp_count: [0]
+bmg_profiler_report: nmc_infer:(1) -- ms
+  initialize:(1) -- ms
+  collect_samples:(1) -- ms
+    step:(1000) -- ms
+      save_old:(1000) -- ms
+      compute_grads:(2000) -- ms
+      create_prop:(2000) -- ms
+      sample:(1000) -- ms
+      eval:(1000) -- ms
+      clear_grads:(1000) -- ms
+      restore_old:(7) -- ms
+      unattributed: -- ms
+    collect_sample:(1000) -- ms
+    unattributed: -- ms
+  unattributed: -- ms
+
+profiler_report: accumulate:(1) -- ms
+infer:(1) -- ms
+  fix_problems:(1) -- ms
+  build_bmg_graph:(1) -- ms
+  graph_infer:(1) -- ms
+  transpose_samples:(1) -- ms
+  build_mcsamples:(1) -- ms
+  unattributed: -- ms
+        """
+
+        # Note that there are two profiler reports: one for time spent
+        # in the compiler and one for time spent in BMG inference.
+        #
+        # See next test for details of how to access the elements of the
+        # perf report and the profile reports
+
+        self.assertEqual(tidy(expected).strip(), tidy(observed).strip())
 
     def test_bmg_performance_report_2(self) -> None:
         # How to use the performance reporter calling BMG directly
@@ -85,13 +131,54 @@ class PerfReportTest(unittest.TestCase):
 
         perf_report = pr.json_to_perf_report(js)
 
-        # There is not yet a str() function on the report, but you can
-        # look at the elements programmatically:
+        # You can dump the entire report as a string. Notice that this
+        # version of the report does not include beanstalk compiler timings
+        # because of course we did not run the compiler in this test.
+
+        observed = str(perf_report)
+        expected = """
+title: Bean Machine Graph performance report
+generated_at: --
+num_samples: 1000
+algorithm: 3
+seed: 5123401
+node_count: 5
+edge_count: 5
+factor_count: 0
+dist_count: 2
+const_count: 1
+op_count: 2
+add_count: 0
+det_supp_count: [0]
+bmg_profiler_report: nmc_infer:(1) -- ms
+  initialize:(1) -- ms
+  collect_samples:(1) -- ms
+    step:(1000) -- ms
+      save_old:(1000) -- ms
+      compute_grads:(2000) -- ms
+      create_prop:(2000) -- ms
+      sample:(1000) -- ms
+      eval:(1000) -- ms
+      clear_grads:(1000) -- ms
+      restore_old:(7) -- ms
+      unattributed: -- ms
+    collect_sample:(1000) -- ms
+    unattributed: -- ms
+  unattributed: -- ms
+        """
+        self.assertEqual(tidy(expected).strip(), tidy(observed).strip())
+
+        # Of you can look at each element programmatically:
 
         self.assertEqual("Bean Machine Graph performance report", perf_report.title)
         self.assertEqual(3, perf_report.algorithm)
         self.assertEqual(num_samples, perf_report.num_samples)
         self.assertEqual(5, perf_report.node_count)
+        self.assertEqual(2, perf_report.dist_count)
+        self.assertEqual(1, perf_report.const_count)
+        self.assertEqual(0, perf_report.factor_count)
+        self.assertEqual(2, perf_report.op_count)
+        self.assertEqual(0, perf_report.add_count)
         self.assertEqual(5, perf_report.edge_count)
 
         # You can also look at profiler elements programmatically.
@@ -108,17 +195,24 @@ class PerfReportTest(unittest.TestCase):
 
         self.assertEqual(1000, prof_report.nmc_infer.collect_samples.step.calls)
 
-        # Or you can dump the profiler report as a string.
-        s = str(prof_report)
-        observed = re.sub(r"\d+ ms", "-- ms", s)
+        # Or you can dump just the profiler report as a string.
+        observed = str(prof_report)
 
         expected = """
 nmc_infer:(1) -- ms
   initialize:(1) -- ms
   collect_samples:(1) -- ms
     step:(1000) -- ms
+      save_old:(1000) -- ms
+      compute_grads:(2000) -- ms
+      create_prop:(2000) -- ms
+      sample:(1000) -- ms
+      eval:(1000) -- ms
+      clear_grads:(1000) -- ms
+      restore_old:(7) -- ms
+      unattributed: -- ms
+    collect_sample:(1000) -- ms
     unattributed: -- ms
-  unattributed: -- ms
-        """
+  unattributed: -- ms"""
 
-        self.assertEqual(expected.strip(), observed.strip())
+        self.assertEqual(tidy(expected).strip(), tidy(observed).strip())
