@@ -160,6 +160,9 @@ class Graph::NMC {
       }
       det_descendants.push_back(det_nodes);
       sto_descendants.push_back(sto_nodes);
+      if (g->_collect_performance_data) {
+        g->profiler_data.det_supp_count[node->index] = det_nodes.size();
+      }
     }
   }
 
@@ -192,41 +195,53 @@ class Graph::NMC {
   }
 
   void collect_sample() {
+    g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
     if (g->infer_config.keep_log_prob) {
       g->collect_log_prob(g->_full_log_prob(supp));
     }
     g->collect_sample();
+    g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
   }
 
   void save_old_values(const std::vector<Node*>& det_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_SAVE_OLD);
     for (Node* node : det_nodes) {
       old_values[node->index] = node->value;
     }
+    g->pd_finish(ProfilerEvent::NMC_SAVE_OLD);
   }
 
   void restore_old_values(const std::vector<Node*>& det_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_RESTORE_OLD);
     for (Node* node : det_nodes) {
       node->value = old_values[node->index];
     }
+    g->pd_finish(ProfilerEvent::NMC_RESTORE_OLD);
   }
 
   void compute_gradients(const std::vector<Node*>& det_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_COMPUTE_GRADS);
     for (Node* node : det_nodes) {
       node->compute_gradients();
     }
+    g->pd_finish(ProfilerEvent::NMC_COMPUTE_GRADS);
   }
 
   void eval(const std::vector<Node*>& det_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_EVAL);
     for (Node* node : det_nodes) {
       node->eval(gen);
     }
+    g->pd_finish(ProfilerEvent::NMC_EVAL);
   }
 
   void clear_gradients(const std::vector<Node*>& det_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_CLEAR_GRADS);
     for (Node* node : det_nodes) {
       node->grad1 = 0;
       node->grad2 = 0;
     }
+    g->pd_finish(ProfilerEvent::NMC_CLEAR_GRADS);
   }
 
   // This method performs two tasks:
@@ -239,6 +254,7 @@ class Graph::NMC {
       const std::vector<Node*>& sto_nodes,
       NodeValue value,
       /* out */ double& logweight) {
+    g->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
     logweight = 0;
     double grad1 = 0;
     double grad2 = 0;
@@ -248,6 +264,7 @@ class Graph::NMC {
     }
     std::unique_ptr<proposer::Proposer> prop =
         proposer::nmc_proposer(value, grad1, grad2);
+    g->pd_finish(ProfilerEvent::NMC_CREATE_PROP);
     return prop;
   }
 
@@ -257,6 +274,7 @@ class Graph::NMC {
       double param_a,
       NodeValue value,
       /* out */ double& logweight) {
+    g->pd_begin(ProfilerEvent::NMC_CREATE_PROP_DIR);
     logweight = 0;
     double grad1 = 0;
     double grad2 = 0;
@@ -274,6 +292,7 @@ class Graph::NMC {
     }
     std::unique_ptr<proposer::Proposer> prop =
         proposer::nmc_proposer(value, grad1, grad2);
+    g->pd_finish(ProfilerEvent::NMC_CREATE_PROP_DIR);
     return prop;
   }
 
@@ -307,6 +326,13 @@ class Graph::NMC {
     return prop;
   }
 
+  NodeValue sample(const std::unique_ptr<proposer::Proposer>& prop) {
+    g->pd_begin(ProfilerEvent::NMC_SAMPLE);
+    NodeValue v = prop->sample(gen);
+    g->pd_finish(ProfilerEvent::NMC_SAMPLE);
+    return v;
+  }
+
   void nmc_step(
       Node* tgt_node,
       const std::vector<Node*>& det_nodes,
@@ -336,7 +362,7 @@ class Graph::NMC {
     auto old_prop =
         create_proposer(sto_nodes, old_value, /* out */ old_logweight);
 
-    NodeValue new_value = old_prop->sample(gen);
+    NodeValue new_value = sample(old_prop);
 
     tgt_node->value = new_value;
     eval(det_nodes);
@@ -399,7 +425,9 @@ class Graph::NMC {
       double old_logweight;
       auto old_prop = create_proposer_dirichlet(
           sto_nodes, tgt_node, param_a, old_value, /* out */ old_logweight);
-      NodeValue new_value = old_prop->sample(gen);
+
+      NodeValue new_value = sample(old_prop);
+
       *(src_node->unconstrained_value._matrix.data() + k) = new_value._double;
       sum = src_node->unconstrained_value._matrix.sum();
       src_node->value._matrix =
@@ -480,7 +508,7 @@ class Graph::NMC {
         old_value,
         /* out */ old_logweight);
 
-    NodeValue new_value = old_prop->sample(gen);
+    NodeValue new_value = sample(old_prop);
     *(src_node->value._matrix.data()) = new_value._double;
     *(src_node->value._matrix.data() + 1) = 1 - new_value._double;
 

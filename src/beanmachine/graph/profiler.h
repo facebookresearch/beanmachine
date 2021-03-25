@@ -3,6 +3,7 @@
 #pragma once
 
 #include <chrono>
+#include <map>
 #include <stack>
 #include <vector>
 
@@ -13,8 +14,17 @@ enum class ProfilerEvent {
   NMC_INFER,
   NMC_INFER_INITIALIZE,
   NMC_INFER_COLLECT_SAMPLES,
+  NMC_INFER_COLLECT_SAMPLE,
   NMC_STEP,
   NMC_STEP_DIRICHLET,
+  NMC_COMPUTE_GRADS,
+  NMC_EVAL,
+  NMC_CLEAR_GRADS,
+  NMC_CREATE_PROP,
+  NMC_CREATE_PROP_DIR,
+  NMC_SAMPLE,
+  NMC_SAVE_OLD,
+  NMC_RESTORE_OLD,
 };
 
 struct Event {
@@ -26,6 +36,9 @@ struct Event {
 struct ProfilerData {
   std::vector<Event> events;
   std::stack<ProfilerEvent> in_flight;
+  // Map from node id of a stochastic node to the number of
+  // deterministic descendent nodes in the support.
+  std::map<unsigned int, unsigned int> det_supp_count;
   ProfilerData();
   void begin(ProfilerEvent kind);
   void finish(ProfilerEvent kind);
