@@ -171,7 +171,11 @@ class Graph::NMC {
       assert(tgt_node == sto_nodes.front());
       if (tgt_node->value.type.variable_type ==
           VariableType::COL_SIMPLEX_MATRIX) {
-        nmc_step_for_dirichlet(tgt_node, det_nodes, sto_nodes);
+        if (tgt_node->value.type.rows == 2) {
+          nmc_step_for_dirichlet_beta(tgt_node, det_nodes, sto_nodes);
+        } else {
+          nmc_step_for_dirichlet_gamma(tgt_node, det_nodes, sto_nodes);
+        }
       } else {
         nmc_step(tgt_node, det_nodes, sto_nodes);
       }
@@ -273,6 +277,36 @@ class Graph::NMC {
     return prop;
   }
 
+  std::unique_ptr<proposer::Proposer> create_proposer_dirichlet_beta(
+      const std::vector<Node*>& sto_nodes,
+      Node* tgt_node,
+      double param_a,
+      double param_b,
+      NodeValue value,
+      /* out */ double& logweight) {
+    logweight = 0;
+    double grad1 = 0;
+    double grad2 = 0;
+    for (Node* node : sto_nodes) {
+      if (node == tgt_node) {
+        double x = value._double;
+        // X_k ~ Beta(param_a, param_b)
+        logweight += (param_a - 1) * log(x) + (param_b - 1) * log(1 - x) +
+            lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b);
+
+        grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);
+        grad2 += -(param_a - 1) / (x * x) - (param_b - 1) / ((1 - x) * (1 - x));
+      } else {
+        logweight += node->log_prob();
+        node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
+      }
+    }
+
+    std::unique_ptr<proposer::Proposer> prop =
+        proposer::nmc_proposer(value, grad1, grad2);
+    return prop;
+  }
+
   void nmc_step(
       Node* tgt_node,
       const std::vector<Node*>& det_nodes,
@@ -331,7 +365,7 @@ class Graph::NMC {
   Y_k = X_k / sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
   the attribute value, and X in unconstrainted_value.
   */
-  void nmc_step_for_dirichlet(
+  void nmc_step_for_dirichlet_gamma(
       Node* tgt_node,
       const std::vector<Node*>& det_nodes,
       const std::vector<Node*>& sto_nodes) {
@@ -397,6 +431,84 @@ class Graph::NMC {
       tgt_node->grad1 = 0;
       tgt_node->grad2 = 0;
     } // k
+    g->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
+  }
+
+  /*
+  We treat the 2-dimensional Dirichlet sample as a Beta sample
+  i.e. Let X_1 ~ Beta(alpha, beta)
+  Y_1 = X_1 and Y_2 = 1 - X_1
+  We store Y in the attribute value, and X in unconstrainted_value.
+  */
+  void nmc_step_for_dirichlet_beta(
+      Node* tgt_node,
+      const std::vector<Node*>& det_nodes,
+      const std::vector<Node*>& sto_nodes) {
+    g->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
+    assert(tgt_node->value._matrix.size() == 2);
+    auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
+    // @lint-ignore CLANGTIDY
+    auto param_a = src_node->in_nodes[0]->in_nodes[0]->value._matrix.coeff(0);
+    auto param_b = src_node->in_nodes[0]->in_nodes[0]->value._matrix.coeff(1);
+    double old_X_k;
+    // Prepare gradients
+    // Grad1 = (dY_1/dX_1, dY_2/dX_1)
+    // where dY_1/dX_1 = 1
+    //       dY_j/dX_k = -1
+    // Grad2 = (d^2Y_1/dX^2_1, d^2Y_2/X^2_1)
+    // where d2Y_k/dX2_k = 0
+    //       d2Y_j/dX2_k = 0
+    old_X_k = src_node->value._matrix.coeff(0);
+    Eigen::MatrixXd Grad1(2, 1);
+    Grad1 << 1, -1;
+    src_node->Grad1 = Grad1;
+    *(src_node->Grad1.data() + 1) = -1;
+    src_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
+    src_node->grad1 = 1;
+    src_node->grad2 = 0;
+
+    // Propagate gradients
+    NodeValue old_value(AtomicType::PROBABILITY, old_X_k);
+    save_old_values(det_nodes);
+    compute_gradients(det_nodes);
+    double old_logweight;
+    auto old_prop = create_proposer_dirichlet_beta(
+        sto_nodes,
+        tgt_node,
+        param_a,
+        param_b,
+        old_value,
+        /* out */ old_logweight);
+
+    NodeValue new_value = old_prop->sample(gen);
+    *(src_node->value._matrix.data()) = new_value._double;
+    *(src_node->value._matrix.data() + 1) = 1 - new_value._double;
+
+    src_node->Grad1 = Grad1;
+    src_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
+    eval(det_nodes);
+    compute_gradients(det_nodes);
+
+    double new_logweight;
+    auto new_prop = create_proposer_dirichlet_beta(
+        sto_nodes,
+        tgt_node,
+        param_a,
+        param_b,
+        new_value,
+        /* out */ new_logweight);
+    double logacc = new_logweight - old_logweight +
+        new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
+    // Accept or reject, reset (values and) gradients
+    bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
+    if (!accepted) {
+      restore_old_values(det_nodes);
+      *(src_node->value._matrix.data()) = old_X_k;
+      *(src_node->value._matrix.data() + 1) = 1 - old_X_k;
+    }
+    clear_gradients(det_nodes);
+    tgt_node->grad1 = 0;
+    tgt_node->grad2 = 0;
     g->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
   }
 };
