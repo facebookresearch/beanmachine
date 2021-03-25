@@ -15,5 +15,7 @@ filterwarnings = [
     # pandas sometimes complains about binary compatibility with numpy
     "default:numpy.ufunc size changed, may indicate binary incompatibility.*:RuntimeWarning",
     # flowtorch warnings
-    "ignore:DenseAutoregressive input_dim = 1. Consider using an affine transformation instead.*:UserWarning"
+    "ignore:DenseAutoregressive input_dim = 1. Consider using an affine transformation instead.*:UserWarning",
+    # statsmodels's deprecation warning
+    "default:the 'unbiased'' keyword is deprecated, use 'adjusted' instead.*:FutureWarning"
 ]
