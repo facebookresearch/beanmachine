@@ -499,6 +499,7 @@ struct Graph {
   Graph(const Graph& other);
   ~Graph() {}
   std::string to_string() const;
+  std::string to_dot() const;
   // Graph builder APIs -> return the node number
   uint add_constant(bool value);
   uint add_constant(double value);
