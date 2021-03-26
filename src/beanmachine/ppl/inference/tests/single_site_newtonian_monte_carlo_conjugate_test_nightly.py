@@ -36,6 +36,6 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
 
     def test_dirichlet_categorical_conjugate_run(self):
         nw = bm.SingleSiteNewtonianMonteCarlo()
-        self.dirichlet_categorical_conjugate_run(nw, num_samples=1000)
+        self.dirichlet_categorical_conjugate_run(nw, num_samples=2000)
         nw_transform = bm.SingleSiteNewtonianMonteCarlo(TransformType.DEFAULT)
-        self.dirichlet_categorical_conjugate_run(nw_transform, num_samples=1000)
+        self.dirichlet_categorical_conjugate_run(nw_transform, num_samples=2000)

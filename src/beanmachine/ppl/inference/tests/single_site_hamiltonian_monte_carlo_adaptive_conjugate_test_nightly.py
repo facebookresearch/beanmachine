@@ -31,7 +31,7 @@ class SingleSiteAdaptiveHamiltonianMonteCarloConjugateTest(
     #       This should be investigated further
     def test_normal_normal_conjugate_run(self):
         hmc = bm.SingleSiteHamiltonianMonteCarlo(0.5)
-        self.normal_normal_conjugate_run(hmc, num_samples=100, num_adaptive_samples=50)
+        self.normal_normal_conjugate_run(hmc, num_samples=200, num_adaptive_samples=50)
 
     @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_distant_normal_normal_conjugate_run(self):
