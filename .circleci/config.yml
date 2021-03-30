@@ -146,6 +146,7 @@ commands:
           command: pip install pytest pytest-xdist
       - run:
           name: "Run unit tests in parallel"
+          no_output_timeout: 1h
           command: pytest -n 20 -vv
 
   nightly_tests:
@@ -159,7 +160,7 @@ commands:
           no_output_timeout: 1h
           command: |
             export PYTHONUNBUFFERED=1
-            pytest -n auto -o python_files="*_nightly.py" --durations=0
+            pytest -o python_files="*_nightly.py" --durations=0
 
 
 jobs:
