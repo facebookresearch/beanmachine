@@ -166,12 +166,6 @@ def assertions_are_removed():
 
 
 @bm.random_variable
-def assertions_are_removed():
-    assert cause_side_effect()
-    return Bernoulli(0.5)
-
-
-@bm.random_variable
 def flip_with_comprehension():
     _ = [0 for x in []]
     return Bernoulli(0.5)
