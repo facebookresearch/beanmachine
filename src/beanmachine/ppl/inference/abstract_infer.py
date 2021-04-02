@@ -11,8 +11,6 @@ import torch.nn as nn
 from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
     MeanFieldVariationalApproximation,
 )
-from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.model.utils import LogLevel
 from torch import Tensor
 from torch.multiprocessing import Queue
 
