@@ -12,6 +12,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     GammaNode,
     HalfCauchyNode,
     LogSumExpNode,
+    MultiAdditionNode,
     NaturalNode,
     NegativeRealNode,
     NormalNode,
@@ -97,6 +98,8 @@ class BMGNodesTest(unittest.TestCase):
 
         # LogSumExp is always real.
         self.assertEqual(LogSumExpNode([half, norm]).inf_type, Real)
+
+        self.assertEqual(MultiAdditionNode([half, norm, beta]).inf_type, Real)
 
     def test_requirements(self) -> None:
         """test_requirements"""
