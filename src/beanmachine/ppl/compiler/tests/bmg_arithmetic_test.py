@@ -205,19 +205,18 @@ digraph "graph" {
   N09[label=if];
   N10[label=if];
   N11[label="+"];
-  N12[label="+"];
-  N13[label=Exp];
-  N14[label=complement];
-  N15[label=Bernoulli];
-  N16[label=Sample];
-  N17[label=Query];
+  N12[label=Exp];
+  N13[label=complement];
+  N14[label=Bernoulli];
+  N15[label=Sample];
+  N16[label=Query];
   N00 -> N01;
   N01 -> N02;
   N02 -> N09;
   N03 -> N04;
   N04 -> N05;
   N05 -> N10;
-  N06 -> N12;
+  N06 -> N11;
   N07 -> N09;
   N07 -> N10;
   N08 -> N09;
@@ -229,10 +228,9 @@ digraph "graph" {
   N13 -> N14;
   N14 -> N15;
   N15 -> N16;
-  N16 -> N17;
 }
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_bmg_neg_of_neg(self) -> None:
         # This test shows that we treat torch.neg the same as the unary negation

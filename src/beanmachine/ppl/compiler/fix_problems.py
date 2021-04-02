@@ -42,6 +42,7 @@ from beanmachine.ppl.compiler.bmg_types import (
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
 from beanmachine.ppl.compiler.fix_additions import AdditionFixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import BoolComparisonFixer
+from beanmachine.ppl.compiler.fix_multiary_ops import MultiaryOperatorFixer
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_tensor_ops import TensorOpsFixer
@@ -425,6 +426,7 @@ def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorRe
     f.fix_unsupported_nodes()
     if f.errors.any():
         return f.errors
+    MultiaryOperatorFixer(bmg).fix_problems()
     f = RequirementsFixer(bmg)
     f.fix_unmet_requirements()
     if f.errors.any():
