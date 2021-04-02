@@ -142,62 +142,58 @@ digraph "graph" {
   N07[label=Log];
   N08[label=index];
   N09[label=Log];
-  N10[label="+"];
-  N11[label=-0.010050326585769653];
-  N12[label="+"];
-  N13[label=1];
-  N14[label=index];
-  N15[label=Log];
-  N16[label=index];
-  N17[label=Log];
+  N10[label=-0.010050326585769653];
+  N11[label="+"];
+  N12[label=1];
+  N13[label=index];
+  N14[label=Log];
+  N15[label=index];
+  N16[label=Log];
+  N17[label=-4.605170249938965];
   N18[label="+"];
-  N19[label=-4.605170249938965];
-  N20[label="+"];
-  N21[label=LogSumExp];
-  N22[label=ToReal];
-  N23[label=Exp];
-  N24[label=ToProb];
-  N25[label=Bernoulli];
-  N26[label=Sample];
-  N27[label="Observation True"];
+  N19[label=LogSumExp];
+  N20[label=ToReal];
+  N21[label=Exp];
+  N22[label=ToProb];
+  N23[label=Bernoulli];
+  N24[label=Sample];
+  N25[label="Observation True"];
+  N26[label=Query];
+  N27[label=Query];
   N28[label=Query];
-  N29[label=Query];
-  N30[label=Query];
   N00 -> N01;
   N01 -> N02;
   N01 -> N03;
   N01 -> N04;
   N02 -> N06;
-  N02 -> N14;
-  N02 -> N29;
+  N02 -> N13;
+  N02 -> N27;
   N03 -> N08;
-  N03 -> N30;
-  N04 -> N16;
+  N03 -> N28;
+  N04 -> N15;
   N05 -> N06;
   N05 -> N08;
-  N05 -> N16;
+  N05 -> N15;
   N06 -> N07;
-  N07 -> N10;
+  N07 -> N11;
   N08 -> N09;
-  N09 -> N10;
-  N10 -> N12;
-  N11 -> N12;
-  N12 -> N21;
-  N12 -> N28;
+  N09 -> N11;
+  N10 -> N11;
+  N11 -> N19;
+  N11 -> N26;
+  N12 -> N13;
   N13 -> N14;
-  N14 -> N15;
-  N15 -> N18;
-  N16 -> N17;
+  N14 -> N18;
+  N15 -> N16;
+  N16 -> N18;
   N17 -> N18;
-  N18 -> N20;
+  N18 -> N19;
   N19 -> N20;
   N20 -> N21;
   N21 -> N22;
   N22 -> N23;
   N23 -> N24;
   N24 -> N25;
-  N25 -> N26;
-  N26 -> N27;
 }
         """
         self.assertEqual(observed.strip(), expected.strip())
@@ -232,42 +228,40 @@ uint n8 = g.add_operator(
   graph::OperatorType::INDEX, std::vector<uint>({n3, n5}));
 uint n9 = g.add_operator(
   graph::OperatorType::LOG, std::vector<uint>({n8}));
-uint n10 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n7, n9}));
-uint n11 = g.add_constant_neg_real(-0.010050326585769653);
-uint n12 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n10, n11}));
-uint n13 = g.add_constant(1);
+uint n10 = g.add_constant_neg_real(-0.010050326585769653);
+n11 = g.add_operator(
+  graph::OperatorType::ADD,
+  std::vector<uint>({n7, n9, n10}));
+uint n12 = g.add_constant(1);
+uint n13 = g.add_operator(
+  graph::OperatorType::INDEX, std::vector<uint>({n2, n12}));
 uint n14 = g.add_operator(
-  graph::OperatorType::INDEX, std::vector<uint>({n2, n13}));
+  graph::OperatorType::LOG, std::vector<uint>({n13}));
 uint n15 = g.add_operator(
-  graph::OperatorType::LOG, std::vector<uint>({n14}));
-uint n16 = g.add_operator(
   graph::OperatorType::INDEX, std::vector<uint>({n4, n5}));
-uint n17 = g.add_operator(
-  graph::OperatorType::LOG, std::vector<uint>({n16}));
-uint n18 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n15, n17}));
-uint n19 = g.add_constant_neg_real(-4.605170249938965);
-uint n20 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n18, n19}));
-n21 = g.add_operator(
+uint n16 = g.add_operator(
+  graph::OperatorType::LOG, std::vector<uint>({n15}));
+uint n17 = g.add_constant_neg_real(-4.605170249938965);
+n18 = g.add_operator(
+  graph::OperatorType::ADD,
+  std::vector<uint>({n14, n16, n17}));
+n19 = g.add_operator(
   graph::OperatorType::LOGSUMEXP,
-  std::vector<uint>({n12, n20}));
+  std::vector<uint>({n11, n18}));
+uint n20 = g.add_operator(
+  graph::OperatorType::TO_REAL, std::vector<uint>({n19}));
+uint n21 = g.add_operator(
+  graph::OperatorType::EXP, std::vector<uint>({n20}));
 uint n22 = g.add_operator(
-  graph::OperatorType::TO_REAL, std::vector<uint>({n21}));
-uint n23 = g.add_operator(
-  graph::OperatorType::EXP, std::vector<uint>({n22}));
-uint n24 = g.add_operator(
-  graph::OperatorType::TO_PROBABILITY, std::vector<uint>({n23}));
-uint n25 = g.add_distribution(
+  graph::OperatorType::TO_PROBABILITY, std::vector<uint>({n21}));
+uint n23 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
-  std::vector<uint>({n24}));
-uint n26 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n25}));
-g.observe([n26], true);
-g.query(n12);
+  std::vector<uint>({n22}));
+uint n24 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n23}));
+g.observe([n24], true);
+g.query(n11);
 g.query(n2);
 g.query(n3);
 """
@@ -297,30 +291,32 @@ n6 = g.add_operator(graph.OperatorType.INDEX, [n2, n5])
 n7 = g.add_operator(graph.OperatorType.LOG, [n6])
 n8 = g.add_operator(graph.OperatorType.INDEX, [n3, n5])
 n9 = g.add_operator(graph.OperatorType.LOG, [n8])
-n10 = g.add_operator(graph.OperatorType.ADD, [n7, n9])
-n11 = g.add_constant_neg_real(-0.010050326585769653)
-n12 = g.add_operator(graph.OperatorType.ADD, [n10, n11])
-n13 = g.add_constant(1)
-n14 = g.add_operator(graph.OperatorType.INDEX, [n2, n13])
-n15 = g.add_operator(graph.OperatorType.LOG, [n14])
-n16 = g.add_operator(graph.OperatorType.INDEX, [n4, n5])
-n17 = g.add_operator(graph.OperatorType.LOG, [n16])
-n18 = g.add_operator(graph.OperatorType.ADD, [n15, n17])
-n19 = g.add_constant_neg_real(-4.605170249938965)
-n20 = g.add_operator(graph.OperatorType.ADD, [n18, n19])
-n21 = g.add_operator(
+n10 = g.add_constant_neg_real(-0.010050326585769653)
+n11 = g.add_operator(
+  graph.OperatorType.ADD,
+  [n7, n9, n10])
+n12 = g.add_constant(1)
+n13 = g.add_operator(graph.OperatorType.INDEX, [n2, n12])
+n14 = g.add_operator(graph.OperatorType.LOG, [n13])
+n15 = g.add_operator(graph.OperatorType.INDEX, [n4, n5])
+n16 = g.add_operator(graph.OperatorType.LOG, [n15])
+n17 = g.add_constant_neg_real(-4.605170249938965)
+n18 = g.add_operator(
+  graph.OperatorType.ADD,
+  [n14, n16, n17])
+n19 = g.add_operator(
   graph.OperatorType.LOGSUMEXP,
-  [n12, n20])
-n22 = g.add_operator(graph.OperatorType.TO_REAL, [n21])
-n23 = g.add_operator(graph.OperatorType.EXP, [n22])
-n24 = g.add_operator(graph.OperatorType.TO_PROBABILITY, [n23])
-n25 = g.add_distribution(
+  [n11, n18])
+n20 = g.add_operator(graph.OperatorType.TO_REAL, [n19])
+n21 = g.add_operator(graph.OperatorType.EXP, [n20])
+n22 = g.add_operator(graph.OperatorType.TO_PROBABILITY, [n21])
+n23 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n24])
-n26 = g.add_operator(graph.OperatorType.SAMPLE, [n25])
-g.observe(n26, True)
-g.query(n12)
+  [n22])
+n24 = g.add_operator(graph.OperatorType.SAMPLE, [n23])
+g.observe(n24, True)
+g.query(n11)
 g.query(n2)
 g.query(n3)
 """
