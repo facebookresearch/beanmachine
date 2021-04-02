@@ -2056,6 +2056,88 @@ class OperatorNode(BMGNode, metaclass=ABCMeta):
 # ####
 
 
+class MultiAdditionNode(OperatorNode):
+    """This represents an addition of values."""
+
+    # TODO: Do the same for multiplication
+    # TODO: Consider a base class for multi add, logsumexp, and so on.
+
+    def __init__(self, inputs: List[BMGNode]):
+        assert isinstance(inputs, list)
+        OperatorNode.__init__(self, inputs)
+
+    def _compute_edge_names(self) -> List[str]:
+        return [str(x) for x in range(len(self.inputs))]
+
+    def _compute_graph_type(self) -> BMGLatticeType:
+        # We require:
+        # * at least two values
+        # * all values the same graph type
+        # * that type is R, R+ or R-.
+        if len(self.inputs) <= 1:
+            return Malformed
+        gt = self.inputs[0].graph_type
+        if gt not in {Real, NegativeReal, PositiveReal}:
+            return Malformed
+        if any(i.graph_type != gt for i in self.inputs):
+            return Malformed
+        return gt
+
+    def _compute_inf_type(self) -> BMGLatticeType:
+        op_type = supremum(*[i.inf_type for i in self.inputs])
+        if supremum(op_type, NegativeReal) == NegativeReal:
+            return NegativeReal
+        if supremum(op_type, PositiveReal) == PositiveReal:
+            return PositiveReal
+        return Real
+
+    @property
+    def requirements(self) -> List[Requirement]:
+        s = supremum(*[i.inf_type for i in self.inputs])
+        if s not in {Real, NegativeReal, PositiveReal}:
+            s = Real
+        return [s] * len(self.inputs)
+
+    @property
+    def label(self) -> str:
+        return "+"
+
+    @property
+    def size(self) -> torch.Size:
+        return self.inputs[0].size
+
+    def support(self) -> Iterator[Any]:
+        raise ValueError("support of multiary addition not yet implemented")
+
+    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
+        return g.add_operator(
+            OperatorType.ADD,
+            [d[x] for x in self.inputs],
+        )
+
+    def _to_python(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        args = ", ".join(f"n{d[x]}" for x in self.inputs)
+        return (
+            f"n{n} = g.add_operator(\n" + "  graph.OperatorType.ADD,\n" + f"  [{args}])"
+        )
+
+    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
+        n = d[self]
+        args = ", ".join(f"n{d[x]}" for x in self.inputs)
+        return (
+            f"n{n} = g.add_operator(\n"
+            + "  graph::OperatorType::ADD,\n"
+            + f"  std::vector<uint>({{{args}}}));"
+        )
+
+    def _supported_in_bmg(self) -> bool:
+        return True
+
+    def __str__(self) -> str:
+        return "MultiAdd"
+
+
 class LogSumExpNode(OperatorNode):
     """This class represents the LogSumExp operation: for values v_1, ..., v_n
     we compute log(exp(v_1) + ... + exp(v_n))"""
@@ -2453,9 +2535,6 @@ class NotEqualNode(ComparisonNode):
 class AdditionNode(BinaryOperatorNode):
     """This represents an addition of values."""
 
-    # TODO: We accumulate nodes as strictly binary operations, but BMG supports
-    # n-ary addition; we might consider a graph transformation that turns
-    # chained additions into a single addition node.
     operator_type = OperatorType.ADD
 
     def __init__(self, left: BMGNode, right: BMGNode):
