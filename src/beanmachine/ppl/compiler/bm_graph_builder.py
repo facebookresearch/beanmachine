@@ -969,6 +969,12 @@ class BMGraphBuilder:
         return self.add_addition(input, other)
 
     @memoize
+    def add_multi_addition(self, *inputs: BMGNode) -> bn.MultiAdditionNode:
+        node = bn.MultiAdditionNode(list(inputs))
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode):
             if isinstance(right, ConstantNode):
