@@ -1,18 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+from typing import Optional
+
+import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bmg_nodes import BMGNode, LogSumExpNode, TensorNode
+from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 
 
-def _is_fixable_logsumexp(n: BMGNode) -> bool:
-    return (
-        isinstance(n, LogSumExpNode)
-        and len(n.inputs) == 1
-        and isinstance(n.inputs[0], TensorNode)
-    )
-
-
-class TensorOpsFixer:
+class TensorOpsFixer(ProblemFixerBase):
     """This class looks for reachable nodes in a graph which cannot be transformed
     to BMG because they contain tensor operations which have no representation. We
     rewrite those operations in a semantically equivalent form which can be
@@ -36,27 +31,17 @@ class TensorOpsFixer:
     # Making this sort of change will require us to iterate on these changes until
     # we reach a fixpoint.
 
-    bmg: BMGraphBuilder
-
     def __init__(self, bmg: BMGraphBuilder) -> None:
-        self.bmg = bmg
+        ProblemFixerBase.__init__(self, bmg)
 
-    def _fix_logsumexp(self, n: LogSumExpNode) -> BMGNode:
-        assert len(n.inputs) == 1
-        t = n.inputs[0]
-        assert isinstance(t, TensorNode)
-        # If the tensor is a singleton then logsumexp is
-        # an identity.
-        assert len(t.inputs) >= 1
-        if len(t.inputs) == 1:
-            return t.inputs[0]
-        # Otherwise, we just make a LogSumExp whose inputs are the
-        # tensor node elements.
-        elements = t.inputs.inputs
-        assert isinstance(elements, list)
-        return self.bmg.add_logsumexp(*elements)
+    def _needs_fixing(self, n: bn.BMGNode) -> bool:
+        return (
+            isinstance(n, bn.LogSumExpNode)
+            and len(n.inputs) == 1
+            and isinstance(n.inputs[0], bn.TensorNode)
+        )
 
-    def fix_tensor_ops(self) -> None:
+    def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         # Suppose we have a model with a query on some samples:
         #
         # @function def f():
@@ -69,16 +54,18 @@ class TensorOpsFixer:
         # What we need to do is construct a new LogSumExpNode whose
         # inputs are the samples; the TensorNode will become orphaned.
         #
-        replacements = {}
-        nodes = self.bmg._traverse_from_roots()
-        for node in nodes:
-            for i in range(len(node.inputs)):
-                c = node.inputs[i]
-                if c in replacements:
-                    node.inputs[i] = replacements[c]
-                    continue
-                if _is_fixable_logsumexp(c):
-                    assert isinstance(c, LogSumExpNode)
-                    replacement = self._fix_logsumexp(c)
-                    node.inputs[i] = replacement
-                    replacements[c] = replacement
+
+        assert isinstance(n, bn.LogSumExpNode)
+        assert len(n.inputs) == 1
+        t = n.inputs[0]
+        assert isinstance(t, bn.TensorNode)
+        # If the tensor is a singleton then logsumexp is
+        # an identity.
+        assert len(t.inputs) >= 1
+        if len(t.inputs) == 1:
+            return t.inputs[0]
+        # Otherwise, we just make a LogSumExp whose inputs are the
+        # tensor node elements.
+        elements = t.inputs.inputs
+        assert isinstance(elements, list)
+        return self._bmg.add_logsumexp(*elements)

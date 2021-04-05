@@ -412,7 +412,7 @@ class RequirementsFixer:
 
 
 def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorReport:
-    TensorOpsFixer(bmg).fix_tensor_ops()
+    TensorOpsFixer(bmg).fix_problems()
     # This pass has to run before general requirement checking. Why?
     # The requirement fixing pass runs from leaves to roots, inserting
     # conversions as it goes. If we have add(1, negate(p)) then we need
@@ -420,8 +420,8 @@ def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorRe
     # we process the negate(p) then we will already have generated
     # add(1, negate(to_real(p)).  Better to turn it into complement(p)
     # and orphan the negate(p) early.
-    AdditionFixer(bmg).additions_to_complements()
-    BoolComparisonFixer(bmg).fix_bool_comparisons()
+    AdditionFixer(bmg).fix_problems()
+    BoolComparisonFixer(bmg).fix_problems()
     f = UnsupportedNodeFixer(bmg)
     f.fix_unsupported_nodes()
     if f.errors.any():
@@ -437,5 +437,5 @@ def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorRe
         return f.errors
     if fix_observe_true:
         # This pass has to run after everything else.
-        ObserveTrueFixer(bmg).fix_observe_true()
+        ObserveTrueFixer(bmg).fix_problems()
     return ErrorReport()

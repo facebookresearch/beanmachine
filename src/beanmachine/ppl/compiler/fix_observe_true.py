@@ -69,6 +69,6 @@ class ObserveTrueFixer:
         self.bmg.add_exp_product(exp.operand)
         self.bmg.remove_leaf(o)
 
-    def fix_observe_true(self) -> None:
+    def fix_problems(self) -> None:
         for o in self.bmg.all_observations():
             self._fix_observation(o)
