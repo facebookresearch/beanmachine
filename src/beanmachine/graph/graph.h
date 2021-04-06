@@ -298,6 +298,7 @@ enum class OperatorType {
   MATRIX_MULTIPLY,
   TO_PROBABILITY,
   INDEX,
+  TO_MATRIX,
 };
 
 enum class DistributionType {

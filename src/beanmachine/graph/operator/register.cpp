@@ -92,5 +92,10 @@ bool MatrixMultiply::is_registered = OperatorFactory::register_op(
 bool Index::is_registered =
     OperatorFactory::register_op(graph::OperatorType::INDEX, &(Index::new_op));
 
+// matrix index
+bool ToMatrix::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::TO_MATRIX,
+    &(ToMatrix::new_op));
+
 } // namespace oper
 } // namespace beanmachine

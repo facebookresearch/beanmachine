@@ -156,5 +156,90 @@ void Pow::eval(std::mt19937& /* gen */) {
   value._double = std::pow(parent0._double, parent1._double);
 }
 
+ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::TO_MATRIX) {
+  if (in_nodes.size() < 3) {
+    throw std::invalid_argument(
+        "operator TO_MATRIX requires number of rows (m), number of columns (n), "
+        "and m * n additional nodes");
+  }
+  // rows and cols must be constant natural numbers > 0
+  if (in_nodes[0]->value.type != graph::AtomicType::NATURAL or
+      in_nodes[1]->value.type != graph::AtomicType::NATURAL) {
+    throw std::invalid_argument(
+        "operator TO_MATRIX requires the first and second arguments to be NATURAL"
+        "representing the number of rows and the number of columns respectively");
+  } else if (
+      in_nodes[0]->node_type != graph::NodeType::CONSTANT or
+      in_nodes[1]->node_type != graph::NodeType::CONSTANT) {
+    throw std::invalid_argument(
+        "operator TO_MATRIX requires the number of rows and columns to be CONSTANT");
+  } else if (
+      (in_nodes[0]->value._natural == 0) or
+      (in_nodes[1]->value._natural == 0)) {
+    throw std::invalid_argument(
+        "operator TO_MATRIX requires the number of rows and columns to be greater than 0");
+  }
+
+  int rows = in_nodes[0]->value._natural;
+  int cols = in_nodes[1]->value._natural;
+
+  if (rows * cols != in_nodes.size() - 2) {
+    throw std::invalid_argument(
+        "operator TO_MATRIX expected " + std::to_string(rows * cols) +
+        "elements in the matrix but received " +
+        std::to_string(in_nodes.size() - 2));
+  }
+
+  graph::ValueType type0 = in_nodes[2]->value.type;
+  for (int i = 3; i < in_nodes.size(); i++) {
+    graph::ValueType type = in_nodes[i]->value.type;
+    if (type.variable_type != graph::VariableType::SCALAR) {
+      throw std::invalid_argument(
+          "operator TO_MATRIX requires scalar nodes as parents");
+    } else if (type != type0) {
+      throw std::invalid_argument(
+          "operator TO_MATRIX requires parent nodes to have the same type");
+    }
+  }
+
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX, type0.atomic_type, rows, cols));
+}
+
+void ToMatrix::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() >= 3);
+  int rows = in_nodes[0]->value._natural;
+  int cols = in_nodes[1]->value._natural;
+
+  const graph::ValueType& parent_type = in_nodes[2]->value.type;
+
+  if (parent_type == graph::AtomicType::BOOLEAN) {
+    Eigen::MatrixXb result(rows, cols);
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        result(i, j) = in_nodes[2 + i * cols + j]->value._bool;
+      }
+    }
+    value._bmatrix = result;
+  } else if (parent_type == graph::AtomicType::NATURAL) {
+    Eigen::MatrixXn result(rows, cols);
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        result(i, j) = in_nodes[2 + i * cols + j]->value._natural;
+      }
+    }
+    value._nmatrix = result;
+  } else { // real
+    Eigen::MatrixXd result(rows, cols);
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        result(i, j) = in_nodes[2 + i * cols + j]->value._double;
+      }
+    }
+    value._matrix = result;
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

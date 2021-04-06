@@ -830,3 +830,92 @@ TEST(testoperator, index) {
   EXPECT_EQ(xy_eval[0][0]._double, 2.0);
   EXPECT_EQ(xy_eval[0][1]._double, 6.0);
 }
+
+TEST(testoperator, to_matrix) {
+  Graph g;
+  uint nat_one = g.add_constant((natural_t)1);
+  uint nat_two = g.add_constant((natural_t)2);
+
+  // negative initialization
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_MATRIX, std::vector<uint>{}),
+      std::invalid_argument);
+  // requires scalar parents
+  uint three = g.add_constant(3.0);
+  Eigen::MatrixXd m1(2, 1);
+  m1 << 2.0, -1.0;
+  uint cm1 = g.add_constant_real_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_MATRIX,
+          std::vector<uint>{nat_one, nat_two, three, cm1}),
+      std::invalid_argument);
+  // requires parents to have the same type
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_MATRIX,
+          std::vector<uint>{nat_one, nat_two, three, nat_two}),
+      std::invalid_argument);
+  // incorrect row col size
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_MATRIX,
+          std::vector<uint>{nat_two, nat_two, three, three}),
+      std::invalid_argument);
+  // stochastic rows
+  uint prob = g.add_constant_probability(0.5);
+  uint bin_dist = g.add_distribution(
+      DistributionType::BINOMIAL, AtomicType::NATURAL, {nat_two, prob});
+  uint bin_sample = g.add_operator(OperatorType::SAMPLE, {bin_dist});
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_MATRIX,
+          std::vector<uint>{bin_sample, nat_two, three, three}),
+      std::invalid_argument);
+
+  // 1x2 real numbers
+  uint two = g.add_constant(2.0);
+  uint real_matrix =
+      g.add_operator(OperatorType::TO_MATRIX, {nat_one, nat_two, two, three});
+  g.query(real_matrix);
+  const auto& eval = g.infer(2, InferenceType::REJECTION);
+  EXPECT_EQ(eval[0][0]._matrix(0, 0), 2.0);
+  EXPECT_EQ(eval[0][0]._matrix(0, 1), 3.0);
+
+  // 2x2 natural numbers
+  Graph g1;
+  nat_two = g1.add_constant((natural_t)2);
+  uint nat_zero = g1.add_constant((natural_t)0);
+  uint nat_three = g1.add_constant((natural_t)3);
+  uint nat_four = g1.add_constant((natural_t)4);
+  uint nat_matrix = g1.add_operator(
+      OperatorType::TO_MATRIX,
+      {nat_two, nat_two, nat_two, nat_zero, nat_three, nat_four});
+  g1.query(nat_matrix);
+  const auto& eval1 = g1.infer(2, InferenceType::REJECTION);
+  EXPECT_EQ(eval1[0][0]._nmatrix(0, 0), 2);
+  EXPECT_EQ(eval1[0][0]._nmatrix(0, 1), 0);
+  EXPECT_EQ(eval1[0][0]._nmatrix(1, 0), 3);
+  EXPECT_EQ(eval1[0][0]._nmatrix(1, 1), 4);
+
+  // 3x1 stochastic boolean samples
+  Graph g2;
+  nat_three = g2.add_constant((natural_t)3);
+  nat_one = g2.add_constant((natural_t)1);
+  uint half = g2.add_constant_probability(0.5);
+  uint bern_dist = g2.add_distribution(
+      DistributionType::BERNOULLI, AtomicType::BOOLEAN, {half});
+  uint bern1 = g2.add_operator(OperatorType::SAMPLE, {bern_dist});
+  g2.observe(bern1, false);
+  uint bern2 = g2.add_operator(OperatorType::SAMPLE, {bern_dist});
+  g2.observe(bern2, true);
+  uint bern3 = g2.add_operator(OperatorType::SAMPLE, {bern_dist});
+  g2.observe(bern3, false);
+  uint bool_matrix = g2.add_operator(
+      OperatorType::TO_MATRIX, {nat_three, nat_one, bern1, bern2, bern3});
+  g2.query(bool_matrix);
+  const auto& eval2 = g2.infer(2, InferenceType::REJECTION);
+  EXPECT_EQ(eval2[0][0]._bmatrix.coeff(0), false);
+  EXPECT_EQ(eval2[0][0]._bmatrix.coeff(1), true);
+  EXPECT_EQ(eval2[0][0]._bmatrix.coeff(2), false);
+}

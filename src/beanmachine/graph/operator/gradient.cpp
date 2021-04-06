@@ -249,5 +249,18 @@ void Index::compute_gradients() {
   grad2 = in_nodes[0]->Grad2.coeff(in_nodes[1]->value._natural);
 }
 
+void ToMatrix::compute_gradients() {
+  int rows = in_nodes[0]->value._natural;
+  int cols = in_nodes[1]->value._natural;
+  Grad1.resize(rows, cols);
+  Grad2.resize(rows, cols);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      Grad1(i, j) = in_nodes[2 + i * cols + j]->grad1;
+      Grad2(i, j) = in_nodes[2 + i * cols + j]->grad2;
+    }
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine
