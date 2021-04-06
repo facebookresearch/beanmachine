@@ -401,7 +401,7 @@ class RequirementsFixer:
             return self._meet_operator_requirement(node, requirement, consumer, edge)
         raise AssertionError("Unexpected node type")
 
-    def fix_unmet_requirements(self) -> None:
+    def fix_problems(self) -> None:
         nodes = self.bmg._traverse_from_roots()
         for node in nodes:
             requirements = node.requirements
@@ -423,16 +423,16 @@ def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorRe
     AdditionFixer(bmg).fix_problems()
     BoolComparisonFixer(bmg).fix_problems()
     f = UnsupportedNodeFixer(bmg)
-    f.fix_unsupported_nodes()
+    f.fix_problems()
     if f.errors.any():
         return f.errors
     MultiaryOperatorFixer(bmg).fix_problems()
     f = RequirementsFixer(bmg)
-    f.fix_unmet_requirements()
+    f.fix_problems()
     if f.errors.any():
         return f.errors
     f = ObservationsFixer(bmg)
-    f.fix_observations()
+    f.fix_problems()
     if f.errors.any():
         return f.errors
     if fix_observe_true:
