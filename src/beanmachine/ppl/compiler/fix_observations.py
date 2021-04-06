@@ -26,7 +26,7 @@ class ObservationsFixer:
         self.errors = ErrorReport()
         self.bmg = bmg
 
-    def fix_observations(self) -> None:
+    def fix_problems(self) -> None:
         for o in self.bmg.all_observations():
             v = o.value
             inf = type_of_value(v)
