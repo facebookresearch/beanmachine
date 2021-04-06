@@ -38,6 +38,7 @@ class PerfReportTest(unittest.TestCase):
 
         # We have an _infer method which returns both samples and a
         # performance report.
+
         _, report = BMGInference()._infer(queries, observations, num_samples)
 
         # You can convert the report to a string:
@@ -76,6 +77,14 @@ bmg_profiler_report: nmc_infer:(1) -- ms
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
   fix_problems:(1) -- ms
+    TensorOpsFixer:(1) -- ms
+    AdditionFixer:(1) -- ms
+    BoolComparisonFixer:(1) -- ms
+    UnsupportedNodeFixer:(1) -- ms
+    MultiaryOperatorFixer:(1) -- ms
+    RequirementsFixer:(1) -- ms
+    ObservationsFixer:(1) -- ms
+    unattributed: -- ms
   build_bmg_graph:(1) -- ms
   graph_infer:(1) -- ms
   transpose_samples:(1) -- ms

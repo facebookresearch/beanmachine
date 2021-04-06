@@ -7,7 +7,9 @@ are made; if there are nodes that cannot be represented in BMG
 or cannot be made to meet type requirements, an error report is
 returned."""
 
+from typing import List, Type
 
+import beanmachine.ppl.compiler.profiler as prof
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import (
     BMGNode,
@@ -48,6 +50,9 @@ from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_tensor_ops import TensorOpsFixer
 from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
 from torch import Tensor
+
+
+# TODO: Move this to its own module
 
 
 class RequirementsFixer:
@@ -411,31 +416,43 @@ class RequirementsFixer:
                 )
 
 
+# Some notes on ordering:
+#
+# AdditionFixer needs to run before RequirementsFixer. Why?
+# The requirement fixing pass runs from leaves to roots, inserting
+# conversions as it goes. If we have add(1, negate(p)) then we need
+# to turn that into complement(p), but if we process the add *after*
+# we process the negate(p) then we will already have generated
+# add(1, negate(to_real(p)).  Better to turn it into complement(p)
+# and orphan the negate(p) early.
+#
+# TODO: Add other notes on ordering constraints here.
+
+_standard_fixer_types: List[Type] = [
+    TensorOpsFixer,
+    AdditionFixer,
+    BoolComparisonFixer,
+    UnsupportedNodeFixer,
+    MultiaryOperatorFixer,
+    RequirementsFixer,
+    ObservationsFixer,
+]
+
+
 def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorReport:
-    TensorOpsFixer(bmg).fix_problems()
-    # This pass has to run before general requirement checking. Why?
-    # The requirement fixing pass runs from leaves to roots, inserting
-    # conversions as it goes. If we have add(1, negate(p)) then we need
-    # to turn that into complement(p), but if we process the add *after*
-    # we process the negate(p) then we will already have generated
-    # add(1, negate(to_real(p)).  Better to turn it into complement(p)
-    # and orphan the negate(p) early.
-    AdditionFixer(bmg).fix_problems()
-    BoolComparisonFixer(bmg).fix_problems()
-    f = UnsupportedNodeFixer(bmg)
-    f.fix_problems()
-    if f.errors.any():
-        return f.errors
-    MultiaryOperatorFixer(bmg).fix_problems()
-    f = RequirementsFixer(bmg)
-    f.fix_problems()
-    if f.errors.any():
-        return f.errors
-    f = ObservationsFixer(bmg)
-    f.fix_problems()
-    if f.errors.any():
-        return f.errors
+    bmg.pd.begin(prof.fix_problems)
+    fixer_types: List[Type] = _standard_fixer_types
+    errors = ErrorReport()
     if fix_observe_true:
-        # This pass has to run after everything else.
-        ObserveTrueFixer(bmg).fix_problems()
-    return ErrorReport()
+        # Note: must NOT be +=, which would mutate _standard_fixer_types.
+        fixer_types = fixer_types + [ObserveTrueFixer]
+    for fixer_type in fixer_types:
+        bmg.pd.begin(fixer_type.__name__)
+        fixer = fixer_type(bmg)
+        fixer.fix_problems()
+        bmg.pd.finish(fixer_type.__name__)
+        errors = fixer.errors
+        if errors.any():
+            break
+    bmg.pd.finish(prof.fix_problems)
+    return errors

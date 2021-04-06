@@ -13,6 +13,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     UnaryOperatorNode,
 )
 from beanmachine.ppl.compiler.bmg_types import Boolean
+from beanmachine.ppl.compiler.error_report import ErrorReport
 
 
 def _is_conversion(n: BMGNode) -> bool:
@@ -50,6 +51,7 @@ class ObserveTrueFixer:
     #         --> EXP_PRODUCT
 
     bmg: BMGraphBuilder
+    errors = ErrorReport()
 
     def __init__(self, bmg: BMGraphBuilder) -> None:
         self.bmg = bmg
