@@ -120,12 +120,17 @@ class InputList:
             i.outputs.add_item(node)
 
     def __setitem__(self, index: int, value: "BMGNode") -> None:
+        # If this is a no-op, do nothing.
+        old_value = self.inputs[index]
+        if old_value is value:
+            return
+
         # Start by maintaining correctness of the input/output relationships.
         #
         # (1) The node is no longer an output of the current input at the index.
         # (2) The node is now an output of the new input at the index.
         #
-        self.inputs[index].outputs.remove_item(self.node)
+        old_value.outputs.remove_item(self.node)
         self.inputs[index] = value
         value.outputs.add_item(self.node)
 
