@@ -404,13 +404,14 @@ class BMGraphBuilder:
     # graph nodes. These scenarios should now be impossible, and we
     # should take a work item to remove this now-unnecessary code.
 
-    def add_node(self, node: BMGNode) -> None:
+    def add_node(self, node: BMGNode) -> BMGNode:
         """This adds a node we've recently created to the node set;
         it maintains the invariant that all the input nodes are also added."""
         if node not in self.nodes:
             for i in node.inputs:
                 self.add_node(i)
             self.nodes[node] = len(self.nodes)
+        return node
 
     def remove_leaf(self, node: BMGNode) -> None:
         """This removes a leaf node from the builder, and ensures that the
