@@ -2068,9 +2068,7 @@ g = graph.Graph()
     def _fix_problems(self) -> None:
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 
-        self.pd.begin(prof.fix_problems)
         fix_problems(self, self._fix_observe_true).raise_errors()
-        self.pd.finish(prof.fix_problems)
 
     def infer(
         self, num_samples: int, inference_type: InferenceType = InferenceType.NMC
