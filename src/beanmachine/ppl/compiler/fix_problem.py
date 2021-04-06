@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 from abc import ABC, abstractmethod
+from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -17,7 +18,7 @@ class ProblemFixerBase(ABC):
         pass
 
     @abstractmethod
-    def _get_replacement(self, n: bn.BMGNode) -> bn.BMGNode:
+    def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         pass
 
     def fix_problems(self) -> None:
@@ -31,5 +32,6 @@ class ProblemFixerBase(ABC):
                     continue
                 if self._needs_fixing(c):
                     replacement = self._get_replacement(c)
-                    node.inputs[i] = replacement
-                    replacements[c] = replacement
+                    if replacement is not None:
+                        node.inputs[i] = replacement
+                        replacements[c] = replacement
