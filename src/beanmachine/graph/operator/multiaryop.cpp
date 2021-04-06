@@ -181,8 +181,8 @@ ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
         "operator TO_MATRIX requires the number of rows and columns to be greater than 0");
   }
 
-  int rows = in_nodes[0]->value._natural;
-  int cols = in_nodes[1]->value._natural;
+  uint rows = in_nodes[0]->value._natural;
+  uint cols = in_nodes[1]->value._natural;
 
   if (rows * cols != in_nodes.size() - 2) {
     throw std::invalid_argument(
@@ -192,7 +192,7 @@ ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
   }
 
   graph::ValueType type0 = in_nodes[2]->value.type;
-  for (int i = 3; i < in_nodes.size(); i++) {
+  for (uint i = 3; i < in_nodes.size(); i++) {
     graph::ValueType type = in_nodes[i]->value.type;
     if (type.variable_type != graph::VariableType::SCALAR) {
       throw std::invalid_argument(
