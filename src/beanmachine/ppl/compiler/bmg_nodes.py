@@ -2170,15 +2170,18 @@ class LogSumExpNode(OperatorNode):
         # * at least two values
         # * all values the same graph type
         # * that type is R, R+ or R-.
+        #
+        # If these conditions are met then the graph type is real,
+        # otherwise it is malformed
 
         if len(self.inputs) <= 1:
             return Malformed
-        gt = self.inputs[0].graph_type
-        if gt not in {Real, NegativeReal, PositiveReal}:
+        input_gt = self.inputs[0].graph_type
+        if input_gt not in {Real, NegativeReal, PositiveReal}:
             return Malformed
-        if any(i.graph_type != gt for i in self.inputs):
+        if any(i.graph_type != input_gt for i in self.inputs):
             return Malformed
-        return gt
+        return Real
 
     def _compute_inf_type(self) -> BMGLatticeType:
         # No matter what, logsumexp produces a real.
