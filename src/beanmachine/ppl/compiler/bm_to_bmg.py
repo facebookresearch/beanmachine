@@ -5,7 +5,7 @@ import ast
 import inspect
 import sys
 import types
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Callable, List, Tuple
 
 import astor
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -348,25 +348,6 @@ _remove_all_decorators: Rule = _descend_until(
 )
 
 
-# TODO: When we eliminate the all-module compiler workflow we can delete this.
-_header: ast.Module = ast.parse(
-    """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg : bool = True
-bmg = BMGraphBuilder()"""
-)
-
-
-def _prepend_statements(module: ast.Module, statements: List[ast.stmt]) -> ast.Module:
-    return ast.Module(body=statements + module.body, type_ignores=[])
-
-
-def _append_statements(module: ast.Module, statements: List[ast.stmt]) -> ast.Module:
-    return ast.Module(body=module.body + statements, type_ignores=[])
-
-
 _samples_to_calls = AllListMembers(
     if_then(
         all_of([_is_sample, _no_params]),
@@ -530,60 +511,3 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
     transformed.transformed_ast = a
     transformed.transformed_source = astor.to_source(a)
     return transformed
-
-
-def _bm_module_to_bmg_ast(source: str) -> ast.AST:
-    a: ast.Module = ast.parse(source)
-    bmg = _bm_ast_to_bmg_ast(a, True, False, True)
-    assert isinstance(bmg, ast.Module)
-    bmg = _prepend_statements(bmg, _header.body)
-    assert isinstance(bmg, ast.Module)
-    footer: List[ast.stmt] = [
-        ast.Assign(
-            targets=[ast.Name(id="roots", ctx=ast.Store())],
-            value=ast.List(
-                elts=_samples_to_calls(a.body).expect_success(), ctx=ast.Load()
-            ),
-        )
-    ]
-
-    bmg = _append_statements(bmg, footer)
-    ast.fix_missing_locations(bmg)
-    # TODO: Fix negative constants back to standard form.
-    return bmg
-
-
-# Transform a model, compile the transformed state
-# execute the resulting program, and return the global
-# module.
-def _execute(source: str) -> Dict[str, Any]:
-    # TODO: Make the name unique so that if this happens more than
-    # TODO: once, we're not overwriting existing work.
-    filename = "<BMGAST>"
-    a: ast.AST = _bm_module_to_bmg_ast(source)
-    try:
-        compiled = compile(a, filename, "exec")
-    except Exception as ex:
-        raise LiftedCompilationError(source, a, ex) from ex
-    new_module = types.ModuleType(filename)
-    sys.modules[filename] = new_module
-    mod_globals = new_module.__dict__
-    exec(compiled, mod_globals)  # noqa
-    return mod_globals
-
-
-def to_graph_builder(source: str) -> BMGraphBuilder:
-    return _execute(source)["bmg"]
-
-
-def to_dot_deprecated(
-    source: str,
-    graph_types: bool = False,
-    inf_types: bool = False,
-    edge_requirements: bool = False,
-    point_at_input: bool = False,
-    after_transform: bool = False,
-) -> str:
-    return to_graph_builder(source).to_dot(
-        graph_types, inf_types, edge_requirements, point_at_input, after_transform
-    )

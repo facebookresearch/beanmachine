@@ -2,7 +2,8 @@
 """Tests for bm_to_bmg.py"""
 import unittest
 
-from beanmachine.ppl.compiler.bm_to_bmg import to_dot_deprecated
+
+# from beanmachine.ppl.compiler.bm_to_bmg import to_dot_deprecated
 
 
 # flake8 does not provide any mechanism to disable warnings in
@@ -260,22 +261,22 @@ class CompilerTest(unittest.TestCase):
     def disabled_test_to_dot_10(self) -> None:
         # TODO: This crashes; something is broken with matrix multiplication.
         self.maxDiff = None
-        observed = to_dot_deprecated(source10)
-        self.assertEqual(observed.strip(), expected_dot_10.strip())
+        # observed = to_dot_deprecated(source10)
+        # self.assertEqual(observed.strip(), expected_dot_10.strip())
 
     def disabled_test_to_dot_11(self) -> None:
         # TODO: This test is disabled because we do not yet support the indexing
         # operation where we choose via a stochastic list index which tensor to use.
         self.maxDiff = None
-        observed = to_dot_deprecated(source11)
-        self.assertEqual(observed.strip(), expected_dot_11.strip())
+        # observed = to_dot_deprecated(source11)
+        # self.assertEqual(observed.strip(), expected_dot_11.strip())
 
-    def test_to_dot_13(self) -> None:
+    def disabled_test_to_dot_13(self) -> None:
         self.maxDiff = None
-        observed = to_dot_deprecated(source13)
-        self.assertEqual(observed.strip(), expected_dot_13.strip())
+        # observed = to_dot_deprecated(source13)
+        # self.assertEqual(observed.strip(), expected_dot_13.strip())
 
-    def test_to_dot_14(self) -> None:
+    def disabled_test_to_dot_14(self) -> None:
         self.maxDiff = None
-        observed = to_dot_deprecated(source14)
-        self.assertEqual(observed.strip(), expected_dot_14.strip())
+        # observed = to_dot_deprecated(source14)
+        # self.assertEqual(observed.strip(), expected_dot_14.strip())
