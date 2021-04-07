@@ -45,6 +45,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
         vi_dicts: Optional[
             Callable[[RVIdentifier], MeanFieldVariationalApproximation]
         ] = None,
+        pretrain: bool = False,
     ) -> Callable[[RVIdentifier], MeanFieldVariationalApproximation]:
         """
         Trains a set of mean-field variational approximation (one per site).
@@ -130,10 +131,27 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     # samples x_{s,i} ~ q_t(x_s) i.e.
                     # ELBO ~= E_s log p(x_s, x_\s) / q(x_s)
                     #      ~= (1/N) \sum_i^N log p(x_{s,i}, x_\s) / q(x_{s,i})
-                    loss -= v_approx.elbo(
-                        _target_log_prob,
+                    prev_loss = loss.clone().detach()
+                    delta_elbo, zk = v_approx.elbo(
+                        _target_log_prob
+                        if not pretrain
+                        else node_var.distribution.log_prob,
                         num_elbo_mc_samples,
                     )
+                    loss -= delta_elbo
+                    # if (
+                    #     str(rvid).startswith("sigma")
+                    #     and delta_elbo.abs() > 1e2
+                    #     and not pretrain
+                    # ):
+                    #     # v_approx._transform = dist.transforms.AbsTransform(
+                    #     print("delta_elbo", delta_elbo)
+                    #     print("zk", zk)
+                    #     print("p(x,rest)", _target_log_prob(zk))
+                    #     print("p(x|rest)", node_var.distribution.log_prob(zk))
+                    #     print("q(x)", v_approx.log_prob(zk))
+                    #     print(v_approx._transform)
+                    #     print("=" * 10)
 
                 if not torch.isnan(loss) and not torch.isinf(loss):
                     for rvid in latent_rvids:
@@ -142,6 +160,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     loss.backward(retain_graph=True)
                     for rvid in latent_rvids:
                         v_approx = vi_dicts(rvid)
+                        nn.utils.clip_grad_norm_(v_approx.parameters(), 5e3)
                         v_approx.optim.step()
                         v_approx.recompute_transformed_distribution()
 

@@ -133,7 +133,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
 
         # normalize by batch size
         elbo /= num_elbo_mc_samples
-        return elbo
+        return elbo, zk
 
     def rsample(self, sample_shape=None):
         if not sample_shape:
