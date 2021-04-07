@@ -27,7 +27,7 @@ def prevalence():
 
 
 @bm.random_variable
-def observation():
+def observation(x):
     bob = 0
     sue = 1
     pos_sum = prevalence().log() + sensitivity(bob).log() + sensitivity(sue).log()
@@ -43,7 +43,7 @@ def observation():
 class FixObserveTrueTest(unittest.TestCase):
     def test_fix_observe_true(self) -> None:
         self.maxDiff = None
-        observations = {observation(): tensor(1.0)}
+        observations = {observation(0): tensor(1.0), observation(1): tensor(1.0)}
         queries = []
 
         bmg = BMGInference()
@@ -86,6 +86,8 @@ digraph "graph" {
   N30[label=Bernoulli];
   N31[label=Sample];
   N32[label="Observation True"];
+  N33[label=Sample];
+  N34[label="Observation True"];
   N00 -> N01;
   N00 -> N01;
   N01 -> N02;
@@ -123,12 +125,17 @@ digraph "graph" {
   N28 -> N29;
   N29 -> N30;
   N30 -> N31;
+  N30 -> N33;
   N31 -> N32;
+  N33 -> N34;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # Now let's force an additional rewriting pass:
+        # Now let's force an additional rewriting pass. Note that there must
+        # be as many factor nodes as we removed observations; factor nodes
+        # are not deduplicated.
+
         bmg = BMGInference()
         bmg._fix_observe_true = True
         observed = bmg.to_dot(queries, observations)
@@ -166,7 +173,9 @@ digraph "graph" {
   N29[label=ToProb];
   N30[label=Bernoulli];
   N31[label=Sample];
-  N32[label=ExpProduct];
+  N32[label=Sample];
+  N33[label=ExpProduct];
+  N34[label=ExpProduct];
   N00 -> N01;
   N00 -> N01;
   N01 -> N02;
@@ -201,10 +210,12 @@ digraph "graph" {
   N25 -> N26;
   N26 -> N27;
   N27 -> N28;
-  N27 -> N32;
+  N27 -> N33;
+  N27 -> N34;
   N28 -> N29;
   N29 -> N30;
   N30 -> N31;
+  N30 -> N32;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
