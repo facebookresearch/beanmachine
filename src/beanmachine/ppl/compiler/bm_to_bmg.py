@@ -553,12 +553,6 @@ def _bm_module_to_bmg_ast(source: str) -> ast.AST:
     return bmg
 
 
-def to_python_raw(source: str) -> str:
-    bmg: ast.AST = _bm_module_to_bmg_ast(source)
-    p: str = astor.to_source(bmg)
-    return p
-
-
 # Transform a model, compile the transformed state
 # execute the resulting program, and return the global
 # module.
@@ -582,15 +576,7 @@ def to_graph_builder(source: str) -> BMGraphBuilder:
     return _execute(source)["bmg"]
 
 
-def to_python(source: str) -> str:
-    return to_graph_builder(source).to_python()
-
-
-def to_cpp(source: str) -> str:
-    return to_graph_builder(source).to_cpp()
-
-
-def to_dot(
+def to_dot_deprecated(
     source: str,
     graph_types: bool = False,
     inf_types: bool = False,
@@ -601,16 +587,3 @@ def to_dot(
     return to_graph_builder(source).to_dot(
         graph_types, inf_types, edge_requirements, point_at_input, after_transform
     )
-
-
-def to_bmg(source: str):
-    return to_graph_builder(source).to_bmg()
-
-
-def infer(source: str, num_samples: int = 1000) -> List[Any]:
-    # TODO: Remove this API
-    mod_globals = _execute(source)
-    bmg = mod_globals["bmg"]
-    observations = mod_globals["observations"] if "observations" in mod_globals else {}
-    queries = mod_globals["queries"] if "queries" in mod_globals else []
-    return bmg.infer_deprecated(queries, observations, num_samples)
