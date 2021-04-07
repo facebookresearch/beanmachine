@@ -23,223 +23,6 @@ def tidy(s: str) -> str:
     return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
 
 
-# Demonstrate that function calls work as expected when the
-# function called is NOT a sample function.
-source5 = """
-import beanmachine.ppl as bm
-import torch
-from torch.distributions import Bernoulli
-
-# NOTE NO RV HERE
-def q(a, b):
-  return (a + b) * 0.5
-
-# NOTE NO RV HERE
-def r(p):
-  return Bernoulli(p)
-
-@bm.random_variable
-def x(n):
-  return Bernoulli(0.5)
-
-@bm.random_variable
-def z():
-  return r(q(x(0), x(1)))
-"""
-
-expected_raw_5 = """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-import beanmachine.ppl as bm
-import torch
-from torch.distributions import Bernoulli
-
-
-def q(a, b):
-    a5 = bmg.handle_addition(a, b)
-    a6 = 0.5
-    r1 = bmg.handle_multiplication(a5, a6)
-    return r1
-
-
-def r(p):
-    r7 = [p]
-    r12 = {}
-    r2 = bmg.handle_function(Bernoulli, r7, r12)
-    return r2
-
-
-@probabilistic(bmg)
-@memoize
-def x(n):
-    a10 = 0.5
-    r8 = [a10]
-    r13 = {}
-    r3 = bmg.handle_function(Bernoulli, r8, r13)
-    return bmg.handle_sample(r3)
-
-
-@probabilistic(bmg)
-@memoize
-def z():
-    a22 = 0
-    r21 = [a22]
-    r24 = {}
-    a17 = bmg.handle_function(x, r21, r24)
-    a16 = [a17]
-    a25 = 1
-    r23 = [a25]
-    r26 = {}
-    a20 = bmg.handle_function(x, r23, r26)
-    a18 = [a20]
-    r15 = bmg.handle_addition(a16, a18)
-    r19 = {}
-    a11 = bmg.handle_function(q, r15, r19)
-    r9 = [a11]
-    r14 = {}
-    r4 = bmg.handle_function(r, r9, r14)
-    return bmg.handle_sample(r4)
-
-
-roots = [z()]"""
-
-expected_dot_5 = """
-digraph "graph" {
-  N0[label=0.5];
-  N1[label=Bernoulli];
-  N2[label=Sample];
-  N3[label=Sample];
-  N4[label="+"];
-  N5[label=0.5];
-  N6[label="*"];
-  N7[label=Bernoulli];
-  N8[label=Sample];
-  N1 -> N0[label=probability];
-  N2 -> N1[label=operand];
-  N3 -> N1[label=operand];
-  N4 -> N2[label=left];
-  N4 -> N3[label=right];
-  N6 -> N4[label=left];
-  N6 -> N5[label=right];
-  N7 -> N6[label=probability];
-  N8 -> N7[label=operand];
-}
-"""
-
-# Here is a simple model where the argument to a sample is itself a sample.
-# This illustrates how the graph must capture the possible control flows.
-# Flip a fair coin y; use that to choose which unfair coin to use.
-# Flip the unfair coin and use that to construct either a double-headed
-# or double-tailed coin.
-source6 = """
-import beanmachine.ppl as bm
-import torch
-from torch.distributions import Bernoulli
-
-# x(0) is Bern(0.25)
-# x(1) is Bern(0.75)
-@bm.random_variable
-def x(n):
-  return Bernoulli(n * 0.5 + 0.25)
-
-@bm.random_variable
-def y():
-  return Bernoulli(0.5)
-
-@bm.random_variable
-def z():
-  return Bernoulli(x(y()))
-"""
-
-expected_raw_6 = """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-import beanmachine.ppl as bm
-import torch
-from torch.distributions import Bernoulli
-
-
-@probabilistic(bmg)
-@memoize
-def x(n):
-    a14 = 0.5
-    a10 = bmg.handle_multiplication(n, a14)
-    a15 = 0.25
-    a7 = bmg.handle_addition(a10, a15)
-    r4 = [a7]
-    r11 = {}
-    r1 = bmg.handle_function(Bernoulli, r4, r11)
-    return bmg.handle_sample(r1)
-
-
-@probabilistic(bmg)
-@memoize
-def y():
-    a8 = 0.5
-    r5 = [a8]
-    r12 = {}
-    r2 = bmg.handle_function(Bernoulli, r5, r12)
-    return bmg.handle_sample(r2)
-
-
-@probabilistic(bmg)
-@memoize
-def z():
-    r19 = []
-    r20 = {}
-    a17 = bmg.handle_function(y, r19, r20)
-    r16 = [a17]
-    r18 = {}
-    a9 = bmg.handle_function(x, r16, r18)
-    r6 = [a9]
-    r13 = {}
-    r3 = bmg.handle_function(Bernoulli, r6, r13)
-    return bmg.handle_sample(r3)
-
-
-roots = [y(), z()]
-"""
-
-expected_dot_6 = """
-digraph "graph" {
-  N00[label=0.5];
-  N01[label=Bernoulli];
-  N02[label=Sample];
-  N03[label=0.25];
-  N04[label=Bernoulli];
-  N05[label=Sample];
-  N06[label=0.0];
-  N07[label=0.75];
-  N08[label=Bernoulli];
-  N09[label=Sample];
-  N10[label=1.0];
-  N11[label=map];
-  N12[label=index];
-  N13[label=Bernoulli];
-  N14[label=Sample];
-  N01 -> N00[label=probability];
-  N02 -> N01[label=operand];
-  N04 -> N03[label=probability];
-  N05 -> N04[label=operand];
-  N08 -> N07[label=probability];
-  N09 -> N08[label=operand];
-  N11 -> N05[label=1];
-  N11 -> N06[label=0];
-  N11 -> N09[label=3];
-  N11 -> N10[label=2];
-  N12 -> N02[label=right];
-  N12 -> N11[label=left];
-  N13 -> N12[label=probability];
-  N14 -> N13[label=operand];
-}
-"""
-
 # Neal's funnel
 source7 = """
 import beanmachine.ppl as bm
@@ -317,96 +100,6 @@ digraph "graph" {
 }
 """
 
-
-# Testing support for calls with keyword args
-source9 = """
-import beanmachine.ppl as bm
-from torch.distributions import Bernoulli
-
-@bm.random_variable
-def toss():
-    return Bernoulli(probs=0.5)
-
-# Notice that logits Bernoulli with constant argument is folded to
-# probs Bernoulli...
-@bm.random_variable
-def toss2():
-    return Bernoulli(logits=0.0)
-
-# ...but we must make a distinction between logits and probs if the
-# argument is a sample.
-@bm.random_variable
-def toss3():
-    return Bernoulli(probs=toss())
-
-@bm.random_variable
-def toss4():
-    return Bernoulli(logits=toss())
-"""
-
-expected_raw_9 = """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-from torch.distributions import Bernoulli
-
-
-@probabilistic(bmg)
-@memoize
-def toss():
-    a5 = 0.5
-    r1 = bmg.handle_function(Bernoulli, [], {**{'probs': a5}})
-    return bmg.handle_sample(r1)
-
-
-@probabilistic(bmg)
-@memoize
-def toss2():
-    a6 = 0.0
-    r2 = bmg.handle_function(Bernoulli, [], {**{'logits': a6}})
-    return bmg.handle_sample(r2)
-
-
-@probabilistic(bmg)
-@memoize
-def toss3():
-    a7 = bmg.handle_function(toss, [], {})
-    r3 = bmg.handle_function(Bernoulli, [], {**{'probs': a7}})
-    return bmg.handle_sample(r3)
-
-
-@probabilistic(bmg)
-@memoize
-def toss4():
-    a8 = bmg.handle_function(toss, [], {})
-    r4 = bmg.handle_function(Bernoulli, [], {**{'logits': a8}})
-    return bmg.handle_sample(r4)
-
-
-roots = [toss(), toss2(), toss3(), toss4()]
-"""
-
-expected_dot_9 = """
-digraph "graph" {
-  N0[label=0.5];
-  N1[label=Bernoulli];
-  N2[label=Sample];
-  N3[label=Sample];
-  N4[label=Bernoulli];
-  N5[label=Sample];
-  N6[label="Bernoulli(logits)"];
-  N7[label=Sample];
-  N1 -> N0[label=probability];
-  N2 -> N1[label=operand];
-  N3 -> N1[label=operand];
-  N4 -> N2[label=probability];
-  N5 -> N4[label=operand];
-  N6 -> N2[label=probability];
-  N7 -> N6[label=operand];
-}
-"""
 
 # Bayesian regression
 source10 = """
@@ -636,89 +329,6 @@ digraph "graph" {
 }
 """
 
-source12 = """
-import beanmachine.ppl as bm
-from torch.distributions import Normal, Uniform
-@bm.random_variable
-def theta_0():
-    return Normal(0,1)
-
-@bm.random_variable
-def theta_1():
-    return Normal(0,1)
-
-@bm.random_variable
-def error():
-    return Uniform(0,1)
-
-@bm.random_variable
-def x(i):
-    return Normal(0,1)
-
-@bm.random_variable
-def y(i):
-    return Normal(theta_0() + theta_1() * x(i), error())
-
-observations = [y(i) for i in range(3)] + [x(i) for i in range(3)]
-"""
-
-expected_dot_12 = """
-digraph "graph" {
-  N00[label=0.0];
-  N01[label=1.0];
-  N02[label=Normal];
-  N03[label=Sample];
-  N04[label=Sample];
-  N05[label=Sample];
-  N06[label="*"];
-  N07[label="+"];
-  N08[label=Uniform];
-  N09[label=Sample];
-  N10[label=Normal];
-  N11[label=Sample];
-  N12[label=Sample];
-  N13[label="*"];
-  N14[label="+"];
-  N15[label=Normal];
-  N16[label=Sample];
-  N17[label=Sample];
-  N18[label="*"];
-  N19[label="+"];
-  N20[label=Normal];
-  N21[label=Sample];
-  N02 -> N00[label=mu];
-  N02 -> N01[label=sigma];
-  N03 -> N02[label=operand];
-  N04 -> N02[label=operand];
-  N05 -> N02[label=operand];
-  N06 -> N04[label=left];
-  N06 -> N05[label=right];
-  N07 -> N03[label=left];
-  N07 -> N06[label=right];
-  N08 -> N00[label=low];
-  N08 -> N01[label=high];
-  N09 -> N08[label=operand];
-  N10 -> N07[label=mu];
-  N10 -> N09[label=sigma];
-  N11 -> N10[label=operand];
-  N12 -> N02[label=operand];
-  N13 -> N04[label=left];
-  N13 -> N12[label=right];
-  N14 -> N03[label=left];
-  N14 -> N13[label=right];
-  N15 -> N09[label=sigma];
-  N15 -> N14[label=mu];
-  N16 -> N15[label=operand];
-  N17 -> N02[label=operand];
-  N18 -> N04[label=left];
-  N18 -> N17[label=right];
-  N19 -> N03[label=left];
-  N19 -> N18[label=right];
-  N20 -> N09[label=sigma];
-  N20 -> N19[label=mu];
-  N21 -> N20[label=operand];
-}
-"""
 
 # Illustrate that we correctly generate the support for
 # multidimensional Bernoulli distributions. Flip two coins,
@@ -859,27 +469,11 @@ digraph "graph" {
 
 
 class CompilerTest(unittest.TestCase):
-    def test_to_python_raw_5(self) -> None:
-        self.maxDiff = None
-        observed = to_python_raw(source5)
-        self.assertEqual(observed.strip(), expected_raw_5.strip())
-
-    def test_to_python_raw_6(self) -> None:
-        self.maxDiff = None
-        observed = to_python_raw(source6)
-        self.assertEqual(observed.strip(), expected_raw_6.strip())
-
     def disabled_test_to_python_raw_7(self) -> None:
         # TODO: This crashes the compiler; figure out why
         self.maxDiff = None
         observed = to_python_raw(source7)
         self.assertEqual(observed.strip(), expected_raw_7.strip())
-
-    def disabled_test_to_python_raw_9(self) -> None:
-        # TODO: Enable this test when named arguments are fixed.
-        self.maxDiff = None
-        observed = to_python_raw(source9)
-        self.assertEqual(observed.strip(), expected_raw_9.strip())
 
     def disabled_test_to_python_raw_10(self) -> None:
         # TODO: Enable this test when we support compilation of
@@ -895,27 +489,11 @@ class CompilerTest(unittest.TestCase):
         observed = to_python_raw(source11)
         self.assertEqual(observed.strip(), expected_raw_11.strip())
 
-    def test_to_dot_5(self) -> None:
-        self.maxDiff = None
-        observed = to_dot(source5)
-        self.assertEqual(observed.strip(), expected_dot_5.strip())
-
-    def test_to_dot_6(self) -> None:
-        self.maxDiff = None
-        observed = to_dot(source6)
-        self.assertEqual(observed.strip(), expected_dot_6.strip())
-
     def disabled_test_to_dot_7(self) -> None:
         # TODO: This crashes the compiler; figure out why
         self.maxDiff = None
         observed = to_dot(source7)
         self.assertEqual(observed.strip(), expected_dot_7.strip())
-
-    def disabled_test_to_dot_9(self) -> None:
-        # TODO: Enable this test when named arguments are fixed.
-        self.maxDiff = None
-        observed = to_dot(source9)
-        self.assertEqual(observed.strip(), expected_dot_9.strip())
 
     def disabled_test_to_dot_10(self) -> None:
         # TODO: This crashes; something is broken with matrix multiplication.
@@ -929,12 +507,6 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_dot(source11)
         self.assertEqual(observed.strip(), expected_dot_11.strip())
-
-    def disabled_test_to_dot_12(self) -> None:
-        # TODO: This crashes the compiler; figure out why
-        self.maxDiff = None
-        observed = to_dot(source12)
-        self.assertEqual(observed.strip(), expected_dot_12.strip())
 
     def test_to_dot_13(self) -> None:
         self.maxDiff = None
