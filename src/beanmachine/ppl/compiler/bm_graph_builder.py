@@ -2250,29 +2250,3 @@ g = graph.Graph()
         report.profiler_report = self.pd.to_report()
 
         return mcsamples, report
-
-    def infer_deprecated(
-        self,
-        queries: List[bn.OperatorNode],
-        observations: Dict[bn.SampleNode, Any],
-        num_samples: int,
-    ) -> List[Any]:
-        # TODO: Remove this method
-
-        # TODO: Error checking; verify that all observations are samples
-        # TODO: and all queries are operators.
-
-        for node, val in observations.items():
-            self.add_observation(node, val)
-
-        for q in queries:
-            self.add_query(q)
-
-        self._fix_problems()
-        g = Graph()
-
-        d: Dict[BMGNode, int] = {}
-        for node in self._traverse_from_roots():
-            d[node] = node._add_to_graph(g, d)
-
-        return g.infer(num_samples, InferenceType.NMC)
