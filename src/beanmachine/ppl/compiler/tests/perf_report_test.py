@@ -76,6 +76,7 @@ bmg_profiler_report: nmc_infer:(1) -- ms
 
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
+  import_fix_problems:(--) -- ms
   fix_problems:(1) -- ms
     TensorOpsFixer:(1) -- ms
     AdditionFixer:(1) -- ms
@@ -87,6 +88,7 @@ infer:(1) -- ms
     unattributed: -- ms
   build_bmg_graph:(1) -- ms
   graph_infer:(1) -- ms
+  deserialize_perf_report:(--) -- ms
   transpose_samples:(1) -- ms
   build_mcsamples:(1) -- ms
   unattributed: -- ms

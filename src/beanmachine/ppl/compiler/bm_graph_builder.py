@@ -2066,8 +2066,13 @@ g = graph.Graph()
         self.pd.finish(prof.accumulate)
 
     def _fix_problems(self) -> None:
+        # TODO: For reasons yet unexplained this import is enormously
+        # expensive.  Try to get rid of the circular dependency between
+        # fix_problems and this module.
+        self.pd.begin(prof.import_fix_problems)
         from beanmachine.ppl.compiler.fix_problems import fix_problems
 
+        self.pd.finish(prof.import_fix_problems)
         fix_problems(self, self._fix_observe_true).raise_errors()
 
     def infer(
@@ -2178,10 +2183,9 @@ g = graph.Graph()
 
         # TODO: Extract this logic to its own graph-building module.
 
-        g = Graph()
-
         self.pd.begin(prof.build_bmg_graph)
 
+        g = Graph()
         node_to_graph_id: Dict[BMGNode, int] = {}
         query_to_query_id: Dict[bn.Query, int] = {}
         bmg_query_count = 0
@@ -2232,8 +2236,10 @@ g = graph.Graph()
             raw = g.infer(num_samples, inference_type)
             self.pd.finish(prof.graph_infer)
             if produce_report:
+                self.pd.begin(prof.deserialize_perf_report)
                 js = g.performance_report()
                 report = pr.json_to_perf_report(js)
+                self.pd.finish(prof.deserialize_perf_report)
             assert len(raw) == num_samples
             assert len(raw[0]) == bmg_query_count
             samples = self._transpose_samples(raw)
