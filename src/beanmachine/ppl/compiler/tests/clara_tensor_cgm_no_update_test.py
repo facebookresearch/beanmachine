@@ -152,24 +152,23 @@ digraph "graph" {
   N17[label=-4.605170249938965];
   N18[label="+"];
   N19[label=LogSumExp];
-  N20[label=ToReal];
-  N21[label=Exp];
-  N22[label=ToProb];
-  N23[label=Bernoulli];
-  N24[label=Sample];
-  N25[label="Observation True"];
+  N20[label=Exp];
+  N21[label=ToProb];
+  N22[label=Bernoulli];
+  N23[label=Sample];
+  N24[label="Observation True"];
+  N25[label=Query];
   N26[label=Query];
   N27[label=Query];
-  N28[label=Query];
   N00 -> N01;
   N01 -> N02;
   N01 -> N03;
   N01 -> N04;
   N02 -> N06;
   N02 -> N13;
-  N02 -> N27;
+  N02 -> N26;
   N03 -> N08;
-  N03 -> N28;
+  N03 -> N27;
   N04 -> N15;
   N05 -> N06;
   N05 -> N08;
@@ -180,7 +179,7 @@ digraph "graph" {
   N09 -> N11;
   N10 -> N11;
   N11 -> N19;
-  N11 -> N26;
+  N11 -> N25;
   N12 -> N13;
   N13 -> N14;
   N14 -> N18;
@@ -193,10 +192,9 @@ digraph "graph" {
   N21 -> N22;
   N22 -> N23;
   N23 -> N24;
-  N24 -> N25;
 }
         """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = BMGInference().to_cpp(queries, observations)
         expected = """
@@ -249,23 +247,21 @@ n19 = g.add_operator(
   graph::OperatorType::LOGSUMEXP,
   std::vector<uint>({n11, n18}));
 uint n20 = g.add_operator(
-  graph::OperatorType::TO_REAL, std::vector<uint>({n19}));
+  graph::OperatorType::EXP, std::vector<uint>({n19}));
 uint n21 = g.add_operator(
-  graph::OperatorType::EXP, std::vector<uint>({n20}));
-uint n22 = g.add_operator(
-  graph::OperatorType::TO_PROBABILITY, std::vector<uint>({n21}));
-uint n23 = g.add_distribution(
+  graph::OperatorType::TO_PROBABILITY, std::vector<uint>({n20}));
+uint n22 = g.add_distribution(
   graph::DistributionType::BERNOULLI,
   graph::AtomicType::BOOLEAN,
-  std::vector<uint>({n22}));
-uint n24 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n23}));
-g.observe([n24], true);
+  std::vector<uint>({n21}));
+uint n23 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n22}));
+g.observe([n23], true);
 g.query(n11);
 g.query(n2);
 g.query(n3);
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = BMGInference().to_python(queries, observations)
         expected = """
@@ -307,17 +303,16 @@ n18 = g.add_operator(
 n19 = g.add_operator(
   graph.OperatorType.LOGSUMEXP,
   [n11, n18])
-n20 = g.add_operator(graph.OperatorType.TO_REAL, [n19])
-n21 = g.add_operator(graph.OperatorType.EXP, [n20])
-n22 = g.add_operator(graph.OperatorType.TO_PROBABILITY, [n21])
-n23 = g.add_distribution(
+n20 = g.add_operator(graph.OperatorType.EXP, [n19])
+n21 = g.add_operator(graph.OperatorType.TO_PROBABILITY, [n20])
+n22 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n22])
-n24 = g.add_operator(graph.OperatorType.SAMPLE, [n23])
-g.observe(n24, True)
+  [n21])
+n23 = g.add_operator(graph.OperatorType.SAMPLE, [n22])
+g.observe(n23, True)
 g.query(n11)
 g.query(n2)
 g.query(n3)
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
