@@ -1882,7 +1882,6 @@ class BMGraphBuilder:
         graph_types: bool = False,
         inf_types: bool = False,
         edge_requirements: bool = False,
-        point_at_input: bool = False,
         after_transform: bool = False,
         label_edges: bool = True,
     ) -> str:
@@ -1923,8 +1922,8 @@ class BMGraphBuilder:
                 # Bayesian networks are typically drawn with the arrows
                 # in the direction of data flow, not in the direction
                 # of dependency.
-                start_node = to_id(nodes[i]) if point_at_input else n
-                end_node = n if point_at_input else to_id(nodes[i])
+                start_node = to_id(nodes[i])
+                end_node = n
                 db.with_edge(start_node, end_node, edge_label)
         return str(db)
 

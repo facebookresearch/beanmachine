@@ -156,7 +156,6 @@ class BMGTypesTest(unittest.TestCase):
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
         expected = """
 digraph "graph" {
