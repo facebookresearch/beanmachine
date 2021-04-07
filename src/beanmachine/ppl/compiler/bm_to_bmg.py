@@ -15,7 +15,6 @@ from beanmachine.ppl.utils.ast_patterns import (
     assign,
     ast_assert,
     ast_domain,
-    ast_return,
     attribute,
     binop,
     call,
@@ -40,6 +39,7 @@ from beanmachine.ppl.utils.patterns import nonEmptyList
 from beanmachine.ppl.utils.rules import (
     AllOf as all_of,
     FirstMatch as first,
+    Pattern,
     PatternRule,
     Rule,
     TryMany as many,
@@ -136,97 +136,54 @@ _handle_dot = PatternRule(
     ),
 )
 
-_handle_not = PatternRule(
-    assign(value=unaryop(op=ast.Not)),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("handle_not", [a.value.operand])),
-)
 
-_handle_negate_usub = PatternRule(
-    assign(value=unaryop(op=ast.USub)),
-    lambda a: ast.Assign(a.targets, _make_bmg_call("handle_negate", [a.value.operand])),
-)
+def _handle_unary(p: Pattern, s: str) -> PatternRule:
+    # A rule which transforms
+    #
+    # x = OP y
+    #
+    # into
+    #
+    # x = bmg.handle_OP(y)
 
-_handle_addition = PatternRule(
-    assign(value=binop(op=ast.Add)),
-    lambda a: ast.Assign(
-        a.targets, _make_bmg_call("handle_addition", [a.value.left, a.value.right])
-    ),
-)
-
-_handle_multiplication = PatternRule(
-    assign(value=binop(op=ast.Mult)),
-    lambda a: ast.Assign(
-        a.targets,
-        _make_bmg_call("handle_multiplication", [a.value.left, a.value.right]),
-    ),
-)
-
-_handle_division = PatternRule(
-    assign(value=binop(op=ast.Div)),
-    lambda a: ast.Assign(
-        a.targets, _make_bmg_call("handle_division", [a.value.left, a.value.right])
-    ),
-)
-
-_handle_power = PatternRule(
-    assign(value=binop(op=ast.Pow)),
-    lambda a: ast.Assign(
-        a.targets, _make_bmg_call("handle_power", [a.value.left, a.value.right])
-    ),
-)
-
-_handle_equal = PatternRule(
-    assign(value=equal()),
-    lambda a: ast.Assign(
-        a.targets,
-        _make_bmg_call("handle_equal", [a.value.left, a.value.comparators[0]]),
-    ),
-)
-
-_handle_not_equal = PatternRule(
-    assign(value=not_equal()),
-    lambda a: ast.Assign(
-        a.targets,
-        _make_bmg_call("handle_not_equal", [a.value.left, a.value.comparators[0]]),
-    ),
-)
+    return PatternRule(
+        assign(value=unaryop(op=p)),
+        lambda a: ast.Assign(a.targets, _make_bmg_call(s, [a.value.operand])),
+    )
 
 
-_handle_greater_than = PatternRule(
-    assign(value=greater_than()),
-    lambda a: ast.Assign(
-        a.targets,
-        _make_bmg_call("handle_greater_than", [a.value.left, a.value.comparators[0]]),
-    ),
-)
+def _handle_binary(p: Pattern, s: str) -> PatternRule:
+    # A rule which transforms
+    #
+    # x = y OP z
+    #
+    # into
+    #
+    # x = bmg.handle_OP(y, z)
 
-_handle_greater_than_equal = PatternRule(
-    assign(value=greater_than_equal()),
-    lambda a: ast.Assign(
-        a.targets,
-        _make_bmg_call(
-            "handle_greater_than_equal", [a.value.left, a.value.comparators[0]]
+    return PatternRule(
+        assign(value=binop(op=p)),
+        lambda a: ast.Assign(
+            a.targets, _make_bmg_call(s, [a.value.left, a.value.right])
         ),
-    ),
-)
+    )
 
-_handle_less_than = PatternRule(
-    assign(value=less_than()),
-    lambda a: ast.Assign(
-        a.targets,
-        _make_bmg_call("handle_less_than", [a.value.left, a.value.comparators[0]]),
-    ),
-)
 
-_handle_less_than_equal = PatternRule(
-    assign(value=less_than_equal()),
-    lambda a: ast.Assign(
-        a.targets,
-        _make_bmg_call(
-            "handle_less_than_equal", [a.value.left, a.value.comparators[0]]
+def _handle_comparison(p: Pattern, s: str) -> PatternRule:
+    # A rule which transforms
+    #
+    # x = y OP z
+    #
+    # into
+    #
+    # x = bmg.handle_OP(y, z)
+
+    return PatternRule(
+        assign(value=p),
+        lambda a: ast.Assign(
+            a.targets, _make_bmg_call(s, [a.value.left, a.value.comparators[0]])
         ),
-    ),
-)
+    )
 
 
 _handle_index = PatternRule(
@@ -237,29 +194,26 @@ _handle_index = PatternRule(
 )
 
 
-_handle_sample = PatternRule(
-    ast_return(), lambda r: ast.Return(value=_make_bmg_call("handle_sample", [r.value]))
-)
-
+# TODO: What is missing here?
 _math_to_bmg: Rule = _top_down(
     once(
         first(
             [
                 _handle_dot,
                 _handle_call,
-                _handle_not,
-                _handle_negate_usub,
-                _handle_addition,
-                _handle_multiplication,
-                _handle_division,
-                _handle_power,
+                _handle_unary(ast.Not, "handle_not"),
+                _handle_unary(ast.USub, "handle_negate"),
+                _handle_binary(ast.Add, "handle_addition"),
+                _handle_binary(ast.Mult, "handle_multiplication"),
+                _handle_binary(ast.Div, "handle_division"),
+                _handle_binary(ast.Pow, "handle_power"),
                 _handle_index,
-                _handle_equal,
-                _handle_not_equal,
-                _handle_greater_than,
-                _handle_greater_than_equal,
-                _handle_less_than,
-                _handle_less_than_equal,
+                _handle_comparison(equal(), "handle_equal"),
+                _handle_comparison(not_equal(), "handle_not_equal"),
+                _handle_comparison(greater_than(), "handle_greater_than"),
+                _handle_comparison(greater_than_equal(), "handle_greater_than_equal"),
+                _handle_comparison(less_than(), "handle_less_than"),
+                _handle_comparison(less_than_equal(), "handle_less_than_equal"),
             ]
         )
     )
@@ -327,8 +281,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
                 t2 = 2
                 t3 = [t1, t2]
                 t4 = bmg.handle_function(Beta, t3)
-                t5 = bmg.handle_sample(t4)
-                return t5
+                return t4
             return coin"""
 
     assert type(f) in _supported_code_containers
