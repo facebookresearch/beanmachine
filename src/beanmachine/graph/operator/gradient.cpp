@@ -254,10 +254,10 @@ void ToMatrix::compute_gradients() {
   int cols = in_nodes[1]->value._natural;
   Grad1.resize(rows, cols);
   Grad2.resize(rows, cols);
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
-      Grad1(i, j) = in_nodes[2 + i * cols + j]->grad1;
-      Grad2(i, j) = in_nodes[2 + i * cols + j]->grad2;
+  for (int j = 0; j < cols; j++) {
+    for (int i = 0; i < rows; i++) {
+      Grad1(i, j) = in_nodes[2 + j * rows + i]->grad1;
+      Grad2(i, j) = in_nodes[2 + j * rows + i]->grad2;
     }
   }
 }
