@@ -298,6 +298,7 @@ enum class OperatorType {
   MATRIX_MULTIPLY,
   TO_PROBABILITY,
   INDEX,
+  COLUMN_INDEX,
   TO_MATRIX,
 };
 

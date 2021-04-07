@@ -45,5 +45,23 @@ class Index : public Operator {
   static bool is_registered;
 };
 
+class ColumnIndex : public Operator {
+ public:
+  explicit ColumnIndex(const std::vector<graph::Node*>& in_nodes);
+  ~ColumnIndex() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ColumnIndex>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 } // namespace oper
 } // namespace beanmachine

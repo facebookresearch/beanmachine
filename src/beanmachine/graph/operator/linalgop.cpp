@@ -109,5 +109,52 @@ void Index::eval(std::mt19937& /* gen */) {
   }
 }
 
+ColumnIndex::ColumnIndex(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::COLUMN_INDEX) {
+  if (in_nodes.size() != 2) {
+    throw std::invalid_argument("COLUMN_INDEX requires two parent nodes");
+  }
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  if (!((type0.variable_type == graph::VariableType::BROADCAST_MATRIX) or
+        (type0.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX))) {
+    throw std::invalid_argument(
+        "the first parent of COLUMN_INDEX must be a MATRIX");
+  }
+  graph::ValueType type1 = in_nodes[1]->value.type;
+  if (type1 != graph::AtomicType::NATURAL) {
+    // TODO: change type to ranged natural
+    throw std::invalid_argument(
+        "the second parent of COLUMN_INDEX must be NATURAL number");
+  }
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX, type0.atomic_type, type0.rows, 1));
+}
+
+void ColumnIndex::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 2);
+  const graph::NodeValue& matrix = in_nodes[0]->value;
+  graph::natural_t matrix_index = in_nodes[1]->value._natural;
+  if (matrix_index >= matrix.type.cols) {
+    throw std::runtime_error(
+        "invalid index for COLUMN_INDEX at node_id " + std::to_string(index));
+  }
+  graph::AtomicType matrix_type = matrix.type.atomic_type;
+  if (matrix_type == graph::AtomicType::BOOLEAN) {
+    value._bmatrix = matrix._bmatrix.col(matrix_index);
+  } else if (
+      matrix_type == graph::AtomicType::REAL or
+      matrix_type == graph::AtomicType::POS_REAL or
+      matrix_type == graph::AtomicType::NEG_REAL or
+      matrix_type == graph::AtomicType::PROBABILITY) {
+    value._matrix = matrix._matrix.col(matrix_index);
+  } else if (matrix_type == graph::AtomicType::NATURAL) {
+    value._nmatrix = matrix._nmatrix.col(matrix_index);
+  } else {
+    throw std::runtime_error(
+        "invalid parent type " + matrix.type.to_string() +
+        " for COLUMN_INDEX operator at node_id " + std::to_string(index));
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

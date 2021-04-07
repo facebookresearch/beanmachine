@@ -410,6 +410,57 @@ TEST(testgradient, backward_matrix_index) {
   EXPECT_NEAR(grad1[0]->_matrix(2), 4.0, 1e-3);
 }
 
+TEST(testgradient, backward_column_index) {
+  Graph g;
+
+  Eigen::MatrixXd m1(3, 2);
+  m1 << 2.0, 1.0, 0.5, 3.0, 3.0, 2.0;
+  uint cm1 = g.add_constant_pos_matrix(m1);
+  uint zero = g.add_constant((natural_t)0);
+
+  uint first_column = g.add_operator(OperatorType::COLUMN_INDEX, {cm1, zero});
+
+  uint one = g.add_constant((natural_t)1);
+  uint half = g.add_constant_probability(0.5);
+
+  uint diri_dist = g.add_distribution(
+      DistributionType::DIRICHLET,
+      ValueType(
+          VariableType::COL_SIMPLEX_MATRIX, AtomicType::PROBABILITY, 3, 1),
+      std::vector<uint>{first_column});
+  uint diri_sample = g.add_operator(OperatorType::SAMPLE, {diri_dist});
+
+  Eigen::MatrixXd obs(3, 1);
+  obs << 0.4, 0.1, 0.5;
+  g.observe(diri_sample, obs);
+
+  uint diri_index = g.add_operator(OperatorType::INDEX, {diri_sample, one});
+  uint half_prob = g.add_operator(OperatorType::MULTIPLY, {diri_index, half});
+
+  uint bernoulli_dist = g.add_distribution(
+      DistributionType::BERNOULLI, AtomicType::BOOLEAN, {half_prob});
+
+  uint bernoulli_sample =
+      g.add_operator(OperatorType::SAMPLE, {bernoulli_dist});
+  g.observe(bernoulli_sample, true);
+
+  // PyTorch verification
+  // diri = dist.Dirichlet(tensor([2.0, 0.5, 3.0]))
+  // diri_sample = tensor([0.4, 0.1, 0.5], requires_grad=True)
+  // half_prob = diri_sample[1] * 0.5
+  // bern = dist.Bernoulli(half_prob)
+  // bern_sample = tensor(1.0, requires_grad=True)
+  // log_prob = (bern.log_prob(bern_sample).sum()
+  //    + diri.log_prob(diri_sample).sum())
+  // grad(log_prob, diri_sample)
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 2);
+  EXPECT_NEAR(grad1[0]->_matrix(0), 2.5, 1e-3);
+  EXPECT_NEAR(grad1[0]->_matrix(1), 5.0, 1e-3);
+  EXPECT_NEAR(grad1[0]->_matrix(2), 4.0, 1e-3);
+}
+
 TEST(testgradient, forward_to_matrix) {
   Graph g;
   uint zero = g.add_constant(0.0);
