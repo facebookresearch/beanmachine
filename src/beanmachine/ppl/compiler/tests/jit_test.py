@@ -11,6 +11,7 @@ from beanmachine.ppl.compiler.bm_to_bmg import (
     _bm_function_to_bmg_function,
 )
 from beanmachine.ppl.compiler.bmg_nodes import ExpNode
+from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, Normal
 
@@ -239,7 +240,7 @@ def norm_helper(bmg):
 
         result = lifted_f(norm_sample)
         self.assertTrue(isinstance(result, ExpNode))
-        dot = bmg.to_dot()
+        dot = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -287,7 +288,7 @@ digraph "graph" {
 
         bmg = BMGraphBuilder()
         bmg._rv_to_node(flip())
-        dot = bmg.to_dot()
+        dot = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=2.0];
@@ -313,7 +314,7 @@ digraph "graph" {
         queries = [coin(), exp_coin()]
         observations = {flip(): tensor(1.0)}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot()
+        dot = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=2.0];
@@ -347,7 +348,7 @@ digraph "graph" {
         queries = [exp_norm(0)]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot()
+        dot = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -374,7 +375,7 @@ digraph "graph" {
         queries = [exp_coin_3()]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot()
+        dot = to_dot(bmg)
 
         # Note that though functional exp_coin_3 calls functional exp_coin_2,
         # we only get one query node emitted into the graph because the
@@ -416,7 +417,7 @@ digraph "graph" {
         queries = [coin_with_class()]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot()
+        dot = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=2.0];
@@ -521,7 +522,7 @@ digraph "graph" {
         queries = [beta_tensor_1a(), beta_tensor_1b()]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=2.0];

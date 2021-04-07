@@ -69,7 +69,6 @@ from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observa
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
-from beanmachine.ppl.utils.dotbuilder import DotBuilder
 from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import MemoizationKey, memoize
 
@@ -1861,71 +1860,6 @@ class BMGraphBuilder:
     # ####
     # #### Output
     # ####
-
-    # The graph builder can either construct the BMG nodes in memory
-    # directly, or return a Python or C++ program which does so.
-    #
-    # In addition, for debugging purposes we support dumping the
-    # graph as a DOT graph description.
-    #
-    # Note that there is a slight difference here; the DOT dump
-    # can give the entire graph that we have accumulated, including
-    # any orphaned nodes, or just the graph as it would be generated
-    # in BMG, depending on the value of the after_transform flag.
-
-    # The other output formats do a topological
-    # sort of the graph nodes and only output the nodes which are
-    # inputs into samples, queries, and observations.
-
-    def to_dot(
-        self,
-        graph_types: bool = False,
-        inf_types: bool = False,
-        edge_requirements: bool = False,
-        after_transform: bool = False,
-        label_edges: bool = True,
-    ) -> str:
-        """This dumps the entire accumulated graph state, including
-        orphans, as a DOT graph description; nodes are enumerated in the order
-        they were created."""
-        db = DotBuilder()
-
-        if after_transform:
-            self._fix_problems()
-            nodes = self._resort_nodes()
-        else:
-            nodes = self.nodes
-
-        max_length = len(str(len(nodes) - 1))
-
-        def to_id(index) -> str:
-            return "N" + str(index).zfill(max_length)
-
-        for node, index in nodes.items():
-            n = to_id(index)
-            node_label = node.label
-            if graph_types:
-                node_label += ":" + node.graph_type.short_name
-            if inf_types:
-                node_label += ">=" + node.inf_type.short_name
-            db.with_node(n, node_label)
-            for (i, edge_name, req) in zip(node.inputs, node.edges, node.requirements):
-                if label_edges:
-                    edge_label = edge_name
-                    if edge_requirements:
-                        edge_label += ":" + req.short_name
-                elif edge_requirements:
-                    edge_label = req.short_name
-                else:
-                    edge_label = ""
-
-                # Bayesian networks are typically drawn with the arrows
-                # in the direction of data flow, not in the direction
-                # of dependency.
-                start_node = to_id(nodes[i])
-                end_node = n
-                db.with_edge(start_node, end_node, edge_label)
-        return str(db)
 
     def to_bmg(self) -> Graph:
         """This transforms the accumulated graph into a BMG type system compliant

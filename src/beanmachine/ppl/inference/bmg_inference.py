@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple
 
 from beanmachine.graph import InferenceType
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
@@ -72,7 +73,9 @@ class BMGInference:
         graph_types = False
         inf_types = False
         edge_requirements = False
-        return self._accumulate_graph(queries, observations).to_dot(
+        bmg = self._accumulate_graph(queries, observations)
+        return to_dot(
+            bmg,
             graph_types,
             inf_types,
             edge_requirements,

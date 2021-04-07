@@ -32,6 +32,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     SetOfTensors,
     ToRealNode,
 )
+from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
 
@@ -73,7 +74,7 @@ class BMGraphBuilderTest(unittest.TestCase):
         bmg.add_observation(samp, True)
         bmg.add_query(mult)
 
-        observed = bmg.to_dot(label_edges=False)
+        observed = to_dot(bmg, label_edges=False)
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -181,7 +182,7 @@ g.query(n8);
         # by default. If you want them gone, the "after_transform" flag does
         # a type check and also removes everything that is not an ancestor
         # of a query or observation.
-        observed = bmg.to_dot(label_edges=False)
+        observed = to_dot(bmg, label_edges=False)
         expected = """
 digraph "graph" {
   N00[label=1];
@@ -1501,7 +1502,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
             SetOfTensors(i.support()),
             SetOfTensors([tensor(0.0), tensor(1.0), tensor(2.0), tensor(3.0)]),
         )
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N00[label=0.0];
@@ -1540,7 +1541,7 @@ digraph "graph" {
         b = bmg.add_bernoulli(p)
         s = bmg.add_sample(b)
         bmg.add_if_then_else(s, o, z)
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -1577,7 +1578,7 @@ digraph "graph" {
         t2 = bmg.add_tensor(torch.Size([3]), *[s, s, p])
         self.assertTrue(t1 is t2)
 
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -1600,7 +1601,7 @@ digraph "graph" {
         s = bmg.add_sample(b)
         o = bmg.add_observation(s, True)
 
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -1619,7 +1620,7 @@ digraph "graph" {
             bmg.remove_leaf(s)
 
         bmg.remove_leaf(o)
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -1633,7 +1634,7 @@ digraph "graph" {
 
         # Is a leaf now.
         bmg.remove_leaf(s)
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.5];
