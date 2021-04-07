@@ -35,22 +35,16 @@ from beanmachine.ppl.utils.ast_patterns import (
     subscript,
     unaryop,
 )
-from beanmachine.ppl.utils.fold_constants import _fold_unary_op, fold
-from beanmachine.ppl.utils.optimize import optimize
-from beanmachine.ppl.utils.patterns import ListAny, match_any, nonEmptyList
+from beanmachine.ppl.utils.fold_constants import _fold_unary_op
+from beanmachine.ppl.utils.patterns import nonEmptyList
 from beanmachine.ppl.utils.rules import (
-    AllListMembers,
     AllOf as all_of,
     FirstMatch as first,
-    ListEdit,
     PatternRule,
     Rule,
-    SomeListMembers,
     TryMany as many,
     TryOnce as once,
     always_replace,
-    if_then,
-    projection_rule,
     remove_from_list,
 )
 from beanmachine.ppl.utils.single_assignment import single_assignment
@@ -59,14 +53,11 @@ from beanmachine.ppl.utils.single_assignment import single_assignment
 # TODO: Detect unsupported operators
 # TODO: Detect unsupported control flow
 # TODO: Would be helpful if we could track original source code locations.
-# TODO: Collapse adds and multiplies in the graph
-# TODO: Impose a restruction that a sample method always returns a distribution
 
 _top_down = ast_domain.top_down
 _bottom_up = ast_domain.bottom_up
 _descend_until = ast_domain.descend_until
 _specific_child = ast_domain.specific_child
-
 
 _eliminate_assertion = PatternRule(ast_assert(), lambda a: remove_from_list)
 
@@ -274,68 +265,7 @@ _math_to_bmg: Rule = _top_down(
     )
 )
 
-# TODO: This assumes that the syntax is of the form "something.random_variable"
-# or "something.sample".  Can we be more general than that?
-_is_sample: PatternRule = PatternRule(
-    function_def(
-        decorator_list=ListAny(
-            match_any(attribute(attr="random_variable"), name(id="sample"))
-        )
-    )
-)
-
-# TODO: This assumes that the syntax is of the form "something.functional"
-# or "something.query". Can we be more general than that?
-_is_query: PatternRule = PatternRule(
-    function_def(
-        decorator_list=ListAny(
-            match_any(attribute(attr="functional"), name(id="query"))
-        )
-    )
-)
-
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
-
-
-# TODO: Delete this rule once we have eliminated all the tests that
-# use the whole-module compiler workflow
-_sample_returns: Rule = _descend_until(_is_sample, _top_down(once(_handle_sample)))
-
-_remove_query_decorator: Rule = _descend_until(
-    _is_query,
-    _specific_child(
-        "decorator_list",
-        SomeListMembers(
-            PatternRule(
-                match_any(attribute(attr="functional"), name(id="query")),
-                lambda n: remove_from_list,
-            )
-        ),
-    ),
-)
-
-_sample_to_memoize: Rule = _descend_until(
-    _is_sample,
-    _specific_child(
-        "decorator_list",
-        SomeListMembers(
-            PatternRule(
-                match_any(attribute(attr="random_variable"), name(id="sample")),
-                lambda n: ListEdit(
-                    [
-                        ast.Call(
-                            func=ast.Name(id="probabilistic", ctx=ast.Load()),
-                            args=[ast.Name(id="bmg", ctx=ast.Load())],
-                            keywords=[],
-                            returns=None,
-                        ),
-                        ast.Name(id="memoize", ctx=ast.Load()),
-                    ]
-                ),
-            )
-        ),
-    ),
-)
 
 _replace_with_empty_list = always_replace([])
 
@@ -348,51 +278,24 @@ _remove_all_decorators: Rule = _descend_until(
 )
 
 
-_samples_to_calls = AllListMembers(
-    if_then(
-        all_of([_is_sample, _no_params]),
-        projection_rule(
-            lambda f: ast.Call(
-                func=ast.Name(id=f.name, ctx=ast.Load()), args=[], keywords=[]
-            )
-        ),
-        projection_rule(lambda f: remove_from_list),
-    )
-)
-
-
 # TODO: Add classes, lambdas, and so on
 _supported_code_containers = {types.MethodType, types.FunctionType}
 
 
-def _bm_ast_to_bmg_ast(
-    a: ast.AST, run_optimizer: bool, remove_all_decorators: bool, sample_returns: bool
-) -> ast.AST:
+def _bm_ast_to_bmg_ast(a: ast.AST) -> ast.AST:
     no_asserts = _eliminate_all_assertions(a).expect_success()
-    # TODO: Eventually remove the folder / optimizer; we can do optimization
-    # TODO: and folding when we generate the graph. No need to do it on source.
-    optimized = optimize(fold(no_asserts)) if run_optimizer else no_asserts
-    assert isinstance(optimized, ast.Module)
-    # The AST has now had constants folded and associative
-    # operators are nested to the left.
-    arithmetic_fixed = _fix_arithmetic(optimized).expect_success()
+    assert isinstance(no_asserts, ast.Module)
+    # TODO: Eliminate arithmetic fixing; instead have the graph builder
+    # capture subtractions and rewrite them into additions in a problem
+    # fixing pass.
+    arithmetic_fixed = _fix_arithmetic(no_asserts).expect_success()
     assert isinstance(arithmetic_fixed, ast.Module)
     # The AST has now eliminated all subtractions; negative constants
     # are represented as constants, not as USubs
     sa = single_assignment(arithmetic_fixed)
     assert isinstance(sa, ast.Module)
     # Now we're in single assignment form.
-
-    rewrites = [_math_to_bmg]
-
-    if sample_returns:
-        rewrites += [_sample_returns]
-
-    if remove_all_decorators:
-        rewrites += [_remove_all_decorators]
-    else:
-        rewrites += [_sample_to_memoize, _remove_query_decorator]
-
+    rewrites = [_math_to_bmg, _remove_all_decorators]
     bmg = all_of(rewrites)(sa).expect_success()
     assert isinstance(bmg, ast.Module)
     return bmg
@@ -442,7 +345,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
     assert isinstance(a.body[0], ast.FunctionDef), f"{str(type(a.body[0]))}\n{source}"
     # TODO: Add support for classes, generators, lambdas, and so on.
 
-    bmg = _bm_ast_to_bmg_ast(a, False, True, False)
+    bmg = _bm_ast_to_bmg_ast(a)
     assert isinstance(bmg, ast.Module)
     assert len(bmg.body) == 1
     bmg_f = bmg.body[0]
