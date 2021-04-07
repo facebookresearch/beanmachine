@@ -32,7 +32,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     SetOfTensors,
     ToRealNode,
 )
-from beanmachine.ppl.compiler.bmg_types import PositiveReal, Real
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
 
@@ -1527,125 +1526,6 @@ digraph "graph" {
   N09 -> N08[label=3];
   N10 -> N07[label=right];
   N10 -> N09[label=left];
-}
-"""
-        self.assertEqual(observed.strip(), expected.strip())
-
-    def test_normal(self) -> None:
-        bmg = BMGraphBuilder()
-        t0 = bmg.add_constant_tensor(tensor(0.0))
-        t1 = bmg.add_constant_tensor(tensor(1.0))
-        n = bmg.add_normal(t0, t1)
-        bmg.add_sample(n)
-        observed = bmg.to_dot()
-        expected = """
-digraph "graph" {
-  N0[label=0.0];
-  N1[label=1.0];
-  N2[label=Normal];
-  N3[label=Sample];
-  N2 -> N0[label=mu];
-  N2 -> N1[label=sigma];
-  N3 -> N2[label=operand];
-}
-"""
-        self.assertEqual(observed.strip(), expected.strip())
-
-    def test_dirichlet(self) -> None:
-        bmg = BMGraphBuilder()
-        t0 = bmg.add_constant_tensor(tensor([1.0, 2.0, 3.0]))
-        d = bmg.add_dirichlet(t0)
-        bmg.add_sample(d)
-        observed = bmg.to_dot()
-        expected = """
-digraph "graph" {
-  N0[label="[1.0,2.0,3.0]"];
-  N1[label=Dirichlet];
-  N2[label=Sample];
-  N1 -> N0[label=concentration];
-  N2 -> N1[label=operand];
-}
-"""
-        self.assertEqual(observed.strip(), expected.strip())
-
-    def test_studentt(self) -> None:
-        bmg = BMGraphBuilder()
-        df = bmg.add_constant_of_type(3.0, PositiveReal)
-        loc = bmg.add_constant_of_type(2.0, Real)
-        scale = bmg.add_constant_of_type(1.0, PositiveReal)
-        d = bmg.add_studentt(df, loc, scale)
-        bmg.add_sample(d)
-        observed = bmg.to_dot(True, False, False, True)
-        expected = """
-digraph "graph" {
-  N0[label="3.0:R+"];
-  N1[label="2.0:R"];
-  N2[label="1.0:R+"];
-  N3[label="StudentT:R"];
-  N4[label="Sample:R"];
-  N0 -> N3[label=df];
-  N1 -> N3[label=loc];
-  N2 -> N3[label=scale];
-  N3 -> N4[label=operand];
-}
-"""
-        self.assertEqual(observed.strip(), expected.strip())
-
-    def test_halfcauchy(self) -> None:
-        bmg = BMGraphBuilder()
-        scale = bmg.add_constant(1.0)
-        d = bmg.add_halfcauchy(scale)
-        bmg.add_sample(d)
-        observed = bmg.to_dot()
-        expected = """
-digraph "graph" {
-  N0[label=1.0];
-  N1[label=HalfCauchy];
-  N2[label=Sample];
-  N1 -> N0[label=scale];
-  N2 -> N1[label=operand];
-}
-"""
-        self.assertEqual(observed.strip(), expected.strip())
-
-    def test_gamma(self) -> None:
-        bmg = BMGraphBuilder()
-        concentration = bmg.add_pos_real(1.0)
-        rate = bmg.add_pos_real(2.0)
-        d = bmg.add_gamma(concentration, rate)
-        bmg.add_sample(d)
-        observed = bmg.to_dot(True, False, True, True)
-        expected = """
-digraph "graph" {
-  N0[label="1.0:R+"];
-  N1[label="2.0:R+"];
-  N2[label="Gamma:R+"];
-  N3[label="Sample:R+"];
-  N0 -> N2[label="concentration:R+"];
-  N1 -> N2[label="rate:R+"];
-  N2 -> N3[label="operand:R+"];
-}
-"""
-        self.assertEqual(observed.strip(), expected.strip())
-
-    def test_chi2(self) -> None:
-        bmg = BMGraphBuilder()
-        df = bmg.add_pos_real(1.0)
-        d = bmg.add_chi2(df)
-        bmg.add_sample(d)
-        observed = bmg.to_dot(
-            graph_types=True,
-            inf_types=False,
-            edge_requirements=True,
-            point_at_input=True,
-        )
-        expected = """
-digraph "graph" {
-  N0[label="1.0:R+"];
-  N1[label="Chi2:R+"];
-  N2[label="Sample:R+"];
-  N0 -> N1[label="df:R+"];
-  N1 -> N2[label="operand:R+"];
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
