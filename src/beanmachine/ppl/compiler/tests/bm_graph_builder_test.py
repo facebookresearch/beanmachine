@@ -73,7 +73,7 @@ class BMGraphBuilderTest(unittest.TestCase):
         bmg.add_observation(samp, True)
         bmg.add_query(mult)
 
-        observed = bmg.to_dot(point_at_input=True, label_edges=False)
+        observed = bmg.to_dot(label_edges=False)
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -181,7 +181,7 @@ g.query(n8);
         # by default. If you want them gone, the "after_transform" flag does
         # a type check and also removes everything that is not an ancestor
         # of a query or observation.
-        observed = bmg.to_dot(point_at_input=True, label_edges=False)
+        observed = bmg.to_dot(label_edges=False)
         expected = """
 digraph "graph" {
   N00[label=1];
@@ -1483,6 +1483,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
     def test_maps(self) -> None:
         # TODO: Eliminate map nodes and delete this test
+        self.maxDiff = None
         bmg = BMGraphBuilder()
 
         t0 = bmg.add_constant_tensor(tensor(0.0))
@@ -1514,23 +1515,24 @@ digraph "graph" {
   N08[label="+"];
   N09[label=map];
   N10[label=index];
-  N04 -> N03[label=probability];
-  N05 -> N04[label=operand];
-  N06 -> N04[label=operand];
-  N07 -> N04[label=operand];
-  N08 -> N02[label=right];
-  N08 -> N06[label=left];
-  N09 -> N00[label=0];
-  N09 -> N01[label=2];
-  N09 -> N05[label=1];
-  N09 -> N08[label=3];
-  N10 -> N07[label=right];
-  N10 -> N09[label=left];
+  N00 -> N09[label=0];
+  N01 -> N09[label=2];
+  N02 -> N08[label=right];
+  N03 -> N04[label=probability];
+  N04 -> N05[label=operand];
+  N04 -> N06[label=operand];
+  N04 -> N07[label=operand];
+  N05 -> N09[label=1];
+  N06 -> N08[label=left];
+  N07 -> N10[label=right];
+  N08 -> N09[label=3];
+  N09 -> N10[label=left];
 }
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_if_then_else(self) -> None:
+        self.maxDiff = None
         bmg = BMGraphBuilder()
         p = bmg.add_constant(0.5)
         z = bmg.add_constant(0.0)
@@ -1547,14 +1549,14 @@ digraph "graph" {
   N3[label=Bernoulli];
   N4[label=Sample];
   N5[label=if];
-  N3 -> N0[label=probability];
-  N4 -> N3[label=operand];
-  N5 -> N1[label=alternative];
-  N5 -> N2[label=consequence];
-  N5 -> N4[label=condition];
+  N0 -> N3[label=probability];
+  N1 -> N5[label=alternative];
+  N2 -> N5[label=consequence];
+  N3 -> N4[label=operand];
+  N4 -> N5[label=condition];
 }
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_allowed_functions(self) -> None:
         bmg = BMGraphBuilder()
@@ -1575,7 +1577,7 @@ digraph "graph" {
         t2 = bmg.add_tensor(torch.Size([3]), *[s, s, p])
         self.assertTrue(t1 is t2)
 
-        observed = bmg.to_dot(point_at_input=True)
+        observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -1598,7 +1600,7 @@ digraph "graph" {
         s = bmg.add_sample(b)
         o = bmg.add_observation(s, True)
 
-        observed = bmg.to_dot(point_at_input=True)
+        observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -1617,7 +1619,7 @@ digraph "graph" {
             bmg.remove_leaf(s)
 
         bmg.remove_leaf(o)
-        observed = bmg.to_dot(point_at_input=True)
+        observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.5];
@@ -1631,7 +1633,7 @@ digraph "graph" {
 
         # Is a leaf now.
         bmg.remove_leaf(s)
-        observed = bmg.to_dot(point_at_input=True)
+        observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.5];

@@ -39,7 +39,6 @@ class FixProblemsTest(unittest.TestCase):
             graph_types=True,
             inf_types=False,
             edge_requirements=True,
-            point_at_input=True,
         )
         expected = """
 digraph "graph" {
@@ -73,7 +72,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=False,
             edge_requirements=True,
-            point_at_input=True,
         )
         expected = """
 digraph "graph" {
@@ -145,7 +143,11 @@ digraph "graph" {
         bmg.add_sample(norm)
         bmg.add_sample(bino)
 
-        observed = bmg.to_dot(True, False, True, True)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=False,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N0[label="1.0:T"];
@@ -172,7 +174,11 @@ digraph "graph" {
         self.assertEqual(observed.strip(), expected.strip())
 
         fix_problems(bmg)
-        observed = bmg.to_dot(True, False, True, True)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=False,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="1.0:T"];
@@ -282,7 +288,11 @@ The sigma of a Normal is required to be a positive real but is a negative real.
         bino = bmg.add_binomial(mult, half)
         bmg.add_sample(bino)
 
-        observed = bmg.to_dot(True, True, True, True)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -313,7 +323,11 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = bmg.to_dot(True, True, True, True)
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 
@@ -380,7 +394,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -443,7 +456,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -471,8 +483,11 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = bmg.to_dot(True, True, True, True)
-
+        observed = bmg.to_dot(
+            graph_types=True,
+            inf_types=True,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="1.0:R>=OH"];
@@ -562,7 +577,6 @@ The unsupported node is the operand of a Sample.
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -589,7 +603,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -648,7 +661,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -684,7 +696,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -749,7 +760,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -783,7 +793,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -840,7 +849,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -871,7 +879,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """
@@ -970,7 +977,6 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         # The observations have been converted to the correct types:
@@ -1031,7 +1037,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=False,
             edge_requirements=True,
-            point_at_input=True,
         )
 
         expected = """

@@ -33,7 +33,7 @@ class TensorOperationsTest(unittest.TestCase):
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse1()], {})
-        observed = bmg.to_dot(point_at_input=True)
+        observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -63,7 +63,7 @@ digraph "graph" {
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse2()], {})
-        observed = bmg.to_dot(point_at_input=True)
+        observed = bmg.to_dot()
         self.assertEqual(observed.strip(), expected.strip())
 
         # Now try generating a BMG from them. The problem fixer should
@@ -93,5 +93,5 @@ digraph "graph" {
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse1()], {})
-        observed = bmg.to_dot(point_at_input=True, after_transform=True)
+        observed = bmg.to_dot(after_transform=True)
         self.assertEqual(observed.strip(), expected.strip())

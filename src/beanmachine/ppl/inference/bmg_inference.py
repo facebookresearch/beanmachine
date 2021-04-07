@@ -71,13 +71,11 @@ class BMGInference:
         representing the graph deduced from the model."""
         graph_types = False
         inf_types = False
-        point_at_input = True
         edge_requirements = False
         return self._accumulate_graph(queries, observations).to_dot(
             graph_types,
             inf_types,
             edge_requirements,
-            point_at_input,
             after_transform,
             label_edges,
         )

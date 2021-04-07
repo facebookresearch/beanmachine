@@ -196,7 +196,6 @@ digraph "graph" {
         observed = bmg.to_dot(
             graph_types=True,
             inf_types=True,
-            point_at_input=True,
             label_edges=False,
             after_transform=True,
         )
@@ -261,7 +260,6 @@ Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1   2
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
             after_transform=False,
             label_edges=False,
         )
@@ -377,7 +375,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
             after_transform=True,
             label_edges=False,
         )
@@ -409,7 +406,6 @@ digraph "graph" {
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
-            point_at_input=True,
             after_transform=True,
             label_edges=False,
         )
