@@ -113,9 +113,7 @@ class StochasticControlFlowTest(unittest.TestCase):
         # in reality there is only one possibility. We should ensure
         # that we generate a graph with no choice points.
 
-        observed = bmg.to_dot(
-            point_at_input=True, after_transform=True, label_edges=False
-        )
+        observed = bmg.to_dot(after_transform=True, label_edges=False)
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -147,9 +145,7 @@ digraph "graph" {
         # Note that we generate an if-then-else node here to express the
         # flip that chooses between two alternatives, and therefore can
         # lower this to a form that BMG would accept.
-        observed = bmg.to_dot(
-            point_at_input=True, after_transform=True, label_edges=True
-        )
+        observed = bmg.to_dot(after_transform=True, label_edges=True)
         expected = """
 digraph "graph" {
   N00[label=2.0];
@@ -202,9 +198,7 @@ digraph "graph" {
         # Now we have three possibilities, and we cannot yet represent
         # that in BMG.
         # TODO: When we can represent this in BMG, update this test.
-        observed = bmg.to_dot(
-            point_at_input=True, after_transform=False, label_edges=True
-        )
+        observed = bmg.to_dot(after_transform=False, label_edges=True)
         expected = """
 digraph "graph" {
   N00[label=0.5];
@@ -276,9 +270,7 @@ digraph "graph" {
 
         # Here we have four possibilities but since each is a Boolean choice
         # it turns out we can in fact represent it.
-        observed = bmg.to_dot(
-            point_at_input=True, after_transform=True, label_edges=True
-        )
+        observed = bmg.to_dot(after_transform=True, label_edges=True)
         expected = """
 digraph "graph" {
   N00[label=0.5];

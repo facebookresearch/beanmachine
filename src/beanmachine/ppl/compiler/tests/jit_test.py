@@ -239,7 +239,7 @@ def norm_helper(bmg):
 
         result = lifted_f(norm_sample)
         self.assertTrue(isinstance(result, ExpNode))
-        dot = bmg.to_dot(point_at_input=True)
+        dot = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -287,7 +287,7 @@ digraph "graph" {
 
         bmg = BMGraphBuilder()
         bmg._rv_to_node(flip())
-        dot = bmg.to_dot(point_at_input=True)
+        dot = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=2.0];
@@ -313,7 +313,7 @@ digraph "graph" {
         queries = [coin(), exp_coin()]
         observations = {flip(): tensor(1.0)}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot(point_at_input=True)
+        dot = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=2.0];
@@ -347,7 +347,7 @@ digraph "graph" {
         queries = [exp_norm(0)]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot(point_at_input=True)
+        dot = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -374,7 +374,7 @@ digraph "graph" {
         queries = [exp_coin_3()]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot(point_at_input=True)
+        dot = bmg.to_dot()
 
         # Note that though functional exp_coin_3 calls functional exp_coin_2,
         # we only get one query node emitted into the graph because the
@@ -416,7 +416,7 @@ digraph "graph" {
         queries = [coin_with_class()]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        dot = bmg.to_dot(point_at_input=True)
+        dot = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=2.0];
@@ -521,7 +521,7 @@ digraph "graph" {
         queries = [beta_tensor_1a(), beta_tensor_1b()]
         observations = {}
         bmg.accumulate_graph(queries, observations)
-        observed = bmg.to_dot(point_at_input=True)
+        observed = bmg.to_dot()
         expected = """
 digraph "graph" {
   N0[label=2.0];
