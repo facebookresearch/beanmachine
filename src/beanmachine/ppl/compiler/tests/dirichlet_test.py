@@ -16,6 +16,7 @@ from beanmachine.graph import (
     VariableType,
 )
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.inference import BMGInference, SingleSiteNewtonianMonteCarlo
 from torch import Size, tensor
 from torch.distributions import Bernoulli, Dirichlet
@@ -193,7 +194,8 @@ digraph "graph" {
   N2 -> N3;
   N4 -> N5;
 }"""
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             label_edges=False,
@@ -256,7 +258,8 @@ Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1   2
         bmg = BMGraphBuilder()
         queries = [d0(), d1b(), d1c(), d1d(), d2a(), d2b(), d2c(), d23()]
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -371,7 +374,8 @@ digraph "graph" {
         queries = [d2a()]
         observations = {d2a(): tensor([0.5, 0.5])}
         bmg.accumulate_graph(queries, observations)
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -402,7 +406,8 @@ digraph "graph" {
         bmg = BMGraphBuilder()
         queries = [d1b()]
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,

@@ -4,6 +4,7 @@ import unittest
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problems import fix_problems
+from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import tensor
 
 
@@ -35,7 +36,8 @@ class FixProblemsTest(unittest.TestCase):
         bmg.add_sample(bern)
         bmg.add_query(mult)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=False,
             edge_requirements=True,
@@ -68,7 +70,8 @@ digraph "graph" {
         self.assertEqual(observed.strip(), expected.strip())
 
         fix_problems(bmg)
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=False,
             edge_requirements=True,
@@ -143,7 +146,8 @@ digraph "graph" {
         bmg.add_sample(norm)
         bmg.add_sample(bino)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=False,
             edge_requirements=True,
@@ -174,7 +178,8 @@ digraph "graph" {
         self.assertEqual(observed.strip(), expected.strip())
 
         fix_problems(bmg)
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=False,
             edge_requirements=True,
@@ -288,7 +293,8 @@ The sigma of a Normal is required to be a positive real but is a negative real.
         bino = bmg.add_binomial(mult, half)
         bmg.add_sample(bino)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -323,7 +329,8 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -390,7 +397,8 @@ digraph "graph" {
         expected = ""
         self.assertEqual(observed.strip(), expected.strip())
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -452,7 +460,8 @@ digraph "graph" {
         norm = bmg.add_normal(q, one)
         bmg.add_sample(norm)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -483,7 +492,8 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -573,7 +583,8 @@ The unsupported node is the operand of a Sample.
         chi2 = bmg.add_chi2(hcs)
         bmg.add_sample(chi2)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -599,7 +610,8 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -657,7 +669,8 @@ digraph "graph" {
         bino = bmg.add_binomial(powr, half)
         bmg.add_sample(bino)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -692,7 +705,8 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -756,7 +770,8 @@ digraph "graph" {
         bern = bmg.add_bernoulli(complement)
         bmg.add_sample(bern)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -789,7 +804,8 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -845,7 +861,8 @@ digraph "graph" {
         beta2 = bmg.add_beta(neglogprob, two)
         bmg.add_sample(beta2)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -875,7 +892,8 @@ digraph "graph" {
         error_report = fix_problems(bmg)
         self.assertEqual(str(error_report).strip(), "")
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -973,7 +991,8 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
 
         error_report = fix_problems(bmg)
         self.assertEqual(str(error_report).strip(), "")
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,
@@ -1033,7 +1052,8 @@ digraph "graph" {
 
         error_report = fix_problems(bmg)
         self.assertEqual(str(error_report).strip(), "")
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=False,
             edge_requirements=True,

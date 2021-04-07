@@ -2,6 +2,7 @@
 import unittest
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_dot import to_dot
 
 
 def tidy(s: str) -> str:
@@ -20,7 +21,7 @@ class BMGFactorTest(unittest.TestCase):
         x_sq = bmg.add_multiplication(x, x)
         bmg.add_exp_product(x, prob1, x_sq)
         bmg.add_observation(x, 7.0)
-        observed = bmg.to_dot(label_edges=False)
+        observed = to_dot(bmg, label_edges=False)
         expected = """
 digraph "graph" {
   N0[label=2.0];
