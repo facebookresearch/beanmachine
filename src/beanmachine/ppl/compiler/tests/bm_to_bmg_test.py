@@ -2,16 +2,7 @@
 """Tests for bm_to_bmg.py"""
 import unittest
 
-import astor
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bm_to_bmg import (
-    _bm_function_to_bmg_function,
-    to_bmg,
-    to_cpp,
-    to_dot,
-    to_python,
-    to_python_raw,
-)
+from beanmachine.ppl.compiler.bm_to_bmg import to_dot_deprecated
 
 
 # flake8 does not provide any mechanism to disable warnings in
@@ -45,65 +36,6 @@ def y():
     return Bernoulli(logits=X.mm(beta()))
 """
 
-expected_raw_10 = """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-from torch import tensor, zeros
-from torch.distributions import Normal, Bernoulli
-N = 3
-K = 2
-a9 = 1.0
-a14 = 10
-a19 = 20
-a5 = [a9, a14, a19]
-a15 = 1.0
-a20 = -100
-a24 = -190
-a10 = [a15, a20, a24]
-a21 = 1.0
-a25 = -101
-a29 = -192
-a16 = [a21, a25, a29]
-a1 = [a5, a10, a16]
-X = bmg.handle_function(tensor, [a1], {})
-intercept_scale = 0.9
-a2 = 1.2
-a6 = 2.3
-coef_scale = [a2, a6]
-
-
-@probabilistic(bmg)
-@memoize
-def beta():
-    a11 = K + 1, 1
-    a7 = bmg.handle_function(zeros, [a11], {})
-    a30 = [intercept_scale]
-    a26 = bmg.handle_addition(a30, coef_scale)
-    a22 = bmg.handle_function(tensor, [a26], {})
-    a17 = bmg.handle_dot_get(a22, 'view')
-    a27 = 1
-    a23 = bmg.handle_addition(K, a27)
-    a28 = 1
-    a12 = bmg.handle_function(a17, [a23, a28], {})
-    r3 = bmg.handle_function(Normal, [a7, a12], {})
-    return bmg.handle_sample(r3)
-
-
-@probabilistic(bmg)
-@memoize
-def y():
-    a13 = bmg.handle_dot_get(X, 'mm')
-    a18 = bmg.handle_function(beta, [], {})
-    a8 = bmg.handle_function(a13, [a18], {})
-    r4 = bmg.handle_function(Bernoulli, [], {**{'logits': a8}})
-    return bmg.handle_sample(r4)
-
-
-roots = [beta(), y()]
-"""
 
 expected_dot_10 = """
 digraph "graph" {
@@ -150,72 +82,6 @@ _1 = 0
 _2 = all_requests_accepted(_1)
 """
 
-expected_raw_11 = """
-import beanmachine.ppl as bm
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-from torch import tensor
-from torch.distributions import Bernoulli
-FAKE_PRIOR = 0.001
-a14 = 0.01
-a19 = 0.02
-a24 = 0.03
-a8 = [a14, a19, a24]
-r4 = [a8]
-FAKE_REQ_PROB = bmg.handle_function(tensor, [*r4], {})
-a15 = 0.04
-a20 = 0.05
-a25 = 0.06
-a9 = [a15, a20, a25]
-r5 = [a9]
-REAL_REQ_PROB = bmg.handle_function(tensor, [*r5], {})
-REQ_PROB = [REAL_REQ_PROB, FAKE_REQ_PROB]
-a16 = 0.99
-a21 = 0.5
-a26 = 0.07
-a10 = [a16, a21, a26]
-r6 = [a10]
-REAL_ACC_PROB = bmg.handle_function(tensor, [*r6], {})
-
-
-@probabilistic(bmg)
-@memoize
-def is_fake(account):
-    r11 = [FAKE_PRIOR]
-    r1 = bmg.handle_function(Bernoulli, [*r11], {})
-    return bmg.handle_sample(r1)
-
-
-@probabilistic(bmg)
-@memoize
-def all_requests_sent(account):
-    r27 = [account]
-    a22 = bmg.handle_function(is_fake, [*r27], {})
-    a17 = bmg.handle_index(REQ_PROB, a22)
-    r12 = [a17]
-    r2 = bmg.handle_function(Bernoulli, [*r12], {})
-    return bmg.handle_sample(r2)
-
-
-@probabilistic(bmg)
-@memoize
-def all_requests_accepted(account):
-    r28 = [account]
-    a23 = bmg.handle_function(all_requests_sent, [*r28], {})
-    a18 = bmg.handle_multiplication(REAL_ACC_PROB, a23)
-    r13 = [a18]
-    r3 = bmg.handle_function(Bernoulli, [*r13], {})
-    return bmg.handle_sample(r3)
-
-
-_1 = 0
-r7 = [_1]
-_2 = bmg.handle_function(all_requests_accepted, [*r7], {})
-roots = []
-"""
 
 expected_dot_11 = """
 digraph "graph" {
@@ -391,39 +257,25 @@ digraph "graph" {
 
 
 class CompilerTest(unittest.TestCase):
-    def disabled_test_to_python_raw_10(self) -> None:
-        # TODO: Enable this test when we support compilation of
-        # TODO: vectorized models.
-        self.maxDiff = None
-        observed = to_python_raw(source10)
-        self.assertEqual(observed.strip(), expected_raw_10.strip())
-
-    def disabled_test_to_python_raw_11(self) -> None:
-        # TODO: Enable this test when we support compilation of
-        # TODO: vectorized models.
-        self.maxDiff = None
-        observed = to_python_raw(source11)
-        self.assertEqual(observed.strip(), expected_raw_11.strip())
-
     def disabled_test_to_dot_10(self) -> None:
         # TODO: This crashes; something is broken with matrix multiplication.
         self.maxDiff = None
-        observed = to_dot(source10)
+        observed = to_dot_deprecated(source10)
         self.assertEqual(observed.strip(), expected_dot_10.strip())
 
     def disabled_test_to_dot_11(self) -> None:
         # TODO: This test is disabled because we do not yet support the indexing
         # operation where we choose via a stochastic list index which tensor to use.
         self.maxDiff = None
-        observed = to_dot(source11)
+        observed = to_dot_deprecated(source11)
         self.assertEqual(observed.strip(), expected_dot_11.strip())
 
     def test_to_dot_13(self) -> None:
         self.maxDiff = None
-        observed = to_dot(source13)
+        observed = to_dot_deprecated(source13)
         self.assertEqual(observed.strip(), expected_dot_13.strip())
 
     def test_to_dot_14(self) -> None:
         self.maxDiff = None
-        observed = to_dot(source14)
+        observed = to_dot_deprecated(source14)
         self.assertEqual(observed.strip(), expected_dot_14.strip())
