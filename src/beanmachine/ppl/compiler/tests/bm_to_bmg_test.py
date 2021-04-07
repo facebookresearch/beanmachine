@@ -23,84 +23,6 @@ def tidy(s: str) -> str:
     return "\n".join(c.strip() for c in s.strip().split("\n")).strip()
 
 
-# Neal's funnel
-source7 = """
-import beanmachine.ppl as bm
-from torch.distributions import Normal
-from torch import exp
-
-@bm.random_variable
-def X():
-  return Normal(0.0, 3.0)
-
-@bm.random_variable
-def Y():
-    return Normal(loc=0.0, scale=exp(X() * 0.5))
-"""
-
-expected_raw_7 = """
-from beanmachine.ppl.utils.memoize import memoize
-from beanmachine.ppl.utils.probabilistic import probabilistic
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-_lifted_to_bmg: bool = True
-bmg = BMGraphBuilder()
-from torch.distributions import Normal
-from torch import exp
-
-
-@probabilistic(bmg)
-@memoize
-def X():
-    a9 = 0.0
-    a7 = [a9]
-    a12 = 3.0
-    a10 = [a12]
-    r5 = bmg.handle_addition(a7, a10)
-    r1 = bmg.handle_function(Normal, [*r5], {})
-    return bmg.handle_sample(r1)
-
-
-@probabilistic(bmg)
-@memoize
-def Y():
-    a3 = 0.0
-    a11 = bmg.handle_function(X, [], {})
-    a13 = 0.5
-    a8 = bmg.handle_multiplication(a11, a13)
-    r6 = [a8]
-    a4 = bmg.handle_function(exp, [*r6], {})
-    r2 = bmg.handle_function(Normal, [], {**{'loc': a3}, **{'scale': a4}})
-    return bmg.handle_sample(r2)
-
-
-roots = [X(), Y()]
-"""
-
-expected_dot_7 = """
-digraph "graph" {
-  N0[label=0.0];
-  N1[label=3.0];
-  N2[label=Normal];
-  N3[label=Sample];
-  N4[label=0.5];
-  N5[label="*"];
-  N6[label=Exp];
-  N7[label=0.0];
-  N8[label=Normal];
-  N9[label=Sample];
-  N2 -> N0[label=mu];
-  N2 -> N1[label=sigma];
-  N3 -> N2[label=operand];
-  N5 -> N3[label=left];
-  N5 -> N4[label=right];
-  N6 -> N5[label=operand];
-  N8 -> N6[label=sigma];
-  N8 -> N7[label=mu];
-  N9 -> N8[label=operand];
-}
-"""
-
-
 # Bayesian regression
 source10 = """
 import beanmachine.ppl as bm
@@ -469,12 +391,6 @@ digraph "graph" {
 
 
 class CompilerTest(unittest.TestCase):
-    def disabled_test_to_python_raw_7(self) -> None:
-        # TODO: This crashes the compiler; figure out why
-        self.maxDiff = None
-        observed = to_python_raw(source7)
-        self.assertEqual(observed.strip(), expected_raw_7.strip())
-
     def disabled_test_to_python_raw_10(self) -> None:
         # TODO: Enable this test when we support compilation of
         # TODO: vectorized models.
@@ -488,12 +404,6 @@ class CompilerTest(unittest.TestCase):
         self.maxDiff = None
         observed = to_python_raw(source11)
         self.assertEqual(observed.strip(), expected_raw_11.strip())
-
-    def disabled_test_to_dot_7(self) -> None:
-        # TODO: This crashes the compiler; figure out why
-        self.maxDiff = None
-        observed = to_dot(source7)
-        self.assertEqual(observed.strip(), expected_dot_7.strip())
 
     def disabled_test_to_dot_10(self) -> None:
         # TODO: This crashes; something is broken with matrix multiplication.
