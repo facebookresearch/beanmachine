@@ -244,7 +244,7 @@ digraph "graph" {
         # this into a real-valued addition, and the graph type of both
         # math operations is malformed.
 
-        add.left = hcs
+        add.inputs[0] = hcs
 
         self.assertEqual(add.graph_type, Malformed)
         self.assertEqual(add.inf_type, Real)
@@ -254,7 +254,7 @@ digraph "graph" {
         # And now if we mutate further into a multiplication of two
         # positive reals, the problem is fixed:
 
-        add.right = hcs
+        add.inputs[1] = hcs
 
         self.assertEqual(add.graph_type, PositiveReal)
         self.assertEqual(add.inf_type, PositiveReal)

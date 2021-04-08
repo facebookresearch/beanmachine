@@ -178,7 +178,7 @@ class BMGNodesTest(unittest.TestCase):
         # r1 has two outputs, both equal to n
         self.assertEqual(r1.outputs.items[n], 2)
         r2 = RealNode(2.0)
-        n.sigma = r2
+        n.inputs[0] = r2
         # r1 and r2 now each have one output
         self.assertEqual(r1.outputs.items[n], 1)
         self.assertEqual(r2.outputs.items[n], 1)

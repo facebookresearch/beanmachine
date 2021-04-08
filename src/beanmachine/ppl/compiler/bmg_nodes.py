@@ -623,10 +623,6 @@ class BernoulliBase(DistributionNode):
     def probability(self) -> BMGNode:
         return self.inputs[0]
 
-    @probability.setter
-    def probability(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return Boolean
 
@@ -686,17 +682,9 @@ class BetaNode(DistributionNode):
     def alpha(self) -> BMGNode:
         return self.inputs[0]
 
-    @alpha.setter
-    def alpha(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def beta(self) -> BMGNode:
         return self.inputs[1]
-
-    @beta.setter
-    def beta(self, p: BMGNode) -> None:
-        self.inputs[1] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Probability
@@ -734,17 +722,9 @@ class BinomialNodeBase(DistributionNode):
     def count(self) -> BMGNode:
         return self.inputs[0]
 
-    @count.setter
-    def count(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def probability(self) -> BMGNode:
         return self.inputs[1]
-
-    @probability.setter
-    def probability(self, p: BMGNode) -> None:
-        self.inputs[1] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Natural
@@ -873,10 +853,6 @@ class CategoricalNode(DistributionNode):
     def probability(self) -> BMGNode:
         return self.inputs[0]
 
-    @probability.setter
-    def probability(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return Natural
 
@@ -920,10 +896,6 @@ class Chi2Node(DistributionNode):
     def df(self) -> BMGNode:
         return self.inputs[0]
 
-    @df.setter
-    def df(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
@@ -963,10 +935,6 @@ class DirichletNode(DistributionNode):
     @property
     def concentration(self) -> BMGNode:
         return self.inputs[0]
-
-    @concentration.setter
-    def concentration(self, p: BMGNode) -> None:
-        self.inputs[0] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return SimplexMatrix(1, self._required_columns)
@@ -1066,17 +1034,9 @@ class GammaNode(DistributionNode):
     def concentration(self) -> BMGNode:
         return self.inputs[0]
 
-    @concentration.setter
-    def concentration(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def rate(self) -> BMGNode:
         return self.inputs[1]
-
-    @rate.setter
-    def rate(self, p: BMGNode) -> None:
-        self.inputs[1] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return PositiveReal
@@ -1125,10 +1085,6 @@ class HalfCauchyNode(DistributionNode):
     def scale(self) -> BMGNode:
         return self.inputs[0]
 
-    @scale.setter
-    def scale(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
@@ -1169,17 +1125,9 @@ class NormalNode(DistributionNode):
     def mu(self) -> BMGNode:
         return self.inputs[0]
 
-    @mu.setter
-    def mu(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def sigma(self) -> BMGNode:
         return self.inputs[1]
-
-    @sigma.setter
-    def sigma(self, p: BMGNode) -> None:
-        self.inputs[1] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real
@@ -1226,25 +1174,13 @@ class StudentTNode(DistributionNode):
     def df(self) -> BMGNode:
         return self.inputs[0]
 
-    @df.setter
-    def df(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def loc(self) -> BMGNode:
         return self.inputs[1]
 
-    @loc.setter
-    def loc(self, p: BMGNode) -> None:
-        self.inputs[1] = p
-
     @property
     def scale(self) -> BMGNode:
         return self.inputs[2]
-
-    @scale.setter
-    def scale(self, p: BMGNode) -> None:
-        self.inputs[2] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real
@@ -1289,17 +1225,9 @@ class UniformNode(DistributionNode):
     def low(self) -> BMGNode:
         return self.inputs[0]
 
-    @low.setter
-    def low(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def high(self) -> BMGNode:
         return self.inputs[1]
-
-    @high.setter
-    def high(self, p: BMGNode) -> None:
-        self.inputs[1] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real
@@ -1526,25 +1454,13 @@ class IfThenElseNode(OperatorNode):
     def condition(self) -> BMGNode:
         return self.inputs[0]
 
-    @condition.setter
-    def condition(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def consequence(self) -> BMGNode:
         return self.inputs[1]
 
-    @consequence.setter
-    def consequence(self, p: BMGNode) -> None:
-        self.inputs[1] = p
-
     @property
     def alternative(self) -> BMGNode:
         return self.inputs[2]
-
-    @alternative.setter
-    def alternative(self, p: BMGNode) -> None:
-        self.inputs[2] = p
 
     @property
     def size(self) -> torch.Size:
@@ -1575,17 +1491,9 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     def left(self) -> BMGNode:
         return self.inputs[0]
 
-    @left.setter
-    def left(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     @property
     def right(self) -> BMGNode:
         return self.inputs[1]
-
-    @right.setter
-    def right(self, p: BMGNode) -> None:
-        self.inputs[1] = p
 
     def support_size(self) -> float:
         return self.left.support_size() * self.right.support_size()
@@ -2402,10 +2310,6 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     def operand(self) -> BMGNode:
         return self.inputs[0]
 
-    @operand.setter
-    def operand(self, p: BMGNode) -> None:
-        self.inputs[0] = p
-
     def support_size(self) -> float:
         return self.operand.support_size()
 
@@ -2857,10 +2761,6 @@ class SampleNode(UnaryOperatorNode):
         assert isinstance(c, DistributionNode)
         return c
 
-    @operand.setter
-    def operand(self, p: DistributionNode) -> None:
-        self.inputs[0] = p
-
     def __str__(self) -> str:
         return "Sample(" + str(self.operand) + ")"
 
@@ -2998,10 +2898,6 @@ class Observation(BMGNode):
         assert isinstance(c, SampleNode)
         return c
 
-    @observed.setter
-    def observed(self, p: SampleNode) -> None:
-        self.inputs[0] = p
-
     def _compute_inf_type(self) -> BMGLatticeType:
         # Since an observation node is never consumed it is not actually
         # meaningful to compute its type. However, we can use this to check for
@@ -3052,10 +2948,6 @@ class Query(BMGNode):
     def operator(self) -> BMGNode:
         c = self.inputs[0]
         return c
-
-    @operator.setter
-    def operator(self, p: BMGNode) -> None:
-        self.inputs[0] = p
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return self.operator.graph_type
