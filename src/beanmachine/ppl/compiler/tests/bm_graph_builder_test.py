@@ -29,7 +29,6 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     PowerNode,
     RealNode,
     SampleNode,
-    SetOfTensors,
     ToRealNode,
 )
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
@@ -1485,56 +1484,6 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.add_log1mexp(nr).size, Size([]))
         self.assertEqual(bmg.add_log1mexp(nt).size, Size([2]))
         self.assertEqual(bmg.add_log1mexp(s).size, Size([2]))
-
-    def test_maps(self) -> None:
-        # TODO: Eliminate map nodes and delete this test
-        self.maxDiff = None
-        bmg = BMGraphBuilder()
-
-        t0 = bmg.add_constant_tensor(tensor(0.0))
-        t1 = bmg.add_constant_tensor(tensor(1.0))
-        t2 = bmg.add_constant_tensor(tensor(2.0))
-        t5 = bmg.add_constant_tensor(tensor(0.5))
-        bern = bmg.add_bernoulli(t5)
-        s1 = bmg.add_sample(bern)
-        s2 = bmg.add_sample(bern)
-        s3 = bmg.add_sample(bern)
-        a = bmg.add_addition(s2, t2)
-        m = bmg.add_map(t0, s1, t1, a)
-        i = bmg.add_index_deprecated(m, s3)
-        self.assertEqual(
-            SetOfTensors(i.support()),
-            SetOfTensors([tensor(0.0), tensor(1.0), tensor(2.0), tensor(3.0)]),
-        )
-        observed = to_dot(bmg)
-        expected = """
-digraph "graph" {
-  N00[label=0.0];
-  N01[label=1.0];
-  N02[label=2.0];
-  N03[label=0.5];
-  N04[label=Bernoulli];
-  N05[label=Sample];
-  N06[label=Sample];
-  N07[label=Sample];
-  N08[label="+"];
-  N09[label=map];
-  N10[label=index];
-  N00 -> N09[label=0];
-  N01 -> N09[label=2];
-  N02 -> N08[label=right];
-  N03 -> N04[label=probability];
-  N04 -> N05[label=operand];
-  N04 -> N06[label=operand];
-  N04 -> N07[label=operand];
-  N05 -> N09[label=1];
-  N06 -> N08[label=left];
-  N07 -> N10[label=right];
-  N08 -> N09[label=3];
-  N09 -> N10[label=left];
-}
-"""
-        self.assertEqual(expected.strip(), observed.strip())
 
     def test_if_then_else(self) -> None:
         self.maxDiff = None
