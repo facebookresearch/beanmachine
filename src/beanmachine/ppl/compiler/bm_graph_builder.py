@@ -55,18 +55,16 @@ import inspect
 import math
 import sys
 from types import MethodType
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any, Callable, Dict, List, Set
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
-import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import numpy as np
 import torch.distributions as dist
-from beanmachine.graph import Graph, InferenceType
+from beanmachine.graph import Graph
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
-from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
@@ -2010,179 +2008,3 @@ g = graph.Graph()
 
         self.pd.finish(prof.import_fix_problems)
         fix_problems(self, self._fix_observe_true).raise_errors()
-
-    def infer(
-        self, num_samples: int, inference_type: InferenceType = InferenceType.NMC
-    ) -> MonteCarloSamples:
-
-        # TODO: Test what happens if num_samples is <= 0
-
-        samples, _ = self._infer(num_samples, inference_type, False)
-
-        return samples
-
-    def _transpose_samples(self, raw):
-        self.pd.begin(prof.transpose_samples)
-        samples = []
-        num_samples = len(raw)
-        bmg_query_count = len(raw[0])
-
-        # Suppose we have two queries and three samples;
-        # the shape we get from BMG is:
-        #
-        # [
-        #   [s00, s01],
-        #   [s10, s11],
-        #   [s20, s21]
-        # ]
-        #
-        # That is, each entry in the list has values from both queries.
-        # But what we need in the final dictionary is:
-        #
-        # {
-        #   RV0: tensor([[s00, s10, s20]]),
-        #   RV1: tensor([[s01, s11, s21]])
-        # }
-
-        transposed = [torch.tensor([x]) for x in zip(*raw)]
-        assert len(transposed) == bmg_query_count
-        assert len(transposed[0]) == 1
-        assert len(transposed[0][0]) == num_samples
-
-        # We now have
-        #
-        # [
-        #   tensor([[s00, s10, s20]]),
-        #   tensor([[s01, s11, s21]])
-        # ]
-        #
-        # which looks like what we need. But we have an additional problem:
-        # if the the sample is a matrix then it is in columns but we need it in rows.
-        #
-        # If an element of transposed is (1 x num_samples x rows x 1) then we
-        # will just reshape it to (1 x num_samples x rows).
-        #
-        # If it is (1 x num_samples x rows x columns) for columns > 1 then
-        # we transpose it to (1 x num_samples x columns x rows)
-        #
-        # If it is any other shape we leave it alone.
-
-        for i in range(len(transposed)):
-            t = transposed[i]
-            if len(t.shape) == 4:
-                if t.shape[3] == 1:
-                    assert t.shape[0] == 1
-                    assert t.shape[1] == num_samples
-                    samples.append(t.reshape(1, num_samples, t.shape[2]))
-                else:
-                    samples.append(t.transpose(2, 3))
-            else:
-                samples.append(t)
-
-        assert len(samples) == bmg_query_count
-        assert len(samples[0]) == 1
-        assert len(samples[0][0]) == num_samples
-
-        self.pd.finish(prof.transpose_samples)
-        return samples
-
-    def _build_mcsamples(
-        self, samples, query_to_query_id, num_samples: int
-    ) -> MonteCarloSamples:
-        self.pd.begin(prof.build_mcsamples)
-
-        result: Dict[RVIdentifier, torch.Tensor] = {}
-        for (rv, query) in self._rv_to_query.items():
-            if isinstance(query.operator, ConstantNode):
-                # TODO: Test this with tensor and normal constants
-                result[rv] = torch.tensor([[query.operator.value] * num_samples])
-            else:
-                query_id = query_to_query_id[query]
-                result[rv] = samples[query_id]
-        mcsamples = MonteCarloSamples(result)
-
-        self.pd.finish(prof.build_mcsamples)
-
-        return mcsamples
-
-    def _infer(
-        self, num_samples: int, inference_type: InferenceType, produce_report: bool
-    ) -> Tuple[MonteCarloSamples, pr.PerformanceReport]:
-        # TODO: Add num_chains to API
-        # TODO: Test duplicated observations.
-        # TODO: Test duplicated queries.
-        # TODO: Move this logic to BMGInference
-
-        report = pr.PerformanceReport()
-        self.pd.begin(prof.infer)
-        self._fix_problems()
-
-        # TODO: Extract this logic to its own graph-building module.
-
-        self.pd.begin(prof.build_bmg_graph)
-
-        g = Graph()
-        node_to_graph_id: Dict[BMGNode, int] = {}
-        query_to_query_id: Dict[bn.Query, int] = {}
-        bmg_query_count = 0
-        for node in self._traverse_from_roots():
-            # We add all nodes that are reachable from a query, observation or
-            # sample to the BMG graph such that inputs are always added before
-            # outputs.
-            #
-            # TODO: We could consider traversing only nodes reachable from
-            # observations or queries.
-            #
-            # There are four cases to consider:
-            #
-            # * Observations: there is no associated value returned by the graph
-            #   when we add an observation, so there is nothing to track.
-            #
-            # * Query of a constant: BMG does not support query on a constant.
-            #   We skip adding these; when it comes time to fill in the results
-            #   dictionary we will just make a vector of the constant value.
-            #
-            # * Query of an operator: The graph gives us the column index in the
-            #   list of samples it returns for this query. We track it in
-            #   query_to_query_id.
-            #
-            # * Any other node: the graph gives us the graph identifier of the new
-            #   node. We need to know this for each node that will be used as an input
-            #   later, so we track that in node_to_graph_id.
-
-            if isinstance(node, bn.Observation):
-                node._add_to_graph(g, node_to_graph_id)
-            elif isinstance(node, bn.Query):
-                if not isinstance(node.operator, ConstantNode):
-                    query_id = node._add_to_graph(g, node_to_graph_id)
-                    query_to_query_id[node] = query_id
-                    bmg_query_count += 1
-            else:
-                graph_id = node._add_to_graph(g, node_to_graph_id)
-                node_to_graph_id[node] = graph_id
-
-        self.pd.finish(prof.build_bmg_graph)
-
-        samples = []
-
-        # BMG requires that we have at least one query.
-        if len(query_to_query_id) != 0:
-            g.collect_performance_data(produce_report)
-            self.pd.begin(prof.graph_infer)
-            raw = g.infer(num_samples, inference_type)
-            self.pd.finish(prof.graph_infer)
-            if produce_report:
-                self.pd.begin(prof.deserialize_perf_report)
-                js = g.performance_report()
-                report = pr.json_to_perf_report(js)
-                self.pd.finish(prof.deserialize_perf_report)
-            assert len(raw) == num_samples
-            assert len(raw[0]) == bmg_query_count
-            samples = self._transpose_samples(raw)
-
-        mcsamples = self._build_mcsamples(samples, query_to_query_id, num_samples)
-
-        self.pd.finish(prof.infer)
-        report.profiler_report = self.pd.to_report()
-
-        return mcsamples, report

@@ -76,7 +76,6 @@ bmg_profiler_report: nmc_infer:(1) -- ms
 
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
-  import_fix_problems:(--) -- ms
   fix_problems:(1) -- ms
     TensorOpsFixer:(1) -- ms
     AdditionFixer:(1) -- ms
