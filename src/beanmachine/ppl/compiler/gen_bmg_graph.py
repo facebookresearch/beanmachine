@@ -131,7 +131,7 @@ class GeneratedGraph:
     def _generate_graph(self) -> None:
         fix_problems(self.bmg).raise_errors()
         self.bmg._begin(prof.build_bmg_graph)
-        for node in self.bmg._traverse_from_roots():
+        for node in self.bmg.all_ancestor_nodes():
             self._generate_node(node)
         self.bmg._finish(prof.build_bmg_graph)
 

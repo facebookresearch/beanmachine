@@ -32,7 +32,7 @@ class ProblemFixerBase(ABC):
     def fix_problems(self) -> None:
         replacements = {}
         reported = set()
-        nodes = self._bmg._traverse_from_roots()
+        nodes = self._bmg.all_ancestor_nodes()
         for node in nodes:
             for i in range(len(node.inputs)):
                 c = node.inputs[i]
