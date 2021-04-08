@@ -9,15 +9,7 @@ import operator
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Dict, Iterator, List
 
-from beanmachine.graph import (
-    AtomicType,
-    DistributionType as dt,
-    FactorType,
-    Graph,
-    OperatorType,
-    ValueType,
-    VariableType,
-)
+from beanmachine.graph import OperatorType
 from beanmachine.ppl.compiler.bmg_types import (
     AnyRequirement,
     BMGLatticeType,
@@ -258,12 +250,6 @@ class BMGNode(ABC):
     def _supported_in_bmg(self) -> bool:
         return False
 
-    def _add_to_graph(self, g: Graph, d: Dict["BMGNode", int]) -> int:
-        """This adds a node to an in-memory BMG instance. Each node
-        in BMG is associated with an integer handle; this returns
-        the handle for this node assigned by BMG."""
-        raise InternalError(f"{str(type(self))} is not supported in BMG.")
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         """We can emit the graph as a Python program which, when executed,
         builds a BMG instance. This method returns a string of Python
@@ -446,9 +432,6 @@ class BooleanNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_constant(bool(self.value))
-
     def _value_to_python(self) -> str:
         return str(bool(self.value))
 
@@ -471,9 +454,6 @@ class NaturalNode(ConstantNode):
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_constant(self.value)
 
     def _value_to_python(self) -> str:
         return str(self.value)
@@ -508,9 +488,6 @@ class PositiveRealNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_constant_pos_real(float(self.value))
-
     def _value_to_python(self) -> str:
         return str(float(self.value))
 
@@ -543,9 +520,6 @@ class NegativeRealNode(ConstantNode):
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_constant_neg_real(float(self.value))
 
     def _value_to_python(self) -> str:
         return str(float(self.value))
@@ -580,9 +554,6 @@ class ProbabilityNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_constant_probability(float(self.value))
-
     def _value_to_python(self) -> str:
         return str(float(self.value))
 
@@ -616,9 +587,6 @@ class RealNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_constant(float(self.value))
-
     def _value_to_python(self) -> str:
         return str(float(self.value))
 
@@ -648,9 +616,6 @@ class ConstantTensorNode(ConstantNode):
     def size(self) -> torch.Size:
         return self.value.size()
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_constant(self.value)
-
     def _value_to_python(self) -> str:
         t = ConstantTensorNode._tensor_to_python(self.value)
         return f"tensor({t})"
@@ -663,12 +628,6 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return PositiveReal.with_size(self.size)
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        r, c = _size_to_rc(self.value.size())
-        # Note that we take the transpose; BMG expects columns,
-        # BM provides rows.
-        return g.add_constant_pos_matrix(self.value.reshape(r, c).transpose(0, 1))
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
@@ -693,10 +652,6 @@ class ConstantRealMatrixNode(ConstantTensorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real.with_size(self.size)
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        r, c = _size_to_rc(self.value.size())
-        return g.add_constant_real_matrix(self.value.reshape(r, c).transpose(0, 1))
-
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         v = _value_to_cpp_eigen(self.value, f"m{n}")
@@ -719,10 +674,6 @@ class ConstantNegativeRealMatrixNode(ConstantTensorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return NegativeReal.with_size(self.size)
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        r, c = _size_to_rc(self.value.size())
-        return g.add_constant_neg_matrix(self.value.reshape(r, c).transpose(0, 1))
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
@@ -747,12 +698,6 @@ class ConstantProbabilityMatrixNode(ConstantTensorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Probability.with_size(self.size)
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        r, c = _size_to_rc(self.value.size())
-        return g.add_constant_probability_matrix(
-            self.value.reshape(r, c).transpose(0, 1)
-        )
-
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         v = _value_to_cpp_eigen(self.value, f"m{n}")
@@ -776,10 +721,6 @@ class ConstantNaturalMatrixNode(ConstantTensorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Natural.with_size(self.size)
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        r, c = _size_to_rc(self.value.size())
-        return g.add_constant_natural_matrix(self.value.reshape(r, c).transpose(0, 1))
-
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         v = _value_to_cpp_eigen(self.value, f"m{n}")
@@ -802,10 +743,6 @@ class ConstantBooleanMatrixNode(ConstantTensorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Boolean.with_size(self.size)
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        r, c = _size_to_rc(self.value.size())
-        return g.add_constant_bool_matrix(self.value.reshape(r, c).transpose(0, 1))
 
     def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
@@ -939,11 +876,6 @@ class BernoulliNode(BernoulliBase):
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            dt.BERNOULLI, AtomicType.BOOLEAN, [d[self.probability]]
-        )
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             f"n{d[self]} = g.add_distribution(\n"
@@ -974,11 +906,6 @@ class BernoulliLogitNode(BernoulliBase):
 
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            dt.BERNOULLI_LOGIT, AtomicType.BOOLEAN, [d[self.probability]]
-        )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
@@ -1040,11 +967,6 @@ class BetaNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            dt.BETA, AtomicType.PROBABILITY, [d[self.alpha], d[self.beta]]
-        )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
@@ -1163,11 +1085,6 @@ class BinomialNode(BinomialNodeBase):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            dt.BINOMIAL, AtomicType.NATURAL, [d[self.count], d[self.probability]]
-        )
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             f"n{d[self]} = g.add_distribution(\n"
@@ -1205,10 +1122,6 @@ class BinomialLogitNode(BinomialNodeBase):
 
     def _supported_in_bmg(self) -> bool:
         return False
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # TODO: Fix this when we support binomial logits.
-        raise InternalError("Binomial with logits is not supported in BMG.")
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # TODO: Handle case where child is logits
@@ -1418,19 +1331,6 @@ class DirichletNode(DistributionNode):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        # Note that we swap rows and columns here
-        return g.add_distribution(
-            dt.DIRICHLET,
-            ValueType(
-                VariableType.COL_SIMPLEX_MATRIX,
-                AtomicType.PROBABILITY,
-                self._required_columns,
-                1,
-            ),
-            [d[self.concentration]],
-        )
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return f"""n{d[self]} = g.add_distribution(
   graph.DistributionType.DIRICHLET,
@@ -1474,9 +1374,6 @@ class FlatNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(dt.FLAT, AtomicType.PROBABILITY, [])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
@@ -1549,11 +1446,6 @@ class GammaNode(DistributionNode):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            dt.GAMMA, AtomicType.POS_REAL, [d[self.concentration], d[self.rate]]
-        )
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
             f"n{d[self]} = g.add_distribution(\n"
@@ -1624,9 +1516,6 @@ class HalfCauchyNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(dt.HALF_CAUCHY, AtomicType.POS_REAL, [d[self.scale]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
@@ -1700,11 +1589,6 @@ class NormalNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            dt.NORMAL, AtomicType.REAL, [d[self.mu], d[self.sigma]]
-        )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
@@ -1787,11 +1671,6 @@ class StudentTNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_distribution(
-            dt.STUDENT_T, AtomicType.REAL, [d[self.df], d[self.loc], d[self.scale]]
-        )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return (
@@ -1946,12 +1825,6 @@ class MultiAdditionNode(OperatorNode):
     def support(self) -> Iterator[Any]:
         raise ValueError("support of multiary addition not yet implemented")
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_operator(
-            OperatorType.ADD,
-            [d[x] for x in self.inputs],
-        )
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         args = ", ".join(f"n{d[x]}" for x in self.inputs)
@@ -2050,12 +1923,6 @@ class LogSumExpNode(OperatorNode):
 
     def support(self) -> Iterator[Any]:
         raise ValueError("support of LogSumExp not yet implemented")
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_operator(
-            OperatorType.LOGSUMEXP,
-            [d[x] for x in self.inputs],
-        )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
@@ -2158,12 +2025,6 @@ class IfThenElseNode(OperatorNode):
     def support(self) -> Iterator[Any]:
         raise ValueError("support of IfThenElseNode not yet implemented")
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_operator(
-            OperatorType.IF_THEN_ELSE,
-            [d[self.condition], d[self.consequence], d[self.alternative]],
-        )
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
         i = d[self.condition]
@@ -2218,11 +2079,6 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     @right.setter
     def right(self, p: BMGNode) -> None:
         self.inputs[1] = p
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        if not self._supported_in_bmg():
-            raise InternalError(f"{str(type(self))} is not supported in BMG.")
-        return g.add_operator(self.operator_type, [d[self.left], d[self.right]])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         if not self._supported_in_bmg():
@@ -3084,11 +2940,6 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     def operand(self, p: BMGNode) -> None:
         self.inputs[0] = p
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        if not self._supported_in_bmg():
-            raise InternalError(f"{str(type(self))} is not supported in BMG.")
-        return g.add_operator(self.operator_type, [d[self.operand]])
-
     def _to_python(self, d: Dict[BMGNode, int]) -> str:
         if not self._supported_in_bmg():
             raise InternalError(f"{str(type(self))} is not supported in BMG.")
@@ -3796,10 +3647,6 @@ class Observation(BMGNode):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        g.observe(d[self.observed], self.value)
-        return -1
-
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         return f"g.observe(n{d[self.observed]}, {self.value})"
 
@@ -3861,12 +3708,6 @@ class Query(BMGNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        if isinstance(self.operator, ConstantNode):
-            # BMG does not allow queries on constants.
-            return -1
-        return g.query(d[self.operator])
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         # BMG does not allow a query on a constant, but it is possible
@@ -3951,12 +3792,6 @@ class ExpProductFactorNode(FactorNode):
         # Factors never produce output so it is not meaningful to compute
         # their support
         return []
-
-    def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
-        return g.add_factor(
-            FactorType.EXP_PRODUCT,
-            [d[x] for x in self.inputs],
-        )
 
     def _to_python(self, d: Dict["BMGNode", int]) -> str:
         n = d[self]
