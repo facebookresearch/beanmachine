@@ -407,6 +407,11 @@ class BMGraphBuilder:
     def add_node(self, node: BMGNode) -> BMGNode:
         """This adds a node we've recently created to the node set;
         it maintains the invariant that all the input nodes are also added."""
+        # TODO: The counter is wrong in any scenario where we remove a leaf
+        # before we add a node.
+        # TODO: There should no longer be any scenarios in which we add a
+        # descendant node before its ancestors, so this loop should be
+        # unnecessary.
         if node not in self.nodes:
             for i in node.inputs:
                 self.add_node(i)
@@ -416,7 +421,7 @@ class BMGraphBuilder:
     def remove_leaf(self, node: BMGNode) -> None:
         """This removes a leaf node from the builder, and ensures that the
         output edges of all its input nodes are removed as well."""
-        if len(node.outputs.items) != 0:
+        if not node.is_leaf:
             raise ValueError("remove_leaf requires a leaf node")
         if node not in self.nodes:
             raise ValueError("remove_leaf called with node from wrong builder")
@@ -1865,7 +1870,25 @@ class BMGraphBuilder:
     # #### Output
     # ####
 
-    def _traverse_from_roots(self) -> List[BMGNode]:
+    def all_ancestor_nodes(self) -> List[BMGNode]:
+        """Returns a topo-sorted list of nodes that are ancestors to any
+        sample, observation, query or factor."""
+
+        def is_root(n: BMGNode) -> bool:
+            return (
+                isinstance(n, bn.SampleNode)
+                or isinstance(n, bn.Observation)
+                or isinstance(n, bn.Query)
+                or isinstance(n, bn.FactorNode)
+            )
+
+        return self._traverse(is_root)
+
+    def all_nodes(self) -> List[BMGNode]:
+        """Returns a topo-sorted list of all nodes."""
+        return self._traverse(lambda n: n.is_leaf)
+
+    def _traverse(self, is_root: Callable[[BMGNode], bool]) -> List[BMGNode]:
         """This returns a list of the reachable graph nodes
         in topologically sorted order. The ordering invariants are
         (1) all sample, observation, query and factor nodes are
@@ -1880,16 +1903,6 @@ class BMGraphBuilder:
         # we detect cycles while executing the lifted model.
         # However, we might want to add a quick cycle checking
         # pass here as a sanity check.
-
-        # TODO: Do we require sample nodes to be roots? Could we
-        # get by with just observations, queries and factors?
-        def is_root(n: BMGNode) -> bool:
-            return (
-                isinstance(n, bn.SampleNode)
-                or isinstance(n, bn.Observation)
-                or isinstance(n, bn.Query)
-                or isinstance(n, bn.FactorNode)
-            )
 
         def key(n: BMGNode) -> int:
             return self.nodes[n]
