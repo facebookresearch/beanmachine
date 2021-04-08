@@ -1864,18 +1864,6 @@ class BMGraphBuilder:
             sorted_nodes[node] = index
         return sorted_nodes
 
-    def to_python(self) -> str:
-        """This transforms the accumulated graph into a BMG type system compliant
-        graph and then creates a Python program which creates the graph."""
-        self._fix_problems()
-
-        header = """from beanmachine import graph
-from torch import tensor
-g = graph.Graph()
-"""
-        sorted_nodes = self._resort_nodes()
-        return header + "\n".join(n._to_python(sorted_nodes) for n in sorted_nodes)
-
     def to_cpp(self) -> str:
         """This transforms the accumulated graph into a BMG type system compliant
         graph and then creates a C++ program which creates the graph."""

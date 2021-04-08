@@ -283,7 +283,7 @@ uint n17 = g.add_distribution(
 uint n18 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n17}));
 g.query(n18);"""
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = BMGInference().to_python(queries, observations)
         expected = """
@@ -295,28 +295,32 @@ n1 = g.add_constant_pos_real(0.14541345834732056)
 n2 = g.add_distribution(
   graph.DistributionType.BETA,
   graph.AtomicType.PROBABILITY,
-  [n0, n1])
+  [n0, n1],
+)
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
 n4 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n3])
+  [n3],
+)
 n5 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
 g.observe(n5, False)
+n6 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+g.observe(n6, False)
 n7 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
-g.observe(n7, False)
-n9 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
-g.observe(n9, True)
-n11 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
-g.observe(n11, False)
-n13 = g.add_operator(graph.OperatorType.TO_POS_REAL, [n3])
-n14 = g.add_operator(graph.OperatorType.NEGATE, [n13])
-n15 = g.add_operator(graph.OperatorType.LOG1MEXP, [n14])
-n16 = g.add_operator(graph.OperatorType.NEGATE, [n15])
-n17 = g.add_distribution(
+g.observe(n7, True)
+n8 = g.add_operator(graph.OperatorType.SAMPLE, [n4])
+g.observe(n8, False)
+n9 = g.add_operator(graph.OperatorType.TO_POS_REAL, [n3])
+n10 = g.add_operator(graph.OperatorType.NEGATE, [n9])
+n11 = g.add_operator(graph.OperatorType.LOG1MEXP, [n10])
+n12 = g.add_operator(graph.OperatorType.NEGATE, [n11])
+n13 = g.add_distribution(
   graph.DistributionType.BETA,
   graph.AtomicType.PROBABILITY,
-  [n0, n16])
-n18 = g.add_operator(graph.OperatorType.SAMPLE, [n17])
-g.query(n18)"""
-        self.assertEqual(observed.strip(), expected.strip())
+  [n0, n12],
+)
+n14 = g.add_operator(graph.OperatorType.SAMPLE, [n13])
+q0 = g.query(n14)
+        """
+        self.assertEqual(expected.strip(), observed.strip())

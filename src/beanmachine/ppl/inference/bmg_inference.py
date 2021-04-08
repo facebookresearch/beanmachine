@@ -12,6 +12,7 @@ import torch
 from beanmachine.graph import InferenceType
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
+from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
@@ -223,7 +224,8 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a Python program fragment which
         produces the graph deduced from the model."""
-        return self._accumulate_graph(queries, observations).to_python()
+        bmg = self._accumulate_graph(queries, observations)
+        return to_bmg_python(bmg).code
 
 
 # TODO: Add a to_graph API here; make a map from

@@ -33,6 +33,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ToRealNode,
 )
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
+from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
@@ -116,7 +117,7 @@ Node 6 type 3 parents [ 3 5 ] children [ 7 ] real 0
 Node 7 type 3 parents [ 3 6 ] children [ ] real 0"""
         self.assertEqual(tidy(observed), tidy(expected))
 
-        observed = bmg.to_python()
+        observed = to_bmg_python(bmg).code
 
         expected = """
 from beanmachine import graph
@@ -126,15 +127,16 @@ n0 = g.add_constant_probability(0.5)
 n1 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n0])
+  [n0],
+)
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 g.observe(n2, True)
-n4 = g.add_constant(2.0)
-n5 = g.add_operator(graph.OperatorType.TO_REAL, [n2])
-n6 = g.add_operator(graph.OperatorType.NEGATE, [n5])
-n7 = g.add_operator(graph.OperatorType.ADD, [n4, n6])
-n8 = g.add_operator(graph.OperatorType.MULTIPLY, [n4, n7])
-g.query(n8)
+n3 = g.add_constant(2.0)
+n4 = g.add_operator(graph.OperatorType.TO_REAL, [n2])
+n5 = g.add_operator(graph.OperatorType.NEGATE, [n4])
+n6 = g.add_operator(graph.OperatorType.ADD, [n3, n5])
+n7 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n6])
+q0 = g.query(n7)
 """
         self.assertEqual(observed.strip(), expected.strip())
 
