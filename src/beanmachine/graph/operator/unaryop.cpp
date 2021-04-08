@@ -320,5 +320,48 @@ void Log1mExp::eval(std::mt19937& /* gen */) {
   }
 }
 
+LogSumExpVector::LogSumExpVector(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::LOGSUMEXP_VECTOR, in_nodes) {
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  if (type0.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument(
+        "operator LOGSUMEXP_VECTOR requires a BROADCAST_MATRIX parent");
+  }
+  if (type0.cols != 1 or type0.rows == 0) {
+    throw std::invalid_argument(
+        "operator LOGSUMEXP_VECTOR requires a BROADCAST_MATRIX parent"
+        "with exactly one column and at least one row");
+  }
+  if (type0.atomic_type != graph::AtomicType::REAL and
+      type0.atomic_type != graph::AtomicType::NEG_REAL and
+      type0.atomic_type != graph::AtomicType::POS_REAL) {
+    throw std::invalid_argument(
+        "operator LOGSUMEXP_VECTOR requires a real or pos/neg_real parent");
+  }
+  value = graph::NodeValue(graph::AtomicType::REAL);
+}
+
+void LogSumExpVector::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::NodeValue& parent = in_nodes[0]->value;
+  if (parent.type.atomic_type == graph::AtomicType::REAL or
+      parent.type.atomic_type == graph::AtomicType::NEG_REAL or
+      parent.type.atomic_type == graph::AtomicType::POS_REAL) {
+    double max_val = parent._matrix(0);
+    for (uint i = 1; i < parent._matrix.size(); i++) {
+      double valuei = parent._matrix(i);
+      if (valuei > max_val) {
+        max_val = valuei;
+      }
+    }
+    double expsum = (parent._matrix.array() - max_val).exp().sum();
+    value._double = std::log(expsum) + max_val;
+  } else {
+    throw std::runtime_error(
+        "invalid type " + parent.type.to_string() +
+        " for LOGSUMEXP_VECTOR operator at node_id " + std::to_string(index));
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

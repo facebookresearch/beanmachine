@@ -138,6 +138,15 @@ void LogSumExp::backward() {
   }
 }
 
+// dg(x1,...xn)/dxi = exp(xi) / sum_j^n exp(xj) = exp(xi - g)
+void LogSumExpVector::backward() {
+  if (in_nodes[0]->needs_gradient()) {
+    Eigen::MatrixXd exp =
+        (in_nodes[0]->value._matrix.array() - value._double).exp();
+    in_nodes[0]->back_grad1._matrix += back_grad1._double * exp;
+  }
+}
+
 void IfThenElse::backward() {
   assert(in_nodes.size() == 3);
   if (in_nodes[0]->value._bool) {

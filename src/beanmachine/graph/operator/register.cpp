@@ -80,6 +80,10 @@ bool Log1mExp::is_registered = OperatorFactory::register_op(
     graph::OperatorType::LOG1MEXP,
     &(Log1mExp::new_op));
 
+bool LogSumExpVector::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::LOGSUMEXP_VECTOR,
+    &(LogSumExpVector::new_op));
+
 bool Log::is_registered =
     OperatorFactory::register_op(graph::OperatorType::LOG, &(Log::new_op));
 
