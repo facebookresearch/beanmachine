@@ -5,7 +5,7 @@ Visualize the contents of a builder in the DOT graph language.
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problems import fix_problems
-from beanmachine.ppl.compiler.graph_labels import get_node_label
+from beanmachine.ppl.compiler.graph_labels import get_edge_labels, get_node_label
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 
 
@@ -41,7 +41,9 @@ def to_dot(
         if inf_types:
             node_label += ">=" + node.inf_type.short_name
         db.with_node(n, node_label)
-        for (i, edge_name, req) in zip(node.inputs, node.edges, node.requirements):
+        for (i, edge_name, req) in zip(
+            node.inputs, get_edge_labels(node), node.requirements
+        ):
             if label_edges:
                 edge_label = edge_name
                 if edge_requirements:
