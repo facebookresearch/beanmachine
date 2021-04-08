@@ -2,6 +2,7 @@
 import unittest
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
@@ -84,7 +85,7 @@ g.observe(n3, 7.0)
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        observed = bmg.to_cpp()
+        observed = to_bmg_cpp(bmg).code
 
         expected = """
 graph::Graph g;
@@ -99,7 +100,7 @@ uint n3 = g.add_operator(
 uint n4 = g.add_constant_probability(0.4);
 uint n5 = g.add_operator(
   graph::OperatorType::MULTIPLY, std::vector<uint>({n3, n3}));
-n6 = g.add_factor(
+uint n6 = g.add_factor(
   graph::FactorType::EXP_PRODUCT,
   std::vector<uint>({n3, n4, n5}));
 g.observe([n3], 7.0);
