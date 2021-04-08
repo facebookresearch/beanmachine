@@ -831,6 +831,37 @@ TEST(testoperator, index) {
   EXPECT_EQ(xy_eval[0][1]._double, 6.0);
 }
 
+TEST(testoperator, column_index) {
+  Graph g;
+  // negative initialization
+  EXPECT_THROW(
+      g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{}),
+      std::invalid_argument);
+  Eigen::MatrixXd m1(2, 1);
+  m1 << 2.0, -1.0;
+  auto cm1 = g.add_constant_real_matrix(m1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{cm1}),
+      std::invalid_argument);
+  // requires matrix and natural number
+  uint real = g.add_constant(0.5);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{cm1, real}),
+      std::invalid_argument);
+
+  Eigen::MatrixXd m2(2, 2);
+  m2 << 1.0, 2.0, 3.0, 4.0;
+  uint cm2 = g.add_constant_real_matrix(m2);
+  uint zero = g.add_constant((natural_t)0);
+  uint first_column =
+      g.add_operator(OperatorType::COLUMN_INDEX, std::vector<uint>{cm2, zero});
+  g.query(first_column);
+
+  const auto& xy_eval = g.infer(2, InferenceType::REJECTION);
+  EXPECT_EQ(xy_eval[0][0]._matrix(0), 1.0);
+  EXPECT_EQ(xy_eval[0][0]._matrix(1), 3.0);
+}
+
 TEST(testoperator, to_matrix) {
   Graph g;
   uint nat_one = g.add_constant((natural_t)1);

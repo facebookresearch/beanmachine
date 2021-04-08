@@ -93,6 +93,11 @@ bool Index::is_registered =
     OperatorFactory::register_op(graph::OperatorType::INDEX, &(Index::new_op));
 
 // matrix index
+bool ColumnIndex::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::COLUMN_INDEX,
+    &(ColumnIndex::new_op));
+
+// matrix index
 bool ToMatrix::is_registered = OperatorFactory::register_op(
     graph::OperatorType::TO_MATRIX,
     &(ToMatrix::new_op));

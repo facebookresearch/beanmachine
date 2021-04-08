@@ -190,6 +190,15 @@ void Index::backward() {
   }
 }
 
+void ColumnIndex::backward() {
+  assert(in_nodes.size() == 2);
+  auto matrix = in_nodes[0];
+  if (matrix->needs_gradient()) {
+    matrix->back_grad1._matrix.col(in_nodes[1]->value._natural) +=
+        back_grad1._matrix;
+  }
+}
+
 void ToMatrix::backward() {
   int rows = in_nodes[0]->value._natural;
   int cols = in_nodes[1]->value._natural;

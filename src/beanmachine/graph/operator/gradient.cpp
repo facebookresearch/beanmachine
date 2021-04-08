@@ -249,6 +249,15 @@ void Index::compute_gradients() {
   grad2 = in_nodes[0]->Grad2.coeff(in_nodes[1]->value._natural);
 }
 
+void ColumnIndex::compute_gradients() {
+  assert(in_nodes.size() == 2);
+  int rows = in_nodes[0]->Grad1.rows();
+  Grad1.resize(rows, 1);
+  Grad2.resize(rows, 1);
+  Grad1 = in_nodes[0]->Grad1.col(in_nodes[1]->value._natural);
+  Grad2 = in_nodes[0]->Grad2.col(in_nodes[1]->value._natural);
+}
+
 void ToMatrix::compute_gradients() {
   int rows = in_nodes[0]->value._natural;
   int cols = in_nodes[1]->value._natural;
