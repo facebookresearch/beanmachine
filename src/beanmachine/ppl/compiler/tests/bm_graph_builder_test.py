@@ -32,6 +32,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     SetOfTensors,
     ToRealNode,
 )
+from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import Size, Tensor, tensor
 from torch.distributions import Bernoulli
@@ -102,7 +103,7 @@ digraph "graph" {
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
 
-        g = bmg.to_bmg()
+        g = to_bmg_graph(bmg).graph
         observed = g.to_string()
         expected = """
 Node 0 type 1 parents [ ] children [ 1 ] probability 0.5
@@ -212,7 +213,7 @@ digraph "graph" {
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
 
-        g = bmg.to_bmg()
+        g = to_bmg_graph(bmg).graph
         observed = g.to_string()
         # Here however the orphaned nodes are never added to the graph.
         expected = """
