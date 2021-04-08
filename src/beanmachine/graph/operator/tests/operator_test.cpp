@@ -894,8 +894,8 @@ TEST(testoperator, to_matrix) {
   g1.query(nat_matrix);
   const auto& eval1 = g1.infer(2, InferenceType::REJECTION);
   EXPECT_EQ(eval1[0][0]._nmatrix(0, 0), 2);
-  EXPECT_EQ(eval1[0][0]._nmatrix(0, 1), 0);
-  EXPECT_EQ(eval1[0][0]._nmatrix(1, 0), 3);
+  EXPECT_EQ(eval1[0][0]._nmatrix(1, 0), 0);
+  EXPECT_EQ(eval1[0][0]._nmatrix(0, 1), 3);
   EXPECT_EQ(eval1[0][0]._nmatrix(1, 1), 4);
 
   // 3x1 stochastic boolean samples

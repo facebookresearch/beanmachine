@@ -216,25 +216,25 @@ void ToMatrix::eval(std::mt19937& /* gen */) {
 
   if (parent_type == graph::AtomicType::BOOLEAN) {
     Eigen::MatrixXb result(rows, cols);
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < cols; j++) {
-        result(i, j) = in_nodes[2 + i * cols + j]->value._bool;
+    for (int j = 0; j < cols; j++) {
+      for (int i = 0; i < rows; i++) {
+        result(i, j) = in_nodes[2 + j * rows + i]->value._bool;
       }
     }
     value._bmatrix = result;
   } else if (parent_type == graph::AtomicType::NATURAL) {
     Eigen::MatrixXn result(rows, cols);
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < cols; j++) {
-        result(i, j) = in_nodes[2 + i * cols + j]->value._natural;
+    for (int j = 0; j < cols; j++) {
+      for (int i = 0; i < rows; i++) {
+        result(i, j) = in_nodes[2 + j * rows + i]->value._natural;
       }
     }
     value._nmatrix = result;
   } else { // real
     Eigen::MatrixXd result(rows, cols);
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < cols; j++) {
-        result(i, j) = in_nodes[2 + i * cols + j]->value._double;
+    for (int j = 0; j < cols; j++) {
+      for (int i = 0; i < rows; i++) {
+        result(i, j) = in_nodes[2 + j * rows + i]->value._double;
       }
     }
     value._matrix = result;
