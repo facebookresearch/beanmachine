@@ -209,7 +209,7 @@ uint n1 = g.add_distribution(
     graph::AtomicType::PROBABILITY,
     2,
     1
-  )
+  ),
   std::vector<uint>({n0}));
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
@@ -227,7 +227,7 @@ uint n8 = g.add_operator(
 uint n9 = g.add_operator(
   graph::OperatorType::LOG, std::vector<uint>({n8}));
 uint n10 = g.add_constant_neg_real(-0.010050326585769653);
-n11 = g.add_operator(
+uint n11 = g.add_operator(
   graph::OperatorType::ADD,
   std::vector<uint>({n7, n9, n10}));
 uint n12 = g.add_constant(1);
@@ -240,12 +240,11 @@ uint n15 = g.add_operator(
 uint n16 = g.add_operator(
   graph::OperatorType::LOG, std::vector<uint>({n15}));
 uint n17 = g.add_constant_neg_real(-4.605170249938965);
-n18 = g.add_operator(
+uint n18 = g.add_operator(
   graph::OperatorType::ADD,
   std::vector<uint>({n14, n16, n17}));
-n19 = g.add_operator(
-  graph::OperatorType::LOGSUMEXP,
-  std::vector<uint>({n11, n18}));
+uint n19 = g.add_operator(
+  graph::OperatorType::LOGSUMEXP, std::vector<uint>({n11, n18}));
 uint n20 = g.add_operator(
   graph::OperatorType::EXP, std::vector<uint>({n19}));
 uint n21 = g.add_operator(
@@ -257,9 +256,9 @@ uint n22 = g.add_distribution(
 uint n23 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n22}));
 g.observe([n23], true);
-g.query(n11);
-g.query(n2);
-g.query(n3);
+uint q0 = g.query(n11);
+uint q1 = g.query(n2);
+uint q2 = g.query(n3);
 """
         self.assertEqual(expected.strip(), observed.strip())
 
