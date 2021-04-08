@@ -7,6 +7,7 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_types import PositiveReal
 from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.graph_labels import get_edge_label
 
 
 class UnsupportedNodeFixer(ProblemFixerBase):
@@ -78,4 +79,7 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         return not n._supported_in_bmg()
 
     def _get_error(self, n: bn.BMGNode, index: int) -> Optional[BMGError]:
-        return UnsupportedNode(n.inputs[index], n, n.edges[index])
+        # TODO: The edge labels used to visualize the graph in DOT
+        # are not necessarily the best ones for displaying errors.
+        # Consider fixing this.
+        return UnsupportedNode(n.inputs[index], n, get_edge_label(n, index))
