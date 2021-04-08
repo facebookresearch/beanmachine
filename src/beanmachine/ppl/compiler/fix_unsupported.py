@@ -4,6 +4,7 @@ from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_types import PositiveReal
 from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
@@ -76,7 +77,7 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         return None
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
-        return not n._supported_in_bmg()
+        return not is_supported_by_bmg(n)
 
     def _get_error(self, n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT
