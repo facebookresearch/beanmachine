@@ -91,6 +91,7 @@ class CompositionalInference(AbstractMHInference):
                 support,
                 (
                     dist.constraints.real,
+                    dist.constraints.unit_interval,
                     dist.constraints.simplex,
                     dist.constraints.greater_than,
                 ),

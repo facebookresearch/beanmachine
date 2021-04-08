@@ -97,16 +97,12 @@ class SingleSiteNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             ):
                 self.proposers_[node] = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
 
-            elif (
-                is_constraint_eq(node_distribution_support, dist.constraints.simplex)
-                or isinstance(node_var.distribution, dist.Beta)
-                or (
-                    isinstance(node_distribution_support, dist.constraints.independent)
-                    and (
-                        node_distribution_support.base_constraint
-                        == dist.constraints.unit_interval
-                    )
-                )
+            elif is_constraint_eq(
+                node_distribution_support, dist.constraints.simplex
+            ) or (
+                is_constraint_eq(node_distribution_support, dist.constraints.interval)
+                and node_distribution_support.lower_bound == 0.0
+                and node_distribution_support.upper_bound == 1.0
             ):
                 self.proposers_[node] = SingleSiteSimplexNewtonianMonteCarloProposer()
             else:
