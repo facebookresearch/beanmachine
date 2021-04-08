@@ -251,7 +251,8 @@ class BMGraphBuilder:
     #
     # We can replace this dictionary with an unordered set; consider doing so.
 
-    nodes: Dict[BMGNode, int]
+    _nodes: Dict[BMGNode, int]
+    _node_counter: int
 
     # As we execute the lifted program, we accumulate graph nodes in the
     # graph builder,and the program passes around graph nodes instead of
@@ -313,7 +314,8 @@ class BMGraphBuilder:
         self.rv_map = {}
         self.lifted_map = {}
         self.in_flight = set()
-        self.nodes = {}
+        self._nodes = {}
+        self._node_counter = 0
         self._rv_to_query = {}
         self.function_map = {
             # Math functions
@@ -407,15 +409,11 @@ class BMGraphBuilder:
     def add_node(self, node: BMGNode) -> BMGNode:
         """This adds a node we've recently created to the node set;
         it maintains the invariant that all the input nodes are also added."""
-        # TODO: The counter is wrong in any scenario where we remove a leaf
-        # before we add a node.
-        # TODO: There should no longer be any scenarios in which we add a
-        # descendant node before its ancestors, so this loop should be
-        # unnecessary.
-        if node not in self.nodes:
-            for i in node.inputs:
-                self.add_node(i)
-            self.nodes[node] = len(self.nodes)
+        assert node not in self._nodes
+        for i in node.inputs:
+            assert i in self._nodes
+        self._nodes[node] = self._node_counter
+        self._node_counter += 1
         return node
 
     def remove_leaf(self, node: BMGNode) -> None:
@@ -423,11 +421,11 @@ class BMGraphBuilder:
         output edges of all its input nodes are removed as well."""
         if not node.is_leaf:
             raise ValueError("remove_leaf requires a leaf node")
-        if node not in self.nodes:
+        if node not in self._nodes:
             raise ValueError("remove_leaf called with node from wrong builder")
         for i in node.inputs.inputs:
             i.outputs.remove_item(node)
-        del self.nodes[node]
+        del self._nodes[node]
 
     # ####
     # #### Graph accumulation for constant values
@@ -1905,7 +1903,7 @@ class BMGraphBuilder:
         # pass here as a sanity check.
 
         def key(n: BMGNode) -> int:
-            return self.nodes[n]
+            return self._nodes[n]
 
         # We cannot use a recursive algorithm because the graph may have
         # paths that are deeper than the recursion limit in Python.
@@ -1920,7 +1918,7 @@ class BMGraphBuilder:
 
         result = []
         work_stack = sorted(
-            (n for n in self.nodes if is_root(n)), key=key, reverse=True
+            (n for n in self._nodes if is_root(n)), key=key, reverse=True
         )
         already_in_result = set()
         inputs_already_pushed = set()
@@ -1959,8 +1957,8 @@ class BMGraphBuilder:
 
     def all_observations(self) -> List[bn.Observation]:
         return sorted(
-            (n for n in self.nodes if isinstance(n, bn.Observation)),
-            key=lambda n: self.nodes[n],
+            (n for n in self._nodes if isinstance(n, bn.Observation)),
+            key=lambda n: self._nodes[n],
         )
 
     def accumulate_graph(

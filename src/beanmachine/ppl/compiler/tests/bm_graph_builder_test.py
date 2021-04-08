@@ -80,29 +80,28 @@ class BMGraphBuilderTest(unittest.TestCase):
         expected = """
 digraph "graph" {
   N0[label=0.5];
-  N1[label=2];
-  N2[label=Bernoulli];
-  N3[label=Sample];
-  N4[label=ToReal];
-  N5[label="-"];
-  N6[label="+"];
-  N7[label="*"];
-  N8[label="Observation True"];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label="Observation True"];
+  N4[label=2];
+  N5[label=ToReal];
+  N6[label="-"];
+  N7[label="+"];
+  N8[label="*"];
   N9[label=Query];
-  N0 -> N2;
-  N1 -> N6;
-  N1 -> N7;
+  N0 -> N1;
+  N1 -> N2;
   N2 -> N3;
-  N3 -> N4;
-  N3 -> N8;
-  N4 -> N5;
+  N2 -> N5;
+  N4 -> N7;
+  N4 -> N8;
   N5 -> N6;
   N6 -> N7;
-  N7 -> N9;
-}
-"""
+  N7 -> N8;
+  N8 -> N9;
+}"""
         self.maxDiff = None
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         g = to_bmg_graph(bmg).graph
         observed = g.to_string()
@@ -115,7 +114,7 @@ Node 4 type 3 parents [ 2 ] children [ 5 ] real 0
 Node 5 type 3 parents [ 4 ] children [ 6 ] real 0
 Node 6 type 3 parents [ 3 5 ] children [ 7 ] real 0
 Node 7 type 3 parents [ 3 6 ] children [ ] real 0"""
-        self.assertEqual(tidy(observed), tidy(expected))
+        self.assertEqual(tidy(expected), tidy(observed))
 
         observed = to_bmg_python(bmg).code
 
@@ -138,7 +137,7 @@ n6 = g.add_operator(graph.OperatorType.ADD, [n3, n5])
 n7 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n6])
 q0 = g.query(n7)
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = to_bmg_cpp(bmg).code
 
@@ -189,31 +188,31 @@ uint q0 = g.query(n7);
         expected = """
 digraph "graph" {
   N00[label=1];
-  N01[label=2];
-  N02[label=4];
-  N03[label=0.25];
-  N04[label=Bernoulli];
-  N05[label=Sample];
-  N06[label=complement];
-  N07[label=ToPosReal];
+  N01[label=4];
+  N02[label=0.25];
+  N03[label=Bernoulli];
+  N04[label=Sample];
+  N05[label=complement];
+  N06[label=ToPosReal];
+  N07[label=2];
   N08[label="/"];
   N09[label="**"];
   N10[label=Log];
   N11[label=Query];
-  N01 -> N08;
-  N01 -> N09;
+  N02 -> N03;
   N03 -> N04;
   N04 -> N05;
   N05 -> N06;
-  N06 -> N07;
+  N06 -> N08;
   N07 -> N08;
+  N07 -> N09;
   N08 -> N09;
   N09 -> N10;
   N10 -> N11;
 }
 """
         self.maxDiff = None
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         g = to_bmg_graph(bmg).graph
         observed = g.to_string()
@@ -229,7 +228,7 @@ Node 6 type 3 parents [ 4 5 ] children [ 8 ] positive real 1e-10
 Node 7 type 1 parents [ ] children [ 8 ] positive real 2
 Node 8 type 3 parents [ 6 7 ] children [ 9 ] positive real 1e-10
 Node 9 type 3 parents [ 8 ] children [ ] real 0"""
-        self.assertEqual(tidy(observed), tidy(expected))
+        self.assertEqual(tidy(expected), tidy(observed))
 
     # The "add" methods do exactly that: add a node to the graph if it is not
     # already there.
@@ -1498,18 +1497,17 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         expected = """
 digraph "graph" {
   N0[label=0.5];
-  N1[label=0.0];
-  N2[label=1.0];
-  N3[label=Bernoulli];
-  N4[label=Sample];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=1.0];
+  N4[label=0.0];
   N5[label=if];
-  N0 -> N3[label=probability];
-  N1 -> N5[label=alternative];
-  N2 -> N5[label=consequence];
-  N3 -> N4[label=operand];
-  N4 -> N5[label=condition];
-}
-"""
+  N0 -> N1[label=probability];
+  N1 -> N2[label=operand];
+  N2 -> N5[label=condition];
+  N3 -> N5[label=consequence];
+  N4 -> N5[label=alternative];
+}"""
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_allowed_functions(self) -> None:
