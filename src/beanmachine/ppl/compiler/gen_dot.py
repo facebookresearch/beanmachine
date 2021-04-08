@@ -23,11 +23,24 @@ def to_dot(
     db = DotBuilder()
 
     if after_transform:
+        # TODO: It is strange having a visualizer that edits the graph
+        # as a side effect, and it is also strange that the only way
+        # to visualize the ancestor nodes is to edit the graph.
+        #
+        # * Remove the after_transform flag; modify the tests so that
+        #   tests which currently set after_transform to true instead
+        #   call fix_problems first.
+        #
+        # * Add a whole_graph flag, default to true, which decides
+        #   whether to graph the whole thing or not.
         fix_problems(bmg, bmg._fix_observe_true).raise_errors()
         nodes = {}
-        for index, node in enumerate(bmg._traverse_from_roots()):
+        for index, node in enumerate(bmg.all_ancestor_nodes()):
             nodes[node] = index
     else:
+        # TODO: Make the nodes dictionary a private implementation detail.
+        # This should use bmg.all_nodes() instead; that also ensures that
+        # it is topo-sorted consistently.
         nodes = bmg.nodes
 
     max_length = len(str(len(nodes) - 1))
