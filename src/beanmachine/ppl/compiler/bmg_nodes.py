@@ -1,15 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import torch  # isort:skip  torch has to be imported before graph
-
 import collections
 import functools
 import itertools
 import operator
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Dict, Iterator, List
+from typing import Any, Iterator, List
 
-from beanmachine.graph import OperatorType
+import torch
 from beanmachine.ppl.compiler.bmg_types import (
     AnyRequirement,
     BMGLatticeType,
@@ -27,22 +25,18 @@ from beanmachine.ppl.compiler.bmg_types import (
     SimplexMatrix,
     Tensor as BMGTensor,
     ZeroMatrix,
-    _size_to_rc,
     always_matrix,
     supremum,
     type_of_value,
     upper_bound,
 )
-from beanmachine.ppl.compiler.internal_error import InternalError
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor, tensor
 from torch.distributions import Normal
 from torch.distributions.utils import broadcast_all
 
 
-# TODO: For reasons unknown, Pyre is unable to find type information about
-# TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
-# TODO: for now, we'll just turn off error checking in this module.
+# TODO: There are numerous pyre errors in this module; fix them.
 # pyre-ignore-all-errors
 
 # TODO: Extract inf type, graph type and requirements computations to own module
@@ -250,13 +244,6 @@ class BMGNode(ABC):
     def _supported_in_bmg(self) -> bool:
         return False
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        """We can emit the graph as a C++ program which, when executed,
-        builds a BMG instance. This method returns a string of C++
-        code to construct this node. The dictionary associates a unique
-        integer with each node that can be used to construct an identifier."""
-        raise InternalError(f"{str(type(self))} is not supported in BMG.")
-
     @abstractmethod
     def support(self) -> Iterator[Any]:
         """To build the graph of all possible control flows through
@@ -279,29 +266,6 @@ class BMGNode(ABC):
         # the left, two on the right, so four possible outcomes. We can
         # therefore over-estimate; we should however not under-estimate.
         return positive_infinity
-
-
-def _value_to_cpp(value: Any) -> str:
-
-    """Generate the program text of an expression
-    representing a constant value in the C++ output."""
-
-    if isinstance(value, Tensor):
-        # TODO: What if the tensor is not made of floats?
-        values = ",".join(str(element) for element in value.storage())
-        dims = ",".join(str(dim) for dim in value.shape)
-        return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
-    return str(value).lower()
-
-
-def _value_to_cpp_eigen(value: Tensor, variable: str) -> str:
-    # Torch tensors are row major but Eigen matrices are column major;
-    # a torch Dirichlet distribution expects a row of parameters;
-    # BMG expects a column.  That's why we swap rows with columns here.
-    r, c = _size_to_rc(value.size())
-    v = value.reshape(r, c).transpose(0, 1)
-    values = ", ".join(str(element) for element in v.storage())
-    return f"Eigen::MatrixXd {variable}({c}, {r})\n{variable} << {values};\n"
 
 
 # When constructing the support of various nodes we are often
@@ -371,11 +335,6 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp(self.value)
-        return f"uint n{n} = g.add_constant({v});"
-
     # The support of a constant is just the value.
     def support(self) -> Iterator[Any]:
         yield self.value
@@ -423,11 +382,6 @@ class NaturalNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp(self.value)
-        return f"uint n{n} = g.add_constant({v});"
-
 
 class PositiveRealNode(ConstantNode):
     """A real constant restricted to non-negative values"""
@@ -447,11 +401,6 @@ class PositiveRealNode(ConstantNode):
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp(self.value)
-        return f"uint n{n} = g.add_constant_pos_real({v});"
 
 
 class NegativeRealNode(ConstantNode):
@@ -473,11 +422,6 @@ class NegativeRealNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp(self.value)
-        return f"uint n{n} = g.add_constant_neg_real({v});"
-
 
 class ProbabilityNode(ConstantNode):
     """A real constant restricted to values from 0.0 to 1.0"""
@@ -497,11 +441,6 @@ class ProbabilityNode(ConstantNode):
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp(self.value)
-        return f"uint n{n} = g.add_constant_probability({v});"
 
 
 class RealNode(ConstantNode):
@@ -552,11 +491,6 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return PositiveReal.with_size(self.size)
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp_eigen(self.value, f"m{n}")
-        return f"{v}uint n{n} = g.add_constant_pos_matrix(m{n});"
-
     @property
     def is_matrix(self) -> bool:
         return True
@@ -569,11 +503,6 @@ class ConstantRealMatrixNode(ConstantTensorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real.with_size(self.size)
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp_eigen(self.value, f"m{n}")
-        return f"{v}uint n{n} = g.add_constant_real_matrix(m{n});"
 
     @property
     def is_matrix(self) -> bool:
@@ -588,11 +517,6 @@ class ConstantNegativeRealMatrixNode(ConstantTensorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return NegativeReal.with_size(self.size)
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp_eigen(self.value, f"m{n}")
-        return f"{v}uint n{n} = g.add_constant_neg_matrix(m{n});"
-
     @property
     def is_matrix(self) -> bool:
         return True
@@ -605,11 +529,6 @@ class ConstantProbabilityMatrixNode(ConstantTensorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Probability.with_size(self.size)
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp_eigen(self.value, f"m{n}")
-        return f"{v}uint n{n} = g.add_constant_probability_matrix(m{n});"
 
     @property
     def is_matrix(self) -> bool:
@@ -624,11 +543,6 @@ class ConstantNaturalMatrixNode(ConstantTensorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Natural.with_size(self.size)
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp_eigen(self.value, f"m{n}")
-        return f"{v}uint n{n} = g.add_constant_natural_matrix(m{n});"
-
     @property
     def is_matrix(self) -> bool:
         return True
@@ -641,11 +555,6 @@ class ConstantBooleanMatrixNode(ConstantTensorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Boolean.with_size(self.size)
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        v = _value_to_cpp_eigen(self.value, f"m{n}")
-        return f"{v}uint n{n} = g.add_constant_bool_matrix(m{n});"
 
     @property
     def is_matrix(self) -> bool:
@@ -767,14 +676,6 @@ class BernoulliNode(BernoulliBase):
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
-        )
-
 
 class BernoulliLogitNode(BernoulliBase):
     """The Bernoulli distribution is a coin flip; it takes
@@ -789,14 +690,6 @@ class BernoulliLogitNode(BernoulliBase):
 
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BERNOULLI_LOGIT,\n"
-            + "  graph::AtomicType::BOOLEAN,\n"
-            + f"  std::vector<uint>({{n{d[self.probability]}}}));"
-        )
 
 
 class BetaNode(DistributionNode):
@@ -842,14 +735,6 @@ class BetaNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BETA,\n"
-            + "  graph::AtomicType::PROBABILITY,\n"
-            + f"  std::vector<uint>({{n{d[self.alpha]}, n{d[self.beta]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -952,15 +837,6 @@ class BinomialNode(BinomialNodeBase):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::BINOMIAL,\n"
-            + "  graph::AtomicType::NATURAL,\n"
-            + f"  std::vector<uint>({{n{d[self.count]}, "
-            + f"n{d[self.probability]}}}));"
-        )
-
 
 class BinomialLogitNode(BinomialNodeBase):
     """The Binomial distribution is the extension of the
@@ -981,10 +857,6 @@ class BinomialLogitNode(BinomialNodeBase):
 
     def _supported_in_bmg(self) -> bool:
         return False
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        # TODO: Handle case where child is logits
-        raise InternalError("Binomial with logits is not supported in BMG.")
 
 
 # TODO: Split this into two distributions as with binomial and Bernoulli.
@@ -1186,17 +1058,6 @@ class DirichletNode(DistributionNode):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return f"""uint n{d[self]} = g.add_distribution(
-  graph::DistributionType::DIRICHLET,
-  graph::ValueType(
-    graph::VariableType::COL_SIMPLEX_MATRIX,
-    graph::AtomicType::PROBABILITY,
-    {self._required_columns},
-    1
-  )
-  std::vector<uint>({{n{d[self.concentration]}}}));"""
-
 
 class FlatNode(DistributionNode):
 
@@ -1217,14 +1078,6 @@ class FlatNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::FLAT,\n"
-            + "  graph::AtomicType::PROBABILITY,\n"
-            + "  std::vector<uint>({}));"
-        )
 
     @property
     def size(self) -> torch.Size:
@@ -1281,14 +1134,6 @@ class GammaNode(DistributionNode):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::GAMMA,\n"
-            + "  graph::AtomicType::POS_REAL,\n"
-            + f"  std::vector<uint>({{n{d[self.concentration]}, n{d[self.rate]}}}));"
-        )
-
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
@@ -1343,15 +1188,6 @@ class HalfCauchyNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            # TODO: Fix this when we add the node type to BMG
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::HALF_CAUCHY,\n"
-            + "  graph::AtomicType::POS_REAL,\n"
-            + f"  std::vector<uint>({{n{d[self.scale]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1408,14 +1244,6 @@ class NormalNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::NORMAL,\n"
-            + "  graph::AtomicType::REAL,\n"
-            + f"  std::vector<uint>({{n{d[self.mu]}, n{d[self.sigma]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1482,15 +1310,6 @@ class StudentTNode(DistributionNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        return (
-            f"uint n{d[self]} = g.add_distribution(\n"
-            + "  graph::DistributionType::STUDENT_T,\n"
-            + "  graph::AtomicType::REAL,\n"
-            + "  std::vector<uint>("
-            + f"{{n{d[self.df]}, n{d[self.loc]}, n{d[self.scale]}}}));"
-        )
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1628,15 +1447,6 @@ class MultiAdditionNode(OperatorNode):
     def support(self) -> Iterator[Any]:
         raise ValueError("support of multiary addition not yet implemented")
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        args = ", ".join(f"n{d[x]}" for x in self.inputs)
-        return (
-            f"n{n} = g.add_operator(\n"
-            + "  graph::OperatorType::ADD,\n"
-            + f"  std::vector<uint>({{{args}}}));"
-        )
-
     def _supported_in_bmg(self) -> bool:
         return True
 
@@ -1719,15 +1529,6 @@ class LogSumExpNode(OperatorNode):
 
     def support(self) -> Iterator[Any]:
         raise ValueError("support of LogSumExp not yet implemented")
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        args = ", ".join(f"n{d[x]}" for x in self.inputs)
-        return (
-            f"n{n} = g.add_operator(\n"
-            + "  graph::OperatorType::LOGSUMEXP,\n"
-            + f"  std::vector<uint>({{{args}}}));"
-        )
 
     def _supported_in_bmg(self) -> bool:
         return True
@@ -1812,17 +1613,6 @@ class IfThenElseNode(OperatorNode):
     def support(self) -> Iterator[Any]:
         raise ValueError("support of IfThenElseNode not yet implemented")
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        i = d[self.condition]
-        t = d[self.consequence]
-        e = d[self.alternative]
-        return (
-            f"n{n} = g.add_operator(\n"
-            + "  graph::OperatorType::IF_THEN_ELSE,\n"
-            + f"  std::vector<uint>({{n{i}, n{t}, n{e}}}));"
-        )
-
     def _supported_in_bmg(self) -> bool:
         return True
 
@@ -1834,8 +1624,6 @@ class IfThenElseNode(OperatorNode):
 
 class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     """This is the base class for all binary operators."""
-
-    operator_type: OperatorType
 
     def __init__(self, left: BMGNode, right: BMGNode):
         OperatorNode.__init__(self, [left, right])
@@ -1855,17 +1643,6 @@ class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     @right.setter
     def right(self, p: BMGNode) -> None:
         self.inputs[1] = p
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        if not self._supported_in_bmg():
-            raise InternalError(f"{str(type(self))} is not supported in BMG.")
-        ot = str(self.operator_type).replace(".", "::")
-        left = d[self.left]
-        right = d[self.right]
-        return (
-            f"uint n{d[self]} = g.add_operator(\n"
-            + f"  graph::{ot}, std::vector<uint>({{n{left}, n{right}}}));"
-        )
 
     def support_size(self) -> float:
         return self.left.support_size() * self.right.support_size()
@@ -1975,8 +1752,6 @@ class NotEqualNode(ComparisonNode):
 
 class AdditionNode(BinaryOperatorNode):
     """This represents an addition of values."""
-
-    operator_type = OperatorType.ADD
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -2279,8 +2054,6 @@ class IndexNode(BinaryOperatorNode):
     """This represents a stochastic index into a vector. The left operand
     is the vector and the right operand is the index."""
 
-    operator_type = OperatorType.INDEX
-
     def __init__(self, left: MapNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
@@ -2482,7 +2255,6 @@ class MultiplicationNode(BinaryOperatorNode):
     # TODO: We accumulate nodes as strictly binary operations, but BMG supports
     # n-ary multiplication; we might consider a graph transformation that turns
     # chained multiplications into a single multiplication node.
-    operator_type = OperatorType.MULTIPLY
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -2562,8 +2334,6 @@ class MultiplicationNode(BinaryOperatorNode):
 
 class PowerNode(BinaryOperatorNode):
     """This represents an x-to-the-y operation."""
-
-    operator_type = OperatorType.POW
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
@@ -2694,8 +2464,6 @@ class PowerNode(BinaryOperatorNode):
 class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     """This is the base type of unary operator nodes."""
 
-    operator_type: OperatorType
-
     def __init__(self, operand: BMGNode):
         OperatorNode.__init__(self, [operand])
 
@@ -2707,19 +2475,6 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     def operand(self, p: BMGNode) -> None:
         self.inputs[0] = p
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        if not self._supported_in_bmg():
-            raise InternalError(f"{str(type(self))} is not supported in BMG.")
-        n = d[self]
-        o = d[self.operand]
-        # Since OperatorType is not actually an enum, there is no
-        # name attribute to use.
-        ot = str(self.operator_type).replace(".", "::")
-        return (
-            f"uint n{n} = g.add_operator(\n"
-            + f"  graph::{ot}, std::vector<uint>({{n{o}}}));"
-        )
-
     def support_size(self) -> float:
         return self.operand.support_size()
 
@@ -2727,8 +2482,6 @@ class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
 class ExpNode(UnaryOperatorNode):
     """This represents an exponentiation operation; it is generated when
     a model contains calls to Tensor.exp or math.exp."""
-
-    operator_type = OperatorType.EXP
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
@@ -2780,8 +2533,6 @@ class ExpM1Node(UnaryOperatorNode):
     # then we can make the type more specific, and also possibly reduce
     # the number of nodes in the graph.
 
-    operator_type = OperatorType.EXPM1
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -2823,8 +2574,6 @@ class LogisticNode(UnaryOperatorNode):
     """This represents the operation 1/(1+exp(x)); it is generated when
     a model contains calls to Tensor.sigmoid."""
 
-    operator_type = OperatorType.LOGISTIC
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -2858,8 +2607,6 @@ class LogisticNode(UnaryOperatorNode):
 class LogNode(UnaryOperatorNode):
     """This represents a log operation; it is generated when
     a model contains calls to Tensor.log or math.log."""
-
-    operator_type = OperatorType.LOG
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
@@ -2914,8 +2661,6 @@ class LogNode(UnaryOperatorNode):
 class Log1mexpNode(UnaryOperatorNode):
     """This represents a log1mexp operation; it is generated when
     a model contains calls to log1mexp or math_log1mexp."""
-
-    operator_type = OperatorType.LOG1MEXP
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
@@ -3011,8 +2756,6 @@ class NegateNode(UnaryOperatorNode):
 
     """This represents a unary minus."""
 
-    operator_type = OperatorType.NEGATE
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -3062,9 +2805,6 @@ class NegateNode(UnaryOperatorNode):
 class NotNode(UnaryOperatorNode):
     """This represents a logical not that appears in the Python model."""
 
-    # TODO: We do not support NOT in BMG yet; when we do, update this.
-    operator_type = OperatorType.NEGATE  # TODO
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -3096,8 +2836,6 @@ class ComplementNode(UnaryOperatorNode):
     value."""
 
     # See notes above NegateNode for details
-
-    operator_type = OperatorType.COMPLEMENT
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
@@ -3150,8 +2888,6 @@ class PhiNode(UnaryOperatorNode):
     """This represents a phi operation; that is, the cumulative
     distribution function of the standard normal."""
 
-    operator_type = OperatorType.PHI
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -3189,8 +2925,6 @@ class SampleNode(UnaryOperatorNode):
     has two nodes that both input from the same sample node, we must
     treat those two uses of the sample as though they had identical
     values."""
-
-    operator_type = OperatorType.SAMPLE
 
     def __init__(self, operand: DistributionNode):
         UnaryOperatorNode.__init__(self, operand)
@@ -3231,8 +2965,6 @@ class SampleNode(UnaryOperatorNode):
 
 
 class ToRealNode(UnaryOperatorNode):
-    operator_type = OperatorType.TO_REAL
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -3263,8 +2995,6 @@ class ToRealNode(UnaryOperatorNode):
 
 
 class ToPositiveRealNode(UnaryOperatorNode):
-    operator_type = OperatorType.TO_POS_REAL
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -3295,8 +3025,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
 
 
 class ToProbabilityNode(UnaryOperatorNode):
-    operator_type = OperatorType.TO_PROBABILITY
-
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
@@ -3406,14 +3134,6 @@ class Observation(BMGNode):
     def _supported_in_bmg(self) -> bool:
         return True
 
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        if isinstance(self.value, Tensor):
-            v = f"m{d[self]}"
-            s = _value_to_cpp_eigen(self.value, v)
-            return f"{s}g.observe([n{d[self.observed]}], {v});"
-        v = _value_to_cpp(self.value)
-        return f"g.observe([n{d[self.observed]}], {v});"
-
     def support(self) -> Iterator[Any]:
         return []
 
@@ -3464,14 +3184,6 @@ class Query(BMGNode):
 
     def _supported_in_bmg(self) -> bool:
         return True
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        # BMG does not allow a query on a constant, but it is possible
-        # to end up with one in the graph. Suppress those from codegen.
-        q = self.operator
-        if isinstance(q, ConstantNode):
-            return ""
-        return f"g.query(n{d[q]});"
 
     def support(self) -> Iterator[Any]:
         return []
@@ -3540,15 +3252,6 @@ class ExpProductFactorNode(FactorNode):
         # Factors never produce output so it is not meaningful to compute
         # their support
         return []
-
-    def _to_cpp(self, d: Dict["BMGNode", int]) -> str:
-        n = d[self]
-        args = ", ".join(f"n{d[x]}" for x in self.inputs)
-        return (
-            f"n{n} = g.add_factor(\n"
-            + "  graph::FactorType::EXP_PRODUCT,\n"
-            + f"  std::vector<uint>({{{args}}}));"
-        )
 
     def _supported_in_bmg(self) -> bool:
         return True
