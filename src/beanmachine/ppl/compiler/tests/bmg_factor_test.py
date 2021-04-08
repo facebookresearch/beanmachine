@@ -27,22 +27,22 @@ class BMGFactorTest(unittest.TestCase):
         observed = to_dot(bmg, label_edges=False)
         expected = """
 digraph "graph" {
-  N0[label=2.0];
-  N1[label=3.0];
-  N2[label=0.4];
-  N3[label=Normal];
-  N4[label=Sample];
+  N0[label=3.0];
+  N1[label=2.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=0.4];
   N5[label="*"];
   N6[label=ExpProduct];
   N7[label="Observation 7.0"];
-  N0 -> N3;
-  N1 -> N3;
-  N2 -> N6;
-  N3 -> N4;
-  N4 -> N5;
-  N4 -> N5;
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N5;
+  N3 -> N5;
+  N3 -> N6;
+  N3 -> N7;
   N4 -> N6;
-  N4 -> N7;
   N5 -> N6;
 }
 """

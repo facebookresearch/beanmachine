@@ -3,15 +3,19 @@
 Convert a builder into a program that produces a graph builder.
 """
 
+from typing import Dict
+
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 
 
 class GenerateBuilder:
     bmg: BMGraphBuilder
+    _nodes: Dict[bn.BMGNode, int]
 
     def __init__(self, bmg: BMGraphBuilder) -> None:
         self.bmg = bmg
+        self._nodes = {}
 
     def _factory_name(self, node: bn.BMGNode) -> str:
         return type(node).__name__
@@ -20,7 +24,7 @@ class GenerateBuilder:
         return "n" + str(index)
 
     def _input_to_arg(self, node: bn.BMGNode) -> str:
-        index = self.bmg.nodes[node]
+        index = self._nodes[node]
         return self._to_id(index)
 
     def _inputs_to_args(self, node: bn.BMGNode) -> str:
@@ -49,7 +53,11 @@ class GenerateBuilder:
         # Nodes should be sorted so that ancestors always come
         # before descendents.
 
-        for node, index in self.bmg.nodes.items():
+        self._nodes = {}
+        for index, node in enumerate(self.bmg.all_nodes()):
+            self._nodes[node] = index
+
+        for node, index in self._nodes.items():
             n = self._to_id(index)
             f = self._factory_name(node)
             a = self._inputs_to_args(node)

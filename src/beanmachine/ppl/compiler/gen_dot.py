@@ -34,14 +34,13 @@ def to_dot(
         # * Add a whole_graph flag, default to true, which decides
         #   whether to graph the whole thing or not.
         fix_problems(bmg, bmg._fix_observe_true).raise_errors()
-        nodes = {}
-        for index, node in enumerate(bmg.all_ancestor_nodes()):
-            nodes[node] = index
+        node_list = bmg.all_ancestor_nodes()
     else:
-        # TODO: Make the nodes dictionary a private implementation detail.
-        # This should use bmg.all_nodes() instead; that also ensures that
-        # it is topo-sorted consistently.
-        nodes = bmg.nodes
+        node_list = bmg.all_nodes()
+
+    nodes = {}
+    for index, node in enumerate(node_list):
+        nodes[node] = index
 
     max_length = len(str(len(nodes) - 1))
 

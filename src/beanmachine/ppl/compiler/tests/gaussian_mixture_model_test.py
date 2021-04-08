@@ -50,41 +50,40 @@ class GaussianMixtureModelTest(unittest.TestCase):
         observed = BMGInference().to_dot(queries, observations, after_transform=False)
         expected = """
 digraph "graph" {
-  N00[label="[0.125,0.375,0.5]"];
-  N01[label=Categorical];
-  N02[label=Sample];
-  N03[label=0];
-  N04[label=1.0];
-  N05[label=Normal];
+  N00[label=0];
+  N01[label=1.0];
+  N02[label=Normal];
+  N03[label=Sample];
+  N04[label=Sample];
+  N05[label=2];
   N06[label=Sample];
-  N07[label=Sample];
-  N08[label=2];
-  N09[label=Sample];
-  N10[label=map];
+  N07[label=map];
+  N08[label="[0.125,0.375,0.5]"];
+  N09[label=Categorical];
+  N10[label=Sample];
   N11[label=index];
   N12[label=1];
   N13[label=Normal];
   N14[label=Sample];
   N15[label=Query];
-  N00 -> N01;
+  N00 -> N02;
+  N00 -> N07;
   N01 -> N02;
-  N02 -> N11;
-  N03 -> N05;
-  N03 -> N10;
-  N04 -> N05;
-  N04 -> N10;
-  N05 -> N06;
+  N01 -> N07;
+  N02 -> N03;
+  N02 -> N04;
+  N02 -> N06;
+  N03 -> N07;
+  N04 -> N07;
   N05 -> N07;
-  N05 -> N09;
-  N06 -> N10;
-  N07 -> N10;
-  N08 -> N10;
+  N06 -> N07;
+  N07 -> N11;
+  N08 -> N09;
   N09 -> N10;
   N10 -> N11;
   N11 -> N13;
   N12 -> N13;
   N13 -> N14;
   N14 -> N15;
-}
-        """
+}"""
         self.assertEqual(expected.strip(), observed.strip())

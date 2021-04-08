@@ -383,23 +383,23 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label=2.0];
-  N1[label=Beta];
-  N2[label=Sample];
-  N3[label=Exp];
-  N4[label=1];
+  N0[label=1];
+  N1[label=2.0];
+  N2[label=Beta];
+  N3[label=Sample];
+  N4[label=Exp];
   N5[label="+"];
   N6[label=Query];
-  N0 -> N1[label=alpha];
-  N0 -> N1[label=beta];
-  N1 -> N2[label=operand];
+  N0 -> N5[label=left];
+  N1 -> N2[label=alpha];
+  N1 -> N2[label=beta];
   N2 -> N3[label=operand];
-  N3 -> N5[label=right];
-  N4 -> N5[label=left];
+  N3 -> N4[label=operand];
+  N4 -> N5[label=right];
   N5 -> N6[label=operator];
 }
 """
-        self.assertEqual(dot.strip(), expected.strip())
+        self.assertEqual(expected.strip(), dot.strip())
 
     def test_function_transformation_6(self) -> None:
         """Unit tests for JIT functions"""
