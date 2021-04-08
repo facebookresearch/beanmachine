@@ -24,7 +24,9 @@ def to_dot(
 
     if after_transform:
         fix_problems(bmg, bmg._fix_observe_true).raise_errors()
-        nodes = bmg._resort_nodes()
+        nodes = {}
+        for index, node in enumerate(bmg._traverse_from_roots()):
+            nodes[node] = index
     else:
         nodes = bmg.nodes
 
