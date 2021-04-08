@@ -4,6 +4,7 @@ import unittest
 
 import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from torch import tensor
 from torch.distributions import (
     Bernoulli,
@@ -337,7 +338,7 @@ class GraphAccumulationTests(unittest.TestCase):
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_1))
 
     def test_accumulate_bool_conversions(self) -> None:
@@ -345,7 +346,7 @@ class GraphAccumulationTests(unittest.TestCase):
         queries = [normal_from_bools(), binomial_from_bools()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_2))
 
     def test_accumulate_bool_nat_mult(self) -> None:
@@ -353,7 +354,7 @@ class GraphAccumulationTests(unittest.TestCase):
         queries = [bool_times_natural()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_3))
 
     def test_accumulate_math(self) -> None:
@@ -361,14 +362,14 @@ class GraphAccumulationTests(unittest.TestCase):
         queries = [math1(), math2(), math3()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_4))
 
         # Try with a different version of CDF syntax.
         queries = [math1(), math2(), math4()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_4))
 
     def test_accumulate_complement(self) -> None:
@@ -376,7 +377,7 @@ class GraphAccumulationTests(unittest.TestCase):
         queries = [flip_complement()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_5))
 
     def test_accumulate_neg_log(self) -> None:
@@ -384,7 +385,7 @@ class GraphAccumulationTests(unittest.TestCase):
         queries = [beta_neg_log()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_6))
 
     def test_accumulate_eliminate_identities(self) -> None:
@@ -392,5 +393,5 @@ class GraphAccumulationTests(unittest.TestCase):
         queries = [beta_eliminate_identities()]
         bmg = BMGraphBuilder()
         bmg.accumulate_graph(queries, {})
-        observed = bmg.to_bmg().to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(observed), tidy(expected_bmg_7))
