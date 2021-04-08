@@ -32,6 +32,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     SetOfTensors,
     ToRealNode,
 )
+from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
@@ -140,7 +141,7 @@ q0 = g.query(n7)
 """
         self.assertEqual(observed.strip(), expected.strip())
 
-        observed = bmg.to_cpp()
+        observed = to_bmg_cpp(bmg).code
 
         expected = """
 graph::Graph g;
@@ -152,18 +153,18 @@ uint n1 = g.add_distribution(
 uint n2 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
 g.observe([n2], true);
-uint n4 = g.add_constant(2);
-uint n5 = g.add_operator(
+uint n3 = g.add_constant(2.0);
+uint n4 = g.add_operator(
   graph::OperatorType::TO_REAL, std::vector<uint>({n2}));
+uint n5 = g.add_operator(
+  graph::OperatorType::NEGATE, std::vector<uint>({n4}));
 uint n6 = g.add_operator(
-  graph::OperatorType::NEGATE, std::vector<uint>({n5}));
+  graph::OperatorType::ADD, std::vector<uint>({n3, n5}));
 uint n7 = g.add_operator(
-  graph::OperatorType::ADD, std::vector<uint>({n4, n6}));
-uint n8 = g.add_operator(
-  graph::OperatorType::MULTIPLY, std::vector<uint>({n4, n7}));
-g.query(n8);
+  graph::OperatorType::MULTIPLY, std::vector<uint>({n3, n6}));
+uint q0 = g.query(n7);
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_graph_builder_2(self) -> None:
         bmg = BMGraphBuilder()

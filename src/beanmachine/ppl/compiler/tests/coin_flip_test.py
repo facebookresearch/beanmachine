@@ -109,16 +109,16 @@ uint n3 = g.add_distribution(
 uint n4 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 g.observe([n4], false);
+uint n5 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
+g.observe([n5], false);
 uint n6 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-g.observe([n6], false);
-uint n8 = g.add_operator(
+g.observe([n6], true);
+uint n7 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-g.observe([n8], true);
-uint n10 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
-g.observe([n10], false);
-g.query(n2);"""
+g.observe([n7], false);
+uint q0 = g.query(n2);"""
         self.assertEqual(expected.strip(), observed.strip())
 
         observed = BMGInference().to_python(queries, observations)

@@ -11,6 +11,7 @@ import beanmachine.ppl.compiler.profiler as prof
 import torch
 from beanmachine.graph import InferenceType
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
@@ -215,7 +216,8 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a C++ program fragment which
         produces the graph deduced from the model."""
-        return self._accumulate_graph(queries, observations).to_cpp()
+        bmg = self._accumulate_graph(queries, observations)
+        return to_bmg_cpp(bmg).code
 
     def to_python(
         self,
