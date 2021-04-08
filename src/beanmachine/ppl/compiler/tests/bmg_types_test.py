@@ -29,6 +29,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     type_of_value,
     upper_bound,
 )
+from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import tensor
 
 
@@ -152,7 +153,8 @@ class BMGTypesTest(unittest.TestCase):
         bmg.add_sample(bern)
         bmg.add_query(mult)
 
-        observed = bmg.to_dot(
+        observed = to_dot(
+            bmg,
             graph_types=True,
             inf_types=True,
             edge_requirements=True,

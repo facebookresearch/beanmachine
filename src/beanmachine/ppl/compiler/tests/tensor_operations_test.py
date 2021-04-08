@@ -3,6 +3,7 @@ import unittest
 
 import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import logsumexp, tensor
 from torch.distributions import Normal
 
@@ -33,7 +34,7 @@ class TensorOperationsTest(unittest.TestCase):
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse1()], {})
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -63,7 +64,7 @@ digraph "graph" {
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse2()], {})
-        observed = bmg.to_dot()
+        observed = to_dot(bmg)
         self.assertEqual(observed.strip(), expected.strip())
 
         # Now try generating a BMG from them. The problem fixer should
@@ -93,5 +94,5 @@ digraph "graph" {
 
         bmg = BMGraphBuilder()
         bmg.accumulate_graph([lse1()], {})
-        observed = bmg.to_dot(after_transform=True)
+        observed = to_dot(bmg, after_transform=True)
         self.assertEqual(observed.strip(), expected.strip())
