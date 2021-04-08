@@ -38,7 +38,7 @@ def safe_log_prob_sum(distrib, value: torch.Tensor) -> torch.Tensor:
     try:
         return distrib.log_prob(value).sum()
     except (RuntimeError, ValueError) as e:
-        if not distrib.support.check(value):
+        if not distrib.support.check(value).all():
             return torch.tensor(float("-Inf")).to(value.device)
         else:
             raise e
