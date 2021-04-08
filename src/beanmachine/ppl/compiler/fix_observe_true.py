@@ -59,7 +59,7 @@ class ObserveTrueFixer:
     def _fix_observation(self, o: Observation) -> None:
         if o.graph_type != Boolean or not o.value:
             return
-        sample = o.operand
+        sample = o.observed
         if not isinstance(sample, SampleNode):
             return
         bern = sample.operand

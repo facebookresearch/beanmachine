@@ -60,7 +60,7 @@ class ImpossibleObservation(BMGError):
 
     def __str__(self) -> str:
         v = self.node.value
-        d = get_node_label(self.node.operand.operand)
+        d = get_node_label(self.node.observed.operand)
         t = self.node.inf_type.long_name
         msg = (
             f"A {d} distribution is observed to have value {v} "

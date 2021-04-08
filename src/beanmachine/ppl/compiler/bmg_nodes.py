@@ -5,7 +5,7 @@ import functools
 import itertools
 import operator
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Iterator, List
+from typing import Any, Iterable, List
 
 import torch
 from beanmachine.ppl.compiler.bmg_types import (
@@ -35,9 +35,6 @@ from torch import Tensor, tensor
 from torch.distributions import Normal
 from torch.distributions.utils import broadcast_all
 
-
-# TODO: There are numerous pyre errors in this module; fix them.
-# pyre-ignore-all-errors
 
 # TODO: Extract inf type, graph type and requirements computations to own module
 # TODO: Add assertions which ensure that type requirements are never "fake" types
@@ -216,7 +213,7 @@ class BMGNode(ABC):
         return self._inf_type
 
     @property
-    def is_matrix(self) -> BMGLatticeType:
+    def is_matrix(self) -> bool:
         """Is this node classified as a matrix in BMG?"""
         return False
 
@@ -237,7 +234,7 @@ class BMGNode(ABC):
         pass
 
     @abstractmethod
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         """To build the graph of all possible control flows through
         the model we need to know for any given node what are
         all the possible values it could attain; we require that
@@ -325,7 +322,7 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
         return []
 
     # The support of a constant is just the value.
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         yield self.value
 
     def support_size(self) -> float:
@@ -594,7 +591,7 @@ class TensorNode(BMGNode):
     def size(self) -> torch.Size:
         return self._size
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         s = self.size
         return (
             tensor(c).view(s)
@@ -640,7 +637,7 @@ class BernoulliBase(DistributionNode):
     def size(self) -> torch.Size:
         return self.probability.size
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         s = self.size
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
 
@@ -719,7 +716,7 @@ class BetaNode(DistributionNode):
     def __str__(self) -> str:
         return f"Beta({str(self.alpha)},{str(self.beta)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -799,7 +796,7 @@ class BinomialNodeBase(DistributionNode):
     # problems; to compute the maximum value of a negation, for
     # instance, we then would also need to answer the question
     # "what is the minimum value you support?" and so on.
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         raise ValueError("Support of binomial is not yet implemented.")
 
 
@@ -896,12 +893,12 @@ class CategoricalNode(DistributionNode):
 
     @property
     def size(self) -> torch.Size:
-        return self.probability.size[0:-1]
+        return self.probability.size[0:-1]  # pyre-ignore
 
     def __str__(self) -> str:
         return "Categorical(" + str(self.probability) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         s = self.probability.size
         r = list(range(s[-1]))
         sr = s[:-1]
@@ -944,7 +941,7 @@ class Chi2Node(DistributionNode):
     def __str__(self) -> str:
         return f"Chi2({str(self.df)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -1019,7 +1016,7 @@ class DirichletNode(DistributionNode):
     def __str__(self) -> str:
         return f"Dirichlet({str(self.concentration)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -1053,7 +1050,7 @@ class FlatNode(DistributionNode):
     def __str__(self) -> str:
         return "Flat()"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         raise ValueError("Flat distribution does not have finite support.")
 
 
@@ -1098,7 +1095,7 @@ class GammaNode(DistributionNode):
     def __str__(self) -> str:
         return f"Gamma({str(self.concentration)}, {str(self.rate)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -1150,7 +1147,7 @@ class HalfCauchyNode(DistributionNode):
     def __str__(self) -> str:
         return f"HalfCauchy({str(self.scale)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -1203,7 +1200,7 @@ class NormalNode(DistributionNode):
     def __str__(self) -> str:
         return f"Normal({str(self.mu)},{str(self.sigma)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -1266,7 +1263,7 @@ class StudentTNode(DistributionNode):
     def __str__(self) -> str:
         return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -1327,7 +1324,7 @@ class UniformNode(DistributionNode):
     def __str__(self) -> str:
         return f"Uniform({str(self.low)},{str(self.high)})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
         # TODO: error message that diagnoses the problem more exactly for
@@ -1393,13 +1390,13 @@ class MultiAdditionNode(OperatorNode):
         s = supremum(*[i.inf_type for i in self.inputs])
         if s not in {Real, NegativeReal, PositiveReal}:
             s = Real
-        return [s] * len(self.inputs)
+        return [s] * len(self.inputs)  # pyre-ignore
 
     @property
     def size(self) -> torch.Size:
         return self.inputs[0].size
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         raise ValueError("support of multiary addition not yet implemented")
 
     def __str__(self) -> str:
@@ -1468,7 +1465,7 @@ class LogSumExpNode(OperatorNode):
         s = supremum(*[i.inf_type for i in self.inputs])
         if s not in {Real, NegativeReal, PositiveReal}:
             s = Real
-        return [s] * len(self.inputs)
+        return [s] * len(self.inputs)  # pyre-ignore
 
     @property
     def size(self) -> torch.Size:
@@ -1479,7 +1476,7 @@ class LogSumExpNode(OperatorNode):
     def __str__(self) -> str:
         return "LogSumExp"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         raise ValueError("support of LogSumExp not yet implemented")
 
 
@@ -1559,7 +1556,7 @@ class IfThenElseNode(OperatorNode):
         e = str(self.alternative)
         return f"(if {i} then {t} else {e})"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         raise ValueError("support of IfThenElseNode not yet implemented")
 
 
@@ -1622,7 +1619,7 @@ class GreaterThanNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el > ar for el in self.left.support() for ar in self.right.support()
         )
@@ -1635,7 +1632,7 @@ class GreaterThanEqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el >= ar for el in self.left.support() for ar in self.right.support()
         )
@@ -1648,7 +1645,7 @@ class LessThanNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el < ar for el in self.left.support() for ar in self.right.support()
         )
@@ -1661,7 +1658,7 @@ class LessThanEqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el <= ar for el in self.left.support() for ar in self.right.support()
         )
@@ -1674,7 +1671,7 @@ class EqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el == ar for el in self.left.support() for ar in self.right.support()
         )
@@ -1687,7 +1684,7 @@ class NotEqualNode(ComparisonNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         ComparisonNode.__init__(self, left, right)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el != ar for el in self.left.support() for ar in self.right.support()
         )
@@ -1783,7 +1780,7 @@ class AdditionNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return "(" + str(self.left) + "+" + str(self.right) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el + ar for el in self.left.support() for ar in self.right.support()
         )
@@ -1806,7 +1803,7 @@ class DivisionNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return "(" + str(self.left) + "/" + str(self.right) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # TODO: Filter out division by zero?
         return SetOfTensors(
             el / ar for el in self.left.support() for ar in self.right.support()
@@ -1928,7 +1925,7 @@ class MapNode(BMGNode):
     def size(self) -> torch.Size:
         return self.inputs[1].size
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return []
 
     # TODO: The original plan was to represent Python values such as
@@ -1945,7 +1942,9 @@ class MapNode(BMGNode):
         # maps will be small.
         k = key.value if isinstance(key, ConstantNode) else key
         for i in range(len(self.inputs) // 2):
-            if self.inputs[i * 2].value == k:
+            c = self.inputs[i * 2]
+            assert isinstance(c, ConstantNode)
+            if c.value == k:
                 return self.inputs[i * 2 + 1]
         raise ValueError("Key not found in map")
 
@@ -1987,17 +1986,15 @@ class IndexNodeDeprecated(BinaryOperatorNode):
     def __str__(self) -> str:
         return str(self.left) + "[" + str(self.right) + "]"
 
-    def support(self) -> Iterator[Any]:
-        return SetOfTensors(
-            el for ar in self.right.support() for el in self.left[ar].support()
-        )
+    def support(self) -> Iterable[Any]:
+        raise NotImplementedError()
 
 
 class IndexNode(BinaryOperatorNode):
     """This represents a stochastic index into a vector. The left operand
     is the vector and the right operand is the index."""
 
-    def __init__(self, left: MapNode, right: BMGNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
     def _compute_inf_type(self) -> BMGLatticeType:
@@ -2146,7 +2143,7 @@ class IndexNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return str(self.left) + "[" + str(self.right) + "]"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         raise NotImplementedError("support of index operator not implemented")
 
 
@@ -2181,7 +2178,7 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return "(" + str(self.left) + "*" + str(self.right) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             torch.mm(el, ar)
             for el in self.left.support()
@@ -2263,7 +2260,7 @@ class MultiplicationNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return "(" + str(self.left) + "*" + str(self.right) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el * ar for el in self.left.support() for ar in self.right.support()
         )
@@ -2325,7 +2322,7 @@ class PowerNode(BinaryOperatorNode):
         inf_exp = self.right.inf_type
 
         if inf_base == Tensor or inf_exp == Tensor:
-            return Tensor
+            return BMGTensor
 
         if supremum(inf_exp, Boolean) == Boolean:
             return inf_base
@@ -2370,7 +2367,7 @@ class PowerNode(BinaryOperatorNode):
         inf_exp = supremum(Boolean, self.right.inf_type)
 
         if inf_base == Tensor or inf_exp == Tensor:
-            return [Tensor, Tensor]
+            return [BMGTensor, BMGTensor]
 
         if inf_exp == Boolean:
             return [inf_base, inf_exp]
@@ -2384,7 +2381,7 @@ class PowerNode(BinaryOperatorNode):
     def __str__(self) -> str:
         return "(" + str(self.left) + "**" + str(self.right) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(
             el ** ar for el in self.left.support() for ar in self.right.support()
         )
@@ -2450,7 +2447,7 @@ class ExpNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "Exp(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(torch.exp(o) for o in self.operand.support())
 
 
@@ -2494,7 +2491,7 @@ class ExpM1Node(UnaryOperatorNode):
     def __str__(self) -> str:
         return "ExpM1(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(torch.expm1(o) for o in self.operand.support())
 
 
@@ -2525,7 +2522,7 @@ class LogisticNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "Logistic(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(torch.sigmoid(o) for o in self.operand.support())
 
 
@@ -2573,7 +2570,7 @@ class LogNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "Log(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(torch.log(o) for o in self.operand.support())
 
 
@@ -2610,7 +2607,7 @@ class Log1mexpNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "Log1mexp(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(torch.log(1 - torch.exp(o)) for o in self.operand.support())
 
 
@@ -2714,7 +2711,7 @@ class NegateNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "-" + str(self.operand)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(-o for o in self.operand.support())
 
 
@@ -2743,7 +2740,7 @@ class NotNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "not " + str(self.operand)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(not o for o in self.operand.support())
 
 
@@ -2790,11 +2787,11 @@ class ComplementNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "complement " + str(self.operand)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # This should never be called because we never generate
         # a complement node while executing the model to accumulate
         # the graph.
-        return [1 - p for p in self.operand.support]
+        return [1 - p for p in self.operand.support()]
 
 
 class PhiNode(UnaryOperatorNode):
@@ -2823,7 +2820,7 @@ class PhiNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "Phi(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         cdf = Normal(0.0, 1.0).cdf
         return SetOfTensors(cdf(o) for o in self.operand.support())
 
@@ -2867,7 +2864,7 @@ class SampleNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "Sample(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return self.operand.support()
 
 
@@ -2894,7 +2891,7 @@ class ToRealNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "ToReal(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
 
 
@@ -2921,7 +2918,7 @@ class ToPositiveRealNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "ToPosReal(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
 
 
@@ -2952,7 +2949,7 @@ class ToProbabilityNode(UnaryOperatorNode):
     def __str__(self) -> str:
         return "ToProb(" + str(self.operand) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return self.operand.support()
 
 
@@ -3002,7 +2999,7 @@ class Observation(BMGNode):
         return c
 
     @observed.setter
-    def operand(self, p: SampleNode) -> None:
+    def observed(self, p: SampleNode) -> None:
         self.inputs[0] = p
 
     def _compute_inf_type(self) -> BMGLatticeType:
@@ -3029,7 +3026,7 @@ class Observation(BMGNode):
     def __str__(self) -> str:
         return str(self.observed) + "=" + str(self.value)
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return []
 
 
@@ -3077,7 +3074,7 @@ class Query(BMGNode):
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         return []
 
 
@@ -3140,7 +3137,7 @@ class ExpProductFactorNode(FactorNode):
     def __str__(self) -> str:
         return "ExpProduct"
 
-    def support(self) -> Iterator[Any]:
+    def support(self) -> Iterable[Any]:
         # Factors never produce output so it is not meaningful to compute
         # their support
         return []
