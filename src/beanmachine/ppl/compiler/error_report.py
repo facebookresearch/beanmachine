@@ -12,6 +12,12 @@ from beanmachine.ppl.compiler.bmg_types import (
     Requirement,
     requirement_to_type,
 )
+from beanmachine.ppl.compiler.graph_labels import get_node_label
+
+
+# TODO: We use the DOT label of the node in the error messages here,
+# but we can probably do a better job. These labels are designed for
+# displaying a graph, not an error message.
 
 
 class BMGError(ABC):
@@ -39,7 +45,7 @@ class Violation(BMGError):
         # TODO: Fix this error message for the case where we require
         # a matrix but we can only get a scalar value
         msg = (
-            f"The {self.edge} of a {self.consumer.label} "
+            f"The {self.edge} of a {get_node_label(self.consumer)} "
             + f"is required to be a {t.long_name} "
             + f"but is a {self.node.inf_type.long_name}."
         )
@@ -54,7 +60,7 @@ class ImpossibleObservation(BMGError):
 
     def __str__(self) -> str:
         v = self.node.value
-        d = self.node.operand.operand.label
+        d = get_node_label(self.node.operand.operand)
         t = self.node.inf_type.long_name
         msg = (
             f"A {d} distribution is observed to have value {v} "
@@ -76,9 +82,9 @@ class UnsupportedNode(BMGError):
     def __str__(self) -> str:
         msg = (
             # TODO: Improve wording and diagnosis.
-            f"The model uses a {self.node.label} operation unsupported by "
+            f"The model uses a {get_node_label(self.node)} operation unsupported by "
             + f"Bean Machine Graph.\nThe unsupported node is the {self.edge} "
-            + f"of a {self.consumer.label}."
+            + f"of a {get_node_label(self.consumer)}."
         )
         return msg
 

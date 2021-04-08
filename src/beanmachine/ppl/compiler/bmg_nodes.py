@@ -277,13 +277,6 @@ class BMGNode(ABC):
         If the node represents a scalar value then produce Size([])."""
         pass
 
-    @property
-    @abstractmethod
-    def label(self) -> str:
-        """This gives the label of the node When generating a DOT file
-        for graph visualization and debugging."""
-        pass
-
     # Many of the node types defined in this module have no direct counterparts
     # in BMG; they are generated during execution of the model and accumulated
     # into a graph builder. They must then be transformed into semantically-
@@ -481,10 +474,6 @@ class BooleanNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    @property
-    def label(self) -> str:
-        return str(self.value)
-
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(bool(self.value))
 
@@ -510,10 +499,6 @@ class NaturalNode(ConstantNode):
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
-
-    @property
-    def label(self) -> str:
-        return str(self.value)
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(self.value)
@@ -551,10 +536,6 @@ class PositiveRealNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    @property
-    def label(self) -> str:
-        return str(self.value)
-
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant_pos_real(float(self.value))
 
@@ -590,10 +571,6 @@ class NegativeRealNode(ConstantNode):
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
-
-    @property
-    def label(self) -> str:
-        return str(self.value)
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant_neg_real(float(self.value))
@@ -631,10 +608,6 @@ class ProbabilityNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    @property
-    def label(self) -> str:
-        return str(self.value)
-
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant_probability(float(self.value))
 
@@ -671,10 +644,6 @@ class RealNode(ConstantNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    @property
-    def label(self) -> str:
-        return str(self.value)
-
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(float(self.value))
 
@@ -700,25 +669,12 @@ class ConstantTensorNode(ConstantNode):
             return str(t.item())
         return "[" + ",".join(ConstantTensorNode._tensor_to_python(c) for c in t) + "]"
 
-    @staticmethod
-    def _tensor_to_label(t: Tensor) -> str:
-        length = len(t.shape)
-        if length == 0 or length == 1:
-            return ConstantTensorNode._tensor_to_python(t)
-        return (
-            "[" + ",\\n".join(ConstantTensorNode._tensor_to_label(c) for c in t) + "]"
-        )
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return BMGTensor
 
     @property
     def size(self) -> torch.Size:
         return self.value.size()
-
-    @property
-    def label(self) -> str:
-        return ConstantTensorNode._tensor_to_label(self.value)
 
     def _add_to_graph(self, g: Graph, d: Dict[BMGNode, int]) -> int:
         return g.add_constant(self.value)
@@ -944,12 +900,6 @@ class TensorNode(BMGNode):
     def size(self) -> torch.Size:
         return self._size
 
-    @property
-    def label(self) -> str:
-        # TODO: Better string representation; maybe something like
-        # _tensor_to_label above.
-        return "Tensor"
-
     def support(self) -> Iterator[Any]:
         s = self.size
         return (
@@ -1020,10 +970,6 @@ class BernoulliNode(BernoulliBase):
     def requirements(self) -> List[Requirement]:
         return [Probability]
 
-    @property
-    def label(self) -> str:
-        return "Bernoulli"
-
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
 
@@ -1059,10 +1005,6 @@ class BernoulliLogitNode(BernoulliBase):
     @property
     def requirements(self) -> List[Requirement]:
         return [Real]
-
-    @property
-    def label(self) -> str:
-        return "Bernoulli(logits)"
 
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
@@ -1128,10 +1070,6 @@ class BetaNode(DistributionNode):
     @property
     def size(self) -> torch.Size:
         return self.alpha.size
-
-    @property
-    def label(self) -> str:
-        return "Beta"
 
     def __str__(self) -> str:
         return f"Beta({str(self.alpha)},{str(self.beta)})"
@@ -1261,10 +1199,6 @@ class BinomialNode(BinomialNodeBase):
     def requirements(self) -> List[Requirement]:
         return [Natural, Probability]
 
-    @property
-    def label(self) -> str:
-        return "Binomial"
-
     def _supported_in_bmg(self) -> bool:
         return True
 
@@ -1308,10 +1242,6 @@ class BinomialLogitNode(BinomialNodeBase):
     def requirements(self) -> List[Requirement]:
         return [Natural, Real]
 
-    @property
-    def label(self) -> str:
-        return "Binomial(logits)"
-
     def _supported_in_bmg(self) -> bool:
         return False
 
@@ -1328,6 +1258,7 @@ class BinomialLogitNode(BinomialNodeBase):
         raise InternalError("Binomial with logits is not supported in BMG.")
 
 
+# TODO: Split this into two distributions as with binomial and Bernoulli.
 class CategoricalNode(DistributionNode):
     """The categorical distribution is the extension of the
     Bernoulli distribution to multiple outcomes; rather
@@ -1390,10 +1321,6 @@ class CategoricalNode(DistributionNode):
     def size(self) -> torch.Size:
         return self.probability.size[0:-1]
 
-    @property
-    def label(self) -> str:
-        return "Categorical" + ("(logits)" if self.is_logits else "")
-
     def __str__(self) -> str:
         return "Categorical(" + str(self.probability) + ")"
 
@@ -1438,10 +1365,6 @@ class Chi2Node(DistributionNode):
     @property
     def size(self) -> torch.Size:
         return self.df.size
-
-    @property
-    def label(self) -> str:
-        return "Chi2"
 
     def __str__(self) -> str:
         return f"Chi2({str(self.df)})"
@@ -1523,10 +1446,6 @@ class DirichletNode(DistributionNode):
     @property
     def size(self) -> torch.Size:
         return self.concentration.size
-
-    @property
-    def label(self) -> str:
-        return "Dirichlet"
 
     def __str__(self) -> str:
         return f"Dirichlet({str(self.concentration)})"
@@ -1625,10 +1544,6 @@ class FlatNode(DistributionNode):
     def size(self) -> torch.Size:
         return torch.Size([])
 
-    @property
-    def label(self) -> str:
-        return "Flat"
-
     def __str__(self) -> str:
         return "Flat()"
 
@@ -1675,10 +1590,6 @@ class GammaNode(DistributionNode):
     @property
     def size(self) -> torch.Size:
         return self.concentration.size
-
-    @property
-    def label(self) -> str:
-        return "Gamma"
 
     def __str__(self) -> str:
         return f"Gamma({str(self.concentration)}, {str(self.rate)})"
@@ -1758,10 +1669,6 @@ class HalfCauchyNode(DistributionNode):
     def size(self) -> torch.Size:
         return self.scale.size
 
-    @property
-    def label(self) -> str:
-        return "HalfCauchy"
-
     def __str__(self) -> str:
         return f"HalfCauchy({str(self.scale)})"
 
@@ -1839,10 +1746,6 @@ class NormalNode(DistributionNode):
     @property
     def size(self) -> torch.Size:
         return self.mu.size
-
-    @property
-    def label(self) -> str:
-        return "Normal"
 
     def __str__(self) -> str:
         return f"Normal({str(self.mu)},{str(self.sigma)})"
@@ -1933,10 +1836,6 @@ class StudentTNode(DistributionNode):
     def size(self) -> torch.Size:
         return self.df.size
 
-    @property
-    def label(self) -> str:
-        return "StudentT"
-
     def __str__(self) -> str:
         return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
 
@@ -2025,10 +1924,6 @@ class UniformNode(DistributionNode):
     def size(self) -> torch.Size:
         return self.low.size
 
-    @property
-    def label(self) -> str:
-        return "Uniform"
-
     def __str__(self) -> str:
         return f"Uniform({str(self.low)},{str(self.high)})"
 
@@ -2102,10 +1997,6 @@ class MultiAdditionNode(OperatorNode):
         if s not in {Real, NegativeReal, PositiveReal}:
             s = Real
         return [s] * len(self.inputs)
-
-    @property
-    def label(self) -> str:
-        return "+"
 
     @property
     def size(self) -> torch.Size:
@@ -2209,10 +2100,6 @@ class LogSumExpNode(OperatorNode):
         if s not in {Real, NegativeReal, PositiveReal}:
             s = Real
         return [s] * len(self.inputs)
-
-    @property
-    def label(self) -> str:
-        return "LogSumExp"
 
     @property
     def size(self) -> torch.Size:
@@ -2320,10 +2207,6 @@ class IfThenElseNode(OperatorNode):
     @alternative.setter
     def alternative(self, p: BMGNode) -> None:
         self.inputs[2] = p
-
-    @property
-    def label(self) -> str:
-        return "if"
 
     @property
     def size(self) -> torch.Size:
@@ -2449,9 +2332,6 @@ class ComparisonNode(BinaryOperatorNode, metaclass=ABCMeta):
     def size(self) -> torch.Size:
         return (torch.zeros(self.left.size) < torch.zeros(self.right.size)).size()
 
-    def __str__(self) -> str:
-        return "(" + str(self.left) + self.label + str(self.right) + ")"
-
     def support_size(self) -> float:
         return 2.0 ** prod(self.size)
 
@@ -2465,9 +2345,8 @@ class GreaterThanNode(ComparisonNode):
             el > ar for el in self.left.support() for ar in self.right.support()
         )
 
-    @property
-    def label(self) -> str:
-        return ">"
+    def __str__(self) -> str:
+        return f"({str(self.left)}>{str(self.right)})"
 
 
 class GreaterThanEqualNode(ComparisonNode):
@@ -2479,9 +2358,8 @@ class GreaterThanEqualNode(ComparisonNode):
             el >= ar for el in self.left.support() for ar in self.right.support()
         )
 
-    @property
-    def label(self) -> str:
-        return ">="
+    def __str__(self) -> str:
+        return f"({str(self.left)}>={str(self.right)})"
 
 
 class LessThanNode(ComparisonNode):
@@ -2493,9 +2371,8 @@ class LessThanNode(ComparisonNode):
             el < ar for el in self.left.support() for ar in self.right.support()
         )
 
-    @property
-    def label(self) -> str:
-        return "<"
+    def __str__(self) -> str:
+        return f"({str(self.left)}<{str(self.right)})"
 
 
 class LessThanEqualNode(ComparisonNode):
@@ -2507,9 +2384,8 @@ class LessThanEqualNode(ComparisonNode):
             el <= ar for el in self.left.support() for ar in self.right.support()
         )
 
-    @property
-    def label(self) -> str:
-        return "<="
+    def __str__(self) -> str:
+        return f"({str(self.left)}<={str(self.right)})"
 
 
 class EqualNode(ComparisonNode):
@@ -2521,9 +2397,8 @@ class EqualNode(ComparisonNode):
             el == ar for el in self.left.support() for ar in self.right.support()
         )
 
-    @property
-    def label(self) -> str:
-        return "=="
+    def __str__(self) -> str:
+        return f"({str(self.left)}=={str(self.right)})"
 
 
 class NotEqualNode(ComparisonNode):
@@ -2535,9 +2410,8 @@ class NotEqualNode(ComparisonNode):
             el != ar for el in self.left.support() for ar in self.right.support()
         )
 
-    @property
-    def label(self) -> str:
-        return "!="
+    def __str__(self) -> str:
+        return f"({str(self.left)}!={str(self.right)})"
 
 
 class AdditionNode(BinaryOperatorNode):
@@ -2626,10 +2500,6 @@ class AdditionNode(BinaryOperatorNode):
     def size(self) -> torch.Size:
         return (torch.zeros(self.left.size) + torch.zeros(self.right.size)).size()
 
-    @property
-    def label(self) -> str:
-        return "+"
-
     def __str__(self) -> str:
         return "(" + str(self.left) + "+" + str(self.right) + ")"
 
@@ -2651,10 +2521,6 @@ class DivisionNode(BinaryOperatorNode):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def label(self) -> str:
-        return "/"
 
     @property
     def size(self) -> torch.Size:
@@ -2788,10 +2654,6 @@ class MapNode(BMGNode):
     def size(self) -> torch.Size:
         return self.inputs[1].size
 
-    @property
-    def label(self) -> str:
-        return "map"
-
     def support(self) -> Iterator[Any]:
         return []
 
@@ -2830,10 +2692,6 @@ class IndexNodeDeprecated(BinaryOperatorNode):
     def __init__(self, left: MapNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    @property
-    def label(self) -> str:
-        return "index"
-
     def _compute_inf_type(self) -> BMGLatticeType:
         # The inf type of an index is that of its map.
         return self.left.inf_type
@@ -2869,10 +2727,6 @@ class IndexNode(BinaryOperatorNode):
 
     def __init__(self, left: MapNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def label(self) -> str:
-        return "index"
 
     def _compute_inf_type(self) -> BMGLatticeType:
         # The inf type of an index is derived from the inf type of
@@ -3035,10 +2889,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    @property
-    def label(self) -> str:
-        return "*"
-
     def _compute_inf_type(self) -> BMGLatticeType:
         # TODO: Fix this
         return supremum(self.left.inf_type, self.right.inf_type)
@@ -3080,10 +2930,6 @@ class MultiplicationNode(BinaryOperatorNode):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def label(self) -> str:
-        return "*"
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # A multiplication node must have its left, right and output
@@ -3165,10 +3011,6 @@ class PowerNode(BinaryOperatorNode):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def label(self) -> str:
-        return "**"
 
     def _compute_inf_type(self) -> BMGLatticeType:
         # Given the inf types of the operands, what is the smallest
@@ -3349,10 +3191,6 @@ class ExpNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def label(self) -> str:
-        return "Exp"
-
     def _compute_inf_type(self) -> BMGLatticeType:
         ot = self.operand.inf_type
         if supremum(ot, NegativeReal) == NegativeReal:
@@ -3405,10 +3243,6 @@ class ExpM1Node(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def label(self) -> str:
-        return "ExpM1"
-
     def _compute_inf_type(self) -> BMGLatticeType:
         # ExpM1 takes a real, positive real or negative real. Its return has
         # the same type as its input.
@@ -3451,10 +3285,6 @@ class LogisticNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def label(self) -> str:
-        return "Logistic"
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return Probability
@@ -3523,10 +3353,6 @@ class LogNode(UnaryOperatorNode):
         return [PositiveReal]
 
     @property
-    def label(self) -> str:
-        return "Log"
-
-    @property
     def size(self) -> torch.Size:
         return self.operand.size
 
@@ -3567,10 +3393,6 @@ class Log1mexpNode(UnaryOperatorNode):
     @property
     def requirements(self) -> List[Requirement]:
         return [NegativeReal]
-
-    @property
-    def label(self) -> str:
-        return "Log1mexp"
 
     @property
     def size(self) -> torch.Size:
@@ -3652,10 +3474,6 @@ class NegateNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def label(self) -> str:
-        return "-"
-
     def _compute_inf_type(self) -> BMGLatticeType:
         ot = self.operand.inf_type
         if supremum(ot, PositiveReal) == PositiveReal:
@@ -3724,10 +3542,6 @@ class NotNode(UnaryOperatorNode):
     def size(self) -> torch.Size:
         return self.operand.size
 
-    @property
-    def label(self) -> str:
-        return "not"
-
     def __str__(self) -> str:
         return "not " + str(self.operand)
 
@@ -3777,10 +3591,6 @@ class ComplementNode(UnaryOperatorNode):
     def size(self) -> torch.Size:
         return self.operand.size
 
-    @property
-    def label(self) -> str:
-        return "complement"
-
     def __str__(self) -> str:
         return "complement " + str(self.operand)
 
@@ -3814,10 +3624,6 @@ class PhiNode(UnaryOperatorNode):
     @property
     def requirements(self) -> List[Requirement]:
         return [Real]
-
-    @property
-    def label(self) -> str:
-        return "Phi"
 
     @property
     def size(self) -> torch.Size:
@@ -3872,10 +3678,6 @@ class SampleNode(UnaryOperatorNode):
     def operand(self, p: DistributionNode) -> None:
         self.inputs[0] = p
 
-    @property
-    def label(self) -> str:
-        return "Sample"
-
     def __str__(self) -> str:
         return "Sample(" + str(self.operand) + ")"
 
@@ -3903,10 +3705,6 @@ class ToRealNode(UnaryOperatorNode):
     def requirements(self) -> List[Requirement]:
         # A ToRealNode's input must be real or smaller.
         return [upper_bound(Real)]
-
-    @property
-    def label(self) -> str:
-        return "ToReal"
 
     @property
     def size(self) -> torch.Size:
@@ -3939,10 +3737,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
     def requirements(self) -> List[Requirement]:
         # A ToPositiveRealNode's input must be PositiveReal or smaller.
         return [upper_bound(PositiveReal)]
-
-    @property
-    def label(self) -> str:
-        return "ToPosReal"
 
     @property
     def size(self) -> torch.Size:
@@ -3979,10 +3773,6 @@ class ToProbabilityNode(UnaryOperatorNode):
         # add this node when it is legal to do so; it does not matter
         # what requirement we give here.
         return [upper_bound(Real)]
-
-    @property
-    def label(self) -> str:
-        return "ToProb"
 
     @property
     def size(self) -> torch.Size:
@@ -4069,10 +3859,6 @@ class Observation(BMGNode):
             return self.value.size()
         return torch.Size([])
 
-    @property
-    def label(self) -> str:
-        return "Observation " + str(self.value)
-
     def __str__(self) -> str:
         return str(self.observed) + "=" + str(self.value)
 
@@ -4140,10 +3926,6 @@ class Query(BMGNode):
     @property
     def size(self) -> torch.Size:
         return self.operator.size
-
-    @property
-    def label(self) -> str:
-        return "Query"
 
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"
@@ -4231,10 +4013,6 @@ class ExpProductFactorNode(FactorNode):
             else Real
             for i in self.inputs
         ]
-
-    @property
-    def label(self) -> str:
-        return "ExpProduct"
 
     @property
     def size(self) -> torch.Size:
