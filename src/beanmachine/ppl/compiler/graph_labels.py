@@ -12,9 +12,10 @@ def _val(node: bn.ConstantNode) -> str:
 
 def _tensor_to_label(t: Tensor) -> str:
     length = len(t.shape)
-    if length == 0 or length == 1:
-        return bn.ConstantTensorNode._tensor_to_python(t)
-    return "[" + ",\\n".join(_tensor_to_label(c) for c in t) + "]"
+    if length == 0:
+        return str(t.item())
+    comma = "," if length == 1 else ",\\n"
+    return "[" + comma.join(_tensor_to_label(c) for c in t) + "]"
 
 
 def _tensor_val(node: bn.ConstantTensorNode) -> str:

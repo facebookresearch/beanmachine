@@ -3,6 +3,7 @@ import unittest
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
+from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 
 
@@ -45,7 +46,7 @@ digraph "graph" {
 }
 """
         self.maxDiff = None
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = to_bmg_graph(bmg).graph.to_string()
         expected = """
@@ -57,9 +58,9 @@ Node 4 type 1 parents [ ] children [ 6 ] probability 0.4
 Node 5 type 3 parents [ 3 3 ] children [ 6 ] real 0
 Node 6 type 4 parents [ 3 4 5 ] children [ ] unknown
 """
-        self.assertEqual(tidy(observed), tidy(expected))
+        self.assertEqual(tidy(expected), tidy(observed))
 
-        observed = bmg.to_python()
+        observed = to_bmg_python(bmg).code
 
         expected = """
 from beanmachine import graph
@@ -70,16 +71,18 @@ n1 = g.add_constant_pos_real(2.0)
 n2 = g.add_distribution(
   graph.DistributionType.NORMAL,
   graph.AtomicType.REAL,
-  [n0, n1])
+  [n0, n1],
+)
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
 n4 = g.add_constant_probability(0.4)
 n5 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n3])
 n6 = g.add_factor(
   graph.FactorType.EXP_PRODUCT,
-  [n3, n4, n5])
+  [n3, n4, n5],
+)
 g.observe(n3, 7.0)
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = bmg.to_cpp()
 
@@ -101,4 +104,4 @@ n6 = g.add_factor(
   std::vector<uint>({n3, n4, n5}));
 g.observe([n3], 7.0);
 """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())

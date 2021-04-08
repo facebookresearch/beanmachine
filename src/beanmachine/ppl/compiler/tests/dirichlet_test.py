@@ -17,6 +17,7 @@ from beanmachine.graph import (
 )
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
+from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.inference import BMGInference, SingleSiteNewtonianMonteCarlo
 from torch import Size, tensor
@@ -233,12 +234,9 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_pos_matrix(tensor([[1.0]]))
-
-n2 = g.add_constant_pos_matrix(tensor([[1.0],[1.5]]))
-
-n4 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))
-        """
-        observed = bmg.to_python()
+n1 = g.add_constant_pos_matrix(tensor([[1.0],[1.5]]))
+n2 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))"""
+        observed = to_bmg_python(bmg).code
         self.assertEqual(expected.strip(), observed.strip())
 
         # Let's actually get the graph.
@@ -511,8 +509,7 @@ n1 = g.add_distribution(
 )
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 g.observe(n2, tensor([0.5000, 0.5000]))
-g.query(n2)
-        """
+q0 = g.query(n2)"""
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_dirichlet_to_cpp(self) -> None:

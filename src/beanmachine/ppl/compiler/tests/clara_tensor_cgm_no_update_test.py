@@ -290,7 +290,8 @@ n9 = g.add_operator(graph.OperatorType.LOG, [n8])
 n10 = g.add_constant_neg_real(-0.010050326585769653)
 n11 = g.add_operator(
   graph.OperatorType.ADD,
-  [n7, n9, n10])
+  [n7, n9, n10],
+)
 n12 = g.add_constant(1)
 n13 = g.add_operator(graph.OperatorType.INDEX, [n2, n12])
 n14 = g.add_operator(graph.OperatorType.LOG, [n13])
@@ -299,20 +300,20 @@ n16 = g.add_operator(graph.OperatorType.LOG, [n15])
 n17 = g.add_constant_neg_real(-4.605170249938965)
 n18 = g.add_operator(
   graph.OperatorType.ADD,
-  [n14, n16, n17])
-n19 = g.add_operator(
-  graph.OperatorType.LOGSUMEXP,
-  [n11, n18])
+  [n14, n16, n17],
+)
+n19 = g.add_operator(graph.OperatorType.LOGSUMEXP, [n11, n18])
 n20 = g.add_operator(graph.OperatorType.EXP, [n19])
 n21 = g.add_operator(graph.OperatorType.TO_PROBABILITY, [n20])
 n22 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n21])
+  [n21],
+)
 n23 = g.add_operator(graph.OperatorType.SAMPLE, [n22])
 g.observe(n23, True)
-g.query(n11)
-g.query(n2)
-g.query(n3)
+q0 = g.query(n11)
+q1 = g.query(n2)
+q2 = g.query(n3)
 """
         self.assertEqual(expected.strip(), observed.strip())

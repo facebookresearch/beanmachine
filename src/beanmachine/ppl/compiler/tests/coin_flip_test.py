@@ -90,7 +90,7 @@ digraph "graph" {
   N10 -> N11;
 }
         """
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = BMGInference().to_cpp(queries, observations)
         expected = """
@@ -119,7 +119,7 @@ uint n10 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n3}));
 g.observe([n10], false);
 g.query(n2);"""
-        self.assertEqual(observed.strip(), expected.strip())
+        self.assertEqual(expected.strip(), observed.strip())
 
         observed = BMGInference().to_python(queries, observations)
         expected = """
@@ -130,20 +130,21 @@ n0 = g.add_constant_pos_real(2.0)
 n1 = g.add_distribution(
   graph.DistributionType.BETA,
   graph.AtomicType.PROBABILITY,
-  [n0, n0])
+  [n0, n0],
+)
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 n3 = g.add_distribution(
   graph.DistributionType.BERNOULLI,
   graph.AtomicType.BOOLEAN,
-  [n2])
+  [n2],
+)
 n4 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
 g.observe(n4, False)
+n5 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+g.observe(n5, False)
 n6 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
-g.observe(n6, False)
-n8 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
-g.observe(n8, True)
-n10 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
-g.observe(n10, False)
-g.query(n2)
-        """
-        self.assertEqual(observed.strip(), expected.strip())
+g.observe(n6, True)
+n7 = g.add_operator(graph.OperatorType.SAMPLE, [n3])
+g.observe(n7, False)
+q0 = g.query(n2)"""
+        self.assertEqual(expected.strip(), observed.strip())
