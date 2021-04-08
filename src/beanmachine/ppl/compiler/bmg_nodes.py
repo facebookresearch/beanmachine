@@ -7,7 +7,7 @@ import functools
 import itertools
 import operator
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List
 
 from beanmachine.graph import (
     AtomicType,
@@ -180,9 +180,6 @@ class BMGNode(ABC):
     _inf_type: BMGLatticeType
     _graph_type: BMGLatticeType
 
-    # These are the names of the edges; computed on demand and cached.
-    _edges: Optional[List[str]] = None
-
     def __init__(self, inputs: List["BMGNode"]):
         assert isinstance(inputs, list)
         self.inputs = InputList(self, inputs)
@@ -210,30 +207,6 @@ class BMGNode(ABC):
 
         self._inf_type = self._compute_inf_type()
         self._graph_type = self._compute_graph_type()
-
-    @property
-    def edges(self) -> List[str]:
-        """The names of the input edges."""
-        if self._edges is not None:
-            return self._edges
-        t = self._compute_edge_names()
-        self._edges = t
-        return t
-
-    def _compute_edge_names(self) -> List[str]:
-        # Most nodes have exactly the same input edge names as every other node
-        # of that kind; for those cases, do a "static" initialization of the
-        # _edges attribute in the derived class. For nodes where the names of
-        # the edges are different from node to node, we might want to compute
-        # them lazily. In those cases, override this method.
-        #
-        # This method should only be called if it is overridden in a derived
-        # class; if this base class implementation is ever called then something
-        # has gone wrong.
-        raise AssertionError(
-            "Internal bug in graph nodes. "
-            + "Either initialize _edges or override this method."
-        )
 
     @abstractmethod
     def _compute_graph_type(self) -> BMGLatticeType:
@@ -409,7 +382,6 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
     the "positive real" 1.0, the "probability" 1.0 and the
     "natural" 1 are all different nodes and are NOT deduplicated."""
 
-    _edges = []
     value: Any
 
     def __init__(self):
@@ -860,10 +832,6 @@ class TensorNode(BMGNode):
         self._size = size
         BMGNode.__init__(self, items)
 
-    def _compute_edge_names(self) -> List[str]:
-        # TODO: Base this on size rather than ordinal position.
-        return [str(x) for x in range(len(self.inputs))]
-
     def __str__(self) -> str:
         # TODO: Create a better string representation; maybe something like
         # _tensor_to_python above.
@@ -925,8 +893,6 @@ class DistributionNode(BMGNode, metaclass=ABCMeta):
 
 
 class BernoulliBase(DistributionNode):
-    _edges = ["probability"]
-
     def __init__(self, probability: BMGNode):
         DistributionNode.__init__(self, [probability])
 
@@ -1035,8 +1001,6 @@ class BetaNode(DistributionNode):
     """The beta distribution samples are values between 0.0 and 1.0, and
     so is useful for creating probabilities."""
 
-    _edges = ["alpha", "beta"]
-
     def __init__(self, alpha: BMGNode, beta: BMGNode):
         DistributionNode.__init__(self, [alpha, beta])
 
@@ -1109,9 +1073,6 @@ class BetaNode(DistributionNode):
 
 
 class BinomialNodeBase(DistributionNode):
-
-    _edges = ["count", "probability"]
-
     def __init__(self, count: BMGNode, probability: BMGNode):
         DistributionNode.__init__(self, [count, probability])
 
@@ -1288,7 +1249,6 @@ class CategoricalNode(DistributionNode):
     # TODO: We do not yet have a BMG node for categorical
     # distributions; when we do, finish this implementation.
 
-    _edges = ["probability"]
     is_logits: bool
 
     def __init__(self, probability: BMGNode, is_logits: bool = False):
@@ -1339,8 +1299,6 @@ class Chi2Node(DistributionNode):
     """The chi2 distribution is a distribution of positive
     real numbers; it is a special case of the gamma distribution."""
 
-    _edges = ["df"]
-
     def __init__(self, df: BMGNode):
         DistributionNode.__init__(self, [df])
 
@@ -1388,8 +1346,6 @@ class DirichletNode(DistributionNode):
     whose members are probabilities that add to 1.0, and
     so it is useful for generating inputs to the categorical
     distribution."""
-
-    _edges = ["concentration"]
 
     def __init__(self, concentration: BMGNode):
         DistributionNode.__init__(self, [concentration])
@@ -1503,8 +1459,6 @@ class FlatNode(DistributionNode):
 
     """The Flat distribution the standard uniform distribution from 0.0 to 1.0."""
 
-    _edges = []
-
     def __init__(self):
         DistributionNode.__init__(self, [])
 
@@ -1555,8 +1509,6 @@ class GammaNode(DistributionNode):
     """The gamma distribution is a distribution of positive
     real numbers characterized by positive real concentration and rate
     parameters."""
-
-    _edges = ["concentration", "rate"]
 
     def __init__(self, concentration: BMGNode, rate: BMGNode):
         DistributionNode.__init__(self, [concentration, rate])
@@ -1641,8 +1593,6 @@ class HalfCauchyNode(DistributionNode):
 
     # TODO: Add support for the Cauchy distribution as well.
 
-    _edges = ["scale"]
-
     def __init__(self, scale: BMGNode):
         DistributionNode.__init__(self, [scale])
 
@@ -1709,8 +1659,6 @@ class NormalNode(DistributionNode):
 
     """The normal (or "Gaussian") distribution is a bell curve with
     a given mean and standard deviation."""
-
-    _edges = ["mu", "sigma"]
 
     def __init__(self, mu: BMGNode, sigma: BMGNode):
         DistributionNode.__init__(self, [mu, sigma])
@@ -1792,8 +1740,6 @@ class StudentTNode(DistributionNode):
     know the true mean. Samples from the T distribution can
     be used to represent the difference between an observed mean
     and the true mean."""
-
-    _edges = ["df", "loc", "scale"]
 
     def __init__(self, df: BMGNode, loc: BMGNode, scale: BMGNode):
         DistributionNode.__init__(self, [df, loc, scale])
@@ -1883,8 +1829,6 @@ class UniformNode(DistributionNode):
     # distribution as a BMG node. When we do, implement the
     # feature here.
 
-    _edges = ["low", "high"]
-
     def __init__(self, low: BMGNode, high: BMGNode):
         DistributionNode.__init__(self, [low, high])
 
@@ -1965,9 +1909,6 @@ class MultiAdditionNode(OperatorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
-
-    def _compute_edge_names(self) -> List[str]:
-        return [str(x) for x in range(len(self.inputs))]
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # We require:
@@ -2057,9 +1998,6 @@ class LogSumExpNode(OperatorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
-
-    def _compute_edge_names(self) -> List[str]:
-        return [str(x) for x in range(len(self.inputs))]
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # We require:
@@ -2161,7 +2099,6 @@ class IfThenElseNode(OperatorNode):
     # Eventually we will probably use this node to represent Python's
     # "consequence if condition else alternative" syntax, and possibly
     # other conditional stochastic control flows.
-    _edges = ["condition", "consequence", "alternative"]
 
     def __init__(self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode):
         OperatorNode.__init__(self, [condition, consequence, alternative])
@@ -2261,7 +2198,6 @@ class IfThenElseNode(OperatorNode):
 class BinaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     """This is the base class for all binary operators."""
 
-    _edges = ["left", "right"]
     operator_type: OperatorType
 
     def __init__(self, left: BMGNode, right: BMGNode):
@@ -2625,9 +2561,6 @@ class MapNode(BMGNode):
         # TODO: Check that there is one value for each key.
         # TODO: Verify that there is at least one pair.
         BMGNode.__init__(self, inputs)
-
-    def _compute_edge_names(self) -> List[str]:
-        return [str(x) for x in range(len(self.inputs))]
 
     def _compute_inf_type(self) -> BMGLatticeType:
         # The inf type of a map is the supremum of the types of all
@@ -3138,7 +3071,6 @@ class PowerNode(BinaryOperatorNode):
 class UnaryOperatorNode(OperatorNode, metaclass=ABCMeta):
     """This is the base type of unary operator nodes."""
 
-    _edges = ["operand"]
     operator_type: OperatorType
 
     def __init__(self, operand: BMGNode):
@@ -3822,7 +3754,6 @@ class Observation(BMGNode):
     # how users wish to generate observations of models that have
     # been compiled into BMG.
     value: Any
-    _edges = ["operand"]
 
     def __init__(self, observed: SampleNode, value: Any):
         self.value = value
@@ -3898,8 +3829,6 @@ class Query(BMGNode):
     # TODO: As with observations, properly speaking there is no
     # need to represent a query as a *node*, and BMG does not
     # do so. We might wish to follow this pattern as well.
-
-    _edges = ["operator"]
 
     def __init__(self, operator: BMGNode):
         BMGNode.__init__(self, [operator])
@@ -3993,9 +3922,6 @@ class ExpProductFactorNode(FactorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         FactorNode.__init__(self, inputs)
-
-    def _compute_edge_names(self) -> List[str]:
-        return [str(x) for x in range(len(self.inputs))]
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real
