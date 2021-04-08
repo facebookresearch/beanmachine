@@ -306,10 +306,10 @@ class BMGraphBuilder:
 
     _fix_observe_true: bool = False
 
-    pd: prof.ProfilerData
+    _pd: Optional[prof.ProfilerData]
 
     def __init__(self) -> None:
-        self.pd = prof.ProfilerData()
+        self._pd = None
         self.rv_map = {}
         self.lifted_map = {}
         self.in_flight = set()
@@ -363,6 +363,16 @@ class BMGraphBuilder:
             log1mexp: self.handle_log1mexp,
             math_log1mexp: self.handle_log1mexp,
         }
+
+    def _begin(self, s: str) -> None:
+        pd = self._pd
+        if pd is not None:
+            pd.begin(s)
+
+    def _finish(self, s: str) -> None:
+        pd = self._pd
+        if pd is not None:
+            pd.finish(s)
 
     # ####
     # #### Node creation and accumulation
@@ -1946,7 +1956,7 @@ class BMGraphBuilder:
         observations: Dict[RVIdentifier, Any],
     ) -> None:
         _verify_queries_and_observations(queries, observations, True)
-        self.pd.begin(prof.accumulate)
+        self._begin(prof.accumulate)
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
             assert isinstance(node, bn.SampleNode)
@@ -1955,4 +1965,4 @@ class BMGraphBuilder:
             node = self._rv_to_node(qrv)
             q = self.add_query(node)
             self._rv_to_query[qrv] = q
-        self.pd.finish(prof.accumulate)
+        self._finish(prof.accumulate)
