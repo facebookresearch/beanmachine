@@ -44,13 +44,6 @@ execution of the lifted program; it implements phases
 three, four and five.
 """
 
-# TODO: For reasons unknown, Pyre is unable to find type information about
-# TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
-# TODO: for now, we'll just turn off error checking in this module.
-# pyre-ignore-all-errors
-
-
-import torch  # isort:skip  torch has to be imported before graph
 import inspect
 import math
 import sys
@@ -61,14 +54,18 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 import beanmachine.ppl.compiler.profiler as prof
 import numpy as np
+import torch
 import torch.distributions as dist
-from beanmachine.graph import Graph
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import MemoizationKey, memoize
+
+
+# TODO: There are numerous pyre errors in this module; fix them.
+# pyre-ignore-all-errors
 
 
 def _hashable(x: Any) -> bool:
@@ -1858,16 +1855,6 @@ class BMGraphBuilder:
     # ####
     # #### Output
     # ####
-
-    def to_bmg(self) -> Graph:
-        """This transforms the accumulated graph into a BMG type system compliant
-        graph and then creates the graph nodes in memory."""
-        self._fix_problems()
-        g = Graph()
-        d: Dict[BMGNode, int] = {}
-        for node in self._traverse_from_roots():
-            d[node] = node._add_to_graph(g, d)
-        return g
 
     def _resort_nodes(self) -> Dict[BMGNode, int]:
         """This renumbers the nodes so that the ids are in topological order;

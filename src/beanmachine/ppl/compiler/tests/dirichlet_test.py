@@ -16,6 +16,7 @@ from beanmachine.graph import (
     VariableType,
 )
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.inference import BMGInference, SingleSiteNewtonianMonteCarlo
 from torch import Size, tensor
@@ -243,14 +244,13 @@ n4 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))
         # Let's actually get the graph.
 
         # Note that what was a row vector in the original code is now a column vector.
-        g = bmg.to_bmg()
         expected = """
 Node 0 type 1 parents [ ] children [ ] matrix<positive real> 1
 Node 1 type 1 parents [ ] children [ ] matrix<positive real>   1
  1.5
 Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1   2
  1.5 2.5"""
-        observed = g.to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         self.assertEqual(tidy(expected), tidy(observed))
 
     def test_dirichlet_type_analysis(self) -> None:
