@@ -48,7 +48,7 @@ import inspect
 import math
 import sys
 from types import MethodType
-from typing import Any, Callable, Dict, List, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
@@ -62,10 +62,6 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.beanstalk_common import allowed_functions
 from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import MemoizationKey, memoize
-
-
-# TODO: There are numerous pyre errors in this module; fix them.
-# pyre-ignore-all-errors
 
 
 def _hashable(x: Any) -> bool:
@@ -324,15 +320,15 @@ class BMGraphBuilder:
             math.exp: self.handle_exp,
             math.log: self.handle_log,
             # Tensor instance functions
-            torch.Tensor.add: self.handle_addition,
+            torch.Tensor.add: self.handle_addition,  # pyre-ignore
             torch.Tensor.div: self.handle_division,
-            torch.Tensor.exp: self.handle_exp,
-            torch.Tensor.expm1: self.handle_expm1,
+            torch.Tensor.exp: self.handle_exp,  # pyre-ignore
+            torch.Tensor.expm1: self.handle_expm1,  # pyre-ignore
             torch.Tensor.float: self.handle_to_real,
-            torch.Tensor.logical_not: self.handle_not,
+            torch.Tensor.logical_not: self.handle_not,  # pyre-ignore
             torch.Tensor.log: self.handle_log,
             torch.Tensor.logsumexp: self.handle_logsumexp,
-            torch.Tensor.mm: self.handle_matrix_multiplication,
+            torch.Tensor.mm: self.handle_matrix_multiplication,  # pyre-ignore
             torch.Tensor.mul: self.handle_multiplication,
             torch.Tensor.neg: self.handle_negate,
             torch.Tensor.pow: self.handle_power,
@@ -1177,7 +1173,7 @@ class BMGraphBuilder:
         if isinstance(operand, bn.PositiveRealNode):
             return operand
         if isinstance(operand, ConstantNode):
-            return self.add_positive_real(float(operand.value))
+            return self.add_to_positive_real(float(operand.value))
         node = bn.ToPositiveRealNode(operand)
         self.add_node(node)
         return node
@@ -1340,7 +1336,7 @@ class BMGraphBuilder:
         return self.add_logsumexp(*[input])
 
     def _canonicalize_function(
-        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
+        self, function: Any, arguments: List[Any], kwargs: Optional[Dict[str, Any]]
     ):
         """The purpose of this helper method is to uniformly handle all
         possibility for function calls. That is, the receiver can be stochastic,
@@ -1356,7 +1352,7 @@ class BMGraphBuilder:
             args = [function.receiver] + arguments
             assert isinstance(f, Callable)
         elif (
-            isinstance(function, builtin_function_or_method)
+            isinstance(function, builtin_function_or_method)  # pyre-ignore
             and isinstance(function.__self__, torch.Tensor)
             and function.__name__ in known_tensor_instance_functions
         ):
@@ -1618,7 +1614,10 @@ class BMGraphBuilder:
         return self.add_tensor(size, *flattened_args)
 
     def handle_function(
-        self, function: Any, arguments: List[Any], kwargs: Dict[str, Any] = None
+        self,
+        function: Any,
+        arguments: List[Any],
+        kwargs: Optional[Dict[str, Any]] = None,
     ) -> Any:
         f, args, kwargs = self._canonicalize_function(function, arguments, kwargs)
         assert isinstance(f, Callable), (
@@ -1929,7 +1928,7 @@ class BMGraphBuilder:
                 # We want to process the left inputs before the right inputs, so
                 # reverse them so that the left inputs go on the stack last, and
                 # are therefore closer to the top.
-                for i in reversed(current.inputs):
+                for i in reversed(current.inputs):  # pyre-ignore
                     work_stack.append(i)
                 inputs_already_pushed.add(current)
 
@@ -1950,6 +1949,7 @@ class BMGraphBuilder:
         self.pd.begin(prof.accumulate)
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
+            assert isinstance(node, bn.SampleNode)
             self.add_observation(node, val)
         for qrv in queries:
             node = self._rv_to_node(qrv)

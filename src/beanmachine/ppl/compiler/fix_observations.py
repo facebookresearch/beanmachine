@@ -30,7 +30,7 @@ class ObservationsFixer:
         for o in self.bmg.all_observations():
             v = o.value
             inf = type_of_value(v)
-            gt = o.operand.graph_type
+            gt = o.observed.graph_type
             if supremum(inf, gt) != gt:
                 self.errors.add_error(ImpossibleObservation(o))
             elif gt == Boolean:

@@ -1,16 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-# TODO: For reasons unknown, Pyre is unable to find type information about
-# TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
-# TODO: for now, we'll just turn off error checking in this module.
-# pyre-ignore-all-errors
-
 
 from typing import Dict, List
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.profiler as prof
 import torch
-from beanmachine.graph import Graph
+from beanmachine.graph import Graph  # pyre-ignore
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import (
     dist_type,
@@ -29,13 +24,13 @@ def _reshape(t: torch.Tensor):
 
 
 class GeneratedGraph:
-    graph: Graph
+    graph: Graph  # pyre-ignore
     bmg: BMGraphBuilder
     node_to_graph_id: Dict[bn.BMGNode, int]
     query_to_query_id: Dict[bn.Query, int]
 
     def __init__(self, bmg: BMGraphBuilder) -> None:
-        self.graph = Graph()
+        self.graph = Graph()  # pyre-ignore
         self.bmg = bmg
         self.node_to_graph_id = {}
         self.query_to_query_id = {}

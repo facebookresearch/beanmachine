@@ -9,7 +9,7 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import torch
-from beanmachine.graph import InferenceType
+from beanmachine.graph import InferenceType  # pyre-ignore
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
@@ -19,12 +19,6 @@ from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-
-
-# TODO: For reasons unknown, Pyre is unable to find type information about
-# TODO: beanmachine.graph from beanmachine.ppl.  I'll figure out why later;
-# TODO: for now, we'll just turn off error checking in this module.
-# pyre-ignore-all-errors
 
 
 class BMGInference:
@@ -134,7 +128,7 @@ class BMGInference:
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
-        inference_type: InferenceType = InferenceType.NMC,
+        inference_type: InferenceType = InferenceType.NMC,  # pyre-ignore
         produce_report: bool = True,
     ) -> Tuple[MonteCarloSamples, PerformanceReport]:
         bmg = self._accumulate_graph(queries, observations)
@@ -168,7 +162,7 @@ class BMGInference:
         mcsamples = self._build_mcsamples(bmg, samples, query_to_query_id, num_samples)
 
         bmg.pd.finish(prof.infer)
-        report.profiler_report = bmg.pd.to_report()
+        report.profiler_report = bmg.pd.to_report()  # pyre-ignore
 
         return mcsamples, report
 
