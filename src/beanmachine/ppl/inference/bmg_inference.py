@@ -3,7 +3,7 @@
 """An inference engine which uses Bean Machine Graph to make
 inferences on Bean Machine models."""
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.performance_report as pr
@@ -24,9 +24,20 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 class BMGInference:
 
     _fix_observe_true: bool = False
+    _pd: Optional[prof.ProfilerData] = None
 
     def __init__(self):
         pass
+
+    def _begin(self, s: str) -> None:
+        pd = self._pd
+        if pd is not None:
+            pd.begin(s)
+
+    def _finish(self, s: str) -> None:
+        pd = self._pd
+        if pd is not None:
+            pd.finish(s)
 
     def _accumulate_graph(
         self,
@@ -35,12 +46,13 @@ class BMGInference:
     ) -> BMGraphBuilder:
         _verify_queries_and_observations(queries, observations, True)
         bmg = BMGraphBuilder()
+        bmg._pd = self._pd
         bmg._fix_observe_true = self._fix_observe_true
         bmg.accumulate_graph(queries, observations)
         return bmg
 
-    def _transpose_samples(self, bmg, raw):
-        bmg.pd.begin(prof.transpose_samples)
+    def _transpose_samples(self, raw):
+        self._begin(prof.transpose_samples)
         samples = []
         num_samples = len(raw)
         bmg_query_count = len(raw[0])
@@ -101,13 +113,13 @@ class BMGInference:
         assert len(samples[0]) == 1
         assert len(samples[0][0]) == num_samples
 
-        bmg.pd.finish(prof.transpose_samples)
+        self._finish(prof.transpose_samples)
         return samples
 
     def _build_mcsamples(
         self, bmg, samples, query_to_query_id, num_samples: int
     ) -> MonteCarloSamples:
-        bmg.pd.begin(prof.build_mcsamples)
+        self._begin(prof.build_mcsamples)
 
         result: Dict[RVIdentifier, torch.Tensor] = {}
         for (rv, query) in bmg._rv_to_query.items():
@@ -119,7 +131,7 @@ class BMGInference:
                 result[rv] = samples[query_id]
         mcsamples = MonteCarloSamples(result)
 
-        bmg.pd.finish(prof.build_mcsamples)
+        self._finish(prof.build_mcsamples)
 
         return mcsamples
 
@@ -131,13 +143,14 @@ class BMGInference:
         inference_type: InferenceType = InferenceType.NMC,  # pyre-ignore
         produce_report: bool = True,
     ) -> Tuple[MonteCarloSamples, PerformanceReport]:
+        if produce_report:
+            self._pd = prof.ProfilerData()
+
         bmg = self._accumulate_graph(queries, observations)
 
         report = pr.PerformanceReport()
-        # TODO: Refactor performance data; should be owned by
-        # BMGInference, not graph accumulator.
 
-        bmg.pd.begin(prof.infer)
+        self._begin(prof.infer)
 
         generated_graph = to_bmg_graph(bmg)
         g = generated_graph.graph
@@ -148,21 +161,23 @@ class BMGInference:
         # BMG requires that we have at least one query.
         if len(query_to_query_id) != 0:
             g.collect_performance_data(produce_report)
-            bmg.pd.begin(prof.graph_infer)
+            self._begin(prof.graph_infer)
             raw = g.infer(num_samples, inference_type)
-            bmg.pd.finish(prof.graph_infer)
+            self._finish(prof.graph_infer)
             if produce_report:
-                bmg.pd.begin(prof.deserialize_perf_report)
+                self._begin(prof.deserialize_perf_report)
                 js = g.performance_report()
                 report = pr.json_to_perf_report(js)
-                bmg.pd.finish(prof.deserialize_perf_report)
+                self._finish(prof.deserialize_perf_report)
             assert len(raw) == num_samples
-            samples = self._transpose_samples(bmg, raw)
+            samples = self._transpose_samples(raw)
 
         mcsamples = self._build_mcsamples(bmg, samples, query_to_query_id, num_samples)
 
-        bmg.pd.finish(prof.infer)
-        report.profiler_report = bmg.pd.to_report()  # pyre-ignore
+        self._finish(prof.infer)
+
+        if produce_report:
+            report.profiler_report = self._pd.to_report()  # pyre-ignore
 
         return mcsamples, report
 
