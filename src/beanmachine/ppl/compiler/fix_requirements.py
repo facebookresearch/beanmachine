@@ -12,6 +12,7 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
+from beanmachine.ppl.compiler.graph_labels import get_edge_labels
 from torch import Tensor
 
 
@@ -391,7 +392,11 @@ class RequirementsFixer:
         nodes = self.bmg._traverse_from_roots()
         for node in nodes:
             requirements = node.requirements
+            # TODO: The edge labels used to visualize the graph in DOT
+            # are not necessarily the best ones for displaying errors.
+            # Consider fixing this.
+            edges = get_edge_labels(node)
             for i in range(len(requirements)):
                 node.inputs[i] = self.meet_requirement(
-                    node.inputs[i], requirements[i], node, node.edges[i]
+                    node.inputs[i], requirements[i], node, edges[i]
                 )

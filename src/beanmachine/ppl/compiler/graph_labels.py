@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from typing import Callable
+from typing import Callable, List
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from torch import Tensor
@@ -87,6 +87,80 @@ _node_labels = {
     bn.UniformNode: "Uniform",
 }
 
+_none = []
+_left_right = ["left", "right"]
+_operand = ["operand"]
+_probability = ["probability"]
+
+
+def _numbered(node: bn.BMGNode) -> List[str]:
+    return [str(x) for x in range(len(node.inputs))]
+
+
+_edge_labels = {
+    bn.AdditionNode: _left_right,
+    bn.BernoulliLogitNode: _probability,
+    bn.BernoulliNode: _probability,
+    bn.BetaNode: ["alpha", "beta"],
+    bn.BinomialNode: ["count", "probability"],
+    bn.BinomialLogitNode: ["count", "probability"],
+    bn.BooleanNode: _none,
+    bn.CategoricalNode: _probability,
+    bn.Chi2Node: ["df"],
+    bn.ComplementNode: _operand,
+    bn.ConstantBooleanMatrixNode: _none,
+    bn.ConstantNaturalMatrixNode: _none,
+    bn.ConstantNegativeRealMatrixNode: _none,
+    bn.ConstantPositiveRealMatrixNode: _none,
+    bn.ConstantProbabilityMatrixNode: _none,
+    bn.ConstantRealMatrixNode: _none,
+    bn.ConstantTensorNode: _none,
+    bn.DirichletNode: ["concentration"],
+    bn.DivisionNode: _left_right,
+    bn.EqualNode: _left_right,
+    bn.ExpM1Node: _operand,
+    bn.ExpNode: _operand,
+    bn.ExpProductFactorNode: _numbered,
+    bn.FlatNode: _none,
+    bn.GammaNode: ["concentration", "rate"],
+    bn.GreaterThanEqualNode: _left_right,
+    bn.GreaterThanNode: _left_right,
+    bn.HalfCauchyNode: ["scale"],
+    bn.IfThenElseNode: ["condition", "consequence", "alternative"],
+    bn.IndexNode: _left_right,
+    bn.IndexNodeDeprecated: _left_right,
+    bn.LessThanEqualNode: _left_right,
+    bn.LessThanNode: _left_right,
+    bn.Log1mexpNode: _operand,
+    bn.LogisticNode: _operand,
+    bn.LogNode: _operand,
+    bn.LogSumExpNode: _numbered,
+    bn.MapNode: _numbered,
+    bn.MatrixMultiplicationNode: _left_right,
+    bn.MultiAdditionNode: _numbered,
+    bn.MultiplicationNode: _left_right,
+    bn.NaturalNode: _none,
+    bn.NegateNode: _operand,
+    bn.NegativeRealNode: _none,
+    bn.NormalNode: ["mu", "sigma"],
+    bn.NotEqualNode: _left_right,
+    bn.NotNode: _operand,
+    bn.Observation: _operand,
+    bn.PhiNode: _operand,
+    bn.PositiveRealNode: _none,
+    bn.PowerNode: _left_right,
+    bn.ProbabilityNode: _none,
+    bn.Query: ["operator"],
+    bn.RealNode: _none,
+    bn.SampleNode: _operand,
+    bn.StudentTNode: ["df", "loc", "scale"],
+    bn.TensorNode: _numbered,
+    bn.ToPositiveRealNode: _operand,
+    bn.ToProbabilityNode: _operand,
+    bn.ToRealNode: _operand,
+    bn.UniformNode: ["low", "high"],
+}
+
 
 def get_node_label(node: bn.BMGNode) -> str:
     t = type(node)
@@ -97,3 +171,30 @@ def get_node_label(node: bn.BMGNode) -> str:
         return label
     assert isinstance(label, Callable)
     return label(node)
+
+
+def get_edge_labels(node: bn.BMGNode) -> List[str]:
+    t = type(node)
+    if t not in _edge_labels:
+        return ["UNKNOWN"] * len(node.inputs)
+    labels = _edge_labels[t]
+    if isinstance(labels, list):
+        result = labels
+    else:
+        assert isinstance(labels, Callable)
+        result = labels(node)
+    assert isinstance(result, list) and len(result) == len(node.inputs)
+    return result
+
+
+def get_edge_label(node: bn.BMGNode, i: int) -> str:
+    t = type(node)
+    if t not in _edge_labels:
+        return "UNKNOWN"
+    labels = _edge_labels[t]
+    if isinstance(labels, list):
+        return labels[i]
+    assert isinstance(labels, Callable)
+    if labels is _numbered:
+        return str(i)
+    return labels(node)[i]
