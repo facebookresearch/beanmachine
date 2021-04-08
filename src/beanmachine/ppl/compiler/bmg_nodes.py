@@ -236,14 +236,6 @@ class BMGNode(ABC):
         If the node represents a scalar value then produce Size([])."""
         pass
 
-    # Many of the node types defined in this module have no direct counterparts
-    # in BMG; they are generated during execution of the model and accumulated
-    # into a graph builder. They must then be transformed into semantically-
-    # equivalent supported nodes.
-
-    def _supported_in_bmg(self) -> bool:
-        return False
-
     @abstractmethod
     def support(self) -> Iterator[Any]:
         """To build the graph of all possible control flows through
@@ -331,9 +323,6 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
     @property
     def requirements(self) -> List[Requirement]:
         return []
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     # The support of a constant is just the value.
     def support(self) -> Iterator[Any]:
@@ -651,9 +640,6 @@ class BernoulliBase(DistributionNode):
     def size(self) -> torch.Size:
         return self.probability.size
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
     def support(self) -> Iterator[Any]:
         s = self.size
         return (tensor(i).view(s) for i in itertools.product(*([[0.0, 1.0]] * prod(s))))
@@ -732,9 +718,6 @@ class BetaNode(DistributionNode):
 
     def __str__(self) -> str:
         return f"Beta({str(self.alpha)},{str(self.beta)})"
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -834,9 +817,6 @@ class BinomialNode(BinomialNodeBase):
     def requirements(self) -> List[Requirement]:
         return [Natural, Probability]
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class BinomialLogitNode(BinomialNodeBase):
     """The Binomial distribution is the extension of the
@@ -854,9 +834,6 @@ class BinomialLogitNode(BinomialNodeBase):
     @property
     def requirements(self) -> List[Requirement]:
         return [Natural, Real]
-
-    def _supported_in_bmg(self) -> bool:
-        return False
 
 
 # TODO: Split this into two distributions as with binomial and Bernoulli.
@@ -967,10 +944,6 @@ class Chi2Node(DistributionNode):
     def __str__(self) -> str:
         return f"Chi2({str(self.df)})"
 
-    def _supported_in_bmg(self) -> bool:
-        # Not supported directly; we replace it with a gamma, which is supported.
-        return False
-
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
@@ -1055,9 +1028,6 @@ class DirichletNode(DistributionNode):
         # TODO: n() is a sample that returns a Dirichlet.
         raise ValueError("Dirichlet distribution does not have finite support.")
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class FlatNode(DistributionNode):
 
@@ -1075,9 +1045,6 @@ class FlatNode(DistributionNode):
     @property
     def requirements(self) -> List[Requirement]:
         return []
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     @property
     def size(self) -> torch.Size:
@@ -1131,9 +1098,6 @@ class GammaNode(DistributionNode):
     def __str__(self) -> str:
         return f"Gamma({str(self.concentration)}, {str(self.rate)})"
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
         # TODO: Catch this error during graph generation and produce a better
@@ -1185,9 +1149,6 @@ class HalfCauchyNode(DistributionNode):
 
     def __str__(self) -> str:
         return f"HalfCauchy({str(self.scale)})"
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1241,9 +1202,6 @@ class NormalNode(DistributionNode):
 
     def __str__(self) -> str:
         return f"Normal({str(self.mu)},{str(self.sigma)})"
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1307,9 +1265,6 @@ class StudentTNode(DistributionNode):
 
     def __str__(self) -> str:
         return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     def support(self) -> Iterator[Any]:
         # TODO: Make a better exception type.
@@ -1447,9 +1402,6 @@ class MultiAdditionNode(OperatorNode):
     def support(self) -> Iterator[Any]:
         raise ValueError("support of multiary addition not yet implemented")
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
     def __str__(self) -> str:
         return "MultiAdd"
 
@@ -1530,9 +1482,6 @@ class LogSumExpNode(OperatorNode):
     def support(self) -> Iterator[Any]:
         raise ValueError("support of LogSumExp not yet implemented")
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 # ####
 # #### Ternary operators
@@ -1612,9 +1561,6 @@ class IfThenElseNode(OperatorNode):
 
     def support(self) -> Iterator[Any]:
         raise ValueError("support of IfThenElseNode not yet implemented")
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
 
 # ####
@@ -1841,9 +1787,6 @@ class AdditionNode(BinaryOperatorNode):
         return SetOfTensors(
             el + ar for el in self.left.support() for ar in self.right.support()
         )
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
 
 class DivisionNode(BinaryOperatorNode):
@@ -2206,9 +2149,6 @@ class IndexNode(BinaryOperatorNode):
     def support(self) -> Iterator[Any]:
         raise NotImplementedError("support of index operator not implemented")
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class MatrixMultiplicationNode(BinaryOperatorNode):
     """"This represents a matrix multiplication."""
@@ -2328,9 +2268,6 @@ class MultiplicationNode(BinaryOperatorNode):
             el * ar for el in self.left.support() for ar in self.right.support()
         )
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class PowerNode(BinaryOperatorNode):
     """This represents an x-to-the-y operation."""
@@ -2399,9 +2336,6 @@ class PowerNode(BinaryOperatorNode):
             return PositiveReal
 
         return inf_base
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # Figure out which of these cases we are in; otherwise
@@ -2519,9 +2453,6 @@ class ExpNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.exp(o) for o in self.operand.support())
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class ExpM1Node(UnaryOperatorNode):
     """This represents the operation exp(x) - 1; it is generated when
@@ -2566,9 +2497,6 @@ class ExpM1Node(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.expm1(o) for o in self.operand.support())
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class LogisticNode(UnaryOperatorNode):
     """This represents the operation 1/(1+exp(x)); it is generated when
@@ -2599,9 +2527,6 @@ class LogisticNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.sigmoid(o) for o in self.operand.support())
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
 
 class LogNode(UnaryOperatorNode):
@@ -2651,9 +2576,6 @@ class LogNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.log(o) for o in self.operand.support())
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 # TODO: replace "log" with "log1mexp" as needed below and update defs
 
@@ -2690,9 +2612,6 @@ class Log1mexpNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(torch.log(1 - torch.exp(o)) for o in self.operand.support())
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
 
 # BMG supports three different kinds of negation:
@@ -2798,9 +2717,6 @@ class NegateNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(-o for o in self.operand.support())
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class NotNode(UnaryOperatorNode):
     """This represents a logical not that appears in the Python model."""
@@ -2880,9 +2796,6 @@ class ComplementNode(UnaryOperatorNode):
         # the graph.
         return [1 - p for p in self.operand.support]
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class PhiNode(UnaryOperatorNode):
     """This represents a phi operation; that is, the cumulative
@@ -2913,9 +2826,6 @@ class PhiNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         cdf = Normal(0.0, 1.0).cdf
         return SetOfTensors(cdf(o) for o in self.operand.support())
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
 
 class SampleNode(UnaryOperatorNode):
@@ -2960,9 +2870,6 @@ class SampleNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return self.operand.support()
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class ToRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
@@ -2990,9 +2897,6 @@ class ToRealNode(UnaryOperatorNode):
     def support(self) -> Iterator[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
 
 class ToPositiveRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
@@ -3019,9 +2923,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
 
 class ToProbabilityNode(UnaryOperatorNode):
@@ -3053,9 +2954,6 @@ class ToProbabilityNode(UnaryOperatorNode):
 
     def support(self) -> Iterator[Any]:
         return self.operand.support()
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
 
 # ####
@@ -3131,9 +3029,6 @@ class Observation(BMGNode):
     def __str__(self) -> str:
         return str(self.observed) + "=" + str(self.value)
 
-    def _supported_in_bmg(self) -> bool:
-        return True
-
     def support(self) -> Iterator[Any]:
         return []
 
@@ -3181,9 +3076,6 @@ class Query(BMGNode):
 
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"
-
-    def _supported_in_bmg(self) -> bool:
-        return True
 
     def support(self) -> Iterator[Any]:
         return []
@@ -3252,6 +3144,3 @@ class ExpProductFactorNode(FactorNode):
         # Factors never produce output so it is not meaningful to compute
         # their support
         return []
-
-    def _supported_in_bmg(self) -> bool:
-        return True
