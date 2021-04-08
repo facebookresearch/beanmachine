@@ -130,10 +130,10 @@ class GeneratedGraph:
 
     def _generate_graph(self) -> None:
         fix_problems(self.bmg).raise_errors()
-        self.bmg.pd.begin(prof.build_bmg_graph)
+        self.bmg._begin(prof.build_bmg_graph)
         for node in self.bmg._traverse_from_roots():
             self._generate_node(node)
-        self.bmg.pd.finish(prof.build_bmg_graph)
+        self.bmg._finish(prof.build_bmg_graph)
 
 
 def to_bmg_graph(bmg: BMGraphBuilder) -> GeneratedGraph:
