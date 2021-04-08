@@ -2,6 +2,7 @@
 import unittest
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_dot import to_dot
 
 
@@ -46,8 +47,7 @@ digraph "graph" {
         self.maxDiff = None
         self.assertEqual(observed.strip(), expected.strip())
 
-        g = bmg.to_bmg()
-        observed = g.to_string()
+        observed = to_bmg_graph(bmg).graph.to_string()
         expected = """
 Node 0 type 1 parents [ ] children [ 2 ] real 3
 Node 1 type 1 parents [ ] children [ 2 ] positive real 2

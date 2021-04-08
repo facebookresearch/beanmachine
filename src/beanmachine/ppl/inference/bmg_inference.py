@@ -9,9 +9,9 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import torch
-from beanmachine.graph import Graph, InferenceType
+from beanmachine.graph import InferenceType
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.fix_problems import fix_problems
+from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
@@ -142,51 +142,10 @@ class BMGInference:
         # BMGInference, not graph accumulator.
 
         bmg.pd.begin(prof.infer)
-        fix_problems(bmg).raise_errors()
 
-        # TODO: Extract this logic to its own graph-building module.
-
-        bmg.pd.begin(prof.build_bmg_graph)
-
-        g = Graph()
-        node_to_graph_id: Dict[bn.BMGNode, int] = {}
-        query_to_query_id: Dict[bn.Query, int] = {}
-        for node in bmg._traverse_from_roots():
-            # We add all nodes that are reachable from a query, observation or
-            # sample to the BMG graph such that inputs are always added before
-            # outputs.
-            #
-            # TODO: We could consider traversing only nodes reachable from
-            # observations or queries.
-            #
-            # There are four cases to consider:
-            #
-            # * Observations: there is no associated value returned by the graph
-            #   when we add an observation, so there is nothing to track.
-            #
-            # * Query of a constant: BMG does not support query on a constant.
-            #   We skip adding these; when it comes time to fill in the results
-            #   dictionary we will just make a vector of the constant value.
-            #
-            # * Query of an operator: The graph gives us the column index in the
-            #   list of samples it returns for this query. We track it in
-            #   query_to_query_id.
-            #
-            # * Any other node: the graph gives us the graph identifier of the new
-            #   node. We need to know this for each node that will be used as an input
-            #   later, so we track that in node_to_graph_id.
-
-            if isinstance(node, bn.Observation):
-                node._add_to_graph(g, node_to_graph_id)
-            elif isinstance(node, bn.Query):
-                if not isinstance(node.operator, bn.ConstantNode):
-                    query_id = node._add_to_graph(g, node_to_graph_id)
-                    query_to_query_id[node] = query_id
-            else:
-                graph_id = node._add_to_graph(g, node_to_graph_id)
-                node_to_graph_id[node] = graph_id
-
-        bmg.pd.finish(prof.build_bmg_graph)
+        generated_graph = to_bmg_graph(bmg)
+        g = generated_graph.graph
+        query_to_query_id = generated_graph.query_to_query_id
 
         samples = []
 
@@ -265,3 +224,7 @@ class BMGInference:
         """Produce a string containing a Python program fragment which
         produces the graph deduced from the model."""
         return self._accumulate_graph(queries, observations).to_python()
+
+
+# TODO: Add a to_graph API here; make a map from
+# query RVs to query ids and return it along with the graph.
