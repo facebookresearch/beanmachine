@@ -1856,15 +1856,6 @@ class BMGraphBuilder:
     # #### Output
     # ####
 
-    # TODO: This is only used by the dot generator; eliminate it.
-    def _resort_nodes(self) -> Dict[BMGNode, int]:
-        """This renumbers the nodes so that the ids are in topological order;
-        it returns a dictionary mapping nodes to integers."""
-        sorted_nodes = {}
-        for index, node in enumerate(self._traverse_from_roots()):
-            sorted_nodes[node] = index
-        return sorted_nodes
-
     def _traverse_from_roots(self) -> List[BMGNode]:
         """This returns a list of the reachable graph nodes
         in topologically sorted order. The ordering invariants are
@@ -1965,13 +1956,3 @@ class BMGraphBuilder:
             q = self.add_query(node)
             self._rv_to_query[qrv] = q
         self.pd.finish(prof.accumulate)
-
-    def _fix_problems(self) -> None:
-        # TODO: For reasons yet unexplained this import is enormously
-        # expensive.  Try to get rid of the circular dependency between
-        # fix_problems and this module.
-        self.pd.begin(prof.import_fix_problems)
-        from beanmachine.ppl.compiler.fix_problems import fix_problems
-
-        self.pd.finish(prof.import_fix_problems)
-        fix_problems(self, self._fix_observe_true).raise_errors()

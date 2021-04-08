@@ -12,7 +12,6 @@ build_bmg_graph = "build_bmg_graph"
 transpose_samples = "transpose_samples"
 build_mcsamples = "build_mcsamples"
 deserialize_perf_report = "deserialize_perf_report"
-import_fix_problems = "import_fix_problems"
 
 
 class Event:
