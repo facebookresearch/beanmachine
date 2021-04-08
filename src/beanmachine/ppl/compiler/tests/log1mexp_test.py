@@ -259,30 +259,31 @@ uint n4 = g.add_distribution(
 uint n5 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
 g.observe([n5], false);
+uint n6 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
+g.observe([n6], false);
 uint n7 = g.add_operator(
   graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
-g.observe([n7], false);
+g.observe([n7], true);
+uint n8 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
+g.observe([n8], false);
 uint n9 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
-g.observe([n9], true);
-uint n11 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n4}));
-g.observe([n11], false);
-uint n13 = g.add_operator(
   graph::OperatorType::TO_POS_REAL, std::vector<uint>({n3}));
-uint n14 = g.add_operator(
-  graph::OperatorType::NEGATE, std::vector<uint>({n13}));
-uint n15 = g.add_operator(
-  graph::OperatorType::LOG1MEXP, std::vector<uint>({n14}));
-uint n16 = g.add_operator(
-  graph::OperatorType::NEGATE, std::vector<uint>({n15}));
-uint n17 = g.add_distribution(
+uint n10 = g.add_operator(
+  graph::OperatorType::NEGATE, std::vector<uint>({n9}));
+uint n11 = g.add_operator(
+  graph::OperatorType::LOG1MEXP, std::vector<uint>({n10}));
+uint n12 = g.add_operator(
+  graph::OperatorType::NEGATE, std::vector<uint>({n11}));
+uint n13 = g.add_distribution(
   graph::DistributionType::BETA,
   graph::AtomicType::PROBABILITY,
-  std::vector<uint>({n0, n16}));
-uint n18 = g.add_operator(
-  graph::OperatorType::SAMPLE, std::vector<uint>({n17}));
-g.query(n18);"""
+  std::vector<uint>({n0, n12}));
+uint n14 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n13}));
+uint q0 = g.query(n14);
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
         observed = BMGInference().to_python(queries, observations)

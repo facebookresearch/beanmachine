@@ -1856,6 +1856,7 @@ class BMGraphBuilder:
     # #### Output
     # ####
 
+    # TODO: This is only used by the dot generator; eliminate it.
     def _resort_nodes(self) -> Dict[BMGNode, int]:
         """This renumbers the nodes so that the ids are in topological order;
         it returns a dictionary mapping nodes to integers."""
@@ -1863,15 +1864,6 @@ class BMGraphBuilder:
         for index, node in enumerate(self._traverse_from_roots()):
             sorted_nodes[node] = index
         return sorted_nodes
-
-    def to_cpp(self) -> str:
-        """This transforms the accumulated graph into a BMG type system compliant
-        graph and then creates a C++ program which creates the graph."""
-        self._fix_problems()
-        sorted_nodes = self._resort_nodes()
-        return "graph::Graph g;\n" + "\n".join(
-            n._to_cpp(sorted_nodes) for n in sorted_nodes
-        )
 
     def _traverse_from_roots(self) -> List[BMGNode]:
         """This returns a list of the reachable graph nodes
