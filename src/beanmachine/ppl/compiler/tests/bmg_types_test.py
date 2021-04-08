@@ -161,30 +161,31 @@ class BMGTypesTest(unittest.TestCase):
         )
         expected = """
 digraph "graph" {
-  N00[label="1.0:T>=OH"];
+  N00[label="0.5:T>=P"];
   N01[label="2.0:T>=N"];
-  N02[label="0.5:T>=P"];
-  N03[label="Beta:P>=P"];
-  N04[label="Sample:P>=P"];
-  N05[label="*:M>=P"];
+  N02[label="Beta:P>=P"];
+  N03[label="Sample:P>=P"];
+  N04[label="*:M>=P"];
+  N05[label="1.0:T>=OH"];
   N06[label="Normal:R>=R"];
-  N07[label="Bernoulli:B>=B"];
-  N08[label="Sample:R>=R"];
+  N07[label="Sample:R>=R"];
+  N08[label="Bernoulli:B>=B"];
   N09[label="Sample:B>=B"];
   N10[label="Query:M>=P"];
-  N00 -> N06[label="sigma:R+"];
-  N01 -> N03[label="alpha:R+"];
-  N01 -> N03[label="beta:R+"];
-  N02 -> N05[label="left:P"];
-  N03 -> N04[label="operand:P"];
-  N04 -> N05[label="right:P"];
-  N05 -> N06[label="mu:R"];
-  N05 -> N07[label="probability:P"];
-  N05 -> N10[label="operator:any"];
-  N06 -> N08[label="operand:R"];
-  N07 -> N09[label="operand:B"];
-}"""
-        self.assertEqual(observed.strip(), expected.strip())
+  N00 -> N04[label="left:P"];
+  N01 -> N02[label="alpha:R+"];
+  N01 -> N02[label="beta:R+"];
+  N02 -> N03[label="operand:P"];
+  N03 -> N04[label="right:P"];
+  N04 -> N06[label="mu:R"];
+  N04 -> N08[label="probability:P"];
+  N04 -> N10[label="operator:any"];
+  N05 -> N06[label="sigma:R+"];
+  N06 -> N07[label="operand:R"];
+  N08 -> N09[label="operand:B"];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_matrix_types(self) -> None:
         """test_matrix_types"""
