@@ -39,19 +39,19 @@ _standard_fixer_types: List[Type] = [
 
 
 def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorReport:
-    bmg.pd.begin(prof.fix_problems)
+    bmg._begin(prof.fix_problems)
     fixer_types: List[Type] = _standard_fixer_types
     errors = ErrorReport()
     if fix_observe_true:
         # Note: must NOT be +=, which would mutate _standard_fixer_types.
         fixer_types = fixer_types + [ObserveTrueFixer]
     for fixer_type in fixer_types:
-        bmg.pd.begin(fixer_type.__name__)
+        bmg._begin(fixer_type.__name__)
         fixer = fixer_type(bmg)
         fixer.fix_problems()
-        bmg.pd.finish(fixer_type.__name__)
+        bmg._finish(fixer_type.__name__)
         errors = fixer.errors
         if errors.any():
             break
-    bmg.pd.finish(prof.fix_problems)
+    bmg._finish(prof.fix_problems)
     return errors
