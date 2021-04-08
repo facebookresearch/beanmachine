@@ -389,7 +389,7 @@ class RequirementsFixer:
         raise AssertionError("Unexpected node type")
 
     def fix_problems(self) -> None:
-        nodes = self.bmg._traverse_from_roots()
+        nodes = self.bmg.all_ancestor_nodes()
         for node in nodes:
             requirements = node.requirements
             # TODO: The edge labels used to visualize the graph in DOT

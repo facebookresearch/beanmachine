@@ -256,6 +256,10 @@ class BMGNode(ABC):
         # therefore over-estimate; we should however not under-estimate.
         return positive_infinity
 
+    @property
+    def is_leaf(self) -> bool:
+        return len(self.outputs.items) == 0
+
 
 # When constructing the support of various nodes we are often
 # having to remove duplicates from a set of possible values.
