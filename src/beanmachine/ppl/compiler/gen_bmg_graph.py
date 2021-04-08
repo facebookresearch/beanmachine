@@ -5,41 +5,97 @@
 # pyre-ignore-all-errors
 
 
-from typing import Dict
+from typing import Dict, List
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.profiler as prof
+import torch
 from beanmachine.graph import Graph
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bmg_node_types import (
+    dist_type,
+    factor_type,
+    operator_type,
+)
+from beanmachine.ppl.compiler.bmg_types import _size_to_rc
 from beanmachine.ppl.compiler.fix_problems import fix_problems
+
+
+def _reshape(t: torch.Tensor):
+    # Note that we take the transpose; BMG expects columns,
+    # BM provides rows.
+    r, c = _size_to_rc(t.size())
+    return t.reshape(r, c).transpose(0, 1)
 
 
 class GeneratedGraph:
     graph: Graph
-    builder: BMGraphBuilder
+    bmg: BMGraphBuilder
     node_to_graph_id: Dict[bn.BMGNode, int]
     query_to_query_id: Dict[bn.Query, int]
 
-    def __init__(
-        self,
-        graph: Graph,
-        builder: BMGraphBuilder,
-        node_to_graph_id: Dict[bn.BMGNode, int],
-        query_to_query_id: Dict[bn.Query, int],
-    ) -> None:
-        self.graph = graph
-        self.builder = builder
-        self.node_to_graph_id = node_to_graph_id
-        self.query_to_query_id = query_to_query_id
+    def __init__(self, bmg: BMGraphBuilder) -> None:
+        self.graph = Graph()
+        self.bmg = bmg
+        self.node_to_graph_id = {}
+        self.query_to_query_id = {}
 
+    def _add_observation(self, node: bn.Observation) -> None:
+        self.graph.observe(self.node_to_graph_id[node.observed], node.value)
 
-def to_bmg_graph(bmg: BMGraphBuilder) -> GeneratedGraph:
-    fix_problems(bmg).raise_errors()
-    bmg.pd.begin(prof.build_bmg_graph)
-    g = Graph()
-    node_to_graph_id: Dict[bn.BMGNode, int] = {}
-    query_to_query_id: Dict[bn.Query, int] = {}
-    for node in bmg._traverse_from_roots():
+    def _add_query(self, node: bn.Query) -> None:
+        if not isinstance(node.operator, bn.ConstantNode):
+            query_id = self.graph.query(self.node_to_graph_id[node.operator])
+            self.query_to_query_id[node] = query_id
+
+    def _inputs(self, node: bn.BMGNode) -> List[int]:
+        return [self.node_to_graph_id[x] for x in node.inputs]
+
+    def _add_factor(self, node: bn.FactorNode) -> None:
+        graph_id = self.graph.add_factor(factor_type(node), self._inputs(node))
+        self.node_to_graph_id[node] = graph_id
+
+    def _add_distribution(self, node: bn.DistributionNode) -> None:
+        distr_type, elt_type = dist_type(node)
+        graph_id = self.graph.add_distribution(distr_type, elt_type, self._inputs(node))
+        self.node_to_graph_id[node] = graph_id
+
+    def _add_operator(self, node: bn.OperatorNode) -> None:
+        graph_id = self.graph.add_operator(operator_type(node), self._inputs(node))
+        self.node_to_graph_id[node] = graph_id
+
+    def _add_constant(self, node: bn.ConstantNode) -> None:  # noqa
+        t = type(node)
+        v = node.value
+        if t is bn.PositiveRealNode:
+            graph_id = self.graph.add_constant_pos_real(float(v))
+        elif t is bn.NegativeRealNode:
+            graph_id = self.graph.add_constant_neg_real(float(v))
+        elif t is bn.ProbabilityNode:
+            graph_id = self.graph.add_constant_probability(float(v))
+        elif t is bn.BooleanNode:
+            graph_id = self.graph.add_constant(bool(v))
+        elif t is bn.NaturalNode:
+            graph_id = self.graph.add_constant(int(v))
+        elif t is bn.RealNode:
+            graph_id = self.graph.add_constant(float(v))
+        elif t is bn.ConstantPositiveRealMatrixNode:
+            graph_id = self.graph.add_constant_pos_matrix(_reshape(v))
+        elif t is bn.ConstantRealMatrixNode:
+            graph_id = self.graph.add_constant_real_matrix(_reshape(v))
+        elif t is bn.ConstantNegativeRealMatrixNode:
+            graph_id = self.graph.add_constant_neg_matrix(_reshape(v))
+        elif t is bn.ConstantProbabilityMatrixNode:
+            graph_id = self.graph.add_constant_probability_matrix(_reshape(v))
+        elif t is bn.ConstantNaturalMatrixNode:
+            graph_id = self.graph.add_constant_natural_matrix(_reshape(v))
+        elif t is bn.ConstantBooleanMatrixNode:
+            graph_id = self.graph.add_constant_bool_matrix(_reshape(v))
+        else:
+            graph_id = self.graph.add_constant(v)
+        self.node_to_graph_id[node] = graph_id
+
+    def _generate_node(self, node: bn.BMGNode) -> None:
         # We add all nodes that are reachable from a query, observation or
         # sample to the BMG graph such that inputs are always added before
         # outputs.
@@ -65,18 +121,27 @@ def to_bmg_graph(bmg: BMGraphBuilder) -> GeneratedGraph:
         #   later, so we track that in node_to_graph_id.
 
         if isinstance(node, bn.Observation):
-            # TODO: Move the add_to_graph logic out of the graph node and into
-            # this module. This operation should not be the concern of the
-            # node classes.
-            node._add_to_graph(g, node_to_graph_id)
+            self._add_observation(node)
         elif isinstance(node, bn.Query):
-            if not isinstance(node.operator, bn.ConstantNode):
-                query_id = node._add_to_graph(g, node_to_graph_id)
-                query_to_query_id[node] = query_id
-        else:
-            graph_id = node._add_to_graph(g, node_to_graph_id)
-            node_to_graph_id[node] = graph_id
+            self._add_query(node)
+        elif isinstance(node, bn.FactorNode):
+            self._add_factor(node)
+        elif isinstance(node, bn.DistributionNode):
+            self._add_distribution(node)
+        elif isinstance(node, bn.OperatorNode):
+            self._add_operator(node)
+        elif isinstance(node, bn.ConstantNode):
+            self._add_constant(node)
 
-    bmg.pd.finish(prof.build_bmg_graph)
+    def _generate_graph(self) -> None:
+        fix_problems(self.bmg).raise_errors()
+        self.bmg.pd.begin(prof.build_bmg_graph)
+        for node in self.bmg._traverse_from_roots():
+            self._generate_node(node)
+        self.bmg.pd.finish(prof.build_bmg_graph)
 
-    return GeneratedGraph(g, bmg, node_to_graph_id, query_to_query_id)
+
+def to_bmg_graph(bmg: BMGraphBuilder) -> GeneratedGraph:
+    gg = GeneratedGraph(bmg)
+    gg._generate_graph()
+    return gg
