@@ -6,7 +6,7 @@ from typing import Any
 
 import beanmachine.ppl.utils.hint as hint
 import torch
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder, BMGRuntime
 from beanmachine.ppl.compiler.bmg_nodes import (
     AdditionNode,
     BernoulliNode,
@@ -247,7 +247,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # handle_bernoulli always adds a node to the graph.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         # In normal operation of the graph accumulator the call below never happens;
         # we only ever call handle_bernoulli if the Bernoulli constructor is invoked
@@ -262,7 +262,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # happens either, but once again we support this sequence of calls as it
         # is useful for test cases.
 
-        r = bmg.add_real(0.5)
+        r = bmg._bmg.add_real(0.5)
         b = bmg.handle_bernoulli(r)
         self.assertTrue(isinstance(b, BernoulliNode))
 
@@ -271,17 +271,18 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # sample (or a node whose ancestor is a sample) and it invokes
         # handle_bernoulli. We can simulate that here:
 
-        beta = bmg.add_beta(r, r)
-        betas = bmg.add_sample(beta)
+        beta = bmg._bmg.add_beta(r, r)
+        betas = bmg._bmg.add_sample(beta)
         b = bmg.handle_bernoulli(betas)
         self.assertTrue(isinstance(b, BernoulliNode))
 
     def test_handle_sample(self) -> None:
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         # Sample on a graph node.
-        b = bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5)))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
         s1 = bmg.handle_sample(b)
         self.assertTrue(isinstance(s1, SampleNode))
 
@@ -299,16 +300,16 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing an addition node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor(1.0)
         t2 = tensor(2.0)
         t3 = tensor(3.0)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" add method that takes two values.
@@ -337,7 +338,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "add"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "add")
@@ -440,19 +443,19 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing a division node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor(1.0)
         t2 = tensor(2.0)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gr2 = bmg.add_real(2.0)
+        gr2 = bmg._bmg.add_real(2.0)
         self.assertTrue(isinstance(gr2, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
-        gt2 = bmg.add_constant_tensor(t2)
+        gt2 = bmg._bmg.add_constant_tensor(t2)
         self.assertTrue(isinstance(gt2, ConstantTensorNode))
 
         # torch defines a "static" div method that takes two values.
@@ -473,7 +476,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "div"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "div")
@@ -575,16 +580,16 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing an exp node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         e = math.exp(1.0)
         t1 = tensor(1.0)
         te = torch.exp(t1)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" exp method that takes one value.
@@ -611,7 +616,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "exp"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "exp")
@@ -645,15 +652,15 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing a log node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t0 = tensor(0.0)
         t1 = tensor(1.0)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" log method that takes one value.
@@ -672,7 +679,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "log"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "log")
@@ -705,7 +714,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
         # Kicking the tires on log1mexp
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         # Let's pick a pair of values such as v0 = log1mexp(v1)
         v0 = -0.45867514538708193
@@ -716,9 +725,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         t1 = tensor(v1)
 
         # Graph nodes corresponding to t1
-        gr1 = bmg.add_real(v1)
+        gr1 = bmg._bmg.add_real(v1)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # utils.hint defines a "static" log1mexp method that takes one value.
@@ -726,7 +735,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(hint, "log1mexp"), ta)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         # Log of a value produces a value
@@ -751,18 +762,18 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing a multiplication node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor(1.0)
         t2 = tensor(2.0)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gr2 = bmg.add_real(2.0)
-        gt1 = bmg.add_constant_tensor(t1)
+        gr2 = bmg._bmg.add_real(2.0)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
-        gt2 = bmg.add_constant_tensor(t2)
+        gt2 = bmg._bmg.add_constant_tensor(t2)
 
         # torch defines a "static" mul method that takes two values.
         # Calling torch.mul(x, y) should be logically the same as x * y
@@ -782,7 +793,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mul"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "mul")
@@ -884,15 +897,15 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # multiplication node in the graph -- or avoiding producing such a
         # node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor([[3.0, 4.0], [5.0, 6.0]])
         t2 = tensor([[29.0, 36.0], [45.0, 56.0]])
 
         # Graph nodes
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
-        gt2 = bmg.add_constant_tensor(t2)
+        gt2 = bmg._bmg.add_constant_tensor(t2)
         self.assertTrue(isinstance(gt2, ConstantTensorNode))
 
         # torch defines a "static" mm method that takes two values.
@@ -911,9 +924,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "mm"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(
-            bmg.add_bernoulli(bmg.add_constant_tensor(tensor([[0.5, 0.5], [0.5, 0.5]])))
-        )
+        h = bmg._bmg.add_constant_tensor(tensor([[0.5, 0.5], [0.5, 0.5]]))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "mm")
@@ -985,15 +998,17 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
 
     def test_comparison(self) -> None:
         """Test comparison"""
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor(1.0)
         t2 = tensor(2.0)
         f = tensor(False)
         t = tensor(True)
-        g1 = bmg.add_real(1.0)
-        g2 = bmg.add_real(2.0)
-        s = bmg.add_sample(bmg.add_halfcauchy(bmg.add_real(0.5)))
+        g1 = bmg._bmg.add_real(1.0)
+        g2 = bmg._bmg.add_real(2.0)
+        h = bmg._bmg.add_real(0.5)
+        hc = bmg._bmg.add_halfcauchy(h)
+        s = bmg._bmg.add_sample(hc)
 
         self.assertEqual(bmg.handle_equal(t2, t1), f)
         self.assertEqual(bmg.handle_equal(t1, t1), t)
@@ -1099,15 +1114,15 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing a negation node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor(1.0)
         t2 = tensor(2.0)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" neg method that takes one value.
@@ -1126,7 +1141,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "neg"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "neg")
@@ -1164,15 +1181,15 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing a logical-not node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         tt = tensor(True)
         tf = tensor(False)
 
         # Graph nodes
-        gbt = bmg.add_boolean(True)
+        gbt = bmg._bmg.add_boolean(True)
         self.assertTrue(isinstance(gbt, BooleanNode))
-        gtt = bmg.add_constant_tensor(tt)
+        gtt = bmg._bmg.add_constant_tensor(tt)
         self.assertTrue(isinstance(gtt, ConstantTensorNode))
 
         # torch defines a "static" logical_not method that takes one value.
@@ -1192,7 +1209,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "logical_not"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "logical_not")
@@ -1227,15 +1246,15 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing a power node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor(1.0)
         t2 = tensor(2.0)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch defines a "static" pow method that takes two values.
@@ -1262,7 +1281,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "pow"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "pow")
@@ -1361,14 +1382,14 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         # This test verifies that various mechanisms for producing a to_real node
         # in the graph -- or avoiding producing such a node -- are working as designed.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         t1 = tensor(1.0)
 
         # Graph nodes
-        gr1 = bmg.add_real(1.0)
+        gr1 = bmg._bmg.add_real(1.0)
         self.assertTrue(isinstance(gr1, RealNode))
-        gt1 = bmg.add_constant_tensor(t1)
+        gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
         # torch.float is not a function, unlike torch.log, torch.add and so on.
@@ -1385,7 +1406,9 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         self.assertEqual(bmg.handle_dot_get(torch.Tensor, "float"), ta2)
 
         # Make a sample node; this cannot be simplified away.
-        s = bmg.add_sample(bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5))))
+        h = bmg._bmg.add_constant_tensor(tensor(0.5))
+        b = bmg._bmg.add_bernoulli(h)
+        s = bmg._bmg.add_sample(b)
         self.assertTrue(isinstance(s, SampleNode))
 
         sa = bmg.handle_dot_get(s, "float")
@@ -1511,10 +1534,10 @@ digraph "graph" {
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_allowed_functions(self) -> None:
-        bmg = BMGraphBuilder()
-        p = bmg.add_constant(0.5)
-        b = bmg.add_bernoulli(p)
-        s = bmg.add_sample(b)
+        bmg = BMGRuntime()
+        p = bmg._bmg.add_constant(0.5)
+        b = bmg._bmg.add_bernoulli(p)
+        s = bmg._bmg.add_sample(b)
         d = bmg.handle_function(dict, [[(1, s)]])
         self.assertEqual(d, {1: s})
 
