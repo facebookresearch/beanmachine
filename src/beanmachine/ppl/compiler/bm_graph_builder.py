@@ -479,14 +479,8 @@ class BMGraphBuilder:
 
     @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
-        if isinstance(left, ConstantNode):
-            if isinstance(right, ConstantNode):
-                return self.add_constant(left.value + right.value)
-            if left.inf_type == bt.Zero:
-                return right
-        if isinstance(right, ConstantNode):
-            if right.inf_type == bt.Zero:
-                return left
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value + right.value)
 
         node = bn.AdditionNode(left, right)
         self.add_node(node)
@@ -508,21 +502,8 @@ class BMGraphBuilder:
 
     @memoize
     def add_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
-        # TODO: Consider moving this to an optimization pass.
-        if isinstance(left, ConstantNode):
-            if isinstance(right, ConstantNode):
-                return self.add_constant(left.value * right.value)
-            t = left.inf_type
-            if t == bt.One:
-                return right
-            if t == bt.Zero:
-                return left
-        if isinstance(right, ConstantNode):
-            t = right.inf_type
-            if t == bt.One:
-                return left
-            if t == bt.Zero:
-                return right
+        if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
+            return self.add_constant(left.value * right.value)
         node = bn.MultiplicationNode(left, right)
         self.add_node(node)
         return node

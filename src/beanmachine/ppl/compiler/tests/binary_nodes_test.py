@@ -60,18 +60,14 @@ class BMGNodesTest(unittest.TestCase):
         # we could meet the requirements of the BMG type system by inserting code
         # that converted the bool to a probability."
 
-        # In fact, a bool multiplied by any type can be converted to an "if-then-else"
-        # that chooses between the other operand and a zero of that type, so they
-        # are all possible.
-
-        # Boolean x Boolean -> Boolean
+        # Boolean x Boolean -> Probability
         # Boolean x Probability -> Probability
-        # Boolean x Natural -> Natural
+        # Boolean x Natural -> PositiveReal
         # Boolean x PositiveReal -> PositiveReal
         # Boolean x Real -> Real
-        self.assertEqual(MultiplicationNode(bern, bern).inf_type, Boolean)
+        self.assertEqual(MultiplicationNode(bern, bern).inf_type, Probability)
         self.assertEqual(MultiplicationNode(bern, beta).inf_type, Probability)
-        self.assertEqual(MultiplicationNode(bern, bino).inf_type, Natural)
+        self.assertEqual(MultiplicationNode(bern, bino).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bern, half).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bern, norm).inf_type, Real)
 
@@ -86,12 +82,12 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(MultiplicationNode(beta, half).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(beta, norm).inf_type, Real)
 
-        # Natural x Boolean -> Natural
+        # Natural x Boolean -> PositiveReal
         # Natural x Probability -> PositiveReal
         # Natural x Natural -> PositiveReal
         # Natural x PositiveReal -> PositiveReal
         # Natural x Real -> Real
-        self.assertEqual(MultiplicationNode(bino, bern).inf_type, Natural)
+        self.assertEqual(MultiplicationNode(bino, bern).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, beta).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, bino).inf_type, PositiveReal)
         self.assertEqual(MultiplicationNode(bino, half).inf_type, PositiveReal)
@@ -120,18 +116,6 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(MultiplicationNode(norm, norm).inf_type, Real)
 
         # Addition
-
-        # Special case: 1 + (-P) -> P
-        # Special case: 1 + (-B) -> B
-        # Special case: (-P) + 1 -> P
-        # Special case: (-B) + 1 -> B
-        nb = NegateNode(bern)
-        np = NegateNode(beta)
-        one = RealNode(1.0)
-        self.assertEqual(AdditionNode(np, one).inf_type, Probability)
-        self.assertEqual(AdditionNode(nb, one).inf_type, Boolean)
-        self.assertEqual(AdditionNode(one, np).inf_type, Probability)
-        self.assertEqual(AdditionNode(one, nb).inf_type, Boolean)
 
         # Boolean + Boolean -> PositiveReal
         # Boolean + Probability -> PositiveReal
@@ -212,13 +196,15 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(AdditionNode(norm, norm).inf_type, Real)
 
         # Power
-        # * The inf type is equal to the base inf type with a few exceptions:
-        # * If the base is P or B and the exponent is R, the output is R+.
-        # * If the base is B the output is P.
-        # * If the base is N the output is R+.
+        # P ** R+  --> P
+        # P ** R   --> R+
+        # R+ ** R+ --> R+
+        # R+ ** R  --> R+
+        # R ** R+  --> R
+        # R ** R   --> R
 
-        # Base is B
-        self.assertEqual(PowerNode(bern, bern).inf_type, Boolean)
+        # Base is B; treated as P
+        self.assertEqual(PowerNode(bern, bern).inf_type, Probability)
         self.assertEqual(PowerNode(bern, beta).inf_type, Probability)
         self.assertEqual(PowerNode(bern, bino).inf_type, Probability)
         self.assertEqual(PowerNode(bern, half).inf_type, Probability)
@@ -231,8 +217,8 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(PowerNode(beta, half).inf_type, Probability)
         self.assertEqual(PowerNode(beta, norm).inf_type, PositiveReal)
 
-        # Base is N
-        self.assertEqual(PowerNode(bino, bern).inf_type, Natural)
+        # Base is N; treated as R+
+        self.assertEqual(PowerNode(bino, bern).inf_type, PositiveReal)
         self.assertEqual(PowerNode(bino, beta).inf_type, PositiveReal)
         self.assertEqual(PowerNode(bino, bino).inf_type, PositiveReal)
         self.assertEqual(PowerNode(bino, half).inf_type, PositiveReal)

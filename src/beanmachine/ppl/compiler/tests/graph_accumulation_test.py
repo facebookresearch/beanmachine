@@ -303,17 +303,32 @@ def beta_eliminate_identities():
 
 
 expected_bmg_7 = """
-Node 0 type 1 parents [ ] children [ 1 ] positive real 1
-Node 1 type 2 parents [ 0 ] children [ 2 3 4 ] unknown
-Node 2 type 3 parents [ 1 ] children [ ] positive real 1e-10
-Node 3 type 3 parents [ 1 ] children [ 7 ] positive real 1e-10
-Node 4 type 3 parents [ 1 ] children [ 6 ] positive real 1e-10
-Node 5 type 1 parents [ ] children [ 6 ] positive real 2
-Node 6 type 3 parents [ 5 4 ] children [ 7 ] positive real 1e-10
-Node 7 type 3 parents [ 3 6 ] children [ 9 ] positive real 1e-10
-Node 8 type 1 parents [ ] children [ 9 ] positive real 4
-Node 9 type 2 parents [ 7 8 ] children [ 10 ] unknown
-Node 10 type 3 parents [ 9 ] children [ ] probability 1e-10
+digraph "graph" {
+  N0[label="1"];
+  N1[label="HalfCauchy"];
+  N2[label="~"];
+  N3[label="~"];
+  N4[label="~"];
+  N5[label="2"];
+  N6[label="*"];
+  N7[label="+"];
+  N8[label="4"];
+  N9[label="Beta"];
+  N10[label="~"];
+  N0 -> N1;
+  N1 -> N2;
+  N1 -> N3;
+  N1 -> N4;
+  N3 -> N7;
+  N4 -> N6;
+  N5 -> N6;
+  N6 -> N7;
+  N7 -> N9;
+  N8 -> N9;
+  N9 -> N10;
+  Q0[label="Query"];
+  N10 -> Q0;
+}
 """
 
 
@@ -383,7 +398,9 @@ class GraphAccumulationTests(unittest.TestCase):
 
     def test_accumulate_eliminate_identities(self) -> None:
         self.maxDiff = None
+        # TODO: We end up with an extraneous zero addend in the
+        # sum; eliminate that.
         queries = [beta_eliminate_identities()]
         bmg = BMGRuntime().accumulate_graph(queries, {})
-        observed = to_bmg_graph(bmg).graph.to_string()
-        self.assertEqual(tidy(observed), tidy(expected_bmg_7))
+        observed = to_bmg_graph(bmg).graph.to_dot()
+        self.assertEqual(expected_bmg_7.strip(), observed.strip())
