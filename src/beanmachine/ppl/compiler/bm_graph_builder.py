@@ -407,6 +407,7 @@ class BMGraphBuilder:
     # should take a work item to remove this now-unnecessary code.
 
     def add_node(self, node: BMGNode) -> BMGNode:
+        # TODO: This should be private
         """This adds a node we've recently created to the node set;
         it maintains the invariant that all the input nodes are also added."""
         assert node not in self._nodes
@@ -417,6 +418,12 @@ class BMGraphBuilder:
         return node
 
     def remove_leaf(self, node: BMGNode) -> None:
+        # TODO: This is only used to remove an observation; restrict it
+        # accordingly. Particularly because this code is not correct with
+        # respect to the memoizers. We could add a node, memoize it,
+        # remove, it, add it again, and the memoizer would hand the node
+        # back without adding it to the graph.
+
         """This removes a leaf node from the builder, and ensures that the
         output edges of all its input nodes are removed as well."""
         if not node.is_leaf:
@@ -620,20 +627,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_bernoulli(
-        self, probs: Any = None, logits: Any = None
-    ) -> bn.BernoulliNode:
-        if (probs is None and logits is None) or (
-            probs is not None and logits is not None
-        ):
-            raise ValueError("handle_bernoulli requires exactly one of probs or logits")
-        probability = logits if probs is None else probs
-        if not isinstance(probability, BMGNode):
-            probability = self.add_constant(probability)
-        if logits is None:
-            return self.add_bernoulli(probability)
-        return self.add_bernoulli_logit(probability)
-
     @memoize
     def add_binomial(self, count: BMGNode, probability: BMGNode) -> bn.BinomialNode:
         node = bn.BinomialNode(count, probability)
@@ -648,28 +641,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    # TODO: Add a note here describing why it is important that the function
-    # signatures of the handler methods for distributions match those of
-    # the torch distribution constructors.
-
-    # TODO: Verify that they do match.
-
-    def handle_binomial(
-        self, total_count: Any, probs: Any = None, logits: Any = None
-    ) -> bn.BinomialNode:
-        if (probs is None and logits is None) or (
-            probs is not None and logits is not None
-        ):
-            raise ValueError("handle_binomial requires exactly one of probs or logits")
-        probability = logits if probs is None else probs
-        if not isinstance(total_count, BMGNode):
-            total_count = self.add_constant(total_count)
-        if not isinstance(probability, BMGNode):
-            probability = self.add_constant(probability)
-        if logits is None:
-            return self.add_binomial(total_count, probability)
-        return self.add_binomial_logit(total_count, probability)
-
     @memoize
     def add_categorical(
         self, probability: BMGNode, is_logits: bool = False
@@ -678,30 +649,11 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_categorical(
-        self, probs: Any = None, logits: Any = None
-    ) -> bn.CategoricalNode:
-        if (probs is None and logits is None) or (
-            probs is not None and logits is not None
-        ):
-            raise ValueError(
-                "handle_categorical requires exactly one of probs or logits"
-            )
-        probability = logits if probs is None else probs
-        if not isinstance(probability, BMGNode):
-            probability = self.add_constant(probability)
-        return self.add_categorical(probability, logits is not None)
-
     @memoize
     def add_chi2(self, df: BMGNode) -> bn.Chi2Node:
         node = bn.Chi2Node(df)
         self.add_node(node)
         return node
-
-    def handle_chi2(self, df: Any, validate_args=None) -> bn.Chi2Node:
-        if not isinstance(df, BMGNode):
-            df = self.add_constant(df)
-        return self.add_chi2(df)
 
     @memoize
     def add_gamma(self, concentration: BMGNode, rate: BMGNode) -> bn.GammaNode:
@@ -709,25 +661,11 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_gamma(
-        self, concentration: Any, rate: Any, validate_args=None
-    ) -> bn.GammaNode:
-        if not isinstance(concentration, BMGNode):
-            concentration = self.add_constant(concentration)
-        if not isinstance(rate, BMGNode):
-            rate = self.add_constant(rate)
-        return self.add_gamma(concentration, rate)
-
     @memoize
     def add_halfcauchy(self, scale: BMGNode) -> bn.HalfCauchyNode:
         node = bn.HalfCauchyNode(scale)
         self.add_node(node)
         return node
-
-    def handle_halfcauchy(self, scale: Any, validate_args=None) -> bn.HalfCauchyNode:
-        if not isinstance(scale, BMGNode):
-            scale = self.add_constant(scale)
-        return self.add_halfcauchy(scale)
 
     @memoize
     def add_normal(self, mu: BMGNode, sigma: BMGNode) -> bn.NormalNode:
@@ -735,25 +673,11 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_normal(self, loc: Any, scale: Any, validate_args=None) -> bn.NormalNode:
-        if not isinstance(loc, BMGNode):
-            loc = self.add_constant(loc)
-        if not isinstance(scale, BMGNode):
-            scale = self.add_constant(scale)
-        return self.add_normal(loc, scale)
-
     @memoize
     def add_dirichlet(self, concentration: BMGNode) -> bn.DirichletNode:
         node = bn.DirichletNode(concentration)
         self.add_node(node)
         return node
-
-    def handle_dirichlet(
-        self, concentration: Any, validate_args=None
-    ) -> bn.DirichletNode:
-        if not isinstance(concentration, BMGNode):
-            concentration = self.add_constant(concentration)
-        return self.add_dirichlet(concentration)
 
     @memoize
     def add_studentt(
@@ -763,44 +687,17 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_studentt(
-        self, df: Any, loc: Any = 0.0, scale: Any = 1.0, validate_args=None
-    ) -> bn.StudentTNode:
-        if not isinstance(df, BMGNode):
-            df = self.add_constant(df)
-        if not isinstance(loc, BMGNode):
-            loc = self.add_constant(loc)
-        if not isinstance(scale, BMGNode):
-            scale = self.add_constant(scale)
-        return self.add_studentt(df, loc, scale)
-
     @memoize
     def add_uniform(self, low: BMGNode, high: BMGNode) -> bn.UniformNode:
         node = bn.UniformNode(low, high)
         self.add_node(node)
         return node
 
-    def handle_uniform(self, low: Any, high: Any, validate_args=None) -> bn.UniformNode:
-        if not isinstance(low, BMGNode):
-            low = self.add_constant(low)
-        if not isinstance(high, BMGNode):
-            high = self.add_constant(high)
-        return self.add_uniform(low, high)
-
     @memoize
     def add_beta(self, alpha: BMGNode, beta: BMGNode) -> bn.BetaNode:
         node = bn.BetaNode(alpha, beta)
         self.add_node(node)
         return node
-
-    def handle_beta(
-        self, concentration1: Any, concentration0: Any, validate_args=None
-    ) -> bn.BetaNode:
-        if not isinstance(concentration1, BMGNode):
-            concentration1 = self.add_constant(concentration1)
-        if not isinstance(concentration0, BMGNode):
-            concentration0 = self.add_constant(concentration0)
-        return self.add_beta(concentration1, concentration0)
 
     @memoize
     def add_flat(self) -> bn.FlatNode:
@@ -830,17 +727,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_greater_than(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input > other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value > other.value
-        return self.add_greater_than(input, other)
-
     @memoize
     def add_greater_than_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode):
@@ -850,17 +736,6 @@ class BMGraphBuilder:
         node = bn.GreaterThanEqualNode(left, right)
         self.add_node(node)
         return node
-
-    def handle_greater_than_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input >= other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value >= other.value
-        return self.add_greater_than_equal(input, other)
 
     @memoize
     def add_less_than(self, left: BMGNode, right: BMGNode) -> BMGNode:
@@ -872,17 +747,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_less_than(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input < other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value < other.value
-        return self.add_less_than(input, other)
-
     @memoize
     def add_less_than_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode):
@@ -892,17 +756,6 @@ class BMGraphBuilder:
         node = bn.LessThanEqualNode(left, right)
         self.add_node(node)
         return node
-
-    def handle_less_than_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input <= other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value <= other.value
-        return self.add_less_than_equal(input, other)
 
     @memoize
     def add_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
@@ -914,17 +767,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input == other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value == other.value
-        return self.add_equal(input, other)
-
     @memoize
     def add_not_equal(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode):
@@ -934,17 +776,6 @@ class BMGraphBuilder:
         node = bn.NotEqualNode(left, right)
         self.add_node(node)
         return node
-
-    def handle_not_equal(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input != other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value != other.value
-        return self.add_not_equal(input, other)
 
     @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
@@ -961,17 +792,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_addition(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input + other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value + other.value
-        return self.add_addition(input, other)
-
     @memoize
     def add_multi_addition(self, *inputs: BMGNode) -> bn.MultiAdditionNode:
         node = bn.MultiAdditionNode(list(inputs))
@@ -980,6 +800,7 @@ class BMGraphBuilder:
 
     @memoize
     def add_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        # TODO: Consider moving this to an optimization pass.
         if isinstance(left, ConstantNode):
             if isinstance(right, ConstantNode):
                 return self.add_constant(left.value * right.value)
@@ -997,17 +818,6 @@ class BMGraphBuilder:
         node = bn.MultiplicationNode(left, right)
         self.add_node(node)
         return node
-
-    def handle_multiplication(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input * other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value * other.value
-        return self.add_multiplication(input, other)
 
     @memoize
     def add_if_then_else(
@@ -1030,17 +840,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(mat2, BMGNode)):
-            return torch.mm(input, mat2)
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(mat2, BMGNode):
-            mat2 = self.add_constant(mat2)
-        if isinstance(input, ConstantNode) and isinstance(mat2, ConstantNode):
-            return torch.mm(input.value, mat2.value)
-        return self.add_matrix_multiplication(input, mat2)
-
     @memoize
     def add_division(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
@@ -1049,18 +848,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    # TODO: Do we need to represent both integer and float division?
-    def handle_division(self, input: Any, other: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
-            return input / other
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value / other.value
-        return self.add_division(input, other)
-
     @memoize
     def add_power(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
@@ -1068,17 +855,6 @@ class BMGraphBuilder:
         node = bn.PowerNode(left, right)
         self.add_node(node)
         return node
-
-    def handle_power(self, input: Any, exponent: Any) -> Any:
-        if (not isinstance(input, BMGNode)) and (not isinstance(exponent, BMGNode)):
-            return input ** exponent
-        if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
-        if not isinstance(exponent, BMGNode):
-            exponent = self.add_constant(exponent)
-        if isinstance(input, ConstantNode) and isinstance(exponent, ConstantNode):
-            return input.value ** exponent.value
-        return self.add_power(input, exponent)
 
     # TODO: Remove this.
 
@@ -1109,15 +885,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_index(self, left: Any, right: Any) -> Any:
-        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
-            return left[right]
-        if not isinstance(left, BMGNode):
-            left = self.add_constant(left)
-        if not isinstance(right, BMGNode):
-            right = self.add_constant(right)
-        return self.add_index(left, right)
-
     @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
@@ -1125,13 +892,6 @@ class BMGraphBuilder:
         node = bn.NegateNode(operand)
         self.add_node(node)
         return node
-
-    def handle_negate(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            return -input
-        if isinstance(input, ConstantNode):
-            return -input.value
-        return self.add_negate(input)
 
     @memoize
     def add_complement(self, operand: BMGNode) -> BMGNode:
@@ -1154,16 +914,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_not(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            return not input
-        if isinstance(input, ConstantNode):
-            return not input.value
-        return self.add_not(input)
-
-    # TODO: Add some comments here explaining under what circumstances
-    # we accumulate these conversion nodes.
-
     @memoize
     def add_to_real(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.RealNode):
@@ -1173,13 +923,6 @@ class BMGraphBuilder:
         node = bn.ToRealNode(operand)
         self.add_node(node)
         return node
-
-    def handle_to_real(self, operand: Any) -> Any:
-        if not isinstance(operand, BMGNode):
-            return float(operand)
-        if isinstance(operand, ConstantNode):
-            return float(operand.value)
-        return self.add_to_real(operand)
 
     @memoize
     def add_to_positive_real(self, operand: BMGNode) -> BMGNode:
@@ -1211,17 +954,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_exp(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.exp(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.exp(input.value)
-        if not isinstance(input, BMGNode):
-            return math.exp(input)
-        if isinstance(input, ConstantNode):
-            return math.exp(input.value)
-        return self.add_exp(input)
-
     @memoize
     def add_expm1(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantTensorNode):
@@ -1231,17 +963,6 @@ class BMGraphBuilder:
         node = bn.ExpM1Node(operand)
         self.add_node(node)
         return node
-
-    def handle_expm1(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.expm1(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.expm1(input.value)
-        if not isinstance(input, BMGNode):
-            return torch.expm1(input)
-        if isinstance(input, ConstantNode):
-            return torch.expm1(input.value)
-        return self.add_expm1(input)
 
     @memoize
     def add_logistic(self, operand: BMGNode) -> BMGNode:
@@ -1253,17 +974,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_logistic(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.sigmoid(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.sigmoid(input.value)
-        if not isinstance(input, BMGNode):
-            return torch.sigmoid(input)
-        if isinstance(input, ConstantNode):
-            return torch.sigmoid(input.value)
-        return self.add_logistic(input)
-
     @memoize
     def add_phi(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
@@ -1271,13 +981,6 @@ class BMGraphBuilder:
         node = bn.PhiNode(operand)
         self.add_node(node)
         return node
-
-    def handle_phi(self, input: Any) -> Any:
-        if not isinstance(input, BMGNode):
-            return phi(input)
-        if isinstance(input, ConstantNode):
-            return phi(input.value)
-        return self.add_phi(input)
 
     @memoize
     def add_log(self, operand: BMGNode) -> BMGNode:
@@ -1289,17 +992,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    def handle_log(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return torch.log(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.log(input.value)
-        if not isinstance(input, BMGNode):
-            return math.log(input)
-        if isinstance(input, ConstantNode):
-            return math.log(input.value)
-        return self.add_log(input)
-
     @memoize
     def add_log1mexp(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.ConstantTensorNode):
@@ -1309,17 +1001,6 @@ class BMGraphBuilder:
         node = bn.Log1mexpNode(operand)
         self.add_node(node)
         return node
-
-    def handle_log1mexp(self, input: Any) -> Any:
-        if isinstance(input, torch.Tensor):
-            return log1mexp(input)
-        if isinstance(input, bn.ConstantTensorNode):
-            return log1mexp(input.value)
-        if not isinstance(input, BMGNode):
-            return math_log1mexp(input)
-        if isinstance(input, ConstantNode):
-            return math_log1mexp(input.value)
-        return self.add_log1mexp(input)
 
     @memoize
     def add_tensor(self, size: torch.Size, *data: BMGNode) -> bn.TensorNode:
@@ -1332,6 +1013,463 @@ class BMGraphBuilder:
         node = bn.LogSumExpNode(list(inputs))
         self.add_node(node)
         return node
+
+    @memoize
+    def add_map(self, *elements: BMGNode) -> bn.MapNode:
+        # TODO: Verify that the list is well-formed.
+        node = bn.MapNode(list(elements))
+        self.add_node(node)
+        return node
+
+    # Do NOT memoize add_sample; each sample node must be unique
+    def add_sample(self, operand: bn.DistributionNode) -> bn.SampleNode:
+        node = bn.SampleNode(operand)
+        self.add_node(node)
+        return node
+
+    # TODO: Should this be idempotent?
+    # TODO: Should it be an error to add two unequal observations to one node?
+    def add_observation(self, observed: bn.SampleNode, value: Any) -> bn.Observation:
+        node = bn.Observation(observed, value)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_query(self, operator: BMGNode) -> bn.Query:
+        # TODO: BMG requires that the target of a query be classified
+        # as an operator and that queries be unique; that is, every node
+        # is queried *exactly* zero or one times. Rather than making
+        # those restrictions here, instead detect bad queries in the
+        # problem fixing phase and report accordingly.
+        node = bn.Query(operator)
+        self.add_node(node)
+        return node
+
+    def add_exp_product(self, *inputs: BMGNode) -> bn.ExpProductFactorNode:
+        # Note that factors are NOT deduplicated; this method is not
+        # memoized. We need to be able to add multiple factors to the same
+        # node, similar to the way we need to add multiple samples to a
+        # distribution.
+        node = bn.ExpProductFactorNode(list(inputs))
+        self.add_node(node)
+        return node
+
+    def all_ancestor_nodes(self) -> List[BMGNode]:
+        """Returns a topo-sorted list of nodes that are ancestors to any
+        sample, observation, query or factor."""
+
+        def is_root(n: BMGNode) -> bool:
+            return (
+                isinstance(n, bn.SampleNode)
+                or isinstance(n, bn.Observation)
+                or isinstance(n, bn.Query)
+                or isinstance(n, bn.FactorNode)
+            )
+
+        return self._traverse(is_root)
+
+    def all_nodes(self) -> List[BMGNode]:
+        """Returns a topo-sorted list of all nodes."""
+        return self._traverse(lambda n: n.is_leaf)
+
+    def _traverse(self, is_root: Callable[[BMGNode], bool]) -> List[BMGNode]:
+        """This returns a list of the reachable graph nodes
+        in topologically sorted order. The ordering invariants are
+        (1) all sample, observation, query and factor nodes are
+        enumerated in the order they were added, and
+        (2) all inputs are enumerated before their outputs, and
+        (3) inputs to the "left" are enumerated before those to
+        the "right"."""
+
+        # We require here that the graph is acyclic.
+
+        # TODO: The graph should be acyclic by construction;
+        # we detect cycles while executing the lifted model.
+        # However, we might want to add a quick cycle checking
+        # pass here as a sanity check.
+
+        def key(n: BMGNode) -> int:
+            return self._nodes[n]
+
+        # We cannot use a recursive algorithm because the graph may have
+        # paths that are deeper than the recursion limit in Python.
+        # Instead we'll use a list as a stack.  But we cannot simply do
+        # a normal iterative depth-first or postorder traversal because
+        # that violates our stated invariants above: all inputs are always
+        # enumerated before the node which inputs them, and nodes to the
+        # left are enumerated before nodes to the right.
+        #
+        # What we do here is a modified depth first traversal which maintains
+        # our invariants.
+
+        result = []
+        work_stack = sorted(
+            (n for n in self._nodes if is_root(n)), key=key, reverse=True
+        )
+        already_in_result = set()
+        inputs_already_pushed = set()
+
+        while len(work_stack) != 0:
+            # Peek the top of the stack but do not pop it yet.
+            current = work_stack[-1]
+            if current in already_in_result:
+                # The top of the stack has already been put into the
+                # result list. There is nothing more to do with this node,
+                # so we can simply pop it away.
+                work_stack.pop()
+            elif current in inputs_already_pushed:
+                # The top of the stack is not on the result list, but we have
+                # already pushed all of its inputs onto the stack. Since they
+                # are gone from the stack, we must have already put all of them
+                # onto the result list, and therefore we are justified in putting
+                # this node onto the result list too.
+                work_stack.pop()
+                result.append(current)
+                already_in_result.add(current)
+            else:
+                # The top of the stack is not on the result list and its inputs
+                # have never been put onto the stack. Leave it on the stack so that
+                # we come back to it later after all of its inputs have been
+                # put on the result list, and put its inputs on the stack.
+                #
+                # We want to process the left inputs before the right inputs, so
+                # reverse them so that the left inputs go on the stack last, and
+                # are therefore closer to the top.
+                for i in reversed(current.inputs):  # pyre-ignore
+                    work_stack.append(i)
+                inputs_already_pushed.add(current)
+
+        return result
+
+    def all_observations(self) -> List[bn.Observation]:
+        return sorted(
+            (n for n in self._nodes if isinstance(n, bn.Observation)),
+            key=lambda n: self._nodes[n],
+        )
+
+    def handle_bernoulli(
+        self, probs: Any = None, logits: Any = None
+    ) -> bn.BernoulliNode:
+        if (probs is None and logits is None) or (
+            probs is not None and logits is not None
+        ):
+            raise ValueError("handle_bernoulli requires exactly one of probs or logits")
+        probability = logits if probs is None else probs
+        if not isinstance(probability, BMGNode):
+            probability = self.add_constant(probability)
+        if logits is None:
+            return self.add_bernoulli(probability)
+        return self.add_bernoulli_logit(probability)
+
+    # TODO: Add a note here describing why it is important that the function
+    # signatures of the handler methods for distributions match those of
+    # the torch distribution constructors.
+
+    # TODO: Verify that they do match.
+
+    def handle_binomial(
+        self, total_count: Any, probs: Any = None, logits: Any = None
+    ) -> bn.BinomialNode:
+        if (probs is None and logits is None) or (
+            probs is not None and logits is not None
+        ):
+            raise ValueError("handle_binomial requires exactly one of probs or logits")
+        probability = logits if probs is None else probs
+        if not isinstance(total_count, BMGNode):
+            total_count = self.add_constant(total_count)
+        if not isinstance(probability, BMGNode):
+            probability = self.add_constant(probability)
+        if logits is None:
+            return self.add_binomial(total_count, probability)
+        return self.add_binomial_logit(total_count, probability)
+
+    def handle_categorical(
+        self, probs: Any = None, logits: Any = None
+    ) -> bn.CategoricalNode:
+        if (probs is None and logits is None) or (
+            probs is not None and logits is not None
+        ):
+            raise ValueError(
+                "handle_categorical requires exactly one of probs or logits"
+            )
+        probability = logits if probs is None else probs
+        if not isinstance(probability, BMGNode):
+            probability = self.add_constant(probability)
+        return self.add_categorical(probability, logits is not None)
+
+    def handle_chi2(self, df: Any, validate_args=None) -> bn.Chi2Node:
+        if not isinstance(df, BMGNode):
+            df = self.add_constant(df)
+        return self.add_chi2(df)
+
+    def handle_gamma(
+        self, concentration: Any, rate: Any, validate_args=None
+    ) -> bn.GammaNode:
+        if not isinstance(concentration, BMGNode):
+            concentration = self.add_constant(concentration)
+        if not isinstance(rate, BMGNode):
+            rate = self.add_constant(rate)
+        return self.add_gamma(concentration, rate)
+
+    def handle_halfcauchy(self, scale: Any, validate_args=None) -> bn.HalfCauchyNode:
+        if not isinstance(scale, BMGNode):
+            scale = self.add_constant(scale)
+        return self.add_halfcauchy(scale)
+
+    def handle_normal(self, loc: Any, scale: Any, validate_args=None) -> bn.NormalNode:
+        if not isinstance(loc, BMGNode):
+            loc = self.add_constant(loc)
+        if not isinstance(scale, BMGNode):
+            scale = self.add_constant(scale)
+        return self.add_normal(loc, scale)
+
+    def handle_dirichlet(
+        self, concentration: Any, validate_args=None
+    ) -> bn.DirichletNode:
+        if not isinstance(concentration, BMGNode):
+            concentration = self.add_constant(concentration)
+        return self.add_dirichlet(concentration)
+
+    def handle_studentt(
+        self, df: Any, loc: Any = 0.0, scale: Any = 1.0, validate_args=None
+    ) -> bn.StudentTNode:
+        if not isinstance(df, BMGNode):
+            df = self.add_constant(df)
+        if not isinstance(loc, BMGNode):
+            loc = self.add_constant(loc)
+        if not isinstance(scale, BMGNode):
+            scale = self.add_constant(scale)
+        return self.add_studentt(df, loc, scale)
+
+    def handle_uniform(self, low: Any, high: Any, validate_args=None) -> bn.UniformNode:
+        if not isinstance(low, BMGNode):
+            low = self.add_constant(low)
+        if not isinstance(high, BMGNode):
+            high = self.add_constant(high)
+        return self.add_uniform(low, high)
+
+    def handle_beta(
+        self, concentration1: Any, concentration0: Any, validate_args=None
+    ) -> bn.BetaNode:
+        if not isinstance(concentration1, BMGNode):
+            concentration1 = self.add_constant(concentration1)
+        if not isinstance(concentration0, BMGNode):
+            concentration0 = self.add_constant(concentration0)
+        return self.add_beta(concentration1, concentration0)
+
+    def handle_greater_than(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input > other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value > other.value
+        return self.add_greater_than(input, other)
+
+    def handle_greater_than_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input >= other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value >= other.value
+        return self.add_greater_than_equal(input, other)
+
+    def handle_less_than(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input < other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value < other.value
+        return self.add_less_than(input, other)
+
+    def handle_less_than_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input <= other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value <= other.value
+        return self.add_less_than_equal(input, other)
+
+    def handle_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input == other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value == other.value
+        return self.add_equal(input, other)
+
+    def handle_not_equal(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input != other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value != other.value
+        return self.add_not_equal(input, other)
+
+    def handle_multiplication(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input * other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value * other.value
+        return self.add_multiplication(input, other)
+
+    def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(mat2, BMGNode)):
+            return torch.mm(input, mat2)
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(mat2, BMGNode):
+            mat2 = self.add_constant(mat2)
+        if isinstance(input, ConstantNode) and isinstance(mat2, ConstantNode):
+            return torch.mm(input.value, mat2.value)
+        return self.add_matrix_multiplication(input, mat2)
+
+    def handle_addition(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input + other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value + other.value
+        return self.add_addition(input, other)
+
+    # TODO: Do we need to represent both integer and float division?
+    def handle_division(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input / other
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value / other.value
+        return self.add_division(input, other)
+
+    def handle_power(self, input: Any, exponent: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(exponent, BMGNode)):
+            return input ** exponent
+        if not isinstance(input, BMGNode):
+            input = self.add_constant(input)
+        if not isinstance(exponent, BMGNode):
+            exponent = self.add_constant(exponent)
+        if isinstance(input, ConstantNode) and isinstance(exponent, ConstantNode):
+            return input.value ** exponent.value
+        return self.add_power(input, exponent)
+
+    def handle_index(self, left: Any, right: Any) -> Any:
+        if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
+            return left[right]
+        if not isinstance(left, BMGNode):
+            left = self.add_constant(left)
+        if not isinstance(right, BMGNode):
+            right = self.add_constant(right)
+        return self.add_index(left, right)
+
+    def handle_negate(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            return -input
+        if isinstance(input, ConstantNode):
+            return -input.value
+        return self.add_negate(input)
+
+    def handle_to_real(self, operand: Any) -> Any:
+        if not isinstance(operand, BMGNode):
+            return float(operand)
+        if isinstance(operand, ConstantNode):
+            return float(operand.value)
+        return self.add_to_real(operand)
+
+    def handle_exp(self, input: Any) -> Any:
+        if isinstance(input, torch.Tensor):
+            return torch.exp(input)
+        if isinstance(input, bn.ConstantTensorNode):
+            return torch.exp(input.value)
+        if not isinstance(input, BMGNode):
+            return math.exp(input)
+        if isinstance(input, ConstantNode):
+            return math.exp(input.value)
+        return self.add_exp(input)
+
+    def handle_expm1(self, input: Any) -> Any:
+        if isinstance(input, torch.Tensor):
+            return torch.expm1(input)
+        if isinstance(input, bn.ConstantTensorNode):
+            return torch.expm1(input.value)
+        if not isinstance(input, BMGNode):
+            return torch.expm1(input)
+        if isinstance(input, ConstantNode):
+            return torch.expm1(input.value)
+        return self.add_expm1(input)
+
+    def handle_logistic(self, input: Any) -> Any:
+        if isinstance(input, torch.Tensor):
+            return torch.sigmoid(input)
+        if isinstance(input, bn.ConstantTensorNode):
+            return torch.sigmoid(input.value)
+        if not isinstance(input, BMGNode):
+            return torch.sigmoid(input)
+        if isinstance(input, ConstantNode):
+            return torch.sigmoid(input.value)
+        return self.add_logistic(input)
+
+    def handle_not(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            return not input
+        if isinstance(input, ConstantNode):
+            return not input.value
+        return self.add_not(input)
+
+    def handle_phi(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            return phi(input)
+        if isinstance(input, ConstantNode):
+            return phi(input.value)
+        return self.add_phi(input)
+
+    def handle_log(self, input: Any) -> Any:
+        if isinstance(input, torch.Tensor):
+            return torch.log(input)
+        if isinstance(input, bn.ConstantTensorNode):
+            return torch.log(input.value)
+        if not isinstance(input, BMGNode):
+            return math.log(input)
+        if isinstance(input, ConstantNode):
+            return math.log(input.value)
+        return self.add_log(input)
+
+    def handle_log1mexp(self, input: Any) -> Any:
+        if isinstance(input, torch.Tensor):
+            return log1mexp(input)
+        if isinstance(input, bn.ConstantTensorNode):
+            return log1mexp(input.value)
+        if not isinstance(input, BMGNode):
+            return math_log1mexp(input)
+        if isinstance(input, ConstantNode):
+            return math_log1mexp(input.value)
+        return self.add_log1mexp(input)
 
     def handle_logsumexp(self, input: Any, dim: Any, keepdim: Any = False) -> Any:
         # TODO: Handle the situation where dim or keepdim are graph nodes.
@@ -1724,13 +1862,6 @@ class BMGraphBuilder:
             return value
         return self.rv_map[key]
 
-    @memoize
-    def add_map(self, *elements: BMGNode) -> bn.MapNode:
-        # TODO: Verify that the list is well-formed.
-        node = bn.MapNode(list(elements))
-        self.add_node(node)
-        return node
-
     def collection_to_map(self, collection) -> bn.MapNode:
         if isinstance(collection, bn.MapNode):
             return collection
@@ -1744,12 +1875,6 @@ class BMGraphBuilder:
             return self.add_map(*copy)
         # TODO: Dictionaries? Tuples?
         raise ValueError("collection_to_map requires a list")
-
-    # Do NOT memoize add_sample; each sample node must be unique
-    def add_sample(self, operand: bn.DistributionNode) -> bn.SampleNode:
-        node = bn.SampleNode(operand)
-        self.add_node(node)
-        return node
 
     def handle_sample(self, operand: Any) -> bn.SampleNode:  # noqa
         """As we execute the lifted program, this method is called every
@@ -1836,130 +1961,6 @@ class BMGraphBuilder:
                 + "supported in Bean Machine Graph."
             )
         setattr(operand, name, value)
-
-    # TODO: Should this be idempotent?
-    # TODO: Should it be an error to add two unequal observations to one node?
-    def add_observation(self, observed: bn.SampleNode, value: Any) -> bn.Observation:
-        node = bn.Observation(observed, value)
-        self.add_node(node)
-        return node
-
-    @memoize
-    def add_query(self, operator: BMGNode) -> bn.Query:
-        # TODO: BMG requires that the target of a query be classified
-        # as an operator and that queries be unique; that is, every node
-        # is queried *exactly* zero or one times. Rather than making
-        # those restrictions here, instead detect bad queries in the
-        # problem fixing phase and report accordingly.
-        node = bn.Query(operator)
-        self.add_node(node)
-        return node
-
-    def add_exp_product(self, *inputs: BMGNode) -> bn.ExpProductFactorNode:
-        # Note that factors are NOT deduplicated; this method is not
-        # memoized. We need to be able to add multiple factors to the same
-        # node, similar to the way we need to add multiple samples to a
-        # distribution.
-        node = bn.ExpProductFactorNode(list(inputs))
-        self.add_node(node)
-        return node
-
-    # ####
-    # #### Output
-    # ####
-
-    def all_ancestor_nodes(self) -> List[BMGNode]:
-        """Returns a topo-sorted list of nodes that are ancestors to any
-        sample, observation, query or factor."""
-
-        def is_root(n: BMGNode) -> bool:
-            return (
-                isinstance(n, bn.SampleNode)
-                or isinstance(n, bn.Observation)
-                or isinstance(n, bn.Query)
-                or isinstance(n, bn.FactorNode)
-            )
-
-        return self._traverse(is_root)
-
-    def all_nodes(self) -> List[BMGNode]:
-        """Returns a topo-sorted list of all nodes."""
-        return self._traverse(lambda n: n.is_leaf)
-
-    def _traverse(self, is_root: Callable[[BMGNode], bool]) -> List[BMGNode]:
-        """This returns a list of the reachable graph nodes
-        in topologically sorted order. The ordering invariants are
-        (1) all sample, observation, query and factor nodes are
-        enumerated in the order they were added, and
-        (2) all inputs are enumerated before their outputs, and
-        (3) inputs to the "left" are enumerated before those to
-        the "right"."""
-
-        # We require here that the graph is acyclic.
-
-        # TODO: The graph should be acyclic by construction;
-        # we detect cycles while executing the lifted model.
-        # However, we might want to add a quick cycle checking
-        # pass here as a sanity check.
-
-        def key(n: BMGNode) -> int:
-            return self._nodes[n]
-
-        # We cannot use a recursive algorithm because the graph may have
-        # paths that are deeper than the recursion limit in Python.
-        # Instead we'll use a list as a stack.  But we cannot simply do
-        # a normal iterative depth-first or postorder traversal because
-        # that violates our stated invariants above: all inputs are always
-        # enumerated before the node which inputs them, and nodes to the
-        # left are enumerated before nodes to the right.
-        #
-        # What we do here is a modified depth first traversal which maintains
-        # our invariants.
-
-        result = []
-        work_stack = sorted(
-            (n for n in self._nodes if is_root(n)), key=key, reverse=True
-        )
-        already_in_result = set()
-        inputs_already_pushed = set()
-
-        while len(work_stack) != 0:
-            # Peek the top of the stack but do not pop it yet.
-            current = work_stack[-1]
-            if current in already_in_result:
-                # The top of the stack has already been put into the
-                # result list. There is nothing more to do with this node,
-                # so we can simply pop it away.
-                work_stack.pop()
-            elif current in inputs_already_pushed:
-                # The top of the stack is not on the result list, but we have
-                # already pushed all of its inputs onto the stack. Since they
-                # are gone from the stack, we must have already put all of them
-                # onto the result list, and therefore we are justified in putting
-                # this node onto the result list too.
-                work_stack.pop()
-                result.append(current)
-                already_in_result.add(current)
-            else:
-                # The top of the stack is not on the result list and its inputs
-                # have never been put onto the stack. Leave it on the stack so that
-                # we come back to it later after all of its inputs have been
-                # put on the result list, and put its inputs on the stack.
-                #
-                # We want to process the left inputs before the right inputs, so
-                # reverse them so that the left inputs go on the stack last, and
-                # are therefore closer to the top.
-                for i in reversed(current.inputs):  # pyre-ignore
-                    work_stack.append(i)
-                inputs_already_pushed.add(current)
-
-        return result
-
-    def all_observations(self) -> List[bn.Observation]:
-        return sorted(
-            (n for n in self._nodes if isinstance(n, bn.Observation)),
-            key=lambda n: self._nodes[n],
-        )
 
     def accumulate_graph(
         self,
