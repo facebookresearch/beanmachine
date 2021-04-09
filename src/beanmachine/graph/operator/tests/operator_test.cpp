@@ -466,6 +466,75 @@ TEST(testoperator, logsumexp) {
   EXPECT_NEAR(grad[1]->_double, -0.2362, 1e-3);
 }
 
+TEST(testoperator, logsumexp_vector) {
+  Graph g;
+  // negative tests: two or more real/pos/neg should be the input
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{}),
+      std::invalid_argument);
+  auto pos1 = g.add_constant_pos_real(1.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{pos1}),
+      std::invalid_argument);
+  auto prob1 = g.add_constant_probability(0.5);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{prob1, prob1}),
+      std::invalid_argument);
+  auto neg1 = g.add_constant_neg_real(-1.0);
+  auto two = g.add_constant((natural_t)2);
+  auto one = g.add_constant((natural_t)1);
+  auto pospos = g.add_operator(OperatorType::TO_MATRIX, {two, one, pos1, pos1});
+  auto negneg = g.add_operator(OperatorType::TO_MATRIX, {two, one, neg1, neg1});
+  g.add_operator(OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{pospos});
+  g.add_operator(OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{negneg});
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{pos1, neg1}),
+      std::invalid_argument);
+
+  Eigen::MatrixXd m123(3, 1);
+  m123 << 1.0, 2.0, 3.0;
+  auto matrix123 = g.add_constant_real_matrix(m123);
+  auto logsumexp123 = g.add_operator(
+      OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{matrix123});
+  g.query(logsumexp123);
+  const auto& eval = g.infer(2, InferenceType::REJECTION);
+  EXPECT_NEAR(eval[0][0]._double, 3.4076, 1e-3);
+
+  auto prior = g.add_distribution(
+      DistributionType::FLAT, AtomicType::REAL, std::vector<uint>{});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto z = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{prior});
+  auto xz = g.add_operator(OperatorType::TO_MATRIX, {two, one, x, z});
+  auto logsumexp_xz =
+      g.add_operator(OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>{xz});
+
+  auto likelihood = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{logsumexp_xz, pos1});
+  auto y = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{likelihood});
+  g.observe(x, 1.0);
+  g.observe(z, 2.0);
+  g.observe(y, 0.0);
+  double grad1 = 0;
+  double grad2 = 0;
+  g.gradient_log_prob(x, grad1, grad2);
+  EXPECT_NEAR(grad1, -0.6221, 1e-3);
+  EXPECT_NEAR(grad2, -0.5271, 1e-3);
+  grad1 = 0;
+  grad2 = 0;
+  g.gradient_log_prob(z, grad1, grad2);
+  EXPECT_NEAR(grad1, -1.6911, 1e-3);
+  EXPECT_NEAR(grad2, -0.9893, 1e-3);
+  std::vector<DoubleMatrix*> grad;
+  g.eval_and_grad(grad);
+  EXPECT_EQ(grad.size(), 3);
+  EXPECT_NEAR(grad[0]->_double, -0.6221, 1e-3);
+  EXPECT_NEAR(grad[1]->_double, -1.6911, 1e-3);
+}
+
 TEST(testoperator, log) {
   Graph g;
   // negative tests: exactly one pos_real should be the input

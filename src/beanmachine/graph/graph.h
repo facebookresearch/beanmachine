@@ -292,6 +292,7 @@ enum class OperatorType {
   IF_THEN_ELSE,
   LOG1PEXP,
   LOGSUMEXP,
+  LOGSUMEXP_VECTOR,
   LOG,
   POW,
   LOG1MEXP,
