@@ -8,7 +8,7 @@ import types
 from typing import Callable, List, Tuple
 
 import astor
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
 from beanmachine.ppl.utils.ast_patterns import (
     arguments,
@@ -334,7 +334,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
     return helper, source
 
 
-def _bm_function_to_bmg_function(f: Callable, bmg: BMGraphBuilder) -> Callable:
+def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
     # We only know how to compile certain kinds of code containers.
     # If we don't have one of those, just return the function unmodified
     # and hope for the best.

@@ -226,8 +226,6 @@ supported_int_types |= {np.uint16, np.uint32, np.uint64, np.uint8, np.ulonglong,
 
 
 class BMGraphBuilder:
-    """A graph builder which accumulates stochastic graph nodes as a model executes,
-    and then transforms that into a valid Bean Machine Graph."""
 
     # ####
     # #### State and initialization
@@ -254,54 +252,6 @@ class BMGraphBuilder:
     _nodes: Dict[BMGNode, int]
     _node_counter: int
 
-    # As we execute the lifted program, we accumulate graph nodes in the
-    # graph builder,and the program passes around graph nodes instead of
-    # regular values. What happens when a graph node is passed to a
-    # function, or used as the receiver of a function? That function will be
-    # expecting a regular value as its argument or receiver.
-    #
-    # Certain function calls are special because they call graph nodes to
-    # be created; we have a dictionary here that maps Python function objects
-    # to the graph builder method that knows how to create the appropriate
-    # node type.
-    #
-    # There are also some functions which we know can be passed a graph node
-    # and will treat it correctly even though it is a graph node and not
-    # a value. For example, the function which constructs a dictionary
-    # or the function which constructs a list. When we encounter one of
-    # these functions in the lifted program, we do not create a graph node
-    # or call a special helper function; we simply allow it to be called normally.
-
-    function_map: Dict[Callable, Callable]
-
-    # As we construct the graph we may encounter "random variable" values; these
-    # refer to a function that we need to transform into the "lifted" form. This
-    # map tracks those so that we do not repeat work. However, RVIDs contain a
-    # tuple of arguments which might contain tensors, and tensors are hashed by
-    # reference, not by value. We therefore construct a map of RVID-equivalents
-    # which is hashable by the values of the arguments.
-
-    rv_map: Dict[MemoizationKey, BMGNode]
-    lifted_map: Dict[Callable, Callable]
-
-    # The graph we accumulate must be acyclic. We assume that an RVID-returning
-    # function is pure, so if at any time such a function calls itself, either
-    # it is impure or it is in an infinite recursion; either way, we will not
-    # be able to construct a correct graph. When we are calling the lifted
-    # form of a functional or random_variable method we track the RVID that
-    # was used to trigger the call; if we ever encounter a call with the same
-    # RVID while the lifted execution is "in flight", we throw an exception
-    # and stop accumulating the graph.
-
-    in_flight: Set[MemoizationKey]
-
-    # We also need to keep track of which query node is associated
-    # with each RVID queried by the user. Query nodes are deduplicated
-    # so it is possible that two different RVIDs are associated with
-    # the same query node.
-
-    _rv_to_query: Dict[RVIdentifier, bn.Query]
-
     # This allows us to turn on a special problem-fixing pass to help
     # work around problems under investigation.
 
@@ -310,61 +260,9 @@ class BMGraphBuilder:
     _pd: Optional[prof.ProfilerData]
 
     def __init__(self) -> None:
-        self._pd = None
-        self.rv_map = {}
-        self.lifted_map = {}
-        self.in_flight = set()
         self._nodes = {}
         self._node_counter = 0
-        self._rv_to_query = {}
-        self.function_map = {
-            # Math functions
-            math.exp: self.handle_exp,
-            math.log: self.handle_log,
-            # Tensor instance functions
-            torch.Tensor.add: self.handle_addition,  # pyre-ignore
-            torch.Tensor.div: self.handle_division,
-            torch.Tensor.exp: self.handle_exp,  # pyre-ignore
-            torch.Tensor.expm1: self.handle_expm1,  # pyre-ignore
-            torch.Tensor.float: self.handle_to_real,
-            torch.Tensor.logical_not: self.handle_not,  # pyre-ignore
-            torch.Tensor.log: self.handle_log,
-            torch.Tensor.logsumexp: self.handle_logsumexp,
-            torch.Tensor.mm: self.handle_matrix_multiplication,  # pyre-ignore
-            torch.Tensor.mul: self.handle_multiplication,
-            torch.Tensor.neg: self.handle_negate,
-            torch.Tensor.pow: self.handle_power,
-            torch.Tensor.sigmoid: self.handle_logistic,
-            # Tensor static functions
-            torch.add: self.handle_addition,
-            torch.div: self.handle_division,
-            torch.exp: self.handle_exp,
-            torch.expm1: self.handle_expm1,
-            # Note that torch.float is not a function.
-            torch.log: self.handle_log,
-            torch.logsumexp: self.handle_logsumexp,
-            torch.logical_not: self.handle_not,
-            torch.mm: self.handle_matrix_multiplication,
-            torch.mul: self.handle_multiplication,
-            torch.neg: self.handle_negate,
-            torch.pow: self.handle_power,
-            torch.sigmoid: self.handle_logistic,
-            # Distribution constructors
-            dist.Bernoulli: self.handle_bernoulli,
-            dist.Beta: self.handle_beta,
-            dist.Binomial: self.handle_binomial,
-            dist.Categorical: self.handle_categorical,
-            dist.Dirichlet: self.handle_dirichlet,
-            dist.Chi2: self.handle_chi2,
-            dist.Gamma: self.handle_gamma,
-            dist.HalfCauchy: self.handle_halfcauchy,
-            dist.Normal: self.handle_normal,
-            dist.StudentT: self.handle_studentt,
-            dist.Uniform: self.handle_uniform,
-            # Beanstalk hints
-            log1mexp: self.handle_log1mexp,
-            math_log1mexp: self.handle_log1mexp,
-        }
+        self._pd = None
 
     def _begin(self, s: str) -> None:
         pd = self._pd
@@ -1147,6 +1045,127 @@ class BMGraphBuilder:
             key=lambda n: self._nodes[n],
         )
 
+
+class BMGRuntime:
+
+    _bmg: BMGraphBuilder
+
+    # As we execute the lifted program, we accumulate graph nodes in the
+    # graph builder,and the program passes around graph nodes instead of
+    # regular values. What happens when a graph node is passed to a
+    # function, or used as the receiver of a function? That function will be
+    # expecting a regular value as its argument or receiver.
+    #
+    # Certain function calls are special because they call graph nodes to
+    # be created; we have a dictionary here that maps Python function objects
+    # to the graph builder method that knows how to create the appropriate
+    # node type.
+    #
+    # There are also some functions which we know can be passed a graph node
+    # and will treat it correctly even though it is a graph node and not
+    # a value. For example, the function which constructs a dictionary
+    # or the function which constructs a list. When we encounter one of
+    # these functions in the lifted program, we do not create a graph node
+    # or call a special helper function; we simply allow it to be called normally.
+
+    function_map: Dict[Callable, Callable]
+
+    # As we construct the graph we may encounter "random variable" values; these
+    # refer to a function that we need to transform into the "lifted" form. This
+    # map tracks those so that we do not repeat work. However, RVIDs contain a
+    # tuple of arguments which might contain tensors, and tensors are hashed by
+    # reference, not by value. We therefore construct a map of RVID-equivalents
+    # which is hashable by the values of the arguments.
+
+    rv_map: Dict[MemoizationKey, BMGNode]
+    lifted_map: Dict[Callable, Callable]
+
+    # The graph we accumulate must be acyclic. We assume that an RVID-returning
+    # function is pure, so if at any time such a function calls itself, either
+    # it is impure or it is in an infinite recursion; either way, we will not
+    # be able to construct a correct graph. When we are calling the lifted
+    # form of a functional or random_variable method we track the RVID that
+    # was used to trigger the call; if we ever encounter a call with the same
+    # RVID while the lifted execution is "in flight", we throw an exception
+    # and stop accumulating the graph.
+
+    in_flight: Set[MemoizationKey]
+
+    # We also need to keep track of which query node is associated
+    # with each RVID queried by the user. Query nodes are deduplicated
+    # so it is possible that two different RVIDs are associated with
+    # the same query node.
+
+    _rv_to_query: Dict[RVIdentifier, bn.Query]
+
+    _pd: Optional[prof.ProfilerData]
+
+    def __init__(self) -> None:
+        self._bmg = BMGraphBuilder()
+        self._pd = None
+        self.rv_map = {}
+        self.lifted_map = {}
+        self.in_flight = set()
+        self._rv_to_query = {}
+        self.function_map = {
+            # Math functions
+            math.exp: self.handle_exp,
+            math.log: self.handle_log,
+            # Tensor instance functions
+            torch.Tensor.add: self.handle_addition,  # pyre-ignore
+            torch.Tensor.div: self.handle_division,
+            torch.Tensor.exp: self.handle_exp,  # pyre-ignore
+            torch.Tensor.expm1: self.handle_expm1,  # pyre-ignore
+            torch.Tensor.float: self.handle_to_real,
+            torch.Tensor.logical_not: self.handle_not,  # pyre-ignore
+            torch.Tensor.log: self.handle_log,
+            torch.Tensor.logsumexp: self.handle_logsumexp,
+            torch.Tensor.mm: self.handle_matrix_multiplication,  # pyre-ignore
+            torch.Tensor.mul: self.handle_multiplication,
+            torch.Tensor.neg: self.handle_negate,
+            torch.Tensor.pow: self.handle_power,
+            torch.Tensor.sigmoid: self.handle_logistic,
+            # Tensor static functions
+            torch.add: self.handle_addition,
+            torch.div: self.handle_division,
+            torch.exp: self.handle_exp,
+            torch.expm1: self.handle_expm1,
+            # Note that torch.float is not a function.
+            torch.log: self.handle_log,
+            torch.logsumexp: self.handle_logsumexp,
+            torch.logical_not: self.handle_not,
+            torch.mm: self.handle_matrix_multiplication,
+            torch.mul: self.handle_multiplication,
+            torch.neg: self.handle_negate,
+            torch.pow: self.handle_power,
+            torch.sigmoid: self.handle_logistic,
+            # Distribution constructors
+            dist.Bernoulli: self.handle_bernoulli,
+            dist.Beta: self.handle_beta,
+            dist.Binomial: self.handle_binomial,
+            dist.Categorical: self.handle_categorical,
+            dist.Dirichlet: self.handle_dirichlet,
+            dist.Chi2: self.handle_chi2,
+            dist.Gamma: self.handle_gamma,
+            dist.HalfCauchy: self.handle_halfcauchy,
+            dist.Normal: self.handle_normal,
+            dist.StudentT: self.handle_studentt,
+            dist.Uniform: self.handle_uniform,
+            # Beanstalk hints
+            log1mexp: self.handle_log1mexp,
+            math_log1mexp: self.handle_log1mexp,
+        }
+
+    def _begin(self, s: str) -> None:
+        pd = self._pd
+        if pd is not None:
+            pd.begin(s)
+
+    def _finish(self, s: str) -> None:
+        pd = self._pd
+        if pd is not None:
+            pd.finish(s)
+
     def handle_bernoulli(
         self, probs: Any = None, logits: Any = None
     ) -> bn.BernoulliNode:
@@ -1156,10 +1175,10 @@ class BMGraphBuilder:
             raise ValueError("handle_bernoulli requires exactly one of probs or logits")
         probability = logits if probs is None else probs
         if not isinstance(probability, BMGNode):
-            probability = self.add_constant(probability)
+            probability = self._bmg.add_constant(probability)
         if logits is None:
-            return self.add_bernoulli(probability)
-        return self.add_bernoulli_logit(probability)
+            return self._bmg.add_bernoulli(probability)
+        return self._bmg.add_bernoulli_logit(probability)
 
     # TODO: Add a note here describing why it is important that the function
     # signatures of the handler methods for distributions match those of
@@ -1176,12 +1195,12 @@ class BMGraphBuilder:
             raise ValueError("handle_binomial requires exactly one of probs or logits")
         probability = logits if probs is None else probs
         if not isinstance(total_count, BMGNode):
-            total_count = self.add_constant(total_count)
+            total_count = self._bmg.add_constant(total_count)
         if not isinstance(probability, BMGNode):
-            probability = self.add_constant(probability)
+            probability = self._bmg.add_constant(probability)
         if logits is None:
-            return self.add_binomial(total_count, probability)
-        return self.add_binomial_logit(total_count, probability)
+            return self._bmg.add_binomial(total_count, probability)
+        return self._bmg.add_binomial_logit(total_count, probability)
 
     def handle_categorical(
         self, probs: Any = None, logits: Any = None
@@ -1194,213 +1213,213 @@ class BMGraphBuilder:
             )
         probability = logits if probs is None else probs
         if not isinstance(probability, BMGNode):
-            probability = self.add_constant(probability)
-        return self.add_categorical(probability, logits is not None)
+            probability = self._bmg.add_constant(probability)
+        return self._bmg.add_categorical(probability, logits is not None)
 
     def handle_chi2(self, df: Any, validate_args=None) -> bn.Chi2Node:
         if not isinstance(df, BMGNode):
-            df = self.add_constant(df)
-        return self.add_chi2(df)
+            df = self._bmg.add_constant(df)
+        return self._bmg.add_chi2(df)
 
     def handle_gamma(
         self, concentration: Any, rate: Any, validate_args=None
     ) -> bn.GammaNode:
         if not isinstance(concentration, BMGNode):
-            concentration = self.add_constant(concentration)
+            concentration = self._bmg.add_constant(concentration)
         if not isinstance(rate, BMGNode):
-            rate = self.add_constant(rate)
-        return self.add_gamma(concentration, rate)
+            rate = self._bmg.add_constant(rate)
+        return self._bmg.add_gamma(concentration, rate)
 
     def handle_halfcauchy(self, scale: Any, validate_args=None) -> bn.HalfCauchyNode:
         if not isinstance(scale, BMGNode):
-            scale = self.add_constant(scale)
-        return self.add_halfcauchy(scale)
+            scale = self._bmg.add_constant(scale)
+        return self._bmg.add_halfcauchy(scale)
 
     def handle_normal(self, loc: Any, scale: Any, validate_args=None) -> bn.NormalNode:
         if not isinstance(loc, BMGNode):
-            loc = self.add_constant(loc)
+            loc = self._bmg.add_constant(loc)
         if not isinstance(scale, BMGNode):
-            scale = self.add_constant(scale)
-        return self.add_normal(loc, scale)
+            scale = self._bmg.add_constant(scale)
+        return self._bmg.add_normal(loc, scale)
 
     def handle_dirichlet(
         self, concentration: Any, validate_args=None
     ) -> bn.DirichletNode:
         if not isinstance(concentration, BMGNode):
-            concentration = self.add_constant(concentration)
-        return self.add_dirichlet(concentration)
+            concentration = self._bmg.add_constant(concentration)
+        return self._bmg.add_dirichlet(concentration)
 
     def handle_studentt(
         self, df: Any, loc: Any = 0.0, scale: Any = 1.0, validate_args=None
     ) -> bn.StudentTNode:
         if not isinstance(df, BMGNode):
-            df = self.add_constant(df)
+            df = self._bmg.add_constant(df)
         if not isinstance(loc, BMGNode):
-            loc = self.add_constant(loc)
+            loc = self._bmg.add_constant(loc)
         if not isinstance(scale, BMGNode):
-            scale = self.add_constant(scale)
-        return self.add_studentt(df, loc, scale)
+            scale = self._bmg.add_constant(scale)
+        return self._bmg.add_studentt(df, loc, scale)
 
     def handle_uniform(self, low: Any, high: Any, validate_args=None) -> bn.UniformNode:
         if not isinstance(low, BMGNode):
-            low = self.add_constant(low)
+            low = self._bmg.add_constant(low)
         if not isinstance(high, BMGNode):
-            high = self.add_constant(high)
-        return self.add_uniform(low, high)
+            high = self._bmg.add_constant(high)
+        return self._bmg.add_uniform(low, high)
 
     def handle_beta(
         self, concentration1: Any, concentration0: Any, validate_args=None
     ) -> bn.BetaNode:
         if not isinstance(concentration1, BMGNode):
-            concentration1 = self.add_constant(concentration1)
+            concentration1 = self._bmg.add_constant(concentration1)
         if not isinstance(concentration0, BMGNode):
-            concentration0 = self.add_constant(concentration0)
-        return self.add_beta(concentration1, concentration0)
+            concentration0 = self._bmg.add_constant(concentration0)
+        return self._bmg.add_beta(concentration1, concentration0)
 
     def handle_greater_than(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input > other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value > other.value
-        return self.add_greater_than(input, other)
+        return self._bmg.add_greater_than(input, other)
 
     def handle_greater_than_equal(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input >= other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value >= other.value
-        return self.add_greater_than_equal(input, other)
+        return self._bmg.add_greater_than_equal(input, other)
 
     def handle_less_than(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input < other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value < other.value
-        return self.add_less_than(input, other)
+        return self._bmg.add_less_than(input, other)
 
     def handle_less_than_equal(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input <= other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value <= other.value
-        return self.add_less_than_equal(input, other)
+        return self._bmg.add_less_than_equal(input, other)
 
     def handle_equal(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input == other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value == other.value
-        return self.add_equal(input, other)
+        return self._bmg.add_equal(input, other)
 
     def handle_not_equal(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input != other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value != other.value
-        return self.add_not_equal(input, other)
+        return self._bmg.add_not_equal(input, other)
 
     def handle_multiplication(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input * other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value * other.value
-        return self.add_multiplication(input, other)
+        return self._bmg.add_multiplication(input, other)
 
     def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(mat2, BMGNode)):
             return torch.mm(input, mat2)
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(mat2, BMGNode):
-            mat2 = self.add_constant(mat2)
+            mat2 = self._bmg.add_constant(mat2)
         if isinstance(input, ConstantNode) and isinstance(mat2, ConstantNode):
             return torch.mm(input.value, mat2.value)
-        return self.add_matrix_multiplication(input, mat2)
+        return self._bmg.add_matrix_multiplication(input, mat2)
 
     def handle_addition(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input + other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value + other.value
-        return self.add_addition(input, other)
+        return self._bmg.add_addition(input, other)
 
     # TODO: Do we need to represent both integer and float division?
     def handle_division(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input / other
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
-            other = self.add_constant(other)
+            other = self._bmg.add_constant(other)
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value / other.value
-        return self.add_division(input, other)
+        return self._bmg.add_division(input, other)
 
     def handle_power(self, input: Any, exponent: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(exponent, BMGNode)):
             return input ** exponent
         if not isinstance(input, BMGNode):
-            input = self.add_constant(input)
+            input = self._bmg.add_constant(input)
         if not isinstance(exponent, BMGNode):
-            exponent = self.add_constant(exponent)
+            exponent = self._bmg.add_constant(exponent)
         if isinstance(input, ConstantNode) and isinstance(exponent, ConstantNode):
             return input.value ** exponent.value
-        return self.add_power(input, exponent)
+        return self._bmg.add_power(input, exponent)
 
     def handle_index(self, left: Any, right: Any) -> Any:
         if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
             return left[right]
         if not isinstance(left, BMGNode):
-            left = self.add_constant(left)
+            left = self._bmg.add_constant(left)
         if not isinstance(right, BMGNode):
-            right = self.add_constant(right)
-        return self.add_index(left, right)
+            right = self._bmg.add_constant(right)
+        return self._bmg.add_index(left, right)
 
     def handle_negate(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
             return -input
         if isinstance(input, ConstantNode):
             return -input.value
-        return self.add_negate(input)
+        return self._bmg.add_negate(input)
 
     def handle_to_real(self, operand: Any) -> Any:
         if not isinstance(operand, BMGNode):
             return float(operand)
         if isinstance(operand, ConstantNode):
             return float(operand.value)
-        return self.add_to_real(operand)
+        return self._bmg.add_to_real(operand)
 
     def handle_exp(self, input: Any) -> Any:
         if isinstance(input, torch.Tensor):
@@ -1411,7 +1430,7 @@ class BMGraphBuilder:
             return math.exp(input)
         if isinstance(input, ConstantNode):
             return math.exp(input.value)
-        return self.add_exp(input)
+        return self._bmg.add_exp(input)
 
     def handle_expm1(self, input: Any) -> Any:
         if isinstance(input, torch.Tensor):
@@ -1422,7 +1441,7 @@ class BMGraphBuilder:
             return torch.expm1(input)
         if isinstance(input, ConstantNode):
             return torch.expm1(input.value)
-        return self.add_expm1(input)
+        return self._bmg.add_expm1(input)
 
     def handle_logistic(self, input: Any) -> Any:
         if isinstance(input, torch.Tensor):
@@ -1433,21 +1452,21 @@ class BMGraphBuilder:
             return torch.sigmoid(input)
         if isinstance(input, ConstantNode):
             return torch.sigmoid(input.value)
-        return self.add_logistic(input)
+        return self._bmg.add_logistic(input)
 
     def handle_not(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
             return not input
         if isinstance(input, ConstantNode):
             return not input.value
-        return self.add_not(input)
+        return self._bmg.add_not(input)
 
     def handle_phi(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
             return phi(input)
         if isinstance(input, ConstantNode):
             return phi(input.value)
-        return self.add_phi(input)
+        return self._bmg.add_phi(input)
 
     def handle_log(self, input: Any) -> Any:
         if isinstance(input, torch.Tensor):
@@ -1458,7 +1477,7 @@ class BMGraphBuilder:
             return math.log(input)
         if isinstance(input, ConstantNode):
             return math.log(input.value)
-        return self.add_log(input)
+        return self._bmg.add_log(input)
 
     def handle_log1mexp(self, input: Any) -> Any:
         if isinstance(input, torch.Tensor):
@@ -1469,7 +1488,7 @@ class BMGraphBuilder:
             return math_log1mexp(input)
         if isinstance(input, ConstantNode):
             return math_log1mexp(input.value)
-        return self.add_log1mexp(input)
+        return self._bmg.add_log1mexp(input)
 
     def handle_logsumexp(self, input: Any, dim: Any, keepdim: Any = False) -> Any:
         # TODO: Handle the situation where dim or keepdim are graph nodes.
@@ -1484,7 +1503,7 @@ class BMGraphBuilder:
             )
         # TODO: Handle the situation where the dim is not 1 or the shape is not
         # one-dimensional; produce an error.
-        return self.add_logsumexp(*[input])
+        return self._bmg.add_logsumexp(*[input])
 
     def _canonicalize_function(
         self, function: Any, arguments: List[Any], kwargs: Optional[Dict[str, Any]]
@@ -1568,14 +1587,14 @@ class BMGraphBuilder:
             second_key_type = key_value_pairs[2].inf_type
             second_value = key_value_pairs[3]
             if first_key_type == bt.Zero and second_key_type == bt.One:
-                return self.add_if_then_else(choice, first_value, second_value)
+                return self._bmg.add_if_then_else(choice, first_value, second_value)
             if first_key_type == bt.One and second_key_type == bt.Zero:
-                return self.add_if_then_else(choice, second_value, first_value)
+                return self._bmg.add_if_then_else(choice, second_value, first_value)
 
         # Otherwise, just make a map node.
         # TODO: Fix this. We need a better abstraction that is supported by BMG.
-        map_node = self.add_map(*key_value_pairs)
-        index_node = self.add_index_deprecated(map_node, choice)
+        map_node = self._bmg.add_map(*key_value_pairs)
+        index_node = self._bmg.add_index_deprecated(map_node, choice)
         return index_node
 
     def _handle_random_variable_call_checked(
@@ -1611,7 +1630,7 @@ class BMGraphBuilder:
         replaced_arg = arguments[index]
         key_value_pairs = []
         for new_arg in replaced_arg.support():
-            key = self.add_constant(new_arg)
+            key = self._bmg.add_constant(new_arg)
             new_arguments = list(arguments)
             new_arguments[index] = new_arg
             value = self._handle_random_variable_call_checked(function, new_arguments)
@@ -1755,14 +1774,14 @@ class BMGraphBuilder:
         # Convert them all to graph nodes.
         for index, arg in enumerate(flattened_args):
             if not isinstance(arg, BMGNode):
-                flattened_args[index] = self.add_constant(arg)
+                flattened_args[index] = self._bmg.add_constant(arg)
 
         # What shape is this tensor? Rather than duplicating the logic in the
         # tensor class, let's just construct the same shape made of entirely
         # zeros and then ask what shape it is.
         size = torch.tensor(_list_to_zeros(arguments)).size()
 
-        return self.add_tensor(size, *flattened_args)
+        return self._bmg.add_tensor(size, *flattened_args)
 
     def handle_function(
         self,
@@ -1855,7 +1874,7 @@ class BMGraphBuilder:
             finally:
                 self.in_flight.remove(key)
             if isinstance(value, torch.Tensor):
-                value = self.add_constant_tensor(value)
+                value = self._bmg.add_constant_tensor(value)
             if not isinstance(value, BMGNode):
                 raise TypeError("A functional must return a tensor.")
             self.rv_map[key] = value
@@ -1868,11 +1887,13 @@ class BMGraphBuilder:
         if isinstance(collection, list):
             copy = []
             for i in range(0, len(collection)):
-                copy.append(self.add_constant(i))
+                copy.append(self._bmg.add_constant(i))
                 item = collection[i]
-                node = item if isinstance(item, BMGNode) else self.add_constant(item)
+                node = (
+                    item if isinstance(item, BMGNode) else self._bmg.add_constant(item)
+                )
                 copy.append(node)
-            return self.add_map(*copy)
+            return self._bmg.add_map(*copy)
         # TODO: Dictionaries? Tuples?
         raise ValueError("collection_to_map requires a list")
 
@@ -1883,44 +1904,44 @@ class BMGraphBuilder:
         graph, and add a sample node to the graph."""
 
         if isinstance(operand, bn.DistributionNode):
-            return self.add_sample(operand)
+            return self._bmg.add_sample(operand)
         if not isinstance(operand, torch.distributions.Distribution):
             # TODO: Better error
             raise TypeError("A random_variable is required to return a distribution.")
         if isinstance(operand, dist.Bernoulli):
             b = self.handle_bernoulli(operand.probs)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.Binomial):
             b = self.handle_binomial(operand.total_count, operand.probs)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.Categorical):
             b = self.handle_categorical(operand.probs)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.Dirichlet):
             b = self.handle_dirichlet(operand.concentration)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.Chi2):
             b = self.handle_chi2(operand.df)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.Gamma):
             b = self.handle_gamma(operand.concentration, operand.rate)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.HalfCauchy):
             b = self.handle_halfcauchy(operand.scale)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.Normal):
             b = self.handle_normal(operand.mean, operand.stddev)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.StudentT):
             b = self.handle_studentt(operand.df, operand.loc, operand.scale)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         if isinstance(operand, dist.Uniform):
             b = self.handle_uniform(operand.low, operand.high)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         # TODO: Get this into alpha order
         if isinstance(operand, dist.Beta):
             b = self.handle_beta(operand.concentration1, operand.concentration0)
-            return self.add_sample(b)
+            return self._bmg.add_sample(b)
         # TODO: Better error
         n = type(operand).__name__
         raise TypeError(f"Distribution '{n}' is not supported by Bean Machine Graph.")
@@ -1966,15 +1987,17 @@ class BMGraphBuilder:
         self,
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, Any],
-    ) -> None:
+    ) -> BMGraphBuilder:
         _verify_queries_and_observations(queries, observations, True)
+        self._bmg._pd = self._pd
         self._begin(prof.accumulate)
         for rv, val in observations.items():
             node = self._rv_to_node(rv)
             assert isinstance(node, bn.SampleNode)
-            self.add_observation(node, val)
+            self._bmg.add_observation(node, val)
         for qrv in queries:
             node = self._rv_to_node(qrv)
-            q = self.add_query(node)
+            q = self._bmg.add_query(node)
             self._rv_to_query[qrv] = q
         self._finish(prof.accumulate)
+        return self._bmg

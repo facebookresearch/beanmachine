@@ -15,7 +15,7 @@ from beanmachine.graph import (
     ValueType,
     VariableType,
 )
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder, BMGRuntime
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
@@ -252,9 +252,8 @@ Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1   2
 
     def test_dirichlet_type_analysis(self) -> None:
         self.maxDiff = None
-        bmg = BMGraphBuilder()
         queries = [d0(), d1b(), d1c(), d1d(), d2a(), d2b(), d2c(), d23()]
-        bmg.accumulate_graph(queries, {})
+        bmg = BMGRuntime().accumulate_graph(queries, {})
         observed = to_dot(
             bmg,
             graph_types=True,
@@ -367,10 +366,9 @@ digraph "graph" {
         # replace it with a positive real constant matrix node?
 
         self.maxDiff = None
-        bmg = BMGraphBuilder()
         queries = [d2a()]
         observations = {d2a(): tensor([0.5, 0.5])}
-        bmg.accumulate_graph(queries, observations)
+        bmg = BMGRuntime().accumulate_graph(queries, observations)
         observed = to_dot(
             bmg,
             graph_types=True,
@@ -400,9 +398,8 @@ digraph "graph" {
         # one value, and we need to make sure that we generate a matrix
         # constant rather than a regular positive real constant:
 
-        bmg = BMGraphBuilder()
         queries = [d1b()]
-        bmg.accumulate_graph(queries, {})
+        bmg = BMGRuntime().accumulate_graph(queries, {})
         observed = to_dot(
             bmg,
             graph_types=True,

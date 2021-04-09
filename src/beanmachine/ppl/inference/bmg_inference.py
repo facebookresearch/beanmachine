@@ -10,7 +10,7 @@ import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import torch
 from beanmachine.graph import InferenceType  # pyre-ignore
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
@@ -43,13 +43,14 @@ class BMGInference:
         self,
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
-    ) -> BMGraphBuilder:
+    ) -> BMGRuntime:
         _verify_queries_and_observations(queries, observations, True)
-        bmg = BMGraphBuilder()
-        bmg._pd = self._pd
+        rt = BMGRuntime()
+        rt._pd = self._pd
+        bmg = rt.accumulate_graph(queries, observations)
+        # TODO: Figure out a better way to pass this flag around
         bmg._fix_observe_true = self._fix_observe_true
-        bmg.accumulate_graph(queries, observations)
-        return bmg
+        return rt
 
     def _transpose_samples(self, raw):
         self._begin(prof.transpose_samples)
@@ -117,12 +118,12 @@ class BMGInference:
         return samples
 
     def _build_mcsamples(
-        self, bmg, samples, query_to_query_id, num_samples: int
+        self, rv_to_query, samples, query_to_query_id, num_samples: int
     ) -> MonteCarloSamples:
         self._begin(prof.build_mcsamples)
 
         result: Dict[RVIdentifier, torch.Tensor] = {}
-        for (rv, query) in bmg._rv_to_query.items():
+        for (rv, query) in rv_to_query.items():
             if isinstance(query.operator, bn.ConstantNode):
                 # TODO: Test this with tensor and normal constants
                 result[rv] = torch.tensor([[query.operator.value] * num_samples])
@@ -146,7 +147,8 @@ class BMGInference:
         if produce_report:
             self._pd = prof.ProfilerData()
 
-        bmg = self._accumulate_graph(queries, observations)
+        rt = self._accumulate_graph(queries, observations)
+        bmg = rt._bmg
 
         report = pr.PerformanceReport()
 
@@ -172,7 +174,10 @@ class BMGInference:
             assert len(raw) == num_samples
             samples = self._transpose_samples(raw)
 
-        mcsamples = self._build_mcsamples(bmg, samples, query_to_query_id, num_samples)
+        # TODO: Make _rv_to_query public. Add it to BMGraphBuilder?
+        mcsamples = self._build_mcsamples(
+            rt._rv_to_query, samples, query_to_query_id, num_samples
+        )
 
         self._finish(prof.infer)
 
@@ -208,7 +213,7 @@ class BMGInference:
         graph_types = False
         inf_types = False
         edge_requirements = False
-        bmg = self._accumulate_graph(queries, observations)
+        bmg = self._accumulate_graph(queries, observations)._bmg
         return to_dot(
             bmg,
             graph_types,
@@ -225,7 +230,7 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a C++ program fragment which
         produces the graph deduced from the model."""
-        bmg = self._accumulate_graph(queries, observations)
+        bmg = self._accumulate_graph(queries, observations)._bmg
         return to_bmg_cpp(bmg).code
 
     def to_python(
@@ -235,7 +240,7 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a Python program fragment which
         produces the graph deduced from the model."""
-        bmg = self._accumulate_graph(queries, observations)
+        bmg = self._accumulate_graph(queries, observations)._bmg
         return to_bmg_python(bmg).code
 
 
