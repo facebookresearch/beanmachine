@@ -8,8 +8,8 @@ import types
 from typing import Callable, List, Tuple
 
 import astor
-from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
+from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.utils.ast_patterns import (
     arguments,
     assign,

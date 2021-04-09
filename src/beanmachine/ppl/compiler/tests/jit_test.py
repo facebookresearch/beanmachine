@@ -5,13 +5,13 @@ import unittest
 
 import astor
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.bm_to_bmg import (
     _bm_function_to_bmg_ast,
     _bm_function_to_bmg_function,
 )
 from beanmachine.ppl.compiler.bmg_nodes import ExpNode
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.compiler.runtime import BMGRuntime
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, Normal
 

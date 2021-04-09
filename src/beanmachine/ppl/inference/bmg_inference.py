@@ -10,12 +10,12 @@ import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import torch
 from beanmachine.graph import InferenceType  # pyre-ignore
-from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.performance_report import PerformanceReport
+from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
