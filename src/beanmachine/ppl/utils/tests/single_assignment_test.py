@@ -5,7 +5,6 @@ import unittest
 
 import astor
 from beanmachine.ppl.utils.ast_patterns import ast_domain
-from beanmachine.ppl.utils.fold_constants import fold
 from beanmachine.ppl.utils.rules import (
     FirstMatch as first,
     TryMany as many,
@@ -46,7 +45,7 @@ class SingleAssignmentTest(unittest.TestCase):
             self.s._count = 0
         self.s._rules = rules
         m = ast.parse(source)
-        result = self.s.single_assignment(fold(m))
+        result = self.s.single_assignment(m)
         self.assertEqual(astor.to_source(result).strip(), expected.strip(), msg=msg)
 
     def check_rewrites(self, sources, rule=default_rule, reset=True):
@@ -223,7 +222,7 @@ def f(x):
         self.maxDiff = None
         self.s._count = 0
         m = ast.parse(source)
-        result = self.s.single_assignment(fold(m))
+        result = self.s.single_assignment(m)
         self.assertEqual(ast.dump(result), ast.dump(ast.parse(expected)))
 
     def test_single_assignment_pre_unassigned_expressions(self) -> None:
@@ -960,7 +959,7 @@ def f(x):
 
         self.check_rewrite(source, expected)
 
-    def test_single_assignment(self) -> None:
+    def test_single_assignment_1(self) -> None:
         """Tests for single_assignment.py"""
 
         self.maxDiff = None
@@ -982,39 +981,45 @@ def f():
 def f():
     aab = a + b
     if aab:
-        a8 = 3
-        a15 = ~x
-        a5 = a8 + a15
-        a24 = 5
-        r19 = [a24]
-        a27 = 6
-        r26 = dict(y=a27)
-        a9 = g(*r19, **r26)
+        a16 = 1
+        a22 = ~x
+        a8 = a16 + a22
+        a17 = 2
+        a5 = a8 + a17
+        a28 = 5
+        r23 = [a28]
+        a33 = 6
+        r31 = dict(y=a33)
+        a9 = g(*r23, **r31)
         r1 = a5 + a9
         return r1
     a2 = torch.tensor
-    a20 = 3.0
-    a25 = 4.0
-    a16 = [a20, a25]
-    r10 = [a16]
-    r21 = {}
-    z = a2(*r10, **r21)
+    a29 = 1.0
+    a32 = 2.0
+    a24 = a29 + a32
+    a30 = 4.0
+    a18 = [a24, a30]
+    r10 = [a18]
+    r25 = {}
+    z = a2(*r10, **r25)
     a11 = 10
-    a17 = 20
-    a6 = [a11, a17]
-    a18 = 30
-    a22 = 40
-    a12 = [a18, a22]
+    a19 = 20
+    a6 = [a11, a19]
+    a20 = 30
+    a26 = 40
+    a12 = [a20, a26]
     f3 = [a6, a12]
     for x in f3:
         for y in x:
             _1 = x + y
             r13 = [_1]
-            r23 = {}
-            _2 = print(*r13, **r23)
-    a14 = 2.0
+            r27 = {}
+            _2 = print(*r13, **r27)
+    a14 = 8
     a7 = a14 * y
-    r4 = a7 / z
+    a21 = 4
+    a15 = a21 * z
+    r4 = a7 / a15
     return r4
 """
         self.check_rewrite(source, expected)
