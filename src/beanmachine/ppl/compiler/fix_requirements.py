@@ -105,112 +105,6 @@ class RequirementsFixer:
         assert requirement == node.inf_type
         return node
 
-    def _convert_malformed_multiplication(
-        self,
-        node: bn.MultiplicationNode,
-        requirement: bt.BMGLatticeType,
-        consumer: bn.BMGNode,
-        edge: str,
-    ) -> bn.BMGNode:
-        # We are given a malformed multiplication node which can be converted
-        # to a semantically equivalent node that meets the given requirement.
-        # Verify these preconditions.
-
-        assert node.graph_type == bt.Malformed
-        assert bt.supremum(node.inf_type, requirement) == requirement
-
-        # Under what conditions can a multiplication be malformed?
-        #
-        # * Its operand types are not equal
-        # * Its operand types are not probability or larger
-
-        lgt = node.left.graph_type
-        rgt = node.right.graph_type
-
-        # Which of those conditions are possible at this point? Remember,
-        # we visit nodes in topological order, so the requirements of the
-        # left and right operands have already been met and they are converted
-        # to their correct types.
-        #
-        # * If its operands were malformed, those malformations would have already
-        #   been fixed. We never leave a reachable malformed node in the graph.
-
-        assert lgt != bt.Malformed and rgt != bt.Malformed
-
-        # * If its operands were any combination of natural, probability,
-        #   positive real, real or tensor, then we would already have converted
-        #   them both to the smallest possible common type larger than probability.
-        #   They would therefore be equal.
-        #
-        # * Therefore, for this node to be malformed, at least one of its operands
-        #   must be bool.
-
-        assert lgt == bt.Boolean or rgt == bt.Boolean
-
-        # * In that case, we can convert it to an if-then-else.
-
-        if lgt == bt.Boolean:
-            zero = self.bmg.add_constant_of_type(0.0, rgt)
-            if_then_else = self.bmg.add_if_then_else(node.left, node.right, zero)
-            assert if_then_else.graph_type == rgt
-        else:
-            zero = self.bmg.add_constant_of_type(0.0, lgt)
-            if_then_else = self.bmg.add_if_then_else(node.right, node.left, zero)
-            assert if_then_else.graph_type == lgt
-
-        # We have met the requirements of the if-then-else; the condition
-        # is bool and the consequence and alternative are of the same type.
-        # However, we might not yet have met the original requirement, which
-        # we have not yet used in this method. We might need to put a to_real
-        # on top of it, for instance.
-        #
-        # Recurse to ensure that is met.
-
-        return self.meet_requirement(if_then_else, requirement, consumer, edge)
-
-    def _convert_malformed_power(
-        self,
-        node: bn.PowerNode,
-        requirement: bt.BMGLatticeType,
-        consumer: bn.BMGNode,
-        edge: str,
-    ) -> bn.BMGNode:
-        # We are given a malformed power node which can be converted
-        # to a semantically equivalent node that meets the given requirement.
-        # Verify these preconditions.
-
-        assert node.graph_type == bt.Malformed
-        assert bt.supremum(node.inf_type, requirement) == requirement
-
-        # The only condition in which a power node can be malformed is
-        # if the exponent is bool; since we visit the nodes in topological
-        # order, we have already converted the operands to well-formed
-        # nodes.
-
-        lgt = node.left.graph_type
-        rgt = node.right.graph_type
-
-        assert lgt != bt.Malformed
-        assert rgt == bt.Boolean
-
-        # Therefore this can be made an if-then-else.
-        # x ** b --> if b then x else 1
-
-        one = self.bmg.add_constant_of_type(1.0, lgt)
-        if_then_else = self.bmg.add_if_then_else(node.right, node.left, one)
-
-        assert if_then_else.graph_type == lgt
-
-        # We have met the requirements of the if-then-else; the condition
-        # is bool and the consequence and alternative are of the same type.
-        # However, we might not yet have met the original requirement, which
-        # we have not yet used in this method. We might need to put a to_real
-        # on top of it, for instance.
-        #
-        # Recurse to ensure that is met.
-
-        return self.meet_requirement(if_then_else, requirement, consumer, edge)
-
     def _convert_node(
         self,
         node: bn.OperatorNode,
@@ -223,14 +117,6 @@ class RequirementsFixer:
         # that has the same semantics. Start by confirming those preconditions.
         assert node.graph_type != requirement
         assert bt.supremum(node.inf_type, requirement) == requirement
-
-        if isinstance(node, bn.MultiplicationNode) and node.graph_type == bt.Malformed:
-            return self._convert_malformed_multiplication(
-                node, requirement, consumer, edge
-            )
-
-        if isinstance(node, bn.PowerNode) and node.graph_type == bt.Malformed:
-            return self._convert_malformed_power(node, requirement, consumer, edge)
 
         # TODO: We no longer support Tensor as a type in BMG.  We must
         # detect, and produce a good error message, for situations

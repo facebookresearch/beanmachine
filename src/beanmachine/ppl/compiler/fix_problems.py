@@ -6,6 +6,7 @@ import beanmachine.ppl.compiler.profiler as prof
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_additions import AdditionFixer
+from beanmachine.ppl.compiler.fix_bool_arithmetic import BoolArithmeticFixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import BoolComparisonFixer
 from beanmachine.ppl.compiler.fix_multiary_ops import MultiaryOperatorFixer
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
@@ -29,6 +30,7 @@ from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
 
 _standard_fixer_types: List[Type] = [
     TensorOpsFixer,
+    BoolArithmeticFixer,
     AdditionFixer,
     BoolComparisonFixer,
     UnsupportedNodeFixer,

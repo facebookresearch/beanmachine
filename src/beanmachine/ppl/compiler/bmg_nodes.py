@@ -1631,28 +1631,8 @@ class AdditionNode(BinaryOperatorNode):
         # The BMG addition node requires:
         # * the operands and the result type to be the same
         # * that type must be R+, R- or R.
-        #
-        # However, we can make transformations during the problem-fixing phase
-        # that enable other combinations of types:
-        #
-        # * If one operand is the constant 1.0 and the other is
-        #   a negate operator applied to a B or P, then we can turn
-        #   the whole thing into a complement node of type B or P.
-        #
-        # TODO:
-        # * If one operand is a constant N or B and the other is
-        #   any B, we can generate an if-then-else of type N.
 
-        if self.can_be_complement:
-            if self.left.inf_type == One:
-                other = self.right
-            else:
-                other = self.left
-            assert isinstance(other, NegateNode)
-            return other.operand.inf_type
-
-        # There is no way to turn this into a complement. Can we make both
-        # operands into a negative real?
+        # Can we make both operands into a negative real?
         op_type = supremum(self.left.inf_type, self.right.inf_type)
         if supremum(op_type, NegativeReal) == NegativeReal:
             return NegativeReal
@@ -2110,45 +2090,20 @@ class MultiplicationNode(BinaryOperatorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # A multiplication node must have its left, right and output
-        # types all the same, and that type must be Probability or
-        # larger. If these conditions are not met then the node is malformed.
-        # However, we can convert some multiplications into if-then-else
-        # nodes which are well-formed. We will express these facts
-        # in the requirements and inf type computation, and the problem fixer
-        # will turn malformed multiplications into a correct form.
+        # types all the same, and that type must be Probability, PositiveReal
+        # or Real. If these conditions are not met then the node is malformed.
         lgt = self.left.graph_type
         if lgt != self.right.graph_type:
             return Malformed
-        if lgt == Boolean or lgt == Natural:
+        if lgt not in {Probability, PositiveReal, Real}:
             return Malformed
         return lgt
 
     def _compute_inf_type(self) -> BMGLatticeType:
-        # As noted above, we can multiply two probabilities, two positive
-        # reals, two reals or two tensors and get the same type out. However
-        # if we have a model in which a bool or natural is multiplied by a
-        # bool or natural, then we can create a legal BMG graph as follows:
-        #
-        # bool1 * bool2 can become "if bool1 then bool2 else false"
-        # bool * nat and nat * bool can become "if bool then nat else 0"
-        # nat * nat must convert both nats to positive real.
-        #
-        # So what then is the inf type? Remember, the inf type is the smallest
-        # type that this node can be converted to, so let's say that.
-
-        # If either operand is bool then we can convert to an if-then-else
-        # and keep the type the same as the other operand:
-
-        lit = self.left.inf_type
-        rit = self.right.inf_type
-        if lit == Boolean:
-            return rit
-        if rit == Boolean:
-            return lit
-
-        # If neither type is Boolean then the best we can do is the sup
-        # of the left type, the right type, and Probability.
-        return supremum(self.left.inf_type, self.right.inf_type, Probability)
+        it = supremum(self.left.inf_type, self.right.inf_type, Probability)
+        if supremum(it, Real) == Real:
+            return it
+        return Real
 
     @property
     def requirements(self) -> List[Requirement]:
@@ -2197,56 +2152,19 @@ class PowerNode(BinaryOperatorNode):
         # R+ ** R  --> R+
         # R ** R+  --> R
         # R ** R   --> R
-        #
-        # Note that P ** R is the only case where the type of the result is not
-        # equal to the type of the base.
-        #
-        # The smallest type we can make the return if we generate a BMG power
-        # node can be found by:
-        #
-        # * treat the base type as the larger of its inf type and Probability
-        # * treat the exp type as the larger of its inf type and Positive Real.
-        # * return the best match from the table above.
-        #
-        # However, there are some cases where we can generate a smaller
-        # result type:
-        #
-        # * We generate x ** b where b is bool as "if b then x else 1", which
-        #   is of the same type as x.
-        #
-        # TODO: We could support b ** n where b is bool and n is a natural
-        # constant. If n is the constant zero then the result is just
-        # the Boolean constant true; if n is a non-zero constant then
-        # b ** n is simply b.
-        #
-        # NOTE: We CANNOT support b ** n where b is bool and n is a
-        # non-constant natural and the result is bool. That would
-        # have the semantics of "if b then true else n == 0" but we do
-        # not have an equality operator on naturals in BMG.
-        #
-        # NOTE: We CANNOT support n1 ** n2 where both are naturals, where
-        # n2 is a constant and where the result is natural, because we
-        # do not have a multiplication operation on naturals. The best
-        # we can do is convert both to R+, which is what we'd have to
-        # do for the multiplication.
 
-        inf_base = self.left.inf_type
-        inf_exp = self.right.inf_type
-
-        if inf_base == Tensor or inf_exp == Tensor:
-            return BMGTensor
-
-        if supremum(inf_exp, Boolean) == Boolean:
-            return inf_base
-
-        inf_base = supremum(inf_base, Probability)
-
+        inf_base = supremum(self.left.inf_type, Probability)
+        inf_exp = supremum(self.right.inf_type, PositiveReal)
         if inf_base == Probability and inf_exp == Real:
             return PositiveReal
-
-        return inf_base
+        if supremum(inf_base, Real) == Real:
+            return inf_base
+        return Real
 
     def _compute_graph_type(self) -> BMGLatticeType:
+
+        # TODO: This is wrong.
+
         # Figure out which of these cases we are in; otherwise
         # return Malformed.
 
@@ -2274,6 +2192,8 @@ class PowerNode(BinaryOperatorNode):
         # R+ ** R
         # R ** R+
         # R ** R
+
+        # TODO: This is wrong
 
         inf_base = self.left.inf_type
         inf_exp = supremum(Boolean, self.right.inf_type)

@@ -308,7 +308,7 @@ digraph "graph" {
   N3[label="2:N>=N"];
   N4[label="Binomial:N>=N"];
   N5[label="Sample:N>=N"];
-  N6[label="*:M>=N"];
+  N6[label="*:M>=R+"];
   N7[label="Binomial:N>=N"];
   N8[label="Sample:N>=N"];
   N0 -> N1[label="probability:P"];
@@ -345,11 +345,12 @@ digraph "graph" {
   N03[label="2:N>=N"];
   N04[label="Binomial:N>=N"];
   N05[label="Sample:N>=N"];
-  N06[label="*:M>=N"];
+  N06[label="*:M>=R+"];
   N07[label="0:N>=Z"];
   N08[label="if:N>=N"];
   N09[label="Binomial:N>=N"];
   N10[label="Sample:N>=N"];
+  N11[label="0.0:R>=Z"];
   N00 -> N01[label="probability:P"];
   N00 -> N04[label="probability:P"];
   N00 -> N09[label="probability:P"];
@@ -682,7 +683,7 @@ digraph "graph" {
   N3[label="Sample:N>=N"];
   N4[label="Bernoulli:B>=B"];
   N5[label="Sample:B>=B"];
-  N6[label="**:M>=N"];
+  N6[label="**:M>=R+"];
   N7[label="Binomial:N>=N"];
   N8[label="Sample:N>=N"];
   N0 -> N2[label="count:N"];
@@ -718,11 +719,12 @@ digraph "graph" {
   N03[label="Sample:N>=N"];
   N04[label="Bernoulli:B>=B"];
   N05[label="Sample:B>=B"];
-  N06[label="**:M>=N"];
+  N06[label="**:M>=R+"];
   N07[label="1:N>=OH"];
   N08[label="if:N>=N"];
   N09[label="Binomial:N>=N"];
   N10[label="Sample:N>=N"];
+  N11[label="1.0:R>=OH"];
   N00 -> N02[label="count:N"];
   N01 -> N02[label="probability:P"];
   N01 -> N04[label="probability:P"];
@@ -782,7 +784,7 @@ digraph "graph" {
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
   N4[label="-:M>=R-"];
-  N5[label="+:M>=P"];
+  N5[label="+:M>=R"];
   N6[label="Bernoulli:B>=B"];
   N7[label="Sample:B>=B"];
   N0 -> N5[label="left:OH"];
@@ -817,7 +819,7 @@ digraph "graph" {
   N3[label="Beta:P>=P"];
   N4[label="Sample:P>=P"];
   N5[label="-:M>=R-"];
-  N6[label="+:M>=P"];
+  N6[label="+:M>=R"];
   N7[label="complement:P>=P"];
   N8[label="Bernoulli:B>=B"];
   N9[label="Sample:B>=B"];
