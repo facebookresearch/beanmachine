@@ -3,8 +3,8 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
+from beanmachine.ppl.compiler.runtime import BMGRuntime
 from torch import tensor
 from torch.distributions import (
     Bernoulli,

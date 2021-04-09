@@ -2,8 +2,8 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.compiler.runtime import BMGRuntime
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, Normal
 

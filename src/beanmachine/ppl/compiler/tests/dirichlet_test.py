@@ -15,11 +15,12 @@ from beanmachine.graph import (
     ValueType,
     VariableType,
 )
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder, BMGRuntime
+from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.inference import BMGInference, SingleSiteNewtonianMonteCarlo
 from torch import Size, tensor
 from torch.distributions import Bernoulli, Dirichlet

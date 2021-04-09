@@ -3,8 +3,8 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_builder import generate_builder
+from beanmachine.ppl.compiler.runtime import BMGRuntime
 from torch.distributions import Normal
 
 
