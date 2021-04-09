@@ -75,6 +75,15 @@ def neg_of_neg():
     return Normal(-torch.neg(norm()), 1.0)
 
 
+@bm.functional
+def subtractions():
+    # Show that we can handle a bunch of different ways to subtract things
+    n = norm()
+    b = beta()
+    h = hc()
+    return torch.sub(n.sub(b), b - h)
+
+
 class BMGArithmeticTest(unittest.TestCase):
     def test_bmg_arithmetic_expm1(self) -> None:
         self.maxDiff = None
@@ -265,3 +274,61 @@ digraph "graph" {
 }
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_bmg_subtractions(self) -> None:
+        # TODO: Notice in this code generation we end up with
+        # the path:
+        #
+        # Beta -> Sample -> ToPosReal -> Negate -> ToReal -> MultiAdd
+        #
+        # We could optimize this path to
+        #
+        # Beta -> Sample -> ToReal -> Negate -> MultiAdd
+
+        self.maxDiff = None
+        observed = BMGInference().to_dot([subtractions()], {})
+        expected = """
+digraph "graph" {
+  N00[label=0.0];
+  N01[label=1.0];
+  N02[label=Normal];
+  N03[label=Sample];
+  N04[label=2.0];
+  N05[label=Beta];
+  N06[label=Sample];
+  N07[label=HalfCauchy];
+  N08[label=Sample];
+  N09[label=ToPosReal];
+  N10[label="-"];
+  N11[label=ToReal];
+  N12[label=ToReal];
+  N13[label="-"];
+  N14[label=ToReal];
+  N15[label="+"];
+  N16[label="-"];
+  N17[label="+"];
+  N18[label=Query];
+  N00 -> N02;
+  N01 -> N02;
+  N01 -> N07;
+  N02 -> N03;
+  N03 -> N17;
+  N04 -> N05;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N09;
+  N06 -> N12;
+  N07 -> N08;
+  N08 -> N13;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N17;
+  N12 -> N15;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N17;
+  N17 -> N18;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())

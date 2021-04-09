@@ -492,6 +492,14 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    # No need to memoize this since the addition will be memoized.
+    def add_subtraction(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        # TODO: We don't have a subtraction node; we render this as
+        # left + (-right), which we do have.  Should we have a subtraction
+        # node? We could do this transformation in a problem-fixing pass,
+        # like we do for division.
+        return self.add_addition(left, self.add_negate(right))
+
     @memoize
     def add_multi_addition(self, *inputs: BMGNode) -> bn.MultiAdditionNode:
         node = bn.MultiAdditionNode(list(inputs))
@@ -587,6 +595,7 @@ class BMGraphBuilder:
 
     @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
+        # TODO: We could optimize -(-x) to x here.
         if isinstance(operand, ConstantNode):
             return self.add_constant(-operand.value)
         node = bn.NegateNode(operand)
