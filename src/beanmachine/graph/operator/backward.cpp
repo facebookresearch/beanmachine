@@ -195,7 +195,7 @@ void ToMatrix::backward() {
   int cols = in_nodes[1]->value._natural;
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
-      auto node = in_nodes[2 + i * cols + j];
+      auto node = in_nodes[2 + j * rows + i];
       if (node->needs_gradient()) {
         node->back_grad1._double += back_grad1._matrix(i, j);
       }
