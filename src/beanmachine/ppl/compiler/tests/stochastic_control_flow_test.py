@@ -2,7 +2,7 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, Normal
@@ -105,10 +105,9 @@ class StochasticControlFlowTest(unittest.TestCase):
     def test_stochastic_control_flow_1(self) -> None:
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
         queries = [any_index_you_want_as_long_as_it_is_zero()]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = BMGRuntime().accumulate_graph(queries, observations)
 
         # Here we have what looks like a stochastic control flow but
         # in reality there is only one possibility. We should ensure
@@ -138,10 +137,9 @@ digraph "graph" {
     def test_stochastic_control_flow_2(self) -> None:
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
         queries = [choose_your_mean()]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = BMGRuntime().accumulate_graph(queries, observations)
 
         # Note that we generate an if-then-else node here to express the
         # flip that chooses between two alternatives, and therefore can
@@ -191,10 +189,9 @@ digraph "graph" {
     def test_stochastic_control_flow_3(self) -> None:
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
         queries = [three_possibilities()]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = BMGRuntime().accumulate_graph(queries, observations)
 
         # Now we have three possibilities, and we cannot yet represent
         # that in BMG.
@@ -248,7 +245,6 @@ digraph "graph" {
     def test_stochastic_control_flow_composition_broken(self) -> None:
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
         queries = [composition_is_broken()]
         observations = {}
 
@@ -258,15 +254,14 @@ digraph "graph" {
         # TODO: Fix it.
 
         with self.assertRaises(ValueError):
-            bmg.accumulate_graph(queries, observations)
+            BMGRuntime().accumulate_graph(queries, observations)
 
     def test_stochastic_control_flow_4(self) -> None:
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
         queries = [two_parameters()]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = BMGRuntime().accumulate_graph(queries, observations)
 
         # Here we have four possibilities but since each is a Boolean choice
         # it turns out we can in fact represent it.

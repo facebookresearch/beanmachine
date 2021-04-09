@@ -3,7 +3,7 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_builder import generate_builder
 from torch.distributions import Normal
 
@@ -21,8 +21,7 @@ def norm_sum():
 class GenerateBuilderTest(unittest.TestCase):
     def test_generate_builder_1(self) -> None:
         self.maxDiff = None
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph([norm_sum()], {})
+        bmg = BMGRuntime().accumulate_graph([norm_sum()], {})
         observed = generate_builder(bmg)
         expected = """
 import beanmachine.ppl.compiler.bmg_nodes as bn

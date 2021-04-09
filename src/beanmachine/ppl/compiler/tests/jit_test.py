@@ -5,7 +5,7 @@ import unittest
 
 import astor
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.bm_to_bmg import (
     _bm_function_to_bmg_ast,
     _bm_function_to_bmg_function,
@@ -233,14 +233,14 @@ def norm_helper(bmg):
         # * Invoke the lifted f and verify that we accumulate an
         #   exp(sample(normal(0, 1))) node into the graph.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
 
         lifted_f = _bm_function_to_bmg_function(f, bmg)
         norm_sample = bmg._rv_to_node(norm(0))
 
         result = lifted_f(norm_sample)
         self.assertTrue(isinstance(result, ExpNode))
-        dot = to_dot(bmg)
+        dot = to_dot(bmg._bmg)
         expected = """
 digraph "graph" {
   N0[label=0.0];
@@ -286,9 +286,9 @@ digraph "graph" {
         #   then jit-compile in turn, and execute the lifted version.
         # * That completes the construction of the graph.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         bmg._rv_to_node(flip())
-        dot = to_dot(bmg)
+        dot = to_dot(bmg._bmg)
         expected = """
 digraph "graph" {
   N0[label=2.0];
@@ -310,10 +310,10 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        rt = BMGRuntime()
         queries = [coin(), exp_coin()]
         observations = {flip(): tensor(1.0)}
-        bmg.accumulate_graph(queries, observations)
+        bmg = rt.accumulate_graph(queries, observations)
         dot = to_dot(bmg)
         expected = """
 digraph "graph" {
@@ -344,10 +344,10 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        rt = BMGRuntime()
         queries = [exp_norm(0)]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = rt.accumulate_graph(queries, observations)
         dot = to_dot(bmg)
         expected = """
 digraph "graph" {
@@ -371,10 +371,10 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        rt = BMGRuntime()
         queries = [exp_coin_3()]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = rt.accumulate_graph(queries, observations)
         dot = to_dot(bmg)
 
         # Note that though functional exp_coin_3 calls functional exp_coin_2,
@@ -413,10 +413,10 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        rt = BMGRuntime()
         queries = [coin_with_class()]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = rt.accumulate_graph(queries, observations)
         dot = to_dot(bmg)
         expected = """
 digraph "graph" {
@@ -440,7 +440,7 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         queries = [bad_functional_1()]
         observations = {}
         # TODO: Better exception class
@@ -455,7 +455,7 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         queries = [bad_functional_2()]
         observations = {}
         # TODO: Better exception class
@@ -468,7 +468,7 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         queries = [bad_functional_3()]
         observations = {}
         # TODO: Better exception class
@@ -484,7 +484,7 @@ digraph "graph" {
 
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         queries = [bad_functional_4()]
         observations = {}
         # TODO: Better exception class
@@ -518,10 +518,10 @@ digraph "graph" {
         #   arguments to single values.)
         # * Or some other similar mechanism for maintaining this invariant.
 
-        bmg = BMGraphBuilder()
+        rt = BMGRuntime()
         queries = [beta_tensor_1a(), beta_tensor_1b()]
         observations = {}
-        bmg.accumulate_graph(queries, observations)
+        bmg = rt.accumulate_graph(queries, observations)
         observed = to_dot(bmg)
         expected = """
 digraph "graph" {
@@ -556,7 +556,7 @@ digraph "graph" {
         self.assertEqual(observable_side_effect, 1)
         observable_side_effect = 0
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         bmg.accumulate_graph([assertions_are_removed()], {})
 
         # The side effect is not caused.
@@ -570,8 +570,8 @@ digraph "graph" {
         # this test regresses that bug by simply verifying that we do
         # not crash in those scenarios now.
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         bmg.accumulate_graph([flip_with_nested_function()], {})
 
-        bmg = BMGraphBuilder()
+        bmg = BMGRuntime()
         bmg.accumulate_graph([flip_with_comprehension()], {})

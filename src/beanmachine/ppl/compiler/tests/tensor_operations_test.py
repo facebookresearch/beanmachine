@@ -2,7 +2,7 @@
 import unittest
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bm_graph_builder import BMGRuntime
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import logsumexp, tensor
 from torch.distributions import Normal
@@ -32,8 +32,7 @@ class TensorOperationsTest(unittest.TestCase):
     def test_tensor_operations_1(self) -> None:
         self.maxDiff = None
 
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph([lse1()], {})
+        bmg = BMGRuntime().accumulate_graph([lse1()], {})
         observed = to_dot(bmg)
         expected = """
 digraph "graph" {
@@ -62,8 +61,7 @@ digraph "graph" {
         # Do it again, but this time with the static method flavor of
         # logsumexp. We should get the same result.
 
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph([lse2()], {})
+        bmg = BMGRuntime().accumulate_graph([lse2()], {})
         observed = to_dot(bmg)
         self.assertEqual(observed.strip(), expected.strip())
 
@@ -92,7 +90,6 @@ digraph "graph" {
 }
 """
 
-        bmg = BMGraphBuilder()
-        bmg.accumulate_graph([lse1()], {})
+        bmg = BMGRuntime().accumulate_graph([lse1()], {})
         observed = to_dot(bmg, after_transform=True)
         self.assertEqual(observed.strip(), expected.strip())
