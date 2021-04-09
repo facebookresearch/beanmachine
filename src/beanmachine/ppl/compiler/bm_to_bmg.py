@@ -18,7 +18,6 @@ from beanmachine.ppl.utils.ast_patterns import (
     attribute,
     binop,
     call,
-    constant_numeric,
     equal,
     function_def,
     greater_than,
@@ -34,7 +33,6 @@ from beanmachine.ppl.utils.ast_patterns import (
     subscript,
     unaryop,
 )
-from beanmachine.ppl.utils.fold_constants import _fold_unary_op
 from beanmachine.ppl.utils.patterns import nonEmptyList
 from beanmachine.ppl.utils.rules import (
     AllOf as all_of,
@@ -42,7 +40,6 @@ from beanmachine.ppl.utils.rules import (
     Pattern,
     PatternRule,
     Rule,
-    TryMany as many,
     TryOnce as once,
     always_replace,
     remove_from_list,
@@ -62,30 +59,6 @@ _specific_child = ast_domain.specific_child
 _eliminate_assertion = PatternRule(ast_assert(), lambda a: remove_from_list)
 
 _eliminate_all_assertions: Rule = _top_down(once(_eliminate_assertion))
-
-_eliminate_subtraction = PatternRule(
-    binop(op=ast.Sub),
-    lambda b: ast.BinOp(
-        left=b.left, op=ast.Add(), right=ast.UnaryOp(op=ast.USub(), operand=b.right)
-    ),
-)
-
-_fix_usub_usub = PatternRule(
-    unaryop(op=ast.USub, operand=unaryop(op=ast.USub)), lambda u: u.operand.operand
-)
-
-_fold_usub_const = PatternRule(
-    unaryop(op=ast.USub, operand=constant_numeric), _fold_unary_op
-)
-
-
-_fix_arithmetic = all_of(
-    [
-        _top_down(once(_eliminate_subtraction)),
-        _bottom_up(many(first([_fix_usub_usub, _fold_usub_const]))),
-    ]
-)
-
 
 _bmg = ast.Name(id="bmg", ctx=ast.Load())
 
@@ -204,6 +177,7 @@ _math_to_bmg: Rule = _top_down(
                 _handle_unary(ast.Not, "handle_not"),
                 _handle_unary(ast.USub, "handle_negate"),
                 _handle_binary(ast.Add, "handle_addition"),
+                _handle_binary(ast.Sub, "handle_subtraction"),
                 _handle_binary(ast.Mult, "handle_multiplication"),
                 _handle_binary(ast.Div, "handle_division"),
                 _handle_binary(ast.Pow, "handle_power"),
@@ -239,14 +213,7 @@ _supported_code_containers = {types.MethodType, types.FunctionType}
 def _bm_ast_to_bmg_ast(a: ast.AST) -> ast.AST:
     no_asserts = _eliminate_all_assertions(a).expect_success()
     assert isinstance(no_asserts, ast.Module)
-    # TODO: Eliminate arithmetic fixing; instead have the graph builder
-    # capture subtractions and rewrite them into additions in a problem
-    # fixing pass.
-    arithmetic_fixed = _fix_arithmetic(no_asserts).expect_success()
-    assert isinstance(arithmetic_fixed, ast.Module)
-    # The AST has now eliminated all subtractions; negative constants
-    # are represented as constants, not as USubs
-    sa = single_assignment(arithmetic_fixed)
+    sa = single_assignment(no_asserts)
     assert isinstance(sa, ast.Module)
     # Now we're in single assignment form.
     rewrites = [_math_to_bmg, _remove_all_decorators]

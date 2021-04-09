@@ -126,6 +126,7 @@ known_tensor_instance_functions = [
     "neg",
     "pow",
     "sigmoid",
+    "sub",
 ]
 
 
@@ -293,6 +294,7 @@ class BMGRuntime:
             torch.Tensor.neg: self.handle_negate,
             torch.Tensor.pow: self.handle_power,
             torch.Tensor.sigmoid: self.handle_logistic,
+            torch.Tensor.sub: self.handle_subtraction,
             # Tensor static functions
             torch.add: self.handle_addition,
             torch.div: self.handle_division,
@@ -307,6 +309,7 @@ class BMGRuntime:
             torch.neg: self.handle_negate,
             torch.pow: self.handle_power,
             torch.sigmoid: self.handle_logistic,
+            torch.sub: self.handle_subtraction,
             # Distribution constructors
             dist.Bernoulli: self.handle_bernoulli,
             dist.Beta: self.handle_beta,
@@ -542,6 +545,17 @@ class BMGRuntime:
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value + other.value
         return self._bmg.add_addition(input, other)
+
+    def handle_subtraction(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input - other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value - other.value
+        return self._bmg.add_subtraction(input, other)
 
     # TODO: Do we need to represent both integer and float division?
     def handle_division(self, input: Any, other: Any) -> Any:
