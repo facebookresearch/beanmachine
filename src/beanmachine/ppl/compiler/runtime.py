@@ -52,7 +52,6 @@ from types import MethodType
 from typing import Any, Callable, Dict, List, Optional, Set
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
-import beanmachine.ppl.compiler.bmg_types as bt
 import beanmachine.ppl.compiler.profiler as prof
 import torch
 import torch.distributions as dist
@@ -763,15 +762,19 @@ class BMGRuntime:
         # it in a problem fixing pass later. No reason to not do it right
         # the first time.)
 
-        if num_pairs == 2 and choice.inf_type == bt.Boolean:
-            first_key_type = key_value_pairs[0].inf_type
-            first_value = key_value_pairs[1]
-            second_key_type = key_value_pairs[2].inf_type
-            second_value = key_value_pairs[3]
-            if first_key_type == bt.Zero and second_key_type == bt.One:
-                return self._bmg.add_if_then_else(choice, first_value, second_value)
-            if first_key_type == bt.One and second_key_type == bt.Zero:
-                return self._bmg.add_if_then_else(choice, second_value, first_value)
+        # TODO: This optimization is only valid if the choice is of type
+        # boolean, but we want to decouple the runtime from the type system.
+        # Move the optimization out of here and into a rewriting pass.
+
+        if num_pairs == 2:
+            if bn.is_zero(key_value_pairs[0]) and bn.is_one(key_value_pairs[2]):
+                return self._bmg.add_if_then_else(
+                    choice, key_value_pairs[3], key_value_pairs[1]
+                )
+            if bn.is_one(key_value_pairs[0]) and bn.is_zero(key_value_pairs[2]):
+                return self._bmg.add_if_then_else(
+                    choice, key_value_pairs[1], key_value_pairs[3]
+                )
 
         # Otherwise, just make a map node.
         # TODO: Fix this. We need a better abstraction that is supported by BMG.

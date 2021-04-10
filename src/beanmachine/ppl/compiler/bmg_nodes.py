@@ -7,6 +7,7 @@ import operator
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Iterable, List
 
+import beanmachine.ppl.compiler.bmg_types as bt
 import torch
 from beanmachine.ppl.compiler.bmg_types import (
     AnyRequirement,
@@ -2957,3 +2958,11 @@ class ExpProductFactorNode(FactorNode):
         # Factors never produce output so it is not meaningful to compute
         # their support
         return []
+
+
+def is_zero(n: BMGNode) -> bool:
+    return isinstance(n, ConstantNode) and bt.is_zero(n.value)
+
+
+def is_one(n: BMGNode) -> bool:
+    return isinstance(n, ConstantNode) and bt.is_one(n.value)
