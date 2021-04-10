@@ -635,6 +635,14 @@ def type_of_value(v: Any) -> BMGLatticeType:
     raise ValueError("Unexpected value passed to type_of_value")
 
 
+def is_zero(v: Any) -> bool:
+    return type_of_value(v) == Zero
+
+
+def is_one(v: Any) -> bool:
+    return type_of_value(v) == One
+
+
 # We need to be able to express requirements on inputs;
 # for example the input to a Bernoulli must be *exactly* a
 # Probability, but the input to a ToPositiveReal must have

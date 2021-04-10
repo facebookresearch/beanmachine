@@ -512,11 +512,12 @@ class BMGraphBuilder:
     def add_if_then_else(
         self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode
     ) -> BMGNode:
-        if (
-            isinstance(condition, bn.ConstantNode)
-            and bt.supremum(condition.inf_type, bt.Boolean) == bt.Boolean
-        ):
-            return consequence if condition.value else alternative
+        # If the condition is a constant then we can optimize away the if-then-else
+        # node entirely.
+        if bn.is_one(condition):
+            return consequence
+        if bn.is_zero(condition):
+            return alternative
         node = bn.IfThenElseNode(condition, consequence, alternative)
         self.add_node(node)
         return node
