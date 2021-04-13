@@ -3,6 +3,7 @@ from typing import Tuple
 
 import torch
 import torch.autograd
+from torch._vmap_internals import _vmap as vmap
 
 
 def gradients(
@@ -27,7 +28,7 @@ def gradients(
     )[0].reshape(-1)
 
     # using identity matrix to reconstruct the full hessian from vector-Jacobian product
-    hessians = torch.vmap(
+    hessians = vmap(
         lambda vec: torch.autograd.grad(
             grad1,
             inputs,
