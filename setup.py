@@ -99,7 +99,7 @@ setup(
     long_description_content_type="text/markdown",
     python_requires=">={}.{}".format(REQUIRED_MAJOR, REQUIRED_MINOR),
     install_requires=[
-        "torch>=1.7.0",
+        "torch>=1.8.1",
         "numpy>=1.18.1",
         "pandas>=0.24.2",
         "plotly>=2.2.1",

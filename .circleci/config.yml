@@ -2,21 +2,6 @@ version: 2.1
 
 commands:
 
-  pip_install_deps:
-    description: "Install beanmachine dependencies via pip"
-    steps:
-      - run:
-          name: "Upgrade pip"
-          command: pip install --progress-bar off --upgrade pip
-      - run:
-          name: "Install numpy"
-          command: pip install --progress-bar off numpy
-      - run:
-          name: "Install pytorch"
-          command: >
-            pip install --progress-bar off --pre torch==1.8.0.dev20210205 -f
-            https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
-
   dev_install_beanmachine:
     description: "Install beanmachine[dev] in editable mode via pip"
     steps:
@@ -170,7 +155,6 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - apt_get_install_deps
-      - pip_install_deps
       - checkout
       - dev_install_beanmachine
       - pip_install_pytest_patch
@@ -182,7 +166,6 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - apt_get_install_deps
-      - pip_install_deps
       - checkout
       - user_install_beanmachine
       - pip_install_pytest_patch
@@ -196,7 +179,6 @@ jobs:
       - checkout
       - install_miniconda_macos
       - brew_install_deps
-      - pip_install_deps
       - conda_install_beanmachine
       - pip_install_pytest_patch
       - pip_list
@@ -218,7 +200,6 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - apt_get_install_deps
-      - pip_install_deps
       - checkout
       - user_install_beanmachine
       - pip_install_pytest_patch
