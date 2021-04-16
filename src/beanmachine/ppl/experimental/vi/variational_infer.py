@@ -46,6 +46,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
             Callable[[RVIdentifier], MeanFieldVariationalApproximation]
         ] = None,
         pretrain: bool = False,
+        progress_bar: bool = False,
     ) -> Callable[[RVIdentifier], MeanFieldVariationalApproximation]:
         """
         Trains a set of mean-field variational approximation (one per site).
@@ -97,8 +98,10 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                 )
 
             vi_dicts = lru_cache(maxsize=None)(_get_var_approx)
-            # for it in tqdm(iterable=range(num_iter), desc="Training iterations"):
-            for it in range(num_iter):
+            train_iter = range(num_iter)
+            if progress_bar:
+                train_iter = tqdm(iterable=train_iter, desc="Training iterations")
+            for it in train_iter:
                 # sample world x ~ q_t
                 self.initialize_world(False, vi_dicts)
 
