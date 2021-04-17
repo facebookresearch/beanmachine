@@ -554,3 +554,93 @@ TEST(testgradient, backward_to_matrix) {
   EXPECT_NEAR(grad1[1]->_double, -0.03, 1e-3);
   EXPECT_NEAR(grad1[2]->_double, -0.1, 1e-3);
 }
+
+TEST(testgradient, forward_broadcast_add) {
+  Graph g;
+  auto zero = g.add_constant(0.0);
+  auto one = g.add_constant_pos_real(1.0);
+  auto norm_dist = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {zero, one});
+  auto norm_sample = g.add_operator(OperatorType::SAMPLE, {norm_dist});
+
+  auto nat_zero = g.add_constant((natural_t)0);
+  auto nat_one = g.add_constant((natural_t)1);
+  Eigen::MatrixXd m(2, 1);
+  m << 1.0, 2.0;
+  auto matrix = g.add_constant_real_matrix(m);
+  auto sum_matrix =
+      g.add_operator(OperatorType::BROADCAST_ADD, {norm_sample, matrix});
+  auto first_entry =
+      g.add_operator(OperatorType::INDEX, {sum_matrix, nat_zero});
+  auto second_entry =
+      g.add_operator(OperatorType::INDEX, {sum_matrix, nat_one});
+  auto mu = g.add_operator(OperatorType::MULTIPLY, {first_entry, second_entry});
+  auto new_norm_dist =
+      g.add_distribution(DistributionType::NORMAL, AtomicType::REAL, {mu, one});
+  auto new_norm_sample = g.add_operator(OperatorType::SAMPLE, {new_norm_dist});
+  g.observe(norm_sample, -0.5);
+  g.observe(new_norm_sample, 1.0);
+  /*
+    PyTorch verification:
+    def f(x):
+        tmp = x + torch.tensor([1.0, 2.0])
+        mu = tmp[0] * tmp[1]
+        return dist.Normal(0.0, 1.0).log_prob(x) + \
+                dist.Normal(mu, 1.0).log_prob(torch.tensor(1.0))
+    grad1 = torch.autograd.functional.jacobian(f, torch.tensor(-0.5)) -> 1.0
+    grad2 = torch.autograd.functional.hessian(f, torch.tensor(-0.5)) -> -4.5
+  */
+  double grad1;
+  double grad2;
+  g.gradient_log_prob(norm_sample, grad1, grad2);
+  EXPECT_NEAR(grad1, 1.0, 1e-3);
+  EXPECT_NEAR(grad2, -4.5, 1e-3);
+}
+
+TEST(testgradient, backward_broadcast_add) {
+  Graph g;
+  auto zero = g.add_constant(0.0);
+  auto one = g.add_constant_pos_real(1.0);
+  auto two = g.add_constant_pos_real(2.0);
+  auto five = g.add_constant_pos_real(5.0);
+
+  auto stu_dist = g.add_distribution(
+      DistributionType::STUDENT_T, AtomicType::REAL, {five, zero, two});
+  auto stu_sample = g.add_operator(OperatorType::SAMPLE, {stu_dist});
+  g.observe(stu_sample, 0.5);
+
+  Eigen::MatrixXd m(2, 1);
+  m << -1.0, 3.0;
+  auto matrix = g.add_constant_real_matrix(m);
+  auto sum_matrix =
+      g.add_operator(OperatorType::BROADCAST_ADD, {stu_sample, matrix});
+  auto nat_zero = g.add_constant((natural_t)0);
+  auto nat_one = g.add_constant((natural_t)1);
+  auto first_entry =
+      g.add_operator(OperatorType::INDEX, {sum_matrix, nat_zero});
+  auto second_entry =
+      g.add_operator(OperatorType::INDEX, {sum_matrix, nat_one});
+  auto mu = g.add_operator(OperatorType::ADD, {first_entry, second_entry});
+  auto norm_dist =
+      g.add_distribution(DistributionType::NORMAL, AtomicType::REAL, {mu, one});
+  auto norm_sample = g.add_operator(OperatorType::SAMPLE, {norm_dist});
+  g.observe(norm_sample, 0.0);
+  /*
+    PyTorch verification:
+    stu_dist = dist.StudentT(5.0, 0.0, 2.0)
+    stu_sample = torch.tensor(0.5, requires_grad=True)
+    sum_matrix = stu_sample + torch.tensor([-1.0, 3.0])
+    mu = sum_matrix[0] + sum_matrix[1]
+    norm_dist = dist.Normal(mu, 1.0)
+    norm_sample = torch.tensor(0.0, requires_grad=True)
+    log_prob = stu_dist.log_prob(stu_sample) + norm_dist.log_prob(norm_sample)
+
+    torch.autograd.grad(log_prob, stu_sample) -> -6.1481
+    torch.autograd.grad(log_prob, norm_sample) -> 3.0
+  */
+  std::vector<DoubleMatrix*> grad1;
+  g.eval_and_grad(grad1);
+  EXPECT_EQ(grad1.size(), 2);
+  EXPECT_NEAR(grad1[0]->_double, -6.1481, 1e-3);
+  EXPECT_NEAR(grad1[1]->_double, 3.0, 1e-3);
+}
