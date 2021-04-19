@@ -301,6 +301,7 @@ enum class OperatorType {
   INDEX,
   COLUMN_INDEX,
   TO_MATRIX,
+  BROADCAST_ADD
 };
 
 enum class DistributionType {

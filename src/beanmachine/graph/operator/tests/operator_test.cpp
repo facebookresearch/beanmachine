@@ -1019,3 +1019,56 @@ TEST(testoperator, to_matrix) {
   EXPECT_EQ(eval2[0][0]._bmatrix.coeff(1), true);
   EXPECT_EQ(eval2[0][0]._bmatrix.coeff(2), false);
 }
+
+TEST(testoperator, broadcast_add) {
+  Graph g1;
+  auto c1 = g1.add_constant(1.5);
+  auto bool1 = g1.add_constant(true);
+  Eigen::MatrixXd m1(2, 1);
+  m1 << 2.0, -1.0;
+  auto matrix1 = g1.add_constant_real_matrix(m1);
+  // negative tests:
+  // requries two parents
+  EXPECT_THROW(
+      g1.add_operator(OperatorType::BROADCAST_ADD, std::vector<uint>{}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g1.add_operator(
+          OperatorType::BROADCAST_ADD, std::vector<uint>{c1, bool1, matrix1}),
+      std::invalid_argument);
+  // the first parent should be a scalar and the second should be a matrix
+  EXPECT_THROW(
+      g1.add_operator(
+          OperatorType::BROADCAST_ADD, std::vector<uint>{c1, bool1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g1.add_operator(
+          OperatorType::BROADCAST_ADD, std::vector<uint>{matrix1, c1}),
+      std::invalid_argument);
+  // invalid atomic type
+  EXPECT_THROW(
+      g1.add_operator(
+          OperatorType::BROADCAST_ADD, std::vector<uint>{bool1, matrix1}),
+      std::invalid_argument);
+
+  auto sum_matrix = g1.add_operator(
+      OperatorType::BROADCAST_ADD, std::vector<uint>{c1, matrix1});
+  g1.query(sum_matrix);
+  const auto& eval1 = g1.infer(2, InferenceType::REJECTION);
+  EXPECT_EQ(eval1[0][0]._matrix(0, 0), 3.5);
+  EXPECT_EQ(eval1[0][0]._matrix(1, 0), 0.5);
+
+  Graph g2;
+  auto c2 = g2.add_constant(-1.0);
+  Eigen::MatrixXd m2(2, 2);
+  m2 << 0.0, 1.0, 2.0, 3.0;
+  auto matrix2 = g2.add_constant_real_matrix(m2);
+  auto sum_matrix2 = g2.add_operator(
+      OperatorType::BROADCAST_ADD, std::vector<uint>{c2, matrix2});
+  g2.query(sum_matrix2);
+  const auto& eval2 = g2.infer(2, InferenceType::REJECTION);
+  EXPECT_EQ(eval2[0][0]._matrix(0, 0), -1.0);
+  EXPECT_EQ(eval2[0][0]._matrix(0, 1), 0.0);
+  EXPECT_EQ(eval2[0][0]._matrix(1, 0), 1.0);
+  EXPECT_EQ(eval2[0][0]._matrix(1, 1), 2.0);
+}

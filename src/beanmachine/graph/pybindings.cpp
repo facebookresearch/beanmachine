@@ -58,7 +58,8 @@ PYBIND11_MODULE(graph, module) {
       .value("POW", OperatorType::POW)
       .value("MATRIX_MULTIPLY", OperatorType::MATRIX_MULTIPLY)
       .value("TO_PROBABILITY", OperatorType::TO_PROBABILITY)
-      .value("INDEX", OperatorType::INDEX);
+      .value("INDEX", OperatorType::INDEX)
+      .value("BROADCAST_ADD", OperatorType::BROADCAST_ADD);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)

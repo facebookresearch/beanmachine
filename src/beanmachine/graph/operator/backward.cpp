@@ -221,5 +221,15 @@ void ToMatrix::backward() {
   }
 }
 
+void BroadcastAdd::backward() {
+  assert(in_nodes.size() == 2);
+  if (in_nodes[0]->needs_gradient()) {
+    in_nodes[0]->back_grad1._double += back_grad1._matrix.sum();
+  }
+  if (in_nodes[1]->needs_gradient()) {
+    in_nodes[1]->back_grad1._matrix += back_grad1._matrix;
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

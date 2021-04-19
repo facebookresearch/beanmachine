@@ -290,5 +290,22 @@ void ToMatrix::compute_gradients() {
   }
 }
 
+void BroadcastAdd::compute_gradients() {
+  assert(in_nodes.size() == 2);
+  auto rows = in_nodes[1]->value.type.rows;
+  auto cols = in_nodes[1]->value.type.cols;
+  Grad1.setConstant(rows, cols, in_nodes[0]->grad1);
+  Grad2.setConstant(rows, cols, in_nodes[0]->grad2);
+
+  // in_nodes[1] can be a constant matrix that does not have Grad1/Grad2
+  // initialized
+  if (in_nodes[1]->Grad1.size() != 0) {
+    Grad1 += in_nodes[1]->Grad1;
+  }
+  if (in_nodes[1]->Grad2.size() != 0) {
+    Grad2 += in_nodes[1]->Grad2;
+  }
+}
+
 } // namespace oper
 } // namespace beanmachine

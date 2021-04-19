@@ -6,16 +6,16 @@
 A MACRO that checks the atomic_type of a node to make sure the underlying
 data is stored in _matrix.
 */
-#define CHECK_TYPE_DOUBLE(atomic_type)                                            \
-  switch (atomic_type) {                                                          \
-    case graph::AtomicType::REAL:                                                 \
-    case graph::AtomicType::POS_REAL:                                             \
-    case graph::AtomicType::NEG_REAL:                                             \
-    case graph::AtomicType::PROBABILITY:                                          \
-      break;                                                                      \
-    default:                                                                      \
-      throw std::invalid_argument(                                                \
-          "MATRIX_MULTIPLY requires real/pos_real/neg_real/probability parents"); \
+#define CHECK_TYPE_DOUBLE(atomic_type, operator)                           \
+  switch (atomic_type) {                                                   \
+    case graph::AtomicType::REAL:                                          \
+    case graph::AtomicType::POS_REAL:                                      \
+    case graph::AtomicType::NEG_REAL:                                      \
+    case graph::AtomicType::PROBABILITY:                                   \
+      break;                                                               \
+    default:                                                               \
+      throw std::invalid_argument(                                         \
+          operator" requires real/pos_real/neg_real/probability parents"); \
   }
 
 namespace beanmachine {
@@ -32,8 +32,8 @@ MatrixMultiply::MatrixMultiply(const std::vector<graph::Node*>& in_nodes)
       type1.variable_type == graph::VariableType::SCALAR) {
     throw std::invalid_argument("MATRIX_MULTIPLY cannot have SCALAR parents");
   }
-  CHECK_TYPE_DOUBLE(type0.atomic_type)
-  CHECK_TYPE_DOUBLE(type1.atomic_type)
+  CHECK_TYPE_DOUBLE(type0.atomic_type, "MATRIX_MULTIPLY")
+  CHECK_TYPE_DOUBLE(type1.atomic_type, "MATRIX_MULTIPLY")
   if (type0.cols != type1.rows) {
     throw std::invalid_argument(
         "parent nodes have imcompatible dimensions for MATRIX_MULTIPLY");
@@ -154,6 +154,37 @@ void ColumnIndex::eval(std::mt19937& /* gen */) {
         "invalid parent type " + matrix.type.to_string() +
         " for COLUMN_INDEX operator at node_id " + std::to_string(index));
   }
+}
+
+BroadcastAdd::BroadcastAdd(const std::vector<graph::Node*>& in_nodes)
+    : Operator(graph::OperatorType::BROADCAST_ADD) {
+  if (in_nodes.size() != 2) {
+    throw std::invalid_argument("BROADCAST_ADD requires two parent nodes");
+  }
+  auto type0 = in_nodes[0]->value.type;
+  if (type0.variable_type != graph::VariableType::SCALAR) {
+    throw std::invalid_argument(
+        "the first parent of BROADCAST_ADD must be a SCALAR");
+  }
+  auto type1 = in_nodes[1]->value.type;
+  if (!((type1.variable_type == graph::VariableType::BROADCAST_MATRIX) or
+        (type1.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX))) {
+    throw std::invalid_argument(
+        "the second parent of BROADCAST_ADD must be a MATRIX");
+  }
+  CHECK_TYPE_DOUBLE(type0.atomic_type, "BROADCAST_ADD")
+  CHECK_TYPE_DOUBLE(type1.atomic_type, "BROADCAST_ADD")
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      graph::AtomicType::REAL,
+      type1.rows,
+      type1.cols));
+}
+
+void BroadcastAdd::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 2);
+  value._matrix =
+      in_nodes[0]->value._double + in_nodes[1]->value._matrix.array();
 }
 
 } // namespace oper
