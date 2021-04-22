@@ -241,8 +241,14 @@ PositiveReal = PositiveRealMatrix(1, 1)
 NegativeReal = NegativeRealMatrix(1, 1)
 Real = RealMatrix(1, 1)
 Tensor = BMGLatticeType("T", "tensor")
+# TODO: Get rid of Malformed, make Tensor the top type, and use
+# Untypable for scenarios where Malformed is now used.
 Malformed = BMGLatticeType("M", "malformed")
 top = Malformed
+# This is not a real lattice type; rather, this is a marker to indicate
+# that the node cannot have a lattice type assigned to it in the first
+# place because we lack BMG typing rules for it.
+Untypable = BMGLatticeType("U", "untypeable")
 
 
 """
@@ -489,6 +495,7 @@ def _lookup():
 def _supremum(t: BMGLatticeType, u: BMGLatticeType) -> BMGLatticeType:
     """Takes two BMG types; returns the smallest type that is
     greater than or equal to both."""
+    assert t != Untypable and u != Untypable
     if t == u:
         return t
     if t == bottom:
@@ -745,6 +752,7 @@ def node_meets_requirement(node, r: Requirement) -> bool:
 
 
 def type_meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
+    assert t != Untypable
     if isinstance(r, AnyRequirement):
         return True
     if t == Malformed:
