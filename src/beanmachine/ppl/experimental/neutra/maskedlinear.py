@@ -60,7 +60,6 @@ class MaskedLinear(nn.Linear):
         :param mask: the mask to apply to the in_features x out_features weight matrix
         :return: Nothing
         """
-        # pyre-fixme
         if mask.t().size() != self.mask.size():
             raise ValueError("Dimension mismatches between mask and layer.")
         self.mask.data.copy_(mask.t())
@@ -73,7 +72,6 @@ class MaskedLinear(nn.Linear):
         :return: the output of the linear layer with masked weights.
 
         """
-        # pyre-fixme
         self.masked_weight = self.weight * self.mask
 
         return F.linear(input_, self.masked_weight, self.bias)

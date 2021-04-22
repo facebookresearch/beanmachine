@@ -422,6 +422,7 @@ class ICInference(AbstractMHInference):
             mb_embedding = torch.zeros(self._MB_EMBEDDING_DIM)
             mb_nodes = list(
                 map(
+                    # pyre-fixme[29]: `Union[Tensor, nn.Module]` is not a function.
                     lambda mb_node: node_embedding_nets(mb_node).forward(
                         utils.ensure_1d(
                             world.get_node_in_world_raise_error(mb_node).value
@@ -441,11 +442,15 @@ class ICInference(AbstractMHInference):
                 mb_vec = torch.stack(mb_nodes, dim=0).unsqueeze(1)
                 # TODO: try pooling rather than just slicing out last hidden
                 mb_embedding = utils.ensure_1d(
-                    mb_embedding_nets(node).forward(mb_vec)[0][-1, :, :].squeeze()
+                    # pyre-fixme[29]: `Union[Tensor, nn.Module]` is not a function.
+                    mb_embedding_nets(node)
+                    .forward(mb_vec)[0][-1, :, :]
+                    .squeeze()
                 )
             node_proposal_param_nets = self._node_proposal_param_nets
             if node_proposal_param_nets is None:
                 raise Exception("No node proposal parameter networks found!")
+            # pyre-fixme[29]: `Union[Tensor, nn.Module]` is not a function.
             param_vec = node_proposal_param_nets(node).forward(
                 torch.cat((mb_embedding, obs_embedding))
             )
