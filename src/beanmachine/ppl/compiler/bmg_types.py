@@ -650,6 +650,8 @@ def is_one(v: Any) -> bool:
     return type_of_value(v) == One
 
 
+# TODO: Move this to bmg_requirements.py
+
 # We need to be able to express requirements on inputs;
 # for example the input to a Bernoulli must be *exactly* a
 # Probability, but the input to a ToPositiveReal must have
@@ -686,6 +688,9 @@ def is_one(v: Any) -> bool:
 # We also occasionally need to express that an input edge has no restriction
 # on it whatsoever; we'll use a singleton object for that.
 
+# We should never create a requirement of a "fake" type.
+
+_invalid_requirement_types = {Zero, One, Untypable}
 
 # TODO: Mark this as abstract
 class BaseRequirement:
@@ -707,6 +712,7 @@ class UpperBound(BaseRequirement):
     bound: BMGLatticeType
 
     def __init__(self, bound: BMGLatticeType) -> None:
+        assert bound not in _invalid_requirement_types
         self.bound = bound
         BaseRequirement.__init__(self, f"<={bound.short_name}", f"<={bound.long_name}")
 
@@ -715,6 +721,7 @@ class AlwaysMatrix(BaseRequirement):
     bound: BMGMatrixType
 
     def __init__(self, bound: BMGMatrixType) -> None:
+        assert bound not in _invalid_requirement_types
         self.bound = bound
         # We won't bother to make these have a special representation
         # when we display requirements on edges in DOT.

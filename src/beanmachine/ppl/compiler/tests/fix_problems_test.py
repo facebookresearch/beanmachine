@@ -315,10 +315,10 @@ digraph "graph" {
   N0 -> N4[label="probability:P"];
   N0 -> N7[label="probability:P"];
   N1 -> N2[label="operand:B"];
-  N2 -> N6[label="left:B"];
+  N2 -> N6[label="left:R+"];
   N3 -> N4[label="count:N"];
   N4 -> N5[label="operand:N"];
-  N5 -> N6[label="right:N"];
+  N5 -> N6[label="right:R+"];
   N6 -> N7[label="count:N"];
   N7 -> N8[label="operand:N"];
 }
@@ -355,11 +355,11 @@ digraph "graph" {
   N00 -> N04[label="probability:P"];
   N00 -> N09[label="probability:P"];
   N01 -> N02[label="operand:B"];
-  N02 -> N06[label="left:B"];
+  N02 -> N06[label="left:R+"];
   N02 -> N08[label="condition:B"];
   N03 -> N04[label="count:N"];
   N04 -> N05[label="operand:N"];
-  N05 -> N06[label="right:N"];
+  N05 -> N06[label="right:R+"];
   N05 -> N08[label="consequence:N"];
   N07 -> N08[label="alternative:N"];
   N08 -> N09[label="count:N"];
@@ -425,9 +425,9 @@ digraph "graph" {
   N02 -> N03[label="operand:R+"];
   N02 -> N04[label="operand:R+"];
   N02 -> N06[label="operand:R+"];
-  N03 -> N05[label="left:R+"];
+  N03 -> N05[label="left:any"];
   N03 -> N09[label="left:R+"];
-  N04 -> N05[label="right:R+"];
+  N04 -> N05[label="right:any"];
   N04 -> N08[label="left:R+"];
   N06 -> N10[label="left:R+"];
   N07 -> N08[label="right:R"];
@@ -477,12 +477,12 @@ digraph "graph" {
   N5[label="Normal:R>=U"];
   N6[label="Sample:R>=U"];
   N0 -> N1[label="scale:R+"];
-  N0 -> N5[label="sigma:R+"];
+  N0 -> N5[label="sigma:any"];
   N1 -> N2[label="operand:R+"];
-  N2 -> N4[label="left:R+"];
-  N3 -> N4[label="right:R+"];
-  N4 -> N5[label="mu:R"];
-  N5 -> N6[label="operand:R"];
+  N2 -> N4[label="left:any"];
+  N3 -> N4[label="right:any"];
+  N4 -> N5[label="mu:any"];
+  N5 -> N6[label="operand:any"];
 }
 """
 
@@ -515,9 +515,9 @@ digraph "graph" {
   N01 -> N02[label="scale:R+"];
   N01 -> N09[label="sigma:R+"];
   N02 -> N03[label="operand:R+"];
-  N03 -> N05[label="left:R+"];
+  N03 -> N05[label="left:any"];
   N03 -> N07[label="left:R+"];
-  N04 -> N05[label="right:R+"];
+  N04 -> N05[label="right:any"];
   N06 -> N07[label="right:R+"];
   N07 -> N08[label="operand:<=R"];
   N08 -> N09[label="mu:R"];
@@ -599,8 +599,8 @@ digraph "graph" {
   N4[label="Sample:R+>=U"];
   N0 -> N1[label="scale:R+"];
   N1 -> N2[label="operand:R+"];
-  N2 -> N3[label="df:R+"];
-  N3 -> N4[label="operand:R+"];
+  N2 -> N3[label="df:any"];
+  N3 -> N4[label="operand:any"];
 }
 """
 
@@ -630,7 +630,7 @@ digraph "graph" {
   N8[label="Sample:R+>=R+"];
   N1 -> N2[label="scale:R+"];
   N2 -> N3[label="operand:R+"];
-  N3 -> N4[label="df:R+"];
+  N3 -> N4[label="df:any"];
   N3 -> N6[label="left:R+"];
   N5 -> N6[label="right:R+"];
   N5 -> N7[label="rate:R+"];
@@ -691,12 +691,13 @@ digraph "graph" {
   N1 -> N4[label="probability:P"];
   N1 -> N7[label="probability:P"];
   N2 -> N3[label="operand:N"];
-  N3 -> N6[label="left:N"];
+  N3 -> N6[label="left:R+"];
   N4 -> N5[label="operand:B"];
-  N5 -> N6[label="right:B"];
+  N5 -> N6[label="right:R+"];
   N6 -> N7[label="count:N"];
   N7 -> N8[label="operand:N"];
-}"""
+}
+"""
 
         self.assertEqual(expected.strip(), observed.strip())
 
@@ -730,10 +731,10 @@ digraph "graph" {
   N01 -> N04[label="probability:P"];
   N01 -> N09[label="probability:P"];
   N02 -> N03[label="operand:N"];
-  N03 -> N06[label="left:N"];
+  N03 -> N06[label="left:R+"];
   N03 -> N08[label="consequence:N"];
   N04 -> N05[label="operand:B"];
-  N05 -> N06[label="right:B"];
+  N05 -> N06[label="right:R+"];
   N05 -> N08[label="condition:B"];
   N07 -> N08[label="alternative:N"];
   N08 -> N09[label="count:N"];
@@ -787,12 +788,12 @@ digraph "graph" {
   N5[label="+:M>=R"];
   N6[label="Bernoulli:B>=B"];
   N7[label="Sample:B>=B"];
-  N0 -> N5[label="left:OH"];
+  N0 -> N5[label="left:R"];
   N1 -> N2[label="alpha:R+"];
   N1 -> N2[label="beta:R+"];
   N2 -> N3[label="operand:P"];
   N3 -> N4[label="operand:R+"];
-  N4 -> N5[label="right:R-"];
+  N4 -> N5[label="right:R"];
   N5 -> N6[label="probability:P"];
   N6 -> N7[label="operand:B"];
 }
@@ -823,13 +824,13 @@ digraph "graph" {
   N7[label="complement:P>=P"];
   N8[label="Bernoulli:B>=B"];
   N9[label="Sample:B>=B"];
-  N1 -> N6[label="left:OH"];
+  N1 -> N6[label="left:R"];
   N2 -> N3[label="alpha:R+"];
   N2 -> N3[label="beta:R+"];
   N3 -> N4[label="operand:P"];
   N4 -> N5[label="operand:R+"];
   N4 -> N7[label="operand:P"];
-  N5 -> N6[label="right:R-"];
+  N5 -> N6[label="right:R"];
   N7 -> N8[label="probability:P"];
   N8 -> N9[label="operand:B"];
 }"""

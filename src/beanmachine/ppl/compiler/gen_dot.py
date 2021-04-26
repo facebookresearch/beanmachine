@@ -4,6 +4,7 @@ Visualize the contents of a builder in the DOT graph language.
 """
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bmg_requirements import EdgeRequirements
 from beanmachine.ppl.compiler.fix_problems import fix_problems
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels, get_node_label
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
@@ -22,6 +23,7 @@ def to_dot(
     orphans, as a DOT graph description; nodes are enumerated in the order
     they were created."""
     lt = LatticeTyper()
+    reqs = EdgeRequirements(lt)
     db = DotBuilder()
 
     if after_transform:
@@ -58,7 +60,7 @@ def to_dot(
             node_label += ">=" + lt[node].short_name
         db.with_node(n, node_label)
         for (i, edge_name, req) in zip(
-            node.inputs, get_edge_labels(node), node.requirements
+            node.inputs, get_edge_labels(node), reqs.requirements(node)
         ):
             if label_edges:
                 edge_label = edge_name

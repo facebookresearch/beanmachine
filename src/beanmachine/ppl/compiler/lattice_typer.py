@@ -154,6 +154,12 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         return bt.Real
 
     def _type_if(self, node: bn.IfThenElseNode) -> bt.BMGLatticeType:
+        # TODO: This isn't quite right. Suppose we have a degenerate case
+        # such as IF(flip(), 0, 0).  We should conclude that the type
+        # of this node is BOOL, not ZERO.
+        # TODO: What about IF (flip(), 1, 1) -- is that BOOL or SIMPLEX?
+        # TODO: Consider adding a pass which optimizes away IF(X, Y, Y) to
+        # just plain Y.
         return bt.supremum(self[node.consequence], self[node.alternative])
 
     def _type_index(self, node: bn.IndexNode) -> bt.BMGLatticeType:
