@@ -411,7 +411,7 @@ digraph "graph" {
   N02[label="HalfCauchy:R+>=R+"];
   N03[label="Sample:R+>=R+"];
   N04[label="Sample:R+>=R+"];
-  N05[label="/:R+>=R+"];
+  N05[label="/:R+>=U"];
   N06[label="Sample:R+>=R+"];
   N07[label="-1.0:R>=R-"];
   N08[label="**:R+>=R+"];
@@ -473,9 +473,9 @@ digraph "graph" {
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
   N3[label="2.5:R>=R+"];
-  N4[label="/:M>=R+"];
-  N5[label="Normal:R>=R"];
-  N6[label="Sample:R>=R"];
+  N4[label="/:M>=U"];
+  N5[label="Normal:R>=U"];
+  N6[label="Sample:R>=U"];
   N0 -> N1[label="scale:R+"];
   N0 -> N5[label="sigma:R+"];
   N1 -> N2[label="operand:R+"];
@@ -505,7 +505,7 @@ digraph "graph" {
   N02[label="HalfCauchy:R+>=R+"];
   N03[label="Sample:R+>=R+"];
   N04[label="2.5:R>=R+"];
-  N05[label="/:M>=R+"];
+  N05[label="/:M>=U"];
   N06[label="0.4:R+>=P"];
   N07[label="*:R+>=R+"];
   N08[label="ToReal:R>=R"];
@@ -595,8 +595,8 @@ digraph "graph" {
   N0[label="1.0:R>=OH"];
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
-  N3[label="Chi2:R+>=R+"];
-  N4[label="Sample:R+>=R+"];
+  N3[label="Chi2:R+>=U"];
+  N4[label="Sample:R+>=U"];
   N0 -> N1[label="scale:R+"];
   N1 -> N2[label="operand:R+"];
   N2 -> N3[label="df:R+"];
@@ -623,7 +623,7 @@ digraph "graph" {
   N1[label="1.0:R+>=OH"];
   N2[label="HalfCauchy:R+>=R+"];
   N3[label="Sample:R+>=R+"];
-  N4[label="Chi2:R+>=R+"];
+  N4[label="Chi2:R+>=U"];
   N5[label="0.5:R+>=P"];
   N6[label="*:R+>=R+"];
   N7[label="Gamma:R+>=R+"];
