@@ -37,11 +37,6 @@ from torch.distributions import Normal
 from torch.distributions.utils import broadcast_all
 
 
-# TODO: Extract inf type, graph type and requirements computations to own module
-# TODO: Add assertions which ensure that type requirements are never "fake" types
-# like Zero or OneHot.  Also assert that a requirement is never Malformed.
-
-
 def prod(x):
     """Compute the product of a sequence of values of arbitrary length"""
     return functools.reduce(operator.mul, x, 1)

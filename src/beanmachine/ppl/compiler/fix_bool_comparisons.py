@@ -4,7 +4,7 @@ from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bmg_types import Boolean, One, Zero, supremum
+from beanmachine.ppl.compiler.bmg_types import Boolean, supremum
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 
 
@@ -27,13 +27,13 @@ class BoolComparisonFixer(ProblemFixerBase):
         # 0 == y        -->  not y
         # x == 0        -->  not x
         # x == y        -->  if x then y else not y
-        if node.left.inf_type == One:
+        if bn.is_one(node.left):
             return node.right
-        if node.right.inf_type == One:
+        if bn.is_one(node.right):
             return node.left
-        if node.left.inf_type == Zero:
+        if bn.is_zero(node.left):
             return self._bmg.add_complement(node.right)
-        if node.right.inf_type == Zero:
+        if bn.is_zero(node.right):
             return self._bmg.add_complement(node.left)
         alt = self._bmg.add_complement(node.right)
         return self._bmg.add_if_then_else(node.left, node.right, alt)
@@ -44,13 +44,13 @@ class BoolComparisonFixer(ProblemFixerBase):
         # 0 != y        -->  y
         # x != 0        -->  x
         # x != y        -->  if x then not y else y
-        if node.left.inf_type == One:
+        if bn.is_one(node.left):
             return self._bmg.add_complement(node.right)
-        if node.right.inf_type == One:
+        if bn.is_one(node.right):
             return self._bmg.add_complement(node.left)
-        if node.left.inf_type == Zero:
+        if bn.is_zero(node.left):
             return node.right
-        if node.right.inf_type == Zero:
+        if bn.is_zero(node.right):
             return node.left
         cons = self._bmg.add_complement(node.right)
         return self._bmg.add_if_then_else(node.left, cons, node.right)
@@ -61,13 +61,13 @@ class BoolComparisonFixer(ProblemFixerBase):
         # 0 >= y        -->  not y
         # x >= 0        -->  true
         # x >= y        -->  if x then true else not y
-        if node.left.inf_type == One:
+        if bn.is_one(node.left):
             return self._bmg.add_constant_of_type(True, Boolean)
-        if node.right.inf_type == One:
+        if bn.is_one(node.right):
             return node.left
-        if node.left.inf_type == Zero:
+        if bn.is_zero(node.left):
             return self._bmg.add_complement(node.right)
-        if node.right.inf_type == Zero:
+        if bn.is_zero(node.right):
             return self._bmg.add_constant_of_type(True, Boolean)
         cons = self._bmg.add_constant_of_type(True, Boolean)
         alt = self._bmg.add_complement(node.right)
@@ -79,13 +79,13 @@ class BoolComparisonFixer(ProblemFixerBase):
         # 0 > y        -->  false
         # x > 0        -->  x
         # x > y        -->  if x then not y else false
-        if node.left.inf_type == One:
+        if bn.is_one(node.left):
             return self._bmg.add_complement(node.right)
-        if node.right.inf_type == One:
+        if bn.is_one(node.right):
             return self._bmg.add_constant_of_type(False, Boolean)
-        if node.left.inf_type == Zero:
+        if bn.is_zero(node.left):
             return self._bmg.add_constant_of_type(False, Boolean)
-        if node.right.inf_type == Zero:
+        if bn.is_zero(node.right):
             return node.left
         cons = self._bmg.add_complement(node.right)
         alt = self._bmg.add_constant_of_type(False, Boolean)
@@ -97,13 +97,13 @@ class BoolComparisonFixer(ProblemFixerBase):
         # 0 <= y        -->  true
         # x <= 0        -->  not x
         # x <= y        -->  if x then y else true
-        if node.left.inf_type == One:
+        if bn.is_one(node.left):
             return node.right
-        if node.right.inf_type == One:
+        if bn.is_one(node.right):
             return self._bmg.add_constant_of_type(True, Boolean)
-        if node.left.inf_type == Zero:
+        if bn.is_zero(node.left):
             return self._bmg.add_constant_of_type(True, Boolean)
-        if node.right.inf_type == Zero:
+        if bn.is_zero(node.right):
             return self._bmg.add_complement(node.left)
         alt = self._bmg.add_constant_of_type(True, Boolean)
         return self._bmg.add_if_then_else(node.left, node.right, alt)
@@ -114,13 +114,13 @@ class BoolComparisonFixer(ProblemFixerBase):
         # 0 < y        -->  y
         # x < 0        -->  false
         # x < y        -->  if x then false else y
-        if node.left.inf_type == One:
+        if bn.is_one(node.left):
             return self._bmg.add_constant_of_type(False, Boolean)
-        if node.right.inf_type == One:
+        if bn.is_one(node.right):
             return self._bmg.add_complement(node.left)
-        if node.left.inf_type == Zero:
+        if bn.is_zero(node.left):
             return node.right
-        if node.right.inf_type == Zero:
+        if bn.is_zero(node.right):
             return self._bmg.add_constant_of_type(False, Boolean)
         cons = self._bmg.add_constant_of_type(False, Boolean)
         return self._bmg.add_if_then_else(node.left, cons, node.right)
