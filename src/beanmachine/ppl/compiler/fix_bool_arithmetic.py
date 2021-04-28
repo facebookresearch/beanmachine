@@ -22,7 +22,7 @@ class BoolArithmeticFixer(ProblemFixerBase):
             )
         # We can simplify 0+anything.
         if isinstance(n, bn.AdditionNode):
-            return n.left.inf_type == bt.Zero or n.right.inf_type == bt.Zero
+            return bn.is_zero(n.left) or bn.is_zero(n.right)
 
         # We can simplify anything**bool.
         if isinstance(n, bn.PowerNode):
@@ -49,27 +49,24 @@ class BoolArithmeticFixer(ProblemFixerBase):
         return self._fix_power(n)
 
     def _fix_multiplication(self, n: bn.MultiplicationNode) -> bn.BMGNode:
-        lt = n.left.inf_type
-        if lt == bt.Zero:
+        if bn.is_zero(n.left):
             return n.left
-        if lt == bt.One:
+        if bn.is_one(n.left):
             return n.right
-        rt = n.right.inf_type
-        if rt == bt.Zero:
+        if bn.is_zero(n.right):
             return n.right
-        if rt == bt.One:
+        if bn.is_one(n.right):
             return n.left
         zero = self._bmg.add_constant(0.0)
-        if lt == bt.Boolean:
+        if n.left.inf_type == bt.Boolean:
             return self._bmg.add_if_then_else(n.left, n.right, zero)
-        assert rt == bt.Boolean
+        assert n.right.inf_type == bt.Boolean
         return self._bmg.add_if_then_else(n.right, n.left, zero)
 
     def _fix_addition(self, n: bn.AdditionNode) -> bn.BMGNode:
-        lt = n.left.inf_type
-        if lt == bt.Zero:
+        if bn.is_zero(n.left):
             return n.right
-        assert n.right.inf_type == bt.Zero
+        assert bn.is_zero(n.right)
         return n.left
 
     def _fix_power(self, n: bn.PowerNode) -> bn.BMGNode:
