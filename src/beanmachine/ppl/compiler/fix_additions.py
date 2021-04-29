@@ -3,6 +3,7 @@
 from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
+import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 
@@ -17,13 +18,27 @@ class AdditionFixer(ProblemFixerBase):
     def __init__(self, bmg: BMGraphBuilder) -> None:
         ProblemFixerBase.__init__(self, bmg)
 
+    def _can_be_complement(self, n: bn.AdditionNode) -> bool:
+        if bn.is_one(n.left):
+            other = n.right
+            if isinstance(other, bn.NegateNode):
+                it = other.operand.inf_type
+                if bt.supremum(it, bt.Probability) == bt.Probability:
+                    return True
+        if bn.is_one(n.right):
+            other = n.left
+            if isinstance(other, bn.NegateNode):
+                it = other.operand.inf_type
+                if bt.supremum(it, bt.Probability) == bt.Probability:
+                    return True
+        return False
+
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
-        # TODO: Move can_be_complement to this module
-        return isinstance(n, bn.AdditionNode) and n.can_be_complement
+        return isinstance(n, bn.AdditionNode) and self._can_be_complement(n)
 
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         assert isinstance(n, bn.AdditionNode)
-        assert n.can_be_complement
+        assert self._can_be_complement(n)
         # We have 1+(-x) or (-x)+1 where x is either P or B, and require
         # a P or B. Complement(x) is of the same type as x if x is P or B.
         if bn.is_one(n.left):

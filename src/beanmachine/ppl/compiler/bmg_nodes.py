@@ -1607,22 +1607,6 @@ class AdditionNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    @property
-    def can_be_complement(self) -> bool:
-        if self.left.inf_type == One:
-            other = self.right
-            if isinstance(other, NegateNode):
-                it = other.operand.inf_type
-                if supremum(it, Probability) == Probability:
-                    return True
-        if self.right.inf_type == One:
-            other = self.left
-            if isinstance(other, NegateNode):
-                it = other.operand.inf_type
-                if supremum(it, Probability) == Probability:
-                    return True
-        return False
-
     def _compute_inf_type(self) -> BMGLatticeType:
         # The BMG addition node requires:
         # * the operands and the result type to be the same
@@ -1647,13 +1631,6 @@ class AdditionNode(BinaryOperatorNode):
 
     @property
     def requirements(self) -> List[Requirement]:
-        # If we have 1 + (-P), 1 + (-B), (-P) + 1 or (-B) + 1, then
-        # the nodes already meet their requirements and we will convert
-        # this to a complement.
-
-        if self.can_be_complement:
-            return [self.left.inf_type, self.right.inf_type]
-
         # We require that the input types of an addition be exactly the same.
         # In order to minimize the output type of the node we will take the
         # supremum of the infimums of the input types, and then require that
