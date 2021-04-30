@@ -14,6 +14,7 @@ from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_requirements import RequirementsFixer
 from beanmachine.ppl.compiler.fix_tensor_ops import TensorOpsFixer
 from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 # Some notes on ordering:
@@ -42,6 +43,7 @@ _standard_fixer_types: List[Type] = [
 
 def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorReport:
     bmg._begin(prof.fix_problems)
+    typer = LatticeTyper()
     fixer_types: List[Type] = _standard_fixer_types
     errors = ErrorReport()
     if fix_observe_true:
@@ -49,7 +51,7 @@ def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorRe
         fixer_types = fixer_types + [ObserveTrueFixer]
     for fixer_type in fixer_types:
         bmg._begin(fixer_type.__name__)
-        fixer = fixer_type(bmg)
+        fixer = fixer_type(bmg, typer)
         fixer.fix_problems()
         bmg._finish(fixer_type.__name__)
         errors = fixer.errors

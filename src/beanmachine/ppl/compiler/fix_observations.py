@@ -11,6 +11,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     type_of_value,
 )
 from beanmachine.ppl.compiler.error_report import ErrorReport, ImpossibleObservation
+from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
 class ObservationsFixer:
@@ -21,10 +22,16 @@ class ObservationsFixer:
 
     errors: ErrorReport
     bmg: BMGraphBuilder
+    _typer: TyperBase
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
+    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
+        # The typer is not actually needed but the caller assumes that
+        # all problem fixers need a typer to either get types or propagate
+        # updates. This fixer does neither, since it only works on leaf nodes
+        # and types of values.
         self.errors = ErrorReport()
         self.bmg = bmg
+        self._typer = typer
 
     def fix_problems(self) -> None:
         for o in self.bmg.all_observations():

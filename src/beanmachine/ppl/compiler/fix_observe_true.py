@@ -14,6 +14,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
 )
 from beanmachine.ppl.compiler.bmg_types import Boolean
 from beanmachine.ppl.compiler.error_report import ErrorReport
+from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
 def _is_conversion(n: BMGNode) -> bool:
@@ -51,10 +52,17 @@ class ObserveTrueFixer:
     #         --> EXP_PRODUCT
 
     bmg: BMGraphBuilder
-    errors = ErrorReport()
+    errors: ErrorReport
+    _typer: TyperBase
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
+    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
+        # The typer is not actually needed but the caller assumes that
+        # all problem fixers need a typer to either get types or propagate
+        # updates. This fixer does neither, since it only works on leaf nodes
+        # and types of values.
         self.bmg = bmg
+        self.errors = ErrorReport()
+        self._typer = typer
 
     def _fix_observation(self, o: Observation) -> None:
         if o.graph_type != Boolean or not o.value:

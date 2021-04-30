@@ -13,6 +13,7 @@ import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 from torch import Tensor
 
 
@@ -29,10 +30,12 @@ class RequirementsFixer:
 
     errors: ErrorReport
     bmg: BMGraphBuilder
+    _typer: LatticeTyper
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         self.errors = ErrorReport()
         self.bmg = bmg
+        self._typer = typer
 
     def _meet_constant_requirement(
         self,
@@ -282,7 +285,13 @@ class RequirementsFixer:
             # are not necessarily the best ones for displaying errors.
             # Consider fixing this.
             edges = get_edge_labels(node)
+            node_was_updated = False
             for i in range(len(requirements)):
-                node.inputs[i] = self.meet_requirement(
+                new_input = self.meet_requirement(
                     node.inputs[i], requirements[i], node, edges[i]
                 )
+                if node.inputs[i] is not new_input:
+                    node.inputs[i] = new_input
+                    node_was_updated = True
+            if node_was_updated:
+                self._typer.update_type(node)

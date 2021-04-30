@@ -6,14 +6,17 @@ from typing import Optional
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import BMGError, ErrorReport
+from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
 class ProblemFixerBase(ABC):
     _bmg: BMGraphBuilder
+    _typer: TyperBase
     errors: ErrorReport
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
+    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
         self._bmg = bmg
+        self._typer = typer
         self.errors = ErrorReport()
 
     @abstractmethod
@@ -34,12 +37,15 @@ class ProblemFixerBase(ABC):
         reported = set()
         nodes = self._bmg.all_ancestor_nodes()
         for node in nodes:
+            node_was_updated = False
             for i in range(len(node.inputs)):
                 c = node.inputs[i]
                 # Have we already replaced this input with something?
                 # If so, no need to compute the replacement again.
                 if c in replacements:
-                    node.inputs[i] = replacements[c]
+                    if node.inputs[i] is not replacements[c]:
+                        node.inputs[i] = replacements[c]
+                        node_was_updated = True
                     continue
                 # Does the input need fixing at all?
                 if not self._needs_fixing(c):
@@ -47,8 +53,10 @@ class ProblemFixerBase(ABC):
                 # The input needs fixing. Get the replacement.
                 replacement = self._get_replacement(c)
                 if replacement is not None:
-                    node.inputs[i] = replacement
                     replacements[c] = replacement
+                    if node.inputs[i] is not replacement:
+                        node.inputs[i] = replacement
+                        node_was_updated = True
                     continue
                 # It needed fixing but we did not succeed. Have we already
                 # reported this error?  If so, no need to compute the error.
@@ -60,3 +68,5 @@ class ProblemFixerBase(ABC):
                 error = self._get_error(node, i)
                 if error is not None:
                     self.errors.add_error(error)
+            if node_was_updated:
+                self._typer.update_type(node)

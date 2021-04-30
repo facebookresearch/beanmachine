@@ -9,6 +9,7 @@ from beanmachine.ppl.compiler.bmg_types import PositiveReal
 from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 from beanmachine.ppl.compiler.graph_labels import get_edge_label
+from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
 class UnsupportedNodeFixer(ProblemFixerBase):
@@ -16,8 +17,8 @@ class UnsupportedNodeFixer(ProblemFixerBase):
     fix all uses of unsupported operators by replacing them with semantically
     equivalent nodes that are supported by BMG."""
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
-        ProblemFixerBase.__init__(self, bmg)
+    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
+        ProblemFixerBase.__init__(self, bmg, typer)
 
     def _replace_division(self, node: bn.DivisionNode) -> Optional[bn.BMGNode]:
         # BMG has no division node. We replace division by a constant with

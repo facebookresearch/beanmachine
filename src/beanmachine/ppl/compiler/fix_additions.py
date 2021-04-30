@@ -6,6 +6,7 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 class AdditionFixer(ProblemFixerBase):
@@ -15,8 +16,8 @@ class AdditionFixer(ProblemFixerBase):
     * add(1, negate(prob)) or add(negate(prob), 1) -> complement(prob)
     * add(1, negate(bool)) or add(negate(bool), 1) -> complement(bool)"""
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
-        ProblemFixerBase.__init__(self, bmg)
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
+        ProblemFixerBase.__init__(self, bmg, typer)
 
     def _can_be_complement(self, n: bn.AdditionNode) -> bool:
         if bn.is_one(n.left):
