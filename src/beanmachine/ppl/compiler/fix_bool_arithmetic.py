@@ -6,11 +6,12 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 class BoolArithmeticFixer(ProblemFixerBase):
-    def __init__(self, bmg: BMGraphBuilder) -> None:
-        ProblemFixerBase.__init__(self, bmg)
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
+        ProblemFixerBase.__init__(self, bmg, typer)
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
         # We can simplify 1*anything, 0*anything or bool*anything

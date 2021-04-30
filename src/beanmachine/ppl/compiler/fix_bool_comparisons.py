@@ -6,14 +6,15 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_types import Boolean, supremum
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 class BoolComparisonFixer(ProblemFixerBase):
     """This class takes a Bean Machine Graph builder and replaces all comparison
     operators whose operands are bool with semantically equivalent IF nodes."""
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
-        ProblemFixerBase.__init__(self, bmg)
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
+        ProblemFixerBase.__init__(self, bmg, typer)
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
         return (

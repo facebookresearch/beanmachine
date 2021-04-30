@@ -5,6 +5,7 @@ from typing import Optional
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
+from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
 class MultiaryOperatorFixer(ProblemFixerBase):
@@ -15,8 +16,8 @@ class MultiaryOperatorFixer(ProblemFixerBase):
 
     # TODO: Do the same for multiplication.
 
-    def __init__(self, bmg: BMGraphBuilder) -> None:
-        ProblemFixerBase.__init__(self, bmg)
+    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
+        ProblemFixerBase.__init__(self, bmg, typer)
 
     def _single_output_is_addition(self, n: bn.BMGNode) -> bool:
         if len(n.outputs.items) != 1:
