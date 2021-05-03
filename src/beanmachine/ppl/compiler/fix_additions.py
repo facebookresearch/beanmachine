@@ -3,7 +3,6 @@
 from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
-import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
@@ -19,20 +18,17 @@ class AdditionFixer(ProblemFixerBase):
     def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         ProblemFixerBase.__init__(self, bmg, typer)
 
+    def _is_one_minus_prob(self, x: bn.BMGNode, y: bn.BMGNode) -> bool:
+        return (
+            bn.is_one(x)
+            and isinstance(y, bn.NegateNode)
+            and self._typer.is_prob_or_bool(y.operand)  # pyre-ignore
+        )
+
     def _can_be_complement(self, n: bn.AdditionNode) -> bool:
-        if bn.is_one(n.left):
-            other = n.right
-            if isinstance(other, bn.NegateNode):
-                it = other.operand.inf_type
-                if bt.supremum(it, bt.Probability) == bt.Probability:
-                    return True
-        if bn.is_one(n.right):
-            other = n.left
-            if isinstance(other, bn.NegateNode):
-                it = other.operand.inf_type
-                if bt.supremum(it, bt.Probability) == bt.Probability:
-                    return True
-        return False
+        return self._is_one_minus_prob(n.left, n.right) or self._is_one_minus_prob(
+            n.right, n.left
+        )
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
         return isinstance(n, bn.AdditionNode) and self._can_be_complement(n)

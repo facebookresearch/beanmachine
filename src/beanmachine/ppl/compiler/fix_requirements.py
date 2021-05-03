@@ -8,6 +8,8 @@ or cannot be made to meet type requirements, an error report is
 returned."""
 
 
+# TODO: Refactor this so that it inherits from the base fixer.
+
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder

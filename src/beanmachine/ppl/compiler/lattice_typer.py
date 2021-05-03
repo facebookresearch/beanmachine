@@ -242,3 +242,11 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         else:
             result = bt.Untypable
         return result
+
+    def is_bool(self, node: bn.BMGNode) -> bool:
+        t = self[node]
+        return t != bt.Untypable and bt.supremum(t, bt.Boolean) == bt.Boolean
+
+    def is_prob_or_bool(self, node: bn.BMGNode) -> bool:
+        t = self[node]
+        return t != bt.Untypable and bt.supremum(t, bt.Probability) == bt.Probability
