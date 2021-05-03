@@ -4,7 +4,7 @@ from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bmg_types import Boolean, supremum
+from beanmachine.ppl.compiler.bmg_types import Boolean
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
@@ -19,7 +19,8 @@ class BoolComparisonFixer(ProblemFixerBase):
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
         return (
             isinstance(n, bn.ComparisonNode)
-            and supremum(n.left.inf_type, n.right.inf_type, Boolean) == Boolean
+            and self._typer.is_bool(n.left)  # pyre-ignore
+            and self._typer.is_bool(n.right)
         )
 
     def _replace_bool_equals(self, node: bn.EqualNode) -> bn.BMGNode:
