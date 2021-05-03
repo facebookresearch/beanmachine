@@ -39,6 +39,25 @@ class RequirementsFixer:
         self.bmg = bmg
         self._typer = typer
 
+    def _type_meets_requirement(self, t: bt.BMGLatticeType, r: bt.Requirement) -> bool:
+        assert t != bt.Untypable
+        if isinstance(r, bt.AnyRequirement):
+            return True
+        if t == bt.Malformed:
+            return False
+        if isinstance(r, bt.UpperBound):
+            return bt.supremum(t, r.bound) == r.bound
+        if isinstance(r, bt.AlwaysMatrix):
+            return t == r.bound
+        return t == r
+
+    def _node_meets_requirement(self, node: bn.BMGNode, r: bt.Requirement) -> bool:
+        if isinstance(r, bt.AlwaysMatrix):
+            return node.is_matrix and self._type_meets_requirement(
+                node.graph_type, r.bound
+            )
+        return self._type_meets_requirement(node.graph_type, r)
+
     def _meet_constant_requirement(
         self,
         node: bn.ConstantNode,
@@ -47,7 +66,7 @@ class RequirementsFixer:
         edge: str,
     ) -> bn.BMGNode:
         # If the constant node already meets the requirement, we're done.
-        if bt.node_meets_requirement(node, requirement):
+        if self._node_meets_requirement(node, requirement):
             return node
 
         # It does not meet the requirement. Is there a semantically equivalent node
@@ -57,7 +76,7 @@ class RequirementsFixer:
         # If the infimum type is smaller than or equal to the required type, then the
         # node can definitely be converted to a type which meets the requirement.
 
-        if bt.type_meets_requirement(node.inf_type, bt.upper_bound(requirement)):
+        if self._type_meets_requirement(node.inf_type, bt.upper_bound(requirement)):
 
             # To what type should we convert the node to meet the requirement?
             # If the requirement is an exact bound, then that's the type we need to
@@ -70,7 +89,7 @@ class RequirementsFixer:
                 result = self.bmg.add_constant_of_matrix_type(node.value, required_type)
             else:
                 result = self.bmg.add_constant_of_type(node.value, required_type)
-            assert bt.node_meets_requirement(result, requirement)
+            assert self._node_meets_requirement(result, requirement)
             return result
 
         # We cannot convert this node to any type that meets the requirement.
@@ -201,7 +220,7 @@ class RequirementsFixer:
         edge: str,
     ) -> bn.BMGNode:
         # If the operator node already meets the requirement, we're done.
-        if bt.node_meets_requirement(node, requirement):
+        if self._node_meets_requirement(node, requirement):
             return node
 
         # It does not meet the requirement. Can we convert this thing to a node
@@ -211,7 +230,7 @@ class RequirementsFixer:
 
         it = node.inf_type
 
-        if not bt.type_meets_requirement(it, bt.upper_bound(requirement)):
+        if not self._type_meets_requirement(it, bt.upper_bound(requirement)):
             # We cannot make the node meet the requirement "implicitly". However
             # there is one situation where we can "explicitly" meet a requirement:
             # an operator of type real or positive real used as a probability.
@@ -220,7 +239,7 @@ class RequirementsFixer:
                 operand = self.meet_requirement(node, it, consumer, edge)
                 # Force the real / positive real to probability:
                 result = self.bmg.add_to_probability(operand)
-                assert bt.node_meets_requirement(result, requirement)
+                assert self._node_meets_requirement(result, requirement)
                 return result
 
             # We have no way to make the conversion we need, so add an error.
@@ -248,7 +267,7 @@ class RequirementsFixer:
         # but the result of the conversion is a positive real value.  We need
         # to handle that case.
 
-        assert bt.node_meets_requirement(result, requirement)
+        assert self._node_meets_requirement(result, requirement)
         return result
 
     def meet_requirement(

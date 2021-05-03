@@ -25,9 +25,7 @@ from beanmachine.ppl.compiler.bmg_types import (
     ZeroMatrix,
     bottom,
     supremum,
-    type_meets_requirement,
     type_of_value,
-    upper_bound,
 )
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import tensor
@@ -128,14 +126,6 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(
             Tensor, type_of_value(tensor([[[0, 0], [0, 0]], [[0, 0], [0, 0]]]))
         )
-
-    def test_type_meets_requirement(self) -> None:
-        """test_type_meets_requirement"""
-        self.assertFalse(type_meets_requirement(Natural, Boolean))
-        self.assertTrue(type_meets_requirement(Natural, Natural))
-        self.assertTrue(type_meets_requirement(Boolean, upper_bound(Natural)))
-        self.assertTrue(type_meets_requirement(Natural, upper_bound(Natural)))
-        self.assertFalse(type_meets_requirement(PositiveReal, upper_bound(Natural)))
 
     def test_types_in_dot(self) -> None:
         """test_types_in_dot"""
