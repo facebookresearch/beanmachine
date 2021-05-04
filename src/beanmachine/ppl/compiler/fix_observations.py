@@ -7,11 +7,12 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
+    Untypable,
     supremum,
     type_of_value,
 )
 from beanmachine.ppl.compiler.error_report import ErrorReport, ImpossibleObservation
-from beanmachine.ppl.compiler.typer_base import TyperBase
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 class ObservationsFixer:
@@ -22,13 +23,9 @@ class ObservationsFixer:
 
     errors: ErrorReport
     bmg: BMGraphBuilder
-    _typer: TyperBase
+    _typer: LatticeTyper
 
-    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
-        # The typer is not actually needed but the caller assumes that
-        # all problem fixers need a typer to either get types or propagate
-        # updates. This fixer does neither, since it only works on leaf nodes
-        # and types of values.
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         self.errors = ErrorReport()
         self.bmg = bmg
         self._typer = typer
@@ -36,15 +33,17 @@ class ObservationsFixer:
     def fix_problems(self) -> None:
         for o in self.bmg.all_observations():
             v = o.value
-            inf = type_of_value(v)
-            gt = o.observed.graph_type
-            if supremum(inf, gt) != gt:
-                self.errors.add_error(ImpossibleObservation(o))
-            elif gt == Boolean:
+            value_type = type_of_value(v)
+            assert value_type != Untypable
+            sample_type = self._typer[o.observed]
+            assert sample_type != Untypable
+            if supremum(value_type, sample_type) != sample_type:
+                self.errors.add_error(ImpossibleObservation(o, sample_type))
+            elif sample_type == Boolean:
                 o.value = bool(v)
-            elif gt == Natural:
+            elif sample_type == Natural:
                 o.value = int(v)
-            elif gt in {Probability, PositiveReal, Real}:
+            elif sample_type in {Probability, PositiveReal, Real}:
                 o.value = float(v)
             else:
                 # TODO: How should we deal with observations of
