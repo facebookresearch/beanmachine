@@ -8,11 +8,10 @@ or cannot be made to meet type requirements, an error report is
 returned."""
 
 
-# TODO: Refactor this so that it inherits from the base fixer.
-
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bmg_requirements import EdgeRequirements
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
@@ -33,11 +32,13 @@ class RequirementsFixer:
     errors: ErrorReport
     bmg: BMGraphBuilder
     _typer: LatticeTyper
+    _reqs: EdgeRequirements
 
     def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         self.errors = ErrorReport()
         self.bmg = bmg
         self._typer = typer
+        self._reqs = EdgeRequirements(typer)
 
     def _type_meets_requirement(self, t: bt.BMGLatticeType, r: bt.Requirement) -> bool:
         assert t != bt.Untypable
@@ -75,8 +76,8 @@ class RequirementsFixer:
         # The inf type is defined as the smallest type to which the node can be converted.
         # If the infimum type is smaller than or equal to the required type, then the
         # node can definitely be converted to a type which meets the requirement.
-
-        if self._type_meets_requirement(node.inf_type, bt.upper_bound(requirement)):
+        it = self._typer[node]
+        if self._type_meets_requirement(it, bt.upper_bound(requirement)):
 
             # To what type should we convert the node to meet the requirement?
             # If the requirement is an exact bound, then that's the type we need to
@@ -107,26 +108,7 @@ class RequirementsFixer:
         # The only edges which point to distributions are samples, and the requirement
         # on that edge is always met automatically.
         assert isinstance(consumer, bn.SampleNode)
-        assert requirement == node.inf_type
-        return node
-
-    def _meet_map_requirement(
-        self,
-        node: bn.MapNode,
-        requirement: bt.Requirement,
-        consumer: bn.BMGNode,
-        edge: str,
-    ) -> bn.BMGNode:
-        # The only edges which point to maps are indexes, and the requirement
-        # on that edge is always met automatically.
-        # TODO: We do not support map nodes in BMG yet, so:
-        # TODO: (1) this code path is not exercised by any test case; when
-        # TODO: we support map nodes, add a test case.
-        # TODO: (2) until we do support map nodes in BMG, we should add an
-        # TODO: error reporting pass to this code that detects map nodes
-        # TODO: and gives an unsupported node type error.
-        assert isinstance(consumer, bn.IndexNodeDeprecated)
-        assert requirement == node.inf_type
+        assert requirement == self._typer[node]
         return node
 
     def _convert_node(
@@ -140,7 +122,7 @@ class RequirementsFixer:
         # but it can be converted to a node which does meet the requirement
         # that has the same semantics. Start by confirming those preconditions.
         assert node.graph_type != requirement
-        assert bt.supremum(node.inf_type, requirement) == requirement
+        assert bt.supremum(self._typer[node], requirement) == requirement
 
         # TODO: We no longer support Tensor as a type in BMG.  We must
         # detect, and produce a good error message, for situations
@@ -171,7 +153,7 @@ class RequirementsFixer:
         # Our precondition is that the requirement is larger than the
         # inf type of the node.
 
-        assert bt.supremum(node.inf_type, bt.Boolean) == bt.Boolean
+        assert self._typer.is_bool(node)
 
         # There is no "to natural" or "to probability" but since we have
         # a bool in hand, we can use an if-then-else as a conversion.
@@ -228,7 +210,7 @@ class RequirementsFixer:
         # smallest type that this node is convertible to, so if the inf type
         # meets an upper bound requirement, then the conversion we want exists.
 
-        it = node.inf_type
+        it = self._typer[node]
 
         if not self._type_meets_requirement(it, bt.upper_bound(requirement)):
             # We cannot make the node meet the requirement "implicitly". However
@@ -292,8 +274,6 @@ class RequirementsFixer:
             return self._meet_distribution_requirement(
                 node, requirement, consumer, edge
             )
-        if isinstance(node, bn.MapNode):
-            return self._meet_map_requirement(node, requirement, consumer, edge)
         if isinstance(node, bn.OperatorNode):
             return self._meet_operator_requirement(node, requirement, consumer, edge)
         raise AssertionError("Unexpected node type")
@@ -301,7 +281,7 @@ class RequirementsFixer:
     def fix_problems(self) -> None:
         nodes = self.bmg.all_ancestor_nodes()
         for node in nodes:
-            requirements = node.requirements
+            requirements = self._reqs.requirements(node)
             # TODO: The edge labels used to visualize the graph in DOT
             # are not necessarily the best ones for displaying errors.
             # Consider fixing this.
