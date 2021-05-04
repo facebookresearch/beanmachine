@@ -752,25 +752,6 @@ def always_matrix(bound: BMGMatrixType) -> Requirement:
     return AlwaysMatrix(bound)
 
 
-def node_meets_requirement(node, r: Requirement) -> bool:
-    if isinstance(r, AlwaysMatrix):
-        return node.is_matrix and type_meets_requirement(node.graph_type, r.bound)
-    return type_meets_requirement(node.graph_type, r)
-
-
-def type_meets_requirement(t: BMGLatticeType, r: Requirement) -> bool:
-    assert t != Untypable
-    if isinstance(r, AnyRequirement):
-        return True
-    if t == Malformed:
-        return False
-    if isinstance(r, UpperBound):
-        return _supremum(t, r.bound) == r.bound
-    if isinstance(r, AlwaysMatrix):
-        return t == r.bound
-    return t == r
-
-
 def requirement_to_type(r: Requirement) -> BMGLatticeType:
     if isinstance(r, UpperBound):
         return r.bound
