@@ -95,7 +95,7 @@ class RequirementsFixer:
 
         # We cannot convert this node to any type that meets the requirement.
         # Add an error.
-        self.errors.add_error(Violation(node, requirement, consumer, edge))
+        self.errors.add_error(Violation(node, it, requirement, consumer, edge))
         return node
 
     def _meet_distribution_requirement(
@@ -225,7 +225,7 @@ class RequirementsFixer:
                 return result
 
             # We have no way to make the conversion we need, so add an error.
-            self.errors.add_error(Violation(node, requirement, consumer, edge))
+            self.errors.add_error(Violation(node, it, requirement, consumer, edge))
             return node
 
         # We definitely can meet the requirement; it just remains to figure

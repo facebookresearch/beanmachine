@@ -26,14 +26,21 @@ class BMGError(ABC):
 
 class Violation(BMGError):
     node: BMGNode
+    node_type: BMGLatticeType
     requirement: Requirement
     consumer: BMGNode
     edge: str
 
     def __init__(
-        self, node: BMGNode, requirement: Requirement, consumer: BMGNode, edge: str
+        self,
+        node: BMGNode,
+        node_type: BMGLatticeType,
+        requirement: Requirement,
+        consumer: BMGNode,
+        edge: str,
     ) -> None:
         self.node = node
+        self.node_type = node_type
         self.requirement = requirement
         self.consumer = consumer
         self.edge = edge
@@ -47,21 +54,23 @@ class Violation(BMGError):
         msg = (
             f"The {self.edge} of a {get_node_label(self.consumer)} "
             + f"is required to be a {t.long_name} "
-            + f"but is a {self.node.inf_type.long_name}."
+            + f"but is a {self.node_type.long_name}."
         )
         return msg
 
 
 class ImpossibleObservation(BMGError):
     node: Observation
+    distribution_type: BMGLatticeType
 
-    def __init__(self, node: Observation) -> None:
+    def __init__(self, node: Observation, distribution_type: BMGLatticeType) -> None:
         self.node = node
+        self.distribution_type = distribution_type
 
     def __str__(self) -> str:
         v = self.node.value
         d = get_node_label(self.node.observed.operand)
-        t = self.node.inf_type.long_name
+        t = self.distribution_type.long_name
         msg = (
             f"A {d} distribution is observed to have value {v} "
             + f"but only produces samples of type {t}."
