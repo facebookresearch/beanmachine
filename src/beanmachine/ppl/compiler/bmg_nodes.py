@@ -10,7 +10,6 @@ from typing import Any, Iterable, List
 import beanmachine.ppl.compiler.bmg_types as bt
 import torch
 from beanmachine.ppl.compiler.bmg_types import (
-    AnyRequirement,
     BMGLatticeType,
     BMGMatrixType,
     Boolean,
@@ -21,14 +20,11 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
-    Requirement,
     SimplexMatrix,
     Tensor as BMGTensor,
     ZeroMatrix,
-    always_matrix,
     supremum,
     type_of_value,
-    upper_bound,
 )
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor, tensor
@@ -214,15 +210,6 @@ class BMGNode(ABC):
 
     @property
     @abstractmethod
-    def requirements(self) -> List[Requirement]:
-        """BMG nodes have type requirements on their inputs; this property
-        produces a list of Requirements; a type indicates an exact Requirement;
-        an UpperBound indicates that the input must be smaller than or equal to
-        the Requirement."""
-        pass
-
-    @property
-    @abstractmethod
     def size(self) -> torch.Size:
         """The tensor size associated with this node.
         If the node represents a scalar value then produce Size([])."""
@@ -315,10 +302,6 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
         # "what types can this node be converted to?" and not "what is the
         # type of this node?"
         return type_of_value(self.value)
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return []
 
     # The support of a constant is just the value.
     def support(self) -> Iterable[Any]:
@@ -579,14 +562,6 @@ class TensorNode(BMGNode):
         return BMGTensor
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # TODO: When eventually we get a representation of these in BMG, we will
-        # need to make every input required to be the supremum of the inf types of
-        # all the inputs. Until then, just make every input required to be whatever
-        # it already is.
-        return [i.inf_type for i in self.inputs]
-
-    @property
     def size(self) -> torch.Size:
         return self._size
 
@@ -647,10 +622,6 @@ class BernoulliNode(BernoulliBase):
     def __init__(self, probability: BMGNode):
         BernoulliBase.__init__(self, probability)
 
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [Probability]
-
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
 
@@ -661,10 +632,6 @@ class BernoulliLogitNode(BernoulliBase):
 
     def __init__(self, probability: BMGNode):
         BernoulliBase.__init__(self, probability)
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [Real]
 
     def __str__(self) -> str:
         return "Bernoulli(" + str(self.probability) + ")"
@@ -690,11 +657,6 @@ class BetaNode(DistributionNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return Probability
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # Both inputs to a beta must be positive reals
-        return [PositiveReal, PositiveReal]
 
     @property
     def size(self) -> torch.Size:
@@ -789,10 +751,6 @@ class BinomialNode(BinomialNodeBase):
     def __init__(self, count: BMGNode, probability: BMGNode, is_logits: bool = False):
         BinomialNodeBase.__init__(self, count, probability)
 
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [Natural, Probability]
-
 
 class BinomialLogitNode(BinomialNodeBase):
     """The Binomial distribution is the extension of the
@@ -806,10 +764,6 @@ class BinomialLogitNode(BinomialNodeBase):
 
     def __init__(self, count: BMGNode, probability: BMGNode):
         BinomialNodeBase.__init__(self, count, probability)
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [Natural, Real]
 
 
 # TODO: Split this into two distributions as with binomial and Bernoulli.
@@ -859,14 +813,6 @@ class CategoricalNode(DistributionNode):
         return Natural
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # The input to a categorical must be a tensor.
-        # TODO: We do not yet support categoricals in BMG and when we do,
-        # we will likely need to implement a simplex type rather than
-        # a tensor. Fix this up when categoricals are implemented.
-        return [BMGTensor]
-
-    @property
     def size(self) -> torch.Size:
         return self.probability.size[0:-1]  # pyre-ignore
 
@@ -900,10 +846,6 @@ class Chi2Node(DistributionNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return PositiveReal
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [PositiveReal]
 
     @property
     def size(self) -> torch.Size:
@@ -951,32 +893,6 @@ class DirichletNode(DistributionNode):
         return max(1, size[dimensions - 1]) if dimensions > 0 else 1
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # BMG's Dirichlet node requires that the input be exactly one
-        # vector of positive reals, and the length of the vector is
-        # the number of elements in the simplex we produce. We can
-        # express that restriction as a positive real matrix with
-        # row count equal to 1 and column count equal to the final
-        # dimension of the size.
-        #
-        # A degenerate case here is Dirichlet(tensor([1.0])); we would
-        # normally generate the input as a positive real constant, but
-        # we require that it be a positive real constant 1x1 *matrix*,
-        # which is a different node. The "always matrix" requirement
-        # forces the problem fixer to ensure that the input node is
-        # always considered by BMG to be a matrix.
-        #
-        # TODO: BMG requires it to be a *broadcast* matrix; what happens
-        # if we feed one Dirichlet into another?  That would be a simplex,
-        # not a broadcast matrix. Do some research here; do we actually
-        # need the semantics of "always a broadcast matrix" ?
-
-        required_rows = 1
-        required_columns = self._required_columns
-        t = PositiveReal.with_dimensions(required_rows, required_columns)
-        return [always_matrix(t)]
-
-    @property
     def size(self) -> torch.Size:
         return self.concentration.size
 
@@ -1005,10 +921,6 @@ class FlatNode(DistributionNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return Probability
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return []
 
     @property
     def size(self) -> torch.Size:
@@ -1042,10 +954,6 @@ class GammaNode(DistributionNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return PositiveReal
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [PositiveReal, PositiveReal]
 
     @property
     def size(self) -> torch.Size:
@@ -1091,11 +999,6 @@ class HalfCauchyNode(DistributionNode):
         return PositiveReal
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # The input to a HalfCauchy must be a positive real.
-        return [PositiveReal]
-
-    @property
     def size(self) -> torch.Size:
         return self.scale.size
 
@@ -1133,12 +1036,6 @@ class NormalNode(DistributionNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return Real
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # The mean of a normal must be a real; the standard deviation
-        # must be a positive real.
-        return [Real, PositiveReal]
 
     @property
     def size(self) -> torch.Size:
@@ -1188,10 +1085,6 @@ class StudentTNode(DistributionNode):
         return Real
 
     @property
-    def requirements(self) -> List[Requirement]:
-        return [PositiveReal, Real, PositiveReal]
-
-    @property
     def size(self) -> torch.Size:
         return self.df.size
 
@@ -1235,14 +1128,6 @@ class UniformNode(DistributionNode):
         # TODO: We will probably need to be smarter here
         # once this is implemented in BMG.
         return Real
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # TODO: We do not yet support arbitrary Uniform distributions in
-        # BMG; when we do, revisit this code.
-        # TODO: If we know that a Uniform is bounded by constants 0.0 and 1.0,
-        # we can generate a Flat distribution node for BMG.
-        return [Real, Real]
 
     @property
     def size(self) -> torch.Size:
@@ -1313,13 +1198,6 @@ class MultiAdditionNode(OperatorNode):
         return Real
 
     @property
-    def requirements(self) -> List[Requirement]:
-        s = supremum(*[i.inf_type for i in self.inputs])
-        if s not in {Real, NegativeReal, PositiveReal}:
-            s = Real
-        return [s] * len(self.inputs)  # pyre-ignore
-
-    @property
     def size(self) -> torch.Size:
         return self.inputs[0].size
 
@@ -1388,13 +1266,6 @@ class LogSumExpNode(OperatorNode):
         return Real
 
     @property
-    def requirements(self) -> List[Requirement]:
-        s = supremum(*[i.inf_type for i in self.inputs])
-        if s not in {Real, NegativeReal, PositiveReal}:
-            s = Real
-        return [s] * len(self.inputs)  # pyre-ignore
-
-    @property
     def size(self) -> torch.Size:
         # TODO: If we ever support logsumexp on a dimension other than 1
         # then we will need to update this.
@@ -1438,16 +1309,6 @@ class IfThenElseNode(OperatorNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return supremum(self.consequence.inf_type, self.alternative.inf_type)
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # We require that the consequence and alternative types of the if-then-else
-        # be exactly the same. In order to minimize the output type of the node
-        # we will take the supremum of the infimums of the input types, and then
-        # require that the inputs each be of that type.
-        # The condition input must be a bool.
-        it = self.inf_type
-        return [Boolean, it, it]
 
     @property
     def condition(self) -> BMGNode:
@@ -1509,10 +1370,6 @@ class ComparisonNode(BinaryOperatorNode, metaclass=ABCMeta):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Boolean
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [self.left.inf_type, self.right.inf_type]
 
     @property
     def size(self) -> torch.Size:
@@ -1629,15 +1486,6 @@ class AdditionNode(BinaryOperatorNode):
         return Malformed
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # We require that the input types of an addition be exactly the same.
-        # In order to minimize the output type of the node we will take the
-        # supremum of the infimums of the input types, and then require that
-        # the inputs each be of that type.
-        it = self.inf_type
-        return [it, it]
-
-    @property
     def size(self) -> torch.Size:
         return (torch.zeros(self.left.size) + torch.zeros(self.right.size)).size()
 
@@ -1687,12 +1535,6 @@ class DivisionNode(BinaryOperatorNode):
         if lgt != PositiveReal and lgt != Real and lgt != BMGTensor:
             return Malformed
         return lgt
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # We require that both inputs be the same as the output.
-        it = self.inf_type
-        return [it, it]
 
 
 class MapNode(BMGNode):
@@ -1779,13 +1621,6 @@ class MapNode(BMGNode):
         return first
 
     @property
-    def requirements(self) -> List[Requirement]:
-        it = self.inf_type
-        # TODO: This isn't quite right; when we support this kind of node
-        # in BMG, fix this.
-        return [upper_bound(BMGTensor), it] * (len(self.inputs) // 2)
-
-    @property
     def size(self) -> torch.Size:
         return self.inputs[1].size
 
@@ -1837,13 +1672,6 @@ class IndexNodeDeprecated(BinaryOperatorNode):
         return self.left.graph_type
 
     @property
-    def requirements(self) -> List[Requirement]:
-        it = self.inf_type
-        # TODO: This isn't quite right; when we support this kind of node
-        # in BMG, fix this.
-        return [upper_bound(BMGTensor), it]
-
-    @property
     def size(self) -> torch.Size:
         return self.left.size
 
@@ -1870,7 +1698,6 @@ class IndexNode(BinaryOperatorNode):
         lt = self.left.inf_type
         if isinstance(lt, OneHotMatrix):
             return Boolean
-        # See notes in "requirements", below.
         if isinstance(lt, ZeroMatrix):
             return Boolean
         if isinstance(lt, SimplexMatrix):
@@ -1891,114 +1718,6 @@ class IndexNode(BinaryOperatorNode):
         if isinstance(lt, BMGMatrixType):
             return lt.with_dimensions(1, 1)
         return Malformed
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # The index operator introduces an interesting wrinkle into the
-        # "requirements" computation. Until now we have always had the property
-        # that queries and observations are "sinks" of the graph, and the transitive
-        # closure of the inputs to the sinks can have their requirements checked in
-        # order going from the nodes farthest from the sinks down to the sinks.
-        # That is, each node can meet its input requirements *before* its output
-        # nodes meet their requirements. We now have a case where doing so creates
-        # potential inefficiencies.
-        #
-        # B is the constant vector [0, 1, 1]
-        # N is any node of type natural.
-        # I is an index
-        # F is Bernoulli.
-        #
-        #   B N
-        #   | |
-        #    I
-        #    |
-        #    F
-        #
-        # The requirement on edge I->F is Probability
-        # The requirement on edge N->I is Natural.
-        # What is the requirement on the B->I edge?
-        #
-        # If we say that it is Boolean[1, 3], its inf type, then the graph we end up
-        # generating is
-        #
-        # b = const_bool_matrix([0, 1, 1])  # bool matrix
-        # n = whatever                      # natural
-        # i = index(b, i)                   # bool
-        # z = const_prob(0)                 # prob
-        # o = const_prob(1)                 # prob
-        # c = if_then_else(i, o, z)         # prob
-        # f = Bernoulli(c)                  # bool
-        #
-        # But it would be arguably better to produce
-        #
-        # b = const_prob_matrix([0, 1, 1])  # prob matrix
-        # n = whatever                      # natural
-        # i = index(b, i)                   # prob
-        # f = Bernoulli(i)                  # bool
-        #
-        # TODO: We might consider an optimization pass which does so.
-        #
-        # However there is an even worse situation. Suppose we have
-        # this unlikely-but-legal graph:
-        #
-        # Z is [0, 0, 0]
-        # N is any natural
-        # I is an index
-        # C requires a Boolean input
-        # L requires a NegativeReal input
-        #
-        #    Z   N
-        #     | |
-        #      I
-        #     | |
-        #    C   L
-        #
-        # The inf type of Z is Zero[1, 3].
-        # The I->C edge requirement is Boolean
-        # The I->L edge requirement is NegativeReal
-        #
-        # Now what requirement do we impose on the Z->I edge? We have our choice
-        # of "matrix of negative reals" or "matrix of bools", and whichever we
-        # pick will disappoint someone.
-        #
-        # Fortunately for us, this situation is unlikely; a model writer who
-        # contrives a situation where they are making a stochastic choice where
-        # all choices are all zero AND that zero needs to be used as both
-        # false and a negative number is not writing realistic models.
-        #
-        # What we will do in this unlikely situation is decide that the intended
-        # output type is Boolean and therefore the vector is a vector of bools.
-        #
-        # -----
-        #
-        # We require:
-        # * the vector must be one row
-        # * the vector must be a matrix, not a single value
-        # * the vector must be either a simplex, or a matrix where the element
-        #   type is the output type of the indexing operation
-        # * the index must be a natural
-        #
-
-        lt = self.left.inf_type
-
-        # If we have a tensor that has more than two dimensions, who can
-        # say what the column count should be?
-
-        # TODO: We need a better error message for that scenario.
-        # It will be common for people to use tensors that are too high
-        # dimension for BMG to handle and we should say that clearly.
-
-        required_columns = lt.columns if isinstance(lt, BMGMatrixType) else 1
-        required_rows = 1
-
-        if isinstance(lt, SimplexMatrix):
-            vector_req = lt.with_dimensions(required_rows, required_columns)
-        else:
-            it = self.inf_type
-            assert isinstance(it, BMGMatrixType)
-            vector_req = it.with_dimensions(required_rows, required_columns)
-
-        return [always_matrix(vector_req), Natural]
 
     @property
     def size(self) -> torch.Size:
@@ -2028,12 +1747,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         if self.left.graph_type == self.right.graph_type:
             return self.left.graph_type
         return Malformed
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # TODO: Fix this
-        it = self.inf_type
-        return [it, it]
 
     @property
     def size(self) -> torch.Size:
@@ -2076,21 +1789,6 @@ class MultiplicationNode(BinaryOperatorNode):
         if supremum(it, Real) == Real:
             return it
         return Real
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # As noted above, we have special handling if an operand to a multiplication
-        # is a Boolean. In those cases, we can simply impose a requirement that can
-        # always be met: that the operands be of their inf types.
-        lit = self.left.inf_type
-        rit = self.right.inf_type
-        if lit == Boolean or rit == Boolean:
-            return [lit, rit]
-        # If we're not in one of those special cases then we require that both
-        # operands be the inf type, which, recall, is the sup of the left, right
-        # and Probability.
-        it = self.inf_type
-        return [it, it]
 
     @property
     def size(self) -> torch.Size:
@@ -2157,28 +1855,6 @@ class PowerNode(BinaryOperatorNode):
         return lt
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # P ** R+
-        # P ** R
-        # R+ ** R+
-        # R+ ** R
-        # R ** R+
-        # R ** R
-
-        # TODO: This is wrong
-
-        inf_base = self.left.inf_type
-        inf_exp = supremum(Boolean, self.right.inf_type)
-
-        if inf_base == Tensor or inf_exp == Tensor:
-            return [BMGTensor, BMGTensor]
-
-        if inf_exp == Boolean:
-            return [inf_base, inf_exp]
-
-        return [supremum(inf_base, Probability), supremum(inf_exp, PositiveReal)]
-
-    @property
     def size(self) -> torch.Size:
         return (torch.zeros(self.left.size) ** torch.zeros(self.right.size)).size()
 
@@ -2232,15 +1908,6 @@ class ExpNode(UnaryOperatorNode):
         return Malformed
 
     @property
-    def requirements(self) -> List[Requirement]:
-        ot = self.operand.inf_type
-        if supremum(ot, NegativeReal) == NegativeReal:
-            return [NegativeReal]
-        if supremum(ot, PositiveReal) == PositiveReal:
-            return [PositiveReal]
-        return [Real]
-
-    @property
     def size(self) -> torch.Size:
         return self.operand.size
 
@@ -2281,10 +1948,6 @@ class ExpM1Node(UnaryOperatorNode):
         return Malformed
 
     @property
-    def requirements(self) -> List[Requirement]:
-        return [self.inf_type]
-
-    @property
     def size(self) -> torch.Size:
         return self.operand.size
 
@@ -2310,10 +1973,6 @@ class LogisticNode(UnaryOperatorNode):
         if ot == Real:
             return Probability
         return Malformed
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [Real]
 
     @property
     def size(self) -> torch.Size:
@@ -2354,16 +2013,6 @@ class LogNode(UnaryOperatorNode):
         return Malformed
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # If the operand is less than or equal to probability,
-        # require that it be converted to probability. Otherwise,
-        # convert it to positive real.
-        ot = supremum(self.operand.inf_type, Probability)
-        if ot == Probability:
-            return [Probability]
-        return [PositiveReal]
-
-    @property
     def size(self) -> torch.Size:
         return self.operand.size
 
@@ -2395,10 +2044,6 @@ class Log1mexpNode(UnaryOperatorNode):
         if ot == NegativeReal:
             return NegativeReal
         return Malformed
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [NegativeReal]
 
     @property
     def size(self) -> torch.Size:
@@ -2494,17 +2139,6 @@ class NegateNode(UnaryOperatorNode):
         return Malformed
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # Find the smallest type that can be used as an
-        # input requirement.
-        ot = self.operand.inf_type
-        if supremum(ot, PositiveReal) == PositiveReal:
-            return [PositiveReal]
-        if supremum(ot, NegativeReal) == NegativeReal:
-            return [NegativeReal]
-        return [Real]
-
-    @property
     def size(self) -> torch.Size:
         return self.operand.size
 
@@ -2527,11 +2161,6 @@ class NotNode(UnaryOperatorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # TODO: When we support this node in BMG, revisit this code.
-        return [self.inf_type]
 
     @property
     def size(self) -> torch.Size:
@@ -2576,11 +2205,6 @@ class ComplementNode(UnaryOperatorNode):
         return Malformed
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # We require that the input type be the same as the output type.
-        return [self.inf_type]
-
-    @property
     def size(self) -> torch.Size:
         return self.operand.size
 
@@ -2608,10 +2232,6 @@ class PhiNode(UnaryOperatorNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Probability
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [Real]
 
     @property
     def size(self) -> torch.Size:
@@ -2644,10 +2264,6 @@ class SampleNode(UnaryOperatorNode):
         return self.operand.graph_type
 
     @property
-    def requirements(self) -> List[Requirement]:
-        return [self.inf_type]
-
-    @property
     def size(self) -> torch.Size:
         return self.operand.size
 
@@ -2676,11 +2292,6 @@ class ToRealNode(UnaryOperatorNode):
         return Real
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # A ToRealNode's input must be real or smaller.
-        return [upper_bound(Real)]
-
-    @property
     def size(self) -> torch.Size:
         return torch.Size([])
 
@@ -2703,11 +2314,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
         return PositiveReal
 
     @property
-    def requirements(self) -> List[Requirement]:
-        # A ToPositiveRealNode's input must be PositiveReal or smaller.
-        return [upper_bound(PositiveReal)]
-
-    @property
     def size(self) -> torch.Size:
         return torch.Size([])
 
@@ -2727,16 +2333,6 @@ class ToProbabilityNode(UnaryOperatorNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return Probability
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # TODO: A ToProbabilityNode's input must be real, positive real
-        # or probability, but we don't have a bound for that. However,
-        # we do not need one, since this node is only ever added when
-        # a requirement violation exists in the graph! We will only
-        # add this node when it is legal to do so; it does not matter
-        # what requirement we give here.
-        return [upper_bound(Real)]
 
     @property
     def size(self) -> torch.Size:
@@ -2806,10 +2402,6 @@ class Observation(BMGNode):
         return self.observed.graph_type
 
     @property
-    def requirements(self) -> List[Requirement]:
-        return [AnyRequirement()]
-
-    @property
     def size(self) -> torch.Size:
         if isinstance(self.value, Tensor):
             return self.value.size()
@@ -2850,10 +2442,6 @@ class Query(BMGNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return self.operator.inf_type
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        return [AnyRequirement()]
 
     @property
     def size(self) -> torch.Size:
@@ -2906,17 +2494,6 @@ class ExpProductFactorNode(FactorNode):
 
     def _compute_inf_type(self) -> BMGLatticeType:
         return Real
-
-    @property
-    def requirements(self) -> List[Requirement]:
-        # Each input to an exp-power is required to be a
-        # real, negative real, positive real or probability.
-        return [
-            i.inf_type
-            if i.inf_type in {Real, NegativeReal, PositiveReal, Probability}
-            else Real
-            for i in self.inputs
-        ]
 
     @property
     def size(self) -> torch.Size:
