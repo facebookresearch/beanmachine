@@ -31,7 +31,6 @@ from beanmachine.ppl.compiler.bmg_types import (
     PositiveReal,
     Probability,
     Real,
-    upper_bound,
 )
 
 
@@ -148,98 +147,3 @@ class UnaryNodesTest(unittest.TestCase):
         self.assertEqual(ToProbabilityNode(norm).inf_type, Probability)
         self.assertEqual(ToProbabilityNode(half).inf_type, Probability)
         self.assertEqual(ToProbabilityNode(beta).inf_type, Probability)
-
-    def test_requirements_unary(self) -> None:
-        """test_requirements_unary"""
-
-        # Every node can list the *exact* types that it will accept
-        # for each input. In some cases this is independent of inputs;
-        # a Bernoulli node accepts only a Probability. In some cases
-        # this depends on inputs; a multiplication node with inputs
-        # Probability and PositiveReal requires that the Probability
-        # be converted via a ToPositiveReal node.
-
-        prob = ProbabilityNode(0.5)
-        pos = PositiveRealNode(1.5)
-        real = RealNode(-1.5)
-        nat = NaturalNode(2)
-
-        bern = SampleNode(BernoulliNode(prob))
-        beta = SampleNode(BetaNode(pos, pos))
-        bino = SampleNode(BinomialNode(nat, prob))
-        half = SampleNode(HalfCauchyNode(pos))
-        norm = SampleNode(NormalNode(real, pos))
-        neg = NegateNode(half)
-
-        # Negate requires its operand be positive real, negative real or real.
-        self.assertEqual(NegateNode(bern).requirements, [PositiveReal])
-        self.assertEqual(NegateNode(beta).requirements, [PositiveReal])
-        self.assertEqual(NegateNode(bino).requirements, [PositiveReal])
-        self.assertEqual(NegateNode(half).requirements, [PositiveReal])
-        self.assertEqual(NegateNode(norm).requirements, [Real])
-        self.assertEqual(NegateNode(neg).requirements, [NegativeReal])
-
-        # Complement requires that its operand be probability or Boolean
-        self.assertEqual(ComplementNode(bern).requirements, [Boolean])
-        self.assertEqual(ComplementNode(beta).requirements, [Probability])
-
-        # Exp requires that its operand be negative real, positive real or real.
-
-        self.assertEqual(ExpNode(bern).requirements, [PositiveReal])
-        self.assertEqual(ExpNode(beta).requirements, [PositiveReal])
-        self.assertEqual(ExpNode(bino).requirements, [PositiveReal])
-        self.assertEqual(ExpNode(half).requirements, [PositiveReal])
-        self.assertEqual(ExpNode(norm).requirements, [Real])
-        self.assertEqual(ExpNode(neg).requirements, [NegativeReal])
-
-        # ExpM1 requires that its operand be negative real, positive real or real.
-
-        self.assertEqual(ExpM1Node(bern).requirements, [PositiveReal])
-        self.assertEqual(ExpM1Node(beta).requirements, [PositiveReal])
-        self.assertEqual(ExpM1Node(bino).requirements, [PositiveReal])
-        self.assertEqual(ExpM1Node(half).requirements, [PositiveReal])
-        self.assertEqual(ExpM1Node(norm).requirements, [Real])
-        self.assertEqual(ExpM1Node(neg).requirements, [NegativeReal])
-
-        # Logistic requires that its operand be real.
-
-        self.assertEqual(LogisticNode(bern).requirements, [Real])
-        self.assertEqual(LogisticNode(beta).requirements, [Real])
-        self.assertEqual(LogisticNode(bino).requirements, [Real])
-        self.assertEqual(LogisticNode(half).requirements, [Real])
-        self.assertEqual(LogisticNode(norm).requirements, [Real])
-        self.assertEqual(LogisticNode(neg).requirements, [Real])
-
-        # Log requires that its operand be probability or positive real.
-        self.assertEqual(LogNode(bern).requirements, [Probability])
-        self.assertEqual(LogNode(beta).requirements, [Probability])
-        self.assertEqual(LogNode(bino).requirements, [PositiveReal])
-        self.assertEqual(LogNode(half).requirements, [PositiveReal])
-
-        # Phi requires that its operand be real.
-        self.assertEqual(PhiNode(bern).requirements, [Real])
-        self.assertEqual(PhiNode(beta).requirements, [Real])
-        self.assertEqual(PhiNode(bino).requirements, [Real])
-        self.assertEqual(PhiNode(half).requirements, [Real])
-
-        # To Real
-        self.assertEqual(ToRealNode(bern).requirements, [upper_bound(Real)])
-        self.assertEqual(ToRealNode(beta).requirements, [upper_bound(Real)])
-        self.assertEqual(ToRealNode(bino).requirements, [upper_bound(Real)])
-        self.assertEqual(ToRealNode(half).requirements, [upper_bound(Real)])
-        self.assertEqual(ToRealNode(norm).requirements, [upper_bound(Real)])
-
-        # To Positive Real
-        self.assertEqual(
-            ToPositiveRealNode(bern).requirements, [upper_bound(PositiveReal)]
-        )
-        self.assertEqual(
-            ToPositiveRealNode(beta).requirements, [upper_bound(PositiveReal)]
-        )
-        self.assertEqual(
-            ToPositiveRealNode(bino).requirements, [upper_bound(PositiveReal)]
-        )
-        self.assertEqual(
-            ToPositiveRealNode(half).requirements, [upper_bound(PositiveReal)]
-        )
-        # To Positive Real is illegal on reals and tensors
