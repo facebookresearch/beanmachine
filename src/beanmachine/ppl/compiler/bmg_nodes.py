@@ -1731,7 +1731,7 @@ class IndexNode(BinaryOperatorNode):
 
 
 class MatrixMultiplicationNode(BinaryOperatorNode):
-    """"This represents a matrix multiplication."""
+    """ "This represents a matrix multiplication."""
 
     # TODO: We now have matrix multiplication in BMG; finish this implementation
 

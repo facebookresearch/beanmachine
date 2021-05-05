@@ -2302,7 +2302,7 @@ class SingleAssignment:
         )
 
     def _handle_assign_possibly_blocking_right_value(self) -> Rule:
-        """ Rewrite e1 = e2 → x = e2; e1 = x, as long as e1 and e2 are not names."""
+        """Rewrite e1 = e2 → x = e2; e1 = x, as long as e1 and e2 are not names."""
 
         return PatternRule(
             assign(targets=[_not_identifier], value=_not_identifier),
