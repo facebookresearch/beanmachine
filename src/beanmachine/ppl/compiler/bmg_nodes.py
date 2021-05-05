@@ -23,8 +23,6 @@ from beanmachine.ppl.compiler.bmg_types import (
     SimplexMatrix,
     Tensor as BMGTensor,
     ZeroMatrix,
-    supremum,
-    type_of_value,
 )
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor, tensor
@@ -64,11 +62,9 @@ def _recompute_types(node: "BMGNode") -> None:
 
     while len(work) != 0:
         current = work.pop()
-        it = current._compute_inf_type()
         gt = current._compute_graph_type()
-        changed = it != current._inf_type or gt != current._graph_type
+        changed = gt != current._graph_type
         if changed:
-            current._inf_type = it
             current._graph_type = gt
             # Types are now correct and cached; we can propagate that
             # change if necessary to our outputs.
@@ -151,7 +147,6 @@ class BMGNode(ABC):
     outputs: ItemCounter
 
     # See comments in InputList above for invariants we maintain on these members.
-    _inf_type: BMGLatticeType
     _graph_type: BMGLatticeType
 
     def __init__(self, inputs: List["BMGNode"]):
@@ -179,7 +174,6 @@ class BMGNode(ABC):
         # computing the tensor shape, since at present that algorithm
         # is recursive.
 
-        self._inf_type = self._compute_inf_type()
         self._graph_type = self._compute_graph_type()
 
     @abstractmethod
@@ -191,17 +185,6 @@ class BMGNode(ABC):
     def graph_type(self) -> BMGLatticeType:
         """The type of the node in the graph type system."""
         return self._graph_type
-
-    @abstractmethod
-    def _compute_inf_type(self) -> BMGLatticeType:
-        pass
-
-    @property
-    def inf_type(self) -> BMGLatticeType:
-        """BMG nodes have type requirements on their inputs; the *infimum type* of
-        a node is the *smallest* BMG type that a node may be converted to if required by
-        an input."""
-        return self._inf_type
 
     @property
     def is_matrix(self) -> bool:
@@ -291,17 +274,6 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
 
     def __init__(self):
         BMGNode.__init__(self, [])
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # The infimum type of a constant is derived from the value,
-        # not from the kind of constant node we have. For instance,
-        # a NaturalNode containing zero and a ConstantTensorNode containing
-        # tensor([[[0.0]]]) both have infimum type "Boolean" because
-        # we can convert zero to False, and Boolean is the smallest type
-        # in the lattice. Remember, the infimum type answers the question
-        # "what types can this node be converted to?" and not "what is the
-        # type of this node?"
-        return type_of_value(self.value)
 
     # The support of a constant is just the value.
     def support(self) -> Iterable[Any]:
@@ -551,16 +523,6 @@ class TensorNode(BMGNode):
         # here based on the size and the graph type of the input elements.
         return BMGTensor
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # TODO: When eventually we get a representation of these in BMG, we will
-        # need to compute the inf type of this node.  When that happens we should
-        # first check the size; if it is not one or two dimensional then we can
-        # just return BMGTensor. If it is one or two dimensional then we can
-        # take the supremum of the inf types of all the inputs, and use that with
-        # the size to create the appropriate matrix type. But for now we'll
-        # just return tensor and worry about it later.
-        return BMGTensor
-
     @property
     def size(self) -> torch.Size:
         return self._size
@@ -598,9 +560,6 @@ class BernoulliBase(DistributionNode):
         return self.inputs[0]
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return Boolean
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return Boolean
 
     @property
@@ -655,9 +614,6 @@ class BetaNode(DistributionNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Probability
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return Probability
-
     @property
     def size(self) -> torch.Size:
         return self.alpha.size
@@ -688,9 +644,6 @@ class BinomialNodeBase(DistributionNode):
         return self.inputs[1]
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return Natural
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return Natural
 
     @property
@@ -809,9 +762,6 @@ class CategoricalNode(DistributionNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Natural
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return Natural
-
     @property
     def size(self) -> torch.Size:
         return self.probability.size[0:-1]  # pyre-ignore
@@ -842,9 +792,6 @@ class Chi2Node(DistributionNode):
         return self.inputs[0]
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return PositiveReal
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
@@ -878,9 +825,6 @@ class DirichletNode(DistributionNode):
         return self.inputs[0]
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return SimplexMatrix(1, self._required_columns)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return SimplexMatrix(1, self._required_columns)
 
     @property
@@ -919,9 +863,6 @@ class FlatNode(DistributionNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Probability
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return Probability
-
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
@@ -950,9 +891,6 @@ class GammaNode(DistributionNode):
         return self.inputs[1]
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return PositiveReal
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return PositiveReal
 
     @property
@@ -995,9 +933,6 @@ class HalfCauchyNode(DistributionNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return PositiveReal
-
     @property
     def size(self) -> torch.Size:
         return self.scale.size
@@ -1032,9 +967,6 @@ class NormalNode(DistributionNode):
         return self.inputs[1]
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return Real
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return Real
 
     @property
@@ -1081,9 +1013,6 @@ class StudentTNode(DistributionNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return Real
-
     @property
     def size(self) -> torch.Size:
         return self.df.size
@@ -1122,11 +1051,6 @@ class UniformNode(DistributionNode):
         return self.inputs[1]
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return Real
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # TODO: We will probably need to be smarter here
-        # once this is implemented in BMG.
         return Real
 
     @property
@@ -1189,14 +1113,6 @@ class MultiAdditionNode(OperatorNode):
             return Malformed
         return gt
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        op_type = supremum(*[i.inf_type for i in self.inputs])
-        if supremum(op_type, NegativeReal) == NegativeReal:
-            return NegativeReal
-        if supremum(op_type, PositiveReal) == PositiveReal:
-            return PositiveReal
-        return Real
-
     @property
     def size(self) -> torch.Size:
         return self.inputs[0].size
@@ -1250,21 +1166,6 @@ class LogSumExpNode(OperatorNode):
             return Malformed
         return Real
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # No matter what, logsumexp produces a real.
-
-        # TODO: If we support multiple dimensional tensors someday we will
-        # need to revisit this.
-
-        # TODO: We could do slightly better in the degenerate case of a singleton.
-        # If we have something like flip().logsumexp() where flip() produces a single
-        # bool, then that's equivalent to just plain flip(), and we could know that
-        # is a bool, not a real.  But this scenario is likely to be a bug in the
-        # model in the first place, so there's no reason to prioritize creating an
-        # optimization for its type analysis.
-
-        return Real
-
     @property
     def size(self) -> torch.Size:
         # TODO: If we ever support logsumexp on a dimension other than 1
@@ -1306,9 +1207,6 @@ class IfThenElseNode(OperatorNode):
         if self.consequence.graph_type == self.alternative.graph_type:
             return self.consequence.graph_type
         return Malformed
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return supremum(self.consequence.inf_type, self.alternative.inf_type)
 
     @property
     def condition(self) -> BMGNode:
@@ -1364,9 +1262,6 @@ class ComparisonNode(BinaryOperatorNode, metaclass=ABCMeta):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return Boolean
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return Boolean
@@ -1463,20 +1358,6 @@ class AdditionNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # The BMG addition node requires:
-        # * the operands and the result type to be the same
-        # * that type must be R+, R- or R.
-
-        # Can we make both operands into a negative real?
-        op_type = supremum(self.left.inf_type, self.right.inf_type)
-        if supremum(op_type, NegativeReal) == NegativeReal:
-            return NegativeReal
-        # Can we make both operands into a positive real?
-        if supremum(op_type, PositiveReal) == PositiveReal:
-            return PositiveReal
-        return Real
-
     def _compute_graph_type(self) -> BMGLatticeType:
         if self.left.graph_type != self.right.graph_type:
             return Malformed
@@ -1520,11 +1401,6 @@ class DivisionNode(BinaryOperatorNode):
         return SetOfTensors(
             el / ar for el in self.left.support() for ar in self.right.support()
         )
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # Both operands must be R, R+ or T, they must be the same,
-        # and the result type is that type.
-        return supremum(self.left.inf_type, self.right.inf_type, PositiveReal)
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # Both operands must be R, R+ or T, they must be the same,
@@ -1606,13 +1482,6 @@ class MapNode(BMGNode):
         # TODO: Verify that there is at least one pair.
         BMGNode.__init__(self, inputs)
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # The inf type of a map is the supremum of the types of all
-        # its inputs.
-        return supremum(
-            *[self.inputs[i * 2 + 1].inf_type for i in range(len(self.inputs) // 2)]
-        )
-
     def _compute_graph_type(self) -> BMGLatticeType:
         first = self.inputs[0].graph_type
         for i in range(len(self.inputs) // 2):
@@ -1664,10 +1533,6 @@ class IndexNodeDeprecated(BinaryOperatorNode):
     def __init__(self, left: MapNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # The inf type of an index is that of its map.
-        return self.left.inf_type
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return self.left.graph_type
 
@@ -1688,25 +1553,6 @@ class IndexNode(BinaryOperatorNode):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # The inf type of an index is derived from the inf type of
-        # the vector, but it's not as straightforward as just
-        # shrinking the type down to a 1x1 matrix. The elements of
-        # a one-hot vector are bools, for instance, not all one.
-        # The elements of a simplex are probabilities.
-        lt = self.left.inf_type
-        if isinstance(lt, OneHotMatrix):
-            return Boolean
-        if isinstance(lt, ZeroMatrix):
-            return Boolean
-        if isinstance(lt, SimplexMatrix):
-            return Probability
-        if isinstance(lt, BMGMatrixType):
-            return lt.with_dimensions(1, 1)
-        # The only other possibility is that we have a tensor, so let's say
-        # its elements are reals.
-        return Real
 
     def _compute_graph_type(self) -> BMGLatticeType:
         lt = self.left.graph_type
@@ -1731,16 +1577,12 @@ class IndexNode(BinaryOperatorNode):
 
 
 class MatrixMultiplicationNode(BinaryOperatorNode):
-    """"This represents a matrix multiplication."""
+    """This represents a matrix multiplication."""
 
     # TODO: We now have matrix multiplication in BMG; finish this implementation
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # TODO: Fix this
-        return supremum(self.left.inf_type, self.right.inf_type)
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # TODO: Fix this
@@ -1784,12 +1626,6 @@ class MultiplicationNode(BinaryOperatorNode):
             return Malformed
         return lgt
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        it = supremum(self.left.inf_type, self.right.inf_type, Probability)
-        if supremum(it, Real) == Real:
-            return it
-        return Real
-
     @property
     def size(self) -> torch.Size:
         return (torch.zeros(self.left.size) * torch.zeros(self.right.size)).size()
@@ -1808,28 +1644,6 @@ class PowerNode(BinaryOperatorNode):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # Given the inf types of the operands, what is the smallest
-        # possible type we could make the result?
-        #
-        # BMG supports a power node that has these possible combinations of
-        # base and exponent type:
-        #
-        # P ** R+  --> P
-        # P ** R   --> R+
-        # R+ ** R+ --> R+
-        # R+ ** R  --> R+
-        # R ** R+  --> R
-        # R ** R   --> R
-
-        inf_base = supremum(self.left.inf_type, Probability)
-        inf_exp = supremum(self.right.inf_type, PositiveReal)
-        if inf_base == Probability and inf_exp == Real:
-            return PositiveReal
-        if supremum(inf_base, Real) == Real:
-            return inf_base
-        return Real
 
     def _compute_graph_type(self) -> BMGLatticeType:
 
@@ -1893,12 +1707,6 @@ class ExpNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        ot = self.operand.inf_type
-        if supremum(ot, NegativeReal) == NegativeReal:
-            return Probability
-        return PositiveReal
-
     def _compute_graph_type(self) -> BMGLatticeType:
         ot = self.operand.graph_type
         if ot == Real or ot == PositiveReal:
@@ -1931,16 +1739,6 @@ class ExpM1Node(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # ExpM1 takes a real, positive real or negative real. Its return has
-        # the same type as its input.
-        ot = self.operand.inf_type
-        if supremum(ot, PositiveReal) == PositiveReal:
-            return PositiveReal
-        if supremum(ot, NegativeReal) == NegativeReal:
-            return NegativeReal
-        return Real
-
     def _compute_graph_type(self) -> BMGLatticeType:
         ot = self.operand.graph_type
         if ot in {Real, PositiveReal, NegativeReal}:
@@ -1964,9 +1762,6 @@ class LogisticNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return Probability
 
     def _compute_graph_type(self) -> BMGLatticeType:
         ot = self.operand.graph_type
@@ -1995,14 +1790,6 @@ class LogNode(UnaryOperatorNode):
     # The log node can either:
     # * Take a positive real and produce a real
     # * Take a probability and produce a negative real
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # If the operand is convertible to probability then
-        # the smallest we can make the log is negative real.
-        ot = supremum(self.operand.inf_type, Probability)
-        if ot == Probability:
-            return NegativeReal
-        return Real
 
     def _compute_graph_type(self) -> BMGLatticeType:
         ot = self.operand.graph_type
@@ -2035,9 +1822,6 @@ class Log1mexpNode(UnaryOperatorNode):
 
     # The log1mexp node can only:
     # * Take a negative real and produce a negative real
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return NegativeReal
 
     def _compute_graph_type(self) -> BMGLatticeType:
         ot = self.operand.graph_type
@@ -2120,14 +1904,6 @@ class NegateNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        ot = self.operand.inf_type
-        if supremum(ot, PositiveReal) == PositiveReal:
-            return NegativeReal
-        if supremum(ot, NegativeReal) == NegativeReal:
-            return PositiveReal
-        return Real
-
     def _compute_graph_type(self) -> BMGLatticeType:
         ot = self.operand.graph_type
         if ot == PositiveReal:
@@ -2155,10 +1931,6 @@ class NotNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # TODO: When we support this node in BMG, revisit this code.
-        return Boolean
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
 
@@ -2181,18 +1953,6 @@ class ComplementNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # Note that we should not be generating complement nodes in the graph
-        # unless we can type them correctly. The inf type should always
-        # be probability or bool. If somehow it is not -- perhaps because
-        # we are running a unit test -- then treat the inf type as probability
-        # if the operand type is not correct. The inf type should always be
-        # a genuine type, not Malformed.
-        it = self.operand.inf_type
-        if supremum(it, Boolean) == Boolean:
-            return Boolean
-        return Probability
 
     def _compute_graph_type(self) -> BMGLatticeType:
         # Note that we should not be generating complement nodes in the graph
@@ -2227,9 +1987,6 @@ class PhiNode(UnaryOperatorNode):
 
     # The log node only takes a real and only produces a probability
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return Probability
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return Probability
 
@@ -2255,10 +2012,6 @@ class SampleNode(UnaryOperatorNode):
 
     def __init__(self, operand: DistributionNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # The infimum type of a sample is that of its distribution.
-        return self.operand.inf_type
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return self.operand.graph_type
@@ -2287,10 +2040,6 @@ class ToRealNode(UnaryOperatorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return Real
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # A ToRealNode's output is always real
-        return Real
-
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
@@ -2309,10 +2058,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
     def _compute_graph_type(self) -> BMGLatticeType:
         return PositiveReal
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # A ToPositiveRealNode's output is always PositiveReal
-        return PositiveReal
-
     @property
     def size(self) -> torch.Size:
         return torch.Size([])
@@ -2329,9 +2074,6 @@ class ToProbabilityNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return Probability
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return Probability
 
     @property
@@ -2390,14 +2132,6 @@ class Observation(BMGNode):
         assert isinstance(c, SampleNode)
         return c
 
-    def _compute_inf_type(self) -> BMGLatticeType:
-        # Since an observation node is never consumed it is not actually
-        # meaningful to compute its type. However, we can use this to check for
-        # errors; for example, if we have an observation with value 0.5 on
-        # an operation known to be of type Natural then we flag that as an
-        # error.
-        return self.observed.inf_type
-
     def _compute_graph_type(self) -> BMGLatticeType:
         return self.observed.graph_type
 
@@ -2439,9 +2173,6 @@ class Query(BMGNode):
 
     def _compute_graph_type(self) -> BMGLatticeType:
         return self.operator.graph_type
-
-    def _compute_inf_type(self) -> BMGLatticeType:
-        return self.operator.inf_type
 
     @property
     def size(self) -> torch.Size:
@@ -2490,9 +2221,6 @@ class ExpProductFactorNode(FactorNode):
         FactorNode.__init__(self, inputs)
 
     def _compute_graph_type(self) -> BMGLatticeType:
-        return Real
-
-    def _compute_inf_type(self) -> BMGLatticeType:
         return Real
 
     @property
