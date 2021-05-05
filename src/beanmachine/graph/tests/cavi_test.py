@@ -84,7 +84,7 @@ class TestCAVI(unittest.TestCase):
         T  F  0.009802        0.3322
         T  T  0.0000999901    0.0034
 
-        P(Z=T) = 0.029505, this ELBO <= log(.029505) = -3.5232
+        P(Z=T) = 0.029505, thus ELBO <= log(.029505) = -3.5232
 
         Let Q(X) = Q(Y) = Bernoulli(q); The KL-Divergence as a function of q is:
         kl = lambda q: (1-q)**2 * (2*log(1-q)-log(.3322))
