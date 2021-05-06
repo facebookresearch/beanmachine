@@ -48,13 +48,13 @@ digraph "graph" {
   N01[label="2.0:T"];
   N02[label="Beta:P"];
   N03[label="Sample:P"];
-  N04[label="*:M"];
+  N04[label="*:P"];
   N05[label="1.0:T"];
   N06[label="Normal:R"];
   N07[label="Sample:R"];
   N08[label="Bernoulli:B"];
   N09[label="Sample:B"];
-  N10[label="Query:M"];
+  N10[label="Query:P"];
   N00 -> N04[label="left:P"];
   N01 -> N02[label="alpha:R+"];
   N01 -> N02[label="beta:R+"];
@@ -159,7 +159,7 @@ digraph "graph" {
   N1[label="Bernoulli:B"];
   N2[label="Sample:B"];
   N3[label="1.0:T"];
-  N4[label="+:M"];
+  N4[label="+:R+"];
   N5[label="Normal:R"];
   N6[label="Sample:R"];
   N7[label="Binomial:N"];
@@ -308,7 +308,7 @@ digraph "graph" {
   N3[label="2:N>=N"];
   N4[label="Binomial:N>=N"];
   N5[label="Sample:N>=N"];
-  N6[label="*:M>=R+"];
+  N6[label="*:R+>=R+"];
   N7[label="Binomial:N>=N"];
   N8[label="Sample:N>=N"];
   N0 -> N1[label="probability:P"];
@@ -345,7 +345,7 @@ digraph "graph" {
   N03[label="2:N>=N"];
   N04[label="Binomial:N>=N"];
   N05[label="Sample:N>=N"];
-  N06[label="*:M>=R+"];
+  N06[label="*:R+>=R+"];
   N07[label="0:N>=Z"];
   N08[label="if:N>=N"];
   N09[label="Binomial:N>=N"];
@@ -411,7 +411,7 @@ digraph "graph" {
   N02[label="HalfCauchy:R+>=R+"];
   N03[label="Sample:R+>=R+"];
   N04[label="Sample:R+>=R+"];
-  N05[label="/:R+>=U"];
+  N05[label="/:U>=U"];
   N06[label="Sample:R+>=R+"];
   N07[label="-1.0:R>=R-"];
   N08[label="**:R+>=R+"];
@@ -473,9 +473,9 @@ digraph "graph" {
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
   N3[label="2.5:R>=R+"];
-  N4[label="/:M>=U"];
-  N5[label="Normal:R>=U"];
-  N6[label="Sample:R>=U"];
+  N4[label="/:U>=U"];
+  N5[label="Normal:U>=U"];
+  N6[label="Sample:U>=U"];
   N0 -> N1[label="scale:R+"];
   N0 -> N5[label="sigma:any"];
   N1 -> N2[label="operand:R+"];
@@ -505,7 +505,7 @@ digraph "graph" {
   N02[label="HalfCauchy:R+>=R+"];
   N03[label="Sample:R+>=R+"];
   N04[label="2.5:R>=R+"];
-  N05[label="/:M>=U"];
+  N05[label="/:U>=U"];
   N06[label="0.4:R+>=P"];
   N07[label="*:R+>=R+"];
   N08[label="ToReal:R>=R"];
@@ -595,8 +595,8 @@ digraph "graph" {
   N0[label="1.0:R>=OH"];
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
-  N3[label="Chi2:R+>=U"];
-  N4[label="Sample:R+>=U"];
+  N3[label="Chi2:U>=U"];
+  N4[label="Sample:U>=U"];
   N0 -> N1[label="scale:R+"];
   N1 -> N2[label="operand:R+"];
   N2 -> N3[label="df:any"];
@@ -623,7 +623,7 @@ digraph "graph" {
   N1[label="1.0:R+>=OH"];
   N2[label="HalfCauchy:R+>=R+"];
   N3[label="Sample:R+>=R+"];
-  N4[label="Chi2:R+>=U"];
+  N4[label="Chi2:U>=U"];
   N5[label="0.5:R+>=P"];
   N6[label="*:R+>=R+"];
   N7[label="Gamma:R+>=R+"];
@@ -683,7 +683,7 @@ digraph "graph" {
   N3[label="Sample:N>=N"];
   N4[label="Bernoulli:B>=B"];
   N5[label="Sample:B>=B"];
-  N6[label="**:M>=R+"];
+  N6[label="**:R+>=R+"];
   N7[label="Binomial:N>=N"];
   N8[label="Sample:N>=N"];
   N0 -> N2[label="count:N"];
@@ -720,7 +720,7 @@ digraph "graph" {
   N03[label="Sample:N>=N"];
   N04[label="Bernoulli:B>=B"];
   N05[label="Sample:B>=B"];
-  N06[label="**:M>=R+"];
+  N06[label="**:R+>=R+"];
   N07[label="1:N>=OH"];
   N08[label="if:N>=N"];
   N09[label="Binomial:N>=N"];
@@ -784,8 +784,8 @@ digraph "graph" {
   N1[label="2.0:R>=N"];
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
-  N4[label="-:M>=R-"];
-  N5[label="+:M>=R"];
+  N4[label="-:R->=R-"];
+  N5[label="+:R>=R"];
   N6[label="Bernoulli:B>=B"];
   N7[label="Sample:B>=B"];
   N0 -> N5[label="left:R"];
@@ -819,8 +819,8 @@ digraph "graph" {
   N2[label="2.0:R+>=N"];
   N3[label="Beta:P>=P"];
   N4[label="Sample:P>=P"];
-  N5[label="-:M>=R-"];
-  N6[label="+:M>=R"];
+  N5[label="-:R->=R-"];
+  N6[label="+:R>=R"];
   N7[label="complement:P>=P"];
   N8[label="Bernoulli:B>=B"];
   N9[label="Sample:B>=B"];
