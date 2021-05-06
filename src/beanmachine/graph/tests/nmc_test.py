@@ -106,7 +106,7 @@ class TestNMC(unittest.TestCase):
         g.query(y)
         g.query(y_sq)
         g.query(x_y)
-        # note: there are no observsations, so this next line should have no effect
+        # note: there are no observations, so this next line should have no effect
         g.remove_observations()
         means = g.infer_mean(10000, graph.InferenceType.NMC)
         print("means", means)  # only printed on error

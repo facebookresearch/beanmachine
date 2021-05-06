@@ -38,7 +38,7 @@ class Graph::NMC {
   std::set<uint> supp_ids;
   std::vector<Node*> supp;
 
-  // Nodes in supp that are not directly observed.  Note that
+  // Nodes in supp that are not directly observed. Note that
   // the order of nodes in this vector matters! We must enumerate
   // them in order from lowest node identifier to highest.
   std::vector<Node*> unobserved_supp;
@@ -124,6 +124,9 @@ class Graph::NMC {
   // will have values given by the observation, so we can ignore those.
   // Unobserved stochastic nodes are assigned a value by the uniform
   // initializer. Deterministic nodes are computed from their inputs.
+  // Note that we only need a single pass because parent nodes always have
+  // indices less than those of their children, and unobserved_supp
+  // respects index order.
   void compute_initial_values() {
     for (Node* node : unobserved_supp) {
       if (node->is_stochastic()) {
