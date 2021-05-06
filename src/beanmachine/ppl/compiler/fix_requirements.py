@@ -44,8 +44,6 @@ class RequirementsFixer:
         assert t != bt.Untypable
         if isinstance(r, bt.AnyRequirement):
             return True
-        if t == bt.Malformed:
-            return False
         if isinstance(r, bt.UpperBound):
             return bt.supremum(t, r.bound) == r.bound
         if isinstance(r, bt.AlwaysMatrix):
