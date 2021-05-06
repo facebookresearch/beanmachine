@@ -241,10 +241,7 @@ PositiveReal = PositiveRealMatrix(1, 1)
 NegativeReal = NegativeRealMatrix(1, 1)
 Real = RealMatrix(1, 1)
 Tensor = BMGLatticeType("T", "tensor")
-# TODO: Get rid of Malformed, make Tensor the top type, and use
-# Untypable for scenarios where Malformed is now used.
-Malformed = BMGLatticeType("M", "malformed")
-top = Malformed
+top = Tensor
 # This is not a real lattice type; rather, this is a marker to indicate
 # that the node cannot have a lattice type assigned to it in the first
 # place because we lack BMG typing rules for it.
@@ -270,8 +267,6 @@ lattice is a DAG which meets these conditions:
 For matrix types with a single column and any number of rows r,
 and columns c, the type lattice is:
 
-      M                      (Malformed; the top type)
-      |
       T                      (Tensor unsupported by BMG)
       |
     MR[r,c]                  (Real matrix)
@@ -303,12 +298,12 @@ Similarly, Z -- the all-zero matrix -- is not a type in the BMG
 type system. We use it to track cases where a matrix is convertible
 to both Boolean and negative real.
 
-Similarly, T (tensor) and M (malformed -- the top type) are not
-found in the BMG type system; we use these marker types for error
-reporting when a graph cannot be represented in BMG. The top type
-is the type more general than all other types, and is used for
-situations such as malformed arithmetic nodes. The semantics here
-are "no more specific valid type could be found".
+Similarly, T (tensor) -- the top type -- is not found in the BMG
+type system. The top type is the type more general than all other
+types, and is used for situations such as attempting to resolve
+situations such as "what is the type that is more general than both
+a 1x2 matrix and a 2x2 matrix?" or to represent matrix types not
+supported in BMG such as 3-dimensional matrices.
 
 The BOTTOM type is the type that has no values; it is similarly
 used as a convenience when you need a type more specific than any
