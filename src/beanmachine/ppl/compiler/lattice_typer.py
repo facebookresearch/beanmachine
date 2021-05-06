@@ -56,6 +56,14 @@
 # requirements are, what conversion nodes must be inserted, and what errors must
 # be reported when a graph cannot be transformed as required.
 
+# TODO: We have a small wart in this system, which is that we represent constants
+# as ConstantTensorNode when we first accumulate them, but then convert them to
+# other constant types as necessary. There is no BMG equivalent of ConstantTensorNode,
+# so the general rule that "only nodes representable in BMG are assigned types"
+# is violated, as is the rule "graph_type always returns a legal graph type".
+# Consider how we might fix this to achieve these desirable invariants.
+
+
 from typing import Callable, Dict
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
@@ -87,6 +95,25 @@ _requires_nothing: Dict[type, bt.BMGLatticeType] = {
     bn.ToRealNode: bt.Real,
     bn.ToPositiveRealNode: bt.PositiveReal,
     bn.ToProbabilityNode: bt.Probability,
+}
+
+_constant_graph_types: Dict[type, bt.BMGLatticeType] = {
+    bn.ConstantTensorNode: bt.Tensor,
+    bn.BooleanNode: bt.Boolean,
+    bn.NaturalNode: bt.Natural,
+    bn.NegativeRealNode: bt.NegativeReal,
+    bn.PositiveRealNode: bt.PositiveReal,
+    bn.ProbabilityNode: bt.Probability,
+    bn.RealNode: bt.Real,
+}
+
+_constant_matrix_graph_types: Dict[type, bt.BMGMatrixType] = {
+    bn.ConstantBooleanMatrixNode: bt.Boolean,
+    bn.ConstantNaturalMatrixNode: bt.Natural,
+    bn.ConstantNegativeRealMatrixNode: bt.NegativeReal,
+    bn.ConstantPositiveRealMatrixNode: bt.PositiveReal,
+    bn.ConstantProbabilityMatrixNode: bt.Probability,
+    bn.ConstantRealMatrixNode: bt.Real,
 }
 
 
@@ -250,3 +277,40 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
     def is_prob_or_bool(self, node: bn.BMGNode) -> bool:
         t = self[node]
         return t != bt.Untypable and bt.supremum(t, bt.Probability) == bt.Probability
+
+    def graph_type(self, node: bn.BMGNode) -> bt.BMGLatticeType:
+        # We normally assign types to constants based on their values; a
+        # natural constant with value 1 is classified as One because it
+        # is convertible to any type that has a One value. However it is
+        # occasionally useful to classify the constant nodes according to
+        # what the actual type of the node is restricted to. This method
+        # does that.
+        result = self[node]
+        if result == bt.Untypable:
+            return bt.Untypable
+        t = type(node)
+        if t in _constant_graph_types:
+            result = _constant_graph_types[t]
+        elif t in _constant_matrix_graph_types:
+            assert isinstance(node, bn.ConstantTensorNode)
+            r = _constant_matrix_graph_types[t]
+            result = r.with_size(node.size)
+        elif isinstance(node, bn.IfThenElseNode):
+            # IfThenElse is a special case because we often have
+            # if X then CONST else CONST, but we want to classify
+            # this according to the graph types of the constants,
+            # not the inf types of the constants.
+            #
+            # We are trying to avoid recursive algorithms that traverse
+            # long paths through the graph, but frankly it seems unlikely
+            # that there will be a thousand-deep path of IF-THEN-ELSE nodes.
+            result = bt.supremum(
+                self.graph_type(node.consequence), self.graph_type(node.alternative)
+            )
+        elif isinstance(node, bn.Query):
+            # In the unlikely event that we have a query of a constant...
+            result = self.graph_type(node.operator)
+        # We should never end up classifying a constant as Zero or
+        # One in this computation.
+        assert result != bt.Zero and result != bt.One
+        return result

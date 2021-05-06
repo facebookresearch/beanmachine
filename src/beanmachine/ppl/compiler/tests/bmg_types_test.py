@@ -154,13 +154,13 @@ digraph "graph" {
   N01[label="2.0:T>=N"];
   N02[label="Beta:P>=P"];
   N03[label="Sample:P>=P"];
-  N04[label="*:M>=P"];
+  N04[label="*:P>=P"];
   N05[label="1.0:T>=OH"];
   N06[label="Normal:R>=R"];
   N07[label="Sample:R>=R"];
   N08[label="Bernoulli:B>=B"];
   N09[label="Sample:B>=B"];
-  N10[label="Query:M>=P"];
+  N10[label="Query:P>=P"];
   N00 -> N04[label="left:P"];
   N01 -> N02[label="alpha:R+"];
   N01 -> N02[label="beta:R+"];

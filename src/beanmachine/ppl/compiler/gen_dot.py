@@ -55,7 +55,7 @@ def to_dot(
         n = to_id(index)
         node_label = get_node_label(node)
         if graph_types:
-            node_label += ":" + node.graph_type.short_name
+            node_label += ":" + lt.graph_type(node).short_name
         if inf_types:
             node_label += ">=" + lt[node].short_name
         db.with_node(n, node_label)

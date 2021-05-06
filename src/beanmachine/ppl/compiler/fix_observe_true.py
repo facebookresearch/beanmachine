@@ -12,7 +12,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ToRealNode,
     UnaryOperatorNode,
 )
-from beanmachine.ppl.compiler.bmg_types import Boolean
+from beanmachine.ppl.compiler.bmg_types import is_one
 from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.typer_base import TyperBase
 
@@ -65,7 +65,7 @@ class ObserveTrueFixer:
         self._typer = typer
 
     def _fix_observation(self, o: Observation) -> None:
-        if o.graph_type != Boolean or not o.value:
+        if not is_one(o.value):
             return
         sample = o.observed
         if not isinstance(sample, SampleNode):
