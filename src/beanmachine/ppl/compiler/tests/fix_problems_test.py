@@ -38,8 +38,7 @@ class FixProblemsTest(unittest.TestCase):
 
         observed = to_dot(
             bmg,
-            graph_types=True,
-            inf_types=False,
+            inf_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -73,8 +72,7 @@ digraph "graph" {
         fix_problems(bmg)
         observed = to_dot(
             bmg,
-            graph_types=True,
-            inf_types=False,
+            inf_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -149,8 +147,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
-            inf_types=False,
+            inf_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -181,8 +178,7 @@ digraph "graph" {
         fix_problems(bmg)
         observed = to_dot(
             bmg,
-            graph_types=True,
-            inf_types=False,
+            inf_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -295,22 +291,21 @@ The sigma of a Normal is required to be a positive real but is a negative real.
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="0.5:P>=P"];
-  N1[label="Bernoulli:B>=B"];
-  N2[label="Sample:B>=B"];
-  N3[label="2:N>=N"];
-  N4[label="Binomial:N>=N"];
-  N5[label="Sample:N>=N"];
-  N6[label="*:R+>=R+"];
-  N7[label="Binomial:N>=N"];
-  N8[label="Sample:N>=N"];
+  N0[label="0.5:P"];
+  N1[label="Bernoulli:B"];
+  N2[label="Sample:B"];
+  N3[label="2:N"];
+  N4[label="Binomial:N"];
+  N5[label="Sample:N"];
+  N6[label="*:R+"];
+  N7[label="Binomial:N"];
+  N8[label="Sample:N"];
   N0 -> N1[label="probability:P"];
   N0 -> N4[label="probability:P"];
   N0 -> N7[label="probability:P"];
@@ -332,25 +327,24 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N00[label="0.5:P>=P"];
-  N01[label="Bernoulli:B>=B"];
-  N02[label="Sample:B>=B"];
-  N03[label="2:N>=N"];
-  N04[label="Binomial:N>=N"];
-  N05[label="Sample:N>=N"];
-  N06[label="*:R+>=R+"];
-  N07[label="0:N>=N"];
-  N08[label="if:N>=N"];
-  N09[label="Binomial:N>=N"];
-  N10[label="Sample:N>=N"];
-  N11[label="0.0:Z>=Z"];
+  N00[label="0.5:P"];
+  N01[label="Bernoulli:B"];
+  N02[label="Sample:B"];
+  N03[label="2:N"];
+  N04[label="Binomial:N"];
+  N05[label="Sample:N"];
+  N06[label="*:R+"];
+  N07[label="0:N"];
+  N08[label="if:N"];
+  N09[label="Binomial:N"];
+  N10[label="Sample:N"];
+  N11[label="0.0:Z"];
   N00 -> N01[label="probability:P"];
   N00 -> N04[label="probability:P"];
   N00 -> N09[label="probability:P"];
@@ -399,28 +393,27 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N00[label="1.0:OH>=OH"];
-  N01[label="1.0:R+>=R+"];
-  N02[label="HalfCauchy:R+>=R+"];
-  N03[label="Sample:R+>=R+"];
-  N04[label="Sample:R+>=R+"];
-  N05[label="/:U>=U"];
-  N06[label="Sample:R+>=R+"];
-  N07[label="-1.0:R>=R"];
-  N08[label="**:R+>=R+"];
-  N09[label="*:R+>=R+"];
-  N10[label="**:R+>=R+"];
-  N11[label="Log:R>=R"];
-  N12[label="Normal:R>=R"];
-  N13[label="Sample:R>=R"];
-  N14[label="-1.0:R->=R-"];
+  N00[label="1.0:OH"];
+  N01[label="1.0:R+"];
+  N02[label="HalfCauchy:R+"];
+  N03[label="Sample:R+"];
+  N04[label="Sample:R+"];
+  N05[label="/:U"];
+  N06[label="Sample:R+"];
+  N07[label="-1.0:R"];
+  N08[label="**:R+"];
+  N09[label="*:R+"];
+  N10[label="**:R+"];
+  N11[label="Log:R"];
+  N12[label="Normal:R"];
+  N13[label="Sample:R"];
+  N14[label="-1.0:R-"];
   N01 -> N02[label="scale:R+"];
   N01 -> N12[label="sigma:R+"];
   N02 -> N03[label="operand:R+"];
@@ -463,20 +456,19 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:OH>=OH"];
-  N1[label="HalfCauchy:R+>=R+"];
-  N2[label="Sample:R+>=R+"];
-  N3[label="2.5:R+>=R+"];
-  N4[label="/:U>=U"];
-  N5[label="Normal:U>=U"];
-  N6[label="Sample:U>=U"];
+  N0[label="1.0:OH"];
+  N1[label="HalfCauchy:R+"];
+  N2[label="Sample:R+"];
+  N3[label="2.5:R+"];
+  N4[label="/:U"];
+  N5[label="Normal:U"];
+  N6[label="Sample:U"];
   N0 -> N1[label="scale:R+"];
   N0 -> N5[label="sigma:any"];
   N1 -> N2[label="operand:R+"];
@@ -495,24 +487,23 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
         expected = """
 digraph "graph" {
-  N00[label="1.0:OH>=OH"];
-  N01[label="1.0:R+>=R+"];
-  N02[label="HalfCauchy:R+>=R+"];
-  N03[label="Sample:R+>=R+"];
-  N04[label="2.5:R+>=R+"];
-  N05[label="/:U>=U"];
-  N06[label="0.4:R+>=R+"];
-  N07[label="*:R+>=R+"];
-  N08[label="ToReal:R>=R"];
-  N09[label="Normal:R>=R"];
-  N10[label="Sample:R>=R"];
-  N11[label="0.4:P>=P"];
+  N00[label="1.0:OH"];
+  N01[label="1.0:R+"];
+  N02[label="HalfCauchy:R+"];
+  N03[label="Sample:R+"];
+  N04[label="2.5:R+"];
+  N05[label="/:U"];
+  N06[label="0.4:R+"];
+  N07[label="*:R+"];
+  N08[label="ToReal:R"];
+  N09[label="Normal:R"];
+  N10[label="Sample:R"];
+  N11[label="0.4:P"];
   N01 -> N02[label="scale:R+"];
   N01 -> N09[label="sigma:R+"];
   N02 -> N03[label="operand:R+"];
@@ -586,18 +577,17 @@ The unsupported node is the operand of a Sample.
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:OH>=OH"];
-  N1[label="HalfCauchy:R+>=R+"];
-  N2[label="Sample:R+>=R+"];
-  N3[label="Chi2:U>=U"];
-  N4[label="Sample:U>=U"];
+  N0[label="1.0:OH"];
+  N1[label="HalfCauchy:R+"];
+  N2[label="Sample:R+"];
+  N3[label="Chi2:U"];
+  N4[label="Sample:U"];
   N0 -> N1[label="scale:R+"];
   N1 -> N2[label="operand:R+"];
   N2 -> N3[label="df:any"];
@@ -613,22 +603,21 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:OH>=OH"];
-  N1[label="1.0:R+>=R+"];
-  N2[label="HalfCauchy:R+>=R+"];
-  N3[label="Sample:R+>=R+"];
-  N4[label="Chi2:U>=U"];
-  N5[label="0.5:R+>=R+"];
-  N6[label="*:R+>=R+"];
-  N7[label="Gamma:R+>=R+"];
-  N8[label="Sample:R+>=R+"];
+  N0[label="1.0:OH"];
+  N1[label="1.0:R+"];
+  N2[label="HalfCauchy:R+"];
+  N3[label="Sample:R+"];
+  N4[label="Chi2:U"];
+  N5[label="0.5:R+"];
+  N6[label="*:R+"];
+  N7[label="Gamma:R+"];
+  N8[label="Sample:R+"];
   N1 -> N2[label="scale:R+"];
   N2 -> N3[label="operand:R+"];
   N3 -> N4[label="df:any"];
@@ -671,22 +660,21 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="2:N>=N"];
-  N1[label="0.5:P>=P"];
-  N2[label="Binomial:N>=N"];
-  N3[label="Sample:N>=N"];
-  N4[label="Bernoulli:B>=B"];
-  N5[label="Sample:B>=B"];
-  N6[label="**:R+>=R+"];
-  N7[label="Binomial:N>=N"];
-  N8[label="Sample:N>=N"];
+  N0[label="2:N"];
+  N1[label="0.5:P"];
+  N2[label="Binomial:N"];
+  N3[label="Sample:N"];
+  N4[label="Bernoulli:B"];
+  N5[label="Sample:B"];
+  N6[label="**:R+"];
+  N7[label="Binomial:N"];
+  N8[label="Sample:N"];
   N0 -> N2[label="count:N"];
   N1 -> N2[label="probability:P"];
   N1 -> N4[label="probability:P"];
@@ -708,25 +696,24 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N00[label="2:N>=N"];
-  N01[label="0.5:P>=P"];
-  N02[label="Binomial:N>=N"];
-  N03[label="Sample:N>=N"];
-  N04[label="Bernoulli:B>=B"];
-  N05[label="Sample:B>=B"];
-  N06[label="**:R+>=R+"];
-  N07[label="1:N>=N"];
-  N08[label="if:N>=N"];
-  N09[label="Binomial:N>=N"];
-  N10[label="Sample:N>=N"];
-  N11[label="1.0:OH>=OH"];
+  N00[label="2:N"];
+  N01[label="0.5:P"];
+  N02[label="Binomial:N"];
+  N03[label="Sample:N"];
+  N04[label="Bernoulli:B"];
+  N05[label="Sample:B"];
+  N06[label="**:R+"];
+  N07[label="1:N"];
+  N08[label="if:N"];
+  N09[label="Binomial:N"];
+  N10[label="Sample:N"];
+  N11[label="1.0:OH"];
   N00 -> N02[label="count:N"];
   N01 -> N02[label="probability:P"];
   N01 -> N04[label="probability:P"];
@@ -774,21 +761,20 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:OH>=OH"];
-  N1[label="2.0:N>=N"];
-  N2[label="Beta:P>=P"];
-  N3[label="Sample:P>=P"];
-  N4[label="-:R->=R-"];
-  N5[label="+:R>=R"];
-  N6[label="Bernoulli:B>=B"];
-  N7[label="Sample:B>=B"];
+  N0[label="1.0:OH"];
+  N1[label="2.0:N"];
+  N2[label="Beta:P"];
+  N3[label="Sample:P"];
+  N4[label="-:R-"];
+  N5[label="+:R"];
+  N6[label="Bernoulli:B"];
+  N7[label="Sample:B"];
   N0 -> N5[label="left:R"];
   N1 -> N2[label="alpha:R+"];
   N1 -> N2[label="beta:R+"];
@@ -808,23 +794,22 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="2.0:N>=N"];
-  N1[label="1.0:OH>=OH"];
-  N2[label="2.0:R+>=R+"];
-  N3[label="Beta:P>=P"];
-  N4[label="Sample:P>=P"];
-  N5[label="-:R->=R-"];
-  N6[label="+:R>=R"];
-  N7[label="complement:P>=P"];
-  N8[label="Bernoulli:B>=B"];
-  N9[label="Sample:B>=B"];
+  N0[label="2.0:N"];
+  N1[label="1.0:OH"];
+  N2[label="2.0:R+"];
+  N3[label="Beta:P"];
+  N4[label="Sample:P"];
+  N5[label="-:R-"];
+  N6[label="+:R"];
+  N7[label="complement:P"];
+  N8[label="Bernoulli:B"];
+  N9[label="Sample:B"];
   N1 -> N6[label="left:R"];
   N2 -> N3[label="alpha:R+"];
   N2 -> N3[label="beta:R+"];
@@ -864,20 +849,19 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="2.0:N>=N"];
-  N1[label="Beta:P>=P"];
-  N2[label="Sample:P>=P"];
-  N3[label="Log:R->=R-"];
-  N4[label="-:R+>=R+"];
-  N5[label="Beta:P>=P"];
-  N6[label="Sample:P>=P"];
+  N0[label="2.0:N"];
+  N1[label="Beta:P"];
+  N2[label="Sample:P"];
+  N3[label="Log:R-"];
+  N4[label="-:R+"];
+  N5[label="Beta:P"];
+  N6[label="Sample:P"];
   N0 -> N1[label="alpha:R+"];
   N0 -> N1[label="beta:R+"];
   N0 -> N5[label="beta:R+"];
@@ -895,21 +879,20 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
 
         expected = """
 digraph "graph" {
-  N0[label="2.0:N>=N"];
-  N1[label="2.0:R+>=R+"];
-  N2[label="Beta:P>=P"];
-  N3[label="Sample:P>=P"];
-  N4[label="Log:R->=R-"];
-  N5[label="-:R+>=R+"];
-  N6[label="Beta:P>=P"];
-  N7[label="Sample:P>=P"];
+  N0[label="2.0:N"];
+  N1[label="2.0:R+"];
+  N2[label="Beta:P"];
+  N3[label="Sample:P"];
+  N4[label="Log:R-"];
+  N5[label="-:R+"];
+  N6[label="Beta:P"];
+  N7[label="Sample:P"];
   N1 -> N2[label="alpha:R+"];
   N1 -> N2[label="beta:R+"];
   N1 -> N6[label="beta:R+"];
@@ -993,7 +976,6 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
         self.assertEqual(str(error_report).strip(), "")
         observed = to_dot(
             bmg,
-            graph_types=True,
             inf_types=True,
             edge_requirements=True,
         )
@@ -1001,23 +983,23 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
         # The observations have been converted to the correct types:
         expected = """
 digraph "graph" {
-  N00[label="0.0:Z>=Z"];
-  N01[label="1.0:OH>=OH"];
-  N02[label="2.0:N>=N"];
-  N03[label="0.5:P>=P"];
-  N04[label="0.5:P>=P"];
-  N05[label="Bernoulli:B>=B"];
-  N06[label="Sample:B>=B"];
-  N07[label="Observation False:B>=B"];
-  N08[label="2:N>=N"];
-  N09[label="Binomial:N>=N"];
-  N10[label="Sample:N>=N"];
-  N11[label="Observation 5:N>=N"];
-  N12[label="0.0:R>=R"];
-  N13[label="1.0:R+>=R+"];
-  N14[label="Normal:R>=R"];
-  N15[label="Sample:R>=R"];
-  N16[label="Observation 1.0:R>=R"];
+  N00[label="0.0:Z"];
+  N01[label="1.0:OH"];
+  N02[label="2.0:N"];
+  N03[label="0.5:P"];
+  N04[label="0.5:P"];
+  N05[label="Bernoulli:B"];
+  N06[label="Sample:B"];
+  N07[label="Observation False:B"];
+  N08[label="2:N"];
+  N09[label="Binomial:N"];
+  N10[label="Sample:N"];
+  N11[label="Observation 5:N"];
+  N12[label="0.0:R"];
+  N13[label="1.0:R+"];
+  N14[label="Normal:R"];
+  N15[label="Sample:R"];
+  N16[label="Observation 1.0:R"];
   N04 -> N05[label="probability:P"];
   N04 -> N09[label="probability:P"];
   N05 -> N06[label="operand:B"];
@@ -1055,8 +1037,7 @@ digraph "graph" {
         self.assertEqual(str(error_report).strip(), "")
         observed = to_dot(
             bmg,
-            graph_types=True,
-            inf_types=False,
+            inf_types=True,
             edge_requirements=True,
         )
 

@@ -277,9 +277,3 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
     def is_prob_or_bool(self, node: bn.BMGNode) -> bool:
         t = self[node]
         return t != bt.Untypable and bt.supremum(t, bt.Probability) == bt.Probability
-
-    # TODO: In previous versions of the typer we distinguished between the graph
-    # type and lattice type of a constant, but we no longer need this; delete this
-    # feature.
-    def graph_type(self, node: bn.BMGNode) -> bt.BMGLatticeType:
-        return self[node]
