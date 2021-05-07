@@ -150,12 +150,12 @@ class BMGTypesTest(unittest.TestCase):
         )
         expected = """
 digraph "graph" {
-  N00[label="0.5:T>=P"];
-  N01[label="2.0:T>=N"];
+  N00[label="0.5:P>=P"];
+  N01[label="2.0:N>=N"];
   N02[label="Beta:P>=P"];
   N03[label="Sample:P>=P"];
   N04[label="*:P>=P"];
-  N05[label="1.0:T>=OH"];
+  N05[label="1.0:OH>=OH"];
   N06[label="Normal:R>=R"];
   N07[label="Sample:R>=R"];
   N08[label="Bernoulli:B>=B"];

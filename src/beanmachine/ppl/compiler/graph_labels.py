@@ -6,10 +6,6 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 from torch import Tensor
 
 
-def _val(node: bn.ConstantNode) -> str:
-    return str(node.value)
-
-
 def _tensor_to_label(t: Tensor) -> str:
     length = len(t.shape)
     if length == 0:
@@ -20,6 +16,12 @@ def _tensor_to_label(t: Tensor) -> str:
 
 def _tensor_val(node: bn.ConstantTensorNode) -> str:
     return _tensor_to_label(node.value)
+
+
+def _val(node: bn.ConstantNode) -> str:
+    if isinstance(node.value, Tensor):
+        return _tensor_to_label(node.value)
+    return str(node.value)
 
 
 _node_labels = {
@@ -86,6 +88,7 @@ _node_labels = {
     bn.ToProbabilityNode: "ToProb",
     bn.ToRealNode: "ToReal",
     bn.UniformNode: "Uniform",
+    bn.UntypedConstantNode: _val,
 }
 
 _none = []

@@ -65,7 +65,9 @@ class RequirementsFixer:
         edge: str,
     ) -> bn.BMGNode:
         # If the constant node already meets the requirement, we're done.
-        if self._node_meets_requirement(node, requirement):
+        if not isinstance(
+            node, bn.UntypedConstantNode
+        ) and self._node_meets_requirement(node, requirement):
             return node
 
         # It does not meet the requirement. Is there a semantically equivalent node

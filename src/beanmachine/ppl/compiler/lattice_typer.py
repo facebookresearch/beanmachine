@@ -7,9 +7,9 @@
 # typable nodes, determines the *smallest* lattice type possible for that
 # node.
 #
-# A node is "typable" if (1) it is a valid BMG node and (2) all of its
-# ancestors are typable. If either requirement is not met then a node is
-# untypable.
+# A node is "typable" if (1) it is either a constant or valid BMG node,
+# and (2) all of its ancestors are typable. If either requirement is not
+# met then a node is untypable.
 #
 # The purpose of this restriction is to avoid doing work to guess at what
 # the types of nodes are in graphs where there is no possibility of this
@@ -38,11 +38,15 @@
 #   Therefore we can assume that the type of every ancestor node is both computed
 #   and it is a valid type.
 #
-# * For constant nodes, it is acceptable to associate a "fake" lattice type with
-#   the node. For example, a constant real 1.0 can have the lattice type One
+# * "Untyped" constant node types are computed solely from their *values*.
+#   For example, a constant tensor(1.0) can have the lattice type One
 #   because we can use that value in a context where a Boolean, Natural,
-#   Probability, and so on, are needed, just by creating a constant of the
-#   appropriate type.
+#   Probability, and so on, are needed, just by creating a typed constant node
+#   of the appropriate type.
+#
+# * "Typed" constant nodes have the type associated with that node regardless
+#   of the type of the value; a constant real node with value 2.0 has type
+#   real, even though it could be a natural or positive real.
 #
 # * For non-constant nodes, the lattice type associated with a node should always
 #   be an actual BMG type that the node could have. For example: the BMG addition
@@ -55,13 +59,6 @@
 # By following these rules we will be able to more easily compute what the edge
 # requirements are, what conversion nodes must be inserted, and what errors must
 # be reported when a graph cannot be transformed as required.
-
-# TODO: We have a small wart in this system, which is that we represent constants
-# as ConstantTensorNode when we first accumulate them, but then convert them to
-# other constant types as necessary. There is no BMG equivalent of ConstantTensorNode,
-# so the general rule that "only nodes representable in BMG are assigned types"
-# is violated, as is the rule "graph_type always returns a legal graph type".
-# Consider how we might fix this to achieve these desirable invariants.
 
 
 from typing import Callable, Dict
@@ -95,9 +92,7 @@ _requires_nothing: Dict[type, bt.BMGLatticeType] = {
     bn.ToRealNode: bt.Real,
     bn.ToPositiveRealNode: bt.PositiveReal,
     bn.ToProbabilityNode: bt.Probability,
-}
-
-_constant_graph_types: Dict[type, bt.BMGLatticeType] = {
+    # Typed constants
     bn.ConstantTensorNode: bt.Tensor,
     bn.BooleanNode: bt.Boolean,
     bn.NaturalNode: bt.Natural,
@@ -181,13 +176,12 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         return bt.Real
 
     def _type_if(self, node: bn.IfThenElseNode) -> bt.BMGLatticeType:
-        # TODO: This isn't quite right. Suppose we have a degenerate case
-        # such as IF(flip(), 0, 0).  We should conclude that the type
-        # of this node is BOOL, not ZERO.
-        # TODO: What about IF (flip(), 1, 1) -- is that BOOL or SIMPLEX?
         # TODO: Consider adding a pass which optimizes away IF(X, Y, Y) to
         # just plain Y.
-        return bt.supremum(self[node.consequence], self[node.alternative])
+        result = bt.supremum(self[node.consequence], self[node.alternative])
+        if result == bt.Zero or result == bt.One:
+            result = bt.Boolean
+        return result
 
     def _type_index(self, node: bn.IndexNode) -> bt.BMGLatticeType:
         # The lattice type of an index is derived from the lattice type of
@@ -259,15 +253,21 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         for i in node.inputs:
             if self[i] == bt.Untypable:
                 return bt.Untypable
+        if isinstance(node, bn.UntypedConstantNode):
+            return bt.type_of_value(node.value)
         t = type(node)
         if t in _requires_nothing:
             result = _requires_nothing[t]
-        elif isinstance(node, bn.ConstantNode):
-            result = bt.type_of_value(node.value)
+        elif t in _constant_matrix_graph_types:
+            assert isinstance(node, bn.ConstantTensorNode)
+            r = _constant_matrix_graph_types[t]
+            result = r.with_size(node.size)
         elif t in self._dispatch:
             result = self._dispatch[t](node)
         else:
+            # TODO: Consider asserting that the node is unsupported by BMG.
             result = bt.Untypable
+        assert result != bt.Zero and result != bt.One
         return result
 
     def is_bool(self, node: bn.BMGNode) -> bool:
@@ -278,39 +278,8 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         t = self[node]
         return t != bt.Untypable and bt.supremum(t, bt.Probability) == bt.Probability
 
+    # TODO: In previous versions of the typer we distinguished between the graph
+    # type and lattice type of a constant, but we no longer need this; delete this
+    # feature.
     def graph_type(self, node: bn.BMGNode) -> bt.BMGLatticeType:
-        # We normally assign types to constants based on their values; a
-        # natural constant with value 1 is classified as One because it
-        # is convertible to any type that has a One value. However it is
-        # occasionally useful to classify the constant nodes according to
-        # what the actual type of the node is restricted to. This method
-        # does that.
-        result = self[node]
-        if result == bt.Untypable:
-            return bt.Untypable
-        t = type(node)
-        if t in _constant_graph_types:
-            result = _constant_graph_types[t]
-        elif t in _constant_matrix_graph_types:
-            assert isinstance(node, bn.ConstantTensorNode)
-            r = _constant_matrix_graph_types[t]
-            result = r.with_size(node.size)
-        elif isinstance(node, bn.IfThenElseNode):
-            # IfThenElse is a special case because we often have
-            # if X then CONST else CONST, but we want to classify
-            # this according to the graph types of the constants,
-            # not the inf types of the constants.
-            #
-            # We are trying to avoid recursive algorithms that traverse
-            # long paths through the graph, but frankly it seems unlikely
-            # that there will be a thousand-deep path of IF-THEN-ELSE nodes.
-            result = bt.supremum(
-                self.graph_type(node.consequence), self.graph_type(node.alternative)
-            )
-        elif isinstance(node, bn.Query):
-            # In the unlikely event that we have a query of a constant...
-            result = self.graph_type(node.operator)
-        # We should never end up classifying a constant as Zero or
-        # One in this computation.
-        assert result != bt.Zero and result != bt.One
-        return result
+        return self[node]

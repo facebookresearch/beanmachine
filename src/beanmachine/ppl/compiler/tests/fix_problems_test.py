@@ -44,12 +44,12 @@ class FixProblemsTest(unittest.TestCase):
         )
         expected = """
 digraph "graph" {
-  N00[label="0.5:T"];
-  N01[label="2.0:T"];
+  N00[label="0.5:P"];
+  N01[label="2.0:N"];
   N02[label="Beta:P"];
   N03[label="Sample:P"];
   N04[label="*:P"];
-  N05[label="1.0:T"];
+  N05[label="1.0:OH"];
   N06[label="Normal:R"];
   N07[label="Sample:R"];
   N08[label="Bernoulli:B"];
@@ -79,9 +79,9 @@ digraph "graph" {
         )
         expected = """
 digraph "graph" {
-  N00[label="1.0:T"];
-  N01[label="2.0:T"];
-  N02[label="0.5:T"];
+  N00[label="1.0:OH"];
+  N01[label="2.0:N"];
+  N02[label="0.5:P"];
   N03[label="0.5:P"];
   N04[label="2.0:R+"];
   N05[label="Beta:P"];
@@ -155,10 +155,10 @@ digraph "graph" {
         )
         expected = """
 digraph "graph" {
-  N0[label="0.5:T"];
+  N0[label="0.5:P"];
   N1[label="Bernoulli:B"];
   N2[label="Sample:B"];
-  N3[label="1.0:T"];
+  N3[label="1.0:OH"];
   N4[label="+:R+"];
   N5[label="Normal:R"];
   N6[label="Sample:R"];
@@ -187,8 +187,8 @@ digraph "graph" {
         )
         expected = """
 digraph "graph" {
-  N00[label="1.0:T"];
-  N01[label="0.5:T"];
+  N00[label="1.0:OH"];
+  N01[label="0.5:P"];
   N02[label="0.5:P"];
   N03[label="Bernoulli:B"];
   N04[label="Sample:B"];
@@ -214,8 +214,8 @@ digraph "graph" {
   N07 -> N08[label="right:R+"];
   N08 -> N09[label="sigma:R+"];
   N09 -> N10[label="operand:R"];
-  N11 -> N13[label="consequence:B"];
-  N12 -> N13[label="alternative:B"];
+  N11 -> N13[label="consequence:N"];
+  N12 -> N13[label="alternative:N"];
   N13 -> N14[label="count:N"];
   N14 -> N15[label="operand:N"];
 }"""
@@ -346,11 +346,11 @@ digraph "graph" {
   N04[label="Binomial:N>=N"];
   N05[label="Sample:N>=N"];
   N06[label="*:R+>=R+"];
-  N07[label="0:N>=Z"];
+  N07[label="0:N>=N"];
   N08[label="if:N>=N"];
   N09[label="Binomial:N>=N"];
   N10[label="Sample:N>=N"];
-  N11[label="0.0:R>=Z"];
+  N11[label="0.0:Z>=Z"];
   N00 -> N01[label="probability:P"];
   N00 -> N04[label="probability:P"];
   N00 -> N09[label="probability:P"];
@@ -406,20 +406,21 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N00[label="1.0:R>=OH"];
-  N01[label="1.0:R+>=OH"];
+  N00[label="1.0:OH>=OH"];
+  N01[label="1.0:R+>=R+"];
   N02[label="HalfCauchy:R+>=R+"];
   N03[label="Sample:R+>=R+"];
   N04[label="Sample:R+>=R+"];
   N05[label="/:U>=U"];
   N06[label="Sample:R+>=R+"];
-  N07[label="-1.0:R>=R-"];
+  N07[label="-1.0:R>=R"];
   N08[label="**:R+>=R+"];
   N09[label="*:R+>=R+"];
   N10[label="**:R+>=R+"];
   N11[label="Log:R>=R"];
   N12[label="Normal:R>=R"];
   N13[label="Sample:R>=R"];
+  N14[label="-1.0:R->=R-"];
   N01 -> N02[label="scale:R+"];
   N01 -> N12[label="sigma:R+"];
   N02 -> N03[label="operand:R+"];
@@ -469,10 +470,10 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:R>=OH"];
+  N0[label="1.0:OH>=OH"];
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
-  N3[label="2.5:R>=R+"];
+  N3[label="2.5:R+>=R+"];
   N4[label="/:U>=U"];
   N5[label="Normal:U>=U"];
   N6[label="Sample:U>=U"];
@@ -500,18 +501,18 @@ digraph "graph" {
         )
         expected = """
 digraph "graph" {
-  N00[label="1.0:R>=OH"];
-  N01[label="1.0:R+>=OH"];
+  N00[label="1.0:OH>=OH"];
+  N01[label="1.0:R+>=R+"];
   N02[label="HalfCauchy:R+>=R+"];
   N03[label="Sample:R+>=R+"];
-  N04[label="2.5:R>=R+"];
+  N04[label="2.5:R+>=R+"];
   N05[label="/:U>=U"];
-  N06[label="0.4:R+>=P"];
+  N06[label="0.4:R+>=R+"];
   N07[label="*:R+>=R+"];
   N08[label="ToReal:R>=R"];
   N09[label="Normal:R>=R"];
   N10[label="Sample:R>=R"];
-  N11[label="0.4:R>=P"];
+  N11[label="0.4:P>=P"];
   N01 -> N02[label="scale:R+"];
   N01 -> N09[label="sigma:R+"];
   N02 -> N03[label="operand:R+"];
@@ -592,7 +593,7 @@ The unsupported node is the operand of a Sample.
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:R>=OH"];
+  N0[label="1.0:OH>=OH"];
   N1[label="HalfCauchy:R+>=R+"];
   N2[label="Sample:R+>=R+"];
   N3[label="Chi2:U>=U"];
@@ -619,12 +620,12 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:R>=OH"];
-  N1[label="1.0:R+>=OH"];
+  N0[label="1.0:OH>=OH"];
+  N1[label="1.0:R+>=R+"];
   N2[label="HalfCauchy:R+>=R+"];
   N3[label="Sample:R+>=R+"];
   N4[label="Chi2:U>=U"];
-  N5[label="0.5:R+>=P"];
+  N5[label="0.5:R+>=R+"];
   N6[label="*:R+>=R+"];
   N7[label="Gamma:R+>=R+"];
   N8[label="Sample:R+>=R+"];
@@ -721,11 +722,11 @@ digraph "graph" {
   N04[label="Bernoulli:B>=B"];
   N05[label="Sample:B>=B"];
   N06[label="**:R+>=R+"];
-  N07[label="1:N>=OH"];
+  N07[label="1:N>=N"];
   N08[label="if:N>=N"];
   N09[label="Binomial:N>=N"];
   N10[label="Sample:N>=N"];
-  N11[label="1.0:R>=OH"];
+  N11[label="1.0:OH>=OH"];
   N00 -> N02[label="count:N"];
   N01 -> N02[label="probability:P"];
   N01 -> N04[label="probability:P"];
@@ -780,8 +781,8 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="1.0:R>=OH"];
-  N1[label="2.0:R>=N"];
+  N0[label="1.0:OH>=OH"];
+  N1[label="2.0:N>=N"];
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
   N4[label="-:R->=R-"];
@@ -814,9 +815,9 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="2.0:R>=N"];
-  N1[label="1.0:R>=OH"];
-  N2[label="2.0:R+>=N"];
+  N0[label="2.0:N>=N"];
+  N1[label="1.0:OH>=OH"];
+  N2[label="2.0:R+>=R+"];
   N3[label="Beta:P>=P"];
   N4[label="Sample:P>=P"];
   N5[label="-:R->=R-"];
@@ -870,7 +871,7 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="2.0:R>=N"];
+  N0[label="2.0:N>=N"];
   N1[label="Beta:P>=P"];
   N2[label="Sample:P>=P"];
   N3[label="Log:R->=R-"];
@@ -901,8 +902,8 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="2.0:R>=N"];
-  N1[label="2.0:R+>=N"];
+  N0[label="2.0:N>=N"];
+  N1[label="2.0:R+>=R+"];
   N2[label="Beta:P>=P"];
   N3[label="Sample:P>=P"];
   N4[label="Log:R->=R-"];
@@ -1000,34 +1001,36 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
         # The observations have been converted to the correct types:
         expected = """
 digraph "graph" {
-  N00[label="1.0:R>=OH"];
-  N01[label="2.0:R>=N"];
-  N02[label="0.5:R>=P"];
+  N00[label="0.0:Z>=Z"];
+  N01[label="1.0:OH>=OH"];
+  N02[label="2.0:N>=N"];
   N03[label="0.5:P>=P"];
-  N04[label="Bernoulli:B>=B"];
-  N05[label="Sample:B>=B"];
-  N06[label="Observation False:B>=B"];
-  N07[label="2:N>=N"];
-  N08[label="Binomial:N>=N"];
-  N09[label="Sample:N>=N"];
-  N10[label="Observation 5:N>=N"];
-  N11[label="0.0:R>=Z"];
-  N12[label="1.0:R+>=OH"];
-  N13[label="Normal:R>=R"];
-  N14[label="Sample:R>=R"];
-  N15[label="Observation 1.0:R>=R"];
-  N03 -> N04[label="probability:P"];
-  N03 -> N08[label="probability:P"];
-  N04 -> N05[label="operand:B"];
-  N05 -> N06[label="operand:any"];
-  N07 -> N08[label="count:N"];
-  N08 -> N09[label="operand:N"];
-  N09 -> N10[label="operand:any"];
-  N11 -> N13[label="mu:R"];
-  N12 -> N13[label="sigma:R+"];
-  N13 -> N14[label="operand:R"];
-  N14 -> N15[label="operand:any"];
-}"""
+  N04[label="0.5:P>=P"];
+  N05[label="Bernoulli:B>=B"];
+  N06[label="Sample:B>=B"];
+  N07[label="Observation False:B>=B"];
+  N08[label="2:N>=N"];
+  N09[label="Binomial:N>=N"];
+  N10[label="Sample:N>=N"];
+  N11[label="Observation 5:N>=N"];
+  N12[label="0.0:R>=R"];
+  N13[label="1.0:R+>=R+"];
+  N14[label="Normal:R>=R"];
+  N15[label="Sample:R>=R"];
+  N16[label="Observation 1.0:R>=R"];
+  N04 -> N05[label="probability:P"];
+  N04 -> N09[label="probability:P"];
+  N05 -> N06[label="operand:B"];
+  N06 -> N07[label="operand:any"];
+  N08 -> N09[label="count:N"];
+  N09 -> N10[label="operand:N"];
+  N10 -> N11[label="operand:any"];
+  N12 -> N14[label="mu:R"];
+  N13 -> N14[label="sigma:R+"];
+  N14 -> N15[label="operand:R"];
+  N15 -> N16[label="operand:any"];
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_fix_problems_14(self) -> None:

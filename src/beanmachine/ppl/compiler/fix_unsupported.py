@@ -78,7 +78,8 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         return None
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
-        return not is_supported_by_bmg(n)
+        # Untyped constant nodes will be replaced in the requirements checking pass.
+        return not isinstance(n, bn.UntypedConstantNode) and not is_supported_by_bmg(n)
 
     def _get_error(self, n: bn.BMGNode, index: int) -> Optional[BMGError]:
         # TODO: The edge labels used to visualize the graph in DOT

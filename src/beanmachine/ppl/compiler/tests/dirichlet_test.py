@@ -188,8 +188,8 @@ class DirichletTest(unittest.TestCase):
         bmg.add_query(c3)
         expected = """
 digraph "graph" {
-  N0[label="1.0:R+>=OH"];
-  N1[label="Query:R+>=OH"];
+  N0[label="1.0:R+>=R+"];
+  N1[label="Query:R+>=R+"];
   N2[label="[1.0,1.5]:MR+[1,2]>=MR+[1,2]"];
   N3[label="Query:MR+[1,2]>=MR+[1,2]"];
   N4[label="[[1.0,1.5],\\\\n[2.0,2.5]]:MR+[2,2]>=MR+[2,2]"];
@@ -269,23 +269,23 @@ digraph "graph" {
   N01[label="Dirichlet:S[1,1]>=S[1,1]"];
   N02[label="Sample:S[1,1]>=S[1,1]"];
   N03[label="Query:S[1,1]>=S[1,1]"];
-  N04[label="[1.0]:T>=OH"];
+  N04[label="[1.0]:OH>=OH"];
   N05[label="Dirichlet:S[1,1]>=S[1,1]"];
   N06[label="Sample:S[1,1]>=S[1,1]"];
   N07[label="Query:S[1,1]>=S[1,1]"];
-  N08[label="[[1.5]]:T>=R+"];
+  N08[label="[[1.5]]:R+>=R+"];
   N09[label="Dirichlet:S[1,1]>=S[1,1]"];
   N10[label="Sample:S[1,1]>=S[1,1]"];
   N11[label="Query:S[1,1]>=S[1,1]"];
-  N12[label="[[[2.0]]]:T>=N"];
+  N12[label="[[[2.0]]]:N>=N"];
   N13[label="Dirichlet:S[1,1]>=S[1,1]"];
   N14[label="Sample:S[1,1]>=S[1,1]"];
   N15[label="Query:S[1,1]>=S[1,1]"];
-  N16[label="[2.5,3.0]:T>=MR+[1,2]"];
+  N16[label="[2.5,3.0]:MR+[1,2]>=MR+[1,2]"];
   N17[label="Dirichlet:S[1,2]>=S[1,2]"];
   N18[label="Sample:S[1,2]>=S[1,2]"];
   N19[label="Query:S[1,2]>=S[1,2]"];
-  N20[label="[[3.5,4.0]]:T>=MR+[1,2]"];
+  N20[label="[[3.5,4.0]]:MR+[1,2]>=MR+[1,2]"];
   N21[label="Dirichlet:S[1,2]>=S[1,2]"];
   N22[label="Sample:S[1,2]>=S[1,2]"];
   N23[label="Query:S[1,2]>=S[1,2]"];
@@ -293,7 +293,7 @@ digraph "graph" {
   N25[label="Dirichlet:S[1,2]>=S[1,2]"];
   N26[label="Sample:S[1,2]>=S[1,2]"];
   N27[label="Query:S[1,2]>=S[1,2]"];
-  N28[label="[[5.5,6.0,6.5],\\\\n[7.0,7.5,8.0]]:T>=MR+[2,3]"];
+  N28[label="[[5.5,6.0,6.5],\\\\n[7.0,7.5,8.0]]:MR+[2,3]>=MR+[2,3]"];
   N29[label="Dirichlet:S[1,3]>=S[1,3]"];
   N30[label="Sample:S[1,3]>=S[1,3]"];
   N31[label="Query:S[1,3]>=S[1,3]"];
@@ -415,7 +415,7 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="[1.0]:R+>=OH"];
+  N0[label="[1.0]:R+>=R+"];
   N1[label="Dirichlet:S[1,1]>=S[1,1]"];
   N2[label="Sample:S[1,1]>=S[1,1]"];
   N3[label="Query:S[1,1]>=S[1,1]"];

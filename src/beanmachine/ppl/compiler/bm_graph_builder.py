@@ -145,30 +145,30 @@ class BMGraphBuilder:
     # operation.
 
     # During the execution of the lifted program we should only be
-    # creating nodes for real, Boolean and tensor values; during the
-    # phase where we ensure that the BMG type system constraints are met
-    # we construct probability, postive real, and natural number nodes.
+    # creating "untyped constant" nodes for real, int, Boolean and tensor values;
+    # during the phase where we ensure that the BMG type system constraints are
+    # met we construct "typed constant" nodes.
 
-    def add_constant(self, value: Any) -> ConstantNode:
+    @memoize
+    def _add_constant(self, value: Any, t: type) -> bn.UntypedConstantNode:
+        node = bn.UntypedConstantNode(value)
+        self.add_node(node)
+        return node
+
+    def add_constant(self, value: Any) -> bn.UntypedConstantNode:
         """This takes any constant value of a supported type,
         creates a constant graph node for it, and adds it to the builder"""
         t = type(value)
         if t in supported_bool_types:
-            return self.add_boolean(bool(value))
-        # TODO: When converting natural nodes to BMG we might lose
-        # precision; should we put a range check here to ensure that the
-        # value is not too big?
-        if t in supported_int_types:
-            v = int(value)
-            if v >= 0:
-                return self.add_natural(v)
-            return self.add_real(float(value))
-        if t in supported_float_types:
-            return self.add_real(float(value))
-        if isinstance(value, torch.Tensor):
-            return self.add_constant_tensor(value)
-        # TODO: Improve this error message
-        raise TypeError("value must be a bool, integer, real or tensor")
+            value = bool(value)
+        elif t in supported_int_types:
+            value = int(value)
+        elif t in supported_float_types:
+            value = float(value)
+        elif t != torch.Tensor:
+            # TODO: Improve this error message
+            raise TypeError("value must be a bool, integer, real or tensor")
+        return self._add_constant(value, t)
 
     def add_constant_of_matrix_type(
         self, value: Any, node_type: bt.BMGMatrixType
