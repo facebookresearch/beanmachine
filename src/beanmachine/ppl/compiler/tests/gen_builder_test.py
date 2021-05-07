@@ -30,8 +30,8 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from torch import tensor
 
 bmg = BMGraphBuilder()
-n0 = bmg.add_node(bn.ConstantTensorNode(tensor(0.)))
-n1 = bmg.add_node(bn.ConstantTensorNode(tensor(1.)))
+n0 = bmg.add_node(bn.UntypedConstantNode(tensor(0.)))
+n1 = bmg.add_node(bn.UntypedConstantNode(tensor(1.)))
 n2 = bmg.add_node(bn.NormalNode(n0, n1))
 n3 = bmg.add_node(bn.SampleNode(n2))
 n4 = bmg.add_node(bn.SampleNode(n2))

@@ -187,6 +187,21 @@ class ConstantNode(BMGNode, metaclass=ABCMeta):
         return 1.0
 
 
+class UntypedConstantNode(ConstantNode):
+    def __init__(self, value: Any) -> None:
+        self.value = value
+        ConstantNode.__init__(self)
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    @property
+    def size(self) -> torch.Size:
+        if isinstance(self.value, torch.Tensor):
+            return self.value.size()
+        return torch.Size([])
+
+
 class BooleanNode(ConstantNode):
     """A Boolean constant"""
 
