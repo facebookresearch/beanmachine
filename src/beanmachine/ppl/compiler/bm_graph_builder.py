@@ -700,6 +700,14 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_to_matrix(
+        self, rows: bn.NaturalNode, columns: bn.NaturalNode, *data: BMGNode
+    ) -> bn.ToMatrixNode:
+        node = bn.ToMatrixNode(rows, columns, list(data))
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_logsumexp(self, *inputs: BMGNode) -> bn.LogSumExpNode:
         node = bn.LogSumExpNode(list(inputs))
         self.add_node(node)

@@ -71,6 +71,7 @@ _operator_types = {
     bn.PhiNode: OperatorType.PHI,
     bn.PowerNode: OperatorType.POW,
     bn.SampleNode: OperatorType.SAMPLE,
+    bn.ToMatrixNode: OperatorType.TO_MATRIX,
     bn.ToRealNode: OperatorType.TO_REAL,
     bn.ToPositiveRealNode: OperatorType.TO_POS_REAL,
     bn.ToProbabilityNode: OperatorType.TO_PROBABILITY,

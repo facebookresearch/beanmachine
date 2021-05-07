@@ -84,6 +84,7 @@ _node_labels = {
     bn.SampleNode: "Sample",
     bn.StudentTNode: "StudentT",
     bn.TensorNode: "Tensor",
+    bn.ToMatrixNode: "ToMatrix",
     bn.ToPositiveRealNode: "ToPosReal",
     bn.ToProbabilityNode: "ToProb",
     bn.ToRealNode: "ToReal",
@@ -97,8 +98,16 @@ _operand = ["operand"]
 _probability = ["probability"]
 
 
+def _numbers(n: int) -> List[str]:
+    return [str(x) for x in range(n)]
+
+
 def _numbered(node: bn.BMGNode) -> List[str]:
-    return [str(x) for x in range(len(node.inputs))]
+    return _numbers(len(node.inputs))
+
+
+def _to_matrix(node: bn.BMGNode) -> List[str]:
+    return ["rows", "columns"] + _numbers(len(node.inputs) - 2)
 
 
 _edge_labels = {
@@ -159,6 +168,7 @@ _edge_labels = {
     bn.SampleNode: _operand,
     bn.StudentTNode: ["df", "loc", "scale"],
     bn.TensorNode: _numbered,
+    bn.ToMatrixNode: _to_matrix,
     bn.ToPositiveRealNode: _operand,
     bn.ToProbabilityNode: _operand,
     bn.ToRealNode: _operand,
