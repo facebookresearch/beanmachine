@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import contextvars
 import copy
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional, Set, Tuple
@@ -11,6 +10,7 @@ from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
+from beanmachine.ppl.world.base_world import BaseWorld
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack
 from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
@@ -19,12 +19,10 @@ from torch import Tensor
 from torch.distributions import Distribution
 
 
-world_context = contextvars.ContextVar("beanmachine.ppl.world", default=None)
-
 Variables = Dict[RVIdentifier, Variable]
 
 
-class World(object):
+class World(BaseWorld):
     """
     Represents the world through inference run.
 
@@ -103,10 +101,6 @@ class World(object):
         self.vi_dicts = None
         self.params_ = {}
         self.model_to_guide_ids_ = None
-
-        # The token used to restore context to previous state. It's used in __enter__
-        # and __exit__ to control the scope of the world.
-        self.context_tokens: List[contextvars.Token] = []
 
     def set_initialize_from_prior(self, initialize_from_prior: bool = True):
         """
@@ -797,36 +791,3 @@ class World(object):
             self.update_diff_log_prob(node)
 
         return node_var.value
-
-    def __enter__(self):
-        """
-        This method, together with __exit__, allow us to use world as a context, e.g.
-        ```
-        with World():
-            # invoke random variables to update the graph
-        ```
-        By keeping a stack of context tokens, we can easily nest multiple worlds and
-        restore the outer context if needed, e.g.
-        ```
-        world1, world2 = World(), World()
-        with world1:
-            # do some graph update specific to world1
-            with world2:
-                # update world2
-            # back to updating world1
-        ```
-        """
-        self.context_tokens.append(world_context.set(self))
-        return self
-
-    def __exit__(self, *args):
-        # reset world to previous context (if any)
-        if self.context_tokens:
-            world_context.reset(self.context_tokens.pop())
-
-    def call(self, node: RVIdentifier):
-        """
-        A helper function that invokes the random variable and return its value
-        """
-        with self:
-            return node.wrapper(*node.arguments)

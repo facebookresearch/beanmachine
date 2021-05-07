@@ -3,14 +3,13 @@ import dataclasses
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.utils import (
     BetaDimensionTransform,
     get_default_transforms,
-    is_constraint_eq,
+    initialize_value,
 )
 from torch import Tensor
 from torch.distributions import Distribution
@@ -118,63 +117,6 @@ class Variable:
             str_ouput = str(self.value) + " from " + str(type(self.distribution))
         return str_ouput
 
-    def initialize_value(
-        self, obs: Optional[Tensor], initialize_from_prior: bool = False
-    ) -> Tensor:
-        """
-        Initialized the Variable value
-
-        :param is_obs: the boolean representing whether the node is an
-        observation or not
-        :param initialize_from_prior: if true, returns sample from prior
-        :returns: the value to the set the Variable value to
-        """
-        distribution = self.distribution
-        if obs is not None:
-            return obs
-
-        # pyre-fixme
-        sample_val = distribution.sample()
-        # pyre-fixme
-        support = distribution.support
-        if isinstance(support, dist.constraints.independent):
-            support = support.base_constraint
-        if initialize_from_prior:
-            return sample_val
-        elif is_constraint_eq(support, dist.constraints.real):
-            return torch.zeros_like(sample_val)
-        elif is_constraint_eq(support, dist.constraints.simplex):
-            value = torch.ones_like(sample_val)
-            return value / sample_val.shape[-1]
-        elif is_constraint_eq(support, dist.constraints.greater_than):
-            return (
-                torch.ones(
-                    sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
-                )
-                + support.lower_bound
-            )
-        elif is_constraint_eq(support, dist.constraints.boolean):
-            return dist.Bernoulli(torch.ones_like(sample_val) / 2).sample()
-        elif is_constraint_eq(support, dist.constraints.interval):
-            lower_bound = torch.ones_like(sample_val) * support.lower_bound
-            upper_bound = torch.ones_like(sample_val) * support.upper_bound
-            return dist.Uniform(lower_bound, upper_bound).sample()
-        elif is_constraint_eq(support, dist.constraints.integer_interval):
-            integer_interval = support.upper_bound - support.lower_bound
-            return dist.Categorical(
-                (torch.ones(integer_interval, device=sample_val.device)).expand(
-                    sample_val.shape + (integer_interval,)
-                )
-            ).sample()
-        elif is_constraint_eq(support, dist.constraints.nonnegative_integer):
-            return (
-                torch.ones(
-                    sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
-                )
-                + support.lower_bound
-            )
-        return sample_val
-
     def copy(self):
         """
         Makes a copy of self and returns it.
@@ -224,7 +166,10 @@ class Variable:
             self.set_transform(transform_data, proposer)
 
         if value is None:
-            value = self.initialize_value(obs_value, initialize_from_prior)
+            if obs_value is None:
+                value = initialize_value(self.distribution, initialize_from_prior)
+            else:
+                value = obs_value
         self.update_value(value)
         self.update_log_prob()
 

@@ -3,7 +3,7 @@ import warnings
 from functools import wraps
 
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world.world import world_context
+from beanmachine.ppl.world import World, get_world_context
 
 
 class StatisticalModel(object):
@@ -62,11 +62,11 @@ class StatisticalModel(object):
         @wraps(f)
         def wrapper(*args):
             func_key = StatisticalModel.get_func_key(wrapper, args)
-            world = world_context.get()
-            if world:
-                return world.update_graph(func_key)
-            else:
+            world = get_world_context()
+            if world is None:
                 return func_key
+            else:
+                return world.update_graph(func_key)
 
         wrapper.is_functional = False
         wrapper.is_random_variable = True
@@ -87,14 +87,13 @@ class StatisticalModel(object):
 
         @wraps(f)
         def wrapper(*args):
-            world = world_context.get()
-            if world:
-                if world.get_cache_functionals():
-                    return world.update_cached_functionals(f, *args)
-                else:
-                    return f(*args)
-            else:
+            world = get_world_context()
+            if world is None:
                 return StatisticalModel.get_func_key(wrapper, args)
+            elif isinstance(world, World) and world.get_cache_functionals():
+                return world.update_cached_functionals(f, *args)
+            else:
+                return f(*args)
 
         wrapper.is_functional = True
         wrapper.is_random_variable = False
@@ -111,8 +110,8 @@ class StatisticalModel(object):
         @wraps(init_fn)
         def wrapper(*args):
             func_key = StatisticalModel.get_func_key(wrapper, args)
-            world = world_context.get()
-            if world:
+            world = get_world_context()
+            if isinstance(world, World):
                 return world.get_param(func_key)
             else:
                 return func_key

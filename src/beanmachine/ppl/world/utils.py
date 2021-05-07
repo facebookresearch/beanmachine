@@ -107,3 +107,55 @@ def get_default_transforms(distribution: Distribution) -> dist.Transform:
         return dist.transforms.identity_transform
     else:
         return dist.biject_to(distribution.support).inv
+
+
+def initialize_value(distribution: Distribution, initialize_from_prior: bool = False):
+    """
+    Initialized the Variable value
+
+    :param initialize_from_prior: if true, returns sample from prior
+    :returns: the value to the set the Variable value to
+    """
+    # pyre-fixme
+    sample_val = distribution.sample()
+    if initialize_from_prior:
+        return sample_val
+    # pyre-fixme
+    support = distribution.support
+    if isinstance(support, dist.constraints.independent):
+        support = support.base_constraint
+    if initialize_from_prior:
+        return sample_val
+    elif is_constraint_eq(support, dist.constraints.real):
+        return torch.zeros_like(sample_val)
+    elif is_constraint_eq(support, dist.constraints.simplex):
+        value = torch.ones_like(sample_val)
+        return value / sample_val.shape[-1]
+    elif is_constraint_eq(support, dist.constraints.greater_than):
+        return (
+            torch.ones(
+                sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
+            )
+            + support.lower_bound
+        )
+    elif is_constraint_eq(support, dist.constraints.boolean):
+        return dist.Bernoulli(torch.ones_like(sample_val) / 2).sample()
+    elif is_constraint_eq(support, dist.constraints.interval):
+        lower_bound = torch.ones_like(sample_val) * support.lower_bound
+        upper_bound = torch.ones_like(sample_val) * support.upper_bound
+        return dist.Uniform(lower_bound, upper_bound).sample()
+    elif is_constraint_eq(support, dist.constraints.integer_interval):
+        integer_interval = support.upper_bound - support.lower_bound
+        return dist.Categorical(
+            (torch.ones(integer_interval, device=sample_val.device)).expand(
+                sample_val.shape + (integer_interval,)
+            )
+        ).sample()
+    elif is_constraint_eq(support, dist.constraints.nonnegative_integer):
+        return (
+            torch.ones(
+                sample_val.shape, dtype=sample_val.dtype, device=sample_val.device
+            )
+            + support.lower_bound
+        )
+    return sample_val
