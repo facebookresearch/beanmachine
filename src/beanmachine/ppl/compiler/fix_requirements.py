@@ -53,9 +53,9 @@ class RequirementsFixer:
     def _node_meets_requirement(self, node: bn.BMGNode, r: bt.Requirement) -> bool:
         if isinstance(r, bt.AlwaysMatrix):
             return node.is_matrix and self._type_meets_requirement(
-                self._typer.graph_type(node), r.bound
+                self._typer[node], r.bound
             )
-        return self._type_meets_requirement(self._typer.graph_type(node), r)
+        return self._type_meets_requirement(self._typer[node], r)
 
     def _meet_constant_requirement(
         self,
@@ -121,7 +121,7 @@ class RequirementsFixer:
         # We have been given a node which does not meet a requirement,
         # but it can be converted to a node which does meet the requirement
         # that has the same semantics. Start by confirming those preconditions.
-        assert self._typer.graph_type(node) != requirement
+        assert self._typer[node] != requirement
         assert bt.supremum(self._typer[node], requirement) == requirement
 
         # TODO: We no longer support Tensor as a type in BMG.  We must
