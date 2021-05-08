@@ -83,6 +83,7 @@ class EdgeRequirements:
             bn.NegateNode: self._requirements_exp_neg,
             bn.PowerNode: self._requirements_power,
             bn.SampleNode: self._same_as_output,
+            bn.ToMatrixNode: self._requirements_to_matrix,
         }
 
     def _requirements_expproduct(
@@ -289,6 +290,14 @@ class EdgeRequirements:
         if req_exp not in {bt.PositiveReal, bt.Real}:
             req_exp = bt.Real
         return [req_base, req_exp]
+
+    def _requirements_to_matrix(self, node: bn.ToMatrixNode) -> List[bt.Requirement]:
+        node_type = self.typer[node]
+        assert isinstance(node_type, bt.BMGMatrixType)
+        item_type = node_type.with_dimensions(1, 1)
+        rc: List[bt.Requirement] = [bt.Natural, bt.Natural]
+        its: List[bt.Requirement] = [item_type]
+        return rc + its * (len(node.inputs) - 2)
 
     def requirements(self, node: bn.BMGNode) -> List[bt.Requirement]:
         input_count = len(node.inputs)

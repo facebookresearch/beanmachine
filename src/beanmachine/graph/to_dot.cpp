@@ -159,6 +159,8 @@ class DOT {
         return "ToProb";
       case OperatorType::INDEX:
         return "Index";
+      case OperatorType::TO_MATRIX:
+        return "ToMatrix";
       default:
         return "Operator";
     }

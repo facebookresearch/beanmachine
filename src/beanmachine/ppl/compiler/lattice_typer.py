@@ -135,6 +135,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.NegateNode: self._type_negate,
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
+            bn.ToMatrixNode: self._type_to_matrix,
         }
 
     def _type_observation(self, node: bn.Observation) -> bt.BMGLatticeType:
@@ -242,6 +243,24 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
 
     def _type_sample(self, node: bn.SampleNode) -> bt.BMGLatticeType:
         return self[node.operand]
+
+    def _type_to_matrix(self, node: bn.ToMatrixNode) -> bt.BMGLatticeType:
+        assert len(node.inputs) >= 3
+        rows = node.inputs[0]
+        assert isinstance(rows, bn.NaturalNode)
+        columns = node.inputs[1]
+        assert isinstance(columns, bn.NaturalNode)
+        t = bt.supremum(*(self[item] for item in node.inputs.inputs[2:]))
+        if bt.supremum(t, bt.Real) != bt.Real:
+            t = bt.Real
+        elif t == bt.One or t == bt.Zero:
+            # This should not happen, but just to be sure we'll make
+            # an all-one or all-zero matrix into a matrix of bools.
+            # (It should not happen because an all-constant matrix should
+            # already be a TensorConstant node.)
+            t = bt.Boolean
+        assert isinstance(t, bt.BMGMatrixType)
+        return t.with_dimensions(rows.value, columns.value)
 
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> bt.BMGLatticeType:
         # If there is any input node whose type cannot be determined, then *none*

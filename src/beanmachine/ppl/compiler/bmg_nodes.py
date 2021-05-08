@@ -982,6 +982,35 @@ class LogSumExpNode(OperatorNode):
         raise ValueError("support of LogSumExp not yet implemented")
 
 
+class ToMatrixNode(OperatorNode):
+    """A 2-d tensor whose elements are graph nodes."""
+
+    def __init__(self, rows: NaturalNode, columns: NaturalNode, items: List[BMGNode]):
+        # The first two elements are the row and column counts; they must
+        # be constant naturals.
+        assert isinstance(items, list)
+        assert len(items) >= 1
+        rc: List[BMGNode] = [rows, columns]
+        BMGNode.__init__(self, rc + items)
+
+    def __str__(self) -> str:
+        return "ToMatrix"
+
+    @property
+    def size(self) -> torch.Size:
+        rows = self.inputs[0]
+        assert isinstance(rows, NaturalNode)
+        columns = self.inputs[1]
+        assert isinstance(columns, NaturalNode)
+        return torch.Size([rows.value, columns.value])
+
+    def support(self) -> Iterable[Any]:
+        raise NotImplementedError()
+
+    def support_size(self) -> float:
+        raise NotImplementedError()
+
+
 # ####
 # #### Ternary operators
 # ####
