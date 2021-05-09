@@ -65,6 +65,7 @@ _operator_types = {
     bn.LogNode: OperatorType.LOG,
     bn.LogisticNode: OperatorType.LOGISTIC,
     bn.LogSumExpNode: OperatorType.LOGSUMEXP,
+    bn.LogSumExpVectorNode: OperatorType.LOGSUMEXP_VECTOR,
     bn.MultiAdditionNode: OperatorType.ADD,
     bn.MultiplicationNode: OperatorType.MULTIPLY,
     bn.NegateNode: OperatorType.NEGATE,

@@ -78,6 +78,7 @@ class EdgeRequirements:
             bn.IndexNode: self._requirements_index,
             bn.LogNode: self._requirements_log,
             bn.LogSumExpNode: self._requirements_logsumexp,
+            bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
             bn.MultiAdditionNode: self._requirements_addition,
             bn.MultiplicationNode: self._requirements_multiplication,
             bn.NegateNode: self._requirements_exp_neg,
@@ -265,6 +266,25 @@ class EdgeRequirements:
         if s not in {bt.Real, bt.NegativeReal, bt.PositiveReal}:
             s = bt.Real
         return [s] * len(node.inputs)  # pyre-ignore
+
+    def _requirements_logsumexp_vector(
+        self, node: bn.LogSumExpVectorNode
+    ) -> List[bt.Requirement]:
+        # LOGSUMEXP_VECTOR requires:
+        # * a broadcast matrix with one column and any number of rows
+        # * The matrix has real, positive real, or negative real elements.
+        #
+        # TODO: What about simplex matrices? It should be legal to do
+        # a logsumexp of a sample from a Dirichlet, right? Can we convert
+        # a simplex to a broadcast matrix of positive reals?
+        t = self.typer[node.operand]
+        required_rows = t.rows if isinstance(t, bt.BMGMatrixType) else 1
+        required_columns = 1
+        if isinstance(t, bt.PositiveRealMatrix) or isinstance(t, bt.NegativeRealMatrix):
+            t = t.with_dimensions(required_rows, required_columns)
+        else:
+            t = bt.Real.with_dimensions(required_rows, required_columns)
+        return [bt.always_matrix(t)]
 
     def _requirements_multiplication(
         self, node: bn.MultiplicationNode

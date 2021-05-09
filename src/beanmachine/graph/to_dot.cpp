@@ -147,6 +147,8 @@ class DOT {
         return "Log1pExp";
       case OperatorType::LOGSUMEXP:
         return "LogSumExp";
+      case OperatorType::LOGSUMEXP_VECTOR:
+        return "LogSumExp";
       case OperatorType::LOG:
         return "Log";
       case OperatorType::POW:

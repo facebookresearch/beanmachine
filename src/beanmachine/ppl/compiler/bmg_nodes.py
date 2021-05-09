@@ -90,6 +90,8 @@ class BMGNode(ABC):
         self.inputs = InputList(self, inputs)
         self.outputs = ItemCounter()
 
+    # TODO: This isn't a concern of this class hierarchy. Extract this to
+    # a helper class.
     @property
     def is_matrix(self) -> bool:
         """Is this node classified as a matrix in BMG?"""
@@ -945,6 +947,15 @@ class MultiAdditionNode(OperatorNode):
         return "MultiAdd"
 
 
+# See LogSumExpVectorNode below as well.
+# TODO: We really need THREE logsumexp nodes:
+# * The Python LogSumExp node which is a binary operator; it takes a tensor and
+#   a dimension. It has no direct BMG equivalent.
+# * The BMG LOGSUMEXP which takes n operands
+# * The BMG LOGSUMEXP_VECTOR which takes a single column matrix operand
+#
+# We should accumulate the first, and then transform it into one of the
+# BMG nodes (or give an error if we cannot) as appropriate.
 class LogSumExpNode(OperatorNode):
     """This class represents the LogSumExp operation: for values v_1, ..., v_n
     we compute log(exp(v_1) + ... + exp(v_n))"""
@@ -1009,6 +1020,10 @@ class ToMatrixNode(OperatorNode):
 
     def support_size(self) -> float:
         raise NotImplementedError()
+
+    @property
+    def is_matrix(self) -> bool:
+        return True
 
 
 # ####
@@ -1749,6 +1764,22 @@ class ToProbabilityNode(UnaryOperatorNode):
 
     def support(self) -> Iterable[Any]:
         return self.operand.support()
+
+
+class LogSumExpVectorNode(UnaryOperatorNode):
+    # BMG supports a log-sum-exp operator that takes a one-column tensor.
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        return "LogSumExpVector"
+
+    def support(self) -> Iterable[Any]:
+        raise ValueError("support of LogSumExpVector not yet implemented")
 
 
 # ####
