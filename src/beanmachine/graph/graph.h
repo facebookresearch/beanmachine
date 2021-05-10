@@ -301,7 +301,9 @@ enum class OperatorType {
   INDEX,
   COLUMN_INDEX,
   TO_MATRIX,
-  BROADCAST_ADD
+  BROADCAST_ADD,
+  TO_REAL_MATRIX,
+  TO_POS_REAL_MATRIX,
 };
 
 enum class DistributionType {

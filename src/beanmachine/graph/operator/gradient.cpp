@@ -26,10 +26,22 @@ void ToReal::compute_gradients() {
   grad2 = in_nodes[0]->grad2;
 }
 
+void ToRealMatrix::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  Grad1 = in_nodes[0]->Grad1;
+  Grad2 = in_nodes[0]->Grad2;
+}
+
 void ToPosReal::compute_gradients() {
   assert(in_nodes.size() == 1);
   grad1 = in_nodes[0]->grad1;
   grad2 = in_nodes[0]->grad2;
+}
+
+void ToPosRealMatrix::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  Grad1 = in_nodes[0]->Grad1;
+  Grad2 = in_nodes[0]->Grad2;
 }
 
 void ToProbability::compute_gradients() {

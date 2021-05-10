@@ -47,9 +47,17 @@ bool ToReal::is_registered = OperatorFactory::register_op(
     graph::OperatorType::TO_REAL,
     &(ToReal::new_op));
 
+bool ToRealMatrix::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::TO_REAL_MATRIX,
+    &(ToRealMatrix::new_op));
+
 bool ToPosReal::is_registered = OperatorFactory::register_op(
     graph::OperatorType::TO_POS_REAL,
     &(ToPosReal::new_op));
+
+bool ToPosRealMatrix::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::TO_POS_REAL_MATRIX,
+    &(ToPosRealMatrix::new_op));
 
 bool ToProbability::is_registered = OperatorFactory::register_op(
     graph::OperatorType::TO_PROBABILITY,
