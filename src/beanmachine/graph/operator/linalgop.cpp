@@ -126,8 +126,8 @@ ColumnIndex::ColumnIndex(const std::vector<graph::Node*>& in_nodes)
     throw std::invalid_argument(
         "the second parent of COLUMN_INDEX must be NATURAL number");
   }
-  value = graph::NodeValue(graph::ValueType(
-      graph::VariableType::BROADCAST_MATRIX, type0.atomic_type, type0.rows, 1));
+  value = graph::NodeValue(
+      graph::ValueType(type0.variable_type, type0.atomic_type, type0.rows, 1));
 }
 
 void ColumnIndex::eval(std::mt19937& /* gen */) {

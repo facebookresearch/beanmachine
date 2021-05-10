@@ -163,6 +163,8 @@ class DOT {
         return "Index";
       case OperatorType::TO_MATRIX:
         return "ToMatrix";
+      case OperatorType::COLUMN_INDEX:
+        return "ColumnIndex";
       default:
         return "Operator";
     }

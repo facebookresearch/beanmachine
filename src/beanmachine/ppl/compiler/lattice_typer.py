@@ -125,6 +125,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.DirichletNode: self._type_dirichlet,
             # Operators
             bn.AdditionNode: self._type_addition,
+            bn.ColumnIndexNode: self._type_column_index,
             bn.ComplementNode: self._type_complement,
             bn.ExpM1Node: self._type_expm1,
             bn.ExpNode: self._type_exp,
@@ -155,6 +156,16 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         if bt.supremum(op_type, bt.PositiveReal) == bt.PositiveReal:
             return bt.PositiveReal
         return bt.Real
+
+    def _type_column_index(self, node: bn.ColumnIndexNode) -> bt.BMGLatticeType:
+        # A stochastic index into a one-hot or all-zero constant matrix
+        # is treated as a column of bools.
+        lt = self[node.left]
+        assert isinstance(lt, bt.BMGMatrixType)
+        result = lt
+        if isinstance(lt, bt.ZeroMatrix) or isinstance(lt, bt.OneHotMatrix):
+            result = bt.Boolean
+        return result.with_dimensions(lt.rows, 1)
 
     def _type_complement(self, node: bn.ComplementNode) -> bt.BMGLatticeType:
         if bt.supremum(self[node.operand], bt.Boolean) == bt.Boolean:
