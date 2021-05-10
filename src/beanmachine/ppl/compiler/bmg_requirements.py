@@ -71,6 +71,7 @@ class EdgeRequirements:
             bn.DirichletNode: self._requirements_dirichlet,
             # Operators
             bn.AdditionNode: self._requirements_addition,
+            bn.ColumnIndexNode: self._requirements_column_index,
             bn.ComplementNode: self._same_as_output,
             bn.ExpM1Node: self._same_as_output,
             bn.ExpNode: self._requirements_exp_neg,
@@ -127,6 +128,19 @@ class EdgeRequirements:
         it = self.typer[node]
         assert it in {bt.Real, bt.NegativeReal, bt.PositiveReal}
         return [it] * len(node.inputs)  # pyre-ignore
+
+    def _requirements_column_index(
+        self, node: bn.ColumnIndexNode
+    ) -> List[bt.Requirement]:
+        # See notes in _requirements_index.  If we have an index into
+        # a one-hot matrix or an all-zero matrix, assume that we want
+        # it to be a column of bools.
+        lt = self.typer[node.left]
+        assert isinstance(lt, bt.BMGMatrixType)
+        result = lt
+        if isinstance(lt, bt.OneHotMatrix) or isinstance(lt, bt.ZeroMatrix):
+            result = bt.Boolean.with_dimensions(lt.rows, lt.columns)
+        return [bt.always_matrix(result), bt.Natural]
 
     def _requirements_exp_neg(self, node: bn.UnaryOperatorNode) -> List[bt.Requirement]:
         # Same logic for both exp and negate operators

@@ -576,6 +576,15 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_column_index(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.BMGNode:
+        # TODO: Better error handling when this is illegal.
+        if isinstance(left, bn.ConstantNode) and isinstance(right, bn.ConstantNode):
+            return self.add_constant(left.value[right.value])
+        node = bn.ColumnIndexNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_negate(self, operand: BMGNode) -> BMGNode:
         # TODO: We could optimize -(-x) to x here.
         if isinstance(operand, ConstantNode):

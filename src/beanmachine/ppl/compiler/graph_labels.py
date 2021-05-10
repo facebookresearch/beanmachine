@@ -36,6 +36,7 @@ _node_labels = {
     if n.is_logits
     else "Categorical",
     bn.Chi2Node: "Chi2",
+    bn.ColumnIndexNode: "ColumnIndex",
     bn.ComplementNode: "complement",
     bn.ConstantBooleanMatrixNode: _tensor_val,
     bn.ConstantNaturalMatrixNode: _tensor_val,
@@ -121,6 +122,7 @@ _edge_labels = {
     bn.BooleanNode: _none,
     bn.CategoricalNode: _probability,
     bn.Chi2Node: ["df"],
+    bn.ColumnIndexNode: _left_right,
     bn.ComplementNode: _operand,
     bn.ConstantBooleanMatrixNode: _none,
     bn.ConstantNaturalMatrixNode: _none,

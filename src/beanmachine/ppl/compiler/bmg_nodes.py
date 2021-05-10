@@ -1376,6 +1376,21 @@ class IndexNode(BinaryOperatorNode):
         raise NotImplementedError("support of index operator not implemented")
 
 
+class ColumnIndexNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    @property
+    def size(self) -> torch.Size:
+        raise NotImplementedError("size of column index operator not implemented")
+
+    def __str__(self) -> str:
+        return "ColumnIndex"
+
+    def support(self) -> Iterable[Any]:
+        raise NotImplementedError("support of column index operator not implemented")
+
+
 class MatrixMultiplicationNode(BinaryOperatorNode):
     """This represents a matrix multiplication."""
 
