@@ -682,6 +682,7 @@ class DirichletNode(DistributionNode):
     def concentration(self) -> BMGNode:
         return self.inputs[0]
 
+    # TODO: Rename this required_rows or required_length
     @property
     def _required_columns(self) -> int:
         # The "max" is needed to handle the degenerate case of

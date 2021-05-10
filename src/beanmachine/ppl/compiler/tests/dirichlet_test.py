@@ -190,8 +190,8 @@ class DirichletTest(unittest.TestCase):
 digraph "graph" {
   N0[label="1.0:R+"];
   N1[label="Query:R+"];
-  N2[label="[1.0,1.5]:MR+[1,2]"];
-  N3[label="Query:MR+[1,2]"];
+  N2[label="[1.0,1.5]:MR+[2,1]"];
+  N3[label="Query:MR+[2,1]"];
   N4[label="[[1.0,1.5],\\\\n[2.0,2.5]]:MR+[2,2]"];
   N5[label="Query:MR+[2,2]"];
   N0 -> N1;
@@ -279,22 +279,22 @@ digraph "graph" {
   N13[label="Dirichlet:S[1,1]"];
   N14[label="Sample:S[1,1]"];
   N15[label="Query:S[1,1]"];
-  N16[label="[2.5,3.0]:MR+[1,2]"];
-  N17[label="Dirichlet:S[1,2]"];
-  N18[label="Sample:S[1,2]"];
-  N19[label="Query:S[1,2]"];
-  N20[label="[[3.5,4.0]]:MR+[1,2]"];
-  N21[label="Dirichlet:S[1,2]"];
-  N22[label="Sample:S[1,2]"];
-  N23[label="Query:S[1,2]"];
+  N16[label="[2.5,3.0]:MR+[2,1]"];
+  N17[label="Dirichlet:S[2,1]"];
+  N18[label="Sample:S[2,1]"];
+  N19[label="Query:S[2,1]"];
+  N20[label="[[3.5,4.0]]:MR+[2,1]"];
+  N21[label="Dirichlet:S[2,1]"];
+  N22[label="Sample:S[2,1]"];
+  N23[label="Query:S[2,1]"];
   N24[label="[[[4.5,5.0]]]:T"];
-  N25[label="Dirichlet:S[1,2]"];
-  N26[label="Sample:S[1,2]"];
-  N27[label="Query:S[1,2]"];
-  N28[label="[[5.5,6.0,6.5],\\\\n[7.0,7.5,8.0]]:MR+[2,3]"];
-  N29[label="Dirichlet:S[1,3]"];
-  N30[label="Sample:S[1,3]"];
-  N31[label="Query:S[1,3]"];
+  N25[label="Dirichlet:S[2,1]"];
+  N26[label="Sample:S[2,1]"];
+  N27[label="Query:S[2,1]"];
+  N28[label="[[5.5,6.0,6.5],\\\\n[7.0,7.5,8.0]]:MR+[3,2]"];
+  N29[label="Dirichlet:S[3,1]"];
+  N30[label="Sample:S[3,1]"];
+  N31[label="Query:S[3,1]"];
   N00 -> N01[label="R+"];
   N01 -> N02[label="S[1,1]"];
   N02 -> N03[label=any];
@@ -307,17 +307,17 @@ digraph "graph" {
   N12 -> N13[label="R+"];
   N13 -> N14[label="S[1,1]"];
   N14 -> N15[label=any];
-  N16 -> N17[label="MR+[1,2]"];
-  N17 -> N18[label="S[1,2]"];
+  N16 -> N17[label="MR+[2,1]"];
+  N17 -> N18[label="S[2,1]"];
   N18 -> N19[label=any];
-  N20 -> N21[label="MR+[1,2]"];
-  N21 -> N22[label="S[1,2]"];
+  N20 -> N21[label="MR+[2,1]"];
+  N21 -> N22[label="S[2,1]"];
   N22 -> N23[label=any];
-  N24 -> N25[label="MR+[1,2]"];
-  N25 -> N26[label="S[1,2]"];
+  N24 -> N25[label="MR+[2,1]"];
+  N25 -> N26[label="S[2,1]"];
   N26 -> N27[label=any];
-  N28 -> N29[label="MR+[1,3]"];
-  N29 -> N30[label="S[1,3]"];
+  N28 -> N29[label="MR+[3,1]"];
+  N29 -> N30[label="S[3,1]"];
   N30 -> N31[label=any];
 }
         """
@@ -342,7 +342,7 @@ digraph "graph" {
 
         expected = (
             "The concentration of a Dirichlet is required to be"
-            + " a 1 x 2 positive real matrix but is a tensor."
+            + " a 2 x 1 positive real matrix but is a tensor."
         )
 
         with self.assertRaises(ValueError) as ex:
@@ -351,8 +351,8 @@ digraph "graph" {
 
         expected = (
             "The concentration of a Dirichlet is required to be"
-            + " a 1 x 3 positive real matrix but is"
-            + " a 2 x 3 positive real matrix."
+            + " a 3 x 1 positive real matrix but is"
+            + " a 3 x 2 positive real matrix."
         )
 
         with self.assertRaises(ValueError) as ex:
@@ -378,13 +378,13 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label="[2.5,3.0]:MR+[1,2]"];
-  N1[label="Dirichlet:S[1,2]"];
-  N2[label="Sample:S[1,2]"];
-  N3[label="Observation tensor([0.5000, 0.5000]):S[1,2]"];
-  N4[label="Query:S[1,2]"];
-  N0 -> N1[label="MR+[1,2]"];
-  N1 -> N2[label="S[1,2]"];
+  N0[label="[2.5,3.0]:MR+[2,1]"];
+  N1[label="Dirichlet:S[2,1]"];
+  N2[label="Sample:S[2,1]"];
+  N3[label="Observation tensor([0.5000, 0.5000]):S[2,1]"];
+  N4[label="Query:S[2,1]"];
+  N0 -> N1[label="MR+[2,1]"];
+  N1 -> N2[label="S[2,1]"];
   N2 -> N3[label=any];
   N2 -> N4[label=any];
 }
@@ -544,7 +544,7 @@ uint q0 = g.query(n2);"""
             BMGInference().infer(queries, observations, 1)
         expected = (
             "A Dirichlet distribution is observed to have value 2.0 "
-            + "but only produces samples of type 1 x 2 simplex matrix."
+            + "but only produces samples of type 2 x 1 simplex matrix."
         )
         self.assertEqual(expected, str(ex.exception))
 
@@ -555,7 +555,7 @@ uint q0 = g.query(n2);"""
         expected = (
             "A Dirichlet distribution is observed to have value "
             + "tensor([0.2500, 0.2500, 0.2500, 0.2500]) "
-            + "but only produces samples of type 1 x 2 simplex matrix."
+            + "but only produces samples of type 2 x 1 simplex matrix."
         )
         self.assertEqual(expected, str(ex.exception))
 
@@ -566,7 +566,7 @@ uint q0 = g.query(n2);"""
         expected = (
             "A Dirichlet distribution is observed to have value "
             + "tensor([0.2500, 0.2500]) "
-            + "but only produces samples of type 1 x 2 simplex matrix."
+            + "but only produces samples of type 2 x 1 simplex matrix."
         )
         self.assertEqual(expected, str(ex.exception))
 

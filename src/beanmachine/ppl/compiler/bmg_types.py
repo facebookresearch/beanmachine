@@ -77,6 +77,9 @@ class BMGLatticeType:
         self.short_name = short_name
         self.long_name = long_name
 
+    def __str__(self) -> str:
+        return self.short_name
+
 
 class BMGElementType:
     short_name: str
@@ -118,8 +121,12 @@ class BMGMatrixType(BMGLatticeType):
         pass
 
     def with_size(self, size: Size) -> "BMGMatrixType":
+        # We store the values for a matrix in a tensor; tensors are
+        # row-major.  But the BMG type system expects a column-major
+        # matrix. Here we get the rows and columns of the tensor size,
+        # and swap them to make the column-major type.
         r, c = _size_to_rc(size)
-        return self.with_dimensions(r, c)
+        return self.with_dimensions(c, r)
 
 
 class BroadcastMatrixType(BMGMatrixType):
@@ -547,10 +554,20 @@ def _type_of_matrix(v: torch.Tensor) -> BMGLatticeType:
     # We could reduce that to a 1 x 2 matrix if we needed to. We might discard
     # sizes on the right equal to one.
 
+    # We have the rows and columns of the original tensor, which is row-major.
+    # But in BMG, constant matrices are expressed in column-major form.
+    # Therefore we swap rows and columns here.
+
     if dimensions > 2:
         return Tensor
-    r, c = _size_to_rc(shape)
-    v = v.view(r, c)
+    tensor_rows, tensor_cols = _size_to_rc(shape)
+
+    # However, for the purposes of analysis below, we still do it row by
+    # row because that is more convenient when working with tensors:
+    v = v.view(tensor_rows, tensor_cols)
+
+    c = tensor_rows
+    r = tensor_cols
 
     # We've got the shape. What is the smallest type
     # that is greater than or equal to the smallest type of
