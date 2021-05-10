@@ -87,6 +87,7 @@ _requires_nothing: Dict[type, bt.BMGLatticeType] = {
     # Operators
     bn.LogisticNode: bt.Probability,
     bn.LogSumExpNode: bt.Real,
+    bn.LogSumExpVectorNode: bt.Real,
     bn.Log1mexpNode: bt.NegativeReal,
     bn.PhiNode: bt.Probability,
     bn.ToRealNode: bt.Real,
