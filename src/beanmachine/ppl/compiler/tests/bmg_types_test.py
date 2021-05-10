@@ -97,10 +97,15 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(NegativeReal, type_of_value(-1.5))
         self.assertEqual(NegativeReal, type_of_value(tensor(-1.5)))
         self.assertEqual(NegativeReal, type_of_value(tensor([[-1.5]])))
+
         # 1-d tensor is matrix
-        self.assertEqual(ZeroMatrix(1, 2), type_of_value(tensor([0, 0])))
-        self.assertEqual(BooleanMatrix(1, 3), type_of_value(tensor([0, 1, 1])))
-        self.assertEqual(BooleanMatrix(1, 2), type_of_value(tensor([1, 1])))
+        # Tensors are row-major in torch but column-major in BMG. We give
+        # the BMG type of the tensor as though it were column-major.
+        # This is treated as if it were [[0],[0]], a 2-column 1-row tensor
+        # because that's what we're going to emit into BMG.
+        self.assertEqual(ZeroMatrix(2, 1), type_of_value(tensor([0, 0])))
+        self.assertEqual(BooleanMatrix(3, 1), type_of_value(tensor([0, 1, 1])))
+        self.assertEqual(BooleanMatrix(2, 1), type_of_value(tensor([1, 1])))
         # 2-d tensor is matrix
         self.assertEqual(OneHotMatrix(2, 2), type_of_value(tensor([[1, 0], [1, 0]])))
         self.assertEqual(BooleanMatrix(2, 2), type_of_value(tensor([[1, 1], [1, 0]])))

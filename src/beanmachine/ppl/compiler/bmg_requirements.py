@@ -102,11 +102,11 @@ class EdgeRequirements:
         ]
 
     def _requirements_dirichlet(self, node: bn.DirichletNode) -> List[bt.Requirement]:
-        # BMG's Dirichlet node requires that the input be exactly one
-        # vector of positive reals, and the length of the vector is
+        # BMG's Dirichlet node requires that the input be a column
+        # vector of positive reals, and the row count of the vector is
         # the number of elements in the simplex we produce. We can
         # express that restriction as a positive real matrix with
-        # row count equal to 1 and column count equal to the final
+        # column count equal to 1 and row count equal to the final
         # dimension of the size.
         #
         # A degenerate case here is Dirichlet(tensor([1.0])); we would
@@ -121,7 +121,7 @@ class EdgeRequirements:
         # not a broadcast matrix. Do some research here; do we actually
         # need the semantics of "always a broadcast matrix" ?
         return [
-            bt.always_matrix(bt.PositiveReal.with_dimensions(1, node._required_columns))
+            bt.always_matrix(bt.PositiveReal.with_dimensions(node._required_columns, 1))
         ]
 
     def _requirements_addition(self, node: bn.BMGNode) -> List[bt.Requirement]:
@@ -171,7 +171,7 @@ class EdgeRequirements:
         # nodes meet their requirements. We now have a case where doing so creates
         # potential inefficiencies.
         #
-        # B is the constant vector [0, 1, 1]
+        # B is the constant 3x1 vector [[0], [1], [1]]
         # N is any node of type natural.
         # I is an index
         # F is Bernoulli.
@@ -186,10 +186,10 @@ class EdgeRequirements:
         # The requirement on edge N->I is Natural.
         # What is the requirement on the B->I edge?
         #
-        # If we say that it is Boolean[1, 3], its inf type, then the graph we end up
+        # If we say that it is Boolean[3, 1], its inf type, then the graph we end up
         # generating is
         #
-        # b = const_bool_matrix([0, 1, 1])  # bool matrix
+        # b = const_bool_matrix([[0], [1], [1]])  # 3x1 bool matrix
         # n = whatever                      # natural
         # i = index(b, i)                   # bool
         # z = const_prob(0)                 # prob
@@ -199,7 +199,7 @@ class EdgeRequirements:
         #
         # But it would be arguably better to produce
         #
-        # b = const_prob_matrix([0, 1, 1])  # prob matrix
+        # b = const_prob_matrix([[0.], [1.], [1.]])  # 3x1 prob matrix
         # n = whatever                      # natural
         # i = index(b, i)                   # prob
         # f = Bernoulli(i)                  # bool
@@ -209,7 +209,7 @@ class EdgeRequirements:
         # However there is an even worse situation. Suppose we have
         # this unlikely-but-legal graph:
         #
-        # Z is [0, 0, 0]
+        # Z is [[0], [0], [0]]
         # N is any natural
         # I is an index
         # C requires a Boolean input
@@ -221,7 +221,7 @@ class EdgeRequirements:
         #     | |
         #    C   L
         #
-        # The inf type of Z is Zero[1, 3].
+        # The inf type of Z is Zero[3, 1].
         # The I->C edge requirement is Boolean
         # The I->L edge requirement is NegativeReal
         #
@@ -256,8 +256,8 @@ class EdgeRequirements:
         # It will be common for people to use tensors that are too high
         # dimension for BMG to handle and we should say that clearly.
 
-        required_columns = lt.columns if isinstance(lt, bt.BMGMatrixType) else 1
-        required_rows = 1
+        required_rows = lt.rows if isinstance(lt, bt.BMGMatrixType) else 1
+        required_columns = 1
 
         if isinstance(lt, bt.SimplexMatrix):
             vector_req = lt.with_dimensions(required_rows, required_columns)

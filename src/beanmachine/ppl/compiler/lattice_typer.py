@@ -147,7 +147,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         return self[node.operator]
 
     def _type_dirichlet(self, node: bn.DirichletNode) -> bt.BMGLatticeType:
-        return bt.SimplexMatrix(1, node._required_columns)
+        return bt.SimplexMatrix(node._required_columns, 1)
 
     def _type_addition(self, node: bn.BMGNode) -> bt.BMGLatticeType:
         op_type = bt.supremum(*[self[i] for i in node.inputs])

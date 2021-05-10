@@ -13,7 +13,7 @@ class LatticeTyperTest(unittest.TestCase):
         bmg = BMGraphBuilder()
         typer = LatticeTyper()
 
-        # Lattice type of a constant is based on its value.
+        # Lattice type of an untyped constant is based on its value.
         c0 = bmg.add_constant(0.0)
         self.assertEqual(bt.Zero, typer[c0])
         c1 = bmg.add_constant(1.0)
@@ -26,8 +26,20 @@ class LatticeTyperTest(unittest.TestCase):
         self.assertEqual(bt.NegativeReal, typer[c4])
         c5 = bmg.add_constant(0.5)
         self.assertEqual(bt.Probability, typer[c5])
+
+        # BMG type of tensor is given assuming that when we emit it into
+        # the BMG graph, it will be transposed into column-major form.
+        # In BMG, it will be [[1.5], [-1.5]] and therefore this tensor is
+        # typed as having two rows, one column, not one row, two columns
+        # as it does in torch.
         c6 = bmg.add_constant(torch.tensor([1.5, -1.5]))
-        self.assertEqual(bt.Real.with_dimensions(1, 2), typer[c6])
+        self.assertEqual(bt.Real.with_dimensions(2, 1), typer[c6])
+
+        # Lattice type of a typed constant is based on its type,
+        # not its value. This real node is a real, even though its
+        # value fits into a natural.
+        c7 = bmg.add_real(2.0)
+        self.assertEqual(bt.Real, typer[c7])
 
         # Lattice type of distributions is fixed:
         d0 = bmg.add_beta(c2, c2)
