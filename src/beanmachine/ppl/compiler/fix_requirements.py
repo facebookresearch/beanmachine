@@ -15,7 +15,6 @@ from beanmachine.ppl.compiler.bmg_requirements import EdgeRequirements
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
-from torch import Tensor
 
 
 class RequirementsFixer:
@@ -64,26 +63,17 @@ class RequirementsFixer:
         consumer: bn.BMGNode,
         edge: str,
     ) -> bn.BMGNode:
-        # If the constant node already meets the requirement, we're done.
-        if not isinstance(
-            node, bn.UntypedConstantNode
-        ) and self._node_meets_requirement(node, requirement):
-            return node
-
-        # It does not meet the requirement. Is there a semantically equivalent node
-        # that does meet the requirement?
-
-        # The inf type is defined as the smallest type to which the node can be converted.
-        # If the infimum type is smaller than or equal to the required type, then the
-        # node can definitely be converted to a type which meets the requirement.
+        # We have a constant node that either (1) is untyped, and therefore
+        # needs to be replaced by an equivalent typed node, or (2) is typed
+        # but is of the wrong type, and needs to be replaced by an equivalent
+        # constant of a larger type.
+        #
+        # Obtain a type for the node. If the node meets an upper bound requirement
+        # then it has a value that can be converted to the desired type.  If it
+        # does not meet an UB requirement then there is no equivalent constant
+        # node of the correct type and we give an error.
         it = self._typer[node]
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
-
-            # To what type should we convert the node to meet the requirement?
-            # If the requirement is an exact bound, then that's the type we need to
-            # convert to. If the requirement is an upper bound, there's no reason
-            # why we can't just convert to that type.
-
             required_type = bt.requirement_to_type(requirement)
             if bt.must_be_matrix(requirement):
                 assert isinstance(required_type, bt.BMGMatrixType)
@@ -98,19 +88,6 @@ class RequirementsFixer:
         self.errors.add_error(Violation(node, it, requirement, consumer, edge))
         return node
 
-    def _meet_distribution_requirement(
-        self,
-        node: bn.DistributionNode,
-        requirement: bt.Requirement,
-        consumer: bn.BMGNode,
-        edge: str,
-    ) -> bn.BMGNode:
-        # The only edges which point to distributions are samples, and the requirement
-        # on that edge is always met automatically.
-        assert isinstance(consumer, bn.SampleNode)
-        assert requirement == self._typer[node]
-        return node
-
     def _convert_node(
         self,
         node: bn.OperatorNode,
@@ -123,15 +100,6 @@ class RequirementsFixer:
         # that has the same semantics. Start by confirming those preconditions.
         assert self._typer[node] != requirement
         assert bt.supremum(self._typer[node], requirement) == requirement
-
-        # TODO: We no longer support Tensor as a type in BMG.  We must
-        # detect, and produce a good error message, for situations
-        # where we have deduced that the only possible type of a node is
-        # a >2-dimension tensor; we must correctly support cases where
-        # the type of the node is a 1- or 2-dimensional tensor.
-
-        if requirement == Tensor:
-            raise ValueError("Unsupported type requirement: Tensor")
 
         # Converting anything to real or positive real is easy;
         # there's already a node for that so just insert it on the edge
@@ -202,8 +170,7 @@ class RequirementsFixer:
         edge: str,
     ) -> bn.BMGNode:
         # If the operator node already meets the requirement, we're done.
-        if self._node_meets_requirement(node, requirement):
-            return node
+        assert not self._node_meets_requirement(node, requirement)
 
         # It does not meet the requirement. Can we convert this thing to a node
         # whose type does meet the requirement? Remember, the inf type is the
@@ -262,21 +229,35 @@ class RequirementsFixer:
         """The consumer node consumes the value of the input node. The consumer's
         requirement is given; the name of this edge is provided for error reporting."""
 
-        if isinstance(node, bn.Observation):
-            raise AssertionError(
-                "Unexpected graph topology; an observation is never an input"
-            )
-        if isinstance(node, bn.Query):
-            raise AssertionError("Unexpected graph topology; a query is never an input")
+        # These lattice types should never be used as requirements.
+        assert requirement not in {bt.Tensor, bt.One, bt.Zero, bt.Untypable}
+
+        # There is never a requirement on these nodes because they only have
+        # input edges.
+        assert not isinstance(node, bn.Observation)
+        assert not isinstance(node, bn.Query)
+        assert not isinstance(node, bn.FactorNode)
+
+        # If we have an untyped constant node we always need to replace it.
+        if isinstance(node, bn.UntypedConstantNode):
+            return self._meet_constant_requirement(node, requirement, consumer, edge)
+
+        # If the node already meets the requirement, we're done.
+        if self._node_meets_requirement(node, requirement):
+            return node
+
+        # In normal operation we should never insert a typed constant node
+        # that is of the wrong type, but we have a few test cases in which
+        # we do so explicitly. Regardless, it is not a problem to convert a
+        # typed constant to the correct type.
         if isinstance(node, bn.ConstantNode):
             return self._meet_constant_requirement(node, requirement, consumer, edge)
-        if isinstance(node, bn.DistributionNode):
-            return self._meet_distribution_requirement(
-                node, requirement, consumer, edge
-            )
-        if isinstance(node, bn.OperatorNode):
-            return self._meet_operator_requirement(node, requirement, consumer, edge)
-        raise AssertionError("Unexpected node type")
+
+        # A distribution's outgoing edges are only queries and their requirements
+        # are always met, so we should have already returned. Therefore the only
+        # remaining possibility is that we have an operator.
+        assert isinstance(node, bn.OperatorNode)
+        return self._meet_operator_requirement(node, requirement, consumer, edge)
 
     def fix_problems(self) -> None:
         nodes = self.bmg.all_ancestor_nodes()
