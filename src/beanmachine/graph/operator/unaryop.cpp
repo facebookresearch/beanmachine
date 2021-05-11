@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
+#include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/unaryop.h"
 #include "beanmachine/graph/util.h"
 
@@ -57,6 +58,67 @@ void ToReal::eval(std::mt19937& /* gen */) {
   }
 }
 
+ToRealMatrix::ToRealMatrix(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::TO_REAL_MATRIX, in_nodes) {
+  assert(in_nodes.size() == 1);
+  const graph::ValueType parent_type = in_nodes[0]->value.type;
+  if (parent_type.variable_type != graph::VariableType::BROADCAST_MATRIX and
+      parent_type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
+    throw std::invalid_argument(
+        "operator TO_REAL_MATRIX requires a matrix parent");
+  }
+  // There is no further restriction on the input aside from it being
+  // a matrix.
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      graph::AtomicType::REAL,
+      parent_type.rows,
+      parent_type.cols));
+}
+
+void ToRealMatrix::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::Node* parent = in_nodes[0];
+  const graph::NodeValue parent_value = parent->value;
+  const graph::ValueType parent_type = parent_value.type;
+
+  if (parent_type.variable_type != graph::VariableType::BROADCAST_MATRIX and
+      parent_type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
+    throw std::runtime_error(
+        "invalid parent type " + parent_type.to_string() +
+        " for TO_REAL_MATRIX operator at node_id " + std::to_string(index));
+  }
+
+  const graph::AtomicType element_type = parent_type.atomic_type;
+  const int rows = parent_type.rows;
+  const int cols = parent_type.cols;
+
+  if (element_type == graph::AtomicType::BOOLEAN) {
+    Eigen::MatrixXd result(rows, cols);
+    for (int j = 0; j < cols; j++) {
+      for (int i = 0; i < rows; i++) {
+        result(i, j) = parent_value._bmatrix(i, j) ? 1.0 : 0.0;
+      }
+    }
+    value._matrix = result;
+  } else if (element_type == graph::AtomicType::NATURAL) {
+    Eigen::MatrixXd result(rows, cols);
+    for (int j = 0; j < cols; j++) {
+      for (int i = 0; i < rows; i++) {
+        result(i, j) = (double)parent_value._nmatrix(i, j);
+      }
+    }
+    value._matrix = result;
+  } else {
+    assert(
+        element_type == graph::AtomicType::REAL or
+        element_type == graph::AtomicType::POS_REAL or
+        element_type == graph::AtomicType::NEG_REAL or
+        element_type == graph::AtomicType::PROBABILITY);
+    value._matrix = parent_value._matrix;
+  }
+}
+
 ToPosReal::ToPosReal(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::TO_POS_REAL, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
@@ -86,6 +148,76 @@ void ToPosReal::eval(std::mt19937& /* gen */) {
     throw std::runtime_error(
         "invalid parent type " + parent.type.to_string() +
         " for TO_POS_REAL operator at node_id " + std::to_string(index));
+  }
+}
+
+ToPosRealMatrix::ToPosRealMatrix(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::TO_POS_REAL_MATRIX, in_nodes) {
+  assert(in_nodes.size() == 1);
+  const graph::ValueType parent_type = in_nodes[0]->value.type;
+  if (parent_type.variable_type != graph::VariableType::BROADCAST_MATRIX and
+      parent_type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
+    throw std::invalid_argument(
+        "operator TO_POS_REAL_MATRIX requires a matrix parent");
+  }
+
+  const graph::AtomicType element_type = parent_type.atomic_type;
+
+  if (element_type != graph::AtomicType::PROBABILITY and
+      element_type != graph::AtomicType::POS_REAL and
+      element_type != graph::AtomicType::NATURAL and
+      element_type != graph::AtomicType::BOOLEAN) {
+    throw std::invalid_argument(
+        "operator TO_POS_REAL_MATRIX requires a "
+        "pos_real, probability, natural or boolean matrix parent");
+  }
+
+  value = graph::NodeValue(graph::ValueType(
+      graph::VariableType::BROADCAST_MATRIX,
+      graph::AtomicType::POS_REAL,
+      parent_type.rows,
+      parent_type.cols));
+}
+
+void ToPosRealMatrix::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::Node* parent = in_nodes[0];
+  const graph::NodeValue parent_value = parent->value;
+  const graph::ValueType parent_type = parent_value.type;
+
+  if (parent_type.variable_type != graph::VariableType::BROADCAST_MATRIX and
+      parent_type.variable_type != graph::VariableType::COL_SIMPLEX_MATRIX) {
+    throw std::runtime_error(
+        "invalid parent type " + parent_type.to_string() +
+        " for TO_POS_REAL_MATRIX operator at node_id " + std::to_string(index));
+  }
+
+  const graph::AtomicType element_type = parent_type.atomic_type;
+  const int rows = parent_type.rows;
+  const int cols = parent_type.cols;
+
+  if (element_type == graph::AtomicType::BOOLEAN) {
+    Eigen::MatrixXd result(rows, cols);
+    for (int j = 0; j < cols; j++) {
+      for (int i = 0; i < rows; i++) {
+        result(i, j) = parent_value._bmatrix(i, j) ? 1.0 : 0.0;
+      }
+    }
+    value._matrix = result;
+  } else if (element_type == graph::AtomicType::NATURAL) {
+    Eigen::MatrixXd result(rows, cols);
+    for (int j = 0; j < cols; j++) {
+      for (int i = 0; i < rows; i++) {
+        result(i, j) = (double)parent_value._nmatrix(i, j);
+      }
+    }
+    value._matrix = result;
+  } else {
+    assert(
+        element_type == graph::AtomicType::POS_REAL or
+        element_type == graph::AtomicType::NEG_REAL or
+        element_type == graph::AtomicType::PROBABILITY);
+    value._matrix = parent_value._matrix;
   }
 }
 

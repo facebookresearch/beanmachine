@@ -122,8 +122,10 @@ class DOT {
       case OperatorType::IID_SAMPLE:
         return "~";
       case OperatorType::TO_REAL:
+      case OperatorType::TO_REAL_MATRIX:
         return "ToReal";
       case OperatorType::TO_POS_REAL:
+      case OperatorType::TO_POS_REAL_MATRIX:
         return "ToPosReal";
       case OperatorType::COMPLEMENT:
         return "Complement";

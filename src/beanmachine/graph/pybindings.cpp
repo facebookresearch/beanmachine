@@ -62,7 +62,9 @@ PYBIND11_MODULE(graph, module) {
       .value("BROADCAST_ADD", OperatorType::BROADCAST_ADD)
       .value("TO_MATRIX", OperatorType::TO_MATRIX)
       .value("LOGSUMEXP_VECTOR", OperatorType::LOGSUMEXP_VECTOR)
-      .value("COLUMN_INDEX", OperatorType::COLUMN_INDEX);
+      .value("COLUMN_INDEX", OperatorType::COLUMN_INDEX)
+      .value("TO_REAL_MATRIX", OperatorType::TO_REAL_MATRIX)
+      .value("TO_POS_REAL_MATRIX", OperatorType::TO_POS_REAL_MATRIX);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)

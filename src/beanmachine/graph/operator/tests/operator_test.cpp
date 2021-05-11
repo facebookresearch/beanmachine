@@ -931,6 +931,82 @@ TEST(testoperator, column_index) {
   EXPECT_EQ(xy_eval[0][0]._matrix(1), 3.0);
 }
 
+TEST(testoperator, to_real_matrix) {
+  Graph g;
+  // Requires exactly one input
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_REAL_MATRIX, std::vector<uint>{}),
+      std::invalid_argument);
+  // requires matrix input
+  uint three = g.add_constant_pos_real(3.0);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_REAL_MATRIX, std::vector<uint>{three}),
+      std::invalid_argument);
+
+  // Let's get a matrix of probabilities
+
+  uint beta = g.add_distribution(
+      DistributionType::BETA,
+      AtomicType::PROBABILITY,
+      std::vector<uint>{three, three});
+  uint b1 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint b2 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint b3 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint b4 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint two = g.add_constant((natural_t)2);
+  uint tm = g.add_operator(
+      OperatorType::TO_MATRIX, std::vector<uint>{two, two, b1, b2, b3, b4});
+
+  // Requires exactly one input
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_REAL_MATRIX, std::vector<uint>{tm, tm}),
+      std::invalid_argument);
+
+  g.add_operator(OperatorType::TO_REAL_MATRIX, std::vector<uint>{tm});
+}
+
+TEST(testoperator, to_pos_real_matrix) {
+  Graph g;
+  // Requires exactly one input
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{}),
+      std::invalid_argument);
+  // requires matrix input
+  uint three = g.add_constant_pos_real(3.0);
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{three}),
+      std::invalid_argument);
+
+  // Let's get a matrix of probabilities
+  uint beta = g.add_distribution(
+      DistributionType::BETA,
+      AtomicType::PROBABILITY,
+      std::vector<uint>{three, three});
+  uint b1 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint b2 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint b3 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint b4 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{beta});
+  uint two = g.add_constant((natural_t)2);
+  uint tm = g.add_operator(
+      OperatorType::TO_MATRIX, std::vector<uint>{two, two, b1, b2, b3, b4});
+
+  // Requires exactly one input
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{tm, tm}),
+      std::invalid_argument);
+
+  uint tr = g.add_operator(OperatorType::TO_REAL_MATRIX, std::vector<uint>{tm});
+
+  // Input must not be real matrix
+  EXPECT_THROW(
+      g.add_operator(OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{tr}),
+      std::invalid_argument);
+
+  g.add_operator(OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>{tm});
+}
+
 TEST(testoperator, to_matrix) {
   Graph g;
   uint nat_one = g.add_constant((natural_t)1);

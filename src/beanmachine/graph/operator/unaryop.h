@@ -71,6 +71,23 @@ class ToReal : public UnaryOperator {
   static bool is_registered;
 };
 
+class ToRealMatrix : public UnaryOperator {
+ public:
+  explicit ToRealMatrix(const std::vector<graph::Node*>& in_nodes);
+  ~ToRealMatrix() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ToRealMatrix>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 class ToPosReal : public UnaryOperator {
  public:
   explicit ToPosReal(const std::vector<graph::Node*>& in_nodes);
@@ -82,6 +99,23 @@ class ToPosReal : public UnaryOperator {
   static std::unique_ptr<Operator> new_op(
       const std::vector<graph::Node*>& in_nodes) {
     return std::make_unique<ToPosReal>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
+class ToPosRealMatrix : public UnaryOperator {
+ public:
+  explicit ToPosRealMatrix(const std::vector<graph::Node*>& in_nodes);
+  ~ToPosRealMatrix() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ToPosRealMatrix>(in_nodes);
   }
 
  private:
