@@ -61,7 +61,7 @@
 # be reported when a graph cannot be transformed as required.
 
 
-from typing import Callable, Dict
+from typing import Callable, Dict, Set
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
@@ -110,6 +110,17 @@ _constant_matrix_graph_types: Dict[type, bt.BMGMatrixType] = {
     bn.ConstantPositiveRealMatrixNode: bt.PositiveReal,
     bn.ConstantProbabilityMatrixNode: bt.Probability,
     bn.ConstantRealMatrixNode: bt.Real,
+}
+
+_always_matrix_types: Set[type] = {
+    bn.ColumnIndexNode,
+    bn.ConstantBooleanMatrixNode,
+    bn.ConstantNaturalMatrixNode,
+    bn.ConstantNegativeRealMatrixNode,
+    bn.ConstantPositiveRealMatrixNode,
+    bn.ConstantProbabilityMatrixNode,
+    bn.ConstantRealMatrixNode,
+    bn.ToMatrixNode,
 }
 
 
@@ -191,6 +202,10 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
     def _type_if(self, node: bn.IfThenElseNode) -> bt.BMGLatticeType:
         # TODO: Consider adding a pass which optimizes away IF(X, Y, Y) to
         # just plain Y.
+        # TODO: What if we have an atomic type on one side and a 1x1 matrix
+        # on the other? That has not yet arisen in practice but we might
+        # consider putting a matrix constraint on the atomic side and
+        # marking IF as producing a matrix in that case.
         result = bt.supremum(self[node.consequence], self[node.alternative])
         if result == bt.Zero or result == bt.One:
             result = bt.Boolean
@@ -308,3 +323,16 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
     def is_prob_or_bool(self, node: bn.BMGNode) -> bool:
         t = self[node]
         return t != bt.Untypable and bt.supremum(t, bt.Probability) == bt.Probability
+
+    def is_matrix(self, node: bn.BMGNode) -> bool:
+        t = type(node)
+        if t in _always_matrix_types:
+            return True
+        lattice_type = self[node]
+        if isinstance(lattice_type, bt.SimplexMatrix):
+            return True
+        if isinstance(lattice_type, bt.BMGMatrixType) and (
+            lattice_type.rows != 1 or lattice_type.columns != 1
+        ):
+            return True
+        return False
