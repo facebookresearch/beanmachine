@@ -130,3 +130,156 @@ digraph "graph" {
 }
         """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_to_matrix_2(self) -> None:
+
+        # Test TO_MATRIX, TO_REAL_MATRIX and TO_POS_REAL_MATRIX.
+        # The first composes a matrix from elements; the latter
+        # convert a matrix of one type (probability in this case)
+        # to a matrix of another type.
+
+        self.maxDiff = None
+        bmg = BMGraphBuilder()
+        zero = bmg.add_constant(0)
+        one = bmg.add_constant(1)
+        two = bmg.add_natural(2)
+        three = bmg.add_constant(3)
+        beta = bmg.add_beta(three, three)
+        b0 = bmg.add_sample(beta)
+        b1 = bmg.add_sample(beta)
+        b2 = bmg.add_sample(beta)
+        b3 = bmg.add_sample(beta)
+        pm = bmg.add_to_matrix(two, two, b0, b1, b2, b3)
+        c0 = bmg.add_column_index(pm, zero)
+        c1 = bmg.add_column_index(pm, one)
+        tr = bmg.add_to_real_matrix(c0)
+        tpr = bmg.add_to_positive_real_matrix(c1)
+        bmg.add_query(tr)
+        bmg.add_query(tpr)
+
+        observed = to_dot(
+            bmg,
+            inf_types=True,
+            edge_requirements=True,
+            after_transform=True,
+            label_edges=True,
+        )
+        expected = """
+digraph "graph" {
+  N00[label="3.0:R+"];
+  N01[label="Beta:P"];
+  N02[label="Sample:P"];
+  N03[label="Sample:P"];
+  N04[label="Sample:P"];
+  N05[label="Sample:P"];
+  N06[label="2:N"];
+  N07[label="ToMatrix:MP[2,2]"];
+  N08[label="0:N"];
+  N09[label="ColumnIndex:MP[2,1]"];
+  N10[label="ToRealMatrix:MR[2,1]"];
+  N11[label="Query:MR[2,1]"];
+  N12[label="1:N"];
+  N13[label="ColumnIndex:MP[2,1]"];
+  N14[label="ToPosRealMatrix:MR+[2,1]"];
+  N15[label="Query:MR+[2,1]"];
+  N00 -> N01[label="alpha:R+"];
+  N00 -> N01[label="beta:R+"];
+  N01 -> N02[label="operand:P"];
+  N01 -> N03[label="operand:P"];
+  N01 -> N04[label="operand:P"];
+  N01 -> N05[label="operand:P"];
+  N02 -> N07[label="0:P"];
+  N03 -> N07[label="1:P"];
+  N04 -> N07[label="2:P"];
+  N05 -> N07[label="3:P"];
+  N06 -> N07[label="columns:N"];
+  N06 -> N07[label="rows:N"];
+  N07 -> N09[label="left:MP[2,2]"];
+  N07 -> N13[label="left:MP[2,2]"];
+  N08 -> N09[label="right:N"];
+  N09 -> N10[label="operand:any"];
+  N10 -> N11[label="operator:any"];
+  N12 -> N13[label="right:N"];
+  N13 -> N14[label="operand:any"];
+  N14 -> N15[label="operator:any"];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = to_bmg_cpp(bmg).code
+        expected = """
+graph::Graph g;
+uint n0 = g.add_constant_pos_real(3.0);
+uint n1 = g.add_distribution(
+  graph::DistributionType::BETA,
+  graph::AtomicType::PROBABILITY,
+  std::vector<uint>({n0, n0}));
+uint n2 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n3 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n4 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n5 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n1}));
+uint n6 = g.add_constant(2);
+uint n7 = g.add_operator(
+  graph::OperatorType::TO_MATRIX,
+  std::vector<uint>({n6, n6, n2, n3, n4, n5}));
+uint n8 = g.add_constant(0);
+uint n9 = g.add_operator(
+  graph::OperatorType::COLUMN_INDEX, std::vector<uint>({n7, n8}));
+uint n10 = g.add_operator(
+  graph::OperatorType::TO_REAL_MATRIX, std::vector<uint>({n9}));
+uint q0 = g.query(n10);
+uint n11 = g.add_constant(1);
+uint n12 = g.add_operator(
+  graph::OperatorType::COLUMN_INDEX, std::vector<uint>({n7, n11}));
+uint n13 = g.add_operator(
+  graph::OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>({n12}));
+uint q1 = g.query(n13);
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = to_bmg_graph(bmg).graph.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label="3"];
+  N1[label="Beta"];
+  N2[label="~"];
+  N3[label="~"];
+  N4[label="~"];
+  N5[label="~"];
+  N6[label="2"];
+  N7[label="ToMatrix"];
+  N8[label="0"];
+  N9[label="ColumnIndex"];
+  N10[label="ToReal"];
+  N11[label="1"];
+  N12[label="ColumnIndex"];
+  N13[label="ToPosReal"];
+  N0 -> N1;
+  N0 -> N1;
+  N1 -> N2;
+  N1 -> N3;
+  N1 -> N4;
+  N1 -> N5;
+  N2 -> N7;
+  N3 -> N7;
+  N4 -> N7;
+  N5 -> N7;
+  N6 -> N7;
+  N6 -> N7;
+  N7 -> N9;
+  N7 -> N12;
+  N8 -> N9;
+  N9 -> N10;
+  N11 -> N12;
+  N12 -> N13;
+  Q0[label="Query"];
+  N10 -> Q0;
+  Q1[label="Query"];
+  N13 -> Q1;
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())

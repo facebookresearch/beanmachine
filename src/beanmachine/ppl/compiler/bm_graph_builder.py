@@ -625,12 +625,24 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_to_real_matrix(self, operand: BMGNode) -> BMGNode:
+        node = bn.ToRealMatrixNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_to_positive_real(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, bn.PositiveRealNode):
             return operand
         if isinstance(operand, ConstantNode):
             return self.add_to_positive_real(float(operand.value))
         node = bn.ToPositiveRealNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_to_positive_real_matrix(self, operand: BMGNode) -> BMGNode:
+        node = bn.ToPositiveRealMatrixNode(operand)
         self.add_node(node)
         return node
 

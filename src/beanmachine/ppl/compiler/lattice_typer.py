@@ -149,6 +149,8 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
             bn.ToMatrixNode: self._type_to_matrix,
+            bn.ToPositiveRealMatrixNode: self._type_to_pos_real_matrix,
+            bn.ToRealMatrixNode: self._type_to_real_matrix,
         }
 
     def _type_observation(self, node: bn.Observation) -> bt.BMGLatticeType:
@@ -288,6 +290,22 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             t = bt.Boolean
         assert isinstance(t, bt.BMGMatrixType)
         return t.with_dimensions(rows.value, columns.value)
+
+    def _type_to_real_matrix(self, node: bn.ToRealMatrixNode) -> bt.BMGLatticeType:
+        op = node.operand
+        t = self[op]
+        assert isinstance(t, bt.BMGMatrixType)
+        assert self.is_matrix(op)
+        return bt.RealMatrix(t.rows, t.columns)
+
+    def _type_to_pos_real_matrix(
+        self, node: bn.ToPositiveRealMatrixNode
+    ) -> bt.BMGLatticeType:
+        op = node.operand
+        t = self[op]
+        assert isinstance(t, bt.BMGMatrixType)
+        assert self.is_matrix(op)
+        return bt.PositiveRealMatrix(t.rows, t.columns)
 
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> bt.BMGLatticeType:
         # If there is any input node whose type cannot be determined, then *none*
