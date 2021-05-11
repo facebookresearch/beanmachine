@@ -1717,6 +1717,36 @@ class ToRealNode(UnaryOperatorNode):
         return SetOfTensors(float(o) for o in self.operand.support())
 
 
+class ToRealMatrixNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def size(self) -> torch.Size:
+        raise NotImplementedError()
+
+    def __str__(self) -> str:
+        return "ToRealMatrix(" + str(self.operand) + ")"
+
+    def support(self) -> Iterable[Any]:
+        raise NotImplementedError()
+
+
+class ToPositiveRealMatrixNode(UnaryOperatorNode):
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def size(self) -> torch.Size:
+        raise NotImplementedError()
+
+    def __str__(self) -> str:
+        return "ToPosRealMatrix(" + str(self.operand) + ")"
+
+    def support(self) -> Iterable[Any]:
+        raise NotImplementedError()
+
+
 class ToPositiveRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
