@@ -90,13 +90,6 @@ class BMGNode(ABC):
         self.inputs = InputList(self, inputs)
         self.outputs = ItemCounter()
 
-    # TODO: This isn't a concern of this class hierarchy. Extract this to
-    # a helper class.
-    @property
-    def is_matrix(self) -> bool:
-        """Is this node classified as a matrix in BMG?"""
-        return False
-
     @property
     @abstractmethod
     def size(self) -> torch.Size:
@@ -328,19 +321,11 @@ class ConstantPositiveRealMatrixNode(ConstantTensorNode):
         assert len(value.size()) <= 2
         ConstantTensorNode.__init__(self, value)
 
-    @property
-    def is_matrix(self) -> bool:
-        return True
-
 
 class ConstantRealMatrixNode(ConstantTensorNode):
     def __init__(self, value: Tensor):
         assert len(value.size()) <= 2
         ConstantTensorNode.__init__(self, value)
-
-    @property
-    def is_matrix(self) -> bool:
-        return True
 
 
 class ConstantNegativeRealMatrixNode(ConstantTensorNode):
@@ -348,19 +333,11 @@ class ConstantNegativeRealMatrixNode(ConstantTensorNode):
         assert len(value.size()) <= 2
         ConstantTensorNode.__init__(self, value)
 
-    @property
-    def is_matrix(self) -> bool:
-        return True
-
 
 class ConstantProbabilityMatrixNode(ConstantTensorNode):
     def __init__(self, value: Tensor):
         assert len(value.size()) <= 2
         ConstantTensorNode.__init__(self, value)
-
-    @property
-    def is_matrix(self) -> bool:
-        return True
 
 
 class ConstantNaturalMatrixNode(ConstantTensorNode):
@@ -368,19 +345,11 @@ class ConstantNaturalMatrixNode(ConstantTensorNode):
         assert len(value.size()) <= 2
         ConstantTensorNode.__init__(self, value)
 
-    @property
-    def is_matrix(self) -> bool:
-        return True
-
 
 class ConstantBooleanMatrixNode(ConstantTensorNode):
     def __init__(self, value: Tensor):
         assert len(value.size()) <= 2
         ConstantTensorNode.__init__(self, value)
-
-    @property
-    def is_matrix(self) -> bool:
-        return True
 
 
 class TensorNode(BMGNode):
@@ -1021,10 +990,6 @@ class ToMatrixNode(OperatorNode):
 
     def support_size(self) -> float:
         raise NotImplementedError()
-
-    @property
-    def is_matrix(self) -> bool:
-        return True
 
 
 # ####

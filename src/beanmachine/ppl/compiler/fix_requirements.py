@@ -52,7 +52,7 @@ class RequirementsFixer:
 
     def _node_meets_requirement(self, node: bn.BMGNode, r: bt.Requirement) -> bool:
         if isinstance(r, bt.AlwaysMatrix):
-            return node.is_matrix and self._type_meets_requirement(
+            return self._typer.is_matrix(node) and self._type_meets_requirement(
                 self._typer[node], r.bound
             )
         return self._type_meets_requirement(self._typer[node], r)
