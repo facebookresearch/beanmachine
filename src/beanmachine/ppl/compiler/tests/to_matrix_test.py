@@ -137,6 +137,12 @@ digraph "graph" {
         # The first composes a matrix from elements; the latter
         # convert a matrix of one type (probability in this case)
         # to a matrix of another type.
+        #
+        # Notice that we do not explicitly insert a ToRealMatrix
+        # node here; the problem fixer detects that we have a 2x1
+        # probability matrix from the column index but the
+        # LogSumExpVector needs a real, positive real or negative
+        # real matrix, and inserts a ToRealMatrix node on that edge.
 
         self.maxDiff = None
         bmg = BMGraphBuilder()
@@ -152,10 +158,11 @@ digraph "graph" {
         pm = bmg.add_to_matrix(two, two, b0, b1, b2, b3)
         c0 = bmg.add_column_index(pm, zero)
         c1 = bmg.add_column_index(pm, one)
-        tr = bmg.add_to_real_matrix(c0)
         tpr = bmg.add_to_positive_real_matrix(c1)
-        bmg.add_query(tr)
-        bmg.add_query(tpr)
+        lse0 = bmg.add_logsumexp_vector(c0)
+        lse1 = bmg.add_logsumexp_vector(tpr)
+        bmg.add_query(lse0)
+        bmg.add_query(lse1)
 
         observed = to_dot(
             bmg,
@@ -177,11 +184,13 @@ digraph "graph" {
   N08[label="0:N"];
   N09[label="ColumnIndex:MP[2,1]"];
   N10[label="ToRealMatrix:MR[2,1]"];
-  N11[label="Query:MR[2,1]"];
-  N12[label="1:N"];
-  N13[label="ColumnIndex:MP[2,1]"];
-  N14[label="ToPosRealMatrix:MR+[2,1]"];
-  N15[label="Query:MR+[2,1]"];
+  N11[label="LogSumExp:R"];
+  N12[label="Query:R"];
+  N13[label="1:N"];
+  N14[label="ColumnIndex:MP[2,1]"];
+  N15[label="ToPosRealMatrix:MR+[2,1]"];
+  N16[label="LogSumExp:R"];
+  N17[label="Query:R"];
   N00 -> N01[label="alpha:R+"];
   N00 -> N01[label="beta:R+"];
   N01 -> N02[label="operand:P"];
@@ -195,13 +204,15 @@ digraph "graph" {
   N06 -> N07[label="columns:N"];
   N06 -> N07[label="rows:N"];
   N07 -> N09[label="left:MP[2,2]"];
-  N07 -> N13[label="left:MP[2,2]"];
+  N07 -> N14[label="left:MP[2,2]"];
   N08 -> N09[label="right:N"];
   N09 -> N10[label="operand:any"];
-  N10 -> N11[label="operator:any"];
-  N12 -> N13[label="right:N"];
-  N13 -> N14[label="operand:any"];
-  N14 -> N15[label="operator:any"];
+  N10 -> N11[label="operand:MR[2,1]"];
+  N11 -> N12[label="operator:any"];
+  N13 -> N14[label="right:N"];
+  N14 -> N15[label="operand:any"];
+  N15 -> N16[label="operand:MR+[2,1]"];
+  N16 -> N17[label="operator:any"];
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
@@ -231,14 +242,18 @@ uint n9 = g.add_operator(
   graph::OperatorType::COLUMN_INDEX, std::vector<uint>({n7, n8}));
 uint n10 = g.add_operator(
   graph::OperatorType::TO_REAL_MATRIX, std::vector<uint>({n9}));
-uint q0 = g.query(n10);
-uint n11 = g.add_constant(1);
-uint n12 = g.add_operator(
-  graph::OperatorType::COLUMN_INDEX, std::vector<uint>({n7, n11}));
+uint n11 = g.add_operator(
+  graph::OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>({n10}));
+uint q0 = g.query(n11);
+uint n12 = g.add_constant(1);
 uint n13 = g.add_operator(
-  graph::OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>({n12}));
-uint q1 = g.query(n13);
-        """
+  graph::OperatorType::COLUMN_INDEX, std::vector<uint>({n7, n12}));
+uint n14 = g.add_operator(
+  graph::OperatorType::TO_POS_REAL_MATRIX, std::vector<uint>({n13}));
+uint n15 = g.add_operator(
+  graph::OperatorType::LOGSUMEXP_VECTOR, std::vector<uint>({n14}));
+uint q1 = g.query(n15);
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
         observed = to_bmg_graph(bmg).graph.to_dot()
@@ -255,9 +270,11 @@ digraph "graph" {
   N8[label="0"];
   N9[label="ColumnIndex"];
   N10[label="ToReal"];
-  N11[label="1"];
-  N12[label="ColumnIndex"];
-  N13[label="ToPosReal"];
+  N11[label="LogSumExp"];
+  N12[label="1"];
+  N13[label="ColumnIndex"];
+  N14[label="ToPosReal"];
+  N15[label="LogSumExp"];
   N0 -> N1;
   N0 -> N1;
   N1 -> N2;
@@ -271,15 +288,17 @@ digraph "graph" {
   N6 -> N7;
   N6 -> N7;
   N7 -> N9;
-  N7 -> N12;
+  N7 -> N13;
   N8 -> N9;
   N9 -> N10;
-  N11 -> N12;
+  N10 -> N11;
   N12 -> N13;
+  N13 -> N14;
+  N14 -> N15;
   Q0[label="Query"];
-  N10 -> Q0;
+  N11 -> Q0;
   Q1[label="Query"];
-  N13 -> Q1;
+  N15 -> Q1;
 }
         """
         self.assertEqual(expected.strip(), observed.strip())

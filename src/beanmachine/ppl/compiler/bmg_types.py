@@ -527,6 +527,10 @@ def supremum(*ts: BMGLatticeType) -> BMGLatticeType:
     return result
 
 
+def is_convertible_to(source: BMGLatticeType, target: BMGLatticeType) -> bool:
+    return _supremum(source, target) == target
+
+
 simplex_precision = 1e-10
 
 
