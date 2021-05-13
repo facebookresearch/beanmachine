@@ -97,7 +97,8 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     base_args=copy.deepcopy(base_args),
                 )
 
-            vi_dicts = lru_cache(maxsize=None)(_get_var_approx)
+            if not vi_dicts:
+                vi_dicts = lru_cache(maxsize=None)(_get_var_approx)
             train_iter = range(num_iter)
             if progress_bar:
                 train_iter = tqdm(iterable=train_iter, desc="Training iterations")
@@ -134,14 +135,13 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     # samples x_{s,i} ~ q_t(x_s) i.e.
                     # ELBO ~= E_s log p(x_s, x_\s) / q(x_s)
                     #      ~= (1/N) \sum_i^N log p(x_{s,i}, x_\s) / q(x_{s,i})
-                    prev_loss = loss.clone().detach()
-                    delta_elbo, zk = v_approx.elbo(
+                    elbo, _ = v_approx.elbo(
                         _target_log_prob
                         if not pretrain
                         else node_var.distribution.log_prob,
                         num_elbo_mc_samples,
                     )
-                    loss -= delta_elbo
+                    loss -= elbo
                     # if (
                     #     str(rvid).startswith("sigma")
                     #     and delta_elbo.abs() > 1e2
