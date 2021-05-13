@@ -3,6 +3,7 @@
 from typing import Optional
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
+import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_types import PositiveReal
@@ -65,6 +66,20 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         mult = self._bmg.add_multiplication(node.df, half)
         return self._bmg.add_gamma(mult, half)
 
+    def _replace_tensor(self, node: bn.TensorNode) -> Optional[bn.BMGNode]:
+        # Replace a 1-d or 2-d tensor with a TO_MATRIX node.
+        size = node.size
+        if len(size) > 2:
+            return None
+        # This is the row and column count of the torch tensor.
+        # In BMG, matrices are column-major, so we'll swap them.
+        r, c = bt._size_to_rc(size)
+        # ToMatrixNode requires naturals.
+        rows = self._bmg.add_natural(c)
+        cols = self._bmg.add_natural(r)
+        tm = self._bmg.add_to_matrix(rows, cols, *node.inputs.inputs)
+        return tm
+
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         # TODO:
         # Not -> Complement
@@ -73,6 +88,8 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             return self._replace_chi2(n)
         if isinstance(n, bn.DivisionNode):
             return self._replace_division(n)
+        if isinstance(n, bn.TensorNode):
+            return self._replace_tensor(n)
         if isinstance(n, bn.UniformNode):
             return self._replace_uniform(n)
         return None

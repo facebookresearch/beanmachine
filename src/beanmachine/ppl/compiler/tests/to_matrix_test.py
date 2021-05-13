@@ -1,27 +1,162 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
+import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
+from beanmachine.ppl.compiler.runtime import BMGRuntime
+from torch import tensor
+from torch.distributions import Normal
+
+
+@bm.random_variable
+def norm():
+    return Normal(tensor(0.0), tensor(1.0))
+
+
+@bm.functional
+def f1by2():
+    # a 1x2 tensor in Python becomes a 2x1 matrix in BMG
+    return tensor([norm().exp(), norm()])
+
+
+@bm.functional
+def f2by1():
+    # a 2x1 tensor in Python becomes a 1x2 matrix in BMG
+    return tensor([[norm().exp()], [norm()]])
+
+
+@bm.functional
+def f2by3():
+    # a 2x3 tensor in Python becomes a 3x2 matrix in BMG
+    return tensor([[norm().exp(), 10, 20], [norm(), 30, 40]])
+
+
+@bm.functional
+def f1by2by3():
+    # A 1x2x3 tensor in Python is an error in BMG.
+    return tensor([[[norm().exp(), 10, 20], [norm(), 30, 40]]])
 
 
 class ToMatrixTest(unittest.TestCase):
-    def test_to_matrix_1(self) -> None:
-
+    def test_to_matrix_1by2(self) -> None:
         self.maxDiff = None
-        bmg = BMGraphBuilder()
-        t = bmg.add_natural(2)
-        o = bmg.add_natural(1)
-        z = bmg.add_natural(0)
-        n = bmg.add_normal(z, o)
-        ns = bmg.add_sample(n)
-        e = bmg.add_exp(ns)
-        m = bmg.add_to_matrix(o, t, e, ns)
-        bmg.add_query(m)
+        bmg = BMGRuntime().accumulate_graph([f1by2()], {})
+        observed = to_dot(
+            bmg,
+            inf_types=True,
+            edge_requirements=True,
+            after_transform=True,
+            label_edges=True,
+        )
+        expected = """
+digraph "graph" {
+  N0[label="0.0:R"];
+  N1[label="1.0:R+"];
+  N2[label="Normal:R"];
+  N3[label="Sample:R"];
+  N4[label="2:N"];
+  N5[label="1:N"];
+  N6[label="Exp:R+"];
+  N7[label="ToReal:R"];
+  N8[label="ToMatrix:MR[2,1]"];
+  N9[label="Query:MR[2,1]"];
+  N0 -> N2[label="mu:R"];
+  N1 -> N2[label="sigma:R+"];
+  N2 -> N3[label="operand:R"];
+  N3 -> N6[label="operand:R"];
+  N3 -> N8[label="1:R"];
+  N4 -> N8[label="rows:N"];
+  N5 -> N8[label="columns:N"];
+  N6 -> N7[label="operand:<=R"];
+  N7 -> N8[label="0:R"];
+  N8 -> N9[label="operator:any"];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
 
+        observed = to_bmg_cpp(bmg).code
+        expected = """
+graph::Graph g;
+uint n0 = g.add_constant(0.0);
+uint n1 = g.add_constant_pos_real(1.0);
+uint n2 = g.add_distribution(
+  graph::DistributionType::NORMAL,
+  graph::AtomicType::REAL,
+  std::vector<uint>({n0, n1}));
+uint n3 = g.add_operator(
+  graph::OperatorType::SAMPLE, std::vector<uint>({n2}));
+uint n4 = g.add_constant(2);
+uint n5 = g.add_constant(1);
+uint n6 = g.add_operator(
+  graph::OperatorType::EXP, std::vector<uint>({n3}));
+uint n7 = g.add_operator(
+  graph::OperatorType::TO_REAL, std::vector<uint>({n6}));
+uint n8 = g.add_operator(
+  graph::OperatorType::TO_MATRIX,
+  std::vector<uint>({n4, n5, n7, n3}));
+uint q0 = g.query(n8);
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = to_bmg_python(bmg).code
+        expected = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant(0.0)
+n1 = g.add_constant_pos_real(1.0)
+n2 = g.add_distribution(
+  graph.DistributionType.NORMAL,
+  graph.AtomicType.REAL,
+  [n0, n1],
+)
+n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
+n4 = g.add_constant(2)
+n5 = g.add_constant(1)
+n6 = g.add_operator(graph.OperatorType.EXP, [n3])
+n7 = g.add_operator(graph.OperatorType.TO_REAL, [n6])
+n8 = g.add_operator(
+  graph.OperatorType.TO_MATRIX,
+  [n4, n5, n7, n3],
+)
+q0 = g.query(n8)
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+        observed = to_bmg_graph(bmg).graph.to_dot()
+        expected = """
+digraph "graph" {
+  N0[label="0"];
+  N1[label="1"];
+  N2[label="Normal"];
+  N3[label="~"];
+  N4[label="2"];
+  N5[label="1"];
+  N6[label="exp"];
+  N7[label="ToReal"];
+  N8[label="ToMatrix"];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N6;
+  N3 -> N8;
+  N4 -> N8;
+  N5 -> N8;
+  N6 -> N7;
+  N7 -> N8;
+  Q0[label="Query"];
+  N8 -> Q0;
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_to_matrix_2by1(self) -> None:
+        self.maxDiff = None
+        bmg = BMGRuntime().accumulate_graph([f2by1()], {})
         observed = to_dot(
             bmg,
             inf_types=True,
@@ -129,6 +264,50 @@ digraph "graph" {
   N8 -> Q0;
 }
         """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_to_matrix_2by3(self) -> None:
+        self.maxDiff = None
+        bmg = BMGRuntime().accumulate_graph([f2by3()], {})
+        observed = to_dot(
+            bmg,
+            inf_types=True,
+            edge_requirements=True,
+            after_transform=True,
+            label_edges=True,
+        )
+        expected = """
+digraph "graph" {
+  N00[label="0.0:R"];
+  N01[label="1.0:R+"];
+  N02[label="Normal:R"];
+  N03[label="Sample:R"];
+  N04[label="3:N"];
+  N05[label="2:N"];
+  N06[label="Exp:R+"];
+  N07[label="ToReal:R"];
+  N08[label="10.0:R"];
+  N09[label="20.0:R"];
+  N10[label="30.0:R"];
+  N11[label="40.0:R"];
+  N12[label="ToMatrix:MR[3,2]"];
+  N13[label="Query:MR[3,2]"];
+  N00 -> N02[label="mu:R"];
+  N01 -> N02[label="sigma:R+"];
+  N02 -> N03[label="operand:R"];
+  N03 -> N06[label="operand:R"];
+  N03 -> N12[label="3:R"];
+  N04 -> N12[label="rows:N"];
+  N05 -> N12[label="columns:N"];
+  N06 -> N07[label="operand:<=R"];
+  N07 -> N12[label="0:R"];
+  N08 -> N12[label="1:R"];
+  N09 -> N12[label="2:R"];
+  N10 -> N12[label="4:R"];
+  N11 -> N12[label="5:R"];
+  N12 -> N13[label="operator:any"];
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_to_matrix_2(self) -> None:
@@ -302,3 +481,23 @@ digraph "graph" {
 }
         """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_to_matrix_1by2by3(self) -> None:
+        self.maxDiff = None
+        bmg = BMGRuntime().accumulate_graph([f1by2by3()], {})
+
+        # TODO: Error message could be more specific here than "a tensor".
+        # We could say what is wrong: its size.
+
+        expected = """
+The model uses a Tensor operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query."""
+        with self.assertRaises(ValueError) as ex:
+            to_dot(
+                bmg,
+                inf_types=True,
+                edge_requirements=True,
+                after_transform=True,
+                label_edges=True,
+            )
+        self.assertEqual(expected.strip(), str(ex.exception).strip())
