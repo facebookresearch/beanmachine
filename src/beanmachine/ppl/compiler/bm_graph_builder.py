@@ -735,6 +735,14 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_logsumexp_torch(
+        self, input: BMGNode, dim: BMGNode, keepdim: BMGNode
+    ) -> bn.LogSumExpTorchNode:
+        node = bn.LogSumExpTorchNode(input, dim, keepdim)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_logsumexp_vector(self, operand: BMGNode) -> bn.LogSumExpVectorNode:
         node = bn.LogSumExpVectorNode(operand)
         self.add_node(node)

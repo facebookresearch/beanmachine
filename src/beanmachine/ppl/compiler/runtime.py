@@ -672,19 +672,21 @@ class BMGRuntime:
         return self._bmg.add_log1mexp(input)
 
     def handle_logsumexp(self, input: Any, dim: Any, keepdim: Any = False) -> Any:
-        # TODO: Handle the situation where dim or keepdim are graph nodes.
-        # Produce an error.
-        if not isinstance(input, BMGNode):
+        if (
+            not isinstance(input, BMGNode)
+            and not isinstance(dim, BMGNode)
+            and not isinstance(keepdim, BMGNode)
+        ):
+            # None of them are graph nodes. Just return the tensor.
             return torch.logsumexp(input=input, dim=dim, keepdim=keepdim)
-        if isinstance(input, bn.ConstantTensorNode):
-            return torch.logsumexp(input=input.value, dim=dim, keepdim=keepdim)
-        if isinstance(input, ConstantNode):
-            return torch.logsumexp(
-                input=torch.tensor(input.value), dim=dim, keepdim=keepdim
-            )
-        # TODO: Handle the situation where the dim is not 1 or the shape is not
-        # one-dimensional; produce an error.
-        return self._bmg.add_logsumexp(*[input])
+        # One of them is a graph node. Make them all graph nodes.
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(dim, BMGNode):
+            dim = self._bmg.add_constant(dim)
+        if not isinstance(keepdim, BMGNode):
+            keepdim = self._bmg.add_constant(keepdim)
+        return self._bmg.add_logsumexp_torch(input, dim, keepdim)
 
     def _canonicalize_function(
         self, function: Any, arguments: List[Any], kwargs: Optional[Dict[str, Any]]
