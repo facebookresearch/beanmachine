@@ -86,21 +86,23 @@ def _hashable(x: Any) -> bool:
     return True
 
 
-def _flatten_all_lists(lst):
+def _flatten_all_lists(xs):
     """Takes a list-of-lists, with arbitrary nesting level;
     returns an iteration of all elements."""
-    for item in lst:
-        if isinstance(item, list):
-            yield from _flatten_all_lists(item)
-        else:
-            yield item
+    if isinstance(xs, list):
+        for x in xs:
+            yield from _flatten_all_lists(x)
+    else:
+        yield xs
 
 
-def _list_to_zeros(lst):
+def _list_to_zeros(xs):
     """Takes a list-of-lists, with arbitrary nesting level;
     returns a list-of-lists of the same shape but with every non-list
     element replaced with zero."""
-    return [_list_to_zeros(item) if isinstance(item, list) else 0 for item in lst]
+    if isinstance(xs, list):
+        return [_list_to_zeros(x) for x in xs]
+    return 0
 
 
 builtin_function_or_method = type(abs)
@@ -940,16 +942,19 @@ class BMGRuntime:
         # We *could* convert that to a graph node.
         return function(*arguments, **kwargs)
 
-    def _handle_tensor_constructor(
-        self, arguments: List[Any], kwargs: Dict[str, Any]
-    ) -> Any:
-        assert isinstance(arguments, list)
+    def _handle_tensor_constructor(self, data: Any, kwargs: Dict[str, Any]) -> Any:
         # TODO: Handle kwargs
-        flattened_args = list(_flatten_all_lists(arguments))
+
+        # The tensor constructor is a bit tricky because it takes a single
+        # argument that is either a value or a list of values.  We need:
+        # (1) a flattened list of all the arguments, and
+        # (2) the size of the original tensor.
+
+        flattened_args = list(_flatten_all_lists(data))
         if not any(isinstance(arg, BMGNode) for arg in flattened_args):
             # None of the arguments are graph nodes. We can just
             # construct the tensor normally.
-            return torch.tensor(*arguments, **kwargs)
+            return torch.tensor(data, **kwargs)
         # At least one of the arguments is a graph node.
         #
         # If we're constructing a singleton tensor and the single value
@@ -966,8 +971,7 @@ class BMGRuntime:
         # What shape is this tensor? Rather than duplicating the logic in the
         # tensor class, let's just construct the same shape made of entirely
         # zeros and then ask what shape it is.
-        size = torch.tensor(_list_to_zeros(arguments)).size()
-
+        size = torch.tensor(_list_to_zeros(data)).size()
         return self._bmg.add_tensor(size, *flattened_args)
 
     def handle_function(
@@ -1006,7 +1010,12 @@ class BMGRuntime:
         # need to create a TensorNode.
 
         if f is torch.tensor:
-            return self._handle_tensor_constructor(args, kwargs)
+            if len(args) != 1:
+                raise TypeError(
+                    "tensor() takes 1 positional argument but"
+                    + f" {len(args)} were given"
+                )
+            return self._handle_tensor_constructor(args[0], kwargs)
 
         if _hashable(f):
             # Some functions are perfectly safe for a graph node.
