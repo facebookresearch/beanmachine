@@ -6,6 +6,7 @@ from typing import Callable, Dict, List, Optional
 
 import torch
 import torch.distributions as dist
+import torch.nn
 import torch.optim
 from torch import Tensor
 from tqdm.auto import tqdm
@@ -165,6 +166,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         num_iter: int = 100,
         lr: float = 1e-3,
         random_seed: Optional[int] = None,
+        on_iter: Optional[Callable] = None,
     ) -> Dict[RVIdentifier, Tensor]:
         """
         Perform stochastic variational inference.
@@ -187,6 +189,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         :param num_iter: number of iterations of optimizer steps
         :param lr: learning rate
         :param random_seed: random seed
+        :param on_iter: callable executed after each optimizer iteration
 
         :returns: mapping from all `bm.param` `RVIdentifier`s encountered
         to their optimized values
@@ -206,7 +209,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
 
             params = {}
 
-            for _ in tqdm(iterable=range(num_iter), desc="Training iterations"):
+            for it in tqdm(iterable=range(num_iter), desc="Training iterations"):
                 # sample world x ~ q_t
                 self.initialize_world(
                     False,
@@ -239,21 +242,36 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
                     node_var = nodes[rvid]
                     v_approx = nodes[model_to_guide_ids[rvid]]
 
-                    loss += v_approx.distribution.log_prob(node_var.value).sum()
-                    loss -= node_var.distribution.log_prob(node_var.value).sum()
+                    if isinstance(node_var.distribution, dist.Bernoulli) and isinstance(
+                        v_approx.distribution, dist.Bernoulli
+                    ):
+                        # binary cross entropy, analytical ELBO
+                        # TODO: more general enumeration
+                        loss += torch.nn.BCELoss()(
+                            v_approx.distribution.probs,
+                            node_var.distribution.probs,
+                        )
 
-                # Add the remaining likelihood term log p(obs | x)
-                for obs_rvid in self.observations_:
-                    obs_var = nodes[obs_rvid]
-                    loss -= obs_var.distribution.log_prob(
-                        self.observations_[obs_rvid]
-                    ).sum()
+                        # TODO: downstream observation likelihoods p(obs | rvid)
+                    else:
+                        # MC ELBO
+                        loss += v_approx.distribution.log_prob(node_var.value).sum()
+                        loss -= node_var.distribution.log_prob(node_var.value).sum()
+
+                        # Add the remaining likelihood term log p(obs | x)
+                        for obs_rvid in self.observations_:
+                            obs_var = nodes[obs_rvid]
+                            loss -= obs_var.distribution.log_prob(
+                                self.observations_[obs_rvid]
+                            ).sum()
 
                 if not torch.isnan(loss):
                     loss.backward()
                     optimizer.step()
                     optimizer.zero_grad()
                     params = self.world_.params_
+                    if on_iter:
+                        on_iter(it, loss, params)
                 else:
                     # TODO: caused by e.g. negative scales in `dist.Normal`;
                     # fix using pytorch's `constraint_registry` to account for

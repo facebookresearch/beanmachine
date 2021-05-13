@@ -777,7 +777,10 @@ class World(BaseWorld):
                     # initialize guide node if missing
                     self.call(guide_node)
                 guide_var = self.get_node_in_world_raise_error(guide_node)
-                value = guide_var.distribution.rsample(torch.Size((1,)))
+                try:
+                    value = guide_var.distribution.rsample(torch.Size((1,)))
+                except NotImplementedError:
+                    value = guide_var.distribution.sample(torch.Size((1,)))
 
         node_var.update_fields(
             value,
