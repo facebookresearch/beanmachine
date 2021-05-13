@@ -917,34 +917,41 @@ class MultiAdditionNode(OperatorNode):
         return "MultiAdd"
 
 
-# See LogSumExpVectorNode below as well.
-# TODO: We really need THREE logsumexp nodes:
-# * The Python LogSumExp node which is a binary operator; it takes a tensor and
-#   a dimension. It has no direct BMG equivalent.
-# * The BMG LOGSUMEXP which takes n operands
-# * The BMG LOGSUMEXP_VECTOR which takes a single column matrix operand
+# We have three kinds of logsumexp nodes.
 #
-# We should accumulate the first, and then transform it into one of the
-# BMG nodes (or give an error if we cannot) as appropriate.
+# * LogSumExpTorchNode represents a call to logsumexp in the original
+#   Python model. It has three operands: the tensor being summed,
+#   the dimension along which it is summed, and a flag giving the shape.
+#
+# * LogSumExpNode represents a BMG LOGSUMEXP node. It is an n-ary operator
+#   and produces a real; each of the inputs is one of the summands.
+#
+# * LogSumExpVectorNode represents a BMG LOGSUMEXP_VECTOR node. It is a unary
+#   operator that takes a single-column matrix.
+#
+# We transform LogSumExpTorchNode into LogSumExpNode or LogSumExpVectorNode
+# as appropriate.
+
+
+class LogSumExpTorchNode(OperatorNode):
+    def __init__(self, operand: BMGNode, dim: BMGNode, keepdim: BMGNode):
+        OperatorNode.__init__(self, [operand, dim, keepdim])
+
+    @property
+    def size(self) -> torch.Size:
+        # TODO
+        raise NotImplementedError("LogSumExpTorchNode.size")
+
+    def __str__(self) -> str:
+        return "LogSumExp"
+
+    def support(self) -> Iterable[Any]:
+        raise NotImplementedError("support of LogSumExp not yet implemented")
+
+
 class LogSumExpNode(OperatorNode):
     """This class represents the LogSumExp operation: for values v_1, ..., v_n
     we compute log(exp(v_1) + ... + exp(v_n))"""
-
-    # TODO: The original Python model allows the developer to choose which
-    # dimension of the tensor to apply the logsumexp operation to. Right now
-    # we only support single-dimensional tensors which are created using the
-    # tensor constructor; we will expand this to more scenarios later.
-    # For example, we might want to support compiling something like
-    #
-    # @rv def n(): return Normal(tensor(0., 0.), tensor(1., 1.))
-    # y = n().logsumexp(dim=0)
-    #
-    # the same way we would compile the semantically equivalent model:
-    #
-    # @rv def n(x): return Normal(0., 1.)
-    # y = tensor([n(0), n(1)]).logsumexp(dim=0)
-    #
-    # TODO: Similarly we might want to support logsumexp on dimensions other than 0.
 
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
@@ -952,15 +959,13 @@ class LogSumExpNode(OperatorNode):
 
     @property
     def size(self) -> torch.Size:
-        # TODO: If we ever support logsumexp on a dimension other than 1
-        # then we will need to update this.
-        return torch.Size([])
+        raise NotImplementedError("LogSumExpTorchNode.size")
 
     def __str__(self) -> str:
         return "LogSumExp"
 
     def support(self) -> Iterable[Any]:
-        raise ValueError("support of LogSumExp not yet implemented")
+        raise NotImplementedError("support of LogSumExp not yet implemented")
 
 
 class ToMatrixNode(OperatorNode):

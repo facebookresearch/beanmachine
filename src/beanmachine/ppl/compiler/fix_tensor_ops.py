@@ -36,10 +36,20 @@ class TensorOpsFixer(ProblemFixerBase):
         ProblemFixerBase.__init__(self, bmg, typer)
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
+        # We are looking for
+        #
+        # tensor([some stochastic stuff]).logsumexp(dim=0, keepdim=false)
+        #
+        # We rewrite it to the n-ary BMG logsumexp.
+        #
+        # TODO: Rewrite logsumexp where the tensor is not a TensorNode to
+        # LogSumExpVector on the assumption that the operand is a column vector.
+
         return (
-            isinstance(n, bn.LogSumExpNode)
-            and len(n.inputs) == 1
+            isinstance(n, bn.LogSumExpTorchNode)
             and isinstance(n.inputs[0], bn.TensorNode)
+            and bn.is_zero(n.inputs[1])
+            and bn.is_zero(n.inputs[2])
         )
 
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
@@ -56,8 +66,7 @@ class TensorOpsFixer(ProblemFixerBase):
         # inputs are the samples; the TensorNode will become orphaned.
         #
 
-        assert isinstance(n, bn.LogSumExpNode)
-        assert len(n.inputs) == 1
+        assert isinstance(n, bn.LogSumExpTorchNode)
         t = n.inputs[0]
         assert isinstance(t, bn.TensorNode)
         # If the tensor is a singleton then logsumexp is
