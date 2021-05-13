@@ -88,7 +88,7 @@ class RequirementsFixer:
         self.errors.add_error(Violation(node, it, requirement, consumer, edge))
         return node
 
-    def _convert_node(
+    def _convert_operator_to_atomic_type(
         self,
         node: bn.OperatorNode,
         requirement: bt.BMGLatticeType,
@@ -98,8 +98,9 @@ class RequirementsFixer:
         # We have been given a node which does not meet a requirement,
         # but it can be converted to a node which does meet the requirement
         # that has the same semantics. Start by confirming those preconditions.
-        assert self._typer[node] != requirement
-        assert bt.supremum(self._typer[node], requirement) == requirement
+        node_type = self._typer[node]
+        assert node_type != requirement
+        assert bt.is_convertible_to(node_type, requirement)
 
         # Converting anything to real or positive real is easy;
         # there's already a node for that so just insert it on the edge
@@ -119,9 +120,9 @@ class RequirementsFixer:
         assert requirement == bt.Natural or requirement == bt.Probability
 
         # Our precondition is that the requirement is larger than the
-        # inf type of the node.
+        # node type.
 
-        assert self._typer.is_bool(node)
+        assert node_type == bt.Boolean
 
         # There is no "to natural" or "to probability" but since we have
         # a bool in hand, we can use an if-then-else as a conversion.
@@ -129,6 +130,48 @@ class RequirementsFixer:
         zero = self.bmg.add_constant_of_type(0.0, requirement)
         one = self.bmg.add_constant_of_type(1.0, requirement)
         return self.bmg.add_if_then_else(node, one, zero)
+
+    def _convert_operator_to_matrix_type(
+        self,
+        node: bn.OperatorNode,
+        requirement: bt.Requirement,
+        consumer: bn.BMGNode,
+        edge: str,
+    ) -> bn.BMGNode:
+        if isinstance(requirement, bt.AlwaysMatrix):
+            requirement = requirement.bound
+        assert isinstance(requirement, bt.BMGMatrixType)
+
+        # We have been given a node which does not meet a requirement,
+        # but it can be converted to a node which does meet the requirement
+        # that has the same semantics. Start by confirming those preconditions.
+        node_type = self._typer[node]
+        assert node_type != requirement
+        assert bt.is_convertible_to(node_type, requirement)
+
+        # Converting anything to real matrix or positive real matrix is easy;
+        # there's already a node for that so just insert it on the edge
+        # whose requirement is not met, and the requirement will be met.
+
+        # TODO: We do not yet handle the case where we are converting from, say,
+        # an atomic probability to a 1x1 real matrix because in practice this
+        # hasn't come up yet. If it does, detect it here and insert a TO_REAL
+        # or TO_POS_REAL followed by a TO_MATRIX and create a test case that
+        # illustrates the scenario.
+        assert self._typer.is_matrix(node)
+
+        if isinstance(requirement, bt.RealMatrix):
+            return self.bmg.add_to_real_matrix(node)
+
+        # TODO: We do not yet handle the case where we are converting from
+        # a matrix of bools to a matrix of naturals or probabilities because
+        # in practice this has not come up yet. If it does, we will need
+        # to create TO_NATURAL_MATRIX and TO_PROB_MATRIX operators in BMG, or
+        # come up with some other way to turn many bools into many naturals
+        # or probabilities.
+        assert isinstance(requirement, bt.PositiveRealMatrix)
+
+        return self.bmg.add_to_positive_real_matrix(node)
 
     def _can_force_to_prob(
         self, inf_type: bt.BMGLatticeType, requirement: bt.Requirement
@@ -173,48 +216,42 @@ class RequirementsFixer:
         assert not self._node_meets_requirement(node, requirement)
 
         # It does not meet the requirement. Can we convert this thing to a node
-        # whose type does meet the requirement? Remember, the inf type is the
-        # smallest type that this node is convertible to, so if the inf type
+        # whose type does meet the requirement? The lattice type is the
+        # smallest type that this node is convertible to, so if the lattice type
         # meets an upper bound requirement, then the conversion we want exists.
 
-        it = self._typer[node]
+        node_type = self._typer[node]
+        if self._type_meets_requirement(node_type, bt.upper_bound(requirement)):
+            # If we got here then the node did NOT meet the requirement,
+            # but its type DID meet an upper bound requirement, which
+            # implies that the requirement was not an upper bound requirement.
+            assert not isinstance(requirement, bt.UpperBound)
 
-        if not self._type_meets_requirement(it, bt.upper_bound(requirement)):
+            # We definitely can meet the requirement by inserting some sort
+            # of conversion logic. We have different helper methods for
+            # the atomic type and matrix type cases.
+            if bt.must_be_matrix(requirement):
+                result = self._convert_operator_to_matrix_type(
+                    node, requirement, consumer, edge
+                )
+            else:
+                assert isinstance(requirement, bt.BMGLatticeType)
+                result = self._convert_operator_to_atomic_type(
+                    node, requirement, consumer, edge
+                )
+        elif self._can_force_to_prob(node_type, requirement):
             # We cannot make the node meet the requirement "implicitly". However
             # there is one situation where we can "explicitly" meet a requirement:
             # an operator of type real or positive real used as a probability.
-            if self._can_force_to_prob(it, requirement):
-                # Ensure that the operand is converted to real or positive real:
-                operand = self.meet_requirement(node, it, consumer, edge)
-                # Force the real / positive real to probability:
-                result = self.bmg.add_to_probability(operand)
-                assert self._node_meets_requirement(result, requirement)
-                return result
-
-            # We have no way to make the conversion we need, so add an error.
-            self.errors.add_error(Violation(node, it, requirement, consumer, edge))
-            return node
-
-        # We definitely can meet the requirement; it just remains to figure
-        # out exactly how.
-        #
-        # There are now two possibilities:
-        #
-        # * The requirement is an exact requirement. We know that the node
-        #   can be converted to that type, because its inf type meets an
-        #   upper bound requirement. Convert it to that exact type.
-        #
-        # * The requirement is an upper-bound requirement, and the inf type
-        #   meets it. Convert the node to the inf type.
-
-        if isinstance(requirement, bt.BMGLatticeType):
-            result = self._convert_node(node, requirement, consumer, edge)
+            assert node_type == bt.Real or node_type == bt.PositiveReal
+            assert self._node_meets_requirement(node, node_type)
+            result = self.bmg.add_to_probability(node)
         else:
-            result = self._convert_node(node, it, consumer, edge)
-
-        # TODO: This assertion could fire if we require a positive real matrix
-        # but the result of the conversion is a positive real value.  We need
-        # to handle that case.
+            # We have no way to make the conversion we need, so add an error.
+            self.errors.add_error(
+                Violation(node, node_type, requirement, consumer, edge)
+            )
+            return node
 
         assert self._node_meets_requirement(result, requirement)
         return result
