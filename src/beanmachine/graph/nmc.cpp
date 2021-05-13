@@ -9,6 +9,7 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/profiler.h"
+#include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
@@ -69,7 +70,7 @@ class Graph::NMC {
   // compute gradients of every node we need to.
   void initialize() {
     g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
-    smart_to_dumb();
+    collect_node_ptrs();
     compute_support();
     ensure_continuous();
     compute_initial_values();
@@ -78,7 +79,7 @@ class Graph::NMC {
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
   }
 
-  void smart_to_dumb() {
+  void collect_node_ptrs() {
     for (uint node_id = 0; node_id < g->nodes.size(); node_id++) {
       node_ptrs.push_back(g->nodes[node_id].get());
     }
@@ -101,7 +102,7 @@ class Graph::NMC {
     }
   }
 
-  static bool is_not_supported(Node* node) {
+  static bool is_not_supported(Node* node) { // specific to NMC
     return node->value.type.variable_type !=
         VariableType::COL_SIMPLEX_MATRIX and
         node->value.type != AtomicType::PROBABILITY and
@@ -128,17 +129,11 @@ class Graph::NMC {
   // indices less than those of their children, and unobserved_supp
   // respects index order.
   void compute_initial_values() {
-    for (Node* node : unobserved_supp) {
-      if (node->is_stochastic()) {
-        if (node->value.type.variable_type ==
-            VariableType::COL_SIMPLEX_MATRIX) {
-          auto sto_node = static_cast<oper::StochasticOperator*>(node);
-          sto_node->unconstrained_value = sto_node->value;
-        } else {
-          node->value = proposer::uniform_initializer(gen, node->value.type);
-        }
-      } else {
-        node->eval(gen); // evaluate the value of non-observed operator nodes
+    for (Node* unobs_node : unobserved_supp) {
+      if (unobs_node->is_stochastic()) {
+        proposer::default_initializer(gen, unobs_node);
+      } else { // non-stochastic operator node, so just evaluate
+        unobs_node->eval(gen);
       }
     }
   }
@@ -155,6 +150,7 @@ class Graph::NMC {
       std::vector<Node*> sto_nodes;
       std::tie(det_node_ids, sto_node_ids) =
           g->compute_descendants(node->index, supp_ids);
+      // TODO what does compute_descendants do exactly?
       for (uint id : det_node_ids) {
         det_nodes.push_back(node_ptrs[id]);
       }
@@ -176,7 +172,7 @@ class Graph::NMC {
       const std::vector<Node*>& sto_nodes = sto_descendants[i];
       assert(tgt_node == sto_nodes.front());
       if (tgt_node->value.type.variable_type ==
-          VariableType::COL_SIMPLEX_MATRIX) {
+          VariableType::COL_SIMPLEX_MATRIX) { // TODO make more generic
         if (tgt_node->value.type.rows == 2) {
           nmc_step_for_dirichlet_beta(tgt_node, det_nodes, sto_nodes);
         } else {
@@ -253,6 +249,7 @@ class Graph::NMC {
   // * Create a proposer that can randomly choose a new value for a node
   //   based on the current value and the gradients of the stochastic
   //   nodes.
+  // TODO can/should we separate these two functions?
   std::unique_ptr<proposer::Proposer> create_proposer(
       const std::vector<Node*>& sto_nodes,
       NodeValue value,
@@ -264,13 +261,17 @@ class Graph::NMC {
     for (Node* node : sto_nodes) {
       logweight += node->log_prob();
       node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
+      // TODO: is it really "in"? The in-values are all 0.
     }
+    // TODO: generalize away from NMC
     std::unique_ptr<proposer::Proposer> prop =
         proposer::nmc_proposer(value, grad1, grad2);
     g->pd_finish(ProfilerEvent::NMC_CREATE_PROP);
     return prop;
   }
 
+  // TODO check against paper for better understanding
+  // TODO why did you need to specialize it for Dirichlet?
   std::unique_ptr<proposer::Proposer> create_proposer_dirichlet(
       const std::vector<Node*>& sto_nodes,
       Node* tgt_node,
@@ -354,7 +355,7 @@ class Graph::NMC {
     // * If we rejected it, restore the saved state.
 
     NodeValue old_value = tgt_node->value;
-    save_old_values(det_nodes);
+    save_old_values(det_nodes); // TODO why only det_nodes are being saved?
 
     tgt_node->grad1 = 1;
     tgt_node->grad2 = 0;
@@ -364,11 +365,16 @@ class Graph::NMC {
     double old_logweight;
     auto old_prop =
         create_proposer(sto_nodes, old_value, /* out */ old_logweight);
+    // TODO make the semantics of this call clearer
+    // Why only sto_nodes? How does it relate old_values to det_nodes?
+    // What is old_logweight? Same as old score in comments above?
+    // If so, make consistent
+    // Why is it called "old" proposer?
 
     NodeValue new_value = sample(old_prop);
 
     tgt_node->value = new_value;
-    eval(det_nodes);
+    eval(det_nodes); // TODO why det_nodes only?
     compute_gradients(det_nodes);
     double new_logweight;
     auto new_prop =
