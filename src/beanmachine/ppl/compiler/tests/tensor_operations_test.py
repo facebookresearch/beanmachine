@@ -16,7 +16,7 @@ def norm(n):
 
 @bm.functional
 def make_a_tensor():
-    return tensor(norm(1), norm(1), norm(2), 1.25)
+    return tensor([norm(1), norm(1), norm(2), 1.25])
 
 
 @bm.functional
