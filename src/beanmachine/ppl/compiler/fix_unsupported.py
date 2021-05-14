@@ -10,7 +10,7 @@ from beanmachine.ppl.compiler.bmg_types import PositiveReal
 from beanmachine.ppl.compiler.error_report import BMGError, UnsupportedNode
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 from beanmachine.ppl.compiler.graph_labels import get_edge_label
-from beanmachine.ppl.compiler.typer_base import TyperBase
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 class UnsupportedNodeFixer(ProblemFixerBase):
@@ -18,7 +18,7 @@ class UnsupportedNodeFixer(ProblemFixerBase):
     fix all uses of unsupported operators by replacing them with semantically
     equivalent nodes that are supported by BMG."""
 
-    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
+    def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         ProblemFixerBase.__init__(self, bmg, typer)
 
     def _replace_division(self, node: bn.DivisionNode) -> Optional[bn.BMGNode]:
@@ -66,6 +66,30 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         mult = self._bmg.add_multiplication(node.df, half)
         return self._bmg.add_gamma(mult, half)
 
+    def _replace_index(self, node: bn.IndexNode) -> Optional[bn.BMGNode]:
+        # * If we have an index into a one-column matrix, replace it with
+        #   a vector index.
+        # * If we have an index into a multi-column matrix, replace it with
+        #   a column index
+        # TODO: Consider if there are more optimizations we can make here
+        # if either operand is a constant.
+        typer = self._typer
+        assert isinstance(typer, LatticeTyper)
+        right = node.right
+        left = node.left
+        node_type = typer[left]
+        if isinstance(node_type, bt.BMGMatrixType):
+            if node_type.columns == 1:
+                if (
+                    isinstance(left, bn.ToMatrixNode)
+                    and isinstance(right, bn.ConstantNode)
+                    and typer.is_natural(right)
+                ):
+                    return left.inputs[right.value + 2]
+                return self._bmg.add_vector_index(left, right)
+            return self._bmg.add_column_index(left, right)
+        return None
+
     def _replace_tensor(self, node: bn.TensorNode) -> Optional[bn.BMGNode]:
         # Replace a 1-d or 2-d tensor with a TO_MATRIX node.
         size = node.size
@@ -88,6 +112,8 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             return self._replace_chi2(n)
         if isinstance(n, bn.DivisionNode):
             return self._replace_division(n)
+        if isinstance(n, bn.IndexNode):
+            return self._replace_index(n)
         if isinstance(n, bn.TensorNode):
             return self._replace_tensor(n)
         if isinstance(n, bn.UniformNode):
