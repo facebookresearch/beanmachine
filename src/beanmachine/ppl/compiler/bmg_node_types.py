@@ -61,7 +61,6 @@ _operator_types = {
     bn.ExpM1Node: OperatorType.EXPM1,
     bn.ExpNode: OperatorType.EXP,
     bn.IfThenElseNode: OperatorType.IF_THEN_ELSE,
-    bn.IndexNode: OperatorType.INDEX,
     bn.Log1mexpNode: OperatorType.LOG1MEXP,
     bn.LogNode: OperatorType.LOG,
     bn.LogisticNode: OperatorType.LOGISTIC,
@@ -79,6 +78,7 @@ _operator_types = {
     bn.ToPositiveRealMatrixNode: OperatorType.TO_POS_REAL_MATRIX,
     bn.ToPositiveRealNode: OperatorType.TO_POS_REAL,
     bn.ToProbabilityNode: OperatorType.TO_PROBABILITY,
+    bn.VectorIndexNode: OperatorType.INDEX,
 }
 
 

@@ -560,26 +560,21 @@ class BMGraphBuilder:
 
     @memoize
     def add_index(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.BMGNode:
-        # If we have a constant index into a stochastic or constant tensor
-        # then we can optimize this by simply fetching the value we need
-        # out of the tensor and returning it directly.
-
-        # TODO: Type check that the constant index is a positive integer.
-        if isinstance(right, bn.ConstantNode):
-            # TODO: Range check these
-            if isinstance(left, bn.ConstantTensorNode):
-                return self.add_constant(left.value[right.value])
-            if isinstance(left, bn.TensorNode):
-                return left.inputs[right.value]
+        # Folding optimizations are done in the fixer.
         node = bn.IndexNode(left, right)
         self.add_node(node)
         return node
 
     @memoize
+    def add_vector_index(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.BMGNode:
+        # Folding optimizations are done in the fixer.
+        node = bn.VectorIndexNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_column_index(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.BMGNode:
-        # TODO: Better error handling when this is illegal.
-        if isinstance(left, bn.ConstantNode) and isinstance(right, bn.ConstantNode):
-            return self.add_constant(left.value[right.value])
+        # Folding optimizations are done in the fixer.
         node = bn.ColumnIndexNode(left, right)
         self.add_node(node)
         return node
