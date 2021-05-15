@@ -76,7 +76,6 @@ class EdgeRequirements:
             bn.ExpM1Node: self._same_as_output,
             bn.ExpNode: self._requirements_exp_neg,
             bn.IfThenElseNode: self._requirements_if,
-            bn.IndexNode: self._requirements_index,
             bn.LogNode: self._requirements_log,
             bn.LogSumExpNode: self._requirements_logsumexp,
             bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
@@ -86,6 +85,7 @@ class EdgeRequirements:
             bn.PowerNode: self._requirements_power,
             bn.SampleNode: self._same_as_output,
             bn.ToMatrixNode: self._requirements_to_matrix,
+            bn.VectorIndexNode: self._requirements_index,
         }
 
     def _requirements_expproduct(
@@ -161,7 +161,7 @@ class EdgeRequirements:
         it = self.typer[node]
         return [bt.Boolean, it, it]
 
-    def _requirements_index(self, node: bn.IndexNode) -> List[bt.Requirement]:
+    def _requirements_index(self, node: bn.VectorIndexNode) -> List[bt.Requirement]:
         # The index operator introduces an interesting wrinkle into the
         # "requirements" computation. Until now we have always had the property
         # that queries and observations are "sinks" of the graph, and the transitive

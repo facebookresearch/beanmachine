@@ -95,6 +95,7 @@ _node_labels = {
     bn.ToRealNode: "ToReal",
     bn.UniformNode: "Uniform",
     bn.UntypedConstantNode: _val,
+    bn.VectorIndexNode: "index",
 }
 
 _none = []
@@ -183,6 +184,7 @@ _edge_labels = {
     bn.ToRealMatrixNode: _operand,
     bn.ToRealNode: _operand,
     bn.UniformNode: ["low", "high"],
+    bn.VectorIndexNode: _left_right,
 }
 
 

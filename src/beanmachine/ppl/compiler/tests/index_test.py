@@ -60,6 +60,12 @@ def optimize_away_index():
     return Normal(t[0], t[1])
 
 
+@bm.functional
+def column_index():
+    t = tensor([[normal(), hc()], [hc(), normal()]])
+    return t[flip()][flip()]
+
+
 class IndexTest(unittest.TestCase):
     def test_index_constant_vector_stochastic_index(self) -> None:
         self.maxDiff = None
@@ -150,9 +156,6 @@ digraph "graph" {
         # nodes and index into that with a constant; the indexing operation
         # is optimized out.
 
-        # TODO: Why is the 0.0 node not deduplicated?  It is harmless
-        # but something is not working according to plan; investigate later.
-
         observed = BMGInference().to_dot([optimize_away_index()], {})
         expected = """
 digraph "graph" {
@@ -175,6 +178,57 @@ digraph "graph" {
   N6 -> N7;
   N7 -> N8;
   N8 -> N9;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_column_index(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([column_index()], {})
+        expected = """
+digraph "graph" {
+  N00[label=0.0];
+  N01[label=1.0];
+  N02[label=Normal];
+  N03[label=Sample];
+  N04[label=0.0];
+  N05[label=HalfCauchy];
+  N06[label=Sample];
+  N07[label=0.5];
+  N08[label=Bernoulli];
+  N09[label=Sample];
+  N10[label=2];
+  N11[label=ToReal];
+  N12[label=ToMatrix];
+  N13[label=1];
+  N14[label=0];
+  N15[label=if];
+  N16[label=ColumnIndex];
+  N17[label=index];
+  N18[label=Query];
+  N00 -> N02;
+  N01 -> N02;
+  N02 -> N03;
+  N03 -> N12;
+  N03 -> N12;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N11;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N15;
+  N10 -> N12;
+  N10 -> N12;
+  N11 -> N12;
+  N11 -> N12;
+  N12 -> N16;
+  N13 -> N15;
+  N14 -> N15;
+  N15 -> N16;
+  N15 -> N17;
+  N16 -> N17;
+  N17 -> N18;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())

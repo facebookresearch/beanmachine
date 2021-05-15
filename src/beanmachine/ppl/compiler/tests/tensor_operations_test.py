@@ -16,7 +16,7 @@ def norm(n):
 
 @bm.functional
 def make_a_tensor():
-    return tensor(norm(1), norm(1), norm(2), 1.25)
+    return tensor([norm(1), norm(1), norm(2), 1.25])
 
 
 @bm.functional
@@ -122,13 +122,9 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             BMGInference().infer([lse_bad_1()], {}, 1)
         # TODO: Do a better job here. Say why the operation is unsupported.
-        # TODO: The tensor op will be rewritten by a rewriter that is
-        # not yet implemented, so this error will go away.
         expected = """
 The model uses a LogSumExp operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
-The model uses a Tensor operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a LogSumExp.
         """
         self.assertEqual(expected.strip(), str(ex.exception).strip())
 

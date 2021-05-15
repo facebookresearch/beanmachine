@@ -141,7 +141,6 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.ExpM1Node: self._type_expm1,
             bn.ExpNode: self._type_exp,
             bn.IfThenElseNode: self._type_if,
-            bn.IndexNode: self._type_index,
             bn.LogNode: self._type_log,
             bn.MultiAdditionNode: self._type_addition,
             bn.MultiplicationNode: self._type_multiplication,
@@ -151,6 +150,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.ToMatrixNode: self._type_to_matrix,
             bn.ToPositiveRealMatrixNode: self._type_to_pos_real_matrix,
             bn.ToRealMatrixNode: self._type_to_real_matrix,
+            bn.VectorIndexNode: self._type_index,
         }
 
     def _type_observation(self, node: bn.Observation) -> bt.BMGLatticeType:
@@ -213,7 +213,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             result = bt.Boolean
         return result
 
-    def _type_index(self, node: bn.IndexNode) -> bt.BMGLatticeType:
+    def _type_index(self, node: bn.VectorIndexNode) -> bt.BMGLatticeType:
         # The lattice type of an index is derived from the lattice type of
         # the vector, but it's not as straightforward as just
         # shrinking the type down to a 1x1 matrix. The elements of
@@ -337,6 +337,10 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
     def is_bool(self, node: bn.BMGNode) -> bool:
         t = self[node]
         return t != bt.Untypable and bt.supremum(t, bt.Boolean) == bt.Boolean
+
+    def is_natural(self, node: bn.BMGNode) -> bool:
+        t = self[node]
+        return t != bt.Untypable and bt.supremum(t, bt.Natural) == bt.Natural
 
     def is_prob_or_bool(self, node: bn.BMGNode) -> bool:
         t = self[node]

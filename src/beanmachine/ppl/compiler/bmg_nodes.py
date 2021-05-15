@@ -1329,7 +1329,25 @@ class IndexNodeDeprecated(BinaryOperatorNode):
         raise NotImplementedError()
 
 
+# This represents an indexing operation in the original source code.
+# It will be replaced by a VectorIndexNode or ColumnIndexNode in the
+# problem fixing phase.
 class IndexNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    @property
+    def size(self) -> torch.Size:
+        raise NotImplementedError()
+
+    def __str__(self) -> str:
+        return str(self.left) + "[" + str(self.right) + "]"
+
+    def support(self) -> Iterable[Any]:
+        raise NotImplementedError("support of index operator not implemented")
+
+
+class VectorIndexNode(BinaryOperatorNode):
     """This represents a stochastic index into a vector. The left operand
     is the vector and the right operand is the index."""
 
@@ -1338,7 +1356,7 @@ class IndexNode(BinaryOperatorNode):
 
     @property
     def size(self) -> torch.Size:
-        return torch.Size([])
+        raise NotImplementedError()
 
     def __str__(self) -> str:
         return str(self.left) + "[" + str(self.right) + "]"

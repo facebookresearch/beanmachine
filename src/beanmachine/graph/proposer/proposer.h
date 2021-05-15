@@ -34,13 +34,5 @@ Return a unique pointer to a Proposer object.
 std::unique_ptr<Proposer>
 nmc_proposer(const graph::NodeValue& value, double grad1, double grad2);
 
-/*
-Returns a value for the specified type uniformly at random.
-:param gen: A random number generator
-:param type: The desired type
-:returns: A value of this type
-*/
-graph::NodeValue uniform_initializer(std::mt19937& gen, graph::ValueType type);
-
 } // namespace proposer
 } // namespace beanmachine
