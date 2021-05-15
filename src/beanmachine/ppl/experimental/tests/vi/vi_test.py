@@ -319,13 +319,18 @@ class StochasticVariationalInferTest(unittest.TestCase):
         self.assertGreater(sample_mean_alpha_neg_10, sample_mean_alpha_10)
 
     def test_logistic_regression(self):
+        n, d = 1000, 10
+        W = torch.randn(d)
+        X = torch.randn((n, d))
+        Y = torch.bernoulli(torch.sigmoid(X @ W))
+
         @bm.random_variable
         def x():
-            return Flat()
+            return Flat(shape=X.shape)
 
         @bm.random_variable
         def y():
-            return dist.Bernoulli(probs=torch.tensor(Y).float())
+            return dist.Bernoulli(probs=Y.clone().detach().float())
 
         @bm.param
         def w():
@@ -337,11 +342,6 @@ class StochasticVariationalInferTest(unittest.TestCase):
             data = x()
             p = torch.sigmoid(data @ weights.T)
             return dist.Bernoulli(p)
-
-        n, d = 1000, 10
-        W = torch.randn(d)
-        X = torch.randn((n, d))
-        Y = torch.bernoulli(torch.sigmoid(X @ W))
 
         opt_params = VariationalInference().infer(
             {y(): q_y()},
