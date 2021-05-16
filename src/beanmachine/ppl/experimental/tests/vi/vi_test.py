@@ -6,6 +6,7 @@ import scipy.stats
 import torch
 import torch.distributions as dist
 import torch.nn as nn
+from beanmachine.ppl.distribution.flat import Flat
 from beanmachine.ppl.experimental.vi.variational_infer import (
     MeanFieldVariationalInference,
     VariationalInference,
@@ -316,3 +317,39 @@ class StochasticVariationalInferTest(unittest.TestCase):
         sample_mean_alpha_neg_10 = mu_approx.sample((100, 1)).mean()
 
         self.assertGreater(sample_mean_alpha_neg_10, sample_mean_alpha_10)
+
+    def test_logistic_regression(self):
+        n, d = 1000, 10
+        W = torch.randn(d)
+        X = torch.randn((n, d))
+        Y = torch.bernoulli(torch.sigmoid(X @ W))
+
+        @bm.random_variable
+        def x():
+            return Flat(shape=X.shape)
+
+        @bm.random_variable
+        def y():
+            return dist.Bernoulli(probs=Y.clone().detach().float())
+
+        @bm.param
+        def w():
+            return torch.randn(d)
+
+        @bm.random_variable
+        def q_y():
+            weights = w()
+            data = x()
+            p = torch.sigmoid(data @ weights.T)
+            return dist.Bernoulli(p)
+
+        opt_params = VariationalInference().infer(
+            {y(): q_y()},
+            observations={
+                x(): X.float(),
+            },
+            num_iter=1000,
+            lr=1e-2,
+        )
+        l2_error = (opt_params[w()] - W).norm()
+        self.assertLess(l2_error, 0.5)
