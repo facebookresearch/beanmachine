@@ -6,7 +6,7 @@ import unittest
 from typing import Any
 
 import astor
-from beanmachine.ppl.utils.ast_patterns import (
+from beanmachine.ppl.compiler.ast_patterns import (
     add,
     ast_domain,
     ast_false,
@@ -19,13 +19,13 @@ from beanmachine.ppl.utils.ast_patterns import (
     name,
     num,
 )
-from beanmachine.ppl.utils.patterns import (
+from beanmachine.ppl.compiler.patterns import (
     ListAny,
     PredicatePattern,
     anyPattern as _default,
     match_every,
 )
-from beanmachine.ppl.utils.rules import (
+from beanmachine.ppl.compiler.rules import (
     AllOf,
     ListEdit,
     PatternRule,

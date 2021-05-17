@@ -8,9 +8,7 @@ import types
 from typing import Callable, List, Tuple
 
 import astor
-from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
-from beanmachine.ppl.compiler.runtime import BMGRuntime
-from beanmachine.ppl.utils.ast_patterns import (
+from beanmachine.ppl.compiler.ast_patterns import (
     arguments,
     assign,
     ast_assert,
@@ -33,8 +31,9 @@ from beanmachine.ppl.utils.ast_patterns import (
     subscript,
     unaryop,
 )
-from beanmachine.ppl.utils.patterns import nonEmptyList
-from beanmachine.ppl.utils.rules import (
+from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
+from beanmachine.ppl.compiler.patterns import nonEmptyList
+from beanmachine.ppl.compiler.rules import (
     AllOf as all_of,
     FirstMatch as first,
     Pattern,
@@ -44,7 +43,8 @@ from beanmachine.ppl.utils.rules import (
     always_replace,
     remove_from_list,
 )
-from beanmachine.ppl.utils.single_assignment import single_assignment
+from beanmachine.ppl.compiler.runtime import BMGRuntime
+from beanmachine.ppl.compiler.single_assignment import single_assignment
 
 
 # TODO: Detect unsupported operators

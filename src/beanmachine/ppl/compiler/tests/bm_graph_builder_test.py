@@ -4,7 +4,7 @@ import math
 import unittest
 from typing import Any
 
-import beanmachine.ppl.utils.hint as hint
+import beanmachine.ppl.compiler.hint as hint
 import torch
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_nodes import (
@@ -731,7 +731,7 @@ Node 9 type 3 parents [ 8 ] children [ ] real 0"""
         gt1 = bmg._bmg.add_constant_tensor(t1)
         self.assertTrue(isinstance(gt1, ConstantTensorNode))
 
-        # utils.hint defines a "static" log1mexp method that takes one value.
+        # hint defines a "static" log1mexp method that takes one value.
         ta = hint.log1mexp
         self.assertEqual(bmg.handle_dot_get(hint, "log1mexp"), ta)
 

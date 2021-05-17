@@ -5,7 +5,7 @@ import math
 from typing import Any, Dict
 
 import torch
-from beanmachine.ppl.utils.patterns import (
+from beanmachine.ppl.compiler.patterns import (
     ListAll as list_all,
     MatchResult,
     Pattern,
@@ -18,7 +18,7 @@ from beanmachine.ppl.utils.patterns import (
     negate,
     type_and_attributes,
 )
-from beanmachine.ppl.utils.rules import RuleDomain
+from beanmachine.ppl.compiler.rules import RuleDomain
 
 
 def _get_children(node: Any) -> Dict[str, Any]:

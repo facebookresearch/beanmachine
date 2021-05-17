@@ -4,13 +4,13 @@ import ast
 import unittest
 
 import astor
-from beanmachine.ppl.utils.ast_patterns import ast_domain
-from beanmachine.ppl.utils.rules import (
+from beanmachine.ppl.compiler.ast_patterns import ast_domain
+from beanmachine.ppl.compiler.rules import (
     FirstMatch as first,
     TryMany as many,
     TryOnce as once,
 )
-from beanmachine.ppl.utils.single_assignment import SingleAssignment
+from beanmachine.ppl.compiler.single_assignment import SingleAssignment
 
 
 _some_top_down = ast_domain.some_top_down

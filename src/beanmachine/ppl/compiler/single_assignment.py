@@ -46,7 +46,7 @@
 import ast
 from typing import Any, Callable, List, Tuple
 
-from beanmachine.ppl.utils.ast_patterns import (
+from beanmachine.ppl.compiler.ast_patterns import (
     assign,
     ast_boolop,
     ast_compare,
@@ -77,8 +77,8 @@ from beanmachine.ppl.utils.ast_patterns import (
     subscript,
     unaryop,
 )
-from beanmachine.ppl.utils.beanstalk_common import allowed_functions
-from beanmachine.ppl.utils.patterns import (
+from beanmachine.ppl.compiler.beanstalk_common import allowed_functions
+from beanmachine.ppl.compiler.patterns import (
     HeadTail,
     ListAll,
     ListAny,
@@ -88,7 +88,7 @@ from beanmachine.ppl.utils.patterns import (
     negate,
     twoPlusList,
 )
-from beanmachine.ppl.utils.rules import (
+from beanmachine.ppl.compiler.rules import (
     FirstMatch as first,
     ListEdit,
     PatternRule,

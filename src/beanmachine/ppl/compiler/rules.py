@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Iterable, List, Tuple
 
-from beanmachine.ppl.utils.patterns import (
+from beanmachine.ppl.compiler.patterns import (
     Pattern,
     anyPattern,
     failPattern,

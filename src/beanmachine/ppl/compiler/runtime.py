@@ -55,12 +55,12 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.profiler as prof
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.compiler.beanstalk_common import allowed_functions
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder, phi
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
+from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.utils.beanstalk_common import allowed_functions
-from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import MemoizationKey
 
 
