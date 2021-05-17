@@ -90,6 +90,32 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             return self._bmg.add_column_index(left, right)
         return None
 
+    def _replace_lse(self, node: bn.LogSumExpTorchNode) -> Optional[bn.BMGNode]:
+        # We only support compiling models where dim=0 and keepDims=False.
+        if not bn.is_zero(node.inputs[1]) or not bn.is_zero(node.inputs[2]):
+            return None
+
+        # We require that the input to LSE be a single column.
+        operand = node.inputs[0]
+        operand_type = self._typer[operand]
+        if not isinstance(operand_type, bt.BMGMatrixType) or operand_type.columns != 1:
+            return None
+
+        # If the input is a TO_MATRIX operation then we can just feed its inputs
+        # directly into the n-ary LSE BMG node.
+        if isinstance(operand, bn.ToMatrixNode):
+            # The first two inputs are the size.
+            assert len(operand.inputs) >= 3
+            # If the matrix is a singleton then logsumexp is an identity.
+            if len(operand.inputs) == 3:
+                return operand.inputs[2]
+            elements = operand.inputs.inputs[2:]
+            assert isinstance(elements, list)
+            return self._bmg.add_logsumexp(*elements)
+
+        # Otherwise, just generate the vector LSE BMG node.
+        return self._bmg.add_logsumexp_vector(operand)
+
     def _replace_tensor(self, node: bn.TensorNode) -> Optional[bn.BMGNode]:
         # Replace a 1-d or 2-d tensor with a TO_MATRIX node.
         size = node.size
@@ -114,6 +140,8 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             return self._replace_division(n)
         if isinstance(n, bn.IndexNode):
             return self._replace_index(n)
+        if isinstance(n, bn.LogSumExpTorchNode):
+            return self._replace_lse(n)
         if isinstance(n, bn.TensorNode):
             return self._replace_tensor(n)
         if isinstance(n, bn.UniformNode):
