@@ -4,11 +4,11 @@
 import unittest
 
 import torch
-from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
+from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 
 
 class HintTest(unittest.TestCase):
-    """Tests for beanmachine/utils/hint.py."""
+    """Tests for hint.py."""
 
     def test_hint_math(self) -> None:
         """Smoke test for math_log1mexp"""

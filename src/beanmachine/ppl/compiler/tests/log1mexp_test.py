@@ -3,8 +3,8 @@
 import unittest
 
 import beanmachine.ppl as bm
+from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, HalfCauchy
 

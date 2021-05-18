@@ -4,7 +4,7 @@ import ast
 import re
 import unittest
 
-from beanmachine.ppl.utils.ast_patterns import (
+from beanmachine.ppl.compiler.ast_patterns import (
     ast_str,
     binop,
     compare,
@@ -13,7 +13,7 @@ from beanmachine.ppl.utils.ast_patterns import (
     name_constant,
     num,
 )
-from beanmachine.ppl.utils.patterns import (
+from beanmachine.ppl.compiler.patterns import (
     HeadTail,
     ListAll,
     ListAny,

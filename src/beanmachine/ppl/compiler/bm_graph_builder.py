@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
-from beanmachine.ppl.utils.hint import log1mexp, math_log1mexp
+from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
 from beanmachine.ppl.utils.memoize import memoize
 
 
