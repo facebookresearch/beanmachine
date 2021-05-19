@@ -597,6 +597,14 @@ class BMGRuntime:
             return -input.value
         return self._bmg.add_negate(input)
 
+    def handle_uadd(self, input: Any) -> Any:
+        # Unary plus on a graph node is an identity.
+        if not isinstance(input, BMGNode):
+            return +input
+        return input
+
+    # TODO: Remove this. We should insert TO_REAL nodes when necessary
+    # to ensure compatibility with the BMG type system.
     def handle_to_real(self, operand: Any) -> Any:
         if not isinstance(operand, BMGNode):
             return float(operand)

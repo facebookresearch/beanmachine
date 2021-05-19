@@ -167,8 +167,6 @@ _handle_index = PatternRule(
 )
 
 
-# TODO: UNARY: Do we need to handle unary plus? In Python, unary plus
-# converts bool to int.
 # TODO: UNARY: ~ (invert) operator
 # TODO: BINARY: // (integer division), % (modulus), <<, >>, |, ^, &, @ (matrix mult)
 # "and" and "or" are already eliminated by the single assignment rewriter.
@@ -181,6 +179,7 @@ _math_to_bmg: Rule = _top_down(
                 _handle_dot,
                 _handle_call,
                 _handle_unary(ast.Not, "handle_not"),
+                _handle_unary(ast.UAdd, "handle_uadd"),
                 _handle_unary(ast.USub, "handle_negate"),
                 _handle_binary(ast.Add, "handle_addition"),
                 _handle_binary(ast.Sub, "handle_subtraction"),

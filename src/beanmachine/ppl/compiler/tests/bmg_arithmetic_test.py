@@ -78,10 +78,11 @@ def neg_of_neg():
 @bm.functional
 def subtractions():
     # Show that we can handle a bunch of different ways to subtract things
-    n = norm()
-    b = beta()
-    h = hc()
-    return torch.sub(n.sub(b), b - h)
+    # Show that unary plus operations are discarded.
+    n = +norm()
+    b = +beta()
+    h = +hc()
+    return +torch.sub(+n.sub(+b), +b - h)
 
 
 class BMGArithmeticTest(unittest.TestCase):
