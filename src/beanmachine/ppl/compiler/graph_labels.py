@@ -59,6 +59,7 @@ _node_labels = {
     bn.IfThenElseNode: "if",
     bn.IndexNode: "index",
     bn.IndexNodeDeprecated: "index",
+    bn.InvertNode: "Invert",
     bn.LessThanEqualNode: "<=",
     bn.LessThanNode: "<",
     bn.Log1mexpNode: "Log1mexp",

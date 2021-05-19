@@ -7,7 +7,7 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from torch.distributions import Bernoulli, Beta, HalfCauchy, Normal
+from torch.distributions import Bernoulli, Beta, Binomial, HalfCauchy, Normal
 
 
 @bm.random_variable
@@ -83,6 +83,16 @@ def subtractions():
     b = +beta()
     h = +hc()
     return +torch.sub(+n.sub(+b), +b - h)
+
+
+@bm.random_variable
+def bino():
+    return Binomial(total_count=3, probs=0.5)
+
+
+@bm.functional
+def unsupported_invert():
+    return ~bino()
 
 
 class BMGArithmeticTest(unittest.TestCase):
@@ -332,4 +342,15 @@ digraph "graph" {
   N17 -> N18;
 }
 """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_unsupported_arithmetic(self) -> None:
+        self.maxDiff = None
+        expected = """
+The model uses a Invert operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_invert()], {}, 1)
+        observed = str(ex.exception)
         self.assertEqual(expected.strip(), observed.strip())

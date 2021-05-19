@@ -4,7 +4,7 @@ import collections
 import functools
 import itertools
 import operator
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, ABCMeta
 from typing import Any, Iterable, List
 
 import beanmachine.ppl.compiler.bmg_types as bt
@@ -91,19 +91,17 @@ class BMGNode(ABC):
         self.outputs = ItemCounter()
 
     @property
-    @abstractmethod
     def size(self) -> torch.Size:
         """The tensor size associated with this node.
         If the node represents a scalar value then produce Size([])."""
-        pass
+        raise NotImplementedError("size")
 
-    @abstractmethod
     def support(self) -> Iterable[Any]:
         """To build the graph of all possible control flows through
         the model we need to know for any given node what are
         all the possible values it could attain; we require that
         the set be finite and will throw an exception if it is not."""
-        pass
+        raise NotImplementedError("support")
 
     def support_size(self) -> float:
         # It can be expensive to construct the support if it is large
@@ -1676,6 +1674,18 @@ class ComplementNode(UnaryOperatorNode):
         # a complement node while executing the model to accumulate
         # the graph.
         return [1 - p for p in self.operand.support()]
+
+
+# This operator is not supported in BMG.  We accumulate it into
+# the graph in order to produce a good error message.
+class InvertNode(UnaryOperatorNode):
+    """This represents a bit inversion (~)."""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    def __str__(self) -> str:
+        return "~" + str(self.operand)
 
 
 class PhiNode(UnaryOperatorNode):
