@@ -9,7 +9,6 @@ class SingleSiteRandomWalkConjugateTest(unittest.TestCase, AbstractConjugateTest
     def setUp(self):
         self.mh = bm.SingleSiteRandomWalk(step_size=1.0)
 
-    @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_beta_binomial_conjugate_run(self):
         mh = bm.SingleSiteRandomWalk(step_size=0.3)
         self.beta_binomial_conjugate_run(mh, num_samples=5000)
@@ -17,7 +16,6 @@ class SingleSiteRandomWalkConjugateTest(unittest.TestCase, AbstractConjugateTest
     def test_gamma_gamma_conjugate_run(self):
         self.gamma_gamma_conjugate_run(self.mh, num_samples=10000)
 
-    @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_gamma_normal_conjugate_run(self):
         self.gamma_normal_conjugate_run(self.mh, num_samples=10000)
 
