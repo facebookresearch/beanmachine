@@ -832,7 +832,7 @@ class SingleAssignment:
                     value=ast.Subscript(
                         value=source_term.value.value,
                         slice=ast.Slice(
-                            lower=ast.Name(id=new_name, ctx=ast.Load()),
+                            lower=new_name,
                             upper=source_term.value.slice.upper,
                             step=source_term.value.slice.step,
                         ),
@@ -863,7 +863,7 @@ class SingleAssignment:
                         value=source_term.value.value,
                         slice=ast.Slice(
                             lower=source_term.value.slice.lower,
-                            upper=ast.Name(id=new_name, ctx=ast.Load()),
+                            upper=new_name,
                             step=source_term.value.slice.step,
                         ),
                         ctx=ast.Store(),
@@ -896,7 +896,7 @@ class SingleAssignment:
                         slice=ast.Slice(
                             lower=source_term.value.slice.lower,
                             upper=source_term.value.slice.upper,
-                            step=ast.Name(id=new_name, ctx=ast.Load()),
+                            step=new_name,
                         ),
                         ctx=ast.Store(),
                     ),
@@ -2013,7 +2013,7 @@ class SingleAssignment:
                 lambda source_term, new_name: ast.Assign(
                     targets=[
                         ast.Attribute(
-                            value=ast.Name(id=new_name, ctx=ast.Load()),
+                            value=new_name,
                             attr=source_term.targets[0].attr,
                             ctx=ast.Store(),
                         )
@@ -2034,7 +2034,7 @@ class SingleAssignment:
                 lambda source_term, new_name: ast.Assign(
                     targets=[
                         ast.Subscript(
-                            value=ast.Name(id=new_name, ctx=ast.Load()),
+                            value=new_name,
                             slice=source_term.targets[0].slice,
                             ctx=ast.Store(),
                         )
@@ -2060,7 +2060,7 @@ class SingleAssignment:
                         ast.Subscript(
                             value=source_term.targets[0].value,
                             slice=ast.Index(
-                                value=ast.Name(id=new_name, ctx=ast.Load()),
+                                value=new_name,
                                 ctx=ast.Load(),
                             ),
                             ctx=ast.Store(),
@@ -2091,7 +2091,7 @@ class SingleAssignment:
                         ast.Subscript(
                             value=source_term.targets[0].value,
                             slice=ast.Slice(
-                                lower=ast.Name(id=new_name, ctx=ast.Load()),
+                                lower=new_name,
                                 upper=source_term.targets[0].slice.upper,
                                 step=source_term.targets[0].slice.step,
                             ),
@@ -2127,7 +2127,7 @@ class SingleAssignment:
                             value=source_term.targets[0].value,
                             slice=ast.Slice(
                                 lower=source_term.targets[0].slice.lower,
-                                upper=ast.Name(id=new_name, ctx=ast.Load()),
+                                upper=new_name,
                                 step=source_term.targets[0].slice.step,
                             ),
                             ctx=ast.Store(),
@@ -2165,7 +2165,7 @@ class SingleAssignment:
                             slice=ast.Slice(
                                 lower=source_term.targets[0].slice.lower,
                                 upper=source_term.targets[0].slice.upper,
-                                step=ast.Name(id=new_name, ctx=ast.Load()),
+                                step=new_name,
                             ),
                             ctx=ast.Store(),
                         )
