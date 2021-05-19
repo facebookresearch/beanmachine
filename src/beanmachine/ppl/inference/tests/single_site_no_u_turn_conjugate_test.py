@@ -23,13 +23,9 @@ class SingleSiteNoUTurnConjugateTest(unittest.TestCase, AbstractConjugateTests):
 
     def test_gamma_gamma_conjugate_run(self):
         nuts = SingleSiteNoUTurnSampler(use_dense_mass_matrix=False)
-        self.gamma_gamma_conjugate_run(
-            nuts, num_samples=500, num_adaptive_samples=300, random_seed=256
-        )
+        self.gamma_gamma_conjugate_run(nuts, num_samples=500, num_adaptive_samples=300, random_seed=256)
         nuts = SingleSiteNoUTurnSampler()
-        self.gamma_gamma_conjugate_run(
-            nuts, num_samples=500, num_adaptive_samples=300, random_Seed=256
-        )
+        self.gamma_gamma_conjugate_run(nuts, num_samples=500, num_adaptive_samples=300, random_Seed=256)
 
     def test_gamma_normal_conjugate_run(self):
         nuts = SingleSiteNoUTurnSampler(use_dense_mass_matrix=False)
