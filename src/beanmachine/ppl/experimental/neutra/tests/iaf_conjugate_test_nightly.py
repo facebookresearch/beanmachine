@@ -123,9 +123,6 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             num_adaptive_samples=100,
         )
 
-    def test_distant_normal_normal_conjugate_run(self):
-        pass
-
     @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_dirichlet_categorical_conjugate_run(self):
         training_sample_size = 10

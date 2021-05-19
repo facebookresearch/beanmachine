@@ -48,19 +48,6 @@ class SingleSiteNoUTurnConjugateTest(unittest.TestCase, AbstractConjugateTests):
             nuts, num_samples=600, num_adaptive_samples=300
         )
 
-    @unittest.skip("Known to fail. Investigating in T77865889.")
-    def test_distant_normal_normal_conjugate_run(self):
-        nuts = SingleSiteNoUTurnSampler(use_dense_mass_matrix=False)
-        self.distant_normal_normal_conjugate_run(
-            nuts, num_samples=200, num_adaptive_samples=100
-        )
-        # TODO: The following produces a poor n_eff = tensor([47.3868, 69.6567]),
-        # and then the resulting variance fails the variance test.
-        nuts = SingleSiteNoUTurnSampler()
-        self.distant_normal_normal_conjugate_run(
-            nuts, num_samples=1100, num_adaptive_samples=550
-        )
-
     def test_dirichlet_categorical_conjugate_run(self):
         nuts = SingleSiteNoUTurnSampler(use_dense_mass_matrix=False)
         self.dirichlet_categorical_conjugate_run(
