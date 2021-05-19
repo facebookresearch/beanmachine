@@ -37,11 +37,6 @@ class SingleSiteAdaptiveRandomWalkConjugateTest(
             self.mh, num_samples=5000, num_adaptive_samples=5000
         )
 
-    def test_distant_normal_normal_conjugate_run(self):
-        self.normal_normal_conjugate_run(
-            self.mh, num_samples=500, num_adaptive_samples=500
-        )
-
     # Increased n to 1000 so that n_eff passes the 30 threshold (!)
     # TODO: Expected n_eff levels should be documented in tests
     def test_dirichlet_categorical_conjugate_run(self):

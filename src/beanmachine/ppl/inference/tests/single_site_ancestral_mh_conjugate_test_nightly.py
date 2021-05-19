@@ -23,10 +23,5 @@ class SingleSiteAncestralMetropolisHastingsConjugateTest(
     def test_normal_normal_conjugate_run(self):
         self.normal_normal_conjugate_run(self.mh, num_samples=5000)
 
-    @unittest.skip("Expect to fail. N_eff is 5 @ 1K sample size.")
-    def test_distant_normal_normal_conjugate_run(self):
-        # We don't expect ancestral to be able to converge fast for this model.
-        self.distant_normal_normal_conjugate_run(self.mh, num_samples=1000)
-
     def test_dirichlet_categorical_conjugate_run(self):
         self.dirichlet_categorical_conjugate_run(self.mh, num_samples=10000)
