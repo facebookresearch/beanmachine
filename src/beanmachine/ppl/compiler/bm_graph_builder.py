@@ -486,6 +486,48 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
+    @memoize
+    def add_bitand(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.BitAndNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_bitor(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.BitOrNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_bitxor(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.BitXorNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_floordiv(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.FloorDivNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_lshift(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.LShiftNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_mod(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.ModNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_rshift(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.RShiftNode(left, right)
+        self.add_node(node)
+        return node
+
     # No need to memoize this since the addition will be memoized.
     def add_subtraction(self, left: BMGNode, right: BMGNode) -> BMGNode:
         # TODO: We don't have a subtraction node; we render this as

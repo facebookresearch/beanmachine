@@ -95,6 +95,41 @@ def unsupported_invert():
     return ~bino()
 
 
+@bm.functional
+def unsupported_bitand():
+    return bino() & bino()
+
+
+@bm.functional
+def unsupported_bitor():
+    return bino() | bino()
+
+
+@bm.functional
+def unsupported_bitxor():
+    return bino() ^ bino()
+
+
+@bm.functional
+def unsupported_floordiv():
+    return bino() // bino()
+
+
+@bm.functional
+def unsupported_lshift():
+    return bino() << bino()
+
+
+@bm.functional
+def unsupported_mod():
+    return bino() % bino()
+
+
+@bm.functional
+def unsupported_rshift():
+    return bino() >> bino()
+
+
 class BMGArithmeticTest(unittest.TestCase):
     def test_bmg_arithmetic_expm1(self) -> None:
         self.maxDiff = None
@@ -346,11 +381,75 @@ digraph "graph" {
 
     def test_unsupported_arithmetic(self) -> None:
         self.maxDiff = None
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_invert()], {}, 1)
         expected = """
 The model uses a Invert operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
         """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
         with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([unsupported_invert()], {}, 1)
+            BMGInference().infer([unsupported_bitand()], {}, 1)
+        expected = """
+The model uses a & operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_bitor()], {}, 1)
+        expected = """
+The model uses a | operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_bitxor()], {}, 1)
+        expected = """
+The model uses a ^ operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_floordiv()], {}, 1)
+        expected = """
+The model uses a // operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_lshift()], {}, 1)
+        expected = """
+The model uses a << operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_mod()], {}, 1)
+        expected = """
+The model uses a % operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_rshift()], {}, 1)
+        expected = """
+The model uses a >> operation unsupported by Bean Machine Graph.
+The unsupported node is the operator of a Query.
+        """
         observed = str(ex.exception)
         self.assertEqual(expected.strip(), observed.strip())

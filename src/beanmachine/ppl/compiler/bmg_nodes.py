@@ -1179,6 +1179,21 @@ class AdditionNode(BinaryOperatorNode):
         )
 
 
+class BitAndNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+
+class BitOrNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+
+class BitXorNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+
 class DivisionNode(BinaryOperatorNode):
     """This represents a division."""
 
@@ -1201,6 +1216,26 @@ class DivisionNode(BinaryOperatorNode):
         return SetOfTensors(
             el / ar for el in self.left.support() for ar in self.right.support()
         )
+
+
+class FloorDivNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+
+class LShiftNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+
+class ModNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+
+class RShiftNode(BinaryOperatorNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
 
 
 class MapNode(BMGNode):

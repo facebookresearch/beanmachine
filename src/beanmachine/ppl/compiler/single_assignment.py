@@ -128,6 +128,7 @@ _binops: Pattern = match_any(
     ast.BitOr,
     ast.BitXor,
     ast.Div,
+    ast.FloorDiv,
     ast.LShift,
     ast.Mod,
     ast.Mult,

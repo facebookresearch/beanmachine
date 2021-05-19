@@ -514,6 +514,17 @@ class BMGRuntime:
             return input.value != other.value
         return self._bmg.add_not_equal(input, other)
 
+    def handle_is(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input is other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
+            return input.value == other.value
+        return self._bmg.add_equal(input, other)
+
     def handle_multiplication(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input * other
@@ -547,6 +558,33 @@ class BMGRuntime:
             return input.value + other.value
         return self._bmg.add_addition(input, other)
 
+    def handle_bitand(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input & other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_bitand(input, other)
+
+    def handle_bitor(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input | other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_bitor(input, other)
+
+    def handle_bitxor(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input ^ other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_bitxor(input, other)
+
     def handle_subtraction(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input - other
@@ -558,7 +596,6 @@ class BMGRuntime:
             return input.value - other.value
         return self._bmg.add_subtraction(input, other)
 
-    # TODO: Do we need to represent both integer and float division?
     def handle_division(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input / other
@@ -570,6 +607,33 @@ class BMGRuntime:
             return input.value / other.value
         return self._bmg.add_division(input, other)
 
+    def handle_floordiv(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input // other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_floordiv(input, other)
+
+    def handle_lshift(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input << other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_lshift(input, other)
+
+    def handle_mod(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input % other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_mod(input, other)
+
     def handle_power(self, input: Any, exponent: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(exponent, BMGNode)):
             return input ** exponent
@@ -580,6 +644,15 @@ class BMGRuntime:
         if isinstance(input, ConstantNode) and isinstance(exponent, ConstantNode):
             return input.value ** exponent.value
         return self._bmg.add_power(input, exponent)
+
+    def handle_rshift(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input >> other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_rshift(input, other)
 
     def handle_index(self, left: Any, right: Any) -> Any:
         if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
