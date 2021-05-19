@@ -31,17 +31,18 @@ def mean_equality_hypothesis_test(
     for each element of the tensor. This is basically the Dunn-Šidák
     correction,
     https://en.wikipedia.org/wiki/%C5%A0id%C3%A1k_correction"""
-    if torch.min(sample_size).item() <= 0:
+    if torch.min(sample_size) <= 0:
         return False
-    dimensions = torch.prod(torch.tensor(torch.Tensor.size(true_mean))).item()
+    dimensions = torch.numel(true_mean)  # treat scalar and 1-D tensors the same
+    # early exit for empty tensor
     if dimensions == 0:
         return False
-    if torch.max(true_std <= 0).item():
+    if torch.max(true_std <= 0):
         return False
     adjusted_p_value = 1 - (1 - p_value) ** (1.0 / dimensions)
     test_result = torch.max(
         torch.abs(sample_mean - true_mean) * np.sqrt(sample_size) / true_std
-    ).item() <= inverse_normal_cdf(1 - adjusted_p_value / 2)
+    ) <= inverse_normal_cdf(1 - adjusted_p_value / 2)
     return test_result
 
 
@@ -59,12 +60,13 @@ def mean_equality_hypothesis_confidence_interval(
     correction,
     https://en.wikipedia.org/wiki/%C5%A0id%C3%A1k_correction"""
     # TODO: Consider refactoring the common input checks for both methods
-    if torch.min(sample_size).item() <= 0:
+    if torch.min(sample_size) <= 0:
         return None
-    dimensions = torch.prod(torch.tensor(torch.Tensor.size(true_mean))).item()
+    dimensions = torch.numel(true_mean)  # treat scalar and 1-D tensors the same
+    # early exit for empty tensor
     if dimensions == 0:
         return None
-    if torch.max(true_std == 0).item():
+    if torch.max(true_std == 0):
         return None
     adjusted_p_value = 1 - (1 - p_value) ** (1.0 / dimensions)
     bound_std = true_std / np.sqrt(sample_size)

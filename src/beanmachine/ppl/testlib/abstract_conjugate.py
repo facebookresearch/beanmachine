@@ -17,7 +17,6 @@ from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.testlib.hypothesis_testing import (
     mean_equality_hypothesis_confidence_interval,
-    mean_equality_hypothesis_test,
     variance_equality_hypothesis_confidence_interval,
 )
 from torch import Tensor, tensor
@@ -271,25 +270,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
                 + message
             )
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
-            #  `assertLessTrue`.
+            #  `assertTrue`.
             self.assertTrue(accept_interval, msg=message)
-            # Here is the old way to check the means
-            # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
-            #  `assertLessEqual`.
-            # The following is a round about way of doing lhs<=rhs using =
-            self.assertLessEqual(
-                torch.max(
-                    torch.abs(mean - expected_mean) / (expected_std / np.sqrt(n_eff))
-                ).item(),
-                z(1 - alpha / 2),
-                msg="Failed mean test",
-            )
-            self.assertTrue(
-                mean_equality_hypothesis_test(
-                    mean, expected_mean, expected_std, n_eff, alpha
-                ),
-                msg="Failed equal mean hypothesis test",
-            )
             # Third, let us check the variance using confidence intervals:
             lower_bound, upper_bound = variance_equality_hypothesis_confidence_interval(
                 expected_std, n_eff - 1, alpha
