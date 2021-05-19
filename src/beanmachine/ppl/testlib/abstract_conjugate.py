@@ -229,12 +229,16 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
             #  `assertGreaterEqual`.
             self.assertGreaterEqual(
-                total_samples, 30, msg="Sample size too small for normalcy assumption"
+                total_samples,
+                30,
+                msg="Sample size too small for normalcy assumption. random_seed = "
+                + str(random_seed),
             )
             self.assertGreaterEqual(
                 torch.min(n_eff).item(),
                 30,
-                msg="Effective sample size too small for normalcy assumption",
+                msg="Effective sample size too small for normalcy assumption. random_seed = "
+                + str(random_seed),
             )
             # Second, let us check the means using confidence intervals:
             lower_bound, upper_bound = mean_equality_hypothesis_confidence_interval(
@@ -269,6 +273,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
                 + str(n_eff)
                 + ".\nExpected: "
                 + message
+                + ". random_seed = "
+                + str(random_seed)
             )
             # pyre-fixme[16]: `AbstractConjugateTests` has no attribute
             #  `assertLessTrue`.
@@ -282,13 +288,14 @@ class AbstractConjugateTests(metaclass=ABCMeta):
                     torch.abs(mean - expected_mean) / (expected_std / np.sqrt(n_eff))
                 ).item(),
                 z(1 - alpha / 2),
-                msg="Failed mean test",
+                msg="Failed mean test. random_seed = " + str(random_seed),
             )
             self.assertTrue(
                 mean_equality_hypothesis_test(
                     mean, expected_mean, expected_std, n_eff, alpha
                 ),
-                msg="Failed equal mean hypothesis test",
+                msg="Failed equal mean hypothesis test. random_seed = "
+                + str(random_seed),
             )
             # Third, let us check the variance using confidence intervals:
             lower_bound, upper_bound = variance_equality_hypothesis_confidence_interval(
@@ -326,6 +333,8 @@ class AbstractConjugateTests(metaclass=ABCMeta):
                 + str(n_eff)
                 + ".\nExpected: "
                 + message
+                + ". random_seed = "
+                + str(random_seed)
             )
             self.assertTrue(accept_interval, msg=message)
             continue
