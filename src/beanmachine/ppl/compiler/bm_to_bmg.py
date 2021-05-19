@@ -167,7 +167,6 @@ _handle_index = PatternRule(
 )
 
 
-# TODO: UNARY: ~ (invert) operator
 # TODO: BINARY: // (integer division), % (modulus), <<, >>, |, ^, &, @ (matrix mult)
 # "and" and "or" are already eliminated by the single assignment rewriter.
 # TODO: COMPARISON: is, is not, in, not in
@@ -178,6 +177,7 @@ _math_to_bmg: Rule = _top_down(
             [
                 _handle_dot,
                 _handle_call,
+                _handle_unary(ast.Invert, "handle_invert"),
                 _handle_unary(ast.Not, "handle_not"),
                 _handle_unary(ast.UAdd, "handle_uadd"),
                 _handle_unary(ast.USub, "handle_negate"),

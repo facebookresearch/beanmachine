@@ -590,6 +590,11 @@ class BMGRuntime:
             right = self._bmg.add_constant(right)
         return self._bmg.add_index(left, right)
 
+    def handle_invert(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            return ~input
+        return self._bmg.add_invert(input)
+
     def handle_negate(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
             return -input

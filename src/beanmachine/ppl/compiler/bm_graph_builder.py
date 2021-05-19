@@ -589,6 +589,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_invert(self, operand: BMGNode) -> BMGNode:
+        node = bn.InvertNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_complement(self, operand: BMGNode) -> BMGNode:
         if isinstance(operand, ConstantNode):
             return self.add_constant(1 - operand.value)
