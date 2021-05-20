@@ -10,6 +10,7 @@
 #include "beanmachine/graph/distribution/flat.h"
 #include "beanmachine/graph/distribution/gamma.h"
 #include "beanmachine/graph/distribution/half_cauchy.h"
+#include "beanmachine/graph/distribution/half_normal.h"
 #include "beanmachine/graph/distribution/normal.h"
 #include "beanmachine/graph/distribution/student_t.h"
 #include "beanmachine/graph/distribution/tabular.h"
@@ -45,6 +46,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
       case graph::DistributionType::NORMAL: {
         return std::make_unique<Normal>(atype, in_nodes);
+      }
+      case graph::DistributionType::HALF_NORMAL: {
+        return std::make_unique<Half_Normal>(atype, in_nodes);
       }
       case graph::DistributionType::HALF_CAUCHY: {
         return std::make_unique<HalfCauchy>(atype, in_nodes);

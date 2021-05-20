@@ -74,6 +74,7 @@ PYBIND11_MODULE(graph, module) {
       .value("BINOMIAL", DistributionType::BINOMIAL)
       .value("FLAT", DistributionType::FLAT)
       .value("NORMAL", DistributionType::NORMAL)
+      .value("HALF_NORMAL", DistributionType::HALF_NORMAL)
       .value("HALF_CAUCHY", DistributionType::HALF_CAUCHY)
       .value("STUDENT_T", DistributionType::STUDENT_T)
       .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
