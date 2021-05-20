@@ -167,8 +167,6 @@ _handle_index = PatternRule(
 )
 
 
-# TODO: BINARY: // (integer division), % (modulus), <<, >>, |, ^, &, @ (matrix mult)
-# "and" and "or" are already eliminated by the single assignment rewriter.
 # TODO: COMPARISON: is, is not, in, not in
 
 _math_to_bmg: Rule = _top_down(
@@ -177,15 +175,27 @@ _math_to_bmg: Rule = _top_down(
             [
                 _handle_dot,
                 _handle_call,
+                # Unary operators: ~ not + -
                 _handle_unary(ast.Invert, "handle_invert"),
                 _handle_unary(ast.Not, "handle_not"),
                 _handle_unary(ast.UAdd, "handle_uadd"),
                 _handle_unary(ast.USub, "handle_negate"),
                 _handle_binary(ast.Add, "handle_addition"),
-                _handle_binary(ast.Sub, "handle_subtraction"),
-                _handle_binary(ast.Mult, "handle_multiplication"),
+                # Binary operators & | / // << % * ** >> -
+                # TODO: @ (matrix multiplication)
+                # "and" and "or" are already eliminated by the single
+                # assignment rewriter.
+                _handle_binary(ast.BitAnd, "handle_bitand"),
+                _handle_binary(ast.BitOr, "handle_bitor"),
+                _handle_binary(ast.BitXor, "handle_bitxor"),
                 _handle_binary(ast.Div, "handle_division"),
+                _handle_binary(ast.FloorDiv, "handle_floordiv"),
+                _handle_binary(ast.LShift, "handle_lshift"),
+                _handle_binary(ast.Mod, "handle_mod"),
+                _handle_binary(ast.Mult, "handle_multiplication"),
                 _handle_binary(ast.Pow, "handle_power"),
+                _handle_binary(ast.RShift, "handle_rshift"),
+                _handle_binary(ast.Sub, "handle_subtraction"),
                 _handle_index,
                 _handle_comparison(equal(), "handle_equal"),
                 _handle_comparison(not_equal(), "handle_not_equal"),
