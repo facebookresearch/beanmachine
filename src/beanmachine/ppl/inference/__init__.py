@@ -1,4 +1,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+from beanmachine.ppl.experimental.global_inference.hmc_inference import (
+    GlobalHamiltonianMonteCarlo,
+    GlobalNoUTurnSampler,
+)
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from beanmachine.ppl.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.inference.predictive import Predictive, empirical, simulate
@@ -30,6 +34,8 @@ __all__ = [
     "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
+    "GlobalHamiltonianMonteCarlo",
+    "GlobalNoUTurnSampler",
     "Predictive",
     "empirical",
     "simulate",
