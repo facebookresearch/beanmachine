@@ -6,6 +6,8 @@ from .diagnostics import Diagnostics
 from .diagnostics.common_statistics import effective_sample_size, r_hat, split_r_hat
 from .inference import (
     CompositionalInference,
+    GlobalHamiltonianMonteCarlo,
+    GlobalNoUTurnSampler,
     Predictive,
     RejectionSampling,
     SingleSiteAncestralMetropolisHastings,
@@ -34,6 +36,8 @@ __all__ = [
     "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
+    "GlobalHamiltonianMonteCarlo",
+    "GlobalNoUTurnSampler",
     "experimental",
     "functional",
     "param",
