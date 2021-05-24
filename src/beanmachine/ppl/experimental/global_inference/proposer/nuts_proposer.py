@@ -69,7 +69,9 @@ class NUTSProposer(HMCProposer):
         left_angle = 0.0
         right_angle = 0.0
         for node in left_state.world.latent_nodes:
-            diff = right_state.world[node] - left_state.world[node]
+            diff = right_state.world.get_transformed(
+                node
+            ) - left_state.world.get_transformed(node)
             left_angle += torch.sum(diff * left_state.momentums[node])
             right_angle += torch.sum(diff * right_state.momentums[node])
         return bool((left_angle <= 0) or (right_angle <= 0))
