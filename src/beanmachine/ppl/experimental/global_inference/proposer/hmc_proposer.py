@@ -57,7 +57,10 @@ class HMCProposer(BaseProposer):
     def _initialize_momentums(self, world: SimpleWorld) -> RVDict:
         """Randomly draw momentum from MultivariateNormal(0, I). This momentum variable
         is denoted as p in [1] and r in [2]."""
-        return {node: torch.randn(world[node].shape) for node in world.latent_nodes}
+        return {
+            node: torch.randn(world.get_transformed(node).shape)
+            for node in world.latent_nodes
+        }
 
     def _kinetic_energy(self, momentums: RVDict) -> torch.Tensor:
         """Returns the kinetic energy KE = 1/2 * p^T @ p (equation 2.6 in [1])"""
