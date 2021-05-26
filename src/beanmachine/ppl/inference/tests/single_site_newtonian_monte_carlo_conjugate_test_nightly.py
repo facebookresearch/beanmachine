@@ -9,13 +9,13 @@ from beanmachine.ppl.world import TransformType
 class SingleSiteNewtonianMonteCarloConjugateTest(
     unittest.TestCase, AbstractConjugateTests
 ):
-    @unittest.skip("Known to fail. Investigating in T77865889.")
+    # TODO: Decrease the num_samples; num_samples>=2000 to get n_eff>=30 is
+    # unreasonable. It currently fails for num_samples=1000 because because
+    # hessian (for transform proposer) is extremely close to 0
+
     def test_beta_binomial_conjugate_run(self):
         nw = bm.SingleSiteNewtonianMonteCarlo()
-        self.beta_binomial_conjugate_run(nw, num_samples=1000)
-        # failing for transform proposer because hessian is extremely close to 0
-        # NMC has a covariance that is too large to produce good samples
-        # TODO: Add test case with TransformType.NONE
+        self.beta_binomial_conjugate_run(nw, num_samples=2000)
 
     def test_gamma_gamma_conjugate_run(self):
         nw_transform = bm.SingleSiteNewtonianMonteCarlo()
@@ -29,7 +29,6 @@ class SingleSiteNewtonianMonteCarloConjugateTest(
         nw = bm.SingleSiteNewtonianMonteCarlo()
         self.normal_normal_conjugate_run(nw, num_samples=500)
 
-    # Following had to be increased to 1600 to pass variance test
     def test_distant_normal_normal_conjugate_run(self):
         nw = bm.SingleSiteNewtonianMonteCarlo()
         self.distant_normal_normal_conjugate_run(nw, num_samples=1600)
