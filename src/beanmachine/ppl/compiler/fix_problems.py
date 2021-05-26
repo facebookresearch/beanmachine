@@ -39,12 +39,12 @@ _standard_fixer_types: List[Type] = [
 ]
 
 
-def fix_problems(bmg: BMGraphBuilder, fix_observe_true: bool = False) -> ErrorReport:
+def fix_problems(bmg: BMGraphBuilder) -> ErrorReport:
     bmg._begin(prof.fix_problems)
     typer = LatticeTyper()
     fixer_types: List[Type] = _standard_fixer_types
     errors = ErrorReport()
-    if fix_observe_true:
+    if bmg._fix_observe_true:
         # Note: must NOT be +=, which would mutate _standard_fixer_types.
         fixer_types = fixer_types + [ObserveTrueFixer]
     for fixer_type in fixer_types:
