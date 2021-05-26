@@ -23,8 +23,8 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
     def test_beta_binomial_conjugate_run(self):
         training_sample_size = 1
         length = 2
-        in_layer = 1
-        out_layer = 1
+        in_layer = 2
+        out_layer = 4
         hidden_layer = 30
         n_block = 4
         seed_num = 11
