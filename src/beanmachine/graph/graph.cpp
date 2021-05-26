@@ -507,13 +507,21 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
   return index;
 }
 
-Node* Graph::check_node(uint node_id, NodeType node_type) {
+void Graph::check_node_id(uint node_id) {
   if (node_id >= nodes.size()) {
     throw std::out_of_range(
         "node_id (" + std::to_string(node_id) + ") must be less than " +
         std::to_string(nodes.size()));
   }
-  Node* node = nodes[node_id].get();
+}
+
+Node* Graph::get_node(uint node_id) {
+  check_node_id(node_id);
+  return nodes[node_id].get();
+}
+
+Node* Graph::check_node(uint node_id, NodeType node_type) {
+  Node* node = get_node(node_id);
   if (node->node_type != node_type) {
     throw std::invalid_argument(
         "node_id " + std::to_string(node_id) + "expected type " +
@@ -758,7 +766,17 @@ void Graph::remove_observations() {
 }
 
 uint Graph::query(uint node_id) {
-  check_node(node_id, NodeType::OPERATOR);
+  Node* node = get_node(node_id);
+  NodeType t = node->node_type;
+  if (t != NodeType::CONSTANT and t != NodeType::OPERATOR) {
+    throw std::invalid_argument(
+        "Query of node_id " + std::to_string(node_id) +
+        " expected a node of type " +
+        std::to_string(static_cast<int>(NodeType::CONSTANT)) + " or " +
+        std::to_string(static_cast<int>(NodeType::OPERATOR)) + " but is " +
+        std::to_string(static_cast<int>(t)));
+  }
+
   if (queried.find(node_id) != queried.end()) {
     throw std::invalid_argument(
         "duplicate query for node_id " + std::to_string(node_id));
