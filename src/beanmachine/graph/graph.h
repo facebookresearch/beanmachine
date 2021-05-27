@@ -693,6 +693,8 @@ struct Graph {
   */
   double full_log_prob();
   std::vector<std::vector<double>>& get_log_prob();
+  Node* get_node(uint node_id);
+  void check_node_id(uint node_id);
   Node* check_node(uint node_id, NodeType node_type);
   uint thread_index;
 

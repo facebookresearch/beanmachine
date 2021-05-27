@@ -241,6 +241,21 @@ class TestBayesNet(unittest.TestCase):
         g.query(GrassWet)
         g.infer(1)
 
+        p = g.add_constant_probability(0.8)
+        b = g.add_distribution(
+            graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [p]
+        )
+        # Querying a constant is weird but allowed
+        g.query(p)
+        # But querying a distribution directly rather than a sample is
+        # illegal:
+        with self.assertRaises(ValueError) as cm:
+            g.query(b)
+        self.assertEqual(
+            f"Query of node_id {b} expected a node of type 1 or 3 but is 2",
+            str(cm.exception),
+        )
+
     def test_to_dot(self):
         self.maxDiff = None
         g, Rain, Sprinkler, GrassWet = self._create_graph()
