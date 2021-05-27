@@ -23,6 +23,7 @@ class _Tree(NamedTuple):
     pe: torch.Tensor
     pe_grad: RVDict
     log_weight: torch.Tensor
+    sum_momentums: RVDict
     sum_accept_prob: torch.Tensor
     num_proposals: int
     turned_or_diverged: bool
@@ -72,15 +73,18 @@ class NUTSProposer(HMCProposer):
         self._max_delta_energy = max_delta_energy
         self._multinomial_sampling = multinomial_sampling
 
-    def _is_u_turning(self, left_state: _TreeNode, right_state: _TreeNode) -> bool:
+    def _is_u_turning(
+        self,
+        left_momentums: RVDict,
+        right_momentums: RVDict,
+        sum_momentums: RVDict,
+    ) -> bool:
+        """The generalized U-turn condition, as described in [2] Appendix 4.2"""
         left_angle = 0.0
         right_angle = 0.0
-        for node in left_state.world.latent_nodes:
-            diff = right_state.world.get_transformed(
-                node
-            ) - left_state.world.get_transformed(node)
-            left_angle += torch.sum(diff * left_state.momentums[node])
-            right_angle += torch.sum(diff * right_state.momentums[node])
+        for node, rho in sum_momentums.items():
+            left_angle += torch.sum(left_momentums[node] * rho)
+            right_angle += torch.sum(right_momentums[node] * rho)
         return bool((left_angle <= 0) or (right_angle <= 0))
 
     def _build_tree_base_case(self, root: _TreeNode, args: _TreeArgs) -> _Tree:
@@ -106,6 +110,7 @@ class NUTSProposer(HMCProposer):
             pe=pe,
             pe_grad=pe_grad,
             log_weight=log_weight,
+            sum_momentums=momentums,
             sum_accept_prob=torch.clamp(torch.exp(-delta_energy), max=1.0),
             num_proposals=1,
             turned_or_diverged=bool(
@@ -146,6 +151,10 @@ class NUTSProposer(HMCProposer):
 
         left_state = other_sub_tree.left if args.direction == -1 else sub_tree.left
         right_state = sub_tree.right if args.direction == -1 else other_sub_tree.right
+        sum_momentums = {
+            node: sub_tree.sum_momentums[node] + other_sub_tree.sum_momentums[node]
+            for node in sub_tree.sum_momentums
+        }
         return _Tree(
             left=left_state,
             right=right_state,
@@ -153,10 +162,15 @@ class NUTSProposer(HMCProposer):
             pe=selected_subtree.pe,
             pe_grad=selected_subtree.pe_grad,
             log_weight=log_weight,
+            sum_momentums=sum_momentums,
             sum_accept_prob=sub_tree.sum_accept_prob + other_sub_tree.sum_accept_prob,
             num_proposals=sub_tree.num_proposals + other_sub_tree.num_proposals,
             turned_or_diverged=other_sub_tree.turned_or_diverged
-            or self._is_u_turning(left_state, right_state),
+            or self._is_u_turning(
+                left_state.momentums,
+                right_state.momentums,
+                sum_momentums,
+            ),
         )
 
     def propose(self, world: Optional[SimpleWorld] = None) -> SimpleWorld:
@@ -179,6 +193,7 @@ class NUTSProposer(HMCProposer):
         log_weight = torch.tensor(0.0)  # log accept prob of staying at current state
         sum_accept_prob = 0.0
         num_proposals = 0
+        sum_momentums = momentums
 
         for j in range(self._max_tree_depth):
             direction = 1 if torch.rand(()) > 0.5 else -1
@@ -206,8 +221,15 @@ class NUTSProposer(HMCProposer):
                     tree.pe,
                     tree.pe_grad,
                 )
-
-            if self._is_u_turning(left_tree_node, right_tree_node):
+            sum_momentums = {
+                node: sum_momentums[node] + tree.sum_momentums[node]
+                for node in sum_momentums
+            }
+            if self._is_u_turning(
+                left_tree_node.momentums,
+                right_tree_node.momentums,
+                sum_momentums,
+            ):
                 break
 
             log_weight = torch.logaddexp(log_weight, tree.log_weight)
