@@ -9,7 +9,7 @@ import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import torch
-from beanmachine.graph import InferenceType  # pyre-ignore
+from beanmachine.graph import Graph, InferenceType  # pyre-ignore
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
@@ -241,6 +241,18 @@ class BMGInference:
         bmg = self._accumulate_graph(queries, observations)._bmg
         return to_bmg_python(bmg).code
 
-
-# TODO: Add a to_graph API here; make a map from
-# query RVs to query ids and return it along with the graph.
+    def to_graph(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, torch.Tensor],
+    ) -> Tuple[Graph, Dict[RVIdentifier, int]]:
+        """Produce a BMG graph and a map from queried RVIdentifiers to the corresponding
+        indices of the inference results."""
+        rt = self._accumulate_graph(queries, observations)
+        bmg = rt._bmg
+        generated_graph = to_bmg_graph(bmg)
+        g = generated_graph.graph
+        query_to_query_id = generated_graph.query_to_query_id
+        rv_to_query = rt._rv_to_query
+        rv_to_query_id = {rv: query_to_query_id[rv_to_query[rv]] for rv in queries}
+        return g, rv_to_query_id
