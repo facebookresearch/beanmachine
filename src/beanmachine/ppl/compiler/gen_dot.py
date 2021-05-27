@@ -36,7 +36,7 @@ def to_dot(
         #
         # * Add a whole_graph flag, default to true, which decides
         #   whether to graph the whole thing or not.
-        fix_problems(bmg, bmg._fix_observe_true).raise_errors()
+        fix_problems(bmg).raise_errors()
         node_list = bmg.all_ancestor_nodes()
     else:
         node_list = bmg.all_nodes()
