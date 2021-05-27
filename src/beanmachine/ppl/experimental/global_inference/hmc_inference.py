@@ -26,6 +26,7 @@ class GlobalNoUTurnSampler(BaseInference):
     max_delta_energy: float = 1000.0
     initial_step_size: float = 1.0
     adapt_step_size: bool = True
+    multinomial_sampling: bool = True
 
     def get_proposer(self, world: SimpleWorld) -> NUTSProposer:
         return NUTSProposer(world, **dataclasses.asdict(self))
