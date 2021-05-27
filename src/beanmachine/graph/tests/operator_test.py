@@ -251,6 +251,45 @@ Node 33 type 3 parents [ 0 1 ] children [ ] real 0
         self.assertAlmostEqual(samples[0][2], 1.25, 3)
         self.assertAlmostEqual(samples[0][3], 1.0, 3)
 
+    def test_to_neg_real(self) -> None:
+        # We have some situations where we know that a real quantity
+        # is negative but we cannot prove it. For example,
+        # log(0.4 * beta() + 0.5) is definitely negative but we
+        # assume that the sum of two probabilities is a positive real,
+        # and so the log is a real, not a negative real.
+        #
+        # The to_neg_real operator takes a real and constrains it to
+        # be negative.
+        g = bmg.Graph()
+        two = g.add_constant_pos_real(2.0)
+        beta = g.add_distribution(
+            bmg.DistributionType.BETA, bmg.AtomicType.PROBABILITY, [two, two]
+        )
+        s = g.add_operator(bmg.OperatorType.SAMPLE, [beta])
+        c4 = g.add_constant_probability(0.4)
+        c5 = g.add_constant_pos_real(0.5)
+        mult = g.add_operator(bmg.OperatorType.MULTIPLY, [c4, s])
+        tr = g.add_operator(bmg.OperatorType.TO_POS_REAL, [mult])
+        add = g.add_operator(bmg.OperatorType.ADD, [tr, c5])  # Positive real
+        lg = g.add_operator(bmg.OperatorType.LOG, [add])  # Real
+        tnr = g.add_operator(bmg.OperatorType.TO_NEG_REAL, [lg])
+        lme = g.add_operator(bmg.OperatorType.LOG1MEXP, [tnr])
+        ex = g.add_operator(bmg.OperatorType.EXP, [lme])
+        g.query(add)
+        g.query(lg)
+        g.query(tnr)
+        g.query(ex)
+        samples = g.infer(1, bmg.InferenceType.NMC)[0]
+        add_sample = samples[0]
+        lg_sample = samples[1]
+        tnr_sample = samples[2]
+        ex_sample = samples[3]
+
+        self.assertTrue(0.5 <= add_sample <= 0.9)
+        self.assertTrue(lg_sample <= 0.0)
+        self.assertEqual(lg_sample, tnr_sample)
+        self.assertAlmostEqual(ex_sample, 1.0 - add_sample, 3)
+
     def test_sample(self) -> None:
         # negative test we can't exponentiate the sample from a Bernoulli
         g = bmg.Graph()

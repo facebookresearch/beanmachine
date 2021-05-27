@@ -64,7 +64,8 @@ PYBIND11_MODULE(graph, module) {
       .value("LOGSUMEXP_VECTOR", OperatorType::LOGSUMEXP_VECTOR)
       .value("COLUMN_INDEX", OperatorType::COLUMN_INDEX)
       .value("TO_REAL_MATRIX", OperatorType::TO_REAL_MATRIX)
-      .value("TO_POS_REAL_MATRIX", OperatorType::TO_POS_REAL_MATRIX);
+      .value("TO_POS_REAL_MATRIX", OperatorType::TO_POS_REAL_MATRIX)
+      .value("TO_NEG_REAL", OperatorType::TO_NEG_REAL);
 
   py::enum_<DistributionType>(module, "DistributionType")
       .value("TABULAR", DistributionType::TABULAR)

@@ -161,6 +161,8 @@ class DOT {
         return "MatrixMultiply";
       case OperatorType::TO_PROBABILITY:
         return "ToProb";
+      case OperatorType::TO_NEG_REAL:
+        return "ToNegReal";
       case OperatorType::INDEX:
         return "Index";
       case OperatorType::TO_MATRIX:
