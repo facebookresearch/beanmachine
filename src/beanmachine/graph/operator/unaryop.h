@@ -139,6 +139,23 @@ class ToProbability : public UnaryOperator {
   static bool is_registered;
 };
 
+class ToNegReal : public UnaryOperator {
+ public:
+  explicit ToNegReal(const std::vector<graph::Node*>& in_nodes);
+  ~ToNegReal() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ToNegReal>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 class Negate : public UnaryOperator {
  public:
   explicit Negate(const std::vector<graph::Node*>& in_nodes);
