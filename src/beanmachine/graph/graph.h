@@ -304,6 +304,7 @@ enum class OperatorType {
   BROADCAST_ADD,
   TO_REAL_MATRIX,
   TO_POS_REAL_MATRIX,
+  TO_NEG_REAL,
 };
 
 enum class DistributionType {

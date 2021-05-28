@@ -251,6 +251,32 @@ void ToProbability::eval(std::mt19937& /* gen */) {
   }
 }
 
+ToNegReal::ToNegReal(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::TO_NEG_REAL, in_nodes) {
+  graph::ValueType type0 = in_nodes[0]->value.type;
+  if (type0 != graph::AtomicType::NEG_REAL and
+      type0 != graph::AtomicType::REAL) {
+    throw std::invalid_argument(
+        "operator TO_NEG_REAL requires a real or neg_real parent");
+  }
+  value = graph::NodeValue(graph::AtomicType::NEG_REAL);
+}
+
+void ToNegReal::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::NodeValue& parent = in_nodes[0]->value;
+  if (parent.type != graph::AtomicType::NEG_REAL and
+      parent.type != graph::AtomicType::REAL) {
+    throw std::runtime_error(
+        "invalid parent type " + parent.type.to_string() +
+        " for TO_NEG_REAL operator at node_id " + std::to_string(index));
+  }
+  // note: we have to cast it to an NodeValue object rather than directly
+  // assigning to ensure that the usual boundary checks for negative reals
+  // are made
+  value = graph::NodeValue(graph::AtomicType::NEG_REAL, parent._double);
+}
+
 Negate::Negate(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::NEGATE, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
