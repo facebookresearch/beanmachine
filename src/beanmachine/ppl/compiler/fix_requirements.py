@@ -205,6 +205,27 @@ class RequirementsFixer:
             or requirement == bt.upper_bound(bt.Probability)
         ) and (inf_type == bt.Real or inf_type == bt.PositiveReal)
 
+    def _can_force_to_neg_real(
+        self, node_type: bt.BMGLatticeType, requirement: bt.Requirement
+    ) -> bool:
+        # See notes in method above; we have a similar situation but for
+        # negative reals.  Consider for example
+        #
+        # p = beta() * 0.5 + 0.4   # Sum of two probs is a positive real
+        # lp = log(p)              # log of positive real is real
+        # x = log1mexp(lp)         # error, log1mexp requires negative real
+        #
+        # Failure to deduce that p is probability leads to a seemingly
+        # unrelated error later on.
+        #
+        # If we require a negative real but we have a real, insert a TO_NEG_REAL
+        # node to do a runtime check.
+
+        return (
+            requirement == bt.NegativeReal
+            or requirement == bt.upper_bound(bt.NegativeReal)
+        ) and node_type == bt.Real
+
     def _meet_operator_requirement(
         self,
         node: bn.OperatorNode,
@@ -240,12 +261,15 @@ class RequirementsFixer:
                     node, requirement, consumer, edge
                 )
         elif self._can_force_to_prob(node_type, requirement):
-            # We cannot make the node meet the requirement "implicitly". However
-            # there is one situation where we can "explicitly" meet a requirement:
-            # an operator of type real or positive real used as a probability.
+            # We cannot make the node meet the requirement "implicitly". We can
+            # "explicitly" meet a requirement of probability if we have a
+            # real or pos real.
             assert node_type == bt.Real or node_type == bt.PositiveReal
             assert self._node_meets_requirement(node, node_type)
             result = self.bmg.add_to_probability(node)
+        elif self._can_force_to_neg_real(node_type, requirement):
+            # Similarly if we have a real but need a negative real
+            result = self.bmg.add_to_negative_real(node)
         else:
             # We have no way to make the conversion we need, so add an error.
             self.errors.add_error(

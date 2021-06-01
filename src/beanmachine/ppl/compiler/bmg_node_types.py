@@ -73,6 +73,7 @@ _operator_types = {
     bn.PowerNode: OperatorType.POW,
     bn.SampleNode: OperatorType.SAMPLE,
     bn.ToMatrixNode: OperatorType.TO_MATRIX,
+    bn.ToNegativeRealNode: OperatorType.TO_NEG_REAL,
     bn.ToRealMatrixNode: OperatorType.TO_REAL_MATRIX,
     bn.ToRealNode: OperatorType.TO_REAL,
     bn.ToPositiveRealMatrixNode: OperatorType.TO_POS_REAL_MATRIX,
