@@ -22,7 +22,7 @@ class _Tree(NamedTuple):
     proposal: SimpleWorld
     pe: torch.Tensor
     pe_grad: RVDict
-    weight: torch.Tensor
+    log_weight: torch.Tensor
     sum_accept_prob: torch.Tensor
     num_proposals: int
     turned_or_diverged: bool
@@ -39,12 +39,17 @@ class NUTSProposer(HMCProposer):
     """
     The No-U-Turn Sampler (NUTS) as described in [1]. Unlike vanilla HMC, it does not
     require users to specify a trajectory length. The current implementation roughly
-    follows Algorithm 6 of [1].
+    follows Algorithm 6 of [1]. If multinomial_sampling is True, then the next state
+    will be drawn from a multinomial distribution (weighted by acceptance probability,
+    as introduced in Appendix 2 of [2]) instead of drawn uniformly.
 
     Reference:
     [1] Matthew Hoffman and Andrew Gelman. "The No-U-Turn Sampler: Adaptively
         Setting Path Lengths in Hamiltonian Monte Carlo" (2014).
         https://arxiv.org/abs/1111.4246
+
+    [2] Michael Betancourt. "A Conceptual Introduction to Hamiltonian Monte Carlo"
+        (2017). https://arxiv.org/abs/1701.02434
     """
 
     def __init__(
@@ -54,6 +59,7 @@ class NUTSProposer(HMCProposer):
         max_delta_energy: float = 1000.0,
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
+        multinomial_sampling: bool = True,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(
@@ -64,6 +70,7 @@ class NUTSProposer(HMCProposer):
         )
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
+        self._multinomial_sampling = multinomial_sampling
 
     def _is_u_turning(self, left_state: _TreeNode, right_state: _TreeNode) -> bool:
         left_angle = 0.0
@@ -83,7 +90,14 @@ class NUTSProposer(HMCProposer):
             root.world, root.momentums, args.step_size * args.direction, root.pe_grad
         )
         new_energy = self._hamiltonian(world, momentums, pe)
-        new_energy = torch.nan_to_num(new_energy, float("inf"))
+        # initial_energy == -L(\theta^{m-1}) + 1/2 r_0^2 in Algorithm 6 of [1]
+        delta_energy = torch.nan_to_num(new_energy - args.initial_energy, float("inf"))
+        if self._multinomial_sampling:
+            log_weight = -delta_energy
+        else:
+            # slice sampling as introduced in the original NUTS paper [1]
+            log_weight = (args.log_slice <= -new_energy).log()
+
         tree_node = _TreeNode(world=world, momentums=momentums, pe_grad=pe_grad)
         return _Tree(
             left=tree_node,
@@ -91,12 +105,8 @@ class NUTSProposer(HMCProposer):
             proposal=world,
             pe=pe,
             pe_grad=pe_grad,
-            weight=(args.log_slice <= -new_energy).float(),
-            sum_accept_prob=torch.clamp(
-                # initial_energy == -L(\theta^{m-1}) + 1/2 r_0^2 in Algorithm 6 of [1]
-                torch.exp(args.initial_energy - new_energy),
-                max=1.0,
-            ),
+            log_weight=log_weight,
+            sum_accept_prob=torch.clamp(torch.exp(-delta_energy), max=1.0),
             num_proposals=1,
             turned_or_diverged=bool(
                 args.log_slice >= self._max_delta_energy - new_energy
@@ -121,10 +131,13 @@ class NUTSProposer(HMCProposer):
             args=args,
         )
 
-        # randomly choose between left/right subtree based on their weights
-        sum_weight = sub_tree.weight + other_sub_tree.weight
-        # clamp with a non-zero minimum value to avoid divide-by-zero
-        if torch.bernoulli(other_sub_tree.weight / torch.clamp(sum_weight, min=1e-3)):
+        # uniform progressive sampling (Appendix 3.1 of [2])
+        log_weight = torch.logaddexp(sub_tree.log_weight, other_sub_tree.log_weight)
+        log_tree_prob = other_sub_tree.log_weight - log_weight
+
+        # if log_tree_prob is NaN then this will evaluate to False; this can happen when
+        # the log weight of both trees are -inf
+        if torch.log1p(-torch.rand(())) <= log_tree_prob:
             selected_subtree = other_sub_tree
         else:
             selected_subtree = sub_tree
@@ -137,7 +150,7 @@ class NUTSProposer(HMCProposer):
             proposal=selected_subtree.proposal,
             pe=selected_subtree.pe,
             pe_grad=selected_subtree.pe_grad,
-            weight=sum_weight,
+            log_weight=log_weight,
             sum_accept_prob=sub_tree.sum_accept_prob + other_sub_tree.sum_accept_prob,
             num_proposals=sub_tree.num_proposals + other_sub_tree.num_proposals,
             turned_or_diverged=other_sub_tree.turned_or_diverged
@@ -152,12 +165,16 @@ class NUTSProposer(HMCProposer):
 
         momentums = self._initialize_momentums(self.world)
         current_energy = self._hamiltonian(self.world, momentums, self._pe)
-        # this is a more stable way to sample from log(Uniform(0, exp(-current_energy)))
-        log_slice = torch.log1p(-torch.rand(())) - current_energy
+        if self._multinomial_sampling:
+            # log slice is only used to check the divergence
+            log_slice = -current_energy
+        else:
+            # this is a more stable way to sample from log(Uniform(0, exp(-current_energy)))
+            log_slice = torch.log1p(-torch.rand(())) - current_energy
         left_tree_node = right_tree_node = _TreeNode(
             self.world, momentums, self._pe_grad
         )
-        sum_weight = 1.0
+        log_weight = torch.tensor(0.0)  # log accept prob of staying at current state
         sum_accept_prob = 0.0
         num_proposals = 0
 
@@ -177,8 +194,11 @@ class NUTSProposer(HMCProposer):
             if tree.turned_or_diverged:
                 break
 
+            # biased progressive sampling (Appendix 3.2 of [2])
+            log_tree_prob = tree.log_weight - log_weight
+
             # choose new world by randomly sample from proposed worlds
-            if torch.bernoulli(torch.clamp(tree.weight / sum_weight, max=1.0)):
+            if torch.log1p(-torch.rand(())) <= log_tree_prob:
                 self.world, self._pe, self._pe_grad = (
                     tree.proposal,
                     tree.pe,
@@ -188,7 +208,7 @@ class NUTSProposer(HMCProposer):
             if self._is_u_turning(left_tree_node, right_tree_node):
                 break
 
-            sum_weight += tree.weight
+            log_weight = torch.logaddexp(log_weight, tree.log_weight)
 
         self._alpha = sum_accept_prob / num_proposals
         return self.world

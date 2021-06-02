@@ -1,4 +1,5 @@
 import beanmachine.ppl as bm
+import pytest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
@@ -17,12 +18,20 @@ def bar():
     return dist.Normal(foo(), 1.0)
 
 
-world = SimpleWorld()
-world.call(bar())
-hmc = HMCProposer(world, trajectory_length=1.0)
+@pytest.fixture
+def world():
+    w = SimpleWorld()
+    w.call(bar())
+    return w
 
 
-def test_potential_grads():
+@pytest.fixture
+def hmc(world):
+    hmc_proposer = HMCProposer(world, trajectory_length=1.0)
+    return hmc_proposer
+
+
+def test_potential_grads(world, hmc):
     pe, pe_grad = hmc._potential_grads(world)
     assert isinstance(pe, torch.Tensor)
     assert pe.numel() == 1
@@ -32,7 +41,7 @@ def test_potential_grads():
         assert pe_grad[node].shape == world[node].shape
 
 
-def test_initialize_momentums():
+def test_initialize_momentums(world, hmc):
     momentums = hmc._initialize_momentums(world)
     for node in world.latent_nodes:
         assert node in momentums
@@ -40,7 +49,7 @@ def test_initialize_momentums():
         assert momentums[node].shape == world[node].shape
 
 
-def test_kinetic_grads():
+def test_kinetic_grads(world, hmc):
     momentums = hmc._initialize_momentums(world)
     ke = hmc._kinetic_energy(momentums)
     assert isinstance(ke, torch.Tensor)
@@ -52,7 +61,7 @@ def test_kinetic_grads():
         assert ke_grad[node].shape == world[node].shape
 
 
-def test_leapfrog_step():
+def test_leapfrog_step(world, hmc):
     step_size = 0.0
     momentums = hmc._initialize_momentums(world)
     new_world, new_momentums, pe, pe_grad = hmc._leapfrog_step(
