@@ -38,7 +38,7 @@ def test_potential_grads(world, hmc):
     for node in world.latent_nodes:
         assert node in pe_grad
         assert isinstance(pe_grad[node], torch.Tensor)
-        assert pe_grad[node].shape == world[node].shape
+        assert pe_grad[node].shape == world.get_transformed(node).shape
 
 
 def test_initialize_momentums(world, hmc):
@@ -46,7 +46,7 @@ def test_initialize_momentums(world, hmc):
     for node in world.latent_nodes:
         assert node in momentums
         assert isinstance(momentums[node], torch.Tensor)
-        assert momentums[node].shape == world[node].shape
+        assert len(momentums[node]) == world.get_transformed(node).numel()
 
 
 def test_kinetic_grads(world, hmc):
@@ -58,7 +58,7 @@ def test_kinetic_grads(world, hmc):
     for node in world.latent_nodes:
         assert node in ke_grad
         assert isinstance(ke_grad[node], torch.Tensor)
-        assert ke_grad[node].shape == world[node].shape
+        assert len(ke_grad[node]) == world.get_transformed(node).numel()
 
 
 def test_leapfrog_step(world, hmc):

@@ -58,16 +58,15 @@ class HMCProposer(BaseProposer):
         """Randomly draw momentum from MultivariateNormal(0, I). This momentum variable
         is denoted as p in [1] and r in [2]."""
         return {
-            node: torch.randn(world.get_transformed(node).shape)
+            # sample (flatten) momentums
+            node: torch.randn((world.get_transformed(node).numel(),))
             for node in world.latent_nodes
         }
 
     def _kinetic_energy(self, momentums: RVDict) -> torch.Tensor:
         """Returns the kinetic energy KE = 1/2 * p^T @ p (equation 2.6 in [1])"""
-        energy = torch.tensor(0.0)
-        for r in momentums.values():
-            energy += torch.sum(r ** 2)
-        return energy / 2
+        r_all = torch.cat(list(momentums.values()))
+        return torch.dot(r_all, r_all) / 2
 
     def _kinetic_grads(self, momentums: RVDict) -> RVDict:
         """Returns a dictionary of gradients of kinetic energy function with respect to
@@ -123,20 +122,21 @@ class HMCProposer(BaseProposer):
 
         new_momentums = {}
         for node, r in momentums.items():
-            new_momentums[node] = r - step_size * pe_grad[node] / 2
+            new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
         ke_grad = self._kinetic_grads(new_momentums)
 
         new_world = world.copy()
         for node in world.latent_nodes:
             # this should override the value of all the latent nodes in new_world
             # but does not change observations and transforms
+            z = world.get_transformed(node)
             new_world.set_transformed(
-                node, world.get_transformed(node) + step_size * ke_grad[node]
+                node, z + step_size * ke_grad[node].reshape(z.shape)
             )
 
         pe, pe_grad = self._potential_grads(new_world)
         for node, r in new_momentums.items():
-            new_momentums[node] = r - step_size * pe_grad[node] / 2
+            new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
 
         return new_world, new_momentums, pe, pe_grad
 
