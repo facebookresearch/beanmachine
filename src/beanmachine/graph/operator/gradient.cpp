@@ -149,19 +149,40 @@ void Logistic::compute_gradients() {
 void Pow::compute_gradients() {
   assert(in_nodes.size() == 2);
   // We wish to compute the first and second derivatives of x ** y.
-  // Let g = y log x
-  // Let f = exp g = x ** y
-  // f'  = g' f
-  // f'' = g'' f + g' f'
-  // So we must compute g' and g''.
-  // let m = y' log x
-  // let n = x' y / x
+  // Note that the derivatives here are with respect to some implicit
+  // variable (say, z), of which x and y are functions x(z) and y(z) of.
+  // x(z) ** y(z) is not a function we have a ready-made derivative formula for.
+  // However we can get a more convenient form:
+  // x ** y = exp(log (x ** y)) = exp(y log x)
+  // Now we have a composition of exp and product, so we can write:
+  // (x ** y)' = exp(y log x)*(y log x)'
+  //
+  // Note that exp(y log x) is x ** y itself,
+  // so (x ** y)' = (x ** y)*(y log x)'
+  // For short, let us define f and g as follows:
+  // f = x ** y
+  // g = y log x
+  //
+  // Then from the above we have
+  // f' = f g'
+  // f'' = f' g' + f g''
+  // So if we compute g' and g'', we are done.
+  //
+  // g' = (y log x)' = y' log x + y 1/x x'
+  // Let's call the two terms of g' m and n:
+  // m = y' log x
+  // n = y 1/x x' = x' y / x
+  // Then,
   // g'  = m + n
   // g'' = m' + n'
   // m'  = y'' log x + x' y' / x
-  // n'  = x'' y / x +
-  //       x' y' / x -
-  //       x' x' y / (x x)
+  // n'  = (x'' y / x  +  x' y' / x  -  x' x' y) / (x x)
+  //
+  // Note that m' and n' have a term in common, c = x' y' / x
+  // so we can write:
+  // m'  = y'' log x + c
+  // n'  = (x'' y / x  + c  - x' x' y) / (x x)
+
   double f = value._double;
   double x = in_nodes[0]->value._double;
   double y = in_nodes[1]->value._double;
@@ -174,7 +195,6 @@ void Pow::compute_gradients() {
   double n = x1 * y / x;
   double g1 = m + n;
   double f1 = g1 * f;
-  // m1 and n1 have a term in common; we can avoid computing it twice.
   double c = x1 * y1 / x;
   double m1 = y2 * logx + c;
   double n1 = x2 * y / x + c - x1 * x1 * y / (x * x);
