@@ -74,7 +74,7 @@ class Graph::NMC {
     compute_support();
     ensure_continuous();
     compute_initial_values();
-    compute_descendants();
+    get_nodes_up_to_immediate_stochastic_descendants();
     old_values = std::vector<NodeValue>(g->nodes.size());
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
   }
@@ -139,20 +139,18 @@ class Graph::NMC {
   }
 
   // For every unobserved stochastic node in the graph, we will need to
-  // repeatedly know the set of deterministic and stochastic descendant
-  // nodes. Because this can be expensive, we compute those sets once
-  // and cache them.
-  // TODO: this method's name is misleading since it only computes
-  // "descents up to immediate stochastic nodes mediated by determinist nodes".
-  // Update name and det_descendants and sto_descendantss field names.
-  void compute_descendants() {
+  // repeatedly know the set of immediate stochastic descendants
+  // and intervening deterministic nodes.
+  // Because this can be expensive, we compute those sets once and cache them.
+  void get_nodes_up_to_immediate_stochastic_descendants() {
     for (Node* node : unobserved_sto_supp) {
       std::vector<uint> det_node_ids;
       std::vector<uint> sto_node_ids;
       std::vector<Node*> det_nodes;
       std::vector<Node*> sto_nodes;
       std::tie(det_node_ids, sto_node_ids) =
-          g->compute_descendants(node->index, supp_ids);
+          g->get_nodes_up_to_immediate_stochastic_descendants(
+              node->index, supp_ids);
       for (uint id : det_node_ids) {
         det_nodes.push_back(node_ptrs[id]);
       }
