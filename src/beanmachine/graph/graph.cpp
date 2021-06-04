@@ -407,18 +407,8 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
     Node* node = nodes[node_id].get();
     node->gradient_log_prob(grad1, grad2);
   }
-  // TODO: The above applications of compute_gradients
-  // and gradient_log_prob, in this particular order,
-  // relies on a very specific property of
-  // get_nodes_up_to_immediate_stochastic_descendants, which is that it returns
-  // descendents only up to stochastic nodes. Rename and document
-  // get_nodes_up_to_immediate_stochastic_descendants to reflect this, and
-  // change this function (and others using compute_descedants) to make the use
-  // of this assumption clear.
-
-  // TODO: it is really necessary to reset grads?
-  // As of May 2021 this is only being used for testing,
-  // but I suspect it is not needed even there.
+  // TODO clarify why we need to reset gradients
+  // if we seem to be computing them from scratch when needed.
 
   // end gradient computation reset grads
   if (!is_src_scalar) {
@@ -439,12 +429,12 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
 template void
 Graph::gradient_log_prob<double>(uint src_idx, double& grad1, double& grad2);
 
+// TODO: rename to log_prob_in_immediate_stochastic_descendants
 double Graph::log_prob(uint src_idx) {
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
     throw std::runtime_error("log_prob only supported on stochastic nodes");
   }
-  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
   auto supp = compute_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
@@ -452,6 +442,7 @@ double Graph::log_prob(uint src_idx) {
       get_nodes_up_to_immediate_stochastic_descendants(src_idx, supp);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
+    std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
     node->eval(generator);
   }
   double log_prob = 0.0;
