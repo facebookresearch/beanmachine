@@ -50,13 +50,6 @@ void include_children(const Node* node, std::list<uint>& queue) {
   }
 }
 
-// Computes the immediate stochastic descendants of the current node
-// and intervening non-stochastic nodes.
-// Returns vector of intervening deterministic nodes and vector of stochastic
-// nodes that are operators and immediate stochastic descendants of the current
-// node and in the support. NOTE: we don't return descendants of stochastic
-// descendants. NOTE: current node is included in result if it is in support and
-// is operator.
 std::tuple<std::vector<uint>, std::vector<uint>>
 Graph::get_nodes_up_to_immediate_stochastic_descendants(
     uint root_id,

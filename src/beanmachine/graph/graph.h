@@ -649,10 +649,26 @@ struct Graph {
     return elbo_vals;
   }
   std::set<uint> compute_support();
+
+  /*
+  Computes the immediate stochastic descendants of the current node
+  and intervening non-stochastic nodes, as well as the current node
+  if it is stochastic.
+  :param node_id: the id (index in topological order) of the node for which
+  we are computing the descendants
+  :param support: the set of indices of the distribution support.
+  :returns: vector of intervening deterministic nodes and vector of stochastic
+  nodes that are operators and immediate stochastic descendants of the current
+  node and in the support
+  (that is to say, we don't return descendants of stochastic
+  descendants). The current node is included in result if it is in support and
+  is stochastic.
+  */
   std::tuple<std::vector<uint>, std::vector<uint>>
   get_nodes_up_to_immediate_stochastic_descendants(
       uint node_id,
       const std::set<uint>& support);
+
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
   /*
