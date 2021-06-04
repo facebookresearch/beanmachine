@@ -251,23 +251,26 @@ class Graph::NMC {
     g->pd_finish(ProfilerEvent::NMC_CLEAR_GRADS);
   }
 
-  // This method performs two tasks:
-  // * Compute the "score" for a given collection of stochastic
-  //   nodes; that is, how likely is this combination of samples?
-  // * Create a proposer that can randomly choose a new value for a node
-  //   based on the current value and the gradients of the stochastic
-  //   nodes.
-  // TODO can/should we separate these two functions?
+  // Computes the log probability with respect to a given
+  // set of stochastic nodes.
+  double compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
+    double log_prob = 0;
+    for (Node* node : sto_nodes) {
+      log_prob += node->log_prob();
+    }
+    return log_prob;
+  }
+
+  // Creates a proposer that can randomly choose a new value for a node
+  // based on the current value and the gradients of the stochastic
+  // nodes.
   std::unique_ptr<proposer::Proposer> create_proposer(
       const std::vector<Node*>& sto_descendants,
-      NodeValue value,
-      /* out */ double& logweight) {
+      NodeValue value) {
     g->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
-    logweight = 0;
     double grad1 = 0;
     double grad2 = 0;
     for (Node* node : sto_descendants) {
-      logweight += node->log_prob();
       node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
     }
     // TODO: generalize so it works with any proposer, not just nmc_proposer:
@@ -360,54 +363,64 @@ class Graph::NMC {
     // * Save the current state of the graph. Only deterministic nodes need be
     //   saved because stochastic nodes values may are in principle
     //   compatible with any values of other nodes.
-    // * Compute the "score" of the current state: how likely is this state?
+    // * Compute the probability of the current state.
+    //   Note that we only need the probability of the immediate stochastic
+    //   descendants of the target node, since those are the only ones
+    //   whose probability changes when its value is changed
+    //   (the probabilities of other nodes becomes irrelevant since
+    //   it gets canceled out in the acceptable probability calculation,
+    //   as explained below).
     // * Propose a new value for the target node.
-    // * Changing the value of the target node changes the values and gradients
-    //   of its descendents; make those updates.
-    // * Evaluate the "score" of the proposed new state.
-    //   Again, only deterministic nodes need be considered.
-    // * Accept or reject the proposed new value based on the relative scores.
+    // * Changing the value of the target node changes the values
+    //   and log probability gradients
+    //   of its immediate descendants; make those updates.
+    // * Evaluate the probability of the proposed new state.
+    //   Again, only immediate stochastic nodes need be considered.
+    // * Accept or reject the proposed new value based on the
+    //   Metropolis-Hastings acceptance probability:
+    //          P(new state) * P_proposer(old state | new state)
+    //   min(1, ------------------------------------------------ )
+    //          P(old state) * P_proposer(new state | old state)
+    //   but note how the probabilities for the states only need to include
+    //   the immediate stochastic descendants since the distributions
+    //   are factorized and the remaining stochastic nodes have
+    //   their probabilities unchanged and cancel out.
     // * If we rejected it, restore the saved state.
 
     NodeValue old_value = tgt_node->value;
     save_old_values(det_descendants);
 
-    tgt_node->grad1 = 1;
-    tgt_node->grad2 = 0;
+    double old_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
     // Deterministic node values are already evaluated but gradients
     // are not.
+    tgt_node->grad1 = 1;
+    tgt_node->grad2 = 0;
     compute_gradients(det_descendants);
-    double old_logweight;
-    auto old_prop =
-        create_proposer(sto_descendants, old_value, /* out */ old_logweight);
+    auto old_prop = create_proposer(sto_descendants, old_value);
     // TODO make the semantics of this call clearer
     // Why only sto_descendants?
-    // What is old_logweight? Same as old score in comments above?
-    // If so, make consistent.
     // Also, change nomenclature "old" and "new" proposers
     // to proposer and proposer reverse or something like that.
-    // TODO rename logweight to relevant_logweight since it is not
-    // the total logweight, but only that coming from immediate
-    // stochastic nodes.
 
     NodeValue new_value = sample(old_prop);
 
     tgt_node->value = new_value;
     eval(det_descendants);
+    double new_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
     compute_gradients(det_descendants);
-    double new_logweight;
-    auto new_prop =
-        create_proposer(sto_descendants, new_value, /* out */ new_logweight);
+    auto new_prop = create_proposer(sto_descendants, new_value);
 
-    double logacc = new_logweight - old_logweight +
-        new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
+    double logacc = new_sto_descendants_log_prob -
+        old_sto_descendants_log_prob + new_prop->log_prob(old_value) -
+        old_prop->log_prob(new_value);
+
     bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
     if (!accepted) {
       restore_old_values(det_descendants);
       tgt_node->value = old_value;
     }
 
-    // CONSIDER clarifying why it is necessary to clear the gradients
+    // TODO clarify why it is necessary to clear the gradients
     // since we seem to be computing them from scratch when we need them.
     clear_gradients(det_descendants);
     tgt_node->grad1 = 0;
@@ -453,9 +466,13 @@ class Graph::NMC {
       NodeValue old_value(AtomicType::POS_REAL, old_X_k);
       save_old_values(det_nodes);
       compute_gradients(det_nodes);
-      double old_logweight;
+      double old_sto_descendants_log_prob;
       auto old_prop = create_proposer_dirichlet_gamma(
-          sto_nodes, tgt_node, param_a, old_value, /* out */ old_logweight);
+          sto_nodes,
+          tgt_node,
+          param_a,
+          old_value,
+          /* out */ old_sto_descendants_log_prob);
 
       NodeValue new_value = sample(old_prop);
 
@@ -472,11 +489,16 @@ class Graph::NMC {
       eval(det_nodes);
       compute_gradients(det_nodes);
 
-      double new_logweight;
+      double new_sto_descendants_log_prob;
       auto new_prop = create_proposer_dirichlet_gamma(
-          sto_nodes, tgt_node, param_a, new_value, /* out */ new_logweight);
-      double logacc = new_logweight - old_logweight +
-          new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
+          sto_nodes,
+          tgt_node,
+          param_a,
+          new_value,
+          /* out */ new_sto_descendants_log_prob);
+      double logacc = new_sto_descendants_log_prob -
+          old_sto_descendants_log_prob + new_prop->log_prob(old_value) -
+          old_prop->log_prob(new_value);
       // Accept or reject, reset (values and) gradients
       bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
       if (!accepted) {
@@ -530,14 +552,14 @@ class Graph::NMC {
     NodeValue old_value(AtomicType::PROBABILITY, old_X_k);
     save_old_values(det_nodes);
     compute_gradients(det_nodes);
-    double old_logweight;
+    double old_sto_descendants_log_prob;
     auto old_prop = create_proposer_dirichlet_beta(
         sto_nodes,
         tgt_node,
         param_a,
         param_b,
         old_value,
-        /* out */ old_logweight);
+        /* out */ old_sto_descendants_log_prob);
 
     NodeValue new_value = sample(old_prop);
     *(src_node->value._matrix.data()) = new_value._double;
@@ -548,16 +570,17 @@ class Graph::NMC {
     eval(det_nodes);
     compute_gradients(det_nodes);
 
-    double new_logweight;
+    double new_sto_descendants_log_prob;
     auto new_prop = create_proposer_dirichlet_beta(
         sto_nodes,
         tgt_node,
         param_a,
         param_b,
         new_value,
-        /* out */ new_logweight);
-    double logacc = new_logweight - old_logweight +
-        new_prop->log_prob(old_value) - old_prop->log_prob(new_value);
+        /* out */ new_sto_descendants_log_prob);
+    double logacc = new_sto_descendants_log_prob -
+        old_sto_descendants_log_prob + new_prop->log_prob(old_value) -
+        old_prop->log_prob(new_value);
     // Accept or reject, reset (values and) gradients
     bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
     if (!accepted) {
