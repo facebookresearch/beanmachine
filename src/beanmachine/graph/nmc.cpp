@@ -187,7 +187,7 @@ class Graph::NMC {
               tgt_node, det_descendants[i], sto_descendants[i]);
         }
       } else {
-        nmc_step(tgt_node, det_descendants[i], sto_descendants[i]);
+        mh_step(tgt_node, det_descendants[i], sto_descendants[i]);
       }
     }
   }
@@ -261,18 +261,28 @@ class Graph::NMC {
     return log_prob;
   }
 
-  // Creates a proposer that can randomly choose a new value for a node
-  // based on the current value and the gradients of the stochastic
-  // nodes.
-  std::unique_ptr<proposer::Proposer> create_proposer(
+  // Returns the NMC proposal distribution conditioned on the
+  // target node's current value.
+  // NOTE: assumes that det_descendants's values are already
+  // evaluated according to the target node's value.
+  std::unique_ptr<proposer::Proposer>
+  get_proposal_distribution_conditioned_on_current_value(
+      Node* tgt_node,
+      const std::vector<Node*>& det_descendants,
       const std::vector<Node*>& sto_descendants,
       NodeValue value) {
     g->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
+
+    tgt_node->grad1 = 1;
+    tgt_node->grad2 = 0;
+    compute_gradients(det_descendants);
+
     double grad1 = 0;
     double grad2 = 0;
     for (Node* node : sto_descendants) {
       node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
     }
+
     // TODO: generalize so it works with any proposer, not just nmc_proposer:
     std::unique_ptr<proposer::Proposer> prop =
         proposer::nmc_proposer(value, grad1, grad2);
@@ -352,11 +362,13 @@ class Graph::NMC {
     return v;
   }
 
-  void nmc_step(
+  void mh_step(
       Node* tgt_node,
       const std::vector<Node*>& det_descendants,
       const std::vector<Node*>& sto_descendants) {
     g->pd_begin(ProfilerEvent::NMC_STEP);
+    // Implements a Metropolis-Hastings step using the NMC proposer.
+    //
     // We are given an unobserved stochastic "target" node and we wish
     // to compute a new value for it. The basic idea of the algorithm is:
     //
@@ -370,17 +382,18 @@ class Graph::NMC {
     //   (the probabilities of other nodes becomes irrelevant since
     //   it gets canceled out in the acceptable probability calculation,
     //   as explained below).
+    // * Obtains the proposal distribution (old_prop) conditioned on
+    //   target node's initial ('old') value.
     // * Propose a new value for the target node.
-    // * Changing the value of the target node changes the values
-    //   and log probability gradients
-    //   of its immediate descendants; make those updates.
     // * Evaluate the probability of the proposed new state.
     //   Again, only immediate stochastic nodes need be considered.
+    // * Obtains the proposal distribution (new_prop) conditioned on
+    //   target node's new value.
     // * Accept or reject the proposed new value based on the
     //   Metropolis-Hastings acceptance probability:
-    //          P(new state) * P_proposer(old state | new state)
+    //          P(new state) * P_new_prop(old state | new state)
     //   min(1, ------------------------------------------------ )
-    //          P(old state) * P_proposer(new state | old state)
+    //          P(old state) * P_old_prop(new state | old state)
     //   but note how the probabilities for the states only need to include
     //   the immediate stochastic descendants since the distributions
     //   are factorized and the remaining stochastic nodes have
@@ -391,28 +404,24 @@ class Graph::NMC {
     save_old_values(det_descendants);
 
     double old_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
-    // Deterministic node values are already evaluated but gradients
-    // are not.
-    tgt_node->grad1 = 1;
-    tgt_node->grad2 = 0;
-    compute_gradients(det_descendants);
-    auto old_prop = create_proposer(sto_descendants, old_value);
-    // TODO make the semantics of this call clearer
-    // Why only sto_descendants?
-    // Also, change nomenclature "old" and "new" proposers
-    // to proposer and proposer reverse or something like that.
+    auto proposal_given_old_value =
+        get_proposal_distribution_conditioned_on_current_value(
+            tgt_node, det_descendants, sto_descendants, old_value);
 
-    NodeValue new_value = sample(old_prop);
+    NodeValue new_value = sample(proposal_given_old_value);
 
     tgt_node->value = new_value;
     eval(det_descendants);
+
     double new_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
-    compute_gradients(det_descendants);
-    auto new_prop = create_proposer(sto_descendants, new_value);
+    auto proposal_given_new_value =
+        get_proposal_distribution_conditioned_on_current_value(
+            tgt_node, det_descendants, sto_descendants, new_value);
 
     double logacc = new_sto_descendants_log_prob -
-        old_sto_descendants_log_prob + new_prop->log_prob(old_value) -
-        old_prop->log_prob(new_value);
+        old_sto_descendants_log_prob +
+        proposal_given_new_value->log_prob(old_value) -
+        proposal_given_old_value->log_prob(new_value);
 
     bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
     if (!accepted) {
