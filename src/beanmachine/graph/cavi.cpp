@@ -54,7 +54,8 @@ void Graph::cavi(
       // log_prob. We will call these nodes the log_prob_nodes.
       std::vector<uint> det_desc;
       std::vector<uint> logprob_nodes;
-      std::tie(det_desc, logprob_nodes) = compute_descendants(node_id, supp);
+      std::tie(det_desc, logprob_nodes) =
+          get_nodes_up_to_immediate_stochastic_descendants(node_id, supp);
       // In order to compute the log_prob of these nodes we need to
       // materialize their ancestors both deterministic and stochastic.
       // The unobserved stochastic ancestors are to be sampled while the
