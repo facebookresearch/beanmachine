@@ -384,7 +384,8 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   auto supp = compute_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = compute_descendants(src_idx, supp);
+  std::tie(det_nodes, sto_nodes) =
+      get_nodes_up_to_immediate_stochastic_descendants(src_idx, supp);
   if (!is_src_scalar and det_nodes.size() > 0) {
     throw std::runtime_error(
         "compute_gradients has not been implemented for vector source node");
@@ -408,11 +409,12 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   }
   // TODO: The above applications of compute_gradients
   // and gradient_log_prob, in this particular order,
-  // relies on a very specific property of compute_descendants,
-  // which is that it returns descendents only up to stochastic nodes.
-  // Rename and document compute_descendants to reflect this,
-  // and change this function (and others using compute_descedants)
-  // to make the use of this assumption clear.
+  // relies on a very specific property of
+  // get_nodes_up_to_immediate_stochastic_descendants, which is that it returns
+  // descendents only up to stochastic nodes. Rename and document
+  // get_nodes_up_to_immediate_stochastic_descendants to reflect this, and
+  // change this function (and others using compute_descedants) to make the use
+  // of this assumption clear.
 
   // TODO: it is really necessary to reset grads?
   // As of May 2021 this is only being used for testing,
@@ -446,7 +448,8 @@ double Graph::log_prob(uint src_idx) {
   auto supp = compute_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = compute_descendants(src_idx, supp);
+  std::tie(det_nodes, sto_nodes) =
+      get_nodes_up_to_immediate_stochastic_descendants(src_idx, supp);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     node->eval(generator);
