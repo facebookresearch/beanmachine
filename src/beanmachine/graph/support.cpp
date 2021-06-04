@@ -50,8 +50,7 @@ void include_children(const Node* node, std::list<uint>& queue) {
   }
 }
 
-std::tuple<std::vector<uint>, std::vector<uint>>
-Graph::get_nodes_up_to_immediate_stochastic_descendants(
+std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_region(
     uint root_id,
     const std::set<uint>& support) {
   // check for the validity of root_id since this method is not private
