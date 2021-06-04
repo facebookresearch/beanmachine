@@ -384,8 +384,7 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   auto supp = compute_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) =
-      get_nodes_up_to_immediate_stochastic_descendants(src_idx, supp);
+  std::tie(det_nodes, sto_nodes) = compute_affected_region(src_idx, supp);
   if (!is_src_scalar and det_nodes.size() > 0) {
     throw std::runtime_error(
         "compute_gradients has not been implemented for vector source node");
@@ -438,8 +437,7 @@ double Graph::log_prob(uint src_idx) {
   auto supp = compute_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) =
-      get_nodes_up_to_immediate_stochastic_descendants(src_idx, supp);
+  std::tie(det_nodes, sto_nodes) = compute_affected_region(src_idx, supp);
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
     std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
