@@ -5,7 +5,7 @@
 namespace beanmachine {
 namespace factor {
 
-// A factor that exponentiates a product of terms
+// A factor that exponentiates a product of potentials or probabilities
 class ExpProduct : public Factor {
  public:
   explicit ExpProduct(const std::vector<graph::Node*>& in_nodes);

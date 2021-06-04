@@ -359,6 +359,12 @@ void set_value(double& variable, double value) {
 
 template <class T>
 void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
+  // TODO: As of May 2021, this method is being used for testing only.
+  // Refactor code so that we test the code actually being used for the
+  // normal functionality of the class.
+  // If that is not possible, this is an indication that this is code
+  // is only useful for testing, and should therefore
+  // be moved to the testing code.
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
     throw std::runtime_error(
@@ -375,7 +381,6 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   src_node->grad1 = 1;
   src_node->grad2 = 0;
 
-  std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
   auto supp = compute_support();
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
@@ -383,9 +388,15 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   if (!is_src_scalar and det_nodes.size() > 0) {
     throw std::runtime_error(
         "compute_gradients has not been implemented for vector source node");
+    // TODO: remove this error message and leave it to compute_gradients
+    // to issue an error if needed.
   }
   for (auto node_id : det_nodes) {
     Node* node = nodes[node_id].get();
+    // passing generator for signature,
+    // but it is irrelevant for deterministic nodes.
+    // TODO: can we make signature use a default generator then?
+    std::mt19937 generator(12131);
     node->eval(generator);
     node->compute_gradients();
   }
@@ -395,6 +406,17 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
     Node* node = nodes[node_id].get();
     node->gradient_log_prob(grad1, grad2);
   }
+  // TODO: The above applications of compute_gradients
+  // and gradient_log_prob, in this particular order,
+  // relies on a very specific property of compute_descendants,
+  // which is that it returns descendents only up to stochastic nodes.
+  // Rename and document compute_descendants to reflect this,
+  // and change this function (and others using compute_descedants)
+  // to make the use of this assumption clear.
+
+  // TODO: it is really necessary to reset grads?
+  // As of May 2021 this is only being used for testing,
+  // but I suspect it is not needed even there.
 
   // end gradient computation reset grads
   if (!is_src_scalar) {

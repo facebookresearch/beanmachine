@@ -10,6 +10,8 @@ void StochasticOperator::gradient_log_prob(
     double& first_grad,
     double& second_grad) const {
   const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
+  // TODO why grad1 != 0.0 determines using
+  // gradient of logprob of value or parameter?
   if (grad1 != 0.0) {
     dist->gradient_log_prob_value(value, first_grad, second_grad);
   } else {
