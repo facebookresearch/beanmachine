@@ -17,9 +17,21 @@ class Operator : public graph::Node {
     return false;
   }
   double log_prob() const override;
-  void gradient_log_prob(double& grad1, double& grad2) const override;
   void eval(std::mt19937& gen) override;
+
+  // Computes gradients of node's value based on its in-nodes values and
+  // gradients (forward autodifferentiation).
   void compute_gradients() override;
+
+  // Computes the gradient of the log probability of this node's value based on
+  // its in-nodes values and gradients (forward autodifferentiation). It is
+  // conceptually very similar to compute_gradients, but we cannot use
+  // compute_gradients for the log probability because it is not a node.
+  // Because only stochastic operators contribute to log prob,
+  // this method is only implemented for stochastic operators.
+  // TODO: should we just remove it from Operator then?
+  void gradient_log_prob(double& grad1, double& grad2) const override;
+
   void backward() override {}
   graph::OperatorType op_type;
 };

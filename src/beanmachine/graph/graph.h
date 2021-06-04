@@ -118,6 +118,20 @@ class NodeValue {
     double _double;
     natural_t _natural;
   };
+  // In principle, the following fields should be in the above union.
+  // However, because they have non-trivial destructors,
+  // the programmer needs to explicitly define a destructor for the union
+  // (one that knows which field is actually used so it can destruct only that).
+  // However, anonymous unions cannot have member functions, including
+  // destructors. One could make it a named union external to this class but
+  // this would require redirecting all usage to the named union's fields,
+  // which does not seem worth it.
+  // See https://en.cppreference.com/w/cpp/language/union: "If a union
+  // contains a non-static data member with a non-trivial special member
+  // function (copy/move constructor, copy/move assignment, or destructor), that
+  // function is deleted by default in the union and needs to be defined
+  // explicitly by the programmer." Because anonymous unions cannot declare
+  // destructors, we would have to move this move it
   Eigen::MatrixXd _matrix;
   Eigen::MatrixXb _bmatrix;
   Eigen::MatrixXn _nmatrix;
