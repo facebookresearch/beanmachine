@@ -49,7 +49,7 @@ void include_children(const Node* node, std::list<uint>& queue) {
   }
 }
 
-std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_region(
+std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_nodes(
     uint root_id,
     const std::set<uint>& support) {
   // check for the validity of root_id since this method is not private
@@ -73,24 +73,35 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_affected_region(
     }
     visited.insert(node_id);
     const Node* node = nodes[node_id].get();
-    bool include_node_s_children;
+    bool include_children_of_node;
     if (node->is_stochastic()) {
       if (support.find(node_id) != support.end()) {
         // no need to check if node is operator because
         // all stochastic nodes are operators
         sto_desc.push_back(node_id);
       }
-      include_node_s_children = (node_id == root_id);
+      // we only proceed to include children if node is root;
+      // otherwise we stop because nodes beyond
+      // non-root stochastic nodes are not directly
+      // affected by changes of value in the root.
+      include_children_of_node = (node_id == root_id);
     } else if (
         node->node_type == NodeType::OPERATOR and
         support.find(node_id) != support.end()) {
       det_desc.push_back(node_id);
-      include_node_s_children = true;
+      // We always include children of deterministic
+      // nodes because the definition of affected nodes
+      // includes all deterministic nodes up to
+      // the first encountered stochastic nodes.
+      include_children_of_node = true;
     } else {
-      include_node_s_children = true;
+      // We include children of other types of
+      // nodes because we must go on until we
+      // find the first stochastic descendants.
+      include_children_of_node = true;
     }
 
-    if (include_node_s_children) {
+    if (include_children_of_node) {
       include_children(node, queue);
     }
   }

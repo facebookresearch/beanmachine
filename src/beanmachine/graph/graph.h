@@ -651,9 +651,36 @@ struct Graph {
   std::set<uint> compute_support();
 
   /*
-  Computes the immediate stochastic descendants of the current node
-  and intervening non-stochastic nodes, as well as the current node
-  if it is stochastic.
+  Computes the _affected nodes_ of a root node.
+
+  Intuitively, these are the immediate, local descendants of the root node
+  whose values or probabilities must be recalculated when
+  the root node value changes.
+
+  In a Bayesian network, which only contains stochastic nodes,
+  the affected nodes would be the root node itself (since its probability
+  changes according to its value) and its _children_ (whose probabilities
+  also change since the root node is a parent and helps determining
+  their probabilities).
+
+  This is also essentially the case in BMG, but with one caveat:
+  because BMG represents the deterministic computation of
+  these children's distributions as explicit deterministic nodes in the graph,
+  the nodes that would be the root node children in a Bayesian network are not
+  root node children in BMG (since there are intervening deterministic
+  nodes between the root note and these stochastic would-be children).
+  For this reason, one needs to traverse these deterministic nodes
+  until the stochastic would-be children are found.
+  And because these deterministic nodes participate directly
+  in the re-calculation of would-be children,
+  they are also included in the set of affected nodes.
+
+  Moreover, stochastic and deterministic
+  affected nodes are returned in two separate collections
+  since client code will often need to manipulate them very differently,
+  typically re-computing the *values* of deterministic nodes,
+  and re-computing the *probability* of stochastic nodes.
+
   :param node_id: the id (index in topological order) of the node for which
   we are computing the descendants
   :param support: the set of indices of the distribution support.
@@ -664,7 +691,7 @@ struct Graph {
   descendants). The current node is included in result if it is in support and
   is stochastic.
   */
-  std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_region(
+  std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_nodes(
       uint node_id,
       const std::set<uint>& support);
 

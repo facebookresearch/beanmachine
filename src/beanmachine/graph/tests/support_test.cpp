@@ -57,7 +57,7 @@ TEST(testgraph, support) {
   EXPECT_EQ(*supp.rbegin(), o4);
   std::vector<uint> det_nodes;
   std::vector<uint> sto_nodes;
-  std::tie(det_nodes, sto_nodes) = g.compute_affected_region(o3, supp);
+  std::tie(det_nodes, sto_nodes) = g.compute_affected_nodes(o3, supp);
   // o3 -> det: o3, d2, o8 sto: o4
   // limiting to operators: o3 -> det: o3, o8 sto: o4
   // limiting to support: c3 -> det: o3 sto: o4
@@ -91,7 +91,7 @@ TEST(testgraph, support) {
   // note: o7 and o8 are not in the descendants of o4
   // because the descendant chain gets cut off at the stochastic node o6
   // limiting to support: o4 -> det: ro4, o5 sto: o4
-  std::tie(det_nodes, sto_nodes) = g.compute_affected_region(o4, supp);
+  std::tie(det_nodes, sto_nodes) = g.compute_affected_nodes(o4, supp);
   EXPECT_EQ(det_nodes.size(), 2);
   EXPECT_EQ(det_nodes.front(), ro4);
   EXPECT_EQ(det_nodes.back(), o5);
