@@ -43,16 +43,21 @@ std::set<uint> Graph::compute_support() {
   return support;
 }
 
-// compute the descendants of the current node
-// returns vector of deterministic nodes and vector of stochastic nodes
-// that are operators and descendants of the current node and in the support
-// NOTE: we don't return descendants of stochastic descendants
-// NOTE: current node is returned if applicable
-// TODO what does "applicable" mean above?
-// TODO rename and document this method to reflect its true functionality better
-// (particularly the fact that it only returns descendants up to immediate
-// stochastic nodes)
-std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
+void include_children(const Node* node, std::list<uint>& queue) {
+  for (const auto& child : node->out_nodes) {
+    queue.push_back(child->index);
+  }
+}
+
+// Computes the immediate stochastic descendants of the current node
+// and intervening non-stochastic nodes.
+// Returns vector of intervening deterministic nodes and vector of stochastic
+// nodes that are operators and immediate stochastic descendants of the current
+// node and in the support. NOTE: we don't return descendants of stochastic
+// descendants. NOTE: current node is included in result if it is in support and
+// is operator.
+std::tuple<std::vector<uint>, std::vector<uint>>
+Graph::get_nodes_up_to_immediate_stochastic_descendants(
     uint root_id,
     const std::set<uint>& support) {
   // check for the validity of root_id since this method is not private
@@ -76,22 +81,25 @@ std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
     }
     visited.insert(node_id);
     const Node* node = nodes[node_id].get();
-    // we stop looking at descendants when we hit a stochastic node
-    // other than the root of this subgraph
+    bool include_node_s_children;
     if (node->is_stochastic()) {
       if (support.find(node_id) != support.end()) {
-        sto_desc.push_back(node_id); // stochastic nodes are operators
+        // no need to check if node is operator because
+        // all stochastic nodes are operators
+        sto_desc.push_back(node_id);
       }
-      if (node_id != root_id) {
-        continue;
-      }
+      include_node_s_children = (node_id == root_id);
     } else if (
         node->node_type == NodeType::OPERATOR and
         support.find(node_id) != support.end()) {
       det_desc.push_back(node_id);
+      include_node_s_children = true;
+    } else {
+      include_node_s_children = true;
     }
-    for (const auto& child : node->out_nodes) {
-      queue.push_back(child->index);
+
+    if (include_node_s_children) {
+      include_children(node, queue);
     }
   }
   std::sort(det_desc.begin(), det_desc.end());

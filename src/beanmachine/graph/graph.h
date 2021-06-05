@@ -649,7 +649,8 @@ struct Graph {
     return elbo_vals;
   }
   std::set<uint> compute_support();
-  std::tuple<std::vector<uint>, std::vector<uint>> compute_descendants(
+  std::tuple<std::vector<uint>, std::vector<uint>>
+  get_nodes_up_to_immediate_stochastic_descendants(
       uint node_id,
       const std::set<uint>& support);
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(

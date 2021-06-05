@@ -37,7 +37,8 @@ void Graph::gibbs(uint num_samples, std::mt19937& gen) {
     if (node->is_stochastic() and node_is_not_observed) {
       std::vector<uint> det_nodes;
       std::vector<uint> sto_nodes;
-      std::tie(det_nodes, sto_nodes) = compute_descendants(node_id, supp);
+      std::tie(det_nodes, sto_nodes) =
+          get_nodes_up_to_immediate_stochastic_descendants(node_id, supp);
       pool[node_id] = std::make_tuple(det_nodes, sto_nodes);
       cache_logodds[node_id] = NAN; // nan => needs to be re-computed
       for (auto sto : sto_nodes) {
