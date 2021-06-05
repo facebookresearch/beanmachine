@@ -664,8 +664,7 @@ struct Graph {
   descendants). The current node is included in result if it is in support and
   is stochastic.
   */
-  std::tuple<std::vector<uint>, std::vector<uint>>
-  get_nodes_up_to_immediate_stochastic_descendants(
+  std::tuple<std::vector<uint>, std::vector<uint>> compute_affected_region(
       uint node_id,
       const std::set<uint>& support);
 

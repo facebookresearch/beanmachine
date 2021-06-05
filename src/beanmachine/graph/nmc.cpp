@@ -79,7 +79,7 @@ class Graph::NMC {
     compute_support();
     ensure_continuous();
     compute_initial_values();
-    compute_nodes_up_to_immediate_stochastic_descendants();
+    compute_affected_region();
     old_values = std::vector<NodeValue>(g->nodes.size());
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
   }
@@ -147,15 +147,14 @@ class Graph::NMC {
   // repeatedly know the set of immediate stochastic descendants
   // and intervening deterministic nodes.
   // Because this can be expensive, we compute those sets once and cache them.
-  void compute_nodes_up_to_immediate_stochastic_descendants() {
+  void compute_affected_region() {
     for (Node* node : unobserved_sto_supp) {
       std::vector<uint> det_node_ids;
       std::vector<uint> sto_node_ids;
       std::vector<Node*> det_nodes;
       std::vector<Node*> sto_nodes;
       std::tie(det_node_ids, sto_node_ids) =
-          g->get_nodes_up_to_immediate_stochastic_descendants(
-              node->index, supp_ids);
+          g->compute_affected_region(node->index, supp_ids);
       for (uint id : det_node_ids) {
         det_nodes.push_back(node_ptrs[id]);
       }
@@ -265,8 +264,7 @@ class Graph::NMC {
   // target node's current value.
   // NOTE: assumes that det_descendants's values are already
   // evaluated according to the target node's value.
-  std::unique_ptr<proposer::Proposer>
-  get_proposal_distribution_conditioned_on_current_value(
+  std::unique_ptr<proposer::Proposer> get_proposal_dist_given_current_value(
       Node* tgt_node,
       const std::vector<Node*>& det_descendants,
       const std::vector<Node*>& sto_descendants,
@@ -404,9 +402,8 @@ class Graph::NMC {
     save_old_values(det_descendants);
 
     double old_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
-    auto proposal_given_old_value =
-        get_proposal_distribution_conditioned_on_current_value(
-            tgt_node, det_descendants, sto_descendants, old_value);
+    auto proposal_given_old_value = get_proposal_dist_given_current_value(
+        tgt_node, det_descendants, sto_descendants, old_value);
 
     NodeValue new_value = sample(proposal_given_old_value);
 
@@ -414,9 +411,8 @@ class Graph::NMC {
     eval(det_descendants);
 
     double new_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
-    auto proposal_given_new_value =
-        get_proposal_distribution_conditioned_on_current_value(
-            tgt_node, det_descendants, sto_descendants, new_value);
+    auto proposal_given_new_value = get_proposal_dist_given_current_value(
+        tgt_node, det_descendants, sto_descendants, new_value);
 
     double logacc = new_sto_descendants_log_prob -
         old_sto_descendants_log_prob +
