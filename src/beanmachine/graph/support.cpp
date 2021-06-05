@@ -7,8 +7,8 @@
 namespace beanmachine {
 namespace graph {
 
-// the support of a graph is the set of operator nodes that are the ancestors of
-// the queried and observed variables
+// the support of a graph is the set of operator and factor nodes that are the
+// ancestors of the queried and observed variables
 std::set<uint> Graph::compute_support() {
   // we will do a standard BFS except that we are doing a BFS
   // in the reverse direction of the graph edges
@@ -45,9 +45,13 @@ std::set<uint> Graph::compute_support() {
 
 // compute the descendants of the current node
 // returns vector of deterministic nodes and vector of stochastic nodes
-// that are operators and and descendants of the current node and in the support
+// that are operators and descendants of the current node and in the support
 // NOTE: we don't return descendants of stochastic descendants
 // NOTE: current node is returned if applicable
+// TODO what does "applicable" mean above?
+// TODO rename and document this method to reflect its true functionality better
+// (particularly the fact that it only returns descendants up to immediate
+// stochastic nodes)
 std::tuple<std::vector<uint>, std::vector<uint>> Graph::compute_descendants(
     uint root_id,
     const std::set<uint>& support) {
