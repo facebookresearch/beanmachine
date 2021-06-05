@@ -48,9 +48,14 @@ class Graph::NMC {
   std::vector<Node*> unobserved_sto_supp;
 
   // These vectors are the same size as unobserved_sto_support.
-  // The elements are vectors of nodes; those nodes are in
-  // the support and are the stochastic or deterministic
-  // descendents of the corresponding unobserved stochastic node.
+  // The i-th elements are vectors of nodes which are
+  // respectively the vector of
+  // the immediate stochastic descendants of node with index i in the support,
+  // and the vector of the intervening deterministic nodes
+  // between the i-th node and its immediate stochastic descendants.
+  // In other words, these are the cached results of
+  // invoking graph::get_nodes_up_to_immediate_descendants
+  // for each node.
   std::vector<std::vector<Node*>> sto_descendants;
   std::vector<std::vector<Node*>> det_descendants;
 
@@ -74,7 +79,7 @@ class Graph::NMC {
     compute_support();
     ensure_continuous();
     compute_initial_values();
-    get_nodes_up_to_immediate_stochastic_descendants();
+    compute_nodes_up_to_immediate_stochastic_descendants();
     old_values = std::vector<NodeValue>(g->nodes.size());
     g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
   }
@@ -142,7 +147,7 @@ class Graph::NMC {
   // repeatedly know the set of immediate stochastic descendants
   // and intervening deterministic nodes.
   // Because this can be expensive, we compute those sets once and cache them.
-  void get_nodes_up_to_immediate_stochastic_descendants() {
+  void compute_nodes_up_to_immediate_stochastic_descendants() {
     for (Node* node : unobserved_sto_supp) {
       std::vector<uint> det_node_ids;
       std::vector<uint> sto_node_ids;
@@ -402,7 +407,8 @@ class Graph::NMC {
       tgt_node->value = old_value;
     }
 
-    // TODO why is it necessary to clear the gradients?
+    // CONSIDER clarifying why it is necessary to clear the gradients
+    // since we seem to be computing them from scratch when we need them.
     clear_gradients(det_descendants);
     tgt_node->grad1 = 0;
     tgt_node->grad2 = 0;
