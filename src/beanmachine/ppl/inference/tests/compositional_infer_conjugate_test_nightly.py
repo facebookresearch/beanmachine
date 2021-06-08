@@ -26,8 +26,5 @@ class CompositionalInferenceConjugateTest(unittest.TestCase, AbstractConjugateTe
     def test_normal_normal_conjugate_run(self):
         self.normal_normal_conjugate_run(self.mh)
 
-    def test_distant_normal_normal_conjugate_run(self):
-        self.distant_normal_normal_conjugate_run(self.mh, num_samples=1000)
-
     def test_dirichlet_categorical_conjugate_run(self):
         self.dirichlet_categorical_conjugate_run(self.mh)

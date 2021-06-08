@@ -139,27 +139,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         #  List[typing.Any], Dict[typing.Any, typing.Any]]`.
         return (expected_mean, expected_std, queries, observations)
 
-    def compute_distant_normal_normal_moments(self):
-        """
-        Computes mean and standard deviation of a small normal normal model
-        where the prior and posterior are far from each other.
-
-        :return: expected mean, expected standard deviation, conjugate model
-        queries and observations
-        """
-        mu = tensor([1.0, 1.0])
-        std = tensor([1.0, 1.0])
-        sigma = tensor([1.0, 1.0])
-        obs = tensor([100.0, 100.0])
-        model = NormalNormalModel(mu, std, sigma)
-        queries = [model.normal_p()]
-        observations = {model.normal(): obs}
-        expected_mean = (1 / (1 / sigma.pow(2.0) + 1 / std.pow(2.0))) * (
-            mu / std.pow(2.0) + obs / sigma.pow(2.0)
-        )
-        expected_std = (std.pow(-2.0) + sigma.pow(-2.0)).pow(-0.5)
-        return (expected_mean, expected_std, queries, observations)
-
     def compute_dirichlet_categorical_moments(self):
         """
         Computes mean and standard deviation of a small dirichlet categorical
@@ -416,33 +395,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
             num_adaptive_samples,
         )
 
-    def distant_normal_normal_conjugate_run(
-        self,
-        mh: AbstractMHInference,
-        num_chains: int = 1,
-        num_samples: int = 1000,
-        random_seed: Optional[int] = 17,
-        num_adaptive_samples: int = 0,
-    ):
-        """
-        Tests the inference run for a small normal normal model
-        where the prior and posterior are far from each other.
-
-        :param mh: inference algorithm
-        :param num_samples: number of samples
-        :param num_chains: number of chains
-        :param random_seed: seed for pytorch random number generator
-        """
-        moments = self.compute_distant_normal_normal_moments()
-        self._compare_run(
-            moments,
-            mh,
-            num_chains,
-            num_samples,
-            random_seed,
-            num_adaptive_samples,
-        )
-
     def dirichlet_categorical_conjugate_run(
         self,
         mh: AbstractMHInference,
@@ -498,15 +450,6 @@ class AbstractConjugateTests(metaclass=ABCMeta):
 
     @abstractmethod
     def test_normal_normal_conjugate_run(self):
-        """
-        To be implemented for all classes extending AbstractConjugateTests.
-        """
-        raise NotImplementedError(
-            "Conjugate test must implement test_normal_normal_conjugate_run."
-        )
-
-    @abstractmethod
-    def test_distant_normal_normal_conjugate_run(self):
         """
         To be implemented for all classes extending AbstractConjugateTests.
         """

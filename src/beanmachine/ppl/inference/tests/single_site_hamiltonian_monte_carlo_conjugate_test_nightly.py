@@ -31,11 +31,6 @@ class SingleSiteHamiltonianMonteCarloConjugateTest(
         self.normal_normal_conjugate_run(hmc, num_samples=500)
 
     @unittest.skip("Known to fail. Investigating in T77865889.")
-    def test_distant_normal_normal_conjugate_run(self):
-        hmc = bm.SingleSiteHamiltonianMonteCarlo(1.0, 0.1)
-        self.distant_normal_normal_conjugate_run(hmc, num_samples=1000)
-
-    @unittest.skip("Known to fail. Investigating in T77865889.")
     def test_dirichlet_categorical_conjugate_run(self):
         hmc = bm.SingleSiteHamiltonianMonteCarlo(0.1, 0.01)
         self.dirichlet_categorical_conjugate_run(hmc, num_samples=10000)

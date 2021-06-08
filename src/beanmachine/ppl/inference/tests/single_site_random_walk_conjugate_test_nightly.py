@@ -25,9 +25,5 @@ class SingleSiteRandomWalkConjugateTest(unittest.TestCase, AbstractConjugateTest
         mh = bm.SingleSiteRandomWalk(step_size=1.5)
         self.normal_normal_conjugate_run(mh, num_samples=1000)
 
-    def test_distant_normal_normal_conjugate_run(self):
-        mh = bm.SingleSiteRandomWalk(step_size=3.0)
-        self.normal_normal_conjugate_run(mh, num_samples=10000)
-
     def test_dirichlet_categorical_conjugate_run(self):
         self.dirichlet_categorical_conjugate_run(self.mh, num_samples=10000)
