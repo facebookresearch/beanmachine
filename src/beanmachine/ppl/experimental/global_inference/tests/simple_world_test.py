@@ -15,6 +15,16 @@ class SampleModel:
         return dist.Normal(self.foo(), 1.0)
 
 
+class DiscreteModel:
+    @bm.random_variable
+    def foo(self):
+        return dist.Categorical(torch.ones(3))
+
+    @bm.random_variable
+    def bar(self):
+        return dist.Normal(self.foo().float(), torch.tensor(1.0))
+
+
 def test_basic_operations():
     model = SampleModel()
     observations = {model.bar(): torch.rand(())}
@@ -59,3 +69,11 @@ def test_log_prob():
     log_prob2 = world2.log_prob()
 
     assert log_prob1 > log_prob2
+
+
+def test_enumerate():
+    model = DiscreteModel()
+    world = SimpleWorld(observations={model.bar(): torch.tensor(0.0)})
+    with world:
+        model.bar()
+    assert (torch.tensor([0.0, 1.0, 2.0]) == world.enumerate_node(model.foo())).all()

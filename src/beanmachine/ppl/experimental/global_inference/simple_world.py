@@ -73,7 +73,7 @@ class SimpleWorld(BaseWorld, MutableMapping[RVIdentifier, torch.Tensor]):
         else:
             transform = self.transforms.get(node, get_default_transforms(distribution))
             sample_val = distribution.sample()
-            if self.initialize_from_prior:
+            if self.initialize_from_prior or distribution.has_enumerate_support:
                 value = transform(sample_val)
             else:
                 # initialize to Uniform(-2, 2) in unconstrained space
@@ -101,3 +101,11 @@ class SimpleWorld(BaseWorld, MutableMapping[RVIdentifier, torch.Tensor]):
                     distribution.log_prob(x) - transform.log_abs_det_jacobian(x, y)
                 )
         return log_prob
+
+    def enumerate_node(self, node: RVIdentifier) -> torch.Tensor:
+        """Returns a tensor enumerating the support of the node"""
+        with self:
+            dist = node.function(*node.arguments)
+            if not dist.has_enumerate_support:
+                raise ValueError(str(node) + " is not enumerable")
+            return dist.enumerate_support()
