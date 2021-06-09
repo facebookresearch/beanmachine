@@ -113,6 +113,14 @@ class tutorialNealsFunnelTest(unittest.TestCase):
             num_chains=num_chains,
         )
 
+        bmg = BMGInference()
+        samples_bmg = bmg.infer(
+            queries=queries,
+            observations=observations,
+            num_samples=num_samples,
+            # num_chains=num_chains, # TODO[Walid]: Passing this param causes a failure
+        )
+
         self.assertTrue(True, msg="We just want to check this point is reached")
 
     def test_tutorial_Neals_Funnel_to_dot_cpp_python(
