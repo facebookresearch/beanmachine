@@ -374,7 +374,6 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   bool is_src_scalar = (size == 0);
   // start gradient
   if (!is_src_scalar) {
-    assert(size = grad1.size() and size == grad2.size());
     src_node->Grad1 = Eigen::MatrixXd::Ones(size, 1);
     src_node->Grad2 = Eigen::MatrixXd::Zero(size, 1);
   }
