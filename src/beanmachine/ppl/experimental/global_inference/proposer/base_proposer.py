@@ -9,6 +9,9 @@ class BaseProposer(metaclass=ABCMeta):
     def propose(self, world: Optional[SimpleWorld] = None) -> SimpleWorld:
         raise NotImplementedError
 
+    def init_adaptation(self, num_adaptive_samples: int) -> None:
+        ...
+
     def do_adaptation(self) -> None:
         ...
 
