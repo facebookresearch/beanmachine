@@ -1,4 +1,5 @@
 import math
+from typing import Union, cast
 
 import torch
 
@@ -78,3 +79,49 @@ class DualAverageAdapter:
 
     def finalize(self) -> float:
         return math.exp(self._log_avg_epsilon)
+
+
+class WelfordCovariance:
+    """
+    An implementation of Welford's online algorithm for estimating the (co)variance of
+    samples.
+    Reference:
+    [1] "Algorithms for calculating variance" on Wikipedia
+    https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+    """
+
+    def __init__(self, diagonal: bool = True):
+        self._mean: Union[float, torch.Tensor] = 0.0
+        self._count = 0
+        self._M2: Union[float, torch.Tensor] = 0.0
+        self._diagonal = diagonal
+
+    def step(self, sample: torch.Tensor) -> None:
+        self._count += 1
+        delta = sample - self._mean
+        self._mean += delta / self._count
+        delta2 = sample - self._mean
+        if self._diagonal:
+            self._M2 += delta * delta2
+        else:
+            self._M2 += torch.outer(delta, delta2)
+
+    def finalize(self, regularize: bool = True) -> torch.Tensor:
+        if self._count < 2:
+            raise RuntimeError(
+                "Number of samples is too small to estimate the (co)variance"
+            )
+        covariance = cast(torch.Tensor, self._M2) / (self._count - 1)
+        if not regularize:
+            return covariance
+
+        # from Stan: regularize mass matrix for numerical stability
+        covariance *= self._count / (self._count + 5.0)
+        padding = 1e-3 * 5.0 / (self._count + 5.0)
+        # bring covariance closer to a unit diagonal mass matrix
+        if self._diagonal:
+            covariance += padding
+        else:
+            covariance += padding * torch.eye(covariance.shape[0])
+
+        return covariance

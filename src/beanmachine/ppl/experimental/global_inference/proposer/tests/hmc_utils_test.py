@@ -1,7 +1,10 @@
+import numpy as np
 import pytest
 import torch
+import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_utils import (
     DualAverageAdapter,
+    WelfordCovariance,
     WindowScheme,
 )
 
@@ -52,3 +55,38 @@ def test_large_window_scheme(num_adaptive_samples):
     for win1, win2 in zip(window_sizes[:-1], window_sizes[1:-1]):
         # except for last window, window size should keep doubling
         assert win2 == win1 * 2
+
+
+def test_diagonal_welford_covariance():
+    samples = dist.MultivariateNormal(
+        loc=torch.rand(5), scale_tril=torch.randn(5, 5).tril()
+    ).sample((1000,))
+    welford = WelfordCovariance(diagonal=True)
+    for sample in samples:
+        welford.step(sample)
+    sample_var = torch.var(samples, dim=0)
+    estimated_var = welford.finalize(regularize=False)
+    assert torch.allclose(estimated_var, sample_var)
+    regularized_var = welford.finalize(regularize=True)
+    assert (torch.argsort(regularized_var) == torch.argsort(estimated_var)).all()
+
+
+def test_dense_welford_covariance():
+    samples = dist.MultivariateNormal(
+        loc=torch.rand(5), scale_tril=torch.randn(5, 5).tril()
+    ).sample((1000,))
+    welford = WelfordCovariance(diagonal=False)
+    for sample in samples:
+        welford.step(sample)
+    sample_cov = torch.from_numpy(np.cov(samples.T.numpy())).to(samples.dtype)
+    estimated_cov = welford.finalize(regularize=False)
+    assert torch.allclose(estimated_cov, sample_cov)
+    regularized_cov = welford.finalize(regularize=True)
+    assert (torch.argsort(regularized_cov) == torch.argsort(estimated_cov)).all()
+
+
+def test_welford_exception():
+    welford = WelfordCovariance()
+    welford.step(torch.rand(5))
+    with pytest.raises(RuntimeError):  # number of samples is too small
+        welford.finalize()
