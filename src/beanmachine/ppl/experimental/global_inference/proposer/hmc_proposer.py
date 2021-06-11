@@ -7,6 +7,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import
 )
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_utils import (
     DualAverageAdapter,
+    WindowScheme,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
@@ -44,6 +45,7 @@ class HMCProposer(BaseProposer):
         # initialize parameters
         self.trajectory_length = trajectory_length
         self.adapt_step_size = adapt_step_size
+        self._window_scheme: Optional[WindowScheme] = None
         if self.adapt_step_size:
             self.step_size = self._find_reasonable_step_size(
                 initial_step_size, self.world, self._pe, self._pe_grad
@@ -53,6 +55,9 @@ class HMCProposer(BaseProposer):
             self.step_size = initial_step_size
         # alpha will store the accept prob and will be used to adapt step size
         self._alpha = None
+
+    def init_adaptation(self, num_adaptive_samples: int) -> None:
+        self._window_scheme = WindowScheme(num_adaptive_samples)
 
     def _initialize_momentums(self, world: SimpleWorld) -> RVDict:
         """Randomly draw momentum from MultivariateNormal(0, I). This momentum variable

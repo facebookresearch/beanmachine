@@ -15,6 +15,7 @@ class Sampler(Generator[SimpleWorld, Optional[SimpleWorld], None]):
         num_adaptive_samples: int = 0,
     ):
         self.proposer = proposer
+        self.proposer.init_adaptation(num_adaptive_samples)
         self._num_samples_remaining = (
             float("inf") if num_samples is None else num_samples
         )
