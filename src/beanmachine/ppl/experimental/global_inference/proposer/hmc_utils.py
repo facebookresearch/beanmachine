@@ -3,6 +3,44 @@ import math
 import torch
 
 
+class WindowScheme:
+    def __init__(self, num_adaptive_samples: int):
+        # from Stan
+        if num_adaptive_samples < 20:
+            # do not create any window for adapting mass matrix
+            self._start_iter = self._end_iter = num_adaptive_samples
+            self._window_size = 0
+        elif num_adaptive_samples < 150:
+            self._start_iter = int(0.15 * num_adaptive_samples)
+            self._end_iter = int(0.9 * num_adaptive_samples)
+            self._window_size = self._end_iter - self._start_iter
+        else:
+            self._start_iter = 75
+            self._end_iter = num_adaptive_samples - 50
+            self._window_size = 25
+
+        self._iteration = 0
+
+    @property
+    def is_in_window(self):
+        return self._iteration >= self._start_iter and self._iteration < self._end_iter
+
+    @property
+    def is_end_window(self):
+        return self._iteration - self._start_iter == self._window_size - 1
+
+    def step(self):
+        if self.is_end_window:
+            # prepare for next window
+            self._start_iter = self._iteration + 1
+            if self._end_iter - self._start_iter < self._window_size * 4:
+                # window sizes should increase monotonically
+                self._window_size = self._end_iter - self._start_iter
+            else:
+                self._window_size *= 2
+        self._iteration += 1
+
+
 class DualAverageAdapter:
     """
     The dual averaging mechanism that's introduced in [1] and was applied to HMC and
