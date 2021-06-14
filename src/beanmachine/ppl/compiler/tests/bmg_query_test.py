@@ -47,6 +47,16 @@ def flip2():
     return flip()
 
 
+@bm.functional
+def flip3():
+    return flip() + 0
+
+
+@bm.functional
+def flip4():
+    return 0 + flip()
+
+
 # Here's a weird case. Normally query nodes are deduplicated but it is
 # possible to end up with two distinct query nodes both referring to the
 # same constant because of an optimization.
@@ -154,3 +164,37 @@ digraph "graph" {
         expected = "tensor([[False, False]])"
         self.assertEqual(expected, str(af1))
         self.assertEqual(expected, str(af2))
+
+    def test_redundant_functionals_2(self) -> None:
+        self.maxDiff = None
+
+        # Here's a particularly weird one: we have what is initially two
+        # distinct queries: flip() + 0 and 0 + flip(), but the graph optimizer
+        # deduces that both queries refer to the same non-constant node.
+
+        observed = BMGInference().to_dot([flip3(), flip4()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N2 -> N4;
+}
+"""
+        self.assertEqual(expected.strip(), str(observed).strip())
+
+        # TODO: This crashes BMG with error "duplicate query for node_id 2".
+        # We need to figure out what to do here; an easy and powerful fix
+        # would be to make adding a query to a BMG node idempotent.
+        # An alternative solution would be to run a pass which merges the
+        # two query nodes into one that is associated with both RVIDs.
+        #
+        # samples = BMGInference().infer([flip3(), flip4()], {}, 10)
+        # f = samples[flip3()]
+        # f2 = samples[flip4()]
+        # self.assertEqual(str(f), str(f2))
