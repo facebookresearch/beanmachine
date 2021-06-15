@@ -323,11 +323,10 @@ digraph "graph" {
     def test_inference(self):
         g, Rain, Sprinkler, GrassWet = self._create_graph()
         g.observe(GrassWet, True)
-        g.query(Rain)
+        qr = g.query(Rain)
         g.query(GrassWet)
-        with self.assertRaises(ValueError) as cm:
-            g.query(Rain)
-        self.assertTrue("duplicate query for node" in str(cm.exception))
+        # Querying the same node twice is idempotent.
+        self.assertEqual(g.query(Rain), qr)
         samples = g.infer(1)
         self.assertTrue(len(samples) == 1)
         # since we have observed grass wet is true the query should be true

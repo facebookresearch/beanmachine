@@ -188,13 +188,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), str(observed).strip())
 
-        # TODO: This crashes BMG with error "duplicate query for node_id 2".
-        # We need to figure out what to do here; an easy and powerful fix
-        # would be to make adding a query to a BMG node idempotent.
-        # An alternative solution would be to run a pass which merges the
-        # two query nodes into one that is associated with both RVIDs.
-        #
-        # samples = BMGInference().infer([flip3(), flip4()], {}, 10)
-        # f = samples[flip3()]
-        # f2 = samples[flip4()]
-        # self.assertEqual(str(f), str(f2))
+        samples = BMGInference().infer([flip3(), flip4()], {}, 10)
+        f3 = samples[flip3()]
+        f4 = samples[flip4()]
+        self.assertEqual(str(f3), str(f4))
