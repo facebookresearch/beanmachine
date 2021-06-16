@@ -75,6 +75,19 @@ def always_false_2():
     return flip() < 0
 
 
+# BMG supports constant single values or tensors, but the tensors must
+# be 1 or 2 dimensional; empty tensors and 3+ dimensional tensors
+# need to produce an error.
+@bm.functional
+def invalid_tensor_1():
+    return tensor([])
+
+
+@bm.functional
+def invalid_tensor_2():
+    return tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+
+
 class BMGQueryTest(unittest.TestCase):
     def test_constant_functional(self) -> None:
         self.maxDiff = None
@@ -192,3 +205,18 @@ digraph "graph" {
         f3 = samples[flip3()]
         f4 = samples[flip4()]
         self.assertEqual(str(f3), str(f4))
+
+    def test_invalid_tensors(self) -> None:
+        self.maxDiff = None
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([invalid_tensor_1(), invalid_tensor_2()], {})
+        # TODO: This error message is horrid. Fix it.
+        expected = (
+            "The model uses a [[[1.0,2.0],\\n[3.0,4.0]],\\n[[5.0,6.0],\\n[7.0,8.0]]] "
+            + "operation unsupported by Bean Machine Graph.\n"
+            + "The unsupported node is the operator of a Query.\n"
+            + "The model uses a [] operation unsupported by Bean Machine Graph.\n"
+            + "The unsupported node is the operator of a Query."
+        )
+        self.assertEqual(expected, str(ex.exception))

@@ -326,28 +326,13 @@ digraph "graph" {
     def test_dirichlet_errors(self) -> None:
         self.maxDiff = None
 
-        # These are the cases above where we cannot convert the
-        # given tensor to a one-row vector of positive reals.
+        # If the constant tensor given is not supported at all by BMG because of
+        # its dimensionality then that is the error we will report. If the tensor
+        # is supported by BMG but not valid for a Dirichlet then that's what we say.
 
-        # TODO: Error message could be more specific here than "a tensor".
-        # We could say what is wrong: its size.
-
-        expected = (
-            "The concentration of a Dirichlet is required to be"
-            + " a positive real but is a tensor."
-        )
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([d0()], {}, 1)
-        self.assertEqual(expected, str(ex.exception))
-
-        expected = (
-            "The concentration of a Dirichlet is required to be"
-            + " a 2 x 1 positive real matrix but is a tensor."
-        )
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([d2c()], {}, 1)
-        self.assertEqual(expected, str(ex.exception))
+        # TODO: Error message is misleading in that it says that the requirement
+        # is a 3x1 positive real matrix, when the real requirement is that it be
+        # ANY 1-d positive real matrix.
 
         expected = (
             "The concentration of a Dirichlet is required to be"
