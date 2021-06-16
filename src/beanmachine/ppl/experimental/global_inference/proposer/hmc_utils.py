@@ -1,10 +1,24 @@
 import math
+import warnings
 from typing import Union, cast
 
 import torch
+import torch.distributions as dist
+from beanmachine.ppl.experimental.global_inference.simple_world import (
+    RVDict,
+    SimpleWorld,
+)
 
 
 class WindowScheme:
+    """
+    Spliting adaptation iterations into a series of monotonically increasing windows,
+    which can be used to learn the mass matrices in HMC.
+    Reference:
+    [1] "HMC algorithm parameters" from Stan Reference Manual
+    https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#automatic-parameter-tuning
+    """
+
     def __init__(self, num_adaptive_samples: int):
         # from Stan
         if num_adaptive_samples < 20:
@@ -79,6 +93,57 @@ class DualAverageAdapter:
 
     def finalize(self) -> float:
         return math.exp(self._log_avg_epsilon)
+
+
+class MassMatrixAdapter:
+    """
+    Reference:
+    [1] "HMC algorithm parameters" from Stan Reference Manual
+    https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric
+    """
+
+    def __init__(self):
+        self.mass_inv: RVDict = {}  # inverse mass matrices, aka the inverse "metric"
+        self.momentum_dists = {}  # distribution objects for generating momentums
+
+        self._adapters = {}
+
+    def initialize_momentums(self, world: SimpleWorld) -> RVDict:
+        """Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
+        is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
+        for the first time, this also initialize their (inverse) mass matrices to
+        identity."""
+        momentums = {}
+        for node in world.latent_nodes:
+            # initialize M^{-1} for nodes that are seen for the first time
+            node_val = world.get_transformed(node).flatten()
+            if node not in self.mass_inv:
+                self.mass_inv[node] = torch.ones_like(node_val)
+                self.momentum_dists[node] = dist.Normal(
+                    torch.zeros_like(node_val), torch.ones_like(node_val)
+                )
+            momentums[node] = self.momentum_dists[node].sample()
+        return momentums
+
+    def step(self, world: SimpleWorld):
+        for node in world.latent_nodes:
+            if node not in self._adapters:
+                self._adapters[node] = WelfordCovariance(diagonal=True)
+            self._adapters[node].step(world.get_transformed(node).flatten())
+
+    def finalize(self) -> None:
+        for node, adapter in self._adapters.items():
+            try:
+                mass_inv = adapter.finalize()
+                self.momentum_dists[node] = dist.Normal(
+                    torch.zeros_like(mass_inv), torch.sqrt(mass_inv).reciprocal()
+                )
+                self.mass_inv[node] = mass_inv
+            except RuntimeError as e:
+                warnings.warn(str(e))
+                continue
+        # reset adapters to get ready for the next window
+        self._adapters = {}
 
 
 class WelfordCovariance:
