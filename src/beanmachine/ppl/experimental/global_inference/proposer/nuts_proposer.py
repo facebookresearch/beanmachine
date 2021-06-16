@@ -34,6 +34,7 @@ class _TreeArgs(NamedTuple):
     direction: int
     step_size: float
     initial_energy: torch.Tensor
+    mass_inv: RVDict
 
 
 class NUTSProposer(HMCProposer):
@@ -60,6 +61,7 @@ class NUTSProposer(HMCProposer):
         max_delta_energy: float = 1000.0,
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
+        adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
     ):
         # note that trajectory_length is not used in NUTS
@@ -68,6 +70,7 @@ class NUTSProposer(HMCProposer):
             trajectory_length=0.0,
             initial_step_size=initial_step_size,
             adapt_step_size=adapt_step_size,
+            adapt_mass_matrix=adapt_mass_matrix,
         )
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
@@ -75,24 +78,28 @@ class NUTSProposer(HMCProposer):
 
     def _is_u_turning(
         self,
+        mass_inv: RVDict,
         left_momentums: RVDict,
         right_momentums: RVDict,
         sum_momentums: RVDict,
     ) -> bool:
         """The generalized U-turn condition, as described in [2] Appendix 4.2"""
-        left_r = torch.cat(list(left_momentums.values()))
-        right_r = torch.cat(list(right_momentums.values()))
-        rho = torch.cat(list(sum_momentums.values()))
-
+        left_r = torch.cat([left_momentums[node] for node in mass_inv])
+        right_r = torch.cat([right_momentums[node] for node in mass_inv])
+        rho = torch.cat([mass_inv[node] * sum_momentums[node] for node in mass_inv])
         return bool((torch.dot(left_r, rho) <= 0) or (torch.dot(right_r, rho) <= 0))
 
     def _build_tree_base_case(self, root: _TreeNode, args: _TreeArgs) -> _Tree:
         """Base case of the recursive tree building algorithm: take a single leapfrog
         step in the specified direction and return a subtree."""
         world, momentums, pe, pe_grad = self._leapfrog_step(
-            root.world, root.momentums, args.step_size * args.direction, root.pe_grad
+            root.world,
+            root.momentums,
+            args.step_size * args.direction,
+            args.mass_inv,
+            root.pe_grad,
         )
-        new_energy = self._hamiltonian(world, momentums, pe)
+        new_energy = self._hamiltonian(world, momentums, args.mass_inv, pe)
         # initial_energy == -L(\theta^{m-1}) + 1/2 r_0^2 in Algorithm 6 of [1]
         delta_energy = torch.nan_to_num(new_energy - args.initial_energy, float("inf"))
         if self._multinomial_sampling:
@@ -136,11 +143,16 @@ class NUTSProposer(HMCProposer):
         )
 
         return self._combine_tree(
-            sub_tree, other_sub_tree, args.direction, biased=False
+            sub_tree, other_sub_tree, args.direction, args.mass_inv, biased=False
         )
 
     def _combine_tree(
-        self, old_tree: _Tree, new_tree: _Tree, direction: int, biased: bool
+        self,
+        old_tree: _Tree,
+        new_tree: _Tree,
+        direction: int,
+        mass_inv: RVDict,
+        biased: bool,
     ) -> _Tree:
         """Combine the old tree and the new tree into a single (large) tree. The new
         tree will be add to the left of the old tree if direction is -1, otherwise it
@@ -180,6 +192,7 @@ class NUTSProposer(HMCProposer):
             for node in left_tree.sum_momentums
         }
         turned_or_diverged = new_tree.turned_or_diverged or self._is_u_turning(
+            mass_inv,
             left_tree.left.momentums,
             right_tree.right.momentums,
             sum_momentums,
@@ -192,6 +205,7 @@ class NUTSProposer(HMCProposer):
                 for node in sum_momentums
             }
             turned_or_diverged = self._is_u_turning(
+                mass_inv,
                 left_tree.left.momentums,
                 right_tree.left.momentums,
                 extended_sum_momentums,
@@ -202,6 +216,7 @@ class NUTSProposer(HMCProposer):
                 for node in sum_momentums
             }
             turned_or_diverged = self._is_u_turning(
+                mass_inv,
                 left_tree.right.momentums,
                 right_tree.right.momentums,
                 extended_sum_momentums,
@@ -227,7 +242,9 @@ class NUTSProposer(HMCProposer):
             self.world = world
 
         momentums = self._initialize_momentums(self.world)
-        current_energy = self._hamiltonian(self.world, momentums, self._pe)
+        current_energy = self._hamiltonian(
+            self.world, momentums, self._mass_inv, self._pe
+        )
         if self._multinomial_sampling:
             # log slice is only used to check the divergence
             log_slice = -current_energy
@@ -250,13 +267,17 @@ class NUTSProposer(HMCProposer):
 
         for j in range(self._max_tree_depth):
             direction = 1 if torch.rand(()) > 0.5 else -1
-            tree_args = _TreeArgs(log_slice, direction, self.step_size, current_energy)
+            tree_args = _TreeArgs(
+                log_slice, direction, self.step_size, current_energy, self._mass_inv
+            )
             if direction == -1:
                 new_tree = self._build_tree(tree.left, j, tree_args)
             else:
                 new_tree = self._build_tree(tree.right, j, tree_args)
 
-            tree = self._combine_tree(tree, new_tree, direction, biased=True)
+            tree = self._combine_tree(
+                tree, new_tree, direction, self._mass_inv, biased=True
+            )
             if tree.turned_or_diverged:
                 break
 
