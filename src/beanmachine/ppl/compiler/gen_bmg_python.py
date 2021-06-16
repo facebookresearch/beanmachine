@@ -50,10 +50,6 @@ class GeneratedGraphPython:
         self._code.append(f"g.observe(n{graph_id}, {node.value})")
 
     def _add_query(self, node: bn.Query) -> None:
-        # BMG does not allow a query on a constant, but it is possible
-        # to end up with one in the graph. Suppress those from codegen.
-        if isinstance(node.operator, bn.ConstantNode):
-            return
         query_id = len(self.query_to_query_id)
         self.query_to_query_id[node] = query_id
         graph_id = self.node_to_graph_id[node.operator]
