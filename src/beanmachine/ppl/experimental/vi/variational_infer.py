@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Optional
 
 import torch
 import torch.distributions as dist
-import torch.nn
+import torch.nn as nn
 import torch.optim
 from torch import Tensor
 from tqdm.auto import tqdm
@@ -167,7 +167,8 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         lr: float = 1e-3,
         random_seed: Optional[int] = None,
         on_iter: Optional[Callable] = None,
-    ) -> Dict[RVIdentifier, Tensor]:
+        params: Optional[Dict[RVIdentifier, nn.Parameter]] = None,
+    ) -> Dict[RVIdentifier, nn.Parameter]:
         """
         Perform stochastic variational inference.
 
@@ -190,6 +191,9 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         :param lr: learning rate
         :param random_seed: random seed
         :param on_iter: callable executed after each optimizer iteration
+        :param params: parameter random_variable keys and their values, used
+        to initialize optimization if present. NOTE: optimizer state such as
+        momentum and weight decay are lost when not re-using optimizer itself
 
         :returns: mapping from all `bm.param` `RVIdentifier`s encountered
         to their optimized values
@@ -206,8 +210,8 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
             self.set_seed(random_seed)
             self.queries_ = list(model_to_guide_ids.keys())
             self.observations_ = observations
-
-            params = {}
+            if not params:
+                params = {}
 
             for it in tqdm(iterable=range(num_iter), desc="Training iterations"):
                 # sample world x ~ q_t
@@ -247,8 +251,8 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
                     ):
                         # binary cross entropy, analytical ELBO
                         # TODO: more general enumeration
-                        loss += torch.nn.BCELoss()(
-                            v_approx.distribution.probs,
+                        loss += nn.BCELoss()(
+                            v_approx.distribution.probs,  # pyre-ignore[16]
                             node_var.distribution.probs,
                         )
 
