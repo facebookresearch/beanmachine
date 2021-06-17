@@ -5,7 +5,6 @@ inferences on Bean Machine models."""
 
 from typing import Dict, List, Optional, Tuple
 
-import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import torch
@@ -124,12 +123,8 @@ class BMGInference:
 
         result: Dict[RVIdentifier, torch.Tensor] = {}
         for (rv, query) in rv_to_query.items():
-            if isinstance(query.operator, bn.ConstantNode):
-                # TODO: Test this with tensor and normal constants
-                result[rv] = torch.tensor([[query.operator.value] * num_samples])
-            else:
-                query_id = query_to_query_id[query]
-                result[rv] = samples[query_id]
+            query_id = query_to_query_id[query]
+            result[rv] = samples[query_id]
         mcsamples = MonteCarloSamples(result)
 
         self._finish(prof.build_mcsamples)

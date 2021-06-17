@@ -215,12 +215,15 @@ graph::Graph g;
 Eigen::MatrixXd m0(1, 1)
 m0 << 1.0;
 uint n0 = g.add_constant_pos_matrix(m0);
+uint q0 = g.query(n0);
 Eigen::MatrixXd m1(2, 1)
 m1 << 1.0, 1.5;
 uint n1 = g.add_constant_pos_matrix(m1);
+uint q1 = g.query(n1);
 Eigen::MatrixXd m2(2, 2)
 m2 << 1.0, 1.5, 2.0, 2.5;
 uint n2 = g.add_constant_pos_matrix(m2);
+uint q2 = g.query(n2);
         """
         observed = to_bmg_cpp(bmg).code
         self.assertEqual(expected.strip(), observed.strip())
@@ -233,8 +236,12 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_pos_matrix(tensor([[1.0]]))
+q0 = g.query(n0)
 n1 = g.add_constant_pos_matrix(tensor([[1.0],[1.5]]))
-n2 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))"""
+q1 = g.query(n1)
+n2 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))
+q2 = g.query(n2)
+"""
         observed = to_bmg_python(bmg).code
         self.assertEqual(expected.strip(), observed.strip())
 

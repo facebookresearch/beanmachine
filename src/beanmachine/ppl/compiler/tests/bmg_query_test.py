@@ -29,7 +29,7 @@ from torch.distributions import Bernoulli
 
 @bm.functional
 def c():
-    return tensor(1.0)
+    return tensor(2.5)
 
 
 # TODO: Try multidimensional constant tensors.
@@ -95,35 +95,45 @@ class BMGQueryTest(unittest.TestCase):
         observed = BMGInference().to_dot([c()], {})
         expected = """
 digraph "graph" {
-  N0[label=1.0];
+  N0[label=2.5];
   N1[label=Query];
   N0 -> N1;
 }"""
         self.assertEqual(expected.strip(), observed.strip())
 
-        # We do not emit the query instruction when the queried node
-        # is a constant.
         observed = BMGInference().to_cpp([c()], {})
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(torch::from_blob((float[]){1.0}, {}));
+uint n0 = g.add_constant(torch::from_blob((float[]){2.5}, {}));
+uint q0 = g.query(n0);
          """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # We do not emit the query instruction when the queried node
-        # is a constant.
         observed = BMGInference().to_python([c()], {})
         expected = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(tensor(1.0))
+n0 = g.add_constant(tensor(2.5))
+q0 = g.query(n0)
         """
         self.assertEqual(expected.strip(), observed.strip())
 
-        samples = BMGInference().infer([c()], {}, 10)
+        samples = BMGInference().infer([c()], {}, 1)
         observed = samples[c()]
-        expected = "tensor([[1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])"
+        # TODO: This output indicates that there is a bug in code
+        # generation and graph generation; we should NOT be calling
+        # add_constant on tensor values in the generated python code
+        # and we should similarly not be calling it when building
+        # the BMG graph in memory.  The python interop bindings will
+        # take a one-valued tensor and convert it to True or False
+        # depending on whether that one value is nonzero or zero.
+        # Similarly, we have code which calls add_constant on multi-
+        # valued tensors, which will crash.  The codegen and graph
+        # gen code needs to be fixed, and likely the python interop
+        # bindings should be renamed to more descriptive names than
+        # add_constant.
+        expected = "tensor([[True]])"
         self.assertEqual(expected.strip(), str(observed).strip())
 
     def test_redundant_functionals(self) -> None:
