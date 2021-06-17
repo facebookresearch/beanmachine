@@ -232,6 +232,7 @@ class StochasticVariationalInferTest(unittest.TestCase):
             params = phi()
             return dist.Normal(params[0], params[1].exp())
 
+        # 100 iterations in single call
         opt_params = VariationalInference().infer(
             {model.mu(): q_mu()},
             observations={
@@ -241,6 +242,44 @@ class StochasticVariationalInferTest(unittest.TestCase):
             num_iter=100,
             lr=1e0,
         )
+        q_mu_id = q_mu()
+        mu_approx = None
+        with World() as w:
+            w.set_params(opt_params)
+            w.call(q_mu_id)
+            mu_approx = w.get_node_in_world_raise_error(q_mu_id).distribution
+
+        sample_mean = mu_approx.sample((100, 1)).mean()
+        self.assertGreater(sample_mean, 5.0)
+
+        sample_var = mu_approx.sample((100, 1)).var()
+        self.assertGreater(sample_var, 0.1)
+
+    def test_normal_normal_guide_step(self):
+        model = NormalNormal()
+
+        @bm.param
+        def phi():
+            return torch.zeros(2)  # mean, log std
+
+        @bm.random_variable
+        def q_mu():
+            params = phi()
+            return dist.Normal(params[0], params[1].exp())
+
+        # 100 steps, each 1 iteration
+        opt_params = None
+        for _ in range(100):
+            opt_params = VariationalInference().infer(
+                {model.mu(): q_mu()},
+                observations={
+                    model.x(1): torch.tensor(9.0),
+                    model.x(2): torch.tensor(10.0),
+                },
+                num_iter=1,
+                lr=1e0,
+                params=opt_params,
+            )
         q_mu_id = q_mu()
         mu_approx = None
         with World() as w:
