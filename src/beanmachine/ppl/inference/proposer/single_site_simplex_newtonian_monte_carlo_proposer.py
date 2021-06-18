@@ -58,7 +58,6 @@ class SingleSiteSimplexNewtonianMonteCarloProposer(SingleSiteAncestralProposer):
             1 - ((node_val_reshaped * node_val_reshaped) * (hessian_diag_minus_max))
         ).reshape(node_val.shape)
 
-        # pyre-fixme
         mean = node_var.distribution.mean
 
         predicted_alpha = torch.where(

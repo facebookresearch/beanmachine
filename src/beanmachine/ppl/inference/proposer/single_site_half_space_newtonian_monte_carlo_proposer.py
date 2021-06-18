@@ -58,7 +58,6 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             condition, predicted_alpha, tensor(1.0).to(dtype=predicted_beta.dtype)
         )
         mean = (
-            # pyre-fixme
             node_var.distribution.mean.reshape(-1)
             if is_valid(node_var.distribution.mean)
             else torch.ones(predicted_beta.shape).to(dtype=predicted_beta.dtype)
