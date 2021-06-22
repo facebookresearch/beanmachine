@@ -54,10 +54,10 @@ class Graph::NMC {
   // and the vector of the intervening deterministic nodes
   // between the i-th node and its immediate stochastic descendants.
   // In other words, these are the cached results of
-  // invoking graph::get_nodes_up_to_immediate_descendants
+  // invoking graph::compute_affected_nodes
   // for each node.
-  std::vector<std::vector<Node*>> sto_descendants;
-  std::vector<std::vector<Node*>> det_descendants;
+  std::vector<std::vector<Node*>> sto_affected_nodes;
+  std::vector<std::vector<Node*>> det_affected_nodes;
 
  public:
   NMC(Graph* g, std::mt19937& gen) : g(g), gen(gen) {}
@@ -161,8 +161,8 @@ class Graph::NMC {
       for (uint id : sto_node_ids) {
         sto_nodes.push_back(node_ptrs[id]);
       }
-      det_descendants.push_back(det_nodes);
-      sto_descendants.push_back(sto_nodes);
+      det_affected_nodes.push_back(det_nodes);
+      sto_affected_nodes.push_back(sto_nodes);
       if (g->_collect_performance_data) {
         g->profiler_data.det_supp_count[node->index] = det_nodes.size();
       }
@@ -180,13 +180,13 @@ class Graph::NMC {
           VariableType::COL_SIMPLEX_MATRIX) { // TODO make more generic
         if (tgt_node->value.type.rows == 2) {
           nmc_step_for_dirichlet_beta(
-              tgt_node, det_descendants[i], sto_descendants[i]);
+              tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
         } else {
           nmc_step_for_dirichlet_gamma(
-              tgt_node, det_descendants[i], sto_descendants[i]);
+              tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
         }
       } else {
-        mh_step(tgt_node, det_descendants[i], sto_descendants[i]);
+        mh_step(tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
       }
     }
   }
@@ -262,22 +262,22 @@ class Graph::NMC {
 
   // Returns the NMC proposal distribution conditioned on the
   // target node's current value.
-  // NOTE: assumes that det_descendants's values are already
+  // NOTE: assumes that det_affected_nodes's values are already
   // evaluated according to the target node's value.
   std::unique_ptr<proposer::Proposer> get_proposal_distribution(
       Node* tgt_node,
       NodeValue value,
-      const std::vector<Node*>& det_descendants,
-      const std::vector<Node*>& sto_descendants) {
+      const std::vector<Node*>& det_affected_nodes,
+      const std::vector<Node*>& sto_affected_nodes) {
     g->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
 
     tgt_node->grad1 = 1;
     tgt_node->grad2 = 0;
-    compute_gradients(det_descendants);
+    compute_gradients(det_affected_nodes);
 
     double grad1 = 0;
     double grad2 = 0;
-    for (Node* node : sto_descendants) {
+    for (Node* node : sto_affected_nodes) {
       node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
     }
 
@@ -362,8 +362,8 @@ class Graph::NMC {
 
   void mh_step(
       Node* tgt_node,
-      const std::vector<Node*>& det_descendants,
-      const std::vector<Node*>& sto_descendants) {
+      const std::vector<Node*>& det_affected_nodes,
+      const std::vector<Node*>& sto_affected_nodes) {
     g->pd_begin(ProfilerEvent::NMC_STEP);
     // Implements a Metropolis-Hastings step using the NMC proposer.
     //
@@ -399,35 +399,37 @@ class Graph::NMC {
     // * If we rejected it, restore the saved state.
 
     NodeValue old_value = tgt_node->value;
-    save_old_values(det_descendants);
+    save_old_values(det_affected_nodes);
 
-    double old_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
+    double old_sto_affected_nodes_log_prob =
+        compute_log_prob_of(sto_affected_nodes);
     auto proposal_distribution_given_old_value = get_proposal_distribution(
-        tgt_node, old_value, det_descendants, sto_descendants);
+        tgt_node, old_value, det_affected_nodes, sto_affected_nodes);
 
     NodeValue new_value = sample(proposal_distribution_given_old_value);
 
     tgt_node->value = new_value;
-    eval(det_descendants);
+    eval(det_affected_nodes);
 
-    double new_sto_descendants_log_prob = compute_log_prob_of(sto_descendants);
+    double new_sto_affected_nodes_log_prob =
+        compute_log_prob_of(sto_affected_nodes);
     auto proposal_distribution_given_new_value = get_proposal_distribution(
-        tgt_node, new_value, det_descendants, sto_descendants);
+        tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
 
-    double logacc = new_sto_descendants_log_prob -
-        old_sto_descendants_log_prob +
+    double logacc = new_sto_affected_nodes_log_prob -
+        old_sto_affected_nodes_log_prob +
         proposal_distribution_given_new_value->log_prob(old_value) -
         proposal_distribution_given_old_value->log_prob(new_value);
 
     bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
     if (!accepted) {
-      restore_old_values(det_descendants);
+      restore_old_values(det_affected_nodes);
       tgt_node->value = old_value;
     }
 
     // TODO clarify why it is necessary to clear the gradients
     // since we seem to be computing them from scratch when we need them.
-    clear_gradients(det_descendants);
+    clear_gradients(det_affected_nodes);
     tgt_node->grad1 = 0;
     tgt_node->grad2 = 0;
     g->pd_finish(ProfilerEvent::NMC_STEP);
@@ -471,13 +473,13 @@ class Graph::NMC {
       NodeValue old_value(AtomicType::POS_REAL, old_X_k);
       save_old_values(det_nodes);
       compute_gradients(det_nodes);
-      double old_sto_descendants_log_prob;
+      double old_sto_affected_nodes_log_prob;
       auto old_prop = create_proposer_dirichlet_gamma(
           sto_nodes,
           tgt_node,
           param_a,
           old_value,
-          /* out */ old_sto_descendants_log_prob);
+          /* out */ old_sto_affected_nodes_log_prob);
 
       NodeValue new_value = sample(old_prop);
 
@@ -494,15 +496,15 @@ class Graph::NMC {
       eval(det_nodes);
       compute_gradients(det_nodes);
 
-      double new_sto_descendants_log_prob;
+      double new_sto_affected_nodes_log_prob;
       auto new_prop = create_proposer_dirichlet_gamma(
           sto_nodes,
           tgt_node,
           param_a,
           new_value,
-          /* out */ new_sto_descendants_log_prob);
-      double logacc = new_sto_descendants_log_prob -
-          old_sto_descendants_log_prob + new_prop->log_prob(old_value) -
+          /* out */ new_sto_affected_nodes_log_prob);
+      double logacc = new_sto_affected_nodes_log_prob -
+          old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
           old_prop->log_prob(new_value);
       // Accept or reject, reset (values and) gradients
       bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
@@ -557,14 +559,14 @@ class Graph::NMC {
     NodeValue old_value(AtomicType::PROBABILITY, old_X_k);
     save_old_values(det_nodes);
     compute_gradients(det_nodes);
-    double old_sto_descendants_log_prob;
+    double old_sto_affected_nodes_log_prob;
     auto old_prop = create_proposer_dirichlet_beta(
         sto_nodes,
         tgt_node,
         param_a,
         param_b,
         old_value,
-        /* out */ old_sto_descendants_log_prob);
+        /* out */ old_sto_affected_nodes_log_prob);
 
     NodeValue new_value = sample(old_prop);
     *(src_node->value._matrix.data()) = new_value._double;
@@ -575,16 +577,16 @@ class Graph::NMC {
     eval(det_nodes);
     compute_gradients(det_nodes);
 
-    double new_sto_descendants_log_prob;
+    double new_sto_affected_nodes_log_prob;
     auto new_prop = create_proposer_dirichlet_beta(
         sto_nodes,
         tgt_node,
         param_a,
         param_b,
         new_value,
-        /* out */ new_sto_descendants_log_prob);
-    double logacc = new_sto_descendants_log_prob -
-        old_sto_descendants_log_prob + new_prop->log_prob(old_value) -
+        /* out */ new_sto_affected_nodes_log_prob);
+    double logacc = new_sto_affected_nodes_log_prob -
+        old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
         old_prop->log_prob(new_value);
     // Accept or reject, reset (values and) gradients
     bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
