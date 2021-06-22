@@ -18,7 +18,6 @@ import styles from './styles.module.css';
 const features = [
   {
     title: <>Declarative modeling</>,
-    // imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
         Clean, intuitive syntax that lets you focus on the model and leave
@@ -28,7 +27,6 @@ const features = [
   },
   {
     title: <>Programmable inference</>,
-    // imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
         Mix-and-match inference methods, proposers, and inference strategies to
@@ -37,8 +35,7 @@ const features = [
     ),
   },
   {
-    title: <>Powered by React</>,
-    // imageUrl: 'img/undraw_docusaurus_react.svg',
+    title: <>Powered by PyTorch</>,
     description: (
       <>
         Leverage native GPU and autograd support and integrate seamlessly with
