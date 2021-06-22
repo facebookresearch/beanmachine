@@ -793,7 +793,7 @@ class BMGRuntime:
             args = [function.receiver] + arguments
             assert isinstance(f, Callable)
         elif (
-            isinstance(function, builtin_function_or_method)  # pyre-ignore
+            isinstance(function, builtin_function_or_method)
             and isinstance(function.__self__, torch.Tensor)
             and function.__name__ in known_tensor_instance_functions
         ):
