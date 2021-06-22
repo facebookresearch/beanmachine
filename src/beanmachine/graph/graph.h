@@ -450,6 +450,7 @@ class Node {
     return false;
   }
   // only valid for stochastic nodes
+  // TODO: shouldn't we then restrict them to those classes? See below.
   virtual double log_prob() const {
     return 0;
   }
@@ -457,6 +458,7 @@ class Node {
     return true;
   }
   // gradient_log_prob is also only valid for stochastic nodes
+  // TODO: shouldn't we then restrict them to those classes? See above.
   // this function adds the gradients to the passed in gradients
   virtual void gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
       const {}
