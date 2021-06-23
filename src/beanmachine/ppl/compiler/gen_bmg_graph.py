@@ -85,8 +85,10 @@ class GeneratedGraph:
             graph_id = self.graph.add_constant_natural_matrix(_reshape(v))
         elif t is bn.ConstantBooleanMatrixNode:
             graph_id = self.graph.add_constant_bool_matrix(_reshape(v))
+        elif isinstance(v, torch.Tensor) and v.numel() != 1:
+            graph_id = self.graph.add_constant_real_matrix(_reshape(v))
         else:
-            graph_id = self.graph.add_constant(v)
+            graph_id = self.graph.add_constant(float(v))
         self.node_to_graph_id[node] = graph_id
 
     def _generate_node(self, node: bn.BMGNode) -> None:

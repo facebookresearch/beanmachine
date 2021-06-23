@@ -32,7 +32,10 @@ def c():
     return tensor(2.5)
 
 
-# TODO: Try multidimensional constant tensors.
+@bm.functional
+def c2():
+    return tensor([1.5, -2.5])
+
 
 # Two RVIDs but they both refer to the same query node:
 
@@ -92,48 +95,50 @@ class BMGQueryTest(unittest.TestCase):
     def test_constant_functional(self) -> None:
         self.maxDiff = None
 
-        observed = BMGInference().to_dot([c()], {})
+        observed = BMGInference().to_dot([c(), c2()], {})
         expected = """
 digraph "graph" {
   N0[label=2.5];
   N1[label=Query];
+  N2[label="[1.5,-2.5]"];
+  N3[label=Query];
   N0 -> N1;
-}"""
+  N2 -> N3;
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
-        observed = BMGInference().to_cpp([c()], {})
+        observed = BMGInference().to_cpp([c(), c2()], {})
+        # TODO: Is this valid C++? The API for adding constants
+        # has changed but the code generator has not kept up.
+        # Check if this is wrong and fix it.
         expected = """
 graph::Graph g;
 uint n0 = g.add_constant(torch::from_blob((float[]){2.5}, {}));
 uint q0 = g.query(n0);
+uint n1 = g.add_constant(torch::from_blob((float[]){1.5,-2.5}, {2}));
+uint q1 = g.query(n1);
          """
         self.assertEqual(expected.strip(), observed.strip())
 
-        observed = BMGInference().to_python([c()], {})
+        observed = BMGInference().to_python([c(), c2()], {})
         expected = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(tensor(2.5))
+n0 = g.add_constant(2.5)
 q0 = g.query(n0)
+n1 = g.add_constant_real_matrix(tensor([[1.5],[-2.5]]))
+q1 = g.query(n1)
         """
         self.assertEqual(expected.strip(), observed.strip())
 
-        samples = BMGInference().infer([c()], {}, 1)
+        samples = BMGInference().infer([c(), c2()], {}, 1)
         observed = samples[c()]
-        # TODO: This output indicates that there is a bug in code
-        # generation and graph generation; we should NOT be calling
-        # add_constant on tensor values in the generated python code
-        # and we should similarly not be calling it when building
-        # the BMG graph in memory.  The python interop bindings will
-        # take a one-valued tensor and convert it to True or False
-        # depending on whether that one value is nonzero or zero.
-        # Similarly, we have code which calls add_constant on multi-
-        # valued tensors, which will crash.  The codegen and graph
-        # gen code needs to be fixed, and likely the python interop
-        # bindings should be renamed to more descriptive names than
-        # add_constant.
-        expected = "tensor([[True]])"
+        expected = "tensor([[2.5000]])"
+        self.assertEqual(expected.strip(), str(observed).strip())
+        observed = samples[c2()]
+        expected = "tensor([[[ 1.5000, -2.5000]]], dtype=torch.float64)"
         self.assertEqual(expected.strip(), str(observed).strip())
 
     def test_redundant_functionals(self) -> None:
