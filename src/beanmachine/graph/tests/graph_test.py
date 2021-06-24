@@ -63,14 +63,14 @@ class TestBayesNet(unittest.TestCase):
         g.add_distribution(
             graph.DistributionType.TABULAR,
             graph.AtomicType.BOOLEAN,
-            [c2, g.add_constant(True)],
+            [c2, g.add_constant_bool(True)],
         )
 
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.TABULAR,
                 graph.AtomicType.BOOLEAN,
-                [c2, g.add_constant(1)],
+                [c2, g.add_constant_natural(1)],
             )
         self.assertTrue("only supports boolean parents" in str(cm.exception))
 
@@ -117,7 +117,7 @@ class TestBayesNet(unittest.TestCase):
         )
 
         # negative test on type of parent
-        c3 = g.add_constant(1)
+        c3 = g.add_constant_natural(1)
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.BERNOULLI, graph.AtomicType.BOOLEAN, [c3]
@@ -159,7 +159,7 @@ class TestBayesNet(unittest.TestCase):
             "Beta distribution must have exactly two parents" in str(cm.exception)
         )
         # negative test on type of parent
-        c3 = g.add_constant(True)
+        c3 = g.add_constant_bool(True)
         with self.assertRaises(ValueError) as cm:
             g.add_distribution(
                 graph.DistributionType.BETA, graph.AtomicType.PROBABILITY, [c3, c3]
@@ -186,7 +186,7 @@ class TestBayesNet(unittest.TestCase):
 
     def test_binomial(self):
         g = graph.Graph()
-        c1 = g.add_constant(10)
+        c1 = g.add_constant_natural(10)
         c2 = g.add_constant_probability(0.55)
         d1 = g.add_distribution(
             graph.DistributionType.BINOMIAL, graph.AtomicType.NATURAL, [c1, c2]

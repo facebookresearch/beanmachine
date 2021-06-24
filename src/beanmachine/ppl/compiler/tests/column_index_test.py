@@ -121,7 +121,7 @@ uint q0 = g.query(n15);
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(0.0)
+n0 = g.add_constant_real(0.0)
 n1 = g.add_constant_pos_real(1.0)
 n2 = g.add_distribution(
   graph.DistributionType.NORMAL,
@@ -136,15 +136,15 @@ n5 = g.add_distribution(
   [n4],
 )
 n6 = g.add_operator(graph.OperatorType.SAMPLE, [n5])
-n7 = g.add_constant(2)
+n7 = g.add_constant_natural(2)
 n8 = g.add_operator(graph.OperatorType.EXP, [n3])
 n9 = g.add_operator(graph.OperatorType.TO_REAL, [n8])
 n10 = g.add_operator(
   graph.OperatorType.TO_MATRIX,
   [n7, n7, n9, n3, n3, n3],
 )
-n11 = g.add_constant(1)
-n12 = g.add_constant(0)
+n11 = g.add_constant_natural(1)
+n12 = g.add_constant_natural(0)
 n13 = g.add_operator(
   graph.OperatorType.IF_THEN_ELSE,
   [n6, n11, n12],

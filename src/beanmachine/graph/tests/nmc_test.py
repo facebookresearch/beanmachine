@@ -34,7 +34,7 @@ class TestNMC(unittest.TestCase):
             (6.7, 5.6),  # overall std
         ]
         g = graph.Graph()
-        zero = g.add_constant(0.0)
+        zero = g.add_constant_real(0.0)
         thousand = g.add_constant_pos_real(1000.0)
         # overall_mean ~ Normal(0, 1000)
         overall_mean_dist = g.add_distribution(
@@ -95,11 +95,11 @@ class TestNMC(unittest.TestCase):
         SIGMA_X = 5.0
         SIGMA_Y = 2.0
         RHO = 0.7
-        x_sq_term = g.add_constant(-0.5 / (1 - RHO ** 2) / SIGMA_X ** 2)
+        x_sq_term = g.add_constant_real(-0.5 / (1 - RHO ** 2) / SIGMA_X ** 2)
         g.add_factor(graph.FactorType.EXP_PRODUCT, [x_sq, x_sq_term])
-        y_sq_term = g.add_constant(-0.5 / (1 - RHO ** 2) / SIGMA_Y ** 2)
+        y_sq_term = g.add_constant_real(-0.5 / (1 - RHO ** 2) / SIGMA_Y ** 2)
         g.add_factor(graph.FactorType.EXP_PRODUCT, [y_sq, y_sq_term])
-        x_y_term = g.add_constant(RHO / (1 - RHO ** 2) / SIGMA_X / SIGMA_Y)
+        x_y_term = g.add_constant_real(RHO / (1 - RHO ** 2) / SIGMA_X / SIGMA_Y)
         g.add_factor(graph.FactorType.EXP_PRODUCT, [x_y, x_y_term])
         g.query(x)
         g.query(x_sq)
@@ -131,7 +131,7 @@ class TestNMC(unittest.TestCase):
         P(Phi(x) | y = false) ~ Beta(1, 2)
         """
         g = graph.Graph()
-        zero = g.add_constant(0.0)
+        zero = g.add_constant_real(0.0)
         one = g.add_constant_pos_real(1.0)
         prior = g.add_distribution(
             graph.DistributionType.NORMAL, graph.AtomicType.REAL, [zero, one]
@@ -213,10 +213,10 @@ class TestNMC(unittest.TestCase):
         )
         f = [g.add_operator(graph.OperatorType.SAMPLE, [flat]) for _ in SCORES]
         for i in range(len(SCORES)):
-            tau_i_i = g.add_constant(-0.5 * tau[i, i])
+            tau_i_i = g.add_constant_real(-0.5 * tau[i, i])
             g.add_factor(graph.FactorType.EXP_PRODUCT, [tau_i_i, f[i], f[i]])
             for j in range(i + 1, len(SCORES)):
-                tau_i_j = g.add_constant(-1.0 * tau[i, j])
+                tau_i_j = g.add_constant_real(-1.0 * tau[i, j])
                 g.add_factor(graph.FactorType.EXP_PRODUCT, [tau_i_j, f[i], f[j]])
         # for each labeler l:
         #     spec_l ~ Beta(SPEC_ALPHA, SPEC_BETA)
@@ -310,8 +310,8 @@ class TestNMC(unittest.TestCase):
         )
         X_1 = g.add_operator(graph.OperatorType.SAMPLE, [bernoulli])
         X_2 = g.add_operator(graph.OperatorType.SAMPLE, [bernoulli])
-        plus_one = g.add_constant(1.0)
-        minus_one = g.add_constant(-1.0)
+        plus_one = g.add_constant_real(1.0)
+        minus_one = g.add_constant_real(-1.0)
         sigma_1 = g.add_operator(
             graph.OperatorType.IF_THEN_ELSE, [X_1, plus_one, minus_one]
         )
@@ -334,7 +334,7 @@ class TestNMC(unittest.TestCase):
             -((np.expand_dims(scores, 1) - scores) ** 2) / 2 / rho ** 2
         )
         tau = np.linalg.inv(covar)  # the precision matrix
-        neg_mu = bmg.add_constant(-mu)
+        neg_mu = bmg.add_constant_real(-mu)
         # f ~ GP
         flat = bmg.add_distribution(
             graph.DistributionType.FLAT, graph.AtomicType.REAL, []
@@ -347,12 +347,12 @@ class TestNMC(unittest.TestCase):
                 bmg.add_operator(graph.OperatorType.ADD, [fi, neg_mu]) for fi in f
             ]
         for i in range(len(scores)):
-            tau_i_i = bmg.add_constant(-0.5 * tau[i, i])
+            tau_i_i = bmg.add_constant_real(-0.5 * tau[i, i])
             bmg.add_factor(
                 graph.FactorType.EXP_PRODUCT, [tau_i_i, f_centered[i], f_centered[i]]
             )
             for j in range(i + 1, len(scores)):
-                tau_i_j = bmg.add_constant(-1.0 * tau[i, j])
+                tau_i_j = bmg.add_constant_real(-1.0 * tau[i, j])
                 bmg.add_factor(
                     graph.FactorType.EXP_PRODUCT,
                     [tau_i_j, f_centered[i], f_centered[j]],

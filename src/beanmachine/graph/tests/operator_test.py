@@ -19,13 +19,13 @@ class TestOperators(unittest.TestCase):
         self.maxDiff = None
 
         g = bmg.Graph()
-        c1 = g.add_constant(2.5)
-        c2 = g.add_constant(-1.5)
+        c1 = g.add_constant_real(2.5)
+        c2 = g.add_constant_real(-1.5)
         c3 = g.add_constant_probability(0.5)
         c4 = g.add_constant_probability(0.6)
         c5 = g.add_constant_probability(0.7)
-        c6 = g.add_constant(23)  # NATURAL
-        c7 = g.add_constant(False)
+        c6 = g.add_constant_natural(23)
+        c7 = g.add_constant_bool(False)
         c8 = g.add_constant_neg_real(-1.25)
         c9 = g.add_constant_pos_real(1.25)
         # add const matrices, operators on matrix to be added
@@ -186,7 +186,7 @@ Node 33 type 3 parents [ 0 1 ] children [ ] real 0
 
     def test_arithmetic(self) -> None:
         g = bmg.Graph()
-        c1 = g.add_constant(3)  # natural
+        c1 = g.add_constant_natural(3)
         o0 = g.add_operator(bmg.OperatorType.TO_REAL, [c1])
         o1 = g.add_operator(bmg.OperatorType.NEGATE, [o0])
         o2 = g.add_operator(bmg.OperatorType.EXP, [o1])  # positive real
@@ -234,9 +234,9 @@ Node 33 type 3 parents [ 0 1 ] children [ ] real 0
         # constrains it to the range (0.0, 1.0)
 
         g = bmg.Graph()
-        c0 = g.add_constant(0.25)
-        c1 = g.add_constant(0.5)
-        c2 = g.add_constant(0.75)
+        c0 = g.add_constant_real(0.25)
+        c1 = g.add_constant_real(0.5)
+        c2 = g.add_constant_real(0.75)
         o0 = g.add_operator(bmg.OperatorType.ADD, [c0, c1])
         o1 = g.add_operator(bmg.OperatorType.TO_PROBABILITY, [o0])
         o2 = g.add_operator(bmg.OperatorType.ADD, [c1, c2])

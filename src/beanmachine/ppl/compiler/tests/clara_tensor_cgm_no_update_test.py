@@ -281,7 +281,7 @@ n1 = g.add_distribution(
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 n4 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
-n5 = g.add_constant(0)
+n5 = g.add_constant_natural(0)
 n6 = g.add_operator(graph.OperatorType.INDEX, [n2, n5])
 n7 = g.add_operator(graph.OperatorType.LOG, [n6])
 n8 = g.add_operator(graph.OperatorType.INDEX, [n3, n5])
@@ -291,7 +291,7 @@ n11 = g.add_operator(
   graph.OperatorType.ADD,
   [n7, n9, n10],
 )
-n12 = g.add_constant(1)
+n12 = g.add_constant_natural(1)
 n13 = g.add_operator(graph.OperatorType.INDEX, [n2, n12])
 n14 = g.add_operator(graph.OperatorType.LOG, [n13])
 n15 = g.add_operator(graph.OperatorType.INDEX, [n4, n5])
