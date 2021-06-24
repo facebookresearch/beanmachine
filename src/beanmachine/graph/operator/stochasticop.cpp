@@ -7,15 +7,69 @@ namespace beanmachine {
 namespace oper {
 
 void StochasticOperator::gradient_log_prob(
-    double& first_grad,
-    double& second_grad) const {
+    double& log_prob_grad1,
+    double& log_prob_grad2) const {
+  // The implementation of this method is a little subtle.
+  //
+  // We want to compute the gradient of log prob given the gradient of
+  // the inputs to that function.
+  //
+  // The standard way of computing that is just to use the chain rule.
+  // This is straightforward for deterministic nodes because
+  // the function inputs correspond exactly to the in-nodes,
+  // and the function for which the derivative is being computed is
+  // the deterministic node itself.
+  // So the chain rule applies pretty directly and straightforwardly.
+  //
+  // For stochastic nodes we have two complications beyond that.
+  // * we are not computing the derivative of this stochastic node's value,
+  //   we are computing the derivative of the log prob,
+  //   which is in fact not represented by *any* node.
+  // * The in-nodes of the stochastic node are *not* *all*
+  //   the inputs of the log prob function.
+  //   The value of the stochastic node is an additional input to log prob,
+  //   but it is not represented as an in-node.
+  //
+  // This makes the computation of this derivative less uniform
+  // and less directly corresponding to the typical use of the chain rule.
+  //
+  // Still, it should be possible to simply apply the chain rule
+  // and find an expression involving the gradient of this stochastic node's
+  // value and the gradients of the other in-nodes.
+  // The only disadvantage to that is that the treatment of
+  // log prob's inputs would not be perfectly uniform,
+  // with the stochastic operator's value being treated differently.
+  //
+  // At this point, we note something else.
+  // We are computing the derivative with respect to some (possibly distant)
+  // quantity z. For v the value of this stochastic node and
+  // p the remaining inputs (the in-nodes), we have:
+  // d(log prob(v,p))/dz =
+  //     d(log prob(v,p))/dv * dv/dz   +
+  //     d(log prob(v,p))/dp * dp/dz.
+  //
+  // Note that the value v is not determined by any other nodes in the model,
+  // because it is sampled (it has no ancestors).
+  //
+  // Therefore, the only way dv/dz is not 0 is if z is v itself.
+  // In that case, dp/dz will be zero because v is not an ancestor of p.
+  // If z is *not* v, then dv/dz is zero
+  // (for z is not an ancestor of v since no other node is).
+  //
+  // Therefore, at least one of dv/dz or dp/dz will be zero,
+  // and only one of the terms of the addition above will be non-zero.
+  //
+  // We can determine which one by examining dv/dz (the field grad1).
+  // If grad1 is not 0, then z is v,
+  // and the log prob gradient will be d(log prob(v,p))/dv.
+  // Otherwise, z is not v, dv/dz is 0,
+  // and the log prob gradient will be d(log prob(v,p))/dp.
+
   const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
-  // TODO why grad1 != 0.0 determines using
-  // gradient of logprob of value or parameter?
   if (grad1 != 0.0) {
-    dist->gradient_log_prob_value(value, first_grad, second_grad);
+    dist->gradient_log_prob_value(value, log_prob_grad1, log_prob_grad2);
   } else {
-    dist->gradient_log_prob_param(value, first_grad, second_grad);
+    dist->gradient_log_prob_param(value, log_prob_grad1, log_prob_grad2);
   }
 }
 

@@ -39,9 +39,8 @@ class GeneratedGraph:
         self.graph.observe(self.node_to_graph_id[node.observed], node.value)
 
     def _add_query(self, node: bn.Query) -> None:
-        if not isinstance(node.operator, bn.ConstantNode):
-            query_id = self.graph.query(self.node_to_graph_id[node.operator])
-            self.query_to_query_id[node] = query_id
+        query_id = self.graph.query(self.node_to_graph_id[node.operator])
+        self.query_to_query_id[node] = query_id
 
     def _inputs(self, node: bn.BMGNode) -> List[int]:
         return [self.node_to_graph_id[x] for x in node.inputs]
@@ -86,8 +85,10 @@ class GeneratedGraph:
             graph_id = self.graph.add_constant_natural_matrix(_reshape(v))
         elif t is bn.ConstantBooleanMatrixNode:
             graph_id = self.graph.add_constant_bool_matrix(_reshape(v))
+        elif isinstance(v, torch.Tensor) and v.numel() != 1:
+            graph_id = self.graph.add_constant_real_matrix(_reshape(v))
         else:
-            graph_id = self.graph.add_constant(v)
+            graph_id = self.graph.add_constant(float(v))
         self.node_to_graph_id[node] = graph_id
 
     def _generate_node(self, node: bn.BMGNode) -> None:
@@ -98,17 +99,13 @@ class GeneratedGraph:
         # TODO: We could consider traversing only nodes reachable from
         # observations or queries.
         #
-        # There are four cases to consider:
+        # There are three cases to consider:
         #
         # * Observations: there is no associated value returned by the graph
         #   when we add an observation, so there is nothing to track.
         #
-        # * Query of a constant: BMG does not support query on a constant.
-        #   We skip adding these; when it comes time to fill in the results
-        #   dictionary we will just make a vector of the constant value.
-        #
-        # * Query of an operator: The graph gives us the column index in the
-        #   list of samples it returns for this query. We track it in
+        # * Query of an operator (or constant): The graph gives us the column
+        #   index in the list of samples it returns for this query. We track it in
         #   query_to_query_id.
         #
         # * Any other node: the graph gives us the graph identifier of the new

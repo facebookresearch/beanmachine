@@ -104,7 +104,7 @@ def symmetric_inverse(
     later inversed as we'd like to compute negative hessian inverse eigenvalues.
     :returns: eigen value and eigen vector of the negative hessian inverse
     """
-    eig_vals, eig_vecs = torch.symeig(neg_hessian, eigenvectors=True)
+    eig_vals, eig_vecs = torch.linalg.eigh(neg_hessian)
     eig_vals[eig_vals <= 0] = max_zval
     inverse_eig_vals = eig_vals.reciprocal()
     return eig_vecs, inverse_eig_vals

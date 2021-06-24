@@ -17,6 +17,7 @@ from beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_prop
 )
 from torch import tensor
 
+
 # This makes the results deterministic and reproducible.
 
 logging.getLogger("beanmachine").setLevel(50)
@@ -80,7 +81,7 @@ class tutorialNealsFunnelTest(unittest.TestCase):
 
         # Note: No explicit seed here (in original tutorial model). Should we add one?
         nmc = bm.SingleSiteNewtonianMonteCarlo()
-        samples_nmc = nmc.infer(
+        _ = nmc.infer(
             queries=queries,
             observations=observations,
             num_samples=num_samples,
@@ -88,7 +89,7 @@ class tutorialNealsFunnelTest(unittest.TestCase):
         )
 
         hmc = bm.SingleSiteHamiltonianMonteCarlo(path_length=0.1, step_size=0.01)
-        samples_hmc = hmc.infer(
+        _ = hmc.infer(
             queries=queries,
             observations=observations,
             num_samples=num_samples,
@@ -114,7 +115,7 @@ class tutorialNealsFunnelTest(unittest.TestCase):
         )
 
         bmg = BMGInference()
-        samples_bmg = bmg.infer(
+        _ = bmg.infer(
             queries=queries,
             observations=observations,
             num_samples=num_samples,

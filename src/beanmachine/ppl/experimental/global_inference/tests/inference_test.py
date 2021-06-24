@@ -25,7 +25,7 @@ def test_inference():
     nuts = bm.GlobalNoUTurnSampler()
     queries = [model.foo()]
     observations = {model.bar(): torch.tensor(0.5)}
-    num_samples = 10
+    num_samples = 30
     num_chains = 2
     samples = nuts.infer(
         queries,

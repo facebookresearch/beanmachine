@@ -233,7 +233,7 @@ class SingleSiteNoUTurnSamplerProposer(SingleSiteAncestralProposer):
                 self.covariance
                 + torch.eye(len(self.covariance)) * self.covariance_diagonal_padding
             )
-            lower = torch.cholesky(self.covariance)
+            lower = torch.linalg.cholesky(self.covariance)
             identity_matrix = torch.eye(lower.size(-1), dtype=lower.dtype)
             self.l_inv = torch.triangular_solve(
                 identity_matrix, lower, upper=False

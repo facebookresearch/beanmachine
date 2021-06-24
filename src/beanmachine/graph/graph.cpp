@@ -790,13 +790,16 @@ uint Graph::query(uint node_id) {
         std::to_string(static_cast<int>(NodeType::OPERATOR)) + " but is " +
         std::to_string(static_cast<int>(t)));
   }
-
-  if (queried.find(node_id) != queried.end()) {
-    throw std::invalid_argument(
-        "duplicate query for node_id " + std::to_string(node_id));
+  // Adding a query is idempotent; querying the same node twice returns
+  // the same query identifier both times.
+  //
+  // This is a linear search but the vector of queries is almost always
+  // very short.
+  auto it = std::find(queries.begin(), queries.end(), node_id);
+  if (it != queries.end()) {
+    return it - queries.begin();
   }
   queries.push_back(node_id);
-  queried.insert(node_id);
   return queries.size() - 1; // the index is 0-based
 }
 

@@ -29,10 +29,13 @@ from torch.distributions import Bernoulli
 
 @bm.functional
 def c():
-    return tensor(1.0)
+    return tensor(2.5)
 
 
-# TODO: Try multidimensional constant tensors.
+@bm.functional
+def c2():
+    return tensor([1.5, -2.5])
+
 
 # Two RVIDs but they both refer to the same query node:
 
@@ -45,6 +48,16 @@ def flip():
 @bm.functional
 def flip2():
     return flip()
+
+
+@bm.functional
+def flip3():
+    return flip() + 0
+
+
+@bm.functional
+def flip4():
+    return 0 + flip()
 
 
 # Here's a weird case. Normally query nodes are deduplicated but it is
@@ -65,42 +78,67 @@ def always_false_2():
     return flip() < 0
 
 
+# BMG supports constant single values or tensors, but the tensors must
+# be 1 or 2 dimensional; empty tensors and 3+ dimensional tensors
+# need to produce an error.
+@bm.functional
+def invalid_tensor_1():
+    return tensor([])
+
+
+@bm.functional
+def invalid_tensor_2():
+    return tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+
+
 class BMGQueryTest(unittest.TestCase):
     def test_constant_functional(self) -> None:
         self.maxDiff = None
 
-        observed = BMGInference().to_dot([c()], {})
+        observed = BMGInference().to_dot([c(), c2()], {})
         expected = """
 digraph "graph" {
-  N0[label=1.0];
+  N0[label=2.5];
   N1[label=Query];
+  N2[label="[1.5,-2.5]"];
+  N3[label=Query];
   N0 -> N1;
-}"""
+  N2 -> N3;
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
-        # We do not emit the query instruction when the queried node
-        # is a constant.
-        observed = BMGInference().to_cpp([c()], {})
+        observed = BMGInference().to_cpp([c(), c2()], {})
+        # TODO: Is this valid C++? The API for adding constants
+        # has changed but the code generator has not kept up.
+        # Check if this is wrong and fix it.
         expected = """
 graph::Graph g;
-uint n0 = g.add_constant(torch::from_blob((float[]){1.0}, {}));
+uint n0 = g.add_constant(torch::from_blob((float[]){2.5}, {}));
+uint q0 = g.query(n0);
+uint n1 = g.add_constant(torch::from_blob((float[]){1.5,-2.5}, {2}));
+uint q1 = g.query(n1);
          """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # We do not emit the query instruction when the queried node
-        # is a constant.
-        observed = BMGInference().to_python([c()], {})
+        observed = BMGInference().to_python([c(), c2()], {})
         expected = """
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(tensor(1.0))
+n0 = g.add_constant(2.5)
+q0 = g.query(n0)
+n1 = g.add_constant_real_matrix(tensor([[1.5],[-2.5]]))
+q1 = g.query(n1)
         """
         self.assertEqual(expected.strip(), observed.strip())
 
-        samples = BMGInference().infer([c()], {}, 10)
+        samples = BMGInference().infer([c(), c2()], {}, 1)
         observed = samples[c()]
-        expected = "tensor([[1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]])"
+        expected = "tensor([[2.5000]])"
+        self.assertEqual(expected.strip(), str(observed).strip())
+        observed = samples[c2()]
+        expected = "tensor([[[ 1.5000, -2.5000]]], dtype=torch.float64)"
         self.assertEqual(expected.strip(), str(observed).strip())
 
     def test_redundant_functionals(self) -> None:
@@ -154,3 +192,46 @@ digraph "graph" {
         expected = "tensor([[False, False]])"
         self.assertEqual(expected, str(af1))
         self.assertEqual(expected, str(af2))
+
+    def test_redundant_functionals_2(self) -> None:
+        self.maxDiff = None
+
+        # Here's a particularly weird one: we have what is initially two
+        # distinct queries: flip() + 0 and 0 + flip(), but the graph optimizer
+        # deduces that both queries refer to the same non-constant node.
+
+        observed = BMGInference().to_dot([flip3(), flip4()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N2 -> N4;
+}
+"""
+        self.assertEqual(expected.strip(), str(observed).strip())
+
+        samples = BMGInference().infer([flip3(), flip4()], {}, 10)
+        f3 = samples[flip3()]
+        f4 = samples[flip4()]
+        self.assertEqual(str(f3), str(f4))
+
+    def test_invalid_tensors(self) -> None:
+        self.maxDiff = None
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([invalid_tensor_1(), invalid_tensor_2()], {})
+        # TODO: This error message is horrid. Fix it.
+        expected = (
+            "The model uses a [[[1.0,2.0],\\n[3.0,4.0]],\\n[[5.0,6.0],\\n[7.0,8.0]]] "
+            + "operation unsupported by Bean Machine Graph.\n"
+            + "The unsupported node is the operator of a Query.\n"
+            + "The model uses a [] operation unsupported by Bean Machine Graph.\n"
+            + "The unsupported node is the operator of a Query."
+        )
+        self.assertEqual(expected, str(ex.exception))

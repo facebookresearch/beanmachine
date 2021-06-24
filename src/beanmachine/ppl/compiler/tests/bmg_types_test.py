@@ -130,6 +130,8 @@ class BMGTypesTest(unittest.TestCase):
         self.assertEqual(
             Tensor, type_of_value(tensor([[[0, 0], [0, 0]], [[0, 0], [0, 0]]]))
         )
+        # Empty tensor is Tensor
+        self.assertEqual(Tensor, type_of_value(tensor([])))
 
     def test_types_in_dot(self) -> None:
         """test_types_in_dot"""

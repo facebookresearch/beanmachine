@@ -215,12 +215,15 @@ graph::Graph g;
 Eigen::MatrixXd m0(1, 1)
 m0 << 1.0;
 uint n0 = g.add_constant_pos_matrix(m0);
+uint q0 = g.query(n0);
 Eigen::MatrixXd m1(2, 1)
 m1 << 1.0, 1.5;
 uint n1 = g.add_constant_pos_matrix(m1);
+uint q1 = g.query(n1);
 Eigen::MatrixXd m2(2, 2)
 m2 << 1.0, 1.5, 2.0, 2.5;
 uint n2 = g.add_constant_pos_matrix(m2);
+uint q2 = g.query(n2);
         """
         observed = to_bmg_cpp(bmg).code
         self.assertEqual(expected.strip(), observed.strip())
@@ -233,8 +236,12 @@ from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
 n0 = g.add_constant_pos_matrix(tensor([[1.0]]))
+q0 = g.query(n0)
 n1 = g.add_constant_pos_matrix(tensor([[1.0],[1.5]]))
-n2 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))"""
+q1 = g.query(n1)
+n2 = g.add_constant_pos_matrix(tensor([[1.0,2.0],[1.5,2.5]]))
+q2 = g.query(n2)
+"""
         observed = to_bmg_python(bmg).code
         self.assertEqual(expected.strip(), observed.strip())
 
@@ -326,28 +333,13 @@ digraph "graph" {
     def test_dirichlet_errors(self) -> None:
         self.maxDiff = None
 
-        # These are the cases above where we cannot convert the
-        # given tensor to a one-row vector of positive reals.
+        # If the constant tensor given is not supported at all by BMG because of
+        # its dimensionality then that is the error we will report. If the tensor
+        # is supported by BMG but not valid for a Dirichlet then that's what we say.
 
-        # TODO: Error message could be more specific here than "a tensor".
-        # We could say what is wrong: its size.
-
-        expected = (
-            "The concentration of a Dirichlet is required to be"
-            + " a positive real but is a tensor."
-        )
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([d0()], {}, 1)
-        self.assertEqual(expected, str(ex.exception))
-
-        expected = (
-            "The concentration of a Dirichlet is required to be"
-            + " a 2 x 1 positive real matrix but is a tensor."
-        )
-
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer([d2c()], {}, 1)
-        self.assertEqual(expected, str(ex.exception))
+        # TODO: Error message is misleading in that it says that the requirement
+        # is a 3x1 positive real matrix, when the real requirement is that it be
+        # ANY 1-d positive real matrix.
 
         expected = (
             "The concentration of a Dirichlet is required to be"

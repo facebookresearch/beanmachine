@@ -50,10 +50,6 @@ class GeneratedGraphPython:
         self._code.append(f"g.observe(n{graph_id}, {node.value})")
 
     def _add_query(self, node: bn.Query) -> None:
-        # BMG does not allow a query on a constant, but it is possible
-        # to end up with one in the graph. Suppress those from codegen.
-        if isinstance(node.operator, bn.ConstantNode):
-            return
         query_id = len(self.query_to_query_id)
         self.query_to_query_id[node] = query_id
         graph_id = self.node_to_graph_id[node.operator]
@@ -127,8 +123,6 @@ class GeneratedGraphPython:
             f = f"add_constant({str(int(v))})"
         elif t is bn.RealNode:
             f = f"add_constant({str(float(v))})"
-        elif t is bn.ConstantTensorNode:
-            f = f"add_constant(tensor({_tensor_to_python(v)}))"
         elif t is bn.ConstantPositiveRealMatrixNode:
             f = f"add_constant_pos_matrix({_matrix_to_python(v)})"
         elif t is bn.ConstantRealMatrixNode:
@@ -141,8 +135,10 @@ class GeneratedGraphPython:
             f = f"add_constant_natural_matrix({_matrix_to_python(v)})"
         elif t is bn.ConstantBooleanMatrixNode:
             f = f"add_constant_bool_matrix({_matrix_to_python(v)})"
+        elif isinstance(v, torch.Tensor) and v.numel() != 1:
+            f = f"add_constant_real_matrix({_matrix_to_python(v)})"
         else:
-            f = "UNKNOWN"
+            f = f"add_constant({str(float(v))})"
         self._code.append(f"n{graph_id} = g.{f}")
 
     def _generate_node(self, node: bn.BMGNode) -> None:

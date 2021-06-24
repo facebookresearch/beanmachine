@@ -1,12 +1,27 @@
+import warnings
+
+import beanmachine.ppl as bm
 import numpy as np
 import pytest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_utils import (
     DualAverageAdapter,
+    MassMatrixAdapter,
     WelfordCovariance,
     WindowScheme,
 )
+from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+
+
+class SampleModel:
+    @bm.random_variable
+    def foo(self):
+        return dist.Uniform(0.0, 1.0)
+
+    @bm.random_variable
+    def bar(self):
+        return dist.Normal(self.foo(), 1.0)
 
 
 def test_dual_average_adapter():
@@ -55,6 +70,32 @@ def test_large_window_scheme(num_adaptive_samples):
     for win1, win2 in zip(window_sizes[:-1], window_sizes[1:-1]):
         # except for last window, window size should keep doubling
         assert win2 == win1 * 2
+
+
+def test_mass_matrix_adapter():
+    model = SampleModel()
+    world = SimpleWorld()
+    world.call(model.bar())
+    mass_matrix_adapter = MassMatrixAdapter()
+    momentums = mass_matrix_adapter.initialize_momentums(world)
+    for node in world.latent_nodes:
+        assert node in momentums
+        assert isinstance(momentums[node], torch.Tensor)
+        assert len(momentums[node]) == world.get_transformed(node).numel()
+        # after seeing the nodes for the first time, the adapter should've initialized
+        # the mass matrix and the distribution to generate momentum
+        assert node in mass_matrix_adapter.mass_inv
+        assert node in mass_matrix_adapter.momentum_dists
+    mass_inv_old = mass_matrix_adapter.mass_inv.copy()
+    mass_matrix_adapter.step(world)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        mass_matrix_adapter.finalize()
+
+    # mass matrix adapter has seen less than 2 samples, so mass_inv is not updated
+    for node in mass_inv_old:
+        assert torch.allclose(mass_inv_old[node], mass_matrix_adapter.mass_inv[node])
 
 
 def test_diagonal_welford_covariance():

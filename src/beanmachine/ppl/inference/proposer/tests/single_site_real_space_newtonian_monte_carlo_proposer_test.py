@@ -80,7 +80,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         )[0]
         mean, scale_tril = parse_arguments(prop_dist.arguments)
         expected_mean = tensor([1.5, 1.5])
-        expected_scale_tril = torch.cholesky(
+        expected_scale_tril = torch.linalg.cholesky(
             tensor([[0.5000, 0.4000], [0.4000, 0.5000]])
         )
         self.assertTrue(torch.isclose(mean, expected_mean).all())
@@ -113,7 +113,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         mean, scale_tril = parse_arguments(prop_dist.arguments)
 
         expected_mean = tensor([1.0, 1.0])
-        expected_scale_tril = torch.cholesky(tensor([[1.0, 0.8], [0.8, 1]]))
+        expected_scale_tril = torch.linalg.cholesky(tensor([[1.0, 0.8], [0.8, 1]]))
         self.assertTrue(torch.isclose(mean, expected_mean).all())
         self.assertTrue(torch.isclose(scale_tril, expected_scale_tril).all())
 
@@ -254,7 +254,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         ).unsqueeze(0)
 
         expected_covar = expected_second_gradient.unsqueeze(0).inverse() * -1
-        expected_scale_tril = torch.cholesky(expected_covar)
+        expected_scale_tril = torch.linalg.cholesky(expected_covar)
         self.assertAlmostEqual(
             expected_scale_tril.item(), scale_tril.item(), delta=0.001
         )
@@ -309,7 +309,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         expected_second_gradient = (
             proposal_value.grad - expected_first_gradient
         ).unsqueeze(0)
-        expected_scale_tril = torch.cholesky(
+        expected_scale_tril = torch.linalg.cholesky(
             (expected_second_gradient.unsqueeze(0)).inverse() * -1
         )
         self.assertAlmostEqual(

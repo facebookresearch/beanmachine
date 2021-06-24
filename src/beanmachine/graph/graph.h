@@ -450,6 +450,7 @@ class Node {
     return false;
   }
   // only valid for stochastic nodes
+  // TODO: shouldn't we then restrict them to those classes? See below.
   virtual double log_prob() const {
     return 0;
   }
@@ -457,6 +458,7 @@ class Node {
     return true;
   }
   // gradient_log_prob is also only valid for stochastic nodes
+  // TODO: shouldn't we then restrict them to those classes? See above.
   // this function adds the gradients to the passed in gradients
   virtual void gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
       const {}
@@ -775,8 +777,7 @@ struct Graph {
   // we store redundant information in queries and queried. The latter is a
   // cache of the queried nodes while the former gives the order of nodes
   // queried
-  std::vector<uint> queries; // list of queried nodenums
-  std::set<uint> queried; // set of queried nodes
+  std::vector<uint> queries; // list of queried node ids
   std::vector<std::vector<NodeValue>> samples;
   std::vector<std::vector<std::vector<NodeValue>>> samples_allchains;
   std::vector<double> means;

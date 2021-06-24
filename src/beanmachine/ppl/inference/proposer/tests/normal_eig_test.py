@@ -10,7 +10,7 @@ from torch.distributions.multivariate_normal import MultivariateNormal
 class NormalEigTest(unittest.TestCase):
     def test_normal_eig(self) -> None:
         covar = torch.Tensor([[1, 0.1, 0], [0.1, 2, 0.5], [0, 0.5, 3]])
-        evals, evecs = torch.symeig(covar, eigenvectors=True)
+        evals, evecs = torch.linalg.eigh(covar)
         mean = torch.Tensor([1.0, 3.5, -1.2])
         # we want to test that both distributions are identical
         ref_dist = MultivariateNormal(mean, covar)
