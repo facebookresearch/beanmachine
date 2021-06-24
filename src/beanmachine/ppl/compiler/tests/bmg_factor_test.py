@@ -67,7 +67,7 @@ Node 6 type 4 parents [ 3 4 5 ] children [ ] unknown
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(3.0)
+n0 = g.add_constant_real(3.0)
 n1 = g.add_constant_pos_real(2.0)
 n2 = g.add_distribution(
   graph.DistributionType.NORMAL,

@@ -107,7 +107,7 @@ uint q0 = g.query(n8);
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(0.0)
+n0 = g.add_constant_real(0.0)
 n1 = g.add_constant_pos_real(1.0)
 n2 = g.add_distribution(
   graph.DistributionType.NORMAL,
@@ -115,8 +115,8 @@ n2 = g.add_distribution(
   [n0, n1],
 )
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
-n4 = g.add_constant(2)
-n5 = g.add_constant(1)
+n4 = g.add_constant_natural(2)
+n5 = g.add_constant_natural(1)
 n6 = g.add_operator(graph.OperatorType.EXP, [n3])
 n7 = g.add_operator(graph.OperatorType.TO_REAL, [n6])
 n8 = g.add_operator(
@@ -219,7 +219,7 @@ uint q0 = g.query(n8);
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(0.0)
+n0 = g.add_constant_real(0.0)
 n1 = g.add_constant_pos_real(1.0)
 n2 = g.add_distribution(
   graph.DistributionType.NORMAL,
@@ -227,8 +227,8 @@ n2 = g.add_distribution(
   [n0, n1],
 )
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
-n4 = g.add_constant(1)
-n5 = g.add_constant(2)
+n4 = g.add_constant_natural(1)
+n5 = g.add_constant_natural(2)
 n6 = g.add_operator(graph.OperatorType.EXP, [n3])
 n7 = g.add_operator(graph.OperatorType.TO_REAL, [n6])
 n8 = g.add_operator(

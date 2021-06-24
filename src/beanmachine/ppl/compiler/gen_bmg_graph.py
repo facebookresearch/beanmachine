@@ -68,11 +68,11 @@ class GeneratedGraph:
         elif t is bn.ProbabilityNode:
             graph_id = self.graph.add_constant_probability(float(v))
         elif t is bn.BooleanNode:
-            graph_id = self.graph.add_constant(bool(v))
+            graph_id = self.graph.add_constant_bool(bool(v))
         elif t is bn.NaturalNode:
-            graph_id = self.graph.add_constant(int(v))
+            graph_id = self.graph.add_constant_natural(int(v))
         elif t is bn.RealNode:
-            graph_id = self.graph.add_constant(float(v))
+            graph_id = self.graph.add_constant_real(float(v))
         elif t is bn.ConstantPositiveRealMatrixNode:
             graph_id = self.graph.add_constant_pos_matrix(_reshape(v))
         elif t is bn.ConstantRealMatrixNode:
@@ -88,7 +88,7 @@ class GeneratedGraph:
         elif isinstance(v, torch.Tensor) and v.numel() != 1:
             graph_id = self.graph.add_constant_real_matrix(_reshape(v))
         else:
-            graph_id = self.graph.add_constant(float(v))
+            graph_id = self.graph.add_constant_real(float(v))
         self.node_to_graph_id[node] = graph_id
 
     def _generate_node(self, node: bn.BMGNode) -> None:

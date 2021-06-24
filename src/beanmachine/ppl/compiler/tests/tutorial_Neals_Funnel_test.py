@@ -266,7 +266,7 @@ uint q1 = g.query(n4);
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(0.0)
+n0 = g.add_constant_real(0.0)
 n1 = g.add_constant_pos_real(10000.0)
 n2 = g.add_distribution(
   graph.DistributionType.NORMAL,
@@ -275,17 +275,17 @@ n2 = g.add_distribution(
 )
 n3 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
 n4 = g.add_operator(graph.OperatorType.SAMPLE, [n2])
-n5 = g.add_constant(-0.9189385332046727)
-n6 = g.add_constant(0.3333333333333333)
+n5 = g.add_constant_real(-0.9189385332046727)
+n6 = g.add_constant_real(0.3333333333333333)
 n7 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n6])
 n8 = g.add_constant_pos_real(2.0)
 n9 = g.add_operator(graph.OperatorType.POW, [n7, n8])
-n10 = g.add_constant(0.5)
+n10 = g.add_constant_real(0.5)
 n11 = g.add_operator(graph.OperatorType.MULTIPLY, [n9, n10])
 n12 = g.add_operator(graph.OperatorType.NEGATE, [n11])
 n13 = g.add_operator(graph.OperatorType.MULTIPLY, [n3, n10])
 n14 = g.add_operator(graph.OperatorType.EXP, [n13])
-n15 = g.add_constant(-1.0)
+n15 = g.add_constant_real(-1.0)
 n16 = g.add_operator(graph.OperatorType.POW, [n14, n15])
 n17 = g.add_operator(graph.OperatorType.TO_REAL, [n16])
 n18 = g.add_operator(graph.OperatorType.MULTIPLY, [n4, n17])

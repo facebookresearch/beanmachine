@@ -78,7 +78,7 @@ digraph "graph" {
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(0.0)
+n0 = g.add_constant_real(0.0)
 n1 = g.add_constant_pos_real(1.0)
 n2 = g.add_distribution(
   graph.DistributionType.NORMAL,

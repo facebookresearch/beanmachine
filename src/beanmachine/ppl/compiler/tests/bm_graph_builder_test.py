@@ -131,7 +131,7 @@ n1 = g.add_distribution(
 )
 n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
 g.observe(n2, True)
-n3 = g.add_constant(2.0)
+n3 = g.add_constant_real(2.0)
 n4 = g.add_operator(graph.OperatorType.TO_REAL, [n2])
 n5 = g.add_operator(graph.OperatorType.NEGATE, [n4])
 n6 = g.add_operator(graph.OperatorType.ADD, [n3, n5])
