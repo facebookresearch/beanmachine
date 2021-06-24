@@ -1,4 +1,4 @@
-beanmachine.ppl.experimental.gp package
+experimental.gp package
 =======================================
 
 Submodules

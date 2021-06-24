@@ -1,4 +1,4 @@
-beanmachine.ppl.world package
+world package
 =============================
 
 Submodules

@@ -1,4 +1,4 @@
-beanmachine.ppl.distribution package
+distribution package
 ====================================
 
 Submodules

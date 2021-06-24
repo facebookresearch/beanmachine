@@ -1,4 +1,4 @@
-beanmachine.ppl.testlib package
+testlib package
 ===============================
 
 Submodules

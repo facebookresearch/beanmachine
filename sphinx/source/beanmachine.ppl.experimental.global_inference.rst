@@ -1,4 +1,4 @@
-beanmachine.ppl.experimental.global\_inference package
+experimental.global\_inference package
 ======================================================
 
 Subpackages

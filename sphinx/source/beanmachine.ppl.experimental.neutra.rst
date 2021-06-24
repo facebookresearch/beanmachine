@@ -1,4 +1,4 @@
-beanmachine.ppl.experimental.neutra package
+experimental.neutra package
 ===========================================
 
 Submodules

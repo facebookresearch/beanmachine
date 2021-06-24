@@ -1,4 +1,4 @@
-beanmachine.ppl.experimental.vi package
+experimental.vi package
 =======================================
 
 Submodules

@@ -1,4 +1,4 @@
-beanmachine.ppl.diagnostics package
+diagnostics package
 ===================================
 
 Submodules

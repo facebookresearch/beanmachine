@@ -1,4 +1,4 @@
-beanmachine.ppl.compiler package
+compiler package
 ================================
 
 Submodules

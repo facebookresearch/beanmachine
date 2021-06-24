@@ -7,7 +7,7 @@ Welcome to BeanMachine's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    beanmachine
@@ -16,14 +16,6 @@ Welcome to BeanMachine's documentation!
    beanmachine.ppl.distribution
    beanmachine.ppl.examples.conjugate_models
    beanmachine.ppl.examplescd 
-   beanmachine.ppl.experimental.abc
-   beanmachine.ppl.experimental.global_inference.proposer
-   beanmachine.ppl.experimental.global_inference
-   beanmachine.ppl.experimental.gp.rst
-   beanmachine.ppl.experimental.inference_compilation
-   beanmachine.ppl.experimental.neutra
-   beanmachine.ppl.experimental
-   beanmachine.ppl.experimental.vi
    beanmachine.ppl.inference.proposer
    beanmachine.ppl.inference
    beanmachine.ppl.model
@@ -31,6 +23,8 @@ Welcome to BeanMachine's documentation!
    beanmachine.ppl.testlib
    beanmachine.ppl.utils
    beanmachine.ppl.world
+
+   experimental
 
 
 Indices and tables

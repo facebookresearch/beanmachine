@@ -1,4 +1,4 @@
-beanmachine.ppl.experimental.inference\_compilation package
+experimental.inference\_compilation package
 ===========================================================
 
 Submodules

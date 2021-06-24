@@ -1,4 +1,4 @@
-beanmachine.applications package
+applications package
 ================================
 
 Subpackages

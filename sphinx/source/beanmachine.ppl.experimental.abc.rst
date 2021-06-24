@@ -1,4 +1,4 @@
-beanmachine.ppl.experimental.abc package
+experimental.abc package
 ========================================
 
 Submodules

@@ -1,4 +1,4 @@
-beanmachine.applications.clara package
+applications.clara package
 ======================================
 
 Submodules

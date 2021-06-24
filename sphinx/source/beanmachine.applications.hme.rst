@@ -1,4 +1,4 @@
-beanmachine.applications.hme package
+applications.hme package
 ====================================
 
 Submodules

@@ -1,4 +1,4 @@
-beanmachine.ppl.inference.proposer package
+inference.proposer package
 ==========================================
 
 Submodules

@@ -1,4 +1,4 @@
-beanmachine.ppl.model package
+model package
 =============================
 
 Submodules

@@ -1,4 +1,4 @@
-beanmachine.ppl.utils package
+utils package
 =============================
 
 Submodules

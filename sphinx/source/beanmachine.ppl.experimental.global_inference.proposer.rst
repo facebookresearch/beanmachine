@@ -1,4 +1,4 @@
-beanmachine.ppl.experimental.global\_inference.proposer package
+experimental.global\_inference.proposer package
 ===============================================================
 
 Submodules

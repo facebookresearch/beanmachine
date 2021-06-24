@@ -1,4 +1,4 @@
-beanmachine.ppl.inference package
+inference package
 =================================
 
 Subpackages
