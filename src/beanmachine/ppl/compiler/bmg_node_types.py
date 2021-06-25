@@ -82,6 +82,24 @@ _operator_types = {
     bn.VectorIndexNode: OperatorType.INDEX,
 }
 
+_constant_value_types = {
+    bn.BooleanNode,
+    bn.NaturalNode,
+    bn.NegativeRealNode,
+    bn.PositiveRealNode,
+    bn.ProbabilityNode,
+    bn.RealNode,
+}
+
+_constant_matrix_types = {
+    bn.ConstantBooleanMatrixNode,
+    bn.ConstantNaturalMatrixNode,
+    bn.ConstantNegativeRealMatrixNode,
+    bn.ConstantPositiveRealMatrixNode,
+    bn.ConstantProbabilityMatrixNode,
+    bn.ConstantRealMatrixNode,
+}
+
 
 def operator_type(node: bn.OperatorNode) -> OperatorType:
     return _operator_types[type(node)]
@@ -90,9 +108,10 @@ def operator_type(node: bn.OperatorNode) -> OperatorType:
 def is_supported_by_bmg(node: bn.BMGNode) -> bool:
     t = type(node)
     return (
-        isinstance(node, bn.ConstantNode)
-        or t is bn.Observation
+        t is bn.Observation
         or t is bn.Query
+        or t in _constant_matrix_types
+        or t in _constant_value_types
         or t in _operator_types
         or t in _dist_types
         or t in _factor_types

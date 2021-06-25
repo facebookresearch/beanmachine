@@ -130,6 +130,13 @@ def unsupported_rshift():
     return bino() >> bino()
 
 
+@bm.functional
+def unsupported_add():
+    # What happens if we use a stochastic quantity in an operation with
+    # a non-tensor, non-number?
+    return bino() + "foo"
+
+
 class BMGArithmeticTest(unittest.TestCase):
     def test_bmg_arithmetic_expm1(self) -> None:
         self.maxDiff = None
@@ -450,6 +457,18 @@ The unsupported node is the operator of a Query.
         expected = """
 The model uses a >> operation unsupported by Bean Machine Graph.
 The unsupported node is the operator of a Query.
+        """
+        observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_unsupported_operands(self) -> None:
+        self.maxDiff = None
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer([unsupported_add()], {}, 1)
+        # TODO: This error message is terrible; fix it.
+        expected = """
+The model uses a foo operation unsupported by Bean Machine Graph.
+The unsupported node is the right of a +.
         """
         observed = str(ex.exception)
         self.assertEqual(expected.strip(), observed.strip())

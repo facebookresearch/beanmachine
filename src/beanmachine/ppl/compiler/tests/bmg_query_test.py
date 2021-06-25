@@ -126,7 +126,7 @@ uint q1 = g.query(n1);
 from beanmachine import graph
 from torch import tensor
 g = graph.Graph()
-n0 = g.add_constant(2.5)
+n0 = g.add_constant_real(2.5)
 q0 = g.query(n0)
 n1 = g.add_constant_real_matrix(tensor([[1.5],[-2.5]]))
 q1 = g.query(n1)

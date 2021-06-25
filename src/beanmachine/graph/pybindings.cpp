@@ -105,10 +105,28 @@ PYBIND11_MODULE(graph, module) {
       .def_readwrite("path_length", &InferConfig::path_length)
       .def_readwrite("step_size", &InferConfig::step_size);
 
+  // CONSIDER: Remove the overloaded add_constant APIs; the overloaded API's
+  // binding behaviour is a little confusing. For example,
+  // add_constant(tensor(2.5)) has the effect of calling add_constant(True).
   py::class_<Graph>(module, "Graph")
       .def(py::init())
       .def("to_string", &Graph::to_string, "string representation of the graph")
       .def("to_dot", &Graph::to_dot, "DOT representation of the graph")
+      .def(
+          "add_constant_bool",
+          (uint(Graph::*)(bool)) & Graph::add_constant,
+          "add a Node with a constant boolean value",
+          py::arg("value"))
+      .def(
+          "add_constant_real",
+          (uint(Graph::*)(double)) & Graph::add_constant,
+          "add a Node with a constant real value",
+          py::arg("value"))
+      .def(
+          "add_constant_natural",
+          (uint(Graph::*)(graph::natural_t)) & Graph::add_constant,
+          "add a Node with a constant natural (integers >= 0) value",
+          py::arg("value"))
       .def(
           "add_constant",
           (uint(Graph::*)(bool)) & Graph::add_constant,
