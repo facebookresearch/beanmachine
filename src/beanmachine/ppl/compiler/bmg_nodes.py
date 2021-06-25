@@ -1160,6 +1160,26 @@ class NotEqualNode(ComparisonNode):
         return f"({str(self.left)}!={str(self.right)})"
 
 
+class IsNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+
+class IsNotNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+
+class InNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+
+class NotInNode(ComparisonNode):
+    def __init__(self, left: BMGNode, right: BMGNode):
+        ComparisonNode.__init__(self, left, right)
+
+
 class AdditionNode(BinaryOperatorNode):
     """This represents an addition of values."""
 

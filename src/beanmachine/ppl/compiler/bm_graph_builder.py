@@ -483,6 +483,30 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_is(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.IsNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_is_not(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.IsNotNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_in(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.InNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_not_in(self, left: BMGNode, right: BMGNode) -> BMGNode:
+        node = bn.NotInNode(left, right)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_addition(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value + right.value)
