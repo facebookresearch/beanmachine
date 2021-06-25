@@ -655,7 +655,7 @@ def type_of_value(v: Any) -> BMGLatticeType:
                 return Probability
             return PositiveReal
         return NegativeReal
-    raise ValueError("Unexpected value passed to type_of_value")
+    return Untypable
 
 
 def is_zero(v: Any) -> bool:
