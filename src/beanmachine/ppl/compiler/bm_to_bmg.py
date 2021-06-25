@@ -14,19 +14,14 @@ from beanmachine.ppl.compiler.ast_patterns import (
     ast_assert,
     ast_domain,
     attribute,
+    binary_compare,
     binop,
     call,
-    equal,
     function_def,
-    greater_than,
-    greater_than_equal,
     index,
     keyword,
-    less_than,
-    less_than_equal,
     load,
     name,
-    not_equal,
     starred,
     subscript,
     unaryop,
@@ -166,9 +161,6 @@ _handle_index = PatternRule(
     ),
 )
 
-
-# TODO: COMPARISON: is, is not, in, not in
-
 _math_to_bmg: Rule = _top_down(
     once(
         first(
@@ -196,13 +188,22 @@ _math_to_bmg: Rule = _top_down(
                 _handle_binary(ast.Pow, "handle_power"),
                 _handle_binary(ast.RShift, "handle_rshift"),
                 _handle_binary(ast.Sub, "handle_subtraction"),
+                # []
                 _handle_index,
-                _handle_comparison(equal(), "handle_equal"),
-                _handle_comparison(not_equal(), "handle_not_equal"),
-                _handle_comparison(greater_than(), "handle_greater_than"),
-                _handle_comparison(greater_than_equal(), "handle_greater_than_equal"),
-                _handle_comparison(less_than(), "handle_less_than"),
-                _handle_comparison(less_than_equal(), "handle_less_than_equal"),
+                # Comparison operators: == != > >= < <=
+                # is, is not, in, not in
+                _handle_comparison(binary_compare(ast.Eq), "handle_equal"),
+                _handle_comparison(binary_compare(ast.NotEq), "handle_not_equal"),
+                _handle_comparison(binary_compare(ast.Gt), "handle_greater_than"),
+                _handle_comparison(
+                    binary_compare(ast.GtE), "handle_greater_than_equal"
+                ),
+                _handle_comparison(binary_compare(ast.Lt), "handle_less_than"),
+                _handle_comparison(binary_compare(ast.LtE), "handle_less_than_equal"),
+                _handle_comparison(binary_compare(ast.Is), "handle_is"),
+                _handle_comparison(binary_compare(ast.IsNot), "handle_is_not"),
+                _handle_comparison(binary_compare(ast.In), "handle_in"),
+                _handle_comparison(binary_compare(ast.NotIn), "handle_not_in"),
             ]
         )
     )

@@ -15,6 +15,7 @@ from beanmachine.ppl.inference.bmg_inference import BMGInference
 from scipy.stats import norm
 from torch import tensor
 
+
 LOGGER = logging.getLogger(__name__)
 
 # Planned additions:

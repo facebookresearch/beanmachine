@@ -13,7 +13,7 @@ import pandas as pd
 from .configs import InferConfig, ModelConfig
 
 
-import torch  # isort:skip # noqa: F401
+import torch  # usort: skip # noqa: F401
 
 
 logger = logging.getLogger("hme")

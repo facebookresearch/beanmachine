@@ -521,9 +521,34 @@ class BMGRuntime:
             input = self._bmg.add_constant(input)
         if not isinstance(other, BMGNode):
             other = self._bmg.add_constant(other)
-        if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
-            return input.value == other.value
-        return self._bmg.add_equal(input, other)
+        return self._bmg.add_is(input, other)
+
+    def handle_is_not(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input is not other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_is_not(input, other)
+
+    def handle_in(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input in other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_in(input, other)
+
+    def handle_not_in(self, input: Any, other: Any) -> Any:
+        if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
+            return input in other
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        if not isinstance(other, BMGNode):
+            other = self._bmg.add_constant(other)
+        return self._bmg.add_not_in(input, other)
 
     def handle_multiplication(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):

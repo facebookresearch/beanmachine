@@ -163,6 +163,12 @@ def compare(left: Pattern = _any, ops: Pattern = _any, comparators: Pattern = _a
     )
 
 
+def binary_compare(op: Pattern = _any):
+    return type_and_attributes(
+        ast.Compare, {"left": _any, "ops": [op], "comparators": [_any]}
+    )
+
+
 def equal(left: Pattern = _any, right: Pattern = _any):
     return type_and_attributes(
         ast.Compare, {"left": left, "ops": [ast.Eq], "comparators": [right]}

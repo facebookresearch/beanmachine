@@ -42,7 +42,7 @@ commands:
           command: pip install --progress-bar off --upgrade pip
       - run:
           name: "Install lint packages"
-          command: pip install --progress-bar off black==20.8b1 isort==4.3.21 flake8
+          command: pip install --progress-bar off black==20.8b1 usort flake8
 
   install_miniconda_macos:
     steps:
@@ -99,22 +99,20 @@ commands:
           name: "Lint with flake8"
           command: flake8
 
-  lint_isort:
-    description: "Lint with isort"
+  lint_usort:
+    description: "Lint with usort"
     steps:
       - run:
-          name: "Lint with isort"
+          name: "Lint with usort"
           command: >
-            isort --check-only --diff --line-width=88 --multi-line=3
-            --trailing-comma --force-grid-wrap=0 --section-default=THIRDPARTY
-            --lines-after-imports=2 --combine-as
+            usort check .
 
   lint_black:
     description: "Lint with black"
     steps:
       - run:
           name: "Lint with black"
-          command: black --check --diff --line-length=88 .
+          command: black --check .
 
   dev_unit_tests:
     description: "Run unit tests when installed in dev mode"
@@ -192,7 +190,7 @@ jobs:
       - pip_lint_install
       - pip_list
       - lint_flake8
-      - lint_isort
+      - lint_usort
       - lint_black
 
   nightly_test_py37_pip:
