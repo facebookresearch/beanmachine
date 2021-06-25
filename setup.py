@@ -16,11 +16,11 @@ REQUIRED_MINOR = 6
 TEST_REQUIRES = ["pytest", "pytest-cov"]
 DEV_REQUIRES = TEST_REQUIRES + [
     "black==20.8b1",
-    "isort",
     "flake8",
     "flake8-bugbear",
     "sphinx",
     "sphinx-autodoc-typehints",
+    "usort",
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
