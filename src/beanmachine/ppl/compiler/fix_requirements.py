@@ -73,6 +73,9 @@ class RequirementsFixer:
         # does not meet an UB requirement then there is no equivalent constant
         # node of the correct type and we give an error.
         it = self._typer[node]
+        # NOTE: By this point we should have already rejected any graph that contains
+        # a reachable but untypable constant node.  See comment in fix_unsupported
+        # regarding UntypedConstantNode support.
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
             required_type = bt.requirement_to_type(requirement)
             if bt.must_be_matrix(requirement):

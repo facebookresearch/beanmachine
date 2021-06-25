@@ -144,13 +144,18 @@ class BMGraphBuilder:
     # value when that value is somehow involved in a stochastic
     # operation.
 
-    # During the execution of the lifted program we should only be
-    # creating "untyped constant" nodes for real, int, Boolean and tensor values;
-    # during the phase where we ensure that the BMG type system constraints are
-    # met we construct "typed constant" nodes.
+    # During graph accumulation we accumulate untyped constant nodes for
+    # all non-stochastic values involved in a stochastic operation regardless
+    # of whether or not they can be represented in BMG.  During a later
+    # pass we give error messages if we are unable to replace the unsupported
+    # constant values with valid BMG nodes.
 
     @memoize
     def _add_constant(self, value: Any, t: type) -> bn.UntypedConstantNode:
+        # Note that we memoize *after* we've canonicalized the value,
+        # and we ensure that the type is part of the memoization key.
+        # We do not want to get into a situation where some unexpected Python
+        # rule says that the constant 1 and the constant 1.0 are the same.
         node = bn.UntypedConstantNode(value)
         self.add_node(node)
         return node
@@ -161,13 +166,13 @@ class BMGraphBuilder:
         t = type(value)
         if t in supported_bool_types:
             value = bool(value)
+            t = bool
         elif t in supported_int_types:
             value = int(value)
+            t = int
         elif t in supported_float_types:
             value = float(value)
-        elif t != torch.Tensor:
-            # TODO: Improve this error message
-            raise TypeError("value must be a bool, integer, real or tensor")
+            t = float
         return self._add_constant(value, t)
 
     def add_constant_of_matrix_type(

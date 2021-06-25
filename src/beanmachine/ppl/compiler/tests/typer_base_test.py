@@ -22,7 +22,9 @@ class SupportedTyper(TyperBase[bool]):
         TyperBase.__init__(self)
 
     def _compute_type_inputs_known(self, node: bn.BMGNode) -> bool:
-        return is_supported_by_bmg(node) and all(self[i] for i in node.inputs)
+        return (isinstance(node, bn.ConstantNode) or is_supported_by_bmg(node)) and all(
+            self[i] for i in node.inputs
+        )
 
 
 class TyperTest(unittest.TestCase):

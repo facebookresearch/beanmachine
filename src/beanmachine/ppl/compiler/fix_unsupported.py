@@ -153,6 +153,15 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         # will be converted in the requirements checking pass. For now, just detect
         # constants that cannot possibly be supported because they are the wrong
         # dimensionality. We will fail to fix it in _get_replacement and report an error.
+
+        # TODO: We should make a rewriter that detects stochastic index
+        # into list.  We will need to detect if the list is (1) all
+        # numbers, in which case we can make a constant matrix out of it,
+        # (2) mix of numbers and stochastic elements, in which case we can
+        # make it into a TO_MATRIX node, or (3) wrong shape or contents,
+        # in which case we must give an error.  We will likely want to
+        # move this check for unsupported constant value to AFTER that rewrite.
+
         if isinstance(n, bn.ConstantNode):
             t = bt.type_of_value(n.value)
             return t == bt.Tensor or t == bt.Untypable
