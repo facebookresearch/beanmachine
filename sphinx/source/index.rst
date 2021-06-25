@@ -17,15 +17,15 @@ Welcome to BeanMachine's documentation!
    beanmachine.ppl.distribution
    beanmachine.ppl.examples.conjugate_models
    beanmachine.ppl.examplescd 
+   experimental
    beanmachine.ppl.inference.proposer
    beanmachine.ppl.inference
    beanmachine.ppl.model
-   beanmachine.pplxs
+   beanmachine.ppl
    beanmachine.ppl.testlib
    beanmachine.ppl.utils
    beanmachine.ppl.world
-
-   experimental
+   
 
 
 Indices and tables
