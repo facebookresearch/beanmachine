@@ -24,7 +24,11 @@ def t():
     gte = normal() >= 2.0
     lt = normal() < 2.0
     lte = normal() <= 2.0
-    s = 1.0 + gt + gte + lt + lte
+    _is = normal() is normal()
+    is_not = normal() is not normal()
+    _in = normal() in normal()
+    not_in = normal() not in normal()
+    s = 1.0 + gt + gte + lt + lte + _is + is_not + _in + not_in
     return StudentT(1.0, s, 1.0)
 
 
@@ -45,6 +49,14 @@ The unsupported node is the right of a +.
 The model uses a > operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a +.
 The model uses a >= operation unsupported by Bean Machine Graph.
+The unsupported node is the right of a +.
+The model uses a In operation unsupported by Bean Machine Graph.
+The unsupported node is the right of a +.
+The model uses a Is operation unsupported by Bean Machine Graph.
+The unsupported node is the right of a +.
+The model uses a IsNot operation unsupported by Bean Machine Graph.
+The unsupported node is the right of a +.
+The model uses a NotIn operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a +.
 """
         observed = str(ex.exception)
