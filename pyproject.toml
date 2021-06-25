@@ -19,3 +19,6 @@ filterwarnings = [
     # statsmodels's deprecation warning
     "default:the 'unbiased'' keyword is deprecated, use 'adjusted' instead.*:FutureWarning"
 ]
+
+[tool.usort]
+first_party_detection=false
