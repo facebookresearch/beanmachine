@@ -11,6 +11,7 @@ Welcome to BeanMachine's documentation!
    :caption: Contents:
 
    beanmachine
+   beamnachine.applications
    beanmachine.ppl.compiler
    beanmachine.ppl.diagnostics
    beanmachine.ppl.distribution

@@ -1,9 +1,12 @@
  Experimental 
- =======================================
- 
- .. toctree::
-    :maxdepth: 1
-    :caption: Contents:
+ =============
+
+
+ Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
 
     beanmachine.ppl.experimental.abc
     beanmachine.ppl.experimental.global_inference.proposer

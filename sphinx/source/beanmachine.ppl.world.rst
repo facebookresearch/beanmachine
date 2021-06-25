@@ -1,4 +1,4 @@
-world package
+world
 =============================
 
 Submodules

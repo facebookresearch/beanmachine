@@ -1,4 +1,4 @@
-distribution package
+distribution
 ====================================
 
 Submodules

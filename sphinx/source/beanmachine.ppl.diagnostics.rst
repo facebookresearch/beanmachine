@@ -1,4 +1,4 @@
-diagnostics package
+diagnostics
 ===================================
 
 Submodules

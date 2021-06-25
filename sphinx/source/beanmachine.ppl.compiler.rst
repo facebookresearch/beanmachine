@@ -1,4 +1,4 @@
-compiler package
+compiler
 ================================
 
 Submodules

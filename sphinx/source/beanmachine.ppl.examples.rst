@@ -1,4 +1,4 @@
-beanmachine.ppl.examples package
+beanmachine.ppl.examples
 ================================
 
 Subpackages

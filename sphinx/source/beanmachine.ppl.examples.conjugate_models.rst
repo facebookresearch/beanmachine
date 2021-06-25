@@ -1,4 +1,4 @@
-examples.conjugate\_models package
+examples.conjugate\_models
 ==================================================
 
 Submodules

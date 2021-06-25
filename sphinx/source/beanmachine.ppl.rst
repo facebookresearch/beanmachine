@@ -1,4 +1,4 @@
-beanmachine.ppl package
+beanmachine.ppl
 =======================
 
 Subpackages
