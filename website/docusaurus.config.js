@@ -11,7 +11,7 @@ const remarkMath = require('remark-math');
 const rehypeKatex = require('rehype-katex');
 
 module.exports = {
-  title: 'Bean Machine',
+  title: 'Testing',
   tagline:
     'A universal probabilistic programming language to enable fast and accurate Bayesian analysis',
   url: 'https://home.fburl.com/ppl', // Change to path for release.
