@@ -172,10 +172,6 @@ class Graph::NMC {
   void generate_sample() {
     for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
       Node* tgt_node = unobserved_sto_supp[i];
-      // TODO sto_nodes does not seem to be defined anywhere.
-      // It looks like assert is disabled, but this will not compile
-      // once it is enabled.
-      assert(tgt_node == sto_nodes.front());
       if (tgt_node->value.type.variable_type ==
           VariableType::COL_SIMPLEX_MATRIX) { // TODO make more generic
         if (tgt_node->value.type.rows == 2) {

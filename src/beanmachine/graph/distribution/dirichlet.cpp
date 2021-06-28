@@ -47,7 +47,7 @@ Eigen::MatrixXd Dirichlet::_matrix_sampler(std::mt19937& gen) const {
 
 double Dirichlet::log_prob(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::COL_SIMPLEX_MATRIX);
-  assert(value.type.column == 1);
+  assert(value.type.cols == 1);
   Eigen::MatrixXd param = in_nodes[0]->value._matrix;
 
   double log_prob = 0.0;
