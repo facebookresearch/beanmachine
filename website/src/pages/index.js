@@ -65,7 +65,7 @@ function Home() {
   const {siteConfig = {}} = context;
   return (
     <Layout title={`${siteConfig.title}`} description="Bean Machine">
-      <header className={clsx('hero hero--primary', styles.heroBanner)}>
+      <header className={clsx('hero shadow--lw', styles.heroBanner)}>
         <div className="container">
           <img
             className={styles.heroLogo}
