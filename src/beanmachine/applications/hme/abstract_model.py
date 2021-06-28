@@ -9,11 +9,9 @@ import beanmachine.graph as bmgraph
 import beanmachine.ppl.diagnostics.common_statistics as bm_diag_util
 import numpy as np
 import pandas as pd
+import torch  # usort: skip # noqa: F401
 
 from .configs import InferConfig, ModelConfig
-
-
-import torch  # usort: skip # noqa: F401
 
 
 logger = logging.getLogger("hme")
