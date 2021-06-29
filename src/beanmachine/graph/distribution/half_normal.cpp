@@ -57,17 +57,15 @@ double Half_Normal::_double_sampler(std::mt19937& gen) const {
 
 double Half_Normal::log_prob(const NodeValue& value) const {
   double s = in_nodes[0]->value._double;
-  double result, sum_x, sum_xsq;
+  double result, sum_xsq;
   int size;
 
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     size = 1;
-    sum_x = value._double;
     sum_xsq = value._double * value._double;
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
     size = value._matrix.size();
-    sum_x = value._matrix.sum();
     sum_xsq = value._matrix.squaredNorm();
   } else {
     throw std::runtime_error(
@@ -184,7 +182,6 @@ void Half_Normal::backward_param_iid(const graph::NodeValue& value) const {
   double s_sq = s * s;
 
   int size = value._matrix.size();
-  double sum_x = value._matrix.sum();
   /// The following should be deleted
   ///  if (in_nodes[0]->needs_gradient()) {
   ///    in_nodes[0]->back_grad1._double += sum_x / s_sq - size * m / s_sq;
@@ -202,7 +199,6 @@ void Half_Normal::backward_param_iid(
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
 
-  double sum_x = (value._matrix.array() * adjunct.array()).sum();
   double sum_adjunct = adjunct.sum();
   /// The following should be deleted
   /// if (in_nodes[0]->needs_gradient()) {
