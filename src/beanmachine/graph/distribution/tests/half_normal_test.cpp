@@ -3,14 +3,19 @@
 
 #include "beanmachine/graph/graph.h"
 
+/// TODO[Walid]: Is it essential that we test distributions using graphs?
 using namespace beanmachine::graph;
 
+/// Tests with scalar samples
 TEST(testdistrib, half_normal) {
   Graph g;
-  const double MEAN = -11.0;
+  /// TODO[Walid]: Would be good to parameterize later tests by these values!
+  const double MEAN = -11.0; /// TODO[Walid]: Half-normal assumes 0
   const double STD = 3.0;
   auto real1 = g.add_constant(MEAN);
   auto pos1 = g.add_constant_pos_real(STD);
+  /// TODO[Walid]: Argument will become just one, and value should be POS_REAL
+  /// Check that g.add_distribution checks arguments to HALF_NORMAL correctly
   // negative tests half_normal has two parents
   EXPECT_THROW(
       g.add_distribution(
@@ -40,7 +45,10 @@ TEST(testdistrib, half_normal) {
       DistributionType::HALF_NORMAL,
       AtomicType::REAL,
       std::vector<uint>{real1, pos1});
-  // test distribution of mean and variance
+  // test distribution of mean and variance.
+  /// The following line is adding the following declaration to the graph:
+  /// real_val   \in Normal (m,s)
+  /// which, basically defines an f(x) = Normal(m,s,x)
   auto real_val =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{half_normal_dist});
   auto real_sq_val = g.add_operator(
@@ -49,16 +57,88 @@ TEST(testdistrib, half_normal) {
   g.query(real_sq_val);
   const std::vector<double>& means =
       g.infer_mean(100000, InferenceType::REJECTION);
+  /// TODO[Walid]: Following should be OK as we change MEAN and STD...
+  /// In particular, we are not making observation, so, this just
+  /// samples directly from distribution
+  /// TODO[Walid]: Following should be OK as we change distributions!
   EXPECT_NEAR(means[0], MEAN, 0.1);
   EXPECT_NEAR(means[1] - means[0] * means[0], STD * STD, 0.1);
   // test log_prob
+  /// The following just tests log prob at 1.0. It has no connection to above
+  /// code that uses "infer"
+  /// TODO[Walid]: First update the following to work for a MEAN of 0.0, and
+  /// then test again after the MEAN parameter and fields have been removed.
+  ///
+  /// Set the value of real_val to 1.0
   g.observe(real_val, 1.0);
-  EXPECT_NEAR(
-      g.log_prob(real_val), -10.0176, 0.001); // value computed from pytorch
+  EXPECT_NEAR(g.log_prob(real_val), -10.0176, 0.001); /// computed by hand!
+
   // test gradient of log_prob w.r.t. value and the mean
-  // f(x) = -.5 (x + 11)^2 / 9  -.5 (x^2 - 3)^2/9
-  // f'(x) = -(x + 11) / 9 - (x^2 - 3) (2x) / 9
-  // f''(x) = -1/9 - 4x^2/9 - 2 (x^2 - 3) /9
+
+  /// First, a simple check on a single distribution
+  double grad1 = 0;
+  double grad2 = 0;
+  g.gradient_log_prob(real_val, grad1, grad2);
+  EXPECT_NEAR(grad1, -1.3333, 0.01); /// By hand, - (x - m) / s^2 = -12/9
+  EXPECT_NEAR(grad2, -0.1111, 0.01); /// By hand, - 1 / s^2 = -1/9
+  /// Second, a check on a composite model
+
+  /// Recall that:
+  /// real_val   \in Normal (m,s)          -- defines f(x) = Normal(m,s,x)
+  /// and also define
+  /// real_val_2 \in Normal (real_val^2,s) -- defines f(y|x) = Normal(x^2,s,y)
+  ///    also, we observed that real_value = 1
+  /// Note that where as new definitions incrementally add definitions for
+  /// probabilities conditioned on other variales, at the end we are interested
+  /// in the joint probablility distribution (and it's logprob, logprob
+  /// gradients, etc) So, for our example, we want to compute log(f(y,x))'[x].
+  /// Terminology: joint distribution means f(y,x) = f(y|x)*f(x)
+  /// Recall also that log(Normal(m,s,x))'[x] = - (x - m) / s^2 call this (*).
+  /// Recall also that
+  ///     log(Normal(m,s,x))
+  ///   = - log(s) -0.5 log(2*pi) - 0.5 (x - m)^2 / s^2
+  ///   and call this (**)
+  /// Let's work this out by hand to see what we should expect:
+  ///    log(f(y,x))'[x]                   /// f(y,x) = f(y|x) * f(x)
+  ///  = log(f(y|x)*f(x))'[x]              /// log(a*b) = log(a) + log(b)
+  ///  = (log(f(y|x)+log(f(x)))'[x]        /// (a+b)'[x] = a'[x] + b'[x]
+  ///  = log(f(y|x))'[x] + log(f(x))'[x]   /// a+b = b + a
+  ///  = log(f(x))'[x] + log(f(y|x))'[x]   /// (*)
+  ///  = - (x - m) / s^2 + log(f(y|x))'[x] /// f(y|x) definition
+  ///  = - (x - m) / s^2 + log(Normal(x^2,s,y))'[x] /// (**) for some k
+  ///  = - (x - m) / s^2 + (k - 0.5 (y - x^2)^2 / s^2 )'[x] /// k'[...] = 0
+  ///  = - (x - m) / s^2 + (0.5 (y - x^2)^2 / s^2 )'[x]
+  /// /// (y-x^2)'[x]=-2x and (y-x^2)^2'[y-x^2]=2(y-x^2)
+  /// = - (x - m) / s^2 + -2x * (y - x^2) / s^2 /// m=-11,s=3,x=1,y=3
+  /// = - (1 + 11) / 9 + -2 * (3 - 1) /9
+  /// = -12 / 9 + 4 / 9 = -8/9 /// This will be grad1 below
+  ///
+  /// For the calculation of the second derivative, we can reuse the above
+  /// before the substitution, that is:
+  ///    log(f(y,x))''[x]
+  ///  = (- (x - m) / s^2 + -2x * (y - x^2) / s^2)'[x]
+  ///  = - 1 / s^2 + (-2x * (y - x^2) / s^2)'[x]
+  ///  = - 1 / s^2 - 2 * ((x y - x^3) / s^2)'[x]
+  ///  = - 1 / s^2 - 2 * (y - 3x^2) / s^2 /// m=-11,s=3,x=1,y=3
+  ///  = - 1 / 9   - 2 * (3 - 3) / s^2
+  ///  = -1/9 /// This will be grad2 below
+  ///
+
+  /// Note: Because we have observed/fixed real_val, and because we
+  /// specify in the graph that real_sq_val = real_val * real_val,
+  /// and because log_prob traverse the entire graph and propagates
+  /// such constraints, we actual have a fixed value for real_sq_val
+  /// as we compute log-prog.
+
+  /// TODO[Lily]: One thing that makes this code harder to read is
+  /// interspersing setting of values with inference and with tests,
+  /// and to help the reader it is good to have comments such as the
+  /// ones above, and pointing out the significance of setting some
+  /// observations as we go along (and also setting up some relations
+  /// in the graph). TODO[Walid]: It would be good to do this for
+  /// all the distribution codes in our codebase
+
+  EXPECT_NEAR(real_sq_val, 4.0, 0.01); /// Just the index value!
   auto half_normal_dist2 = g.add_distribution(
       DistributionType::HALF_NORMAL,
       AtomicType::REAL,
@@ -66,12 +146,43 @@ TEST(testdistrib, half_normal) {
   auto real_val2 = g.add_operator(
       OperatorType::SAMPLE, std::vector<uint>{half_normal_dist2});
   g.observe(real_val2, 3.0);
-  double grad1 = 0;
-  double grad2 = 0;
+  grad1 = 0;
+  grad2 = 0;
   g.gradient_log_prob(real_val, grad1, grad2);
   EXPECT_NEAR(grad1, -0.88888, 0.01);
   EXPECT_NEAR(grad2, -0.11111, 0.01);
+  ///
   // test gradient of log_prob w.r.t. sigma
+  ///
+  /// The problem that we will consider is basically:
+  /// pos_val ~ Half_Cauchy(3.5,pos_val)  --- f(x) = Half_Cauchy(s,x),  s=3.5
+  /// real_val3 ~ Normal(real1,pos_val^2) --- f(y|x) = Normal(m,x^2,y), m=-11
+  /// As observations, we take pos_val =   x = 7
+  ///                      and real_val3 = y = 5.0
+  /// We want to compute (log(f(y,x))'[x] and ''[x].
+  /// So here it goes:
+  /// (log(f(y,x))'[x] = (log(f(y|x)*f(x)))'[x] = (log(f(y|x)) + log(f(x)))'[x]
+  /// = (log(Normal(m,x^2,y)) + log(Half_Cauchy(s,x)))'[x] /// Call this (*)
+  /// Recall:
+  ///    log(Normal(m,s,x))   = -log(s  ) -0.5 log(2*pi) - 0.5 (x - m)^2 / s^2
+  /// so log(Normal(m,x^2,y)) = -log(x^2) -0.5 log(2*pi) - 0.5 (y - m)^2 / x^4
+  /// Recall:
+  ///    log(Half_Cauchy(s,x))= -log(pi/2) -log(s) -log(1 + (x/s)^2)
+  /// Continuing with (*)
+  /// = (-log(x^2) -0.5 log(2*pi) - 0.5 (y - m)^2 / x^4 +
+  ///   + -log(pi/2) -log(s) -log(1 + (x/s)^2))'[x]
+  /// = (-2x/x^2 + 4 * 0.5 (y - m)^2 / x^5 +
+  ///   -(2x/s^2)/(1 + (x/s)^2))
+  /// = (-2/x + 2 (y - m)^2 / x^5 +
+  ///   -(2x)/(s^2 + x^2))
+  /// = -2/7 + 2 (5 +11)^2 / 7^5 -14/(3.5^2 + 7^2)
+  /// = -0.48382221693 /// grad1 below
+  ///
+  /// (log(_))''[x] = (-2/x + 2 (y - m)^2 / x^5 -(2x)/(s^2 + x^2))'[x]
+  /// = 2/x^2 - 10 (y - m)^2 / x^6 + (2x^2 - 2x^2)/(s^2+x^2)^2
+  /// = 2/7^2 - 10 (5 + 11)^2 / 7^6 + (2*7^2 - 2*3.5^2)/(3.5^2+7^2)^2
+  /// = 0.03864852229 /// grad2 below
+
   const double SCALE = 3.5;
   auto pos_scale = g.add_constant_pos_real(SCALE);
   auto half_cauchy_dist = g.add_distribution(
@@ -92,15 +203,12 @@ TEST(testdistrib, half_normal) {
   g.observe(real_val3, 5.0);
   grad1 = grad2 = 0;
   g.gradient_log_prob(pos_val, grad1, grad2);
-  // f(x) = -log(pi/2) + log(3.5) - log(3.5^2 + x^2) -0.5 log(2pi) -log(x^2)
-  // -0.5*(5 + 11)^2/x^4 f'(x) = -2x/(3.5^2 + x^2) -2/x +0.5*16^2*4/x^5 f'(7) =
-  // -0.483822 f''(x) = -2/(3.5^2 + x^2) + 4x^2/(3.5^2 + x^2)^2   +2/x^2
-  // -0.5*16^2*4*5/x^6 f''(7) = 0.038648
   EXPECT_NEAR(grad1, -0.483822, 1e-6);
   EXPECT_NEAR(grad2, 0.038648, 1e-6);
 }
 
-TEST(testdistrib, backward_half_normal_half_ormal) {
+/// Tests with aggregate samples
+TEST(testdistrib, backward_half_normal_half_normal) {
   Graph g;
   uint zero = g.add_constant(0.0);
   uint pos_one = g.add_constant_pos_real(1.0);
@@ -125,19 +233,40 @@ TEST(testdistrib, backward_half_normal_half_ormal) {
   g.observe(y, yobs);
 
   // test log_prob() on vector value:
+
+  /// Recall:
+  ///    Normal(mu,sigma,x) = 1/(sigma sqrt(2pi)) *  exp(-0.5*((x-mu)/sigma)^2)
+  /// Now consider the model:
+  ///   mu ~ Normal(0,1)
+  ///   y  ~ Normal(mu,1)^2
+  /// Under the observations mu=0.1 and y=[0.5 -0.5]
+  /// What is log_prob(y)?
+  /// That means we want to compute log(f(y|mu))
+  /// Note: In particular, here we do NOT compute log(f(y,mu))!
+  /// log(f(y|mu)) = -ln(2pi) - 0.5((mu-0.5)^2 + (mu+0.5)^2)
+  /// = -ln(2*pi) - 0.5*(0.4^2+0.6^2)
+  /// = -2.09787706641 // log_prob_y below
   double log_prob_y = g.log_prob(y);
   EXPECT_NEAR(log_prob_y, -2.0979, 0.001);
+
   // test backward_param(), backward_value() and
   // backward_param_iid(), backward_value_iid():
-  // To verify the grad1 results with pyTorch:
-  // mu = tensor([0.1], requires_grad=True)
-  // y = tensor([0.5, -0.5], requires_grad=True)
-  // log_p = (
-  //     dist.Half_Normal(mu, tensor(1.0)).log_prob(y).sum() +
-  //     dist.Half_Normal(tensor(0.0), tensor(1.0)).log_prob(mu)
-  // )
-  // torch.autograd.grad(log_p, mu) -> -0.3
-  // torch.autograd.grad(log_p, y) -> [-0.4, 0.6]
+
+  /// In contrast to working with f(y|mu) above
+  /// here we will work with f(y,mu) = f(y|mu)*f(mu)
+  /// For a y=(y1,y2) the log prob is given by
+  /// log(f(y,mu))
+  /// = -(3/2)ln(2 pi) - 0.5(mu^2 + (mu-y1)^2 + (mu-y2)^2)
+  /// and so derivative wrt mu is:
+  /// -(3mu - y1 - y2)
+  /// = -0.3 in our case /// grad1[0] below
+  /// and derivative wrt y1 is:
+  /// = mu - y1
+  /// = -0.4 in our case ///grad1[1]->1 below
+  /// and derivative wrt y2 is:
+  /// = mu - y2
+  /// = 0.6 in our case ///grad1[1]->2 below
+
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
@@ -146,6 +275,9 @@ TEST(testdistrib, backward_half_normal_half_ormal) {
   EXPECT_NEAR(grad1[1]->_matrix.coeff(1), 0.6, 1e-3);
 
   // mixture of half_normals
+  /// Checking the log probability and the
+  /// back gradient calculations with respect to several
+  /// sampled variables, and through a composition of distributions.
   Graph g2;
   auto size = g2.add_constant((natural_t)2);
   auto flat_real = g2.add_distribution(
@@ -181,7 +313,33 @@ TEST(testdistrib, backward_half_normal_half_ormal) {
   Eigen::MatrixXd xobs(2, 1);
   xobs << 0.5, -1.5;
   g2.observe(xiid, xobs);
-  // To verify the results with pyTorch:
+  /// First, the checking the log-probabilities
+  /// The following Python code spells out the
+  /// calculation we use for checking the full
+  /// log prob. Note that all FLAT dists contribute
+  /// 0 to the total log prob.
+  /// from numpy import pi,log,exp
+  /// m1 = -1.2
+  /// m2 = 0.4
+  /// s = 1.8
+  /// p = 0.37
+  /// x = -0.5
+  /// x1 = 0.5
+  /// x2 = -1.5
+  // def log_probability(x):
+  ///     ## Logprob for first Normal
+  ///     lp_d1 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m1)/ s)**2
+  ///     ## Logprob for second Normal
+  ///     lp_d2 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m2)/ s)**2
+  ///     ## The mixture part
+  ///     q = p * exp(lp_d1) + (1-p)* exp(lp_d2)
+  ///     lp_x = log(q)
+  ///     return lp_x
+  /// sum([log_probability(x) for x in [x,x1,x2]])
+  /// ## == -5.091080467031949
+  EXPECT_NEAR(g2.full_log_prob(), -5.0911, 1e-3);
+  ///
+  // To verify the derivatives with pyTorch:
   // m1 = torch.tensor(-1.2, requires_grad=True)
   // m2 = torch.tensor(0.4, requires_grad=True)
   // s = torch.tensor(1.8, requires_grad=True)
@@ -193,7 +351,25 @@ TEST(testdistrib, backward_half_normal_half_ormal) {
   // f2 = d2.log_prob(x).exp()
   // log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
   // torch.autograd.grad(log_p, x)[0]
-  EXPECT_NEAR(g2.full_log_prob(), -5.0911, 1e-3);
+  /// The calculations above simply return the derivatives
+  /// of the value sum([log_probability...]) defined above
+  /// with respect to various variables. For example, the
+  /// derivative wrt to m1 would be can be computed by the
+  /// following function:
+  /// def log_probability_m1(x):
+  ///     ## First Normal
+  ///     lp_d1 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m1)/ s)**2
+  ///     lp_d1_m1 = (x-m1) / (s**2)
+  ///     ## Second Normal
+  ///     lp_d2 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m2)/ s)**2
+  ///     lp_d2_m1 = 0
+  ///     ## The mixture part
+  ///     q = p * exp(lp_d1) + (1-p)* exp(lp_d2)
+  ///     q_m1 = p * exp(lp_d1) * lp_d1_m1
+  ///     lp_x = log(q)
+  ///     lp_x_m1 = (1/q)*q_m1
+  ///     return lp_x_m1
+  /// sum([log_probability_m1(x) for x in [x,x1,x2]]) ## 0.17942185552302908
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 6);

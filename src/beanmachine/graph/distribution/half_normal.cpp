@@ -32,12 +32,14 @@ Half_Normal::Half_Normal(
   }
 }
 
+/// TODO[Walid:] Mean should be set to zero, then we take abs() of return value
 double Half_Normal::_double_sampler(std::mt19937& gen) const {
   std::normal_distribution<double> dist(
       in_nodes[0]->value._double, in_nodes[1]->value._double);
   return dist(gen);
 }
 
+// The calculations for the normal distribution. Very helpful for half-normal!
 // log_prob of a normal: - log(s) -0.5 log(2*pi) - 0.5 (x - m)^2 / s^2
 // grad  w.r.t. value x: - (x - m) / s^2
 // grad2 w.r.t. value x: - 1 / s^2
@@ -50,6 +52,28 @@ double Half_Normal::_double_sampler(std::mt19937& gen) const {
 // computes g'(x). [g is the current function f is the final target]
 // - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
 // the above equation computes f'(g) [f is the current function g is the input]
+
+/// TODO[Walid:] The following math needs to be implemented
+// log_prob of a half-normal:
+//    (x<0)? 0 : log(2) - log(s) -0.5 log(2*pi) - 0.5 (x - m)^2 / s^2
+// grad  w.r.t. value x:
+//    (x<0)? 0 : - (x - m) / s^2
+// grad2 w.r.t. value x:
+//    (x<0)? 0 : - 1 / s^2
+// grad  w.r.t. s :
+//    (x<0)? 0 : -1/s + (x-m)^2 / s^3 grad2 w.r.t. s : 1/s^2 - 3 (x-m)^2 / s^4
+// grad  w.r.t. m :
+//    (x<0)? 0 : (x - m) / s^2
+// grad2 w.r.t. m :
+//    (x<0)? 0 : -1 / s^2
+
+/// TODO[Walid]: The following notes are mysterious to me.
+// First order chain rule: f(g(x))' = f'(g(x)) g'(x),
+// - In backward propagation, f'(g(x)) is given by adjunct, the above equation
+// computes g'(x). [g is the current function f is the final target]
+// - In forward propagation, g'(x) is given by in_nodes[x]->grad1,
+// the above equation computes f'(g) [f is the current function g is the input]
+
 double Half_Normal::log_prob(const NodeValue& value) const {
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
@@ -69,6 +93,10 @@ double Half_Normal::log_prob(const NodeValue& value) const {
     throw std::runtime_error(
         "Half_Normal::log_prob applied to invalid variable type");
   }
+  // This is computing the log probability of the Normal PDF
+  // for the entire sample
+  /// TODO[Walid]: For half normal we should add (log 2)*size
+  /// TODO[Walid]: Should we also add a check on mean?
   result = (-std::log(s) - 0.5 * std::log(2 * M_PI)) * size -
       0.5 * (sum_xsq - 2 * m * sum_x + m * m * size) / (s * s);
   return result;
@@ -80,10 +108,13 @@ void Half_Normal::log_prob_iid(
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
+  /// TODO[Walid]: Need to figure out how to do constants and conditionals here
   log_probs = (-std::log(s) - 0.5 * std::log(2 * M_PI)) -
       0.5 * (value._matrix.array() - m).pow(2) / (s * s);
 }
 
+/// TODO[Walid]: This function can be inlined (it has only two uses)
+/// TODO[Walid]: Will need to be conditioned by x either here or at call site
 void Half_Normal::_grad1_log_prob_value(
     double& grad1,
     double val,
@@ -113,7 +144,8 @@ void Half_Normal::gradient_log_prob_param(
   double m = in_nodes[0]->value._double;
   double s = in_nodes[1]->value._double;
   double s_sq = s * s;
-  // gradients of m should be non-zero before computing gradients w.r.t. m
+  /// gradients of m should be non-zero before computing gradients w.r.t. m
+  /// TODO[Walid]: The above is a peculiar requirement. What's the intention?
   double m_grad = in_nodes[0]->grad1;
   double m_grad2 = in_nodes[0]->grad2;
   if (m_grad != 0 or m_grad2 != 0) {
