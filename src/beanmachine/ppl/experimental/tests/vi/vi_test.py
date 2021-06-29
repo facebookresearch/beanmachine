@@ -279,6 +279,7 @@ class StochasticVariationalInferTest(unittest.TestCase):
                 num_iter=1,
                 lr=1e0,
                 params=opt_params,
+                progress_bar=False,
             )
         q_mu_id = q_mu()
         mu_approx = None

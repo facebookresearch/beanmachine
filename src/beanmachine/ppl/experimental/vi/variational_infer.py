@@ -168,6 +168,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         random_seed: Optional[int] = None,
         on_iter: Optional[Callable] = None,
         params: Optional[Dict[RVIdentifier, nn.Parameter]] = None,
+        progress_bar: Optional[bool] = True,
     ) -> Dict[RVIdentifier, nn.Parameter]:
         """
         Perform stochastic variational inference.
@@ -213,7 +214,11 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
             if not params:
                 params = {}
 
-            for it in tqdm(iterable=range(num_iter), desc="Training iterations"):
+            for it in (
+                tqdm(iterable=range(num_iter), desc="Training iterations")
+                if progress_bar
+                else range(num_iter)
+            ):
                 # sample world x ~ q_t
                 self.initialize_world(
                     False,
