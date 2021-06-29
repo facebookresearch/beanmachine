@@ -176,6 +176,7 @@ class HMCProposer(BaseProposer):
             world, momentums, pe, pe_grad = self._leapfrog_step(
                 world, momentums, step_size, mass_inv, pe_grad
             )
+        # pyre-fixme[61]: `pe` may not be initialized here.
         return world, momentums, pe, cast(RVDict, pe_grad)
 
     def _find_reasonable_step_size(

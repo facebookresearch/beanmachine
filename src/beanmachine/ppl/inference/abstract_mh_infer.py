@@ -353,9 +353,12 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
                     proposer.do_adaptation(
                         node,
                         self.world_,
+                        # pyre-fixme[61]: `acceptance_probability` may not be
+                        #  initialized here.
                         acceptance_probability,
                         iteration,
                         num_adaptive_samples,
+                        # pyre-fixme[61]: `is_accepted` may not be initialized here.
                         is_accepted,
                     )
 
