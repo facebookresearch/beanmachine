@@ -222,50 +222,49 @@ TEST(testdistrib, backward_half_normal_half_normal) {
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist_y, two});
   g.observe(mu, 0.0);
   Eigen::MatrixXd yobs(2, 1);
-  yobs << 0.5, -0.5;
+  yobs << 0.5, 1.5;
   g.observe(y, yobs);
 
   // test log_prob() on vector value:
 
-  /// Recall:
-  ///    Normal(mu,sigma,x) = 1/(sigma sqrt(2pi)) *  exp(-0.5*((x-mu)/sigma)^2)
+  /// Recall [when mu=0]:
+  ///    Normal(x,sigma) = 1/(sigma sqrt(2pi)) * exp(-0.5*(x/sigma)^2)
   /// Now consider the model:
-  ///   mu ~ Normal(0,1)
-  ///   y  ~ Normal(mu,1)^2
-  /// Under the observations mu=0.0 and y=[0.5 -0.5]
+  ///   mu ~ Normal(1)
+  ///   y  ~ Normal(1)^2
+  /// Under the observations mu=0.0 and y=[0.5 1.5]
   /// What is log_prob(y)?
   /// That means we want to compute log(f(y|mu))
   /// Note: In particular, here we do NOT compute log(f(y,mu))!
-  /// log(f(y|mu)) = -ln(2pi) - 0.5((mu-0.5)^2 + (mu+0.5)^2)
-  /// = -ln(2*pi) - 0.5*(0.5^2+0.5^2)
-  /// = -2.08787706641 // log_prob_y below
+  /// log(f(y)) = -ln(2pi) - 0.5((-0.5)^2 + (-1.5)^2)
+  /// = -ln(2*pi) - 0.5*(0.5^2+1.5^2)
+  /// = -3.08787706641 // log_prob_y below
   double log_prob_y = g.log_prob(y);
-  EXPECT_NEAR(log_prob_y, -2.08787706641, 0.001);
+  EXPECT_NEAR(log_prob_y, -3.08787706641, 0.001);
 
   // test backward_param(), backward_value() and
   // backward_param_iid(), backward_value_iid():
 
   /// In contrast to working with f(y|mu) above
-  /// here we will work with f(y,mu) = f(y|mu)*f(mu)
+  /// here we will work with f(y,mu) = f(y)*f(mu)
   /// For a y=(y1,y2) the log prob is given by
-  /// log(f(y,mu))
-  /// = -(3/2)ln(2 pi) - 0.5(mu^2 + (mu-y1)^2 + (mu-y2)^2)
+  /// log(f(y))
+  /// = -(3/2)ln(2 pi) - 0.5((-y1)^2 + (-y2)^2)
   /// and so derivative wrt mu is:
-  /// -(3mu - y1 - y2)
   /// = 0.0 in our case /// grad1[0] below
   /// and derivative wrt y1 is:
   /// = mu - y1
   /// = -0.5 in our case ///grad1[1]->1 below
   /// and derivative wrt y2 is:
   /// = mu - y2
-  /// = 0.5 in our case ///grad1[1]->2 below
+  /// = -1.5 in our case ///grad1[1]->2 below
 
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
   EXPECT_NEAR(grad1[0]->_double, -0.0, 1e-3);
   EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.5, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), 0.5, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.5, 1e-3);
 
   // mixture of half_normals
   /// Checking the log probability and the
@@ -302,9 +301,9 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   g2.observe(m2, 0.0);
   g2.observe(s, 1.8);
   g2.observe(p, 0.37);
-  g2.observe(x, -0.5);
+  g2.observe(x, 0.5);
   Eigen::MatrixXd xobs(2, 1);
-  xobs << 0.5, -1.5;
+  xobs << 0.5, 1.5;
   g2.observe(xiid, xobs);
   /// First, the checking the log-probabilities
   /// The following Python code spells out the
@@ -312,18 +311,16 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   /// log prob. Note that all FLAT dists contribute
   /// 0 to the total log prob.
   /// from numpy import pi,log,exp
-  /// m1 = 0
-  /// m2 = 0
   /// s = 1.8
   /// p = 0.37
-  /// x = -0.5
+  /// x = 0.5
   /// x1 = 0.5
-  /// x2 = -1.5
-  // def log_probability(x):
+  /// x2 = 1.5
+  /// def log_probability(x):
   ///     ## Logprob for first Normal
-  ///     lp_d1 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m1)/ s)**2
+  ///     lp_d1 = - log(s) - 0.5 * log(2*pi) - 0.5 * (x/ s)**2
   ///     ## Logprob for second Normal
-  ///     lp_d2 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m2)/ s)**2
+  ///     lp_d2 = - log(s) - 0.5 * log(2*pi) - 0.5 * (x/ s)**2
   ///     ## The mixture part
   ///     q = p * exp(lp_d1) + (1-p)* exp(lp_d2)
   ///     lp_x = log(q)
@@ -332,37 +329,35 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   /// ## == -4.944558310369758
   EXPECT_NEAR(g2.full_log_prob(), -4.944558310369758, 1e-3);
   ///
-  // To verify the derivatives with pyTorch:
-  // m1 = torch.tensor(0.0, requires_grad=True)
-  // m2 = torch.tensor(0.0, requires_grad=True)
-  // s = torch.tensor(1.8, requires_grad=True)
-  // p = torch.tensor(0.37, requires_grad=True)
-  // x = torch.tensor([-0.5, 0.5, -1.5], requires_grad=True)
-  // d1 = torch.distributions.Half_Normal(m1, s)
-  // d2 = torch.distributions.Half_Normal(m2, s)
-  // f1 = d1.log_prob(x).exp()
-  // f2 = d2.log_prob(x).exp()
-  // log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
-  // torch.autograd.grad(log_p, x)[0]
+  /// s = torch.tensor(1.8, requires_grad=True)
+  /// p = torch.tensor(0.37, requires_grad=True)
+  /// x = torch.tensor([0.5, 0.5, 1.5], requires_grad=True)
+  /// d1 = torch.distributions.Normal(0, s)
+  /// d2 = torch.distributions.Normal(0, s)
+  /// f1 = d1.log_prob(x).exp()
+  /// f2 = d2.log_prob(x).exp()
+  /// log_p = (p * f1 + (tensor(1.0) - p) * f2).log().sum()
+  /// torch.autograd.grad(log_p, x)[0]
   /// The calculations above simply return the derivatives
   /// of the value sum([log_probability...]) defined above
   /// with respect to various variables. For example, the
-  /// derivative wrt to m1 would be can be computed by the
+  /// derivative wrt to x would be can be computed by the
   /// following function:
-  /// def log_probability_m1(x):
+  /// def log_probability_x(x):
   ///     ## First Normal
-  ///     lp_d1 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m1)/ s)**2
-  ///     lp_d1_m1 = (x-m1) / (s**2)
+  ///     lp_d1 = - log(s) - 0.5 * log(2*pi) - 0.5 * (x/ s)**2
+  ///     lp_d1_x = - x/ s**2
   ///     ## Second Normal
-  ///     lp_d2 = - log(s) - 0.5 * log(2*pi) - 0.5 * ((x-m2)/ s)**2
-  ///     lp_d2_m1 = 0
+  ///     lp_d2 = - log(s) - 0.5 * log(2*pi) - 0.5 * (x/ s)**2
+  ///     lp_d2_x = - x/ s**2
   ///     ## The mixture part
   ///     q = p * exp(lp_d1) + (1-p)* exp(lp_d2)
-  ///     q_m1 = p * exp(lp_d1) * lp_d1_m1
-  ///     lp_x = log(q)
-  ///     lp_x_m1 = (1/q)*q_m1
-  ///     return lp_x_m1
-  /// sum([log_probability_m1(x) for x in [x,x1,x2]]) ## 0.17942185552302908
+  ///     q_x = p * exp(lp_d1) * lp_d1_x + (1-p)* exp(lp_d2)*lp_d2_x
+  ///     lp_q = log(q)
+  ///     lp_q_x = (1/q)*q_x
+  ///     return lp_x_x
+  /// [log_probability_x(x) for x in [x,x1,x2]]
+  /// ## [-0.154320987654321, -0.154320987654321, -0.4629629629629629]
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 6);
@@ -370,7 +365,7 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   EXPECT_NEAR(back_grad[1]->_double, 0.0, 1e-3); // m2 /// dummy param
   EXPECT_NEAR(back_grad[2]->_double, -1.1951, 1e-3); // s
   EXPECT_NEAR(back_grad[3]->_double, 0.0, 1e-3); // p
-  EXPECT_NEAR(back_grad[4]->_double, 0.1543, 1e-3); // x
+  EXPECT_NEAR(back_grad[4]->_double, -0.1543, 1e-3); // x
   EXPECT_NEAR(back_grad[5]->_matrix.coeff(0), -0.1543, 1e-3); // xiid
-  EXPECT_NEAR(back_grad[5]->_matrix.coeff(1), 0.4630, 1e-3);
+  EXPECT_NEAR(back_grad[5]->_matrix.coeff(1), -0.4630, 1e-3);
 }
