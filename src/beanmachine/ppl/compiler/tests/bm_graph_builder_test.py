@@ -17,6 +17,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ExpNode,
     GreaterThanEqualNode,
     GreaterThanNode,
+    HalfNormalNode,
     LessThanEqualNode,
     LessThanNode,
     Log1mexpNode,

@@ -321,6 +321,7 @@ class BMGRuntime:
             dist.Gamma: self.handle_gamma,
             dist.HalfCauchy: self.handle_halfcauchy,
             dist.Normal: self.handle_normal,
+            dist.HalfNormal: self.handle_halfnormal,
             dist.StudentT: self.handle_studentt,
             dist.Uniform: self.handle_uniform,
             # Beanstalk hints
@@ -413,6 +414,11 @@ class BMGRuntime:
         if not isinstance(scale, BMGNode):
             scale = self._bmg.add_constant(scale)
         return self._bmg.add_normal(loc, scale)
+
+    def handle_halfnormal(self, scale: Any, validate_args=None) -> bn.HalfNormalNode:
+        if not isinstance(scale, BMGNode):
+            scale = self._bmg.add_constant(scale)
+        return self._bmg.add_halfnormal(scale)
 
     def handle_dirichlet(
         self, concentration: Any, validate_args=None
@@ -1238,6 +1244,9 @@ class BMGRuntime:
             return self._bmg.add_sample(b)
         if isinstance(operand, dist.Normal):
             b = self.handle_normal(operand.mean, operand.stddev)
+            return self._bmg.add_sample(b)
+        if isinstance(operand, dist.HalfNormal):
+            b = self.handle_halfnormal(operand.scale)
             return self._bmg.add_sample(b)
         if isinstance(operand, dist.StudentT):
             b = self.handle_studentt(operand.df, operand.loc, operand.scale)

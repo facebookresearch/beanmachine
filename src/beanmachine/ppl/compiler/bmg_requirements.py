@@ -41,6 +41,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.GammaNode: [bt.PositiveReal, bt.PositiveReal],
     bn.HalfCauchyNode: [bt.PositiveReal],
     bn.NormalNode: [bt.Real, bt.PositiveReal],
+    bn.HalfNormalNode: [bt.PositiveReal],
     bn.StudentTNode: [bt.PositiveReal, bt.Real, bt.PositiveReal],
     # Operators
     bn.LogisticNode: [bt.Real],

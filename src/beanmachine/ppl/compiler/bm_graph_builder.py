@@ -379,6 +379,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_halfnormal(self, sigma: BMGNode) -> bn.HalfNormalNode:
+        node = bn.HalfNormalNode(sigma)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_dirichlet(self, concentration: BMGNode) -> bn.DirichletNode:
         node = bn.DirichletNode(concentration)
         self.add_node(node)

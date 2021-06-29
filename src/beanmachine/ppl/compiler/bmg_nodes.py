@@ -797,6 +797,36 @@ class NormalNode(DistributionNode):
         raise ValueError("Normal distribution does not have finite support.")
 
 
+class HalfNormalNode(DistributionNode):
+
+    """The half-normal distribution is a half bell curve with
+    a given standard deviation. Mean (for the underlying normal)
+    is taken to be zero."""
+
+    def __init__(self, sigma: BMGNode):
+        DistributionNode.__init__(self, [sigma])
+
+    @property
+    def sigma(self) -> BMGNode:
+        return self.inputs[0]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.sigma.size
+
+    def __str__(self) -> str:
+        return f"HalfNormal({str(self.sigma)})"
+
+    def support(self) -> Iterable[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a half normal.
+        raise ValueError("HalfNormal distribution does not have finite support.")
+
+
 class StudentTNode(DistributionNode):
     """The Student T distribution is a bell curve with zero mean
     and a heavier tail than the normal distribution. It is

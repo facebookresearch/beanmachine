@@ -37,6 +37,7 @@ _dist_types = {
     bn.GammaNode: (dt.GAMMA, AtomicType.POS_REAL),
     bn.HalfCauchyNode: (dt.HALF_CAUCHY, AtomicType.POS_REAL),
     bn.NormalNode: (dt.NORMAL, AtomicType.REAL),
+    bn.HalfNormalNode: (dt.HALF_NORMAL, AtomicType.POS_REAL),
     bn.StudentTNode: (dt.STUDENT_T, AtomicType.REAL),
 }
 
