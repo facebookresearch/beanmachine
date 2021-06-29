@@ -25,9 +25,9 @@ Half_Normal::Half_Normal(
         "Half_Normal parent must be a positive real number");
   }
   // only real-valued samples are possible
-  if (sample_type != AtomicType::REAL) {
+  if (sample_type != AtomicType::POS_REAL) {
     throw std::invalid_argument(
-        "Half_Normal distribution produces real number samples");
+        "Half_Normal distribution produces positive real number samples");
   }
 }
 

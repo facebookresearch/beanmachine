@@ -20,34 +20,44 @@ TEST(testdistrib, half_normal) {
   // negative tests half_normal has one parent
   EXPECT_THROW(
       g.add_distribution(
-          DistributionType::HALF_NORMAL, AtomicType::REAL, std::vector<uint>{}),
+          DistributionType::HALF_NORMAL,
+          AtomicType::POS_REAL,
+          std::vector<uint>{}),
       std::invalid_argument);
   EXPECT_THROW(
       g.add_distribution(
           DistributionType::HALF_NORMAL,
-          AtomicType::REAL,
+          AtomicType::POS_REAL,
           std::vector<uint>{pos1, pos1}),
       std::invalid_argument);
   // negative test the parent must be a positive real
   EXPECT_THROW(
       g.add_distribution(
           DistributionType::HALF_NORMAL,
-          AtomicType::REAL,
+          AtomicType::POS_REAL,
           std::vector<uint>{real1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_distribution(
+          DistributionType::HALF_NORMAL,
+          AtomicType::REAL,
+          std::vector<uint>{pos1}),
       std::invalid_argument);
   // test creation of a distribution
   auto half_normal_dist = g.add_distribution(
-      DistributionType::HALF_NORMAL, AtomicType::REAL, std::vector<uint>{pos1});
+      DistributionType::HALF_NORMAL,
+      AtomicType::POS_REAL,
+      std::vector<uint>{pos1});
   // test distribution of mean and variance.
   /// The following line is adding the following declaration to the graph:
   /// real_val   \in Half_Normal (m,s)
   /// which, basically defines an f(x) = Half_Normal(m,s,x)
-  auto real_val =
+  auto pos_real_val =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{half_normal_dist});
-  auto real_sq_val = g.add_operator(
-      OperatorType::MULTIPLY, std::vector<uint>{real_val, real_val});
-  g.query(real_val);
-  g.query(real_sq_val);
+  auto pos_real_sq_val = g.add_operator(
+      OperatorType::MULTIPLY, std::vector<uint>{pos_real_val, pos_real_val});
+  g.query(pos_real_val);
+  g.query(pos_real_sq_val);
   const std::vector<double>& means =
       g.infer_mean(100000, InferenceType::REJECTION);
   /// Since we are not making observations, the following is just
@@ -59,28 +69,30 @@ TEST(testdistrib, half_normal) {
   /// The following just tests log prob at 1.0. It has no connection to above
   /// code that uses "infer"
   ///
-  /// Set the value of real_val to 1.0
-  /// The log(prob(real_val)) is therefore -ln(3)-0.5*ln(pi/2)-0.5*(1/3)^2
+  /// Set the value of pos_real_val to 1.0
+  /// The log(prob(pos_real_val)) is therefore -ln(3)-0.5*ln(pi/2)-0.5*(1/3)^2
   /// = -1.37995919687
-  g.observe(real_val, 1.0);
+  g.observe(pos_real_val, 1.0);
   EXPECT_NEAR(
-      g.log_prob(real_val), -1.37995919687, 0.001); /// computed by hand!
+      g.log_prob(pos_real_val), -1.37995919687, 0.001); /// computed by hand!
 
   // test gradient of log_prob w.r.t. value and the mean
 
   /// First, a simple check on a single distribution
   double grad1 = 0;
   double grad2 = 0;
-  g.gradient_log_prob(real_val, grad1, grad2);
+  g.gradient_log_prob(pos_real_val, grad1, grad2);
   EXPECT_NEAR(grad1, -0.1111, 0.01); /// By hand, - (x - m) / s^2 = -1/9
   EXPECT_NEAR(grad2, -0.1111, 0.01); /// By hand, - 1 / s^2 = -1/9
   /// Second, a check on a composite model
 
   /// Recall that:
-  /// real_val   \in Normal (m,s)          -- defines f(x) = Normal(m,s,x)
+  /// pos_real_val   \in Normal (m,s)
+  ///   -- defines f(x) = Normal(m,s,x)
   /// and also define
-  /// real_val_2 \in Normal (real_val^2,s) -- defines f(y|x) = Normal(x^2,s,y)
-  ///    also, we observed that real_value = 1
+  /// pos_real_val_2 \in Normal (pos_real_val^2,s)
+  ///   -- defines f(y|x) = Normal(x^2,s,y)
+  ///    also, we observed that pos_real_value = 1
   /// Note that where as new definitions incrementally add definitions for
   /// probabilities conditioned on other variales, at the end we are interested
   /// in the joint probablility distribution (and it's logprob, logprob
@@ -117,10 +129,10 @@ TEST(testdistrib, half_normal) {
   ///  = -1/9 /// This will be grad2 below
   ///
 
-  /// Note: Because we have observed/fixed real_val, and because we
-  /// specify in the graph that real_sq_val = real_val * real_val,
+  /// Note: Because we have observed/fixed pos_real_val, and because we
+  /// specify in the graph that pos_real_sq_val = pos_real_val * pos_real_val,
   /// and because log_prob traverse the entire graph and propagates
-  /// such constraints, we actual have a fixed value for real_sq_val
+  /// such constraints, we actual have a fixed value for pos_real_sq_val
   /// as we compute log-prog.
 
   /// TODO[Lily]: One thing that makes this code harder to read is
@@ -131,17 +143,19 @@ TEST(testdistrib, half_normal) {
   /// in the graph). TODO[Walid]: It would be good to do this for
   /// all the distribution codes in our codebase.
 
-  EXPECT_NEAR(real_sq_val, 4.0, 0.01); /// Just the index value!
+  EXPECT_NEAR(pos_real_sq_val, 4.0, 0.01); /// Just the index value!
+  auto real_sq_val =
+      g.add_operator(OperatorType::TO_REAL, std::vector<uint>{pos_real_sq_val});
   auto normal_dist2 = g.add_distribution(
       DistributionType::NORMAL, /// TODO[Walid]: Consider half_normal here too
       AtomicType::REAL,
       std::vector<uint>{real_sq_val, pos1});
-  auto real_val2 =
+  auto pos_real_val2 =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist2});
-  g.observe(real_val2, 3.0);
+  g.observe(pos_real_val2, 3.0);
   grad1 = 0;
   grad2 = 0;
-  g.gradient_log_prob(real_val, grad1, grad2);
+  g.gradient_log_prob(pos_real_val, grad1, grad2);
   EXPECT_NEAR(grad1, 0.33333, 0.01);
   EXPECT_NEAR(grad2, -0.11111, 0.01);
   ///
@@ -209,15 +223,16 @@ TEST(testdistrib, backward_half_normal_half_normal) {
 
   uint half_normal_dist = g.add_distribution(
       DistributionType::HALF_NORMAL,
-      AtomicType::REAL,
+      AtomicType::POS_REAL,
       std::vector<uint>{pos_one});
   uint mu =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{half_normal_dist});
 
   uint dist_y = g.add_distribution(
       DistributionType::HALF_NORMAL,
-      AtomicType::REAL,
+      AtomicType::POS_REAL,
       std::vector<uint>{pos_one}); // TODO[Walid]: Replacing pos_one by mu fails
+
   uint y =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist_y, two});
   g.observe(mu, 0.0); // TODO[Walid]: Would need to be non-zero to serve as s
@@ -290,16 +305,16 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   auto s = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
   auto d1 = g2.add_distribution(
       DistributionType::HALF_NORMAL,
-      AtomicType::REAL,
+      AtomicType::POS_REAL,
       std::vector<uint>{s}); // TODO[Walid]: Mean was m1. Introduce an s1
   auto d2 = g2.add_distribution(
       DistributionType::HALF_NORMAL,
-      AtomicType::REAL,
+      AtomicType::POS_REAL,
       std::vector<uint>{s}); // TODO[Walid]: Mean was m2. Introduce an s2
   auto p = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_prob});
   auto dist = g2.add_distribution(
       DistributionType::BIMIXTURE,
-      AtomicType::REAL,
+      AtomicType::POS_REAL,
       std::vector<uint>{p, d1, d2});
   auto x = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist});
   auto xiid =
