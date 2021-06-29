@@ -40,8 +40,8 @@ TEST(testdistrib, half_normal) {
       DistributionType::HALF_NORMAL, AtomicType::REAL, std::vector<uint>{pos1});
   // test distribution of mean and variance.
   /// The following line is adding the following declaration to the graph:
-  /// real_val   \in Normal (m,s)
-  /// which, basically defines an f(x) = Normal(m,s,x)
+  /// real_val   \in Half_Normal (m,s)
+  /// which, basically defines an f(x) = Half_Normal(m,s,x)
   auto real_val =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{half_normal_dist});
   auto real_sq_val = g.add_operator(
@@ -60,11 +60,11 @@ TEST(testdistrib, half_normal) {
   /// code that uses "infer"
   ///
   /// Set the value of real_val to 1.0
-  /// The log(prob(real_val)) is therefore -ln(3)-0.5*ln(2*pi)-0.5*(1/3)^2
-  /// = -2.07310637743
+  /// The log(prob(real_val)) is therefore -ln(3)-0.5*ln(pi/2)-0.5*(1/3)^2
+  /// = -1.37995919687
   g.observe(real_val, 1.0);
   EXPECT_NEAR(
-      g.log_prob(real_val), -2.07310637743, 0.001); /// computed by hand!
+      g.log_prob(real_val), -1.37995919687, 0.001); /// computed by hand!
 
   // test gradient of log_prob w.r.t. value and the mean
 
@@ -132,12 +132,12 @@ TEST(testdistrib, half_normal) {
   /// all the distribution codes in our codebase.
 
   EXPECT_NEAR(real_sq_val, 4.0, 0.01); /// Just the index value!
-  auto half_normal_dist2 = g.add_distribution(
+  auto normal_dist2 = g.add_distribution(
       DistributionType::NORMAL, /// TODO[Walid]: Consider half_normal here too
       AtomicType::REAL,
       std::vector<uint>{real_sq_val, pos1});
-  auto real_val2 = g.add_operator(
-      OperatorType::SAMPLE, std::vector<uint>{half_normal_dist2});
+  auto real_val2 =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist2});
   g.observe(real_val2, 3.0);
   grad1 = 0;
   grad2 = 0;
@@ -217,46 +217,53 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   uint dist_y = g.add_distribution(
       DistributionType::HALF_NORMAL,
       AtomicType::REAL,
-      std::vector<uint>{pos_one});
+      std::vector<uint>{pos_one}); // TODO[Walid]: Replacing pos_one by mu fails
   uint y =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist_y, two});
-  g.observe(mu, 0.0);
+  g.observe(mu, 0.0); // TODO[Walid]: Would need to be non-zero to serve as s
   Eigen::MatrixXd yobs(2, 1);
   yobs << 0.5, 1.5;
   g.observe(y, yobs);
 
   // test log_prob() on vector value:
 
-  /// Recall [when mu=0]:
-  ///    Normal(x,sigma) = 1/(sigma sqrt(2pi)) * exp(-0.5*(x/sigma)^2)
+  /// Recall:
+  ///    Half_Normal(sigma,x)
+  ///         = 1/(sigma sqrt(pi/2)) *  exp(-0.5*(x/sigma)^2)
+  ///    log(f(x|s))
+  ///         = logprob  = -log(s) - 0.5 * log(pi/2) - 0.5 * (x/s)^2
   /// Now consider the model:
-  ///   mu ~ Normal(1)
-  ///   y  ~ Normal(1)^2
+  ///   mu ~ Half_Normal(1)
+  ///   y  ~ Half_Normal(1)^2
   /// Under the observations mu=0.0 and y=[0.5 1.5]
   /// What is log_prob(y)?
-  /// That means we want to compute log(f(y|mu))
-  /// Note: In particular, here we do NOT compute log(f(y,mu))!
-  /// log(f(y)) = -ln(2pi) - 0.5((-0.5)^2 + (-1.5)^2)
-  /// = -ln(2*pi) - 0.5*(0.5^2+1.5^2)
-  /// = -3.08787706641 // log_prob_y below
+  /// That means we want to compute log(f(y))
+  /// TODO[Walid]: At some point, find a way to make y depend on mu above
+  /// log(f(y)) = -ln(1) -ln(pi/2) - 0.5((-0.5)^2 + (-1.5)^2)
+  /// = -ln(pi/2) - 0.5*(0.5^2+1.5^2)
+  /// = -1.70158270529 // log_prob_y below
   double log_prob_y = g.log_prob(y);
-  EXPECT_NEAR(log_prob_y, -3.08787706641, 0.001);
+  EXPECT_NEAR(log_prob_y, -1.70158270529, 0.001);
 
   // test backward_param(), backward_value() and
   // backward_param_iid(), backward_value_iid():
+
+  /// Recall that for Half Normal:
+  ///  sample   = N(-log(s) - 0.5 * log(pi/2))
+  ///          -0.5 * squares/s^2
 
   /// In contrast to working with f(y|mu) above
   /// here we will work with f(y,mu) = f(y)*f(mu)
   /// For a y=(y1,y2) the log prob is given by
   /// log(f(y))
-  /// = -(3/2)ln(2 pi) - 0.5((-y1)^2 + (-y2)^2)
+  /// = -(2/2)ln(pi/2) - 0.5((-y1)^2 + (-y2)^2)/s^2
   /// and so derivative wrt mu is:
   /// = 0.0 in our case /// grad1[0] below
   /// and derivative wrt y1 is:
-  /// = mu - y1
+  /// = - y1
   /// = -0.5 in our case ///grad1[1]->1 below
   /// and derivative wrt y2 is:
-  /// = mu - y2
+  /// = - y2
   /// = -1.5 in our case ///grad1[1]->2 below
 
   std::vector<DoubleMatrix*> grad1;
@@ -318,16 +325,17 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   /// x2 = 1.5
   /// def log_probability(x):
   ///     ## Logprob for first Normal
-  ///     lp_d1 = - log(s) - 0.5 * log(2*pi) - 0.5 * (x/ s)**2
+  ///     lp_d1 = - log(s) - 0.5 * log(pi/2) - 0.5 * (x/ s)**2
   ///     ## Logprob for second Normal
-  ///     lp_d2 = - log(s) - 0.5 * log(2*pi) - 0.5 * (x/ s)**2
+  ///     lp_d2 = - log(s) - 0.5 * log(pi/2) - 0.5 * (x/ s)**2
   ///     ## The mixture part
   ///     q = p * exp(lp_d1) + (1-p)* exp(lp_d2)
-  ///     lp_x = log(q)
-  ///     return lp_x
+  ///     lp_q = log(q)
+  ///     return lp_q
   /// sum([log_probability(x) for x in [x,x1,x2]])
-  /// ## == -4.944558310369758
-  EXPECT_NEAR(g2.full_log_prob(), -4.944558310369758, 1e-3);
+  /// ## == -2.865116768689922
+
+  EXPECT_NEAR(g2.full_log_prob(), -2.865116768689922, 1e-3);
   ///
   /// s = torch.tensor(1.8, requires_grad=True)
   /// p = torch.tensor(0.37, requires_grad=True)

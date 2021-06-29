@@ -43,8 +43,7 @@ class Half_Normal : public Distribution {
       const graph::NodeValue& value,
       Eigen::MatrixXd& adjunct) const override;
 
-  static void
-  _grad1_log_prob_value(double& grad1, double val, double m, double s_sq);
+  static void _grad1_log_prob_value(double& grad1, double val, double s_sq);
 };
 
 } // namespace distribution
