@@ -9,14 +9,15 @@ using namespace beanmachine::graph;
 /// Tests with scalar samples
 TEST(testdistrib, half_normal) {
   Graph g;
-  /// TODO[Walid]: Would be good to parameterize later tests by these values!
-  const double MEAN = 0; /// TODO[Walid]: Half-normal assumes 0
+  /// TODO[Walid]: Parameterize expected values by these variables
+  /// TODO[Walid]: Move declarations and graph additions closer to use
+  const double MEAN = 0; /// Half-normal assumes 0
   const double STD = 3.0;
   auto real1 = g.add_constant(MEAN);
   auto pos1 = g.add_constant_pos_real(STD);
-  /// TODO[Walid]: Argument will become just one, and value should be POS_REAL
+  /// TODO[Walid]: Make argument be POS_REAL rather than REAL
   /// Check that g.add_distribution checks arguments to HALF_NORMAL correctly
-  // negative tests half_normal has two parents
+  // negative tests half_normal has one parent
   EXPECT_THROW(
       g.add_distribution(
           DistributionType::HALF_NORMAL, AtomicType::REAL, std::vector<uint>{}),
@@ -25,26 +26,18 @@ TEST(testdistrib, half_normal) {
       g.add_distribution(
           DistributionType::HALF_NORMAL,
           AtomicType::REAL,
+          std::vector<uint>{pos1, pos1}),
+      std::invalid_argument);
+  // negative test the parent must be a positive real
+  EXPECT_THROW(
+      g.add_distribution(
+          DistributionType::HALF_NORMAL,
+          AtomicType::REAL,
           std::vector<uint>{real1}),
-      std::invalid_argument);
-  EXPECT_THROW(
-      g.add_distribution(
-          DistributionType::HALF_NORMAL,
-          AtomicType::REAL,
-          std::vector<uint>{real1, pos1, real1}),
-      std::invalid_argument);
-  // negative test the parents must be a real and a positive
-  EXPECT_THROW(
-      g.add_distribution(
-          DistributionType::HALF_NORMAL,
-          AtomicType::REAL,
-          std::vector<uint>{real1, real1}),
       std::invalid_argument);
   // test creation of a distribution
   auto half_normal_dist = g.add_distribution(
-      DistributionType::HALF_NORMAL,
-      AtomicType::REAL,
-      std::vector<uint>{real1, pos1});
+      DistributionType::HALF_NORMAL, AtomicType::REAL, std::vector<uint>{pos1});
   // test distribution of mean and variance.
   /// The following line is adding the following declaration to the graph:
   /// real_val   \in Normal (m,s)
@@ -57,17 +50,13 @@ TEST(testdistrib, half_normal) {
   g.query(real_sq_val);
   const std::vector<double>& means =
       g.infer_mean(100000, InferenceType::REJECTION);
-  /// TODO[Walid]: Following should be OK as we change MEAN and STD...
-  /// In particular, we are not making observation, so, this just
-  /// samples directly from distribution
-  /// TODO[Walid]: Following should be OK as we change distributions!
+  /// Since we are not making observations, the following is just
+  /// what we expect from directly sampling from distribution
   EXPECT_NEAR(means[0], MEAN, 0.1);
   EXPECT_NEAR(means[1] - means[0] * means[0], STD * STD, 0.1);
   // test log_prob
   /// The following just tests log prob at 1.0. It has no connection to above
   /// code that uses "infer"
-  /// TODO[Walid]: First update the following to work for a MEAN of 0.0, and
-  /// then test again after the MEAN parameter and fields have been removed.
   ///
   /// Set the value of real_val to 1.0
   /// The log(prob(real_val)) is therefore -ln(3)-0.5*ln(2*pi)-0.5*(1/3)^2
@@ -113,7 +102,7 @@ TEST(testdistrib, half_normal) {
   ///  = - (x - m) / s^2 + (0.5 (y - x^2)^2 / s^2 )'[x]
   /// /// (y-x^2)'[x]=-2x and (y-x^2)^2'[y-x^2]=2(y-x^2)
   /// = - (x - m) / s^2 + -2x * (y - x^2) / s^2 /// m=0,s=3,x=1,y=3
-  /// = - (1 + 0) / 9 + -2 * (3 - 1) /9
+  /// = - (1 - 0) / 9 + -2 * (3 - 1) /9
   /// = -1 / 9 + 4 / 9 = 3/9 /// This will be grad1 below
   ///
   /// For the calculation of the second derivative, we can reuse the above
@@ -139,11 +128,11 @@ TEST(testdistrib, half_normal) {
   /// ones above, and pointing out the significance of setting some
   /// observations as we go along (and also setting up some relations
   /// in the graph). TODO[Walid]: It would be good to do this for
-  /// all the distribution codes in our codebase
+  /// all the distribution codes in our codebase.
 
   EXPECT_NEAR(real_sq_val, 4.0, 0.01); /// Just the index value!
   auto half_normal_dist2 = g.add_distribution(
-      DistributionType::HALF_NORMAL,
+      DistributionType::NORMAL, /// TODO[Walid]: Consider half_normal here too
       AtomicType::REAL,
       std::vector<uint>{real_sq_val, pos1});
   auto real_val2 = g.add_operator(
@@ -197,12 +186,12 @@ TEST(testdistrib, half_normal) {
   g.observe(pos_val, 7.0);
   auto pos_sq_val = g.add_operator(
       OperatorType::MULTIPLY, std::vector<uint>{pos_val, pos_val});
-  auto half_normal_dist3 = g.add_distribution(
+  auto normal_dist3 = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
       std::vector<uint>{real1, pos_sq_val});
-  auto real_val3 = g.add_operator(
-      OperatorType::SAMPLE, std::vector<uint>{half_normal_dist3});
+  auto real_val3 =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist3});
   g.observe(real_val3, 5.0);
   grad1 = grad2 = 0;
   g.gradient_log_prob(pos_val, grad1, grad2);
@@ -220,17 +209,17 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   uint half_normal_dist = g.add_distribution(
       DistributionType::HALF_NORMAL,
       AtomicType::REAL,
-      std::vector<uint>{zero, pos_one});
+      std::vector<uint>{pos_one});
   uint mu =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{half_normal_dist});
 
   uint dist_y = g.add_distribution(
       DistributionType::HALF_NORMAL,
       AtomicType::REAL,
-      std::vector<uint>{mu, pos_one});
+      std::vector<uint>{pos_one});
   uint y =
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist_y, two});
-  g.observe(mu, 0.1);
+  g.observe(mu, 0.0);
   Eigen::MatrixXd yobs(2, 1);
   yobs << 0.5, -0.5;
   g.observe(y, yobs);
@@ -242,15 +231,15 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   /// Now consider the model:
   ///   mu ~ Normal(0,1)
   ///   y  ~ Normal(mu,1)^2
-  /// Under the observations mu=0.1 and y=[0.5 -0.5]
+  /// Under the observations mu=0.0 and y=[0.5 -0.5]
   /// What is log_prob(y)?
   /// That means we want to compute log(f(y|mu))
   /// Note: In particular, here we do NOT compute log(f(y,mu))!
   /// log(f(y|mu)) = -ln(2pi) - 0.5((mu-0.5)^2 + (mu+0.5)^2)
-  /// = -ln(2*pi) - 0.5*(0.4^2+0.6^2)
-  /// = -2.09787706641 // log_prob_y below
+  /// = -ln(2*pi) - 0.5*(0.5^2+0.5^2)
+  /// = -2.08787706641 // log_prob_y below
   double log_prob_y = g.log_prob(y);
-  EXPECT_NEAR(log_prob_y, -2.0979, 0.001);
+  EXPECT_NEAR(log_prob_y, -2.08787706641, 0.001);
 
   // test backward_param(), backward_value() and
   // backward_param_iid(), backward_value_iid():
@@ -262,20 +251,20 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   /// = -(3/2)ln(2 pi) - 0.5(mu^2 + (mu-y1)^2 + (mu-y2)^2)
   /// and so derivative wrt mu is:
   /// -(3mu - y1 - y2)
-  /// = -0.3 in our case /// grad1[0] below
+  /// = 0.0 in our case /// grad1[0] below
   /// and derivative wrt y1 is:
   /// = mu - y1
-  /// = -0.4 in our case ///grad1[1]->1 below
+  /// = -0.5 in our case ///grad1[1]->1 below
   /// and derivative wrt y2 is:
   /// = mu - y2
-  /// = 0.6 in our case ///grad1[1]->2 below
+  /// = 0.5 in our case ///grad1[1]->2 below
 
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 2);
-  EXPECT_NEAR(grad1[0]->_double, -0.3, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.4, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), 0.6, 1e-3);
+  EXPECT_NEAR(grad1[0]->_double, -0.0, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.5, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), 0.5, 1e-3);
 
   // mixture of half_normals
   /// Checking the log probability and the
@@ -295,11 +284,11 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   auto d1 = g2.add_distribution(
       DistributionType::HALF_NORMAL,
       AtomicType::REAL,
-      std::vector<uint>{m1, s});
+      std::vector<uint>{s}); // TODO[Walid]: Mean was m1. Introduce an s1
   auto d2 = g2.add_distribution(
       DistributionType::HALF_NORMAL,
       AtomicType::REAL,
-      std::vector<uint>{m2, s});
+      std::vector<uint>{s}); // TODO[Walid]: Mean was m2. Introduce an s2
   auto p = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_prob});
   auto dist = g2.add_distribution(
       DistributionType::BIMIXTURE,
@@ -308,8 +297,8 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   auto x = g2.add_operator(OperatorType::SAMPLE, std::vector<uint>{dist});
   auto xiid =
       g2.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist, size});
-  g2.observe(m1, -1.2);
-  g2.observe(m2, 0.4);
+  g2.observe(m1, 0.0);
+  g2.observe(m2, 0.0);
   g2.observe(s, 1.8);
   g2.observe(p, 0.37);
   g2.observe(x, -0.5);
@@ -322,8 +311,8 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   /// log prob. Note that all FLAT dists contribute
   /// 0 to the total log prob.
   /// from numpy import pi,log,exp
-  /// m1 = -1.2
-  /// m2 = 0.4
+  /// m1 = 0
+  /// m2 = 0
   /// s = 1.8
   /// p = 0.37
   /// x = -0.5
@@ -339,12 +328,12 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   ///     lp_x = log(q)
   ///     return lp_x
   /// sum([log_probability(x) for x in [x,x1,x2]])
-  /// ## == -5.091080467031949
-  EXPECT_NEAR(g2.full_log_prob(), -5.0911, 1e-3);
+  /// ## == -4.944558310369758
+  EXPECT_NEAR(g2.full_log_prob(), -4.944558310369758, 1e-3);
   ///
   // To verify the derivatives with pyTorch:
-  // m1 = torch.tensor(-1.2, requires_grad=True)
-  // m2 = torch.tensor(0.4, requires_grad=True)
+  // m1 = torch.tensor(0.0, requires_grad=True)
+  // m2 = torch.tensor(0.0, requires_grad=True)
   // s = torch.tensor(1.8, requires_grad=True)
   // p = torch.tensor(0.37, requires_grad=True)
   // x = torch.tensor([-0.5, 0.5, -1.5], requires_grad=True)
@@ -376,11 +365,11 @@ TEST(testdistrib, backward_half_normal_half_normal) {
   std::vector<DoubleMatrix*> back_grad;
   g2.eval_and_grad(back_grad);
   EXPECT_EQ(back_grad.size(), 6);
-  EXPECT_NEAR(back_grad[0]->_double, 0.1794, 1e-3); // m1
-  EXPECT_NEAR(back_grad[1]->_double, -0.4410, 1e-3); // m2
-  EXPECT_NEAR(back_grad[2]->_double, -1.0964, 1e-3); // s
-  EXPECT_NEAR(back_grad[3]->_double, 0.2054, 1e-3); // p
-  EXPECT_NEAR(back_grad[4]->_double, 0.0893, 1e-3); // x
-  EXPECT_NEAR(back_grad[5]->_matrix.coeff(0), -0.1660, 1e-3); // xiid
-  EXPECT_NEAR(back_grad[5]->_matrix.coeff(1), 0.3381, 1e-3);
+  EXPECT_NEAR(back_grad[0]->_double, 0.0, 1e-3); // m1 /// dummy param
+  EXPECT_NEAR(back_grad[1]->_double, 0.0, 1e-3); // m2 /// dummy param
+  EXPECT_NEAR(back_grad[2]->_double, -1.1951, 1e-3); // s
+  EXPECT_NEAR(back_grad[3]->_double, 0.0, 1e-3); // p
+  EXPECT_NEAR(back_grad[4]->_double, 0.1543, 1e-3); // x
+  EXPECT_NEAR(back_grad[5]->_matrix.coeff(0), -0.1543, 1e-3); // xiid
+  EXPECT_NEAR(back_grad[5]->_matrix.coeff(1), 0.4630, 1e-3);
 }
