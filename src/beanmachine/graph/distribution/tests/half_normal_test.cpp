@@ -10,7 +10,7 @@ using namespace beanmachine::graph;
 TEST(testdistrib, half_normal) {
   Graph g;
   /// TODO[Walid]: Would be good to parameterize later tests by these values!
-  const double MEAN = -11.0; /// TODO[Walid]: Half-normal assumes 0
+  const double MEAN = 0; /// TODO[Walid]: Half-normal assumes 0
   const double STD = 3.0;
   auto real1 = g.add_constant(MEAN);
   auto pos1 = g.add_constant_pos_real(STD);
@@ -70,8 +70,11 @@ TEST(testdistrib, half_normal) {
   /// then test again after the MEAN parameter and fields have been removed.
   ///
   /// Set the value of real_val to 1.0
+  /// The log(prob(real_val)) is therefore -ln(3)-0.5*ln(2*pi)-0.5*(1/3)^2
+  /// = -2.07310637743
   g.observe(real_val, 1.0);
-  EXPECT_NEAR(g.log_prob(real_val), -10.0176, 0.001); /// computed by hand!
+  EXPECT_NEAR(
+      g.log_prob(real_val), -2.07310637743, 0.001); /// computed by hand!
 
   // test gradient of log_prob w.r.t. value and the mean
 
@@ -79,7 +82,7 @@ TEST(testdistrib, half_normal) {
   double grad1 = 0;
   double grad2 = 0;
   g.gradient_log_prob(real_val, grad1, grad2);
-  EXPECT_NEAR(grad1, -1.3333, 0.01); /// By hand, - (x - m) / s^2 = -12/9
+  EXPECT_NEAR(grad1, -0.1111, 0.01); /// By hand, - (x - m) / s^2 = -1/9
   EXPECT_NEAR(grad2, -0.1111, 0.01); /// By hand, - 1 / s^2 = -1/9
   /// Second, a check on a composite model
 
@@ -109,9 +112,9 @@ TEST(testdistrib, half_normal) {
   ///  = - (x - m) / s^2 + (k - 0.5 (y - x^2)^2 / s^2 )'[x] /// k'[...] = 0
   ///  = - (x - m) / s^2 + (0.5 (y - x^2)^2 / s^2 )'[x]
   /// /// (y-x^2)'[x]=-2x and (y-x^2)^2'[y-x^2]=2(y-x^2)
-  /// = - (x - m) / s^2 + -2x * (y - x^2) / s^2 /// m=-11,s=3,x=1,y=3
-  /// = - (1 + 11) / 9 + -2 * (3 - 1) /9
-  /// = -12 / 9 + 4 / 9 = -8/9 /// This will be grad1 below
+  /// = - (x - m) / s^2 + -2x * (y - x^2) / s^2 /// m=0,s=3,x=1,y=3
+  /// = - (1 + 0) / 9 + -2 * (3 - 1) /9
+  /// = -1 / 9 + 4 / 9 = 3/9 /// This will be grad1 below
   ///
   /// For the calculation of the second derivative, we can reuse the above
   /// before the substitution, that is:
@@ -119,7 +122,7 @@ TEST(testdistrib, half_normal) {
   ///  = (- (x - m) / s^2 + -2x * (y - x^2) / s^2)'[x]
   ///  = - 1 / s^2 + (-2x * (y - x^2) / s^2)'[x]
   ///  = - 1 / s^2 - 2 * ((x y - x^3) / s^2)'[x]
-  ///  = - 1 / s^2 - 2 * (y - 3x^2) / s^2 /// m=-11,s=3,x=1,y=3
+  ///  = - 1 / s^2 - 2 * (y - 3x^2) / s^2 /// m=0,s=3,x=1,y=3
   ///  = - 1 / 9   - 2 * (3 - 3) / s^2
   ///  = -1/9 /// This will be grad2 below
   ///
@@ -149,14 +152,14 @@ TEST(testdistrib, half_normal) {
   grad1 = 0;
   grad2 = 0;
   g.gradient_log_prob(real_val, grad1, grad2);
-  EXPECT_NEAR(grad1, -0.88888, 0.01);
+  EXPECT_NEAR(grad1, 0.33333, 0.01);
   EXPECT_NEAR(grad2, -0.11111, 0.01);
   ///
   // test gradient of log_prob w.r.t. sigma
   ///
   /// The problem that we will consider is basically:
   /// pos_val ~ Half_Cauchy(3.5,pos_val)  --- f(x) = Half_Cauchy(s,x),  s=3.5
-  /// real_val3 ~ Normal(real1,pos_val^2) --- f(y|x) = Normal(m,x^2,y), m=-11
+  /// real_val3 ~ Normal(real1,pos_val^2) --- f(y|x) = Normal(m,x^2,y), m=0
   /// As observations, we take pos_val =   x = 7
   ///                      and real_val3 = y = 5.0
   /// We want to compute (log(f(y,x))'[x] and ''[x].
@@ -175,13 +178,13 @@ TEST(testdistrib, half_normal) {
   ///   -(2x/s^2)/(1 + (x/s)^2))
   /// = (-2/x + 2 (y - m)^2 / x^5 +
   ///   -(2x)/(s^2 + x^2))
-  /// = -2/7 + 2 (5 +11)^2 / 7^5 -14/(3.5^2 + 7^2)
-  /// = -0.48382221693 /// grad1 below
+  /// = -2/7 + 2 (5 + 0)^2 / 7^5 -14/(3.5^2 + 7^2)
+  /// = -0.51131076337 /// grad1 below
   ///
   /// (log(_))''[x] = (-2/x + 2 (y - m)^2 / x^5 -(2x)/(s^2 + x^2))'[x]
   /// = 2/x^2 - 10 (y - m)^2 / x^6 + (2x^2 - 2x^2)/(s^2+x^2)^2
-  /// = 2/7^2 - 10 (5 + 11)^2 / 7^6 + (2*7^2 - 2*3.5^2)/(3.5^2+7^2)^2
-  /// = 0.03864852229 /// grad2 below
+  /// = 2/7^2 - 10 (5 + 0)^2 / 7^6 + (2*7^2 - 2*3.5^2)/(3.5^2+7^2)^2
+  /// = 0.05828319832 /// grad2 below
 
   const double SCALE = 3.5;
   auto pos_scale = g.add_constant_pos_real(SCALE);
@@ -203,8 +206,8 @@ TEST(testdistrib, half_normal) {
   g.observe(real_val3, 5.0);
   grad1 = grad2 = 0;
   g.gradient_log_prob(pos_val, grad1, grad2);
-  EXPECT_NEAR(grad1, -0.483822, 1e-6);
-  EXPECT_NEAR(grad2, 0.038648, 1e-6);
+  EXPECT_NEAR(grad1, -0.51131076337, 1e-6);
+  EXPECT_NEAR(grad2, 0.05828319832, 1e-6);
 }
 
 /// Tests with aggregate samples
