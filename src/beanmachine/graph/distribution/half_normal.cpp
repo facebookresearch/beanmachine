@@ -31,10 +31,9 @@ Half_Normal::Half_Normal(
   }
 }
 
-/// TODO[Walid:] Take abs() of return value
 double Half_Normal::_double_sampler(std::mt19937& gen) const {
   std::normal_distribution<double> dist(0.0, in_nodes[0]->value._double);
-  return dist(gen);
+  return std::abs(dist(gen));
 }
 
 // The calculations for the normal distribution. Very helpful for half-normal!

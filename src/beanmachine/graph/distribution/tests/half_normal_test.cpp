@@ -52,8 +52,9 @@ TEST(testdistrib, half_normal) {
       g.infer_mean(100000, InferenceType::REJECTION);
   /// Since we are not making observations, the following is just
   /// what we expect from directly sampling from distribution
-  EXPECT_NEAR(means[0], MEAN, 0.1);
-  EXPECT_NEAR(means[1] - means[0] * means[0], STD * STD, 0.1);
+  EXPECT_NEAR(means[0], STD * std::sqrt(2.0 / M_PI), 0.1);
+  EXPECT_NEAR(
+      means[1] - means[0] * means[0], STD * STD * (1.0 - 2.0 / M_PI), 0.1);
   // test log_prob
   /// The following just tests log prob at 1.0. It has no connection to above
   /// code that uses "infer"
