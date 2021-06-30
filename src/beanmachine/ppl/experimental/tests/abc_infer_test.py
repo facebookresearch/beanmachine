@@ -8,6 +8,9 @@ from beanmachine.ppl.experimental.abc.abc_infer import ApproximateBayesianComput
 
 
 class ApproximateBayesianComputationTest(unittest.TestCase):
+    def setUp(self):
+        torch.manual_seed(8665309)
+
     class CoinTossModel:
         def __init__(self, observation_shape):
             self.observation_shape = observation_shape
