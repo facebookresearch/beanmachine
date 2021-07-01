@@ -411,6 +411,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_poisson(self, rate: BMGNode) -> bn.PoissonNode:
+        node = bn.PoissonNode(rate)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_flat(self) -> bn.FlatNode:
         node = bn.FlatNode()
         self.add_node(node)
@@ -643,6 +649,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_item(self, input: bn.BMGNode) -> bn.BMGNode:
+        node = bn.ItemNode(input)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_vector_index(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.BMGNode:
         # Folding optimizations are done in the fixer.
         node = bn.VectorIndexNode(left, right)
@@ -699,6 +711,16 @@ class BMGraphBuilder:
         if isinstance(operand, ConstantNode):
             return self.add_real(float(operand.value))
         node = bn.ToRealNode(operand)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_to_int(self, operand: BMGNode) -> BMGNode:
+        if isinstance(operand, bn.ConstantTensorNode):
+            return self.add_constant(operand.value.int)
+        if isinstance(operand, ConstantNode):
+            return self.add_constant(int(operand.value))
+        node = bn.ToIntNode(operand)
         self.add_node(node)
         return node
 

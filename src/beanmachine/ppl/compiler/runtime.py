@@ -119,6 +119,8 @@ known_tensor_instance_functions = [
     "exp",
     "expm1",
     "float",
+    "int",
+    "item",
     "log",
     "logical_not",
     "logsumexp",
@@ -287,6 +289,8 @@ class BMGRuntime:
             torch.Tensor.exp: self.handle_exp,  # pyre-ignore
             torch.Tensor.expm1: self.handle_expm1,  # pyre-ignore
             torch.Tensor.float: self.handle_to_real,
+            torch.Tensor.item: self.handle_item,
+            torch.Tensor.int: self.handle_to_int,
             torch.Tensor.logical_not: self.handle_not,  # pyre-ignore
             torch.Tensor.log: self.handle_log,
             torch.Tensor.logsumexp: self.handle_logsumexp,
@@ -453,6 +457,14 @@ class BMGRuntime:
         if not isinstance(concentration0, BMGNode):
             concentration0 = self._bmg.add_constant(concentration0)
         return self._bmg.add_beta(concentration1, concentration0)
+
+    def handle_poisson(
+        self,
+        rate: Any,
+    ) -> bn.PoissonNode:
+        if not isinstance(rate, BMGNode):
+            rate = self._bmg.add_constant(rate)
+        return self._bmg.add_poisson(rate)
 
     def handle_greater_than(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
@@ -699,6 +711,11 @@ class BMGRuntime:
             return ~input
         return self._bmg.add_invert(input)
 
+    def handle_item(self, input: Any) -> Any:
+        if not isinstance(input, BMGNode):
+            input = self._bmg.add_constant(input)
+        return self._bmg.add_item(input)
+
     def handle_negate(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
             return -input
@@ -720,6 +737,15 @@ class BMGRuntime:
         if isinstance(operand, ConstantNode):
             return float(operand.value)
         return self._bmg.add_to_real(operand)
+
+    def handle_to_int(self, operand: Any) -> Any:
+        if isinstance(operand, torch.Tensor):
+            return operand.int()
+        if isinstance(operand, bn.ConstantTensorNode):
+            return operand.value.int()
+        if isinstance(operand, ConstantNode):
+            return int(operand.value)
+        return self._bmg.add_to_int(operand)
 
     def handle_exp(self, input: Any) -> Any:
         if isinstance(input, torch.Tensor):
@@ -1257,6 +1283,9 @@ class BMGRuntime:
         # TODO: Get this into alpha order
         if isinstance(operand, dist.Beta):
             b = self.handle_beta(operand.concentration1, operand.concentration0)
+            return self._bmg.add_sample(b)
+        if isinstance(operand, dist.Poisson):
+            b = self.handle_poisson(operand.rate)
             return self._bmg.add_sample(b)
         # TODO: Better error
         n = type(operand).__name__

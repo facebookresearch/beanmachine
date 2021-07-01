@@ -465,6 +465,33 @@ class BetaNode(DistributionNode):
         raise ValueError("Beta distribution does not have finite support.")
 
 
+class PoissonNode(DistributionNode):
+    """The Poisson distribution samples are non-negative integer valued."""
+
+    def __init__(self, rate: BMGNode):
+        DistributionNode.__init__(self, [rate])
+
+    @property
+    def rate(self) -> BMGNode:
+        return self.inputs[0]
+
+    @property
+    def size(self) -> torch.Size:
+        return self.rate.size
+
+    def __str__(self) -> str:
+        return f"Poisson({str(self.rate)})"
+
+    def support(self) -> Iterable[Any]:
+        # TODO: Make a better exception type.
+        # TODO: Catch this error during graph generation and produce a better
+        # TODO: error message that diagnoses the problem more exactly for
+        # TODO: the user.  This would happen if we did something like
+        # TODO: x(n()) where x() is a sample that takes a finite index but
+        # TODO: n() is a sample that returns a Poisson.
+        raise ValueError("Poisson distribution does not have finite support.")
+
+
 class BinomialNodeBase(DistributionNode):
     def __init__(self, count: BMGNode, probability: BMGNode):
         DistributionNode.__init__(self, [count, probability])
@@ -1430,6 +1457,26 @@ class IndexNode(BinaryOperatorNode):
         raise NotImplementedError("support of index operator not implemented")
 
 
+class ItemNode(OperatorNode):
+    """Represents torch.Tensor.item() conversion from tensor to scalar."""
+
+    def __init__(self, operand: BMGNode):
+        OperatorNode.__init__(self, [operand])
+
+    @property
+    def size(self) -> torch.Size:
+        raise NotImplementedError()
+
+    def __str__(self) -> str:
+        return str(self.inputs[0]) + ".item()"
+
+    def support(self) -> Iterable[Any]:
+        return self.inputs[0].support()
+
+    def support_size(self) -> float:
+        return self.inputs[0].support_size()
+
+
 class VectorIndexNode(BinaryOperatorNode):
     """This represents a stochastic index into a vector. The left operand
     is the vector and the right operand is the index."""
@@ -1833,6 +1880,24 @@ class ToRealNode(UnaryOperatorNode):
 
     def support(self) -> Iterable[Any]:
         return SetOfTensors(float(o) for o in self.operand.support())
+
+
+class ToIntNode(UnaryOperatorNode):
+    """This represents an integer truncation operation; it is generated
+    when a model contains calls to Tensor.int() or int()."""
+
+    def __init__(self, operand: BMGNode):
+        UnaryOperatorNode.__init__(self, operand)
+
+    @property
+    def size(self) -> torch.Size:
+        return torch.Size([])
+
+    def __str__(self) -> str:
+        return "ToInt(" + str(self.operand) + ")"
+
+    def support(self) -> Iterable[Any]:
+        return SetOfTensors(int(o) for o in self.operand.support())
 
 
 class ToRealMatrixNode(UnaryOperatorNode):
