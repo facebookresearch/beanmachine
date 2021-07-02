@@ -110,10 +110,11 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
         vi = MeanFieldVariationalInference().infer(
             queries=[nf()],
             observations={},
-            num_iter=300,
+            num_iter=400,
             base_dist=dist.Normal,
             base_args={"loc": torch.zeros([1]), "scale": torch.ones([1])},
-            lr=1e-4,
+            num_elbo_mc_samples=100,
+            lr=1e-3,
         )
 
         # compare 1D marginals of empirical distributions using 2-sample K-S test
