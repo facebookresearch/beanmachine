@@ -94,25 +94,25 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     filter(lambda rvid: rvid not in self.observations_, nodes.keys())
                 )
                 loss = torch.zeros(1)
+                # decompose mean-field ELBO expectation E_x = E_s E_\s and
                 # iterate over latent sites x_s.
                 for rvid in latent_rvids:
-                    node_var = nodes[rvid]
                     v_approx = vi_dicts(rvid)
 
-                    # decompose mean-field ELBO expectation E_x = E_\s E_s and
-                    # MC approximate E_\s using previously sampled x_\s, i.e.
-                    # ELBO = E_x log p/q ~= E_s log p(x_s, x_\s) / q(x_s)
-                    # Form single-site Gibbs log density x_s -> p(x_s, x_\s)
+                    # Form single-site Gibbs density approximating E_\s using
+                    # previously sampled x_\s, i.e. x_s -> E_\s log p(x_s, x_\s)
+                    # ~= x_s -> log p(x_s, z) with z ~ p(x_\s)
                     def _target_log_prob(x):
-                        # TODO: support batching on `x` (e.g. if `children` depend
-                        # on the value of `x`)
-                        self.world_.propose_change(rvid, x, start_new_diff=True)
-                        log_prob = node_var.distribution.log_prob(x).sum()
-                        for child in node_var.children:
-                            child_var = self.world_.get_node_in_world_raise_error(child)
-                            log_prob += child_var.log_prob
+                        (
+                            _,
+                            _,
+                            _,
+                            proposed_score,
+                        ) = self.world_.propose_change_transformed_value(
+                            rvid, x, start_new_diff=False
+                        )
                         self.world_.reject_diff()
-                        return log_prob
+                        return proposed_score
 
                     # MC approximate E_s using `num_elbo_mc_samples` (reparameterized)
                     # samples x_{s,i} ~ q_t(x_s) i.e.

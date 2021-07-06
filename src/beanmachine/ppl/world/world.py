@@ -620,7 +620,8 @@ class World(BaseWorld):
         self,
         node: RVIdentifier,
         proposed_transformed_value: Tensor,
-        allow_graph_update=True,
+        allow_graph_update: bool = True,
+        start_new_diff: bool = False,
     ) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         """
         Creates the diff for the proposed change
