@@ -699,6 +699,35 @@ void Graph::observe(uint node_id, Eigen::MatrixXd& val) {
 
 void Graph::observe(uint node_id, Eigen::MatrixXb& val) {
   Node* node = check_node(node_id, NodeType::OPERATOR);
+  // TODO: The order in which arguments are checked for validity
+  // is wrong here and elsewhere in these overloads:
+  //
+  // * We begin by verifying that the node_id is valid and
+  //   that it is an operator.
+  // * We then construct a NodeValue of the observed nodes
+  //   type but with the value that was passed in.  We have
+  //   never verified that the value passed in is compatible
+  //   with the node's type, so this operation can violate
+  //   type system invariants.
+  // * We then call observe(id, val) with the constructed node value,
+  //   which checks for a second time whether the node is an
+  //   operator and then more specifically whether it is a sample.
+  // * Finally, observe(id, val) checks that the observed type
+  //   and the observation value match types, but by this point
+  //   it is too late; we have already set the type of the
+  //   NodeValue to the type of the observed node, so it will
+  //   definitely be equal.
+  //
+  // As an example, imagine if we have an IID sample of size
+  // (2, 1) but we observe it to be a (2, 2) matrix. What happens?
+  // NodeValue is initialized with the type "(2,1) matrix of bools"
+  // but is given the value of a (2, 2) matrix, violating its invariants.
+  // The type of the NodeValue is now "(2, 1) matrix of bools" and so
+  // observe(id, val) will not detect the error.
+  //
+  // All of the code in this public facing API needs to be rethought to
+  // ensure that the caller's mistakes are noticed and rejected BEFORE
+  // our data structure invariants are violated.
   observe(node_id, NodeValue(node->value.type, val));
 }
 

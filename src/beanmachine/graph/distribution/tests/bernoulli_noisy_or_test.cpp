@@ -22,7 +22,7 @@ TEST(testdistrib, backward_bernoulli_noisy_or) {
       g.add_operator(OperatorType::IID_SAMPLE, std::vector<uint>{dist, two});
   g.observe(y, 2.0);
   g.observe(x1, true);
-  Eigen::MatrixXb x2_obs(1, 2);
+  Eigen::MatrixXb x2_obs(2, 1);
   x2_obs << false, true;
   g.observe(x2, x2_obs);
 
