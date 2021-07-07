@@ -106,3 +106,32 @@ TEST(test_transform, log) {
   EXPECT_NEAR(back_grad[3]->_matrix.coeff(1), 8.2, 0.001);
   EXPECT_NEAR(g2.full_log_prob(), -29.5648, 1e-3);
 }
+
+TEST(test_transform, unconstrained_type) {
+  Graph g1;
+  auto size = g1.add_constant((natural_t)2);
+
+  // test transform types
+  auto flat_pos = g1.add_distribution(
+      DistributionType::FLAT, AtomicType::POS_REAL, std::vector<uint>{});
+  auto sample =
+      g1.add_operator(OperatorType::SAMPLE, std::vector<uint>{flat_pos});
+  auto iid_sample = g1.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{flat_pos, size});
+  g1.customize_transformation(
+      TransformType::LOG, std::vector<uint>{sample, iid_sample});
+
+  auto n1 = static_cast<oper::StochasticOperator*>(
+      g1.check_node(sample, NodeType::OPERATOR));
+  EXPECT_EQ(n1->value.type.atomic_type, AtomicType::POS_REAL);
+  EXPECT_EQ(n1->unconstrained_value.type.atomic_type, AtomicType::REAL);
+
+  auto n2 = static_cast<oper::StochasticOperator*>(
+      g1.check_node(iid_sample, NodeType::OPERATOR));
+  EXPECT_EQ(n2->value.type.atomic_type, AtomicType::POS_REAL);
+  // check type is unknown before calling "get_unconstrained_value"
+  EXPECT_EQ(n2->unconstrained_value.type.atomic_type, AtomicType::UNKNOWN);
+  // check that the type is initialized properly
+  EXPECT_EQ(
+      n2->get_unconstrained_value(true)->type.atomic_type, AtomicType::REAL);
+}
