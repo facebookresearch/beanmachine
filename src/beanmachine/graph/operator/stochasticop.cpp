@@ -141,11 +141,16 @@ Sample::Sample(const std::vector<graph::Node*>& in_nodes)
   }
   const distribution::Distribution* dist =
       static_cast<distribution::Distribution*>(in_nodes[0]);
-  // the type of value of a SAMPLE node is obviously the sample type
-  // of the distribution parent
+  // The type of value of a SAMPLE node is obviously the sample type
+  // of the distribution parent.
   value = graph::NodeValue(dist->sample_type);
-  unconstrained_value = graph::NodeValue(graph::ValueType(
-      dist->sample_type.variable_type, graph::AtomicType::REAL, 1, 0));
+  // For the unconstrained value we want to avoid unnecessary early memory
+  // allocation; just set it to a real scalar or 1x0 array of reals.
+  auto vt = dist->sample_type.variable_type;
+  if (vt == graph::VariableType::COL_SIMPLEX_MATRIX)
+    vt = graph::VariableType::BROADCAST_MATRIX;
+  auto at = graph::AtomicType::REAL;
+  unconstrained_value = graph::NodeValue(graph::ValueType(vt, at, 1, 0));
 }
 
 IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
