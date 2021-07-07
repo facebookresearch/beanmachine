@@ -769,12 +769,17 @@ struct Graph {
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
   std::vector<uint> get_parent_ids(
       const std::vector<Node*>& parent_nodes) const;
-  void _infer(uint num_samples, InferenceType algorithm, uint seed);
+  void _infer(
+      uint num_samples,
+      InferenceType algorithm,
+      uint seed,
+      InferConfig infer_config);
   void _infer_parallel(
       uint num_samples,
       InferenceType algorithm,
       uint seed,
-      uint n_chains);
+      uint n_chains,
+      InferConfig infer_config);
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
   std::set<uint> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a
@@ -791,16 +796,15 @@ struct Graph {
   std::vector<std::vector<double>> variational_params;
   std::vector<double> elbo_vals;
   void collect_sample();
-  void rejection(uint num_samples, std::mt19937& gen);
-  void gibbs(uint num_samples, std::mt19937& gen);
+  void rejection(uint num_samples, std::mt19937& gen, InferConfig infer_config);
+  void gibbs(uint num_samples, std::mt19937& gen, InferConfig infer_config);
   class NMC;
-  void nmc(uint num_samples, std::mt19937& gen);
+  void nmc(uint num_samples, std::mt19937& gen, InferConfig infer_config);
   void cavi(
       uint num_iters,
       uint steps_per_iter,
       std::mt19937& gen,
       uint elbo_samples);
-  InferConfig infer_config;
   /*
   Evaluate the full log probability over the support of the graph.
   :param ordered_supp: node pointers in the support in topological order.
