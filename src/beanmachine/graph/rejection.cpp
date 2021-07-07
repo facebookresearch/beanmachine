@@ -15,7 +15,7 @@ void Graph::rejection(
       ordered_supp.push_back(nodes[node_id].get());
     }
   }
-  for (uint snum = 0; snum < num_samples; snum++) {
+  for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {
     // rejection sampling
     bool rejected;
     do {
@@ -44,7 +44,9 @@ void Graph::rejection(
     if (infer_config.keep_log_prob) {
       collect_log_prob(_full_log_prob(ordered_supp));
     }
-    collect_sample();
+    if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
+      collect_sample();
+    }
   }
 }
 

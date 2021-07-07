@@ -423,3 +423,29 @@ TEST(testnmc, dirichlet_gamma) {
   EXPECT_NEAR(var(1), 0.4 * 0.6 / 6.0, 0.01);
   EXPECT_NEAR(var(2), 0.4 * 0.6 / 6.0, 0.01);
 }
+
+TEST(testnmc, warmup) {
+  Graph g;
+  uint flat_dist =
+      g.add_distribution(DistributionType::FLAT, AtomicType::REAL, {});
+  uint x = g.add_operator(OperatorType::SAMPLE, {flat_dist});
+  g.query(x);
+
+  int num_samples = 100;
+  InferConfig infer_config = InferConfig();
+  infer_config.num_warmup = 0;
+  infer_config.keep_warmup = false;
+  std::vector<std::vector<std::vector<NodeValue>>> samples =
+      g.infer(num_samples, InferenceType::NMC, 17, 1, infer_config);
+  EXPECT_EQ(samples[0].size(), 100);
+
+  infer_config.num_warmup = 200;
+  infer_config.keep_warmup = false;
+  samples = g.infer(num_samples, InferenceType::NMC, 17, 1, infer_config);
+  EXPECT_EQ(samples[0].size(), 100);
+
+  infer_config.num_warmup = 200;
+  infer_config.keep_warmup = true;
+  samples = g.infer(num_samples, InferenceType::NMC, 17, 1, infer_config);
+  EXPECT_EQ(samples[0].size(), 300);
+}
