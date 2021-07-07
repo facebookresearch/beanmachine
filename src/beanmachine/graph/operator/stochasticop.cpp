@@ -89,6 +89,13 @@ graph::NodeValue* StochasticOperator::get_unconstrained_value(
   if (transform_type == graph::TransformType::NONE) {
     return &value;
   }
+  if (unconstrained_value.type == graph::AtomicType::UNKNOWN) {
+    unconstrained_value.type = graph::ValueType(
+        value.type.variable_type,
+        graph::AtomicType::REAL,
+        value.type.rows,
+        value.type.cols);
+  }
   if (sync_from_constrained) {
     transform->operator()(value, unconstrained_value);
   }
@@ -193,8 +200,8 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
       throw std::invalid_argument("Invalid sample type for for iid sample. ");
   }
   value = graph::NodeValue(vtype);
-  unconstrained_value = graph::NodeValue(
-      graph::ValueType(vtype.variable_type, graph::AtomicType::REAL, 1, 0));
+  // leave uninitialized until necessary
+  unconstrained_value = graph::NodeValue(graph::AtomicType::UNKNOWN);
   return;
 }
 
