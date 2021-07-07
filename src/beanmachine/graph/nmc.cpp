@@ -62,10 +62,10 @@ class Graph::NMC {
  public:
   NMC(Graph* g, std::mt19937& gen) : g(g), gen(gen) {}
 
-  void infer(uint num_samples) {
+  void infer(uint num_samples, InferConfig infer_config) {
     g->pd_begin(ProfilerEvent::NMC_INFER);
     initialize();
-    collect_samples(num_samples);
+    collect_samples(num_samples, infer_config);
     g->pd_finish(ProfilerEvent::NMC_INFER);
   }
 
@@ -187,18 +187,18 @@ class Graph::NMC {
     }
   }
 
-  void collect_samples(uint num_samples) {
+  void collect_samples(uint num_samples, InferConfig infer_config) {
     g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
     for (uint snum = 0; snum < num_samples; snum++) {
       generate_sample();
-      collect_sample();
+      collect_sample(infer_config);
     }
     g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
   }
 
-  void collect_sample() {
+  void collect_sample(InferConfig infer_config) {
     g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
-    if (g->infer_config.keep_log_prob) {
+    if (infer_config.keep_log_prob) {
       g->collect_log_prob(g->_full_log_prob(supp));
     }
     g->collect_sample();
@@ -620,8 +620,8 @@ class Graph::NMC {
   }
 };
 
-void Graph::nmc(uint num_samples, std::mt19937& gen) {
-  Graph::NMC(this, gen).infer(num_samples);
+void Graph::nmc(uint num_samples, std::mt19937& gen, InferConfig infer_config) {
+  Graph::NMC(this, gen).infer(num_samples, infer_config);
 }
 
 } // namespace graph
