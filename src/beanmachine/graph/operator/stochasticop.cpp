@@ -7,12 +7,18 @@ namespace beanmachine {
 namespace oper {
 
 void StochasticOperator::gradient_log_prob(
+    const graph::Node* target_node,
     double& log_prob_grad1,
     double& log_prob_grad2) const {
   // The implementation of this method is a little subtle.
   //
-  // We want to compute the gradient of log prob given the gradient of
-  // the inputs to that function.
+  // We want to compute the first and second gradients
+  // of log prob
+  // with respect to target_node,
+  // given the gradients of
+  // the inputs to that function,
+  // also with respect to target_node,
+  // stored in these inputs' fields grad1 and grad2.
   //
   // The standard way of computing that is just to use the chain rule.
   // This is straightforward for deterministic nodes because
@@ -41,32 +47,28 @@ void StochasticOperator::gradient_log_prob(
   // with the stochastic operator's value being treated differently.
   //
   // At this point, we note something else.
-  // We are computing the derivative with respect to some (possibly distant)
-  // quantity z. For v the value of this stochastic node and
-  // p the remaining inputs (the in-nodes), we have:
-  // d(log prob(v,p))/dz =
-  //     d(log prob(v,p))/dv * dv/dz   +
-  //     d(log prob(v,p))/dp * dp/dz.
+  // We are computing the gradients with respect to (possibly distant)
+  // target_node. Let's denote target_node by simply t. For v the value of the
+  // current (this) stochastic node and p the remaining inputs (the in-nodes,
+  // or more precisely the parameters of the distribution from which v was
+  // sampled), we have:
+  // d(log prob(v,p))/dt =
+  //     d(log prob(v,p))/dv * dv/dt   +
+  //     d(log prob(v,p))/dp * dp/dt.
   //
   // Note that the value v is not determined by any other nodes in the model,
   // because it is sampled (it has no ancestors).
   //
-  // Therefore, the only way dv/dz is not 0 is if z is v itself.
-  // In that case, dp/dz will be zero because v is not an ancestor of p.
-  // If z is *not* v, then dv/dz is zero
-  // (for z is not an ancestor of v since no other node is).
+  // Therefore, the only way dv/dt is not 0 is if t is v itself.
+  // In that case, dp/dt will be zero because v is not an ancestor of p.
+  // If t is *not* v, then dv/dt is zero
+  // (for t is not an ancestor of v since no node is).
   //
-  // Therefore, at least one of dv/dz or dp/dz will be zero,
-  // and only one of the terms of the addition above will be non-zero.
-  //
-  // We can determine which one by examining dv/dz (the field grad1).
-  // If grad1 is not 0, then z is v,
-  // and the log prob gradient will be d(log prob(v,p))/dv.
-  // Otherwise, z is not v, dv/dz is 0,
-  // and the log prob gradient will be d(log prob(v,p))/dp.
+  // Therefore, at least one of dv/dt or dp/dt will be zero,
+  // so the final gradient is dv/dt if t is v, and is dp/dt otherwise.
 
   const auto dist = static_cast<const distribution::Distribution*>(in_nodes[0]);
-  if (grad1 != 0.0) {
+  if (this == target_node) {
     dist->gradient_log_prob_value(value, log_prob_grad1, log_prob_grad2);
   } else {
     dist->gradient_log_prob_param(value, log_prob_grad1, log_prob_grad2);

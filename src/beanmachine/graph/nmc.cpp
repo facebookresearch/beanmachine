@@ -274,7 +274,7 @@ class Graph::NMC {
     double grad1 = 0;
     double grad2 = 0;
     for (Node* node : sto_affected_nodes) {
-      node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
+      node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
     }
 
     // TODO: generalize so it works with any proposer, not just nmc_proposer:
@@ -310,7 +310,8 @@ class Graph::NMC {
         grad2 += (1.0 - param_a) / (value._double * value._double);
       } else {
         logweight += node->log_prob();
-        node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
+        node->gradient_log_prob(
+            tgt_node, /* in-out */ grad1, /* in-out */ grad2);
       }
     }
     std::unique_ptr<proposer::Proposer> prop =
@@ -340,7 +341,8 @@ class Graph::NMC {
         grad2 += -(param_a - 1) / (x * x) - (param_b - 1) / ((1 - x) * (1 - x));
       } else {
         logweight += node->log_prob();
-        node->gradient_log_prob(/* in-out */ grad1, /* in-out */ grad2);
+        node->gradient_log_prob(
+            tgt_node, /* in-out */ grad1, /* in-out */ grad2);
       }
     }
 
@@ -423,8 +425,20 @@ class Graph::NMC {
       tgt_node->value = old_value;
     }
 
-    // TODO clarify why it is necessary to clear the gradients
-    // since we seem to be computing them from scratch when we need them.
+    // Gradients are must be cleared (equal to 0)
+    // at the end of each iteration.
+    // TODO: the reason for that is not clear;
+    // it should be possible to compute gradients
+    // when needed without depending on them
+    // being 0.
+    // However, some code depends on this
+    // but it is not clear where.
+    // It would be good to identify these dependencies
+    // and possibly remove the
+    // dependency.
+    // This was the case for example for
+    // StochasticOperator::gradient_log_prob,
+    // but that dependence has been removed.
     clear_gradients(det_affected_nodes);
     tgt_node->grad1 = 0;
     tgt_node->grad2 = 0;
@@ -511,6 +525,10 @@ class Graph::NMC {
         src_node->value._matrix =
             src_node->unconstrained_value._matrix.array() / sum;
       }
+      // Gradients are must be cleared (equal to 0)
+      // at the end of each iteration.
+      // Some code relies on that to decide whether a node
+      // is the one we are computing gradients with respect to.
       clear_gradients(det_nodes);
       tgt_node->grad1 = 0;
       tgt_node->grad2 = 0;
@@ -591,6 +609,10 @@ class Graph::NMC {
       *(src_node->value._matrix.data()) = old_X_k;
       *(src_node->value._matrix.data() + 1) = 1 - old_X_k;
     }
+    // Gradients are must be cleared (equal to 0)
+    // at the end of each iteration.
+    // Some code relies on that to decide whether a node
+    // is the one we are computing gradients with respect to.
     clear_gradients(det_nodes);
     tgt_node->grad1 = 0;
     tgt_node->grad2 = 0;

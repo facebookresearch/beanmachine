@@ -461,8 +461,10 @@ class Node {
   // gradient_log_prob is also only valid for stochastic nodes
   // TODO: shouldn't we then restrict them to those classes? See above.
   // this function adds the gradients to the passed in gradients
-  virtual void gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
-      const {}
+  virtual void gradient_log_prob(
+      const graph::Node* target_node,
+      double& /* grad1 */,
+      double& /* grad2 */) const {}
   virtual void gradient_log_prob(
       Eigen::MatrixXd& /* grad1 */,
       Eigen::MatrixXd& /* grad2_diag */) const {}

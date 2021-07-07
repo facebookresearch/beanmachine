@@ -403,7 +403,7 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
   set_value(grad2, 0.0);
   for (auto node_id : sto_nodes) {
     Node* node = nodes[node_id].get();
-    node->gradient_log_prob(grad1, grad2);
+    node->gradient_log_prob(src_node, grad1, grad2);
   }
   // TODO clarify why we need to reset gradients
   // if we seem to be computing them from scratch when needed.
@@ -427,7 +427,6 @@ void Graph::gradient_log_prob(uint src_idx, T& grad1, T& grad2) {
 template void
 Graph::gradient_log_prob<double>(uint src_idx, double& grad1, double& grad2);
 
-// TODO: rename to log_prob_in_immediate_stochastic_descendants
 double Graph::log_prob(uint src_idx) {
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {

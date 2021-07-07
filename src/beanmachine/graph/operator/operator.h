@@ -30,7 +30,10 @@ class Operator : public graph::Node {
   // Because only stochastic operators contribute to log prob,
   // this method is only implemented for stochastic operators.
   // TODO: should we just remove it from Operator then?
-  void gradient_log_prob(double& grad1, double& grad2) const override;
+  void gradient_log_prob(
+      const graph::Node* target_node,
+      double& grad1,
+      double& grad2) const override;
 
   void backward() override {}
   graph::OperatorType op_type;

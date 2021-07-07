@@ -21,8 +21,10 @@ class StochasticOperator : public Operator {
     return static_cast<const distribution::Distribution*>(in_nodes[0])
         ->log_prob(value);
   }
-  void gradient_log_prob(double& first_grad, double& second_grad)
-      const override;
+  void gradient_log_prob(
+      const graph::Node* target_node,
+      double& first_grad,
+      double& second_grad) const override;
   bool is_stochastic() const override {
     return true;
   }

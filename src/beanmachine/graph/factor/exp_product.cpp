@@ -41,7 +41,10 @@ double ExpProduct::log_prob() const {
   return product;
 }
 
-void ExpProduct::gradient_log_prob(double& grad1, double& grad2) const {
+void ExpProduct::gradient_log_prob(
+    const graph::Node* target_node,
+    double& grad1,
+    double& grad2) const {
   // we will use dynamic programming to compute the gradients in a single pass
   // product of previous terms
   double running_prod = 1;

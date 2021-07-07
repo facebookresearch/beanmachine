@@ -11,7 +11,10 @@ class ExpProduct : public Factor {
   explicit ExpProduct(const std::vector<graph::Node*>& in_nodes);
   ~ExpProduct() override {}
   double log_prob() const override;
-  void gradient_log_prob(double& grad1, double& grad2) const override;
+  void gradient_log_prob(
+      const graph::Node* target_node,
+      double& grad1,
+      double& grad2) const override;
   void backward() override;
 };
 

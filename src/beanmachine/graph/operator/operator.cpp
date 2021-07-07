@@ -13,8 +13,10 @@ double Operator::log_prob() const {
   throw std::runtime_error("log_prob is only defined for sample or iid sample");
 }
 
-void Operator::gradient_log_prob(double& /* grad1 */, double& /* grad2 */)
-    const {
+void Operator::gradient_log_prob(
+    const graph::Node* target_node,
+    double& /* grad1 */,
+    double& /* grad2 */) const {
   throw std::runtime_error(
       "gradient_log_prob is only defined for sample or iid sample");
 }
