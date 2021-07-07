@@ -120,7 +120,7 @@ class DiagnosticsTest(unittest.TestCase):
             for i in range(num_samples):
                 expected_acf = acf(
                     query_samples[:, i].detach().numpy(),
-                    unbiased=True,
+                    adjusted=True,
                     nlags=num_samples - 1,
                     fft=False,
                 )

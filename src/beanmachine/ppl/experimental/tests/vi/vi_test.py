@@ -27,7 +27,7 @@ class NealsFunnel(dist.Distribution):
 
     def __init__(self, validate_args=None):
         d = 2
-        batch_shape, event_shape = (1,), (d,)
+        batch_shape, event_shape = torch.Size([]), (d,)
         super(NealsFunnel, self).__init__(
             batch_shape, event_shape, validate_args=validate_args
         )
@@ -102,7 +102,7 @@ class NormalNormal:
 
 class MeanFieldVariationalInferTest(unittest.TestCase):
     def setUp(self) -> None:
-        MeanFieldVariationalInference.set_seed(1)
+        MeanFieldVariationalInference.set_seed(42)
 
     def test_neals_funnel(self):
         nf = bm.random_variable(NealsFunnel)
@@ -110,16 +110,16 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
         vi = MeanFieldVariationalInference().infer(
             queries=[nf()],
             observations={},
-            num_iter=400,
+            num_iter=100,
             base_dist=dist.Normal,
             base_args={"loc": torch.zeros([1]), "scale": torch.ones([1])},
-            num_elbo_mc_samples=100,
-            lr=1e-3,
+            num_elbo_mc_samples=200,
+            lr=2e-3,
         )
 
         # compare 1D marginals of empirical distributions using 2-sample K-S test
-        nf_samples = NealsFunnel().sample((50,)).squeeze().numpy()
-        vi_samples = vi(nf()).sample((50,)).detach().numpy()
+        nf_samples = NealsFunnel().sample((20,)).squeeze().numpy()
+        vi_samples = vi(nf()).sample((20,)).detach().numpy()
 
         self.assertGreaterEqual(
             scipy.stats.ks_2samp(nf_samples[:, 0], vi_samples[:, 0]).pvalue, 0.05
