@@ -366,15 +366,21 @@ struct InferConfig {
   bool keep_log_prob;
   double path_length;
   double step_size;
+  uint num_warmup;
+  bool keep_warmup;
 
   ~InferConfig() {}
   InferConfig(
       bool keep_log_prob = false,
       double path_length = 1.0,
-      double step_size = 1.0)
+      double step_size = 1.0,
+      uint num_warmup = 0,
+      bool keep_warmup = false)
       : keep_log_prob(keep_log_prob),
         path_length(path_length),
-        step_size(step_size) {}
+        step_size(step_size),
+        num_warmup(num_warmup),
+        keep_warmup(keep_warmup) {}
 };
 
 enum class TransformType { NONE = 0, LOG = 1 };

@@ -101,10 +101,12 @@ PYBIND11_MODULE(graph, module) {
 
   py::class_<InferConfig>(module, "InferConfig")
       .def(py::init())
-      .def(py::init<bool, double, double>())
+      .def(py::init<bool, double, double, uint, bool>())
       .def_readwrite("keep_log_prob", &InferConfig::keep_log_prob)
       .def_readwrite("path_length", &InferConfig::path_length)
-      .def_readwrite("step_size", &InferConfig::step_size);
+      .def_readwrite("step_size", &InferConfig::step_size)
+      .def_readwrite("num_warmup", &InferConfig::num_warmup)
+      .def_readwrite("keep_warmup", &InferConfig::keep_warmup);
 
   // CONSIDER: Remove the overloaded add_constant APIs; the overloaded API's
   // binding behaviour is a little confusing. For example,
