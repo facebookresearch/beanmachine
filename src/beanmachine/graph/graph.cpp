@@ -860,7 +860,11 @@ void Graph::collect_sample() {
   }
 }
 
-void Graph::_infer(uint num_samples, InferenceType algorithm, uint seed) {
+void Graph::_infer(
+    uint num_samples,
+    InferenceType algorithm,
+    uint seed,
+    InferConfig infer_config) {
   if (queries.size() == 0) {
     throw std::runtime_error("no nodes queried for inference");
   }
@@ -869,22 +873,22 @@ void Graph::_infer(uint num_samples, InferenceType algorithm, uint seed) {
   }
   std::mt19937 generator(seed);
   if (algorithm == InferenceType::REJECTION) {
-    rejection(num_samples, generator);
+    rejection(num_samples, generator, infer_config);
   } else if (algorithm == InferenceType::GIBBS) {
-    gibbs(num_samples, generator);
+    gibbs(num_samples, generator, infer_config);
   } else if (algorithm == InferenceType::NMC) {
-    nmc(num_samples, generator);
+    nmc(num_samples, generator, infer_config);
   }
 }
 
 std::vector<std::vector<NodeValue>>&
 Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
-  infer_config = InferConfig();
+  InferConfig infer_config = InferConfig();
   agg_type = AggregationType::NONE;
   samples.clear();
   log_prob_vals.clear();
   log_prob_allchains.clear();
-  _infer(num_samples, algorithm, seed);
+  _infer(num_samples, algorithm, seed, infer_config);
   _produce_performance_report(num_samples, algorithm, seed);
   return samples;
 }
@@ -895,7 +899,6 @@ std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
     uint seed,
     uint n_chains,
     InferConfig infer_config) {
-  this->infer_config = infer_config;
   agg_type = AggregationType::NONE;
   samples.clear();
   samples_allchains.clear();
@@ -903,7 +906,7 @@ std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
   log_prob_vals.clear();
   log_prob_allchains.clear();
   log_prob_allchains.resize(n_chains, std::vector<double>());
-  _infer_parallel(num_samples, algorithm, seed, n_chains);
+  _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
   return samples_allchains;
 }
 
@@ -911,7 +914,8 @@ void Graph::_infer_parallel(
     uint num_samples,
     InferenceType algorithm,
     uint seed,
-    uint n_chains) {
+    uint n_chains,
+    InferConfig infer_config) {
   if (n_chains < 1) {
     throw std::runtime_error("n_chains can't be zero");
   }
@@ -936,7 +940,14 @@ void Graph::_infer_parallel(
   std::vector<std::thread> threads;
   for (uint i = 0; i < n_chains; i++) {
     std::thread infer_thread(
-        &Graph::_infer, graph_copies[i], num_samples, algorithm, seedvec[i]);
+        &Graph::_infer,
+        // @lint-ignore CLANGTIDY
+        graph_copies[i],
+        num_samples,
+        algorithm,
+        // @lint-ignore CLANGTIDY
+        seedvec[i],
+        infer_config);
     threads.push_back(std::move(infer_thread));
   }
   assert(threads.size() == n_chains);
@@ -954,14 +965,14 @@ void Graph::_infer_parallel(
 
 std::vector<double>&
 Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
-  infer_config = InferConfig();
+  InferConfig infer_config = InferConfig();
   agg_type = AggregationType::MEAN;
   agg_samples = num_samples;
   means.clear();
   means.resize(queries.size(), 0.0);
   log_prob_vals.clear();
   log_prob_allchains.clear();
-  _infer(num_samples, algorithm, seed);
+  _infer(num_samples, algorithm, seed, infer_config);
   return means;
 }
 
@@ -971,7 +982,6 @@ std::vector<std::vector<double>>& Graph::infer_mean(
     uint seed,
     uint n_chains,
     InferConfig infer_config) {
-  this->infer_config = infer_config;
   agg_type = AggregationType::MEAN;
   agg_samples = num_samples;
   means.clear();
@@ -980,7 +990,7 @@ std::vector<std::vector<double>>& Graph::infer_mean(
   means_allchains.resize(n_chains, std::vector<double>(queries.size(), 0.0));
   log_prob_vals.clear();
   log_prob_allchains.clear();
-  _infer_parallel(num_samples, algorithm, seed, n_chains);
+  _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
   return means_allchains;
 }
 
@@ -1055,7 +1065,6 @@ Graph::Graph(const Graph& other) {
   master_graph = other.master_graph;
   agg_type = other.agg_type;
   agg_samples = other.agg_samples;
-  infer_config = other.infer_config;
 }
 
 } // namespace graph

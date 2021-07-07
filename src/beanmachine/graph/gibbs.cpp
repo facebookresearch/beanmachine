@@ -11,7 +11,10 @@
 namespace beanmachine {
 namespace graph {
 
-void Graph::gibbs(uint num_samples, std::mt19937& gen) {
+void Graph::gibbs(
+    uint num_samples,
+    std::mt19937& gen,
+    InferConfig infer_config) {
   std::set<uint> supp = compute_support();
   // eval each node so that we have a starting value and verify that these
   // values are all scalar

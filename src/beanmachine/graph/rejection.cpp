@@ -4,7 +4,10 @@
 namespace beanmachine {
 namespace graph {
 
-void Graph::rejection(uint num_samples, std::mt19937& gen) {
+void Graph::rejection(
+    uint num_samples,
+    std::mt19937& gen,
+    InferConfig infer_config) {
   std::vector<Node*> ordered_supp;
   if (infer_config.keep_log_prob) {
     std::set<uint> supp = compute_support();
