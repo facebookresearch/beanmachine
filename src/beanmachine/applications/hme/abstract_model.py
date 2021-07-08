@@ -105,21 +105,22 @@ class AbstractModel(object, metaclass=ABCMeta):
             self.set_queries()
         iconf = bmgraph.InferConfig()
         iconf.keep_log_prob = infer_config.keep_logprob
+        iconf.num_warmup = infer_config.n_warmup
+        iconf.keep_warmup = infer_config.keep_warmup
         bmg_result = self.g.infer(
-            infer_config.n_iter + infer_config.n_warmup,
+            infer_config.n_iter,
             bmgraph.InferenceType.NMC,
             infer_config.seed,
             infer_config.n_chains,
             iconf,
         )
-        keep_after = 0 if infer_config.keep_warmup else infer_config.n_warmup
-        posterior_samples = self._to_dataframe(bmg_result, keep_after)
-        posterior_diagnostics = self._get_bmg_diagnostics(bmg_result, keep_after)
+        posterior_samples = self._to_dataframe(bmg_result)
+        posterior_diagnostics = self._get_bmg_diagnostics(bmg_result)
         t_used = time.time() - t0
         logger.info(f"The model fitted in {round(t_used/60., 1)} minutes.")
         return posterior_samples, posterior_diagnostics
 
-    def _to_dataframe(self, dat_list: List, keep_after: int) -> pd.DataFrame:
+    def _to_dataframe(self, dat_list: List) -> pd.DataFrame:
         df_list = []
         i = 0
         for chain_i in dat_list:
@@ -129,14 +130,14 @@ class AbstractModel(object, metaclass=ABCMeta):
             df["iter"] = pd.Series(range(len(chain_i))) + 1
             df["chain"] = i
             i += 1
-            df_list.append(df[keep_after:])
+            df_list.append(df)
         result_df = pd.concat(df_list, axis=0).reset_index(drop=True)
         return result_df
 
-    def _get_bmg_diagnostics(self, samples: List, keep_after: int) -> pd.DataFrame:
+    def _get_bmg_diagnostics(self, samples: List) -> pd.DataFrame:
 
         # conversion to torch
-        samples = torch.tensor(samples)[:, keep_after:, :]
+        samples = torch.tensor(samples)
 
         n_chain = samples.shape[0]
         bmg_neff = bm_diag_util.effective_sample_size(samples)
