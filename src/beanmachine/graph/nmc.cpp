@@ -189,9 +189,11 @@ class Graph::NMC {
 
   void collect_samples(uint num_samples, InferConfig infer_config) {
     g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
-    for (uint snum = 0; snum < num_samples; snum++) {
+    for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {
       generate_sample();
-      collect_sample(infer_config);
+      if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
+        collect_sample(infer_config);
+      }
     }
     g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
   }

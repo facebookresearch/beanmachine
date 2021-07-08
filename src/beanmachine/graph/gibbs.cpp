@@ -86,7 +86,7 @@ void Graph::gibbs(
   }
   assert(node_ptrs.size() > 0); // keep linter happy
   // sampling outer loop
-  for (uint snum = 0; snum < num_samples; snum++) {
+  for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {
     for (auto it = pool.begin(); it != pool.end(); ++it) {
       bool must_change = false; // must_change => must change current value
       // if we have a cached value of the transition odds then use that instead
@@ -165,7 +165,9 @@ void Graph::gibbs(
     if (infer_config.keep_log_prob) {
       collect_log_prob(_full_log_prob(ordered_supp));
     }
-    collect_sample();
+    if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
+      collect_sample();
+    }
   }
 }
 
