@@ -75,8 +75,8 @@ observations = {
 }
 
 
-class tutorialGMMwithPoissonNumberOfComponentsTest(unittest.TestCase):
-    def test_tutorial_GMM_with_Poisson_number_of_components(self) -> None:
+class tutorialGMM1Dimension2Components(unittest.TestCase):
+    def test_tutorial_GMM_1_dimension_2_components(self) -> None:
         """Check BM and BMG inference both terminate"""
 
         self.maxDiff = None
@@ -97,7 +97,7 @@ class tutorialGMMwithPoissonNumberOfComponentsTest(unittest.TestCase):
 
         self.assertTrue(True, msg="We just want to check this point is reached")
 
-    def test_tutorial_GMM_with_Poisson_number_of_components_to_dot_cpp_python(
+    def test_tutorial_GMM_1_dimension_2_components_to_dot_cpp_python(
         self,
     ) -> None:
         self.maxDiff = None
