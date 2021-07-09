@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from typing import List, Type
+from typing import List, Set, Type
 
 import beanmachine.ppl.compiler.profiler as prof
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -38,11 +38,18 @@ _standard_fixer_types: List[Type] = [
     ObservationsFixer,
 ]
 
+default_skip_optimizations: Set[str] = set()
 
-def fix_problems(bmg: BMGraphBuilder) -> ErrorReport:
+
+def fix_problems(
+    bmg: BMGraphBuilder, skip_optimizations: Set[str] = default_skip_optimizations
+) -> ErrorReport:
     bmg._begin(prof.fix_problems)
     typer = LatticeTyper()
-    fixer_types: List[Type] = _standard_fixer_types
+    fixer_types: List[Type] = []
+    for fixer_type in _standard_fixer_types:
+        if fixer_type.__name__ not in skip_optimizations:
+            fixer_types.append(fixer_type)
     errors = ErrorReport()
     if bmg._fix_observe_true:
         # Note: must NOT be +=, which would mutate _standard_fixer_types.

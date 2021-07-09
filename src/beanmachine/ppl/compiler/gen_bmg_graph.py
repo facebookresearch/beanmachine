@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from typing import Dict, List
+from typing import Dict, List, Set
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.profiler as prof
@@ -13,7 +13,10 @@ from beanmachine.ppl.compiler.bmg_node_types import (
     operator_type,
 )
 from beanmachine.ppl.compiler.bmg_types import _size_to_rc
-from beanmachine.ppl.compiler.fix_problems import fix_problems
+from beanmachine.ppl.compiler.fix_problems import (
+    default_skip_optimizations,
+    fix_problems,
+)
 
 
 def _reshape(t: torch.Tensor):
@@ -125,15 +128,17 @@ class GeneratedGraph:
         elif isinstance(node, bn.ConstantNode):
             self._add_constant(node)
 
-    def _generate_graph(self) -> None:
-        fix_problems(self.bmg).raise_errors()
+    def _generate_graph(self, skip_optimizations: Set[str]) -> None:
+        fix_problems(self.bmg, skip_optimizations).raise_errors()
         self.bmg._begin(prof.build_bmg_graph)
         for node in self.bmg.all_ancestor_nodes():
             self._generate_node(node)
         self.bmg._finish(prof.build_bmg_graph)
 
 
-def to_bmg_graph(bmg: BMGraphBuilder) -> GeneratedGraph:
+def to_bmg_graph(
+    bmg: BMGraphBuilder, skip_optimizations: Set[str] = default_skip_optimizations
+) -> GeneratedGraph:
     gg = GeneratedGraph(bmg)
-    gg._generate_graph()
+    gg._generate_graph(skip_optimizations)
     return gg
