@@ -762,15 +762,21 @@ struct Graph {
   */
   double full_log_prob();
   std::vector<std::vector<double>>& get_log_prob();
-  Node* get_node(uint node_id);
-  void check_node_id(uint node_id);
+
+  // TODO: This public method returns a pointer to an internal data structure
+  // of the graph; this seems like a bad idea. We need it to be public though
+  // because transform_test.cpp uses the node pointer to then obtain a pointer
+  // to the value of the node and mutates that value to see what happens.
+  // We should consider trying to find a safer way to test this functionality.
   Node* check_node(uint node_id, NodeType node_type);
-  uint thread_index;
 
   void collect_performance_data(bool b);
   std::string performance_report();
 
  private:
+  Node* get_node(uint node_id);
+  void check_node_id(uint node_id);
+
   uint add_node(std::unique_ptr<Node> node, std::vector<uint> parents);
   std::vector<Node*> convert_parent_ids(const std::vector<uint>& parents) const;
   std::vector<uint> get_parent_ids(
@@ -786,6 +792,8 @@ struct Graph {
       uint seed,
       uint n_chains,
       InferConfig infer_config);
+
+  uint thread_index;
   std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
   std::set<uint> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a
