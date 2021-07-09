@@ -1,4 +1,5 @@
 import beanmachine.ppl as bm
+import pytest
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
@@ -19,11 +20,16 @@ class SampleModel:
     def bar(self):
         return dist.Normal(self.foo(), 1.0)
 
+    @bm.random_variable
+    def baz(self):
+        return dist.Beta(1.0, 1.0)
 
-def test_inference():
+
+@pytest.mark.parametrize("run_in_parallel", [False, True])
+def test_inference(run_in_parallel):
     model = SampleModel()
     nuts = bm.GlobalNoUTurnSampler()
-    queries = [model.foo()]
+    queries = [model.foo(), model.baz()]
     observations = {model.bar(): torch.tensor(0.5)}
     num_samples = 30
     num_chains = 2
@@ -33,6 +39,7 @@ def test_inference():
         num_samples,
         num_adaptive_samples=num_samples,
         num_chains=num_chains,
+        run_in_parallel=run_in_parallel,
     )
 
     assert model.foo() in samples
