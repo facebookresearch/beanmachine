@@ -333,3 +333,92 @@ TEST(testgraph, full_log_prob) {
   g.observe(prob, 0.6);
   EXPECT_NEAR(g.full_log_prob(), -1.3344, 1e-3);
 }
+TEST(testgraph, bad_observations) {
+  // Tests which demonstrate that we give errors for bad observations.
+  Eigen::MatrixXb bool_matrix(1, 2);
+  bool_matrix << true, false;
+  Eigen::MatrixXn nat_matrix(1, 2);
+  nat_matrix << 2, 3;
+  Eigen::MatrixXd real_matrix(1, 2);
+  real_matrix << 1.5, 2.5;
+  graph::natural_t nat = 2;
+
+  graph::Graph g;
+
+  // Observe a bool to be a double, natural, matrix:
+  uint c_prob = g.add_constant_probability(0.5);
+  uint d_bernoulli = g.add_distribution(
+      graph::DistributionType::BERNOULLI,
+      graph::AtomicType::BOOLEAN,
+      std::vector<uint>{c_prob});
+  uint o_sample_bool = g.add_operator(
+      graph::OperatorType::SAMPLE, std::vector<uint>{d_bernoulli});
+  EXPECT_THROW(g.observe(o_sample_bool, 0.1), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_bool, nat), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_bool, bool_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_bool, nat_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_bool, real_matrix), std::invalid_argument);
+
+  // Observe a bool(2, 1) to be a bool, double, natural, and (1, 2) matrices
+  uint c_natural_1 = g.add_constant((graph::natural_t)1);
+  uint c_natural_2 = g.add_constant((graph::natural_t)2);
+  uint o_iid_bool = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_bernoulli, c_natural_2, c_natural_1});
+  EXPECT_THROW(g.observe(o_iid_bool, false), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_bool, 0.1), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_bool, nat), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_bool, bool_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_bool, nat_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_bool, real_matrix), std::invalid_argument);
+
+  // Observe a natural to be bool, real, matrix
+  uint d_binomial = g.add_distribution(
+      graph::DistributionType::BINOMIAL,
+      graph::AtomicType::NATURAL,
+      std::vector<uint>{c_natural_2, c_prob});
+  uint o_sample_natural = g.add_operator(
+      graph::OperatorType::SAMPLE, std::vector<uint>{d_binomial});
+  EXPECT_THROW(g.observe(o_sample_natural, true), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_natural, 0.5), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_natural, bool_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_natural, nat_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_natural, real_matrix), std::invalid_argument);
+
+  // Observe a natural(2, 1) to be a bool, double, natural, and (1, 2) matrices
+  uint o_iid_nat = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_binomial, c_natural_2, c_natural_1});
+  EXPECT_THROW(g.observe(o_iid_nat, false), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_nat, 0.1), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_nat, nat), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_nat, bool_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_nat, nat_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_nat, real_matrix), std::invalid_argument);
+
+  // Observe a real to be bool, natural, matrix:
+  uint c_real = g.add_constant(-2.5);
+  uint c_pos = g.add_constant_pos_real(2.5);
+  uint d_normal = g.add_distribution(
+      graph::DistributionType::NORMAL,
+      graph::AtomicType::REAL,
+      std::vector<uint>{c_real, c_pos});
+  uint o_sample_real =
+      g.add_operator(graph::OperatorType::SAMPLE, std::vector<uint>{d_normal});
+  EXPECT_THROW(g.observe(o_sample_real, true), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_real, nat), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_real, bool_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_real, nat_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_sample_real, real_matrix), std::invalid_argument);
+
+  // Observe a real(2, 1) to be a bool, double, natural, and (1, 2) matrices
+  uint o_iid_real = g.add_operator(
+      graph::OperatorType::IID_SAMPLE,
+      std::vector<uint>{d_normal, c_natural_2, c_natural_1});
+  EXPECT_THROW(g.observe(o_iid_real, false), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_real, 0.1), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_real, nat), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_real, bool_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_real, nat_matrix), std::invalid_argument);
+  EXPECT_THROW(g.observe(o_iid_real, real_matrix), std::invalid_argument);
+}

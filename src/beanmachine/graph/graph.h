@@ -774,6 +774,8 @@ struct Graph {
   std::string performance_report();
 
  private:
+  Node* check_observed_node(uint node_id, bool is_scalar);
+  void add_observe(Node* node, NodeValue val);
   Node* get_node(uint node_id);
   void check_node_id(uint node_id);
 
