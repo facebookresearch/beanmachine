@@ -18,8 +18,12 @@ logger = logging.getLogger("hme")
 
 
 class AbstractModel(object, metaclass=ABCMeta):
-    """
-    An abstract class for Bayesian graphical models using BMGraph.
+    """An abstract class for Bayesian graphical models using BMGraph.
+
+    :param data: observed train data
+    :type data: class:`pd.DataFrame`
+    :param model_config: model configuration parameters
+    :type model_config: class:`ModelConfig`
     """
 
     def __init__(self, data: pd.DataFrame, model_config: ModelConfig) -> None:
@@ -31,6 +35,14 @@ class AbstractModel(object, metaclass=ABCMeta):
 
     @staticmethod
     def parse_formula(formula: str) -> Tuple[List, List]:
+        """Extracts fixed and/or random effects from given statistical formula.
+
+        :param formula: statistical formula establishing the relationship between response and predictor variables
+        :type formula: str
+        :return: A tuple of fixed and/or random effects lists
+        :rtype: (list, list)
+        """
+
         def make_joint_effect(effect):
             eff_split = effect.split("+")
             if len(eff_split) == 1:
@@ -74,12 +86,16 @@ class AbstractModel(object, metaclass=ABCMeta):
 
     @abstractmethod
     def build_graph(self) -> None:
-        """
-        This method creates a bmgraph.Graph member for the model.
-        """
+        """Creates a bmgraph.Graph member for the model."""
+
         pass
 
     def set_queries(self, manual_queries: Optional[Dict[str, Any]] = None) -> None:
+        """Sets query for the model. Only posterior samples for the queried random variables (parameters) will be returned.
+
+        :param manual_queries: user-specified query, i.e., a list of model parameters user is interested to evaluate
+        :type manual_queries: dict, optional
+        """
         queries = manual_queries if manual_queries else self.queries
         query_map = {}
         self._add_query(None, queries, query_map)
@@ -88,6 +104,15 @@ class AbstractModel(object, metaclass=ABCMeta):
     def _add_query(
         self, prev_key: Any, queries: Any, query_map: Dict[str, int]
     ) -> None:
+        """Helper function of set_queries.
+
+        :param prev_key: None, or model parameter names of fixed or random effects
+        :type prev_key: any
+        :param queries: a mapping from model parameter to its bmgraph node, or just node itself
+        :type queries: any
+        :param query_map: a mapping from model parameter to query-index specified in the bmgraph
+        :type query_map: dict
+        """
         if isinstance(queries, dict):
             try:
                 kv_pairs = sorted(queries.items())
@@ -100,6 +125,14 @@ class AbstractModel(object, metaclass=ABCMeta):
             query_map[str(prev_key)] = self.g.query(queries)
 
     def infer(self, infer_config: InferConfig) -> Tuple[pd.DataFrame]:
+        """Performs MCMC posterior inference on model parameters.
+
+        :param infer_config: configuration settings of posterior inference
+        :type infer_config: class:`InferConfig`
+        :return: posterior samples and their diagnostic summary statistics
+        :rtype: (class:`pd.DataFrame`, class:`pd.DataFrame`)
+        """
+
         t0 = time.time()
         if not self.query_map:
             self.set_queries()
@@ -121,6 +154,14 @@ class AbstractModel(object, metaclass=ABCMeta):
         return posterior_samples, posterior_diagnostics
 
     def _to_dataframe(self, dat_list: List) -> pd.DataFrame:
+        """Stacks posterior sample lists across different chains and transforms them into a dataframe.
+
+        :param dat_list: posterior samples in multiple chains generated from `bmgraph.infer()`
+        :type dat_list: list
+        :return: stacked posterior samples with corresponding parameter names
+        :rtype: class:`pd.DataFrame`
+        """
+
         df_list = []
         i = 0
         for chain_i in dat_list:
@@ -135,6 +176,13 @@ class AbstractModel(object, metaclass=ABCMeta):
         return result_df
 
     def _get_bmg_diagnostics(self, samples: List) -> pd.DataFrame:
+        """Checks convergence of MCMC posterior inference results and returns diagnostic summary statistics.
+
+        :param samples: posterior samples list generated from `bmgraph.infer()`
+        :type samples: list
+        :return: diagnostic summary statistics, including effective sample size, R_hat (when n_chain > 1), sample mean, and acceptance rates (for continuous R.V.)
+        :rtype: class:`pd.DataFrame`
+        """
 
         # conversion to torch
         samples = torch.tensor(samples)
@@ -175,8 +223,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         return posterior_diagnostics
 
     def _customize_priors(self) -> None:
-        """
-        Create customized prior dist based on model_config.priors. e.g.
+        """Create customized prior dist based on model_config.priors. e.g.
         {"fe": PriorConfig('normal', 'real', [0.0, 1.0])}
         """
         self.customized_priors = {}

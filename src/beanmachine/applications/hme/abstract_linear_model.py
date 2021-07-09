@@ -14,14 +14,19 @@ logger = logging.getLogger("hme")
 
 
 class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
-    """
-    An abstract class for creating linear mixed effects model using BMGraph.
+    """An abstract class for creating linear mixed effects model using BMGraph.
+
+    :param data: observed train data
+    :type data: class:`pd.DataFrame`
+    :param model_config: model configuration parameters
+    :type model_config: class:`ModelConfig`
     """
 
     def __init__(self, data: pd.DataFrame, model_config: ModelConfig) -> None:
         super().__init__(data, model_config)
         self.fixed_effects = []
         self.random_effects = []
+        self.customized_priors = {}
 
     @abstractmethod
     def _add_observation_byrow(self, index: int, row: pd.Series, fere_i: int) -> None:
@@ -29,9 +34,19 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         This method defines the conditional distribution of the observation node
         given the linear component node: fere_i
         """
+
         pass
 
     def _set_priors(self) -> None:
+        """Pre-defines a bunch of useful prior distributions:
+
+        * Beta(alpha=1, beta=1),
+        * Gamma(alpha=1, beta=1),
+        * Half-Cauchy(gamma=1),
+        * Normal(mu=0, sigma=2),
+        * Non-standardized Student's t(df=3, mu=0, sigma=3).
+        """
+
         self.zero = self.g.add_constant(0.0)
         self.one = self.g.add_constant_pos_real(1.0)
         self.two = self.g.add_constant_pos_real(2.0)
@@ -64,11 +79,15 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         )
 
     def _initialize_fixed_effect_nodes(self) -> Dict[str, int]:
-        fe_prior = (
-            self.customized_priors["fe"]
-            if "fe" in self.customized_priors
-            else self.normal_prior
-        )
+        """Initializes fixed effect nodes in the bmgraph, whose values are sampled from
+        pre-specified prior distributions, defaults to Normal(mu=0, sigma=2).
+
+        :return: a mapping of fixed effects to their corresponding nodes
+        :rtype: dict
+        """
+
+        fe_prior = self.customized_priors.get("fe", self.normal_prior)
+
         fixed_effects_params = {
             fe: self.g.add_operator(bmgraph.OperatorType.SAMPLE, [fe_prior])
             for fe in self.fixed_effects
@@ -76,6 +95,17 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         return fixed_effects_params
 
     def _initialize_random_effect_nodes(self, use_t_random_effect: bool) -> Tuple:
+        """Initializes random effect nodes in the bmgraph. This includes assigning priors to
+        the random effect nodes as well as assigning priors to hyper-parameters. The method
+        allows for a t-distribution prior on random effects if user desires to better model
+        heavy tailed effects.
+
+        :param use_t_random_effect: flag indicating whether to assign a Normal or Student's t-distribution to random effects
+        :type use_t_random_effect: bool
+        :return: a tuple of dictionaries, which map random effects to their parameter, distribution, and sampled value nodes
+        :rtype: (dict, dict, dict, dict)
+        """
+
         re_scale_prior = (
             self.customized_priors["re_scale"]
             if "re_scale" in self.customized_priors
@@ -118,6 +148,17 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         return re_dof, re_scale, re_dist, re_value
 
     def _add_fixed_effects_byrow(self, row: pd.Series, params: Dict[str, int]) -> int:
+        """Forms the systematic component from the fixed effects per subject (i.e. per row in the train data).
+        In the other words, this method returns XB for fixed effects for a given obs (row) from the train data.
+
+        :param row: one individual train data with fixed effect covariates
+        :type row: class:`pd.Series`
+        :param params: a mapping of fixed effects to their corresponding nodes
+        :type params: dict
+        :return: bmgraph node that sums over all fixed effects for a given observation (i.e. a row from the train data)
+        :type: int
+        """
+
         if not self.fixed_effects:
             return self.zero
         fe_list = []
@@ -136,9 +177,23 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         return self.g.add_operator(bmgraph.OperatorType.ADD, fe_list)
 
     def _add_random_effects_byrow(self, row: pd.Series, params: Tuple) -> int:
+        """Forms the systematic component from the random effects per subject (i.e. per row in the train data).
+        In the other words, this method returns XZ for random effects for a given obs (row) from the train data.
+
+        :param row: one individual train data with random effect covariates
+        :type row: class:`pd.Series`
+        :param params: a tuple of dictionaries, which map random effects to their parameter, distribution, and sampled value nodes
+        :type params: (dict, dict, dict, dict)
+        :return: bmgraph node that sums over all random effects for a given observation (i.e. a row from the train data).
+        :type: int
+        """
+
         if not self.random_effects:
             return self.zero
-        re_dist, re_value = params
+        (
+            re_dist,
+            re_value,
+        ) = params
         re_list = []
         for re in self.random_effects:
             key = tuple(row[x] for x in re) if isinstance(re, tuple) else row[re]
@@ -154,6 +209,16 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
     def _predict_fere_byrow(
         self, new_row: pd.Series, post_samples: pd.DataFrame
     ) -> pd.Series:
+        """Generates response variable predictive distribution given new test data.
+
+        :param new_row: one individual test data for prediction
+        :type new_row: class:`pd.Series`
+        :param post_samples: MCMC posterior inference samples on model parameters
+        :type post_samples: class:`pd.DataFrame`
+        :return: response variable predictive distribution
+        :rtype: class:`pd.Series`
+        """
+
         pred_val = pd.Series(0.0, index=range(post_samples.shape[0]))
         for fe in self.fixed_effects:
             try:

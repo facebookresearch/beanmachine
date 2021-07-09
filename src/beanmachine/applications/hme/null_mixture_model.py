@@ -15,8 +15,12 @@ logger = logging.getLogger("hme")
 
 
 class NullMixtureMixedEffectModel(AbstractLinearModel):
-    """
-    Represents an generalized linear mixed effects model with optional null mixture.
+    """Represents a generalized linear mixed effects model with optional null mixture.
+
+    :param data: observed train data
+    :type data: class:`pd.DataFrame`
+    :param model_config: model configuration parameters
+    :type model_config: class:`ModelConfig`
     """
 
     def __init__(self, data: pd.DataFrame, model_config: ModelConfig) -> None:
@@ -24,6 +28,8 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         self.build_graph()
 
     def build_graph(self) -> None:
+        """Constructs the probabilistic graph for generalized linear (null mixture, optional) mixed effect models given observed data"""
+
         self.fixed_effects, self.random_effects = AbstractModel.parse_formula(
             self.model_config.mean_regression.formula
         )
@@ -63,6 +69,8 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
             self._add_observation_byrow(index, row, fere_i)
 
     def _initialize_likelihood(self) -> None:
+        """Initializes fixed effects, random effects, mixture (optional) component parameters."""
+
         self.sei = None
         # fixed and random effects component
         self.fixed_effects_params = self._initialize_fixed_effect_nodes()
@@ -145,6 +153,16 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
             self.queries["yhat"] = self.yhat_all
 
     def _add_bimodal_alternative(self, mu_parents: List, mu_neg_parents: List) -> int:
+        """Returns a multiplicative H1 model as a mixture of both positive and negative effects.
+
+        :param mu_parents: bmgraph nodes of positive effect distribution component
+        :type mu_parents: list
+        :param mu_neg_parents: bmgraph nodes of negative effect distribution component
+        :type mu_neg_parents: list
+        :return: bmgraph node representing a mixtrue of positive and negative effect distribution
+        :rtype: int
+        """
+
         log_mu = self.g.add_operator(bmgraph.OperatorType.ADD, mu_parents)
         exp_log_mu = self.g.add_operator(bmgraph.OperatorType.EXP, [log_mu])
         mu_pos = self.g.add_operator(bmgraph.OperatorType.TO_REAL, [exp_log_mu])
@@ -166,6 +184,16 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         return fere_i
 
     def _add_observation_byrow(self, index: int, row: pd.Series, fere_i: int) -> None:
+        """Defines the response variable distribution bmgraph node conditional on the mixed effect node: fere_i.
+
+        :param index: train data index
+        :type index: int
+        :param row: one realization (aka observed value) of response and predictor variables
+        :type row: class:`pd.Series`
+        :param fere_i: mixed effect bmgraph node
+        :type fere_i: int
+        """
+
         if self.model_config.mean_mixture.use_null_mixture:
             hi = self.g.add_operator(bmgraph.OperatorType.SAMPLE, [self.h_dist])
             self.h_all[index] = hi
@@ -215,6 +243,16 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
     def predict(
         self, new_data: pd.DataFrame, post_samples: pd.DataFrame
     ) -> pd.DataFrame:
+        """Generates mixed effect predictive distributions given new test data.
+
+        :param new_data: multiple test data for prediction
+        :type new_data: class:`pd.DataFrame`
+        :param post_samples: MCMC posterior inference samples on model parameters
+        :type post_samples: class:`pd.DataFrame`
+        :return: mixed effect predictive distributions
+        :rtype: class:`pd.Series`
+        """
+
         # FIXME: update the method to support customized prediction goal
         pred_df = pd.DataFrame()
         for _, row in new_data.iterrows():
