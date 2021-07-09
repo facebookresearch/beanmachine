@@ -312,7 +312,9 @@ digraph "graph" {
         o2 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
         with self.assertRaises(ValueError) as cm:
             g.observe(o1, True)
-        self.assertTrue("only sample nodes may be observed" in str(cm.exception))
+        self.assertTrue(
+            "only SAMPLE and IID_SAMPLE nodes may be observed" in str(cm.exception)
+        )
         g.observe(o2, True)  # ok to observe this node
         with self.assertRaises(ValueError) as cm:
             g.observe(o2, False)

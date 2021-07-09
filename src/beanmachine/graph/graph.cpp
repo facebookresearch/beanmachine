@@ -543,6 +543,38 @@ Node* Graph::check_node(uint node_id, NodeType node_type) {
   return node;
 }
 
+Node* Graph::check_observed_node(uint node_id, bool is_scalar) {
+  Node* node = get_node(node_id);
+  if (node->node_type != NodeType::OPERATOR) {
+    throw std::invalid_argument(
+        "only SAMPLE and IID_SAMPLE nodes may be observed");
+  }
+  oper::Operator* op = static_cast<oper::Operator*>(node);
+  if (op->op_type != OperatorType::SAMPLE and
+      op->op_type != OperatorType::IID_SAMPLE) {
+    throw std::invalid_argument(
+        "only SAMPLE and IID_SAMPLE nodes may be observed");
+  }
+  if (observed.find(node_id) != observed.end()) {
+    throw std::invalid_argument(
+        "duplicate observe for node_id " + std::to_string(node_id));
+  }
+
+  if (is_scalar && node->value.type.variable_type != VariableType::SCALAR) {
+    throw std::invalid_argument(
+        "a matrix-valued sample may not be observed with a single value");
+  }
+
+  if (!is_scalar &&
+      node->value.type.variable_type != VariableType::BROADCAST_MATRIX &&
+      node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX) {
+    throw std::invalid_argument(
+        "a scalar-valued sample may not be observed with a matrix value");
+  }
+
+  return node;
+}
+
 uint Graph::add_constant(bool value) {
   return add_constant(NodeValue(value));
 }
@@ -679,82 +711,100 @@ uint Graph::add_factor(FactorType fac_type, std::vector<uint> parent_ids) {
   return node_id;
 }
 
-void Graph::observe(uint node_id, bool val) {
-  observe(node_id, NodeValue(val));
+void Graph::observe(uint node_id, bool value) {
+  // A bool can only be a bool NodeValue, so we can just pass it along.
+  observe(node_id, NodeValue(value));
 }
 
-void Graph::observe(uint node_id, double val) {
-  Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, NodeValue(node->value.type.atomic_type, val));
+void Graph::observe(uint node_id, double value) {
+  Node* node = check_observed_node(node_id, true);
+  switch (node->value.type.atomic_type) {
+    case AtomicType::REAL:
+      // The double is automatically in range
+      break;
+    case AtomicType::PROBABILITY:
+    case AtomicType::POS_REAL:
+    case AtomicType::NEG_REAL:
+      // TODO: Add checks that the observed value is in range.
+      break;
+    default:
+      throw std::invalid_argument(
+          "observe expected " + node->value.type.to_string());
+  }
+  add_observe(node, NodeValue(node->value.type.atomic_type, value));
 }
 
-void Graph::observe(uint node_id, natural_t val) {
-  observe(node_id, NodeValue(val));
+void Graph::observe(uint node_id, natural_t value) {
+  // A natural can only be a natural NodeValue, so we can just pass it along.
+  observe(node_id, NodeValue(value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXd& val) {
-  Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, NodeValue(node->value.type, val));
+void Graph::observe(uint node_id, Eigen::MatrixXd& value) {
+  Node* node = check_observed_node(node_id, false);
+  // We know that we have a matrix value; is it the right shape?
+  if (value.rows() != node->value.type.rows or
+      value.cols() != node->value.type.cols) {
+    throw std::invalid_argument(
+        "observe expected " + node->value.type.to_string());
+  }
+  switch (node->value.type.atomic_type) {
+    case AtomicType::REAL:
+      // The double is automatically in range
+      break;
+    case AtomicType::PROBABILITY:
+    case AtomicType::POS_REAL:
+    case AtomicType::NEG_REAL:
+      // TODO: Add checks that the observed values are in range.
+      // TODO: Check that an observed simplex is given a simplex.
+      break;
+    default:
+      throw std::invalid_argument(
+          "observe expected " + node->value.type.to_string());
+  }
+
+  add_observe(node, NodeValue(node->value.type, value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXb& val) {
-  Node* node = check_node(node_id, NodeType::OPERATOR);
-  // TODO: The order in which arguments are checked for validity
-  // is wrong here and elsewhere in these overloads:
-  //
-  // * We begin by verifying that the node_id is valid and
-  //   that it is an operator.
-  // * We then construct a NodeValue of the observed nodes
-  //   type but with the value that was passed in.  We have
-  //   never verified that the value passed in is compatible
-  //   with the node's type, so this operation can violate
-  //   type system invariants.
-  // * We then call observe(id, val) with the constructed node value,
-  //   which checks for a second time whether the node is an
-  //   operator and then more specifically whether it is a sample.
-  // * Finally, observe(id, val) checks that the observed type
-  //   and the observation value match types, but by this point
-  //   it is too late; we have already set the type of the
-  //   NodeValue to the type of the observed node, so it will
-  //   definitely be equal.
-  //
-  // As an example, imagine if we have an IID sample of size
-  // (2, 1) but we observe it to be a (2, 2) matrix. What happens?
-  // NodeValue is initialized with the type "(2,1) matrix of bools"
-  // but is given the value of a (2, 2) matrix, violating its invariants.
-  // The type of the NodeValue is now "(2, 1) matrix of bools" and so
-  // observe(id, val) will not detect the error.
-  //
-  // All of the code in this public facing API needs to be rethought to
-  // ensure that the caller's mistakes are noticed and rejected BEFORE
-  // our data structure invariants are violated.
-  observe(node_id, NodeValue(node->value.type, val));
+void Graph::observe(uint node_id, Eigen::MatrixXb& value) {
+  Node* node = check_observed_node(node_id, false);
+  if (value.rows() != node->value.type.rows or
+      value.cols() != node->value.type.cols or
+      node->value.type.atomic_type != AtomicType::BOOLEAN) {
+    throw std::invalid_argument(
+        "observe expected a " + node->value.type.to_string());
+  }
+  add_observe(node, NodeValue(node->value.type, value));
 }
 
-void Graph::observe(uint node_id, Eigen::MatrixXn& val) {
-  Node* node = check_node(node_id, NodeType::OPERATOR);
-  observe(node_id, NodeValue(node->value.type, val));
+void Graph::observe(uint node_id, Eigen::MatrixXn& value) {
+  Node* node = check_observed_node(node_id, false);
+  // We know that we have a matrix value; is it the right shape?
+  if (value.rows() != node->value.type.rows or
+      value.cols() != node->value.type.cols or
+      node->value.type.atomic_type != AtomicType::NATURAL) {
+    throw std::invalid_argument(
+        "observe expected a " + node->value.type.to_string());
+  }
+  add_observe(node, NodeValue(node->value.type, value));
 }
 
 void Graph::observe(uint node_id, NodeValue value) {
-  Node* node = check_node(node_id, NodeType::OPERATOR);
-  oper::Operator* op = static_cast<oper::Operator*>(node);
-  if (op->op_type != OperatorType::SAMPLE and
-      op->op_type != OperatorType::IID_SAMPLE) {
-    throw std::invalid_argument("only sample nodes may be observed");
-  }
-  if (observed.find(node_id) != observed.end()) {
-    throw std::invalid_argument(
-        "duplicate observe for node_id " + std::to_string(node_id));
-  }
+  Node* node = check_observed_node(
+      node_id, value.type.variable_type == VariableType::SCALAR);
   if (node->value.type != value.type) {
     throw std::invalid_argument(
-        "observe expected " + node->value.type.to_string() + " instead got " +
+        "observe expected " + node->value.type.to_string() + " but got " +
         value.type.to_string());
   }
+  add_observe(node, value);
+}
+
+void Graph::add_observe(Node* node, NodeValue value) {
+  // Precondition: node_id and value have already been checked
+  // for validity.
   node->value = value;
   node->is_observed = true;
-  observed.insert(node_id);
+  observed.insert(node->index);
 }
 
 void Graph::customize_transformation(
