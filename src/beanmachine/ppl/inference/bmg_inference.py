@@ -3,12 +3,13 @@
 """An inference engine which uses Bean Machine Graph to make
 inferences on Bean Machine models."""
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import torch
 from beanmachine.graph import Graph, InferenceType  # pyre-ignore
+from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
 from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
@@ -138,6 +139,7 @@ class BMGInference:
         num_samples: int,
         inference_type: InferenceType = InferenceType.NMC,  # pyre-ignore
         produce_report: bool = True,
+        skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> Tuple[MonteCarloSamples, PerformanceReport]:
         if produce_report:
             self._pd = prof.ProfilerData()
@@ -149,7 +151,7 @@ class BMGInference:
 
         self._begin(prof.infer)
 
-        generated_graph = to_bmg_graph(bmg)
+        generated_graph = to_bmg_graph(bmg, skip_optimizations)
         g = generated_graph.graph
         query_to_query_id = generated_graph.query_to_query_id
 
@@ -187,12 +189,18 @@ class BMGInference:
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
         inference_type: InferenceType = InferenceType.NMC,
+        skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:
         # TODO: Add num_chains
         # TODO: Add verbose level
         # TODO: Add logging
         samples, _ = self._infer(
-            queries, observations, num_samples, inference_type, False
+            queries,
+            observations,
+            num_samples,
+            inference_type,
+            False,
+            skip_optimizations,
         )
         return samples
 
@@ -202,6 +210,7 @@ class BMGInference:
         observations: Dict[RVIdentifier, torch.Tensor],
         after_transform: bool = True,
         label_edges: bool = False,
+        skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> str:
         """Produce a string containing a program in the GraphViz DOT language
         representing the graph deduced from the model."""
@@ -214,6 +223,7 @@ class BMGInference:
             edge_requirements,
             after_transform,
             label_edges,
+            skip_optimizations,
         )
 
     def to_cpp(

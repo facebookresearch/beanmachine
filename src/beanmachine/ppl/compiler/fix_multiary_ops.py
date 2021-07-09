@@ -119,8 +119,6 @@ class MultiaryOperatorFixer(ProblemFixerBase):
             )
         )
 
-        return self._fixable_index(n) or self._fixable_sample(n)
-
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         # We require that this algorithm be non-recursive because the
         # path through the graph could be longer than the Python

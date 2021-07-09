@@ -2,10 +2,14 @@
 """
 Visualize the contents of a builder in the DOT graph language.
 """
+from typing import Set
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_requirements import EdgeRequirements
-from beanmachine.ppl.compiler.fix_problems import fix_problems
+from beanmachine.ppl.compiler.fix_problems import (
+    default_skip_optimizations,
+    fix_problems,
+)
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels, get_node_label
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
@@ -17,6 +21,7 @@ def to_dot(
     edge_requirements: bool = False,
     after_transform: bool = False,
     label_edges: bool = True,
+    skip_optimizations: Set[str] = default_skip_optimizations,
 ) -> str:
     """This dumps the entire accumulated graph state, including
     orphans, as a DOT graph description; nodes are enumerated in the order
@@ -36,7 +41,7 @@ def to_dot(
         #
         # * Add a whole_graph flag, default to true, which decides
         #   whether to graph the whole thing or not.
-        fix_problems(bmg).raise_errors()
+        fix_problems(bmg, skip_optimizations).raise_errors()
         node_list = bmg.all_ancestor_nodes()
     else:
         node_list = bmg.all_nodes()
