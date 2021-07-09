@@ -666,13 +666,40 @@ TEST(testoperator, iid_sample) {
   bern_dist.in_nodes.push_back(&prob_node);
   auto int_value = NodeValue(AtomicType::NATURAL, (natural_t)2);
   auto int_node = ConstNode(int_value);
-  // negative tests on the number and types of parents
+  auto one = ConstNode(NodeValue(AtomicType::NATURAL, (natural_t)1));
+
+  // Negative test: There must be two or three parents.
   EXPECT_THROW(oper::IIdSample(std::vector<Node*>{}), std::invalid_argument);
+  EXPECT_THROW(
+      oper::IIdSample(std::vector<Node*>{&bern_dist}), std::invalid_argument);
+  EXPECT_THROW(
+      oper::IIdSample(
+          std::vector<Node*>{&bern_dist, &int_node, &int_node, &int_node}),
+      std::invalid_argument);
+  // Negative test: The first parent must be a distribution.
+  EXPECT_THROW(
+      oper::IIdSample(std::vector<Node*>{&int_node, &int_node, &int_node}),
+      std::invalid_argument);
+  // Negative test: The second parent must be a constant natural.
   EXPECT_THROW(
       oper::IIdSample(std::vector<Node*>{&bern_dist, &bern_dist}),
       std::invalid_argument);
   EXPECT_THROW(
       oper::IIdSample(std::vector<Node*>{&int_node, &prob_node}),
+      std::invalid_argument);
+  // Negative test: The third parent must be a constant natural.
+  EXPECT_THROW(
+      oper::IIdSample(std::vector<Node*>{&bern_dist, &int_node, &bern_dist}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      oper::IIdSample(std::vector<Node*>{&int_node, &int_node, &prob_node}),
+      std::invalid_argument);
+  // Negative test: The product of the constant parents must be two or greater.
+  EXPECT_THROW(
+      oper::IIdSample(std::vector<Node*>{&bern_dist, &one}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      oper::IIdSample(std::vector<Node*>{&bern_dist, &one, &one}),
       std::invalid_argument);
 
   // test initialization

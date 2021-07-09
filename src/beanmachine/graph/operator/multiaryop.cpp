@@ -167,7 +167,7 @@ ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
   if (in_nodes[0]->value.type != graph::AtomicType::NATURAL or
       in_nodes[1]->value.type != graph::AtomicType::NATURAL) {
     throw std::invalid_argument(
-        "operator TO_MATRIX requires the first and second arguments to be NATURAL"
+        "operator TO_MATRIX requires the first and second parents to be NATURAL"
         "representing the number of rows and the number of columns respectively");
   } else if (
       in_nodes[0]->node_type != graph::NodeType::CONSTANT or

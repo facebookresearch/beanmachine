@@ -134,10 +134,12 @@ void IIdSample::_backward(bool skip_observed) {
 
 Sample::Sample(const std::vector<graph::Node*>& in_nodes)
     : StochasticOperator(graph::OperatorType::SAMPLE) {
-  if (in_nodes.size() != 1 or
-      in_nodes[0]->node_type != graph::NodeType::DISTRIBUTION) {
+  if (in_nodes.size() != 1) {
+    throw std::invalid_argument("operator SAMPLE requires a single parent");
+  }
+  if (in_nodes[0]->node_type != graph::NodeType::DISTRIBUTION) {
     throw std::invalid_argument(
-        "~ operator requires a single distribution parent");
+        "operator SAMPLE requires a distribution parent");
   }
   const distribution::Distribution* dist =
       static_cast<distribution::Distribution*>(in_nodes[0]);
@@ -158,32 +160,43 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
     : StochasticOperator(graph::OperatorType::IID_SAMPLE) {
   uint in_degree = in_nodes.size();
   if (in_degree != 2 and in_degree != 3) {
-    throw std::invalid_argument(
-        "iid sample operator requires 2 or 3 parent nodes");
+    throw std::invalid_argument("operator IID_SAMPLE requires 2 or 3 parents");
   }
   if (in_nodes[0]->node_type != graph::NodeType::DISTRIBUTION) {
     throw std::invalid_argument(
-        "for iid sample, the 1st parent must be a distribution node");
+        "operator IID_SAMPLE requires the first parent to be a distribution");
   }
-  if (in_nodes[1]->node_type != graph::NodeType::CONSTANT or
-      in_nodes[1]->value.type != graph::AtomicType::NATURAL) {
+  if (in_nodes[1]->value.type != graph::AtomicType::NATURAL) {
     throw std::invalid_argument(
-        "for iid sample, the 2nd parent must be a constant natural-valued node");
+        "operator IID_SAMPLE requires the second parent to be NATURAL");
   }
-  if (in_degree == 3 and
-      (in_nodes[2]->node_type != graph::NodeType::CONSTANT or
-       in_nodes[2]->value.type != graph::AtomicType::NATURAL)) {
+  if (in_nodes[1]->node_type != graph::NodeType::CONSTANT) {
     throw std::invalid_argument(
-        "for iid sample, the 3rd parent must be a constant natural-valued node");
+        "operator IID_SAMPLE requires the second parent to be CONSTANT");
   }
+
+  if (in_degree == 3) {
+    if (in_nodes[2]->value.type != graph::AtomicType::NATURAL) {
+      throw std::invalid_argument(
+          "operator IID_SAMPLE requires the third parent to be NATURAL");
+    }
+
+    if (in_nodes[2]->node_type != graph::NodeType::CONSTANT) {
+      throw std::invalid_argument(
+          "operator IID_SAMPLE requires the third parent to be CONSTANT");
+    }
+  }
+  // CONSIDER removing this restriction. Sure, it is somewhat pointless to
+  // create a one-value matrix here, but if the caller has a reason to create a
+  // one-value matrix, then why not let them?
   if (in_degree == 2 and in_nodes[1]->value._natural < 2) {
     throw std::invalid_argument(
-        "for iid sample with two parents, the 2nd parent must have value >= 2");
+        "operator IID_SAMPLE requires the second or third parent to have value >= 2");
   }
   if (in_degree == 3 and
       (in_nodes[1]->value._natural * in_nodes[2]->value._natural) < 2) {
     throw std::invalid_argument(
-        "for iid sample with three parents, the product of the 2nd and 3rd parents must be >= 2");
+        "operator IID_SAMPLE requires the second or third parent to have value >= 2");
   }
   const auto dist = static_cast<distribution::Distribution*>(in_nodes[0]);
 
@@ -199,11 +212,9 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
       break;
     case graph::VariableType::BROADCAST_MATRIX:
     case graph::VariableType::COL_SIMPLEX_MATRIX:
-      // TODO(ddeng): add IID_SAMPLE_COL after first multivariate distrib added
-      throw std::invalid_argument(
-          "For matrix sample types, use IID_SAMPLE_COL. ");
     default:
-      throw std::invalid_argument("Invalid sample type for for iid sample. ");
+      throw std::invalid_argument(
+          "operator IID_SAMPLE requires the sample type to be a non-matrix type");
   }
   value = graph::NodeValue(vtype);
   // leave uninitialized until necessary
