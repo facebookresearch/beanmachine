@@ -18,6 +18,7 @@ from .mean_field_variational_approximation import MeanFieldVariationalApproximat
 
 
 LOGGER = logging.getLogger("beanmachine.vi")
+cpu_device = torch.device("cpu")
 
 
 class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
@@ -169,6 +170,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         on_iter: Optional[Callable] = None,
         params: Optional[Dict[RVIdentifier, nn.Parameter]] = None,
         progress_bar: Optional[bool] = True,
+        device: Optional[torch.device] = cpu_device,
     ) -> Dict[RVIdentifier, nn.Parameter]:
         """
         Perform stochastic variational inference.
@@ -239,7 +241,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
                         nodes.keys(),
                     )
                 )
-                loss = torch.zeros(1)
+                loss = torch.zeros(1).to(device)
                 # -ELBO == E[log p(obs, x) - log q(x)] ~= log p(obs | x) +
                 # \sum_s (log p(x_s) - log q(x_s)) where x_s ~ q_t were sampled
                 # during `initialize_world`.
