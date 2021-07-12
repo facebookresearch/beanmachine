@@ -83,6 +83,7 @@ class EdgeRequirements:
             bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
             bn.MultiAdditionNode: self._requirements_addition,
             bn.MultiplicationNode: self._requirements_multiplication,
+            bn.MultiMultiplicationNode: self._requirements_multiplication,
             bn.NegateNode: self._requirements_exp_neg,
             bn.PowerNode: self._requirements_power,
             bn.SampleNode: self._same_as_output,
@@ -307,7 +308,7 @@ class EdgeRequirements:
     ) -> List[bt.Requirement]:
         it = self.typer[node]
         assert it in {bt.Probability, bt.PositiveReal, bt.Real}
-        return [it, it]
+        return [it] * len(node.inputs)  # pyre-ignore
 
     def _requirements_power(self, node: bn.PowerNode) -> List[bt.Requirement]:
         # BMG supports a power node that has these possible combinations of
