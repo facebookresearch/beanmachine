@@ -592,6 +592,12 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_multi_multiplication(self, *inputs: BMGNode) -> bn.MultiMultiplicationNode:
+        node = bn.MultiMultiplicationNode(list(inputs))
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_if_then_else(
         self, condition: BMGNode, consequence: BMGNode, alternative: BMGNode
     ) -> BMGNode:
