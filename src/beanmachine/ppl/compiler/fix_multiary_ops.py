@@ -14,8 +14,6 @@ class MultiaryOperatorFixer(ProblemFixerBase):
     and the number of edges in the graph, which can lead to performance wins
     during inference."""
 
-    # TODO: Do the same for multiplication.
-
     def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
         ProblemFixerBase.__init__(self, bmg, typer)
 
@@ -136,3 +134,60 @@ class MultiaryOperatorFixer(ProblemFixerBase):
                 acc.append(c)
         assert len(acc) >= 3
         return self._bmg.add_multi_addition(*acc)
+
+
+class MultiaryMultiplicationFixer(ProblemFixerBase):
+    """This fixer transforms graphs with long chains of binary multiplication nodes
+    into multiary multiplication. This greatly decreases both the number of nodes
+    and the number of edges in the graph, which can lead to performance wins
+    during inference."""
+
+    def __init__(self, bmg: BMGraphBuilder, typer: TyperBase) -> None:
+        ProblemFixerBase.__init__(self, bmg, typer)
+
+    def _single_output_is_multiplication(self, n: bn.BMGNode) -> bool:
+        if len(n.outputs.items) != 1:
+            # Not exactly one output node.
+            return False
+
+        if next(iter(n.outputs.items.values())) != 1:
+            # Exactly one output node, but has two edges going to it.
+            # TODO: This is a bit opaque. Add a helper method for this.
+            return False
+
+        o = next(iter(n.outputs.items.keys()))
+        return isinstance(o, bn.MultiplicationNode)
+
+    def _multiplication_single_output_is_multiplication(self, n: bn.BMGNode) -> bool:
+        if not isinstance(n, bn.MultiplicationNode):
+            return False
+        return self._single_output_is_multiplication(n)
+
+    def _needs_fixing(self, n: bn.BMGNode) -> bool:
+        # This follows the same heuristic as multiary addition
+        return (
+            isinstance(n, bn.MultiplicationNode)
+            and not self._single_output_is_multiplication(n)
+            and (
+                self._multiplication_single_output_is_multiplication(n.left)
+                or self._multiplication_single_output_is_multiplication(n.right)
+            )
+        )
+
+    def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
+        # We require that this algorithm be non-recursive because the
+        # path through the graph could be longer than the Python
+        # recursion limit.
+        assert isinstance(n, bn.MultiplicationNode)
+        acc = []
+        stack = [n.right, n.left]
+        while len(stack) > 0:
+            c = stack.pop()
+            if self._multiplication_single_output_is_multiplication(c):
+                assert isinstance(c, bn.MultiplicationNode)
+                stack.append(c.right)
+                stack.append(c.left)
+            else:
+                acc.append(c)
+        assert len(acc) >= 3
+        return self._bmg.add_multi_multiplication(*acc)

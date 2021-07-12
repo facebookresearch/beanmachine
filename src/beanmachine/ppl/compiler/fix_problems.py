@@ -8,7 +8,10 @@ from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_additions import AdditionFixer
 from beanmachine.ppl.compiler.fix_bool_arithmetic import BoolArithmeticFixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import BoolComparisonFixer
-from beanmachine.ppl.compiler.fix_multiary_ops import MultiaryOperatorFixer
+from beanmachine.ppl.compiler.fix_multiary_ops import (
+    MultiaryMultiplicationFixer,
+    MultiaryOperatorFixer,
+)
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_requirements import RequirementsFixer
@@ -34,6 +37,7 @@ _standard_fixer_types: List[Type] = [
     BoolComparisonFixer,
     UnsupportedNodeFixer,
     MultiaryOperatorFixer,
+    MultiaryMultiplicationFixer,
     RequirementsFixer,
     ObservationsFixer,
 ]
