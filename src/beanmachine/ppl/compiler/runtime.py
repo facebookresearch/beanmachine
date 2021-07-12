@@ -47,7 +47,6 @@ three, four and five.
 
 import inspect
 import math
-import sys
 from types import MethodType
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -172,15 +171,6 @@ class KnownFunction:
 
         self.receiver = receiver
         self.function = function
-
-
-# TODO: Delete this
-def is_from_lifted_module(f) -> bool:
-    return (
-        hasattr(f, "__module__")
-        and f.__module__ in sys.modules
-        and hasattr(sys.modules[f.__module__], "_lifted_to_bmg")
-    )
 
 
 def only_ordinary_arguments(args, kwargs) -> bool:
@@ -954,7 +944,7 @@ class BMGRuntime:
         #
         # TODO: Note that we only memoize calls to RVs when the arguments
         # contain no graph nodes. Is this acceptable? We could save some
-        # work if we also memoized calls of the form "rv1(rv2()". Right now
+        # work if we also memoized calls of the form "rv1(rv2())". Right now
         # we would recompute the support of rv2() on the second such call,
         # and only get the savings of skipping the method calls on each
         # individual call.  Do some performance testing.
@@ -1131,12 +1121,6 @@ class BMGRuntime:
 
         if _is_phi(f, args, kwargs):
             return self.handle_phi(*(args[1:]), **kwargs)
-
-        # TODO: When we stop supporting the all-module compiler workflow
-        # this code can be deleted
-        if is_from_lifted_module(f):
-            # It's already compiled; just call it.
-            return function(*arguments, **kwargs)
 
         if _is_random_variable_call(f):
             return self._handle_random_variable_call(f, args, kwargs)
