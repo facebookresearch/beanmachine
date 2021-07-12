@@ -146,6 +146,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.LogNode: self._type_log,
             bn.MultiAdditionNode: self._type_addition,
             bn.MultiplicationNode: self._type_multiplication,
+            bn.MultiMultiplicationNode: self._type_multiplication,
             bn.NegateNode: self._type_negate,
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
@@ -241,7 +242,8 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         return bt.Real
 
     def _type_multiplication(self, node: bn.MultiplicationNode) -> bt.BMGLatticeType:
-        it = bt.supremum(self[node.left], self[node.right], bt.Probability)
+        ot = bt.supremum(*[self[i] for i in node.inputs])
+        it = bt.supremum(ot, bt.Probability)
         if bt.supremum(it, bt.Real) == bt.Real:
             return it
         return bt.Real
