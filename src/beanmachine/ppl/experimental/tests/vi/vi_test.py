@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
+from typing import Optional
 
 import beanmachine.ppl as bm
 import scipy.stats
@@ -14,6 +15,8 @@ from beanmachine.ppl.experimental.vi.variational_infer import (
 from beanmachine.ppl.world import World
 from torch.distributions import constraints
 from torch.distributions.utils import _standard_normal
+
+cpu_device = torch.device("cpu")
 
 
 class NealsFunnel(dist.Distribution):
@@ -91,13 +94,18 @@ class BayesianRobustLinearRegression:
 
 
 class NormalNormal:
+    def __init__(self, device: Optional[torch.device] = cpu_device):
+        self.device = device
+
     @bm.random_variable
     def mu(self):
-        return dist.Normal(torch.zeros(1), 10 * torch.ones(1))
+        return dist.Normal(
+            torch.zeros(1).to(self.device), 10 * torch.ones(1).to(self.device)
+        )
 
     @bm.random_variable
     def x(self, i):
-        return dist.Normal(self.mu(), torch.ones(1))
+        return dist.Normal(self.mu(), torch.ones(1).to(self.device))
 
 
 class MeanFieldVariationalInferTest(unittest.TestCase):
@@ -260,8 +268,8 @@ class StochasticVariationalInferTest(unittest.TestCase):
         torch.cuda.is_available(), "requires GPU access to train the model"
     )
     def test_normal_normal_guide_gpu(self):
-        model = NormalNormal()
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        model = NormalNormal(device=device)
 
         @bm.param
         def phi():
