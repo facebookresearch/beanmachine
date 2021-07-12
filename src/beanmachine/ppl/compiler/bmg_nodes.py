@@ -954,7 +954,6 @@ class OperatorNode(BMGNode, metaclass=ABCMeta):
 class MultiAdditionNode(OperatorNode):
     """This represents an addition of values."""
 
-    # TODO: Do the same for multiplication
     # TODO: Consider a base class for multi add, logsumexp, and so on.
 
     def __init__(self, inputs: List[BMGNode]):
@@ -970,6 +969,26 @@ class MultiAdditionNode(OperatorNode):
 
     def __str__(self) -> str:
         return "MultiAdd"
+
+
+class MultiMultiplicationNode(OperatorNode):
+    """This represents multiplication of values."""
+
+    # TODO: Consider a base class for multi add, logsumexp, and so on.
+
+    def __init__(self, inputs: List[BMGNode]):
+        assert isinstance(inputs, list)
+        OperatorNode.__init__(self, inputs)
+
+    @property
+    def size(self) -> torch.Size:
+        return self.inputs[0].size
+
+    def support(self) -> Iterable[Any]:
+        raise ValueError("support of multiary multiplication not yet implemented")
+
+    def __str__(self) -> str:
+        return "MultiMultiplication"
 
 
 # We have three kinds of logsumexp nodes.
@@ -1535,10 +1554,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
 
 class MultiplicationNode(BinaryOperatorNode):
     """This represents a multiplication of nodes."""
-
-    # TODO: We accumulate nodes as strictly binary operations, but BMG supports
-    # n-ary multiplication; we might consider a graph transformation that turns
-    # chained multiplications into a single multiplication node.
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
