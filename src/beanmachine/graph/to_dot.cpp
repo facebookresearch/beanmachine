@@ -107,6 +107,8 @@ class DOT {
         return "Gamma";
       case DistributionType::BIMIXTURE:
         return "Bimixture";
+      case DistributionType::CATEGORICAL:
+        return "Categorical";
       default:
         return "distribution";
     }

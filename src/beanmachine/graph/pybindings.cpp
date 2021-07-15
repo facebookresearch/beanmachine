@@ -81,7 +81,8 @@ PYBIND11_MODULE(graph, module) {
       .value("BERNOULLI_LOGIT", DistributionType::BERNOULLI_LOGIT)
       .value("GAMMA", DistributionType::GAMMA)
       .value("BIMIXTURE", DistributionType::BIMIXTURE)
-      .value("DIRICHLET", DistributionType::DIRICHLET);
+      .value("DIRICHLET", DistributionType::DIRICHLET)
+      .value("CATEGORICAL", DistributionType::CATEGORICAL);
 
   py::enum_<FactorType>(module, "FactorType")
       .value("EXP_PRODUCT", FactorType::EXP_PRODUCT);

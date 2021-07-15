@@ -199,6 +199,74 @@ class TestBayesNet(unittest.TestCase):
         means = g.infer_mean(10000, graph.InferenceType.REJECTION)
         self.assertTrue(means[0] > 5 and means[0] < 6)
 
+    def test_categorical(self):
+        g = graph.Graph()
+        simplex = [0.5, 0.25, 0.125, 0.125]
+        c1 = g.add_constant_col_simplex_matrix(np.array(simplex))
+        # Negative test: Number of parents must be exactly one:
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.CATEGORICAL, graph.AtomicType.NATURAL, []
+            )
+        self.assertTrue(
+            "Categorical distribution must have exactly one parent" in str(cm.exception)
+        )
+
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.CATEGORICAL, graph.AtomicType.NATURAL, [c1, c1]
+            )
+        self.assertEqual(
+            "Categorical distribution must have exactly one parent", str(cm.exception)
+        )
+
+        # Negative test: parent must be simplex:
+        c3 = g.add_constant_natural(1)
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.CATEGORICAL, graph.AtomicType.NATURAL, [c3]
+            )
+        self.assertEqual(
+            "Categorical parent must be a one-column simplex", str(cm.exception)
+        )
+
+        # Negative test: type must be natural
+        with self.assertRaises(ValueError) as cm:
+            g.add_distribution(
+                graph.DistributionType.CATEGORICAL, graph.AtomicType.REAL, [c1]
+            )
+        self.assertEqual(
+            "Categorical produces natural valued samples", str(cm.exception)
+        )
+
+        # Positive test:
+        d1 = g.add_distribution(
+            graph.DistributionType.CATEGORICAL, graph.AtomicType.NATURAL, [c1]
+        )
+
+        v1 = g.add_operator(graph.OperatorType.SAMPLE, [d1])
+        g.query(v1)
+        num_samples = 10000
+        # TODO: Why can I not use NMC for this inference?
+        samples = g.infer(
+            num_samples=num_samples,
+            algorithm=graph.InferenceType.REJECTION,
+            seed=123,
+            n_chains=1,
+        )[0]
+
+        # The distribution of the samples should closely match the simplex used to
+        # generate them.
+
+        histogram = [0, 0, 0, 0]
+        for sample in samples:
+            histogram[sample[0]] += 1
+
+        self.assertAlmostEqual(simplex[0], histogram[0] / num_samples, delta=0.01)
+        self.assertAlmostEqual(simplex[1], histogram[1] / num_samples, delta=0.01)
+        self.assertAlmostEqual(simplex[2], histogram[2] / num_samples, delta=0.01)
+        self.assertAlmostEqual(simplex[3], histogram[3] / num_samples, delta=0.01)
+
     def _create_graph(self):
         g = graph.Graph()
         c1 = g.add_constant_col_simplex_matrix(np.array([0.8, 0.2]))

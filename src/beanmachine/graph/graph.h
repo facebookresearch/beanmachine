@@ -337,6 +337,7 @@ enum class DistributionType {
   BERNOULLI_LOGIT,
   GAMMA,
   BIMIXTURE,
+  CATEGORICAL,
 };
 
 enum class FactorType {
