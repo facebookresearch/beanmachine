@@ -103,6 +103,7 @@ infer:(1) -- ms
     BoolComparisonFixer:(1) -- ms
     UnsupportedNodeFixer:(1) -- ms
     MultiaryOperatorFixer:(1) -- ms
+    LogSumExpFixer:(1) -- ms
     MultiaryMultiplicationFixer:(1) -- ms
     RequirementsFixer:(1) -- ms
     ObservationsFixer:(1) -- ms
@@ -164,6 +165,7 @@ infer:(1) -- ms
     BoolComparisonFixer:(1) -- ms
     UnsupportedNodeFixer:(1) -- ms
     MultiaryOperatorFixer:(1) -- ms
+    LogSumExpFixer:(1) -- ms
     RequirementsFixer:(1) -- ms
     ObservationsFixer:(1) -- ms
     unattributed: -- ms
