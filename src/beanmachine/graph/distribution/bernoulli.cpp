@@ -59,12 +59,21 @@ void Bernoulli::log_prob_iid(
   log_probs = value._bmatrix.select(pos_val, log_probs);
 }
 
-// Note: Bernoulli log_prob is defined as  x log(p) + (1-x) log(1-p)
-// where x is the value and p is the probability parameter
-// grad w.r.t. x is  log(p) - log(1-p) ; grad2 = 0
-// grad w.r.t p is   (x/p) * p' - ((1-x)/(1-p)) * p'
-// grad2 w.r.t. p is -(x/p^2) * p'^2 + (x/p) * p'' - ((1-x)/(1-p)^2) * p'^2 -
-// ((1-x)/(1-p)) * p''
+// The likelihood L(x|p) where x is the outcome and p is the parameter of
+// the Bernoulli distribution is L(x|p) = p if x is 1, (1-p) if x is 0.
+// We need the gradient of log(L(x|p)); how do we get a gradient on
+// a discrete function?
+//
+// We find a continuous function that agrees with L(x|p) for x = 0 or 1
+// and then differentiate that.  We choose L(x|p) = p^x * (1-p)^(1-x),
+// so log(L(x|p)) = x * log(p) + (1-x) * log(1-p)
+//
+// grad1 wrt x = log(p) - log(1-p)
+// grad2 wrt x = 0
+// grad1 wrt p = (x/p) * p' - ((1-x)/(1-p)) * p'
+// grad2 wrt p = -(x/p^2) * p'^2 + (x/p) * p'' - ((1-x)/(1-p)^2) * p'^2 -
+//               ((1-x)/(1-p)) * p''
+//
 // First order chain rule: f(g(x))' = f'(g(x)) g'(x),
 // - In backward propagation, f'(g(x)) is given by adjunct, the above equation
 // computes g'(x). [g is the current function f is the final target]

@@ -6,6 +6,7 @@
 #include "beanmachine/graph/distribution/beta.h"
 #include "beanmachine/graph/distribution/bimixture.h"
 #include "beanmachine/graph/distribution/binomial.h"
+#include "beanmachine/graph/distribution/categorical.h"
 #include "beanmachine/graph/distribution/dirichlet.h"
 #include "beanmachine/graph/distribution/flat.h"
 #include "beanmachine/graph/distribution/gamma.h"
@@ -64,6 +65,9 @@ std::unique_ptr<Distribution> Distribution::new_distribution(
       }
       case graph::DistributionType::BIMIXTURE: {
         return std::make_unique<Bimixture>(atype, in_nodes);
+      }
+      case graph::DistributionType::CATEGORICAL: {
+        return std::make_unique<Categorical>(atype, in_nodes);
       }
       default: {
         throw std::invalid_argument(
