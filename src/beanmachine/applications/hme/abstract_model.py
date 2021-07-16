@@ -9,9 +9,11 @@ import beanmachine.graph as bmgraph
 import beanmachine.ppl.diagnostics.common_statistics as bm_diag_util
 import numpy as np
 import pandas as pd
+from patsy import ModelDesc, dmatrix, dmatrices
 import torch  # usort: skip # noqa: F401
 
 from .configs import InferConfig, ModelConfig
+from .patsy_mixed import evaluate_formula, RandomEffectsTerm
 
 
 logger = logging.getLogger("hme")
@@ -31,6 +33,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         self.model_config = model_config
         self.queries = {}
         self.query_map = {}
+        self.design_infos = []
         self.g = bmgraph.Graph()
 
     @staticmethod
@@ -89,6 +92,64 @@ class AbstractModel(object, metaclass=ABCMeta):
         """Creates a bmgraph.Graph member for the model."""
 
         pass
+
+    def parse_formula_patsy(self, formula: str) -> Tuple[List, List]:
+        """Parses statistical formula as well as performs data pre-processing given statistical formula.
+
+        :param formula: statistical formula establishing the relationship between response and predictor variables
+        :type formula: str
+        :return: A tuple of fixed and/or random effects lists
+        :rtype: (list, list)
+        """
+
+        model_desc = evaluate_formula(formula)
+
+        fe_terms, re_terms = [], []  # termlists
+        for term in model_desc.rhs_termlist:
+            if isinstance(term, RandomEffectsTerm):
+                re_terms.append(term)
+            else:
+                fe_terms.append(term)
+
+        fe_desc = ModelDesc(lhs_termlist=model_desc.lhs_termlist, rhs_termlist=fe_terms)
+
+        # TODO: add support for data pre-processing on random effects
+        if model_desc.lhs_termlist:
+            y_dm, X_dm = dmatrices(fe_desc, self.data, return_type="dataframe")
+
+            # merge design matrices with original dataframe
+            self.data = pd.concat([self.data, y_dm, X_dm], axis=1)
+            self.data = self.data.loc[
+                :, ~self.data.columns.duplicated()
+            ]  # remove duplicated columns
+
+            self.design_infos += [
+                y_dm.design_info,
+                X_dm.design_info,
+            ]  # stateful transforms on test data
+        else:
+            X_dm = dmatrix(fe_desc, self.data, return_type="dataframe")
+            self.data = pd.concat([self.data, X_dm], axis=1)
+            self.data = self.data.loc[:, ~self.data.columns.duplicated()]
+            self.design_infos += [X_dm.design_info]
+
+        fixed_effects = X_dm.design_info.column_names
+
+        # TODO: add support for random slope
+        # for now, asssume ret.expr.rhs_termlist = [Term([])], i.e., random intercept (1|...)
+        random_effects = []
+        for ret in re_terms:
+            re_termlist = ret.factor.rhs_termlist
+            re_factorlist = [term.factors for term in re_termlist]
+
+            for re_factor_tuple in re_factorlist:
+                re_key = tuple(re_factor.code for re_factor in re_factor_tuple)
+                if len(re_key) == 1:
+                    random_effects.append(re_key[0])
+                else:
+                    random_effects.append(re_key)
+
+        return fixed_effects, random_effects
 
     def set_queries(self, manual_queries: Optional[Dict[str, Any]] = None) -> None:
         """Sets query for the model. Only posterior samples for the queried random variables (parameters) will be returned.

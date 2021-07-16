@@ -5,9 +5,9 @@ from typing import List
 import beanmachine.graph as bmgraph
 import numpy as np
 import pandas as pd
+from patsy import build_design_matrices
 
 from .abstract_linear_model import AbstractLinearModel
-from .abstract_model import AbstractModel
 from .configs import ModelConfig
 
 
@@ -30,7 +30,7 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
     def build_graph(self) -> None:
         """Constructs the probabilistic graph for generalized linear (null mixture, optional) mixed effect models given observed data"""
 
-        self.fixed_effects, self.random_effects = AbstractModel.parse_formula(
+        self.fixed_effects, self.random_effects = self.parse_formula_patsy(
             self.model_config.mean_regression.formula
         )
         if self.model_config.priors:
@@ -254,6 +254,15 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         """
 
         # FIXME: update the method to support customized prediction goal
+
+        # stateful transformation on test data
+        new_data_dm = pd.concat(
+            build_design_matrices(self.design_infos, new_data, return_type="dataframe"),
+            axis=1,
+        )
+        new_data = pd.concat([new_data, new_data_dm], axis=1)
+        new_data = new_data.loc[:, ~new_data.columns.duplicated()]
+
         pred_df = pd.DataFrame()
         for _, row in new_data.iterrows():
             pred_row = self._predict_fere_byrow(row, post_samples)

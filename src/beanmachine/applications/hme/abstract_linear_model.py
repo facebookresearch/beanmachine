@@ -163,15 +163,12 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
             return self.zero
         fe_list = []
         for fe in self.fixed_effects:
-            if fe == "1":
-                fe_list.append(params[fe])
-            else:
-                # FIXME: add support for categorical data
-                x = self.g.add_constant(row[fe])
-                x_param = self.g.add_operator(
-                    bmgraph.OperatorType.MULTIPLY, [x, params[fe]]
-                )
-                fe_list.append(x_param)
+            # FIXME: add support for categorical data
+            x = self.g.add_constant(row[fe])
+            x_param = self.g.add_operator(
+                bmgraph.OperatorType.MULTIPLY, [x, params[fe]]
+            )
+            fe_list.append(x_param)
         if len(fe_list) < 2:
             return fe_list[0]
         return self.g.add_operator(bmgraph.OperatorType.ADD, fe_list)
@@ -222,11 +219,8 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         pred_val = pd.Series(0.0, index=range(post_samples.shape[0]))
         for fe in self.fixed_effects:
             try:
-                if fe == "1":
-                    pred_val += post_samples["fixed_effect_1"]
-                else:
-                    x = new_row[fe]
-                    pred_val += x * post_samples["fixed_effect_" + str(fe)]
+                x = new_row[fe]
+                pred_val += x * post_samples["fixed_effect_" + str(fe)]
             except KeyError:
                 logger.warning(
                     "fixed_effect: "
