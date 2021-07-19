@@ -9,6 +9,7 @@
 
 const remarkMath = require('remark-math');
 const rehypeKatex = require('rehype-katex');
+const {fbContent} = require('internaldocs-fb-helpers');
 
 module.exports = {
   title: 'Bean Machine',
@@ -130,16 +131,20 @@ module.exports = {
           homePageId: '/docs/toc',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/',
+          editUrl: fbContent({
+            internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/',
+            external: 'https://github.com/facebook/docusaurus/edit/master/website/'
+          }),
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
-          editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/blog/',
+          editUrl: fbContent({
+            internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/blog/',
+            external: 'https://github.com/facebook/docusaurus/edit/master/website/blog/'
+          })
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
