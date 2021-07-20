@@ -35,9 +35,8 @@ _node_labels = {
     bn.BitOrNode: "|",
     bn.BitXorNode: "^",
     bn.BooleanNode: _val,
-    bn.CategoricalNode: lambda n: "Categorical(logits)"
-    if n.is_logits
-    else "Categorical",
+    bn.CategoricalLogitNode: "Categorical(logits)",
+    bn.CategoricalNode: "Categorical",
     bn.Chi2Node: "Chi2",
     bn.ColumnIndexNode: "ColumnIndex",
     bn.ComplementNode: "complement",

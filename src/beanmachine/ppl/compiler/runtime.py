@@ -381,7 +381,9 @@ class BMGRuntime:
         probability = logits if probs is None else probs
         if not isinstance(probability, BMGNode):
             probability = self._bmg.add_constant(probability)
-        return self._bmg.add_categorical(probability, logits is not None)
+        if logits is None:
+            return self._bmg.add_categorical(probability)
+        return self._bmg.add_categorical_logit(probability)
 
     def handle_chi2(self, df: Any, validate_args=None) -> bn.Chi2Node:
         if not isinstance(df, BMGNode):
