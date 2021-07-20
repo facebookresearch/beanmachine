@@ -87,9 +87,8 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
         self.flow = flowtorch.bijectors.AffineAutoregressive(_tmp)
 
         assert len(base_dist(**base_args).event_shape) <= 1
-        self.new_dist, self._flow_params = self.flow(
-            self.recompute_transformed_distribution()
-        )
+        self.new_dist = self.flow(self.recompute_transformed_distribution())
+        self._flow_params = self.flow.params
         self.optim = torch.optim.Adam(
             self.parameters(),
             lr=lr,
