@@ -32,13 +32,13 @@ def sum_4():
     return sum_1() + sum_2()
 
 
-class DisableOptimizationsTest(unittest.TestCase):
+class DisableTransformationsTest(unittest.TestCase):
     def test_multiary_ops_opt_to_dot(self) -> None:
         self.maxDiff = None
         observations = {}
         queries = [sum_3(), sum_4()]
 
-        skip_optimizations = {"MultiaryOperatorFixer"}
+        skip_optimizations = {"MultiaryAdditionFixer"}
         observed = BMGInference().to_dot(
             queries, observations, skip_optimizations=skip_optimizations
         )
@@ -139,7 +139,7 @@ digraph "graph" {
         queries = [sum_3(), sum_4()]
         num_samples = 1000
 
-        skip_optimizations = {"MultiaryOperatorFixer"}
+        skip_optimizations = {"MultiaryAdditionFixer"}
         posterior_wo_opt = BMGInference().infer(
             queries, observations, num_samples, skip_optimizations=skip_optimizations
         )
