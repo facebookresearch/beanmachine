@@ -8,7 +8,7 @@ from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 from beanmachine.ppl.compiler.typer_base import TyperBase
 
 
-class MultiaryOperatorFixer(ProblemFixerBase):
+class MultiaryAdditionFixer(ProblemFixerBase):
     """This fixer transforms graphs with long chains of binary addition nodes
     into multiary additions. This greatly decreases both the number of nodes
     and the number of edges in the graph, which can lead to performance wins

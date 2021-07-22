@@ -102,7 +102,7 @@ infer:(1) -- ms
     AdditionFixer:(1) -- ms
     BoolComparisonFixer:(1) -- ms
     UnsupportedNodeFixer:(1) -- ms
-    MultiaryOperatorFixer:(1) -- ms
+    MultiaryAdditionFixer:(1) -- ms
     LogSumExpFixer:(1) -- ms
     MultiaryMultiplicationFixer:(1) -- ms
     RequirementsFixer:(1) -- ms
@@ -121,7 +121,7 @@ infer:(1) -- ms
             tidy(expected_report_w_optimization).strip(),
         )
 
-        skip_optimizations = {"MultiaryOperatorFixer"}
+        skip_optimizations = {"MultiaryAdditionFixer"}
         report_wo_optimization = get_report(skip_optimizations)
 
         observed_report_wo_optimization = str(report_wo_optimization)

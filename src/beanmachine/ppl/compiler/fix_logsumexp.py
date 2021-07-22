@@ -14,7 +14,7 @@ class LogSumExpFixer(ProblemFixerBase):
 
     * log( exp(a) + exp(b) + exp(c) ...) -> logsumexp(a,b,c, ...)
 
-    Note that this transformation depends on MultiaryOperatorFixer.
+    Note that this transformation depends on MultiaryAdditionFixer.
     """
 
     def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
