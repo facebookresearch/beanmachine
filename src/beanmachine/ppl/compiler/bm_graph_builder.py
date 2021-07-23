@@ -347,10 +347,14 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_categorical(
-        self, probability: BMGNode, is_logits: bool = False
-    ) -> bn.CategoricalNode:
-        node = bn.CategoricalNode(probability, is_logits)
+    def add_categorical(self, probability: BMGNode) -> bn.CategoricalNode:
+        node = bn.CategoricalNode(probability)
+        self.add_node(node)
+        return node
+
+    @memoize
+    def add_categorical_logit(self, probability: BMGNode) -> bn.CategoricalLogitNode:
+        node = bn.CategoricalLogitNode(probability)
         self.add_node(node)
         return node
 

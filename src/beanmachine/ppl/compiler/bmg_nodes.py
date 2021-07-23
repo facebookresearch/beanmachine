@@ -577,62 +577,48 @@ class BinomialLogitNode(BinomialNodeBase):
         BinomialNodeBase.__init__(self, count, probability)
 
 
-# TODO: Split this into two distributions as with binomial and Bernoulli.
-class CategoricalNode(DistributionNode):
+class CategoricalNodeBase(DistributionNode):
     """The categorical distribution is the extension of the
     Bernoulli distribution to multiple outcomes; rather
     than flipping an unfair coin, this is rolling an unfair
     n-sided die.
 
     The input is the probability of each of n possible outcomes,
-    and each sample is drawn from 0, 1, 2, ... n-1.
+    and each sample is drawn from 0, 1, 2, ... n-1."""
 
-    The probability can be expressed either as a normal
-    probability between 0.0 and 1.0, or as log-odds, which
-    is any real number. That is, to represent, say,
-    13 heads for every 17 tails, the logits would be log(13/17).
+    # TODO: we may wish to add bounded integers to the BMG type system.
 
-    If the model gave the probability as a value when executing
-    the program then torch will automatically translate
-    logits to normal probabilities. If however the model gives
-    a stochastic node as the argument and uses logits, then
-    we generate a different node in BMG."""
-
-    # Note that a vector of n probabilities that adds to 1.0 is
-    # called a simplex.
-    #
-    # TODO: we may wish to add simplexes to the
-    # BMG type system at some point, and also bounded integers.
-    #
-    # TODO: We do not yet have a BMG node for categorical
-    # distributions; when we do, finish this implementation.
-
-    is_logits: bool
-
-    def __init__(self, probability: BMGNode, is_logits: bool = False):
-        self.is_logits = is_logits
+    def __init__(self, probability: BMGNode):
         DistributionNode.__init__(self, [probability])
 
     @property
     def probability(self) -> BMGNode:
         return self.inputs[0]
 
-    @property
-    def size(self) -> torch.Size:
-        return self.probability.size[0:-1]  # pyre-ignore
-
     def __str__(self) -> str:
         return "Categorical(" + str(self.probability) + ")"
 
     def support(self) -> Iterable[Any]:
+        # TODO: Raise an exception if probability is not one-dimensional.
         s = self.probability.size
         r = list(range(s[-1]))
         sr = s[:-1]
         return (tensor(i).view(sr) for i in itertools.product(*([r] * prod(sr))))
 
     def support_size(self) -> float:
+        # TODO: Raise an exception if probability is not one-dimensional.
         s = self.probability.size
         return s[-1] ** prod(s[:-1])
+
+
+class CategoricalNode(CategoricalNodeBase):
+    def __init__(self, probability: BMGNode):
+        DistributionNode.__init__(self, [probability])
+
+
+class CategoricalLogitNode(CategoricalNodeBase):
+    def __init__(self, probability: BMGNode):
+        DistributionNode.__init__(self, [probability])
 
 
 class Chi2Node(DistributionNode):
