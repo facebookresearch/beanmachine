@@ -10,6 +10,21 @@ from beanmachine.applications.hme import (
 from beanmachine.applications.hme.abstract_model import AbstractModel
 
 
+@pytest.fixture
+def data():
+    return pd.DataFrame(
+        {
+            "x": [1.0, 2.0, 3.0, 4.0],
+            "y": [5.0, 6.0, 7.0, 8.0],
+            "a": ["a1", "a2", "a1", "a2"],
+            "b": ["b1", "b2", "b3", "b1"],
+            "c": ["c1", "c2", "c3", "c4"],
+            "d": ["d1", "d1", "d1", "d1"],
+            "e": ["e1", "e1", "e2", "e3"],
+        }
+    )
+
+
 @pytest.mark.parametrize(
     "formula, fixed_effects, random_effects",
     [
@@ -61,28 +76,30 @@ def test_parse_formula(formula, fixed_effects, random_effects):
             ["Intercept", "a[T.a2]", "center(x)"],
             ["b", ("b", "c")],
         ),
-        # transformation on outcome variable
-        (
-            "np.sqrt(y) ~ x + (1|a)",
-            ["Intercept", "x"],
-            ["a"],
-        ),
     ],
 )
-def test_parse_formula_patsy(formula, fixed_effects, random_effects):
+def test_parse_formula_patsy(data, formula, fixed_effects, random_effects):
     model = HME(
-        data=pd.DataFrame(
-            {
-                "x": [1.0, 2.0, 3.0, 4.0],
-                "y": [5.0, 6.0, 7.0, 8.0],
-                "a": ["a1", "a2", "a1", "a2"],
-                "b": ["b1", "b2", "b3", "b1"],
-                "c": ["c1", "c2", "c3", "c4"],
-                "d": ["d1", "d1", "d1", "d1"],
-                "e": ["e1", "e1", "e2", "e3"],
-            }
-        ),
+        data=data,
         model_config=ModelConfig(mean_regression=RegressionConfig(formula=formula)),
     )
     assert model.model.fixed_effects == fixed_effects
     assert model.model.random_effects == random_effects
+
+
+@pytest.mark.parametrize(
+    "formula, outcome",
+    [
+        (
+            "np.sqrt(y) ~ x + (1|a)",
+            "y",
+        )
+    ],
+)
+def test_outcome_inconsistency_exception(data, formula, outcome):
+    mean_config = RegressionConfig(outcome=outcome, formula=formula)
+    with pytest.raises(ValueError):
+        HME(
+            data=data,
+            model_config=ModelConfig(mean_regression=mean_config),
+        )

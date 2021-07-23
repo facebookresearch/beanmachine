@@ -104,6 +104,14 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         model_desc = evaluate_formula(formula)
 
+        # outcome consistency check:
+        # if outcome is specified by the formula,
+        # then we need to compare it with self.model_config.mean_regression.outcome
+        if model_desc.lhs_termlist:
+            outcome = model_desc.lhs_termlist[0].factors[0].code
+            if outcome != self.model_config.mean_regression.outcome:
+                raise ValueError("Inconsistent outcome varibale encountered!")
+
         fe_termlists, re_termlists = [], []
         for term in model_desc.rhs_termlist:
             if isinstance(term, RandomEffectsTerm):
