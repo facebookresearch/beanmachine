@@ -338,6 +338,12 @@ class ConstantProbabilityMatrixNode(ConstantTensorNode):
         ConstantTensorNode.__init__(self, value)
 
 
+class ConstantSimplexMatrixNode(ConstantTensorNode):
+    def __init__(self, value: Tensor):
+        assert len(value.size()) <= 2
+        ConstantTensorNode.__init__(self, value)
+
+
 class ConstantNaturalMatrixNode(ConstantTensorNode):
     def __init__(self, value: Tensor):
         assert len(value.size()) <= 2

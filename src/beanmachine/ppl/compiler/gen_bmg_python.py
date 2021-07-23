@@ -131,6 +131,8 @@ class GeneratedGraphPython:
             f = f"add_constant_neg_matrix({_matrix_to_python(v)})"
         elif t is bn.ConstantProbabilityMatrixNode:
             f = f"add_constant_probability_matrix({_matrix_to_python(v)})"
+        elif t is bn.ConstantSimplexMatrixNode:
+            f = f"add_constant_col_simplex_matrix({_matrix_to_python(v)})"
         elif t is bn.ConstantNaturalMatrixNode:
             f = f"add_constant_natural_matrix({_matrix_to_python(v)})"
         elif t is bn.ConstantBooleanMatrixNode:

@@ -105,6 +105,11 @@ _requires_nothing: Dict[type, bt.BMGLatticeType] = {
     bn.RealNode: bt.Real,
 }
 
+
+# This maps FROM the *python* type of a node which represents a constant matrix
+# TO a canonical instance of the *graph type object*. We need to be able to
+# inspect a node's python type and then construct a graph type object that
+# has the same dimensionality as the node.
 _constant_matrix_graph_types: Dict[type, bt.BMGMatrixType] = {
     bn.ConstantBooleanMatrixNode: bt.Boolean,
     bn.ConstantNaturalMatrixNode: bt.Natural,
@@ -112,8 +117,11 @@ _constant_matrix_graph_types: Dict[type, bt.BMGMatrixType] = {
     bn.ConstantPositiveRealMatrixNode: bt.PositiveReal,
     bn.ConstantProbabilityMatrixNode: bt.Probability,
     bn.ConstantRealMatrixNode: bt.Real,
+    bn.ConstantSimplexMatrixNode: bt.SimplexMatrix(1, 1),
 }
 
+# These are the node types which always represent a matrix in BMG.
+# Even if the node is a 1x1 matrix, it is a matrix and not an atomic value.
 _always_matrix_types: Set[type] = {
     bn.ColumnIndexNode,
     bn.ConstantBooleanMatrixNode,
@@ -122,6 +130,7 @@ _always_matrix_types: Set[type] = {
     bn.ConstantPositiveRealMatrixNode,
     bn.ConstantProbabilityMatrixNode,
     bn.ConstantRealMatrixNode,
+    bn.ConstantSimplexMatrixNode,
     bn.ToMatrixNode,
 }
 

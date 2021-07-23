@@ -84,6 +84,8 @@ class GeneratedGraph:
             graph_id = self.graph.add_constant_neg_matrix(_reshape(v))
         elif t is bn.ConstantProbabilityMatrixNode:
             graph_id = self.graph.add_constant_probability_matrix(_reshape(v))
+        elif t is bn.ConstantSimplexMatrixNode:
+            graph_id = self.graph.add_constant_col_simplex_matrix(_reshape(v))
         elif t is bn.ConstantNaturalMatrixNode:
             graph_id = self.graph.add_constant_natural_matrix(_reshape(v))
         elif t is bn.ConstantBooleanMatrixNode:
