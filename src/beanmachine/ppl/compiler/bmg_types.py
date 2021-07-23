@@ -506,8 +506,6 @@ def _supremum(t: BMGLatticeType, u: BMGLatticeType) -> BMGLatticeType:
         return t
     if t == top or u == top:
         return top
-    if t == Tensor or u == Tensor:
-        return Tensor
     assert isinstance(t, BMGMatrixType)
     assert isinstance(u, BMGMatrixType)
     if t.rows != u.rows or t.columns != u.columns:
