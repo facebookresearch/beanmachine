@@ -264,6 +264,13 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_simplex(self, value: torch.Tensor) -> bn.ConstantSimplexMatrixNode:
+        assert len(value.size()) <= 2
+        node = bn.ConstantSimplexMatrixNode(value)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_pos_real_matrix(
         self, value: torch.Tensor
     ) -> bn.ConstantPositiveRealMatrixNode:

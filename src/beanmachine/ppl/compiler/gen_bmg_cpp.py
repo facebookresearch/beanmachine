@@ -147,6 +147,9 @@ class GeneratedGraphCPP:
         elif t is bn.ConstantProbabilityMatrixNode:
             m = _value_to_cpp_eigen(v, f"m{graph_id}")
             f = f"add_constant_probability_matrix(m{graph_id})"
+        elif t is bn.ConstantSimplexMatrixNode:
+            m = _value_to_cpp_eigen(v, f"m{graph_id}")
+            f = f"add_constant_col_simplex_matrix(m{graph_id})"
         elif t is bn.ConstantNaturalMatrixNode:
             m = _value_to_cpp_eigen(v, f"m{graph_id}")
             f = f"add_constant_natural_matrix(m{graph_id})"

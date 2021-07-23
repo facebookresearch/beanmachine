@@ -100,6 +100,7 @@ _constant_matrix_types = {
     bn.ConstantPositiveRealMatrixNode,
     bn.ConstantProbabilityMatrixNode,
     bn.ConstantRealMatrixNode,
+    bn.ConstantSimplexMatrixNode,
 }
 
 
