@@ -16,7 +16,7 @@ logger = logging.getLogger("hme")
 class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
     """An abstract class for creating linear mixed effects model using BMGraph.
 
-    :param data: observed train data
+    :param data: observed training data
     :type data: class:`pd.DataFrame`
     :param model_config: model configuration parameters
     :type model_config: class:`ModelConfig`
@@ -79,7 +79,7 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         )
 
     def _initialize_fixed_effect_nodes(self) -> Dict[str, int]:
-        """Initializes fixed effect nodes in the bmgraph, whose values are sampled from
+        """Initializes fixed effect nodes in the graph, whose values are sampled from
         pre-specified prior distributions, defaults to Normal(mu=0, sigma=2).
 
         :return: a mapping of fixed effects to their corresponding nodes
@@ -95,9 +95,9 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         return fixed_effects_params
 
     def _initialize_random_effect_nodes(self, use_t_random_effect: bool) -> Tuple:
-        """Initializes random effect nodes in the bmgraph. This includes assigning priors to
+        """Initializes random effect nodes in the graph. This includes assigning priors to
         the random effect nodes as well as assigning priors to hyper-parameters. The method
-        allows for a t-distribution prior on random effects if user desires to better model
+        allows for a t-distribution prior on random effects if the user desires to better model
         heavy tailed effects.
 
         :param use_t_random_effect: flag indicating whether to assign a Normal or Student's t-distribution to random effects
@@ -148,14 +148,14 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         return re_dof, re_scale, re_dist, re_value
 
     def _add_fixed_effects_byrow(self, row: pd.Series, params: Dict[str, int]) -> int:
-        """Forms the systematic component from the fixed effects per subject (i.e. per row in the train data).
-        In the other words, this method returns XB for fixed effects for a given obs (row) from the train data.
+        """Forms the systematic component from the fixed effects per subject (i.e. per row in the training data).
+        In the other words, this method returns XB for fixed effects for a given obs (row) from the training data.
 
-        :param row: one individual train data with fixed effect covariates
+        :param row: one row of training data with fixed effect covariates
         :type row: class:`pd.Series`
         :param params: a mapping of fixed effects to their corresponding nodes
         :type params: dict
-        :return: bmgraph node that sums over all fixed effects for a given observation (i.e. a row from the train data)
+        :return: bmgraph node that sums over all fixed effects for a given observation (i.e. a row from the training data)
         :type: int
         """
 
@@ -163,28 +163,25 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
             return self.zero
         fe_list = []
         for fe in self.fixed_effects:
-            if fe == "1":
-                fe_list.append(params[fe])
-            else:
-                # FIXME: add support for categorical data
-                x = self.g.add_constant(row[fe])
-                x_param = self.g.add_operator(
-                    bmgraph.OperatorType.MULTIPLY, [x, params[fe]]
-                )
-                fe_list.append(x_param)
+            # FIXME: add support for categorical data
+            x = self.g.add_constant(row[fe])
+            x_param = self.g.add_operator(
+                bmgraph.OperatorType.MULTIPLY, [x, params[fe]]
+            )
+            fe_list.append(x_param)
         if len(fe_list) < 2:
             return fe_list[0]
         return self.g.add_operator(bmgraph.OperatorType.ADD, fe_list)
 
     def _add_random_effects_byrow(self, row: pd.Series, params: Tuple) -> int:
-        """Forms the systematic component from the random effects per subject (i.e. per row in the train data).
-        In the other words, this method returns XZ for random effects for a given obs (row) from the train data.
+        """Forms the systematic component from the random effects per subject (i.e. per row in the training data).
+        In the other words, this method returns XZ for random effects for a given obs (row) from the training data.
 
-        :param row: one individual train data with random effect covariates
+        :param row: one individual training data with random effect covariates
         :type row: class:`pd.Series`
         :param params: a tuple of dictionaries, which map random effects to their parameter, distribution, and sampled value nodes
         :type params: (dict, dict, dict, dict)
-        :return: bmgraph node that sums over all random effects for a given observation (i.e. a row from the train data).
+        :return: BMGraph node that sums over all random effects for a given observation (i.e. a row from the training data).
         :type: int
         """
 
@@ -222,17 +219,13 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         pred_val = pd.Series(0.0, index=range(post_samples.shape[0]))
         for fe in self.fixed_effects:
             try:
-                if fe == "1":
-                    pred_val += post_samples["fixed_effect_1"]
-                else:
-                    x = new_row[fe]
-                    pred_val += x * post_samples["fixed_effect_" + str(fe)]
+                x = new_row[fe]
+                pred_val += x * post_samples["fixed_effect_" + str(fe)]
             except KeyError:
                 logger.warning(
-                    "fixed_effect: "
-                    + str(fe)
-                    + " is not available in "
-                    + "the posterior samples or the new data."
+                    "fixed effect: %s is not available in the "
+                    "posterior samples or the new data.",
+                    fe,
                 )
                 return pd.Series(None, index=range(post_samples.shape[0]))
         for re in self.random_effects:

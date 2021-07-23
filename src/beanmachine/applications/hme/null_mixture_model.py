@@ -5,9 +5,9 @@ from typing import List
 import beanmachine.graph as bmgraph
 import numpy as np
 import pandas as pd
+from patsy import build_design_matrices
 
 from .abstract_linear_model import AbstractLinearModel
-from .abstract_model import AbstractModel
 from .configs import ModelConfig
 
 
@@ -30,9 +30,11 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
     def build_graph(self) -> None:
         """Constructs the probabilistic graph for generalized linear (null mixture, optional) mixed effect models given observed data"""
 
-        self.fixed_effects, self.random_effects = AbstractModel.parse_formula(
+        self.fixed_effects, self.random_effects = self.parse_formula_patsy(
             self.model_config.mean_regression.formula
         )
+        self._preprocess_data()
+
         if self.model_config.priors:
             self.prior_configs.update(self.model_config.priors)
 
@@ -155,11 +157,11 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
     def _add_bimodal_alternative(self, mu_parents: List, mu_neg_parents: List) -> int:
         """Returns a multiplicative H1 model as a mixture of both positive and negative effects.
 
-        :param mu_parents: bmgraph nodes of positive effect distribution component
+        :param mu_parents: BMGraph nodes of positive effect distribution component
         :type mu_parents: list
-        :param mu_neg_parents: bmgraph nodes of negative effect distribution component
+        :param mu_neg_parents: BMGraph nodes of negative effect distribution component
         :type mu_neg_parents: list
-        :return: bmgraph node representing a mixtrue of positive and negative effect distribution
+        :return: BMGraph node representing a mixtrue of positive and negative effect distribution
         :rtype: int
         """
 
@@ -184,13 +186,13 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         return fere_i
 
     def _add_observation_byrow(self, index: int, row: pd.Series, fere_i: int) -> None:
-        """Defines the response variable distribution bmgraph node conditional on the mixed effect node: fere_i.
+        """Defines the response variable distribution BMGraph node conditional on the mixed effect node: fere_i.
 
         :param index: train data index
         :type index: int
         :param row: one realization (aka observed value) of response and predictor variables
         :type row: class:`pd.Series`
-        :param fere_i: mixed effect bmgraph node
+        :param fere_i: mixed effect BMGraph node
         :type fere_i: int
         """
 
@@ -254,6 +256,16 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         """
 
         # FIXME: update the method to support customized prediction goal
+
+        # stateful transformation on test data
+        new_data_dm = pd.concat(
+            build_design_matrices(self.design_infos, new_data, return_type="dataframe"),
+            axis=1,
+        )
+        new_data = pd.concat([new_data, new_data_dm], axis=1).loc[
+            :, lambda df: np.logical_not(df.columns.duplicated())
+        ]
+
         pred_df = pd.DataFrame()
         for _, row in new_data.iterrows():
             pred_row = self._predict_fere_byrow(row, post_samples)
