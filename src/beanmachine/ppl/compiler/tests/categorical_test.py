@@ -37,6 +37,16 @@ def c_const_logit_simplex():
 
 
 @bm.random_variable
+def c_trivial_simplex():
+    # No sensible person would do this but we should ensure it works anyway.
+    # Categorical(1.0) is already illegal in torch so we don't have to test that.
+    # TODO: We could optimize this to the constant zero I suppose but it is
+    # unlikely to help in realistic code. Better would be to detect this likely
+    # bug and report it as a warning somehow.
+    return Categorical(tensor([1.0]))
+
+
+@bm.random_variable
 def hc():
     return HalfCauchy(0.0)
 
@@ -56,72 +66,157 @@ def cd4():
     return Categorical(d4())
 
 
+@bm.random_variable
+def c_multi():
+    return Categorical(tensor([[0.5, 0.5], [0.5, 0.5]]))
+
+
 # TODO: random variable indexed by categorical
-# TODO: multidimensional categorical
 
 
 class CategoricalTest(unittest.TestCase):
-    # TODO: Categorical is not yet marked as supported in BMG;
-    # Update these tests to after_transform=True when it is,
-    # to verify that the type checker is doing the proper transformations.
-    def test_categorical(self) -> None:
+    def test_categorical_trivial(self) -> None:
         self.maxDiff = None
+
+        queries = [c_trivial_simplex()]
+        observations = {}
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N0[label="[1.0]"];
+  N1[label=Categorical];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_categorical_dirichlet(self) -> None:
+        self.maxDiff = None
+
+        # It should be legal to use the output of a one-column
+        # Dirichlet as the input to a categorical:
+
+        queries = [cd4()]
+        observations = {}
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N0[label="[1.0,1.0,1.0,1.0]"];
+  N1[label=Dirichlet];
+  N2[label=Sample];
+  N3[label=Categorical];
+  N4[label=Sample];
+  N5[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+  N4 -> N5;
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_categorical_equivalent_consts(self) -> None:
+        self.maxDiff = None
+
+        # * If we have a categorical with a constant probability
+        #   that does not sum to 1.0 then we automatically normalize it.
+        # * If we have a categorical logits with constant probability
+        #   then we automatically convert it to regular probs and
+        #   normalize them.
+        #
+        # That means that we automatically deduplicate what looks
+        # like three distinct distributions into three samples from
+        # the same distribution:
         queries = [
-            c_const_simplex(),
             c_const_unnormalized(),
+            c_const_simplex(),
             c_const_logit_simplex(),
-            cd4(),
+        ]
+        observations = {}
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N0[label="[0.125,0.125,0.25,0.5]"];
+  N1[label=Categorical];
+  N2[label=Sample];
+  N3[label=Query];
+  N4[label=Sample];
+  N5[label=Query];
+  N6[label=Sample];
+  N7[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N1 -> N4;
+  N1 -> N6;
+  N2 -> N3;
+  N4 -> N5;
+  N6 -> N7;
+}
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # Note that we add a simplex-typed constant:
+
+        observed = BMGInference().to_python(queries, observations)
+        expected = """
+from beanmachine import graph
+from torch import tensor
+g = graph.Graph()
+n0 = g.add_constant_col_simplex_matrix(tensor([[0.125],[0.125],[0.25],[0.5]]))
+n1 = g.add_distribution(
+  graph.DistributionType.CATEGORICAL,
+  graph.AtomicType.NATURAL,
+  [n0],
+)
+n2 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+q0 = g.query(n2)
+n3 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+q1 = g.query(n3)
+n4 = g.add_operator(graph.OperatorType.SAMPLE, [n1])
+q2 = g.query(n4)
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_categorical_random_logit(self) -> None:
+        self.maxDiff = None
+
+        # We do not support Categorical(logits=something_random)
+        # random variables.
+
+        queries = [
             c_random_logit(),
         ]
         observations = {}
-        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, observations, 10)
+        observed = str(ex.exception)
         expected = """
-digraph "graph" {
-  N00[label="[0.125,0.125,0.25,0.5]"];
-  N01[label=Categorical];
-  N02[label=Sample];
-  N03[label=Query];
-  N04[label=Sample];
-  N05[label=Query];
-  N06[label=Sample];
-  N07[label=Query];
-  N08[label="[1.0,1.0,1.0,1.0]"];
-  N09[label=Dirichlet];
-  N10[label=Sample];
-  N11[label=Categorical];
-  N12[label=Sample];
-  N13[label=Query];
-  N14[label=0.0];
-  N15[label=0.0];
-  N16[label=HalfCauchy];
-  N17[label=Sample];
-  N18[label="-"];
-  N19[label=Tensor];
-  N20[label="Categorical(logits)"];
-  N21[label=Sample];
-  N22[label=Query];
-  N00 -> N01;
-  N01 -> N02;
-  N01 -> N04;
-  N01 -> N06;
-  N02 -> N03;
-  N04 -> N05;
-  N06 -> N07;
-  N08 -> N09;
-  N09 -> N10;
-  N10 -> N11;
-  N11 -> N12;
-  N12 -> N13;
-  N14 -> N19;
-  N14 -> N19;
-  N14 -> N19;
-  N15 -> N16;
-  N16 -> N17;
-  N17 -> N18;
-  N18 -> N19;
-  N19 -> N20;
-  N20 -> N21;
-  N21 -> N22;
-}
+The model uses a Categorical(logits) operation unsupported by Bean Machine Graph.
+The unsupported node is the operand of a Sample.
+        """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_categorical_multi(self) -> None:
+        self.maxDiff = None
+
+        # We do not support Categorical with multiple dimensions.
+
+        # TODO: This error message is not very well worded; what we want to communicate
+        # is that ANY one-column simplex is the requirement.
+
+        queries = [
+            c_multi(),
+        ]
+        observations = {}
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().infer(queries, observations, 10)
+        observed = str(ex.exception)
+        expected = """
+The probability of a Categorical is required to be a 2 x 1 simplex matrix but is a 2 x 2 simplex matrix.
         """
         self.assertEqual(expected.strip(), observed.strip())

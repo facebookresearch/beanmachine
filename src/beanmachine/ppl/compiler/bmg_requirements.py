@@ -69,7 +69,10 @@ class EdgeRequirements:
     def __init__(self, typer: LatticeTyper) -> None:
         self.typer = typer
         self._dispatch = {
+            # Factors
             bn.ExpProductFactorNode: self._requirements_expproduct,
+            # Distributions
+            bn.CategoricalNode: self._requirements_categorical,
             bn.DirichletNode: self._requirements_dirichlet,
             # Operators
             bn.AdditionNode: self._requirements_addition,
@@ -123,9 +126,55 @@ class EdgeRequirements:
         # if we feed one Dirichlet into another?  That would be a simplex,
         # not a broadcast matrix. Do some research here; do we actually
         # need the semantics of "always a broadcast matrix" ?
+
+        # TODO: Note that "required_columns" here is misnamed; it should be
+        # "required_length".
+
         return [
             bt.always_matrix(bt.PositiveReal.with_dimensions(node._required_columns, 1))
         ]
+
+    def _requirements_categorical(
+        self, node: bn.CategoricalNode
+    ) -> List[bt.Requirement]:
+        # A categorical node requires that its input be a simplex with a single column.
+
+        it = self.typer[node.probability]
+
+        # If we have a matrix input then its lattice type is one hot matrix, simplex,
+        # or broadcast matrix.
+        #
+        # Let's list all the possible cases:
+        #
+        # * If we have an r x c one hot or simplex then require a r x 1 simplex;
+        #   This will succeed if c == 1 and fail with a good error message otherwise.
+        #
+        # * If we have an r x c other matrix then require a r x 1 simplex;
+        #   This will always fail with a good error message.
+        #
+        # In all cases we require an r x 1 simplex:
+
+        if isinstance(it, bt.BMGMatrixType):
+            return [bt.SimplexMatrix(it.rows, 1)]
+
+        # We do not have a matrix input. There are two possibilities:
+        #
+        # * The input is 1.  We require a 1 x 1 simplex, and this will succeed.
+        # * The input is any other atomic value, and we need to fail.  But what
+        #   unmet requirement should we put on this edge?
+
+        # TODO: The current code produces a bad error message experience because at
+        # present we have no way to represent the stated requirement: "a simplex with
+        # one column and ANY number of rows".  We only have a way to represent the
+        # requirement "a simplex with one column and a SPECIFIC number of rows".
+        # We should create a requirement object that represents the real requirement,
+        # and then error reporting can give a sensible error message.
+        #
+        # Note that once we have this requirement object we can simply return it
+        # for *every* case and delete all this code. The requirements fixer
+        # would then be responsible for determining if the requirement can be met.
+
+        return [bt.SimplexMatrix(1, 1)]
 
     def _requirements_addition(self, node: bn.BMGNode) -> List[bt.Requirement]:
         it = self.typer[node]

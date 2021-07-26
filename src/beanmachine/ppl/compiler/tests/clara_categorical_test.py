@@ -188,8 +188,12 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: We do not yet support Categorical
-        # or map/index nodes in BMG.  Revisit this test when we do.
+        # TODO: The obscure "index" error here is a result of an unsupported
+        # stochastic control flow which we do not correctly detect and therefore
+        # do not produce a sensible error message. Stochastic flows of the form
+        # some_rv(some_categorical_rv()) are not yet implemented correctly. When
+        # they are, revisit this test.
+
         # TODO: Raise a better error than a generic ValueError
         # TODO: These error messages are needlessly repetitive.
         # Deduplicate them.
@@ -199,16 +203,6 @@ digraph "graph" {
             BMGInference().infer(queries, observations, 10)
         observed = str(ex.exception)
         expected = """
-The model uses a Categorical operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Categorical operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Categorical operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Categorical operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
-The model uses a Categorical operation unsupported by Bean Machine Graph.
-The unsupported node is the operand of a Sample.
 The model uses a index operation unsupported by Bean Machine Graph.
 The unsupported node is the probability of a Categorical.
 The model uses a index operation unsupported by Bean Machine Graph.

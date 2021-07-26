@@ -77,6 +77,7 @@ _requires_nothing: Dict[type, bt.BMGLatticeType] = {
     bn.BernoulliNode: bt.Boolean,
     bn.BetaNode: bt.Probability,
     bn.BinomialNode: bt.Natural,
+    bn.CategoricalNode: bt.Natural,
     bn.FlatNode: bt.Probability,
     bn.GammaNode: bt.PositiveReal,
     bn.HalfCauchyNode: bt.PositiveReal,
