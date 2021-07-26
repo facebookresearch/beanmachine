@@ -178,6 +178,11 @@ class BMGraphBuilder:
     def add_constant_of_matrix_type(
         self, value: Any, node_type: bt.BMGMatrixType
     ) -> ConstantNode:
+        # If we need a simplex, add a simplex. Otherwise,
+        # choose which kind of matrix node to create based on
+        # the matrix element type.
+        if isinstance(node_type, bt.SimplexMatrix):
+            return self.add_simplex(value)
         if node_type.element_type == bt.real_element:
             return self.add_real_matrix(value)
         if node_type.element_type == bt.positive_real_element:

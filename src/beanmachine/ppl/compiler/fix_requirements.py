@@ -83,7 +83,9 @@ class RequirementsFixer:
                 result = self.bmg.add_constant_of_matrix_type(node.value, required_type)
             else:
                 result = self.bmg.add_constant_of_type(node.value, required_type)
-            assert self._node_meets_requirement(result, requirement)
+            assert self._node_meets_requirement(
+                result, requirement
+            ), f"{str(result)} {str(requirement)} {str(required_type)} {str(self._typer[result])} {str(self._type_meets_requirement(self._typer[result], requirement))}"
             return result
 
         # We cannot convert this node to any type that meets the requirement.

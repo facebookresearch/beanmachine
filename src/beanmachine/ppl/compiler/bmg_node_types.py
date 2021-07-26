@@ -32,6 +32,7 @@ _dist_types = {
     bn.BernoulliNode: (dt.BERNOULLI, AtomicType.BOOLEAN),
     bn.BetaNode: (dt.BETA, AtomicType.PROBABILITY),
     bn.BinomialNode: (dt.BINOMIAL, AtomicType.NATURAL),
+    bn.CategoricalNode: (dt.CATEGORICAL, AtomicType.NATURAL),
     bn.DirichletNode: (dt.DIRICHLET, None),
     bn.FlatNode: (dt.FLAT, AtomicType.PROBABILITY),
     bn.GammaNode: (dt.GAMMA, AtomicType.POS_REAL),
