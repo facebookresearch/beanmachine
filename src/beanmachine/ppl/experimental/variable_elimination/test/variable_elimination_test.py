@@ -1,15 +1,24 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import os
+
 import beanmachine.ppl as bm
+import pytest
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
-from beanmachine.ppl.experimental.variable_elimination.variable_elimination import (
-    make_neuralpp_factor,
-)
-from neuralpp.inference.graphical_model.representation.factor.pytorch_table_factor import (
-    PyTorchTableFactor,
-)
-from neuralpp.inference.graphical_model.variable.integer_variable import IntegerVariable
+
+if os.environ.get("CIRCLECI") is not None:
+    pytest.skip("neuralpp unavailable in CircleCI", allow_module_level=True)
+else:
+    from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+    from beanmachine.ppl.experimental.variable_elimination.variable_elimination import (
+        make_neuralpp_factor,
+    )
+    from neuralpp.inference.graphical_model.representation.factor.pytorch_table_factor import (
+        PyTorchTableFactor,
+    )
+    from neuralpp.inference.graphical_model.variable.integer_variable import (
+        IntegerVariable,
+    )
 
 
 class DiscreteModel:
