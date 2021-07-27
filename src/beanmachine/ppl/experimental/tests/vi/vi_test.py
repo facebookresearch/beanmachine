@@ -8,6 +8,10 @@ import torch
 import torch.distributions as dist
 import torch.nn as nn
 from beanmachine.ppl.distribution.flat import Flat
+from beanmachine.ppl.experimental.vi.optim import (
+    BMMultiOptimizer,
+    BMOptim,
+)
 from beanmachine.ppl.experimental.vi.variational_infer import (
     MeanFieldVariationalInference,
     VariationalInference,
@@ -267,7 +271,7 @@ class StochasticVariationalInferTest(unittest.TestCase):
     @unittest.skipUnless(
         torch.cuda.is_available(), "requires GPU access to train the model"
     )
-    def test_normal_normal_guide_gpu(self):
+    def test_normal_normal_guide_step_gpu(self):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = NormalNormal(device=device)
 
@@ -282,17 +286,21 @@ class StochasticVariationalInferTest(unittest.TestCase):
 
         # 100 steps, each 1 iteration
         opt_params = None
+        optimizer = BMMultiOptimizer(
+            BMOptim(
+                torch.optim.Adam,
+                {"lr": 1e0},
+            )
+        )
         for _ in range(100):
-            opt_params = VariationalInference().infer(
+            _, opt_params, optimizer = VariationalInference().step(
                 {model.mu(): q_mu()},
                 observations={
                     model.x(1): torch.tensor(9.0).to(device),
                     model.x(2): torch.tensor(10.0).to(device),
                 },
-                num_iter=1,
-                lr=1e0,
                 params=opt_params,
-                progress_bar=False,
+                optimizer=optimizer,
                 device=device,
             )
         q_mu_id = q_mu()
@@ -322,17 +330,21 @@ class StochasticVariationalInferTest(unittest.TestCase):
 
         # 100 steps, each 1 iteration
         opt_params = None
+        optimizer = BMMultiOptimizer(
+            BMOptim(
+                torch.optim.Adam,
+                {"lr": 1e0},
+            )
+        )
         for _ in range(100):
-            opt_params = VariationalInference().infer(
+            _, opt_params, optimizer = VariationalInference().step(
                 {model.mu(): q_mu()},
                 observations={
                     model.x(1): torch.tensor(9.0),
                     model.x(2): torch.tensor(10.0),
                 },
-                num_iter=1,
-                lr=1e0,
                 params=opt_params,
-                progress_bar=False,
+                optimizer=optimizer,
             )
         q_mu_id = q_mu()
         mu_approx = None

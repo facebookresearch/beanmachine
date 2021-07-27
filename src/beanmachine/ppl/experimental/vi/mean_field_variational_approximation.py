@@ -1,3 +1,4 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import itertools
 import logging
 from typing import Callable, Dict

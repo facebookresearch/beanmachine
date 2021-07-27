@@ -1,8 +1,9 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import logging
 from abc import ABCMeta
 from functools import lru_cache
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 import torch
 import torch.distributions as dist
@@ -15,10 +16,12 @@ from ...inference.abstract_infer import AbstractInference
 from ...model.rv_identifier import RVIdentifier
 from ...model.utils import LogLevel
 from .mean_field_variational_approximation import MeanFieldVariationalApproximation
+from .optim import BMMultiOptimizer, BMOptim
 
 
 LOGGER = logging.getLogger("beanmachine.vi")
 cpu_device = torch.device("cpu")
+default_params = {}
 
 
 class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
@@ -168,12 +171,84 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         lr: float = 1e-3,
         random_seed: Optional[int] = None,
         on_iter: Optional[Callable] = None,
-        params: Optional[Dict[RVIdentifier, nn.Parameter]] = None,
+        params: Dict[RVIdentifier, nn.Parameter] = default_params,
+        optimizer: Optional[BMMultiOptimizer] = None,
         progress_bar: Optional[bool] = True,
         device: Optional[torch.device] = cpu_device,
     ) -> Dict[RVIdentifier, nn.Parameter]:
         """
-        Perform stochastic variational inference.
+        A multiple-step version of `.step()` to perform Stochastic Variational Inference.
+        This is convenient for full-batch training.
+
+        :param model_to_guide_ids: mapping from latent variables to their
+            respective guide random variables
+        :param observations: observed random variables with their values
+        :param num_iter: number of iterations of optimizer steps
+        :param lr: learning rate
+        :param random_seed: random seed
+        :param on_iter: callable executed after each optimizer iteration
+        :param params: parameter random_variable keys and their values, used
+            to initialize optimization if present
+        :param optimizer: BMOptim (wrapped torch optimizer) instance to reuse
+        :param progress_bar: flag for tqdm progress, disable for less output
+            when minibatching
+        :param device: default torch device for tensor allocations
+
+        :returns: mapping from all `bm.param` `RVIdentifier`s encountered
+            to their optimized values
+        """
+        try:
+            if not random_seed:
+                random_seed = (
+                    torch.randint(MeanFieldVariationalInference._rand_int_max, (1,))
+                    .int()
+                    .item()
+                )
+            self.set_seed(random_seed)
+            if not optimizer:
+                # initialize world so guide params available
+                self.queries_ = list(model_to_guide_ids.keys())
+                self.observations_ = observations
+                self.initialize_world(
+                    False,
+                    model_to_guide_ids=model_to_guide_ids,
+                    params=params,
+                )
+
+                # optimizer = torch.optim.Adam(self.world_.params_.values(), lr=lr)
+                optimizer = BMMultiOptimizer(
+                    BMOptim(
+                        torch.optim.Adam,
+                        {"lr": lr},
+                    )
+                )
+
+            for it in (
+                tqdm(iterable=range(num_iter), desc="Training iterations")
+                if progress_bar
+                else range(num_iter)
+            ):
+                loss, params, optimizer = self.step(
+                    model_to_guide_ids, observations, optimizer, params, device
+                )
+                if on_iter:
+                    on_iter(it, loss, params)
+        except BaseException as x:
+            raise x
+        finally:
+            self.reset()
+        return params
+
+    def step(
+        self,
+        model_to_guide_ids: Dict[RVIdentifier, RVIdentifier],
+        observations: Dict[RVIdentifier, Tensor],
+        optimizer: BMMultiOptimizer,
+        params: Dict[RVIdentifier, nn.Parameter] = default_params,
+        device: Optional[torch.device] = cpu_device,
+    ) -> Tuple[torch.Tensor, Dict[RVIdentifier, nn.Parameter], BMMultiOptimizer]:
+        """
+        Perform one step of stochastic variational inference.
 
         All `bm.param`s referenced in guide random variables are optimized to
         minimize a Monte Carlo approximation of negative ELBO loss. The
@@ -184,115 +259,87 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
         It is the end-user's responsibility to interpret the optimized values
         for the `bm.param`s returned.
 
-        NOTE: only sequential SVI is supported; parallel is blocked until
-        we consistently handle batch vs event dimensions within beanmachine.
-
         :param model_to_guide_ids: mapping from latent variables to their
         respective guide random variables
         :param observations: observed random variables with their values
-        :param num_iter: number of iterations of optimizer steps
         :param lr: learning rate
         :param random_seed: random seed
-        :param on_iter: callable executed after each optimizer iteration
         :param params: parameter random_variable keys and their values, used
-        to initialize optimization if present. NOTE: optimizer state such as
-        momentum and weight decay are lost when not re-using optimizer itself
+        to initialize optimization if present
+        :param optimizer: optimizer state (e.g. momentum and weight decay)
+        to reuse
+        :param device: default torch device for tensor allocations
 
-        :returns: mapping from all `bm.param` `RVIdentifier`s encountered
-        to their optimized values
+        :returns: loss value, mapping from all `bm.param` `RVIdentifier`s
+        encountered to their optimized values, optimizer for the respective
+        `bm.param` tensors
         """
-        optimizer = None
+        self.queries_ = list(model_to_guide_ids.keys())
+        self.observations_ = observations
 
-        try:
-            if not random_seed:
-                random_seed = (
-                    torch.randint(MeanFieldVariationalInference._rand_int_max, (1,))
-                    .int()
-                    .item()
-                )
-            self.set_seed(random_seed)
-            self.queries_ = list(model_to_guide_ids.keys())
-            self.observations_ = observations
-            if not params:
-                params = {}
+        # sample world x ~ q_t
+        self.initialize_world(
+            False,
+            model_to_guide_ids=model_to_guide_ids,
+            params=params,
+        )
 
-            for it in (
-                tqdm(iterable=range(num_iter), desc="Training iterations")
-                if progress_bar
-                else range(num_iter)
+        # TODO: add new `self.world_.params_` not already in optimizer
+
+        nodes = self.world_.get_all_world_vars()
+        latent_rvids = list(
+            filter(
+                lambda rvid: (
+                    rvid not in self.observations_
+                    and rvid not in model_to_guide_ids.values()
+                ),
+                nodes.keys(),
+            )
+        )
+        loss = torch.zeros(1).to(device)
+        # -ELBO == E[log p(obs, x) - log q(x)] ~= log p(obs | x) +
+        # \sum_s (log p(x_s) - log q(x_s)) where x_s ~ q_t were sampled
+        # during `initialize_world`.
+        # Here we compute the second term suming over latent sites x_s.
+        for rvid in latent_rvids:
+            assert (
+                rvid in model_to_guide_ids
+            ), f"expected every latent to have a guide, but did not find one for {rvid}"
+            node_var = nodes[rvid]
+            v_approx = nodes[model_to_guide_ids[rvid]]
+
+            if isinstance(node_var.distribution, dist.Bernoulli) and isinstance(
+                v_approx.distribution, dist.Bernoulli
             ):
-                # sample world x ~ q_t
-                self.initialize_world(
-                    False,
-                    model_to_guide_ids=model_to_guide_ids,
-                    params=params,
+                # binary cross entropy, analytical ELBO
+                # TODO: more general enumeration
+                loss += nn.BCELoss()(
+                    v_approx.distribution.probs,  # pyre-ignore[16]
+                    node_var.distribution.probs,
                 )
-                if not optimizer:
-                    optimizer = torch.optim.Adam(self.world_.params_.values(), lr=lr)
-                # TODO: add new guide params not already in optimizer
 
-                nodes = self.world_.get_all_world_vars()
-                latent_rvids = list(
-                    filter(
-                        lambda rvid: (
-                            rvid not in self.observations_
-                            and rvid not in model_to_guide_ids.values()
-                        ),
-                        nodes.keys(),
-                    )
-                )
-                loss = torch.zeros(1).to(device)
-                # -ELBO == E[log p(obs, x) - log q(x)] ~= log p(obs | x) +
-                # \sum_s (log p(x_s) - log q(x_s)) where x_s ~ q_t were sampled
-                # during `initialize_world`.
-                # Here we compute the second term suming over latent sites x_s.
-                for rvid in latent_rvids:
-                    assert (
-                        rvid in model_to_guide_ids
-                    ), f"expected every latent to have a guide, but did not find one for {rvid}"
-                    node_var = nodes[rvid]
-                    v_approx = nodes[model_to_guide_ids[rvid]]
+                # TODO: downstream observation likelihoods p(obs | rvid)
+            else:
+                # MC ELBO
+                loss += v_approx.distribution.log_prob(node_var.value).sum()
+                loss -= node_var.distribution.log_prob(node_var.value).sum()
 
-                    if isinstance(node_var.distribution, dist.Bernoulli) and isinstance(
-                        v_approx.distribution, dist.Bernoulli
-                    ):
-                        # binary cross entropy, analytical ELBO
-                        # TODO: more general enumeration
-                        loss += nn.BCELoss()(
-                            v_approx.distribution.probs,  # pyre-ignore[16]
-                            node_var.distribution.probs,
-                        )
+                # Add the remaining likelihood term log p(obs | x)
+                for obs_rvid in self.observations_:
+                    obs_var = nodes[obs_rvid]
+                    loss -= obs_var.distribution.log_prob(
+                        self.observations_[obs_rvid]
+                    ).sum()
 
-                        # TODO: downstream observation likelihoods p(obs | rvid)
-                    else:
-                        # MC ELBO
-                        loss += v_approx.distribution.log_prob(node_var.value).sum()
-                        loss -= node_var.distribution.log_prob(node_var.value).sum()
+        if not torch.isnan(loss):
+            # loss.backward()
+            optimizer.step(loss, self.world_.params_)
+            # optimizer.zero_grad()
+            params = self.world_.params_
+        else:
+            # TODO: caused by e.g. negative scales in `dist.Normal`;
+            # fix using pytorch's `constraint_registry` to account for
+            # `Distribution.arg_constraints`
+            LOGGER.log(LogLevel.INFO.value, "Encountered NaNs in loss, skipping epoch")
 
-                        # Add the remaining likelihood term log p(obs | x)
-                        for obs_rvid in self.observations_:
-                            obs_var = nodes[obs_rvid]
-                            loss -= obs_var.distribution.log_prob(
-                                self.observations_[obs_rvid]
-                            ).sum()
-
-                if not torch.isnan(loss):
-                    loss.backward()
-                    optimizer.step()
-                    optimizer.zero_grad()
-                    params = self.world_.params_
-                    if on_iter:
-                        on_iter(it, loss, params)
-                else:
-                    # TODO: caused by e.g. negative scales in `dist.Normal`;
-                    # fix using pytorch's `constraint_registry` to account for
-                    # `Distribution.arg_constraints`
-                    LOGGER.log(
-                        LogLevel.INFO.value, "Encountered NaNs in loss, skipping epoch"
-                    )
-
-        except BaseException as x:
-            raise x
-        finally:
-            self.reset()
-        return params
+        return loss, params, optimizer
