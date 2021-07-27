@@ -89,7 +89,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
 
         assert len(base_dist(**base_args).event_shape) <= 1
         self.new_dist = self.flow(self.recompute_transformed_distribution())
-        self._flow_params = self.flow.params
+        self._flow_params = self.new_dist.bijector.params
         self.optim = torch.optim.Adam(
             self.parameters(),
             lr=lr,
