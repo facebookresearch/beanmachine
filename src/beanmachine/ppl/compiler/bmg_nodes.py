@@ -1326,7 +1326,7 @@ class RShiftNode(BinaryOperatorNode):
         BinaryOperatorNode.__init__(self, left, right)
 
 
-class MapNode(BMGNode):
+class SwitchNode(BMGNode):
 
     """This class represents a point in a program where there are
     multiple control flows based on the value of a stochastic node."""
@@ -1335,14 +1335,14 @@ class MapNode(BMGNode):
     #
     #   @bm.random_variable def weird(i):
     #     if i == 0:
-    #       return Normal(0.0, 1.0)
-    #     return Normal(1.0, 1.0)
+    #       return Normal(3.0, 4.0)
+    #     return Normal(5.0, 6.0)
     #
     #   @bm.random_variable def flips():
     #     return Binomial(2, 0.5)
     #
     #   @bm.random_variable def really_weird():
-    #     return Normal(weird(flips()), 1.0)
+    #     return Normal(weird(flips()), 7.0)
     #
     # There are three possibilities for weird(flips()) on the last line;
     # what we need to represent in the graph is:
@@ -1352,102 +1352,57 @@ class MapNode(BMGNode):
     # * sample once from flips()
     # * choose one of weird(i) based on the sample from flips().
     #
-    # We represent this with two nodes: a map and an index:
+    # We represent this with a switch node.
     #
-    # sample --- Normal(_, 1.0)        ---0--- sample --- Normal(0.0, 1.0)
-    #                    \           /
-    #                   index ---> map----1--- sample --- Normal(1.0, 1.0)
-    #                        \       \                   /
-    #                         \        ---2--- sample --
-    #                          \
-    #                            --- sample -- Binomial(2, 0.5)
+    #   2  0.5 3   4     5   6
+    #    \ /    \ /       \ /
+    #     B      N         N
+    #     |      |       /    \
+    #     ~  0   ~    1  ~  2  ~
+    #      \  \   \  /  /  /  /
+    #            switch
+    #                 \   7
+    #                  \ /
+    #                   N
+    #                   |
+    #                   ~
     #
-    # As an implementation detail, we represent the key-value pairs in the
-    # map by a convention:
+    # That is, inputs[0] of the switch is the quantity that makes the choice:
+    # a sample from B(2, 0.5).  We then have a series of case/value pairs:
     #
-    # * Even numbered inputs are keys
-    # * All keys are constant nodes
-    # * Odd numbered inputs are values associated with the previous
-    #   sibling as the key.
-
-    # TODO: We do not yet have this choice node in BMG, and the design
-    # is not yet settled.
+    # * inputs[c] for c = 1, 3, 5, ... are always constants.
+    # * inputs[v] for v = 2, 4, 6, ... are the values chosen when inputs[0]
+    #   takes on the value of the corresponding constant.
     #
-    # The accumulator creates the map based on the actual values seen
-    # as indices in the execution of the model; in the contrived example
-    # above the indices are 0, 1, 2 but there is no reason why they could
-    # not have been 1, 10, 100 instead; all that matters is that there
-    # were three of them and so three code paths were explored.
+    # Note that we do not have a generalized switch in BMG. Rather, we have
+    # the simpler cases of (1) the IfThenElse node, where the leftmost input
+    # is a Boolean quantity and the other two inputs are the values, and
+    # (2) a TensorNode with an IndexNode, where the index is a natural less
+    # than the number of elements in the tensor.
     #
-    # That's why this is implemented as (and named) "map"; it is an arbitrary
-    # collection of key-value pairs where the keys are drawn from the support
-    # of a distribution.
+    # TODO: Should we implement a general switch node in BMG?
     #
-    # The design decision to be made here is whether we need an arbitrary map
-    # node in BMG, as we accumulate here, or if we need the more restricted
-    # case of an "array" or "list", where we are mapping 0, 1, 2, ... n-1
-    # to n graph nodes, and the indexed sample is drawn from a distribution
-    # whose support is exactly 0 to n-1.
+    # The runtime creates the switch based on the support of flips(), the first
+    # input to the switch. In this case the support is {0, 1, 2} but there is
+    # no reason why they could not have been 1, 10, 100 instead, if for instance
+    # we had something like "weird(10 ** flips())".
 
     def __init__(self, inputs: List[BMGNode]):
-        # TODO: Check that keys are all constant nodes.
-        # TODO: Check that there is one value for each key.
-        # TODO: Verify that there is at least one pair.
+        # TODO: Check that cases are all constant nodes.
+        # TODO: Check that there is one value for each case.
         BMGNode.__init__(self, inputs)
 
-    @property
-    def size(self) -> torch.Size:
-        return self.inputs[1].size
-
-    def support(self) -> Iterable[Any]:
-        return []
-
-    # TODO: The original plan was to represent Python values such as
-    # lists, tuples and dictionaries as one of these map nodes,
-    # and it was convenient during prototyping that a map node
-    # have an indexer that behaved like the Python indexer it was
-    # emulating. This idea has been abandoned, so this code can
-    # be deleted in a cleanup pass.
-
-    def __getitem__(self, key) -> BMGNode:
-        if isinstance(key, BMGNode) and not isinstance(key, ConstantNode):
-            raise ValueError("BeanMachine map must be indexed with a constant value")
-        # Linear search is fine.  We're not going to do this a lot, and the
-        # maps will be small.
-        k = key.value if isinstance(key, ConstantNode) else key
-        for i in range(len(self.inputs) // 2):
-            c = self.inputs[i * 2]
-            assert isinstance(c, ConstantNode)
-            if c.value == k:
-                return self.inputs[i * 2 + 1]
-        raise ValueError("Key not found in map")
-
-
-class IndexNodeDeprecated(BinaryOperatorNode):
-
-    # TODO: The index / map node combination that we originally envisioned
-    # does not work well with BMGs indexing operator; we will eventually
-    # remove it. Until then, just mark it as deprecated to minimize
-    # disruption while we get indexing support working.
-
-    """This represents a stochastic choice of multiple options; the left
-    operand must be a map, and the right is the stochastic value used to
-    choose an element from the map."""
-
-    # See notes on MapNode for an explanation of this code.
-
-    def __init__(self, left: MapNode, right: BMGNode):
-        BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def size(self) -> torch.Size:
-        return self.left.size
-
-    def __str__(self) -> str:
-        return str(self.left) + "[" + str(self.right) + "]"
-
-    def support(self) -> Iterable[Any]:
-        raise NotImplementedError()
+    # TODO: We need to compute the support of a switch node in order to handle
+    # nested switch cases. Suppose for example we have a model where an RV is
+    # of the form:
+    #
+    # return Normal(weird(flips(flip())), 1.0)
+    #
+    # flips(flip()) will be a SwitchNode; we will then need to know its support
+    # in order to generate a *second* SwitchNode representing the call to weird().
+    #
+    # The support of a switch is the union of the supports of the case values.
+    #
 
 
 # This represents an indexing operation in the original source code.

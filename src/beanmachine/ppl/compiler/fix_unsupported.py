@@ -130,6 +130,62 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         tm = self._bmg.add_to_matrix(rows, cols, *node.inputs.inputs)
         return tm
 
+    def _replace_switch(self, node: bn.SwitchNode) -> Optional[bn.BMGNode]:
+        # inputs[0] is the value used to perform the switch; there are
+        # then pairs of constants and values.  It should be impossible
+        # to have an even number of inputs.
+        assert len(node.inputs) % 2 == 1
+
+        choice = node.inputs[0]
+
+        num_cases = (len(node.inputs) - 1) / 2
+        # It should be impossible to have a switch with no cases.
+        assert num_cases > 0
+
+        # It is possible but weird to have a switch with exactly one case.
+        # In this scenario we can eliminate the switch entirely by simply
+        # replacing it with its lone case value.
+
+        # TODO: Consider producing a warning for this situation, because
+        # the user's model is probably wrong if they think they are stochastically
+        # choosing a random variable but always get the same one.
+
+        if num_cases == 1:
+            assert isinstance(node.inputs[1], bn.ConstantNode)
+            return node.inputs[2]
+
+        # There are at least two cases.  We should never have two cases to choose from
+        # but a constant choice!
+
+        assert not isinstance(choice, bn.ConstantNode)
+
+        # If the switched value is a Boolean then we can turn this into an if-then-else.
+
+        tc = self._typer[choice]
+
+        if tc == bt.Boolean:
+            assert num_cases == 2
+            assert isinstance(node.inputs[1], bn.ConstantNode)
+            assert isinstance(node.inputs[3], bn.ConstantNode)
+            if bn.is_zero(node.inputs[1]):
+                assert bn.is_one(node.inputs[3])
+                return self._bmg.add_if_then_else(
+                    choice, node.inputs[4], node.inputs[2]
+                )
+            else:
+                assert bn.is_one(node.inputs[1])
+                assert bn.is_zero(node.inputs[3])
+                return self._bmg.add_if_then_else(
+                    choice, node.inputs[2], node.inputs[4]
+                )
+
+        # TODO: If tc is bt.Natural and the cases are 0, 1, 2, ... n then we can
+        # generate Index(Tensor(stochastic_values), choice).
+
+        # TODO: Generate a better error message for switches that we cannot yet
+        # turn into BMG nodes.
+        return None
+
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         # TODO:
         # Not -> Complement
@@ -142,6 +198,8 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             return self._replace_index(n)
         if isinstance(n, bn.LogSumExpTorchNode):
             return self._replace_lse(n)
+        if isinstance(n, bn.SwitchNode):
+            return self._replace_switch(n)
         if isinstance(n, bn.TensorNode):
             return self._replace_tensor(n)
         if isinstance(n, bn.UniformNode):

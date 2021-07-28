@@ -193,53 +193,55 @@ digraph "graph" {
         observations = {}
         bmg = BMGRuntime().accumulate_graph(queries, observations)
 
-        # Now we have three possibilities, and we cannot yet represent
-        # that in BMG.
-        # TODO: When we can represent this in BMG, update this test.
+        # Now we have three possibilities: 0, 1 or 2. We have not yet
+        # written the code to transform this switch into
+        # index(tensor(choices), choice).
+        # TODO: When we have done so, update this test.
+        # TODO: Add a test where we generate supports such as 1, 2, 3
+        # or 1, 10, 100.
         observed = to_dot(bmg, after_transform=False, label_edges=True)
         expected = """
 digraph "graph" {
-  N00[label=0.0];
-  N01[label=1.0];
-  N02[label=Normal];
+  N00[label=0.5];
+  N01[label=Bernoulli];
+  N02[label=Sample];
   N03[label=Sample];
-  N04[label=0.5];
-  N05[label=Bernoulli];
-  N06[label=Sample];
-  N07[label=2.0];
+  N04[label="+"];
+  N05[label=0.0];
+  N06[label=1.0];
+  N07[label=Normal];
   N08[label=Sample];
-  N09[label=map];
-  N10[label=Sample];
+  N09[label=Sample];
+  N10[label=2.0];
   N11[label=Sample];
-  N12[label="+"];
-  N13[label=index];
-  N14[label=1];
-  N15[label=Normal];
-  N16[label=Sample];
-  N17[label=Query];
-  N00 -> N02[label=mu];
-  N00 -> N09[label=0];
-  N01 -> N02[label=sigma];
-  N01 -> N09[label=2];
-  N02 -> N03[label=operand];
-  N03 -> N09[label=1];
-  N04 -> N05[label=probability];
-  N05 -> N06[label=operand];
-  N05 -> N08[label=operand];
-  N05 -> N10[label=operand];
-  N05 -> N11[label=operand];
-  N06 -> N09[label=3];
-  N07 -> N09[label=4];
-  N08 -> N09[label=5];
-  N09 -> N13[label=left];
-  N10 -> N12[label=left];
-  N11 -> N12[label=right];
-  N12 -> N13[label=right];
-  N13 -> N15[label=mu];
-  N14 -> N15[label=sigma];
-  N15 -> N16[label=operand];
-  N16 -> N17[label=operator];
-}"""
+  N12[label=Switch];
+  N13[label=1];
+  N14[label=Normal];
+  N15[label=Sample];
+  N16[label=Query];
+  N00 -> N01[label=probability];
+  N01 -> N02[label=operand];
+  N01 -> N03[label=operand];
+  N01 -> N09[label=operand];
+  N01 -> N11[label=operand];
+  N02 -> N04[label=left];
+  N03 -> N04[label=right];
+  N04 -> N12[label=0];
+  N05 -> N07[label=mu];
+  N05 -> N12[label=1];
+  N06 -> N07[label=sigma];
+  N06 -> N12[label=3];
+  N07 -> N08[label=operand];
+  N08 -> N12[label=2];
+  N09 -> N12[label=4];
+  N10 -> N12[label=5];
+  N11 -> N12[label=6];
+  N12 -> N14[label=mu];
+  N13 -> N14[label=sigma];
+  N14 -> N15[label=operand];
+  N15 -> N16[label=operator];
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())
 
     def test_stochastic_control_flow_composition_broken(self) -> None:
