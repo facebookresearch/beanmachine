@@ -130,6 +130,79 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         tm = self._bmg.add_to_matrix(rows, cols, *node.inputs.inputs)
         return tm
 
+    def _replace_bool_switch(self, node: bn.SwitchNode) -> bn.BMGNode:
+        # If the switched value is a Boolean then we can turn this into an if-then-else.
+        assert (len(node.inputs) - 1) / 2 == 2
+        assert isinstance(node.inputs[1], bn.ConstantNode)
+        assert isinstance(node.inputs[3], bn.ConstantNode)
+        if bn.is_zero(node.inputs[1]):
+            assert bn.is_one(node.inputs[3])
+            return self._bmg.add_if_then_else(
+                node.inputs[0], node.inputs[4], node.inputs[2]
+            )
+        else:
+            assert bn.is_one(node.inputs[1])
+            assert bn.is_zero(node.inputs[3])
+            return self._bmg.add_if_then_else(
+                node.inputs[0], node.inputs[2], node.inputs[4]
+            )
+
+    def _replace_natural_switch(self, node: bn.SwitchNode) -> Optional[bn.BMGNode]:
+        # If:
+        #
+        # * the switched value is natural, and
+        # * the cases are 0, 1, 2, ... n, and
+        # * the values are atomic
+        # then we can generate Index(ToMatrix(stochastic_values), choice).
+        #
+        # TODO: This is a bit of a hack to get around the fact that we are missing
+        # in BMG a generalization of IF_THEN_ELSE that chooses from n choices
+        # instead of just two. Consider implementing that in BMG, and then we can
+        # choose amongst arbitrary values, not just atomic values.
+        #
+        # TODO: If we have a contiguous set of cases, say {2, 3, 4}, then
+        # we could generate the matrix from the elements and the index could
+        # be the choice node minus two.
+        #
+        # TODO: If we have a slightly noncontiguous set of cases, say {0, 1, 3},
+        # then we can generate a matrix with a dummy value of the appropriate type
+        # in the missing place.
+        #
+        # TODO: If we have arbitrary natural cases, say 1, 10, 101, then we could
+        # add an integer equality operation to BMG and generate a nested IfThenElse.
+
+        # Do we have contiguous cases 0, ..., n?
+        num_cases = (len(node.inputs) - 1) // 2
+
+        cases = set()
+        for i in range(num_cases):
+            c = node.inputs[i * 2 + 1]
+            assert isinstance(c, bn.ConstantNode)
+            cases.add(int(c.value))
+
+        if min(cases) != 0 or max(cases) != num_cases - 1 or len(cases) != num_cases:
+            return None
+
+        # Are all the values atomic?
+        for i in range(num_cases):
+            v = node.inputs[i * 2 + 2]
+            vt = self._typer[v]
+            if not bt.is_atomic(vt):
+                return None
+
+        # We're all set; generate a one-column matrix and an indexer.
+        values = [None] * num_cases
+        for i in range(num_cases):
+            c = node.inputs[i * 2 + 1]
+            assert isinstance(c, bn.ConstantNode)
+            v = node.inputs[i * 2 + 2]
+            values[int(c.value)] = v  # pyre-ignore
+        assert None not in values
+        rows = self._bmg.add_natural(num_cases)
+        cols = self._bmg.add_natural(1)
+        tm = self._bmg.add_to_matrix(rows, cols, *values)
+        return self._bmg.add_vector_index(tm, node.inputs[0])
+
     def _replace_switch(self, node: bn.SwitchNode) -> Optional[bn.BMGNode]:
         # inputs[0] is the value used to perform the switch; there are
         # then pairs of constants and values.  It should be impossible
@@ -138,7 +211,7 @@ class UnsupportedNodeFixer(ProblemFixerBase):
 
         choice = node.inputs[0]
 
-        num_cases = (len(node.inputs) - 1) / 2
+        num_cases = (len(node.inputs) - 1) // 2
         # It should be impossible to have a switch with no cases.
         assert num_cases > 0
 
@@ -159,28 +232,11 @@ class UnsupportedNodeFixer(ProblemFixerBase):
 
         assert not isinstance(choice, bn.ConstantNode)
 
-        # If the switched value is a Boolean then we can turn this into an if-then-else.
-
         tc = self._typer[choice]
-
         if tc == bt.Boolean:
-            assert num_cases == 2
-            assert isinstance(node.inputs[1], bn.ConstantNode)
-            assert isinstance(node.inputs[3], bn.ConstantNode)
-            if bn.is_zero(node.inputs[1]):
-                assert bn.is_one(node.inputs[3])
-                return self._bmg.add_if_then_else(
-                    choice, node.inputs[4], node.inputs[2]
-                )
-            else:
-                assert bn.is_one(node.inputs[1])
-                assert bn.is_zero(node.inputs[3])
-                return self._bmg.add_if_then_else(
-                    choice, node.inputs[2], node.inputs[4]
-                )
-
-        # TODO: If tc is bt.Natural and the cases are 0, 1, 2, ... n then we can
-        # generate Index(Tensor(stochastic_values), choice).
+            return self._replace_bool_switch(node)
+        if tc == bt.Natural:
+            return self._replace_natural_switch(node)
 
         # TODO: Generate a better error message for switches that we cannot yet
         # turn into BMG nodes.

@@ -785,3 +785,12 @@ def must_be_matrix(r: Requirement) -> bool:
     if isinstance(t, BMGMatrixType):
         return t.rows != 1 or t.columns != 1
     return False
+
+
+def is_atomic(t: BMGLatticeType) -> bool:
+    return (
+        isinstance(t, BMGMatrixType)
+        and t.rows == 1
+        and t.columns == 1
+        and not isinstance(t, SimplexMatrix)
+    )

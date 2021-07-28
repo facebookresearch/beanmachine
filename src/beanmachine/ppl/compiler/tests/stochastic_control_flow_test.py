@@ -193,10 +193,11 @@ digraph "graph" {
         observations = {}
         bmg = BMGRuntime().accumulate_graph(queries, observations)
 
-        # Now we have three possibilities: 0, 1 or 2. We have not yet
-        # written the code to transform this switch into
-        # index(tensor(choices), choice).
-        # TODO: When we have done so, update this test.
+        # TODO: We cannot yet transform this into a legal BMG graph because
+        # the quantity used to make the choice is a sum of Booleans, and
+        # we treat the sum of bools as a real number, not as a natural.
+        # We can only index on naturals.
+
         # TODO: Add a test where we generate supports such as 1, 2, 3
         # or 1, 10, 100.
         observed = to_dot(bmg, after_transform=False, label_edges=True)
