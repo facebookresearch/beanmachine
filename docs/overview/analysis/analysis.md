@@ -51,9 +51,9 @@ tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
         [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])
 ```
 
-Each entry represents a different sample of `reproduction_rate()` from the posterior distribution.
+The result has shape $4 \times 10000$, representing the 10,000 samples that we drew in each of the four chains of inference from the posterior distribution.
 
-`MonteCarloSamples` supports convenient dictionary indexing syntax as well:
+`MonteCarloSamples` supports convenient dictionary indexing syntax to obtain the same information:
 
 ```py
 samples[ reproduction_rate() ]
@@ -64,8 +64,6 @@ tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
         [0.2170, 0.2180, 0.2183,  ..., 0.2180, 0.2180, 0.2180],
         [0.2180, 0.2180, 0.2172,  ..., 0.2180, 0.2180, 0.2176]])
 ```
-
-The result has shape $4 \times 10000$, representing the 10,000 samples that we drew in each of the 4 chains of inference.
 
 Please note that many inference methods require a small number of samples before they start drawing samples that correctly resemble the posterior distribution. We recommend you discard at least a few hundred samples before using your inference results.
 
@@ -132,7 +130,7 @@ The statistics presented are:
 
 These statistics provide different insights into the quality of the results of inference. For instance, we can use them in combination with synthetically generated data for which we know ground truth values for parameters and then check to make sure that these values fall within the 95% confidence intervals. Of course, in doing so it is important to keep in mind that the prior distributions in our model (and not just the data) will always have an influence on the posterior distribution. Similarly, we can use the size of the 95% confidence interval to gain insights into the model: If it is large, this could indicate that either we have too few observations or that the prior is too weak.
 
-$\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the correct posterior distribution for a particular random variable. It uses information from all chains run in order to assess whether inference had a good understanding of the distribution or not. Values very close to zero indicate that all chains discovered similar distributions for a particular random variable. We do not recommend using inference results where $\hat{R} > 1.1$, as inference may not have converged. In that case, you may want to run inference for more samples. However, there are situations in which increasing the number of samples will not improve convergence. In this case, it is possible that the prior is too far from the posterior that inference is unable to reliably explore the posterior distribution.
+$\hat{R} \in [1, \infty)$ summarizes how effective inference was at converging on the correct posterior distribution for a particular random variable. It uses information from all chains run in order to assess whether inference had a good understanding of the distribution or not. Values very close to $1.0$ indicate that all chains discovered similar distributions for a particular random variable. We do not recommend using inference results where $\hat{R} > 1.1$, as inference may not have converged. In that case, you may want to run inference for more samples. However, there are situations in which increasing the number of samples will not improve convergence. In this case, it is possible that the prior is too far from the posterior that inference is unable to reliably explore the posterior distribution.
 
 $N_\text{eff} \in [1,$ `num_samples`$]$ summarizes how independent posterior samples are from one another. Although inference was run for `num_samples` iterations, it's possible that those samples were very similar to each other (due to the way inference is implemented), and may not each be representative of the full posterior space. Larger numbers are better here, and if your particular use case calls for a certain number of samples to be considered, you should ensure that $N_\text{eff}$ is at least that large.
 
