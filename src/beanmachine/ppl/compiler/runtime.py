@@ -877,50 +877,6 @@ class BMGRuntime:
             )
         return (f, args, kwargs)
 
-    def _create_optimized_map(
-        self, choice: BMGNode, key_value_pairs: List[BMGNode]
-    ) -> BMGNode:
-        assert len(key_value_pairs) % 2 == 0
-
-        num_pairs = len(key_value_pairs) / 2
-
-        # It should be impossible to have a distribution with no support.
-        assert num_pairs != 0
-
-        # It is bizarre to have a distribution with support of one but
-        # I suppose it could happen if we had something like a categorical
-        # with only one category, or we had a Boolean multiplied by zero.
-        # In this case we can simply use the value.
-
-        if num_pairs == 1:
-            return key_value_pairs[1]
-
-        # If we have a map where the keys are 0 and 1 then we can
-        # create an if-then-else. (It is easier to simply do it here
-        # where the map is created, than to add the map and then transform
-        # it in a problem fixing pass later. No reason to not do it right
-        # the first time.)
-
-        # TODO: This optimization is only valid if the choice is of type
-        # boolean, but we want to decouple the runtime from the type system.
-        # Move the optimization out of here and into a rewriting pass.
-
-        if num_pairs == 2:
-            if bn.is_zero(key_value_pairs[0]) and bn.is_one(key_value_pairs[2]):
-                return self._bmg.add_if_then_else(
-                    choice, key_value_pairs[3], key_value_pairs[1]
-                )
-            if bn.is_one(key_value_pairs[0]) and bn.is_zero(key_value_pairs[2]):
-                return self._bmg.add_if_then_else(
-                    choice, key_value_pairs[1], key_value_pairs[3]
-                )
-
-        # Otherwise, just make a map node.
-        # TODO: Fix this. We need a better abstraction that is supported by BMG.
-        map_node = self._bmg.add_map(*key_value_pairs)
-        index_node = self._bmg.add_index_deprecated(map_node, choice)
-        return index_node
-
     def _handle_random_variable_call_checked(
         self, function: Any, arguments: List[Any]
     ) -> BMGNode:
@@ -952,15 +908,15 @@ class BMGRuntime:
         # individual call.  Do some performance testing.
 
         replaced_arg = arguments[index]
-        key_value_pairs = []
+        switch_inputs = [replaced_arg]
         for new_arg in replaced_arg.support():
             key = self._bmg.add_constant(new_arg)
             new_arguments = list(arguments)
             new_arguments[index] = new_arg
             value = self._handle_random_variable_call_checked(function, new_arguments)
-            key_value_pairs.append(key)
-            key_value_pairs.append(value)
-        return self._create_optimized_map(replaced_arg, key_value_pairs)
+            switch_inputs.append(key)
+            switch_inputs.append(value)
+        return self._bmg.add_switch(*switch_inputs)
 
     def _handle_random_variable_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
@@ -1205,22 +1161,6 @@ class BMGRuntime:
             self.rv_map[key] = value
             return value
         return self.rv_map[key]
-
-    def collection_to_map(self, collection) -> bn.MapNode:
-        if isinstance(collection, bn.MapNode):
-            return collection
-        if isinstance(collection, list):
-            copy = []
-            for i in range(0, len(collection)):
-                copy.append(self._bmg.add_constant(i))
-                item = collection[i]
-                node = (
-                    item if isinstance(item, BMGNode) else self._bmg.add_constant(item)
-                )
-                copy.append(node)
-            return self._bmg.add_map(*copy)
-        # TODO: Dictionaries? Tuples?
-        raise ValueError("collection_to_map requires a list")
 
     def handle_sample(self, operand: Any) -> bn.SampleNode:  # noqa
         """As we execute the lifted program, this method is called every

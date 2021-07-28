@@ -651,18 +651,6 @@ class BMGraphBuilder:
         self.add_node(node)
         return node
 
-    # TODO: Remove this.
-
-    @memoize
-    def add_index_deprecated(self, left: bn.MapNode, right: BMGNode) -> BMGNode:
-        # TODO: Is there a better way to say "if list length is 1" that bails out
-        # TODO: if it is greater than 1?
-        if len(list(right.support())) == 1:
-            return left[right]
-        node = bn.IndexNodeDeprecated(left, right)
-        self.add_node(node)
-        return node
-
     @memoize
     def add_index(self, left: bn.BMGNode, right: bn.BMGNode) -> bn.BMGNode:
         # Folding optimizations are done in the fixer.
@@ -877,9 +865,9 @@ class BMGraphBuilder:
         return node
 
     @memoize
-    def add_map(self, *elements: BMGNode) -> bn.MapNode:
+    def add_switch(self, *elements: BMGNode) -> bn.SwitchNode:
         # TODO: Verify that the list is well-formed.
-        node = bn.MapNode(list(elements))
+        node = bn.SwitchNode(list(elements))
         self.add_node(node)
         return node
 

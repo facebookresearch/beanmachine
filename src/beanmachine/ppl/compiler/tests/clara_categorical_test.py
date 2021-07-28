@@ -95,100 +95,106 @@ class ClaraCategoricalTest(unittest.TestCase):
         observed = BMGInference().to_dot(queries, observations, after_transform=False)
         expected = """
 digraph "graph" {
-  N00[label=0];
-  N01[label="[10.0,5.0,1.0]"];
-  N02[label=Dirichlet];
-  N03[label=Sample];
-  N04[label=1];
-  N05[label="[5.0,10.0,1.0]"];
-  N06[label=Dirichlet];
-  N07[label=Sample];
-  N08[label=2];
-  N09[label="[1.0,1.0,10.0]"];
-  N10[label=Dirichlet];
-  N11[label=Sample];
-  N12[label=map];
-  N13[label="[1.0,1.0,1.0]"];
-  N14[label=Dirichlet];
-  N15[label=Sample];
-  N16[label=Categorical];
-  N17[label=Sample];
-  N18[label=index];
-  N19[label=Categorical];
-  N20[label=Sample];
-  N21[label="Observation tensor(0)"];
+  N00[label="[1.0,1.0,1.0]"];
+  N01[label=Dirichlet];
+  N02[label=Sample];
+  N03[label=Categorical];
+  N04[label=Sample];
+  N05[label=0];
+  N06[label="[10.0,5.0,1.0]"];
+  N07[label=Dirichlet];
+  N08[label=Sample];
+  N09[label=1];
+  N10[label="[5.0,10.0,1.0]"];
+  N11[label=Dirichlet];
+  N12[label=Sample];
+  N13[label=2];
+  N14[label="[1.0,1.0,10.0]"];
+  N15[label=Dirichlet];
+  N16[label=Sample];
+  N17[label=Switch];
+  N18[label=Categorical];
+  N19[label=Sample];
+  N20[label="Observation tensor(0)"];
+  N21[label=Sample];
   N22[label=Sample];
   N23[label=Sample];
-  N24[label=Sample];
-  N25[label=map];
-  N26[label=index];
-  N27[label=Categorical];
+  N24[label=Switch];
+  N25[label=Categorical];
+  N26[label=Sample];
+  N27[label="Observation tensor(1)"];
   N28[label=Sample];
-  N29[label="Observation tensor(1)"];
-  N30[label=Sample];
-  N31[label=index];
-  N32[label=Categorical];
-  N33[label=Sample];
-  N34[label="Observation tensor(2)"];
-  N35[label=index];
-  N36[label=Categorical];
-  N37[label=Sample];
-  N38[label="Observation tensor(2)"];
-  N39[label=Query];
-  N40[label=Query];
-  N00 -> N12;
-  N00 -> N25;
+  N29[label=Switch];
+  N30[label=Categorical];
+  N31[label=Sample];
+  N32[label="Observation tensor(2)"];
+  N33[label=Switch];
+  N34[label=Categorical];
+  N35[label=Sample];
+  N36[label="Observation tensor(2)"];
+  N37[label=Query];
+  N38[label=Query];
+  N00 -> N01;
   N01 -> N02;
   N02 -> N03;
-  N02 -> N22;
-  N03 -> N12;
-  N04 -> N12;
-  N04 -> N25;
-  N05 -> N06;
+  N03 -> N04;
+  N03 -> N28;
+  N04 -> N17;
+  N04 -> N24;
+  N04 -> N37;
+  N05 -> N17;
+  N05 -> N24;
+  N05 -> N29;
+  N05 -> N33;
   N06 -> N07;
-  N06 -> N23;
-  N07 -> N12;
-  N08 -> N12;
-  N08 -> N25;
-  N09 -> N10;
+  N07 -> N08;
+  N07 -> N21;
+  N08 -> N17;
+  N08 -> N29;
+  N09 -> N17;
+  N09 -> N24;
+  N09 -> N29;
+  N09 -> N33;
   N10 -> N11;
-  N10 -> N24;
   N11 -> N12;
-  N12 -> N18;
-  N12 -> N31;
-  N13 -> N14;
+  N11 -> N22;
+  N12 -> N17;
+  N12 -> N29;
+  N13 -> N17;
+  N13 -> N24;
+  N13 -> N29;
+  N13 -> N33;
   N14 -> N15;
   N15 -> N16;
+  N15 -> N23;
   N16 -> N17;
-  N16 -> N30;
+  N16 -> N29;
   N17 -> N18;
-  N17 -> N26;
-  N17 -> N39;
   N18 -> N19;
   N19 -> N20;
-  N20 -> N21;
-  N22 -> N25;
-  N23 -> N25;
+  N21 -> N24;
+  N21 -> N33;
+  N22 -> N24;
+  N22 -> N33;
+  N23 -> N24;
+  N23 -> N33;
   N24 -> N25;
   N25 -> N26;
-  N25 -> N35;
   N26 -> N27;
-  N27 -> N28;
   N28 -> N29;
+  N28 -> N33;
+  N28 -> N38;
+  N29 -> N30;
   N30 -> N31;
-  N30 -> N35;
-  N30 -> N40;
   N31 -> N32;
-  N32 -> N33;
   N33 -> N34;
+  N34 -> N35;
   N35 -> N36;
-  N36 -> N37;
-  N37 -> N38;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: The obscure "index" error here is a result of an unsupported
+        # TODO: The obscure "switch" error here is a result of an unsupported
         # stochastic control flow which we do not correctly detect and therefore
         # do not produce a sensible error message. Stochastic flows of the form
         # some_rv(some_categorical_rv()) are not yet implemented correctly. When
@@ -203,17 +209,13 @@ digraph "graph" {
             BMGInference().infer(queries, observations, 10)
         observed = str(ex.exception)
         expected = """
-The model uses a index operation unsupported by Bean Machine Graph.
+The model uses a Switch operation unsupported by Bean Machine Graph.
 The unsupported node is the probability of a Categorical.
-The model uses a index operation unsupported by Bean Machine Graph.
+The model uses a Switch operation unsupported by Bean Machine Graph.
 The unsupported node is the probability of a Categorical.
-The model uses a index operation unsupported by Bean Machine Graph.
+The model uses a Switch operation unsupported by Bean Machine Graph.
 The unsupported node is the probability of a Categorical.
-The model uses a index operation unsupported by Bean Machine Graph.
+The model uses a Switch operation unsupported by Bean Machine Graph.
 The unsupported node is the probability of a Categorical.
-The model uses a map operation unsupported by Bean Machine Graph.
-The unsupported node is the left of a index.
-The model uses a map operation unsupported by Bean Machine Graph.
-The unsupported node is the left of a index.
         """
         self.assertEqual(expected.strip(), observed.strip())
