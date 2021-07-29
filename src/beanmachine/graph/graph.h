@@ -774,7 +774,14 @@ struct Graph {
   void collect_performance_data(bool b);
   std::string performance_report();
 
- private:
+  // private:
+  // TODO: a lot of members used to be private, but we need access to them
+  // (for example from the now external NMC class).
+  // We need to rethink the use of Graph as a data
+  // structure and the access to its members. Right now algorithms were put
+  // "inside" Graph so they would have such access,
+  // but Graph should be not depend on any algorithms,
+  // so all this needs to be cleaned up.
   Node* check_observed_node(uint node_id, bool is_scalar);
   void add_observe(Node* node, NodeValue val);
   Node* get_node(uint node_id);
@@ -813,10 +820,9 @@ struct Graph {
   std::vector<std::vector<double>> variational_params;
   std::vector<double> elbo_vals;
   void collect_sample();
-  void rejection(uint num_samples, std::mt19937& gen, InferConfig infer_config);
-  void gibbs(uint num_samples, std::mt19937& gen, InferConfig infer_config);
-  class NMC;
-  void nmc(uint num_samples, std::mt19937& gen, InferConfig infer_config);
+  void rejection(uint num_samples, uint seed, InferConfig infer_config);
+  void gibbs(uint num_samples, uint seed, InferConfig infer_config);
+  void nmc(uint num_samples, uint gen, InferConfig infer_config);
   void cavi(
       uint num_iters,
       uint steps_per_iter,

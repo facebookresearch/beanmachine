@@ -950,13 +950,12 @@ void Graph::_infer(
   if (num_samples < 1) {
     throw std::runtime_error("num_samples can't be zero");
   }
-  std::mt19937 generator(seed);
   if (algorithm == InferenceType::REJECTION) {
-    rejection(num_samples, generator, infer_config);
+    rejection(num_samples, seed, infer_config);
   } else if (algorithm == InferenceType::GIBBS) {
-    gibbs(num_samples, generator, infer_config);
+    gibbs(num_samples, seed, infer_config);
   } else if (algorithm == InferenceType::NMC) {
-    nmc(num_samples, generator, infer_config);
+    nmc(num_samples, seed, infer_config);
   }
 }
 
