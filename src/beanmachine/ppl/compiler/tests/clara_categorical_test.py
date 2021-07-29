@@ -195,10 +195,25 @@ digraph "graph" {
         self.assertEqual(expected.strip(), observed.strip())
 
         # TODO: The obscure "switch" error here is a result of an unsupported
-        # stochastic control flow which we do not correctly detect and therefore
-        # do not produce a sensible error message. Stochastic flows of the form
-        # some_rv(some_categorical_rv()) are not yet implemented correctly. When
-        # they are, revisit this test.
+        # stochastic control flow for which we do not yet produce a useful
+        # error message.
+        #
+        # The unsupported control flow is theta(classifier, category_of_item(item));
+        # category_of_item is a small natural, but theta produces a simplex, and
+        # we have no way yet to build a graph to represent the operation "choose
+        # one of these simplexes from a list of simplexes".
+        #
+        # That is, we have k samples from theta, each of which is of type simplex, and
+        # we have category_of_item, which is a number from 0 to k-1.  But we cannot
+        # use TO_MATRIX on those k samples because TO_MATRIX requires its inputs to be
+        # all atomic values; it does not paste together a bunch of column simplexes into
+        # a column simplex matrix from which we can select a single column via indexing.
+        #
+        # What we need to do is either (1) make TO_MATRIX do that, (2) make a new operation
+        # similar to TO_MATRIX for gluing together columns, or (3) make a generalized
+        # IF_THEN_ELSE that chooses from k choices rather than two choices.  (And of course
+        # it is possible to do more than one of these options; they are more generally useful
+        # than just solving this problem alone.)
 
         # TODO: Raise a better error than a generic ValueError
         # TODO: These error messages are needlessly repetitive.
