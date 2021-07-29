@@ -11,6 +11,7 @@ class NMCDirichletBetaSingleSiteStepper : public NMCSingleSiteStepper {
  public:
   NMCDirichletBetaSingleSiteStepper(Graph* graph, NMC* nmc)
       : NMCSingleSiteStepper(graph, nmc) {}
+  virtual bool is_applicable_to(graph::Node* tgt_node) override;
 
   virtual void step(
       graph::Node* tgt_node,

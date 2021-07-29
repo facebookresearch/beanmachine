@@ -12,6 +12,10 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
+#include "beanmachine/graph/stepper/nmc_dirichlet_beta_single_site_stepper.h"
+#include "beanmachine/graph/stepper/nmc_dirichlet_gamma_single_site_stepper.h"
+#include "beanmachine/graph/stepper/nmc_scalar_single_site_stepper.h"
+#include "beanmachine/graph/stepper/nmc_single_site_stepper.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {
@@ -20,9 +24,14 @@ namespace graph {
 NMC::NMC(Graph* g, uint seed)
     : g(g),
       gen(seed),
-      nmc_scalar_single_site_stepper(g, this),
-      dirichlet_beta_single_site_stepper(g, this),
-      dirichlet_gamma_single_site_stepper(g, this) {}
+      // Note: the order of steppers below is important
+      // because DirichletGamma is also application to
+      // nodes to which Beta is applicable,
+      // but we want to give priority to Beta in those cases.
+      single_site_steppers{
+          new NMCScalarSingleSiteStepper(g, this),
+          new NMCDirichletBetaSingleSiteStepper(g, this),
+          new NMCDirichletGammaSingleSiteStepper(g, this)} {}
 
 void NMC::infer(uint num_samples, InferConfig infer_config) {
   g->pd_begin(ProfilerEvent::NMC_INFER);
@@ -131,25 +140,25 @@ void NMC::compute_affected_nodes() {
 
 void NMC::generate_sample() {
   for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
-    Node* tgt_node = unobserved_sto_supp[i];
-    if (tgt_node->value.type.variable_type ==
-        VariableType::COL_SIMPLEX_MATRIX) {
-      // TODO make more generic
-      // This will not be hard-coded, but instead map
-      // the variable to its stepper in a more
-      // flexible way.
-      if (tgt_node->value.type.rows == 2) {
-        dirichlet_beta_single_site_stepper.step(
-            tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
-      } else {
-        dirichlet_gamma_single_site_stepper.step(
-            tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
-      }
-    } else {
-      nmc_scalar_single_site_stepper.step(
-          tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
-    }
+    auto tgt_node = unobserved_sto_supp[i];
+    auto stepper = find_applicable_stepper(tgt_node);
+    stepper->step(tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
   }
+}
+
+NMCSingleSiteStepper* NMC::find_applicable_stepper(Node* tgt_node) {
+  auto applicable_stepper = std::find_if(
+      single_site_steppers.begin(),
+      single_site_steppers.end(),
+      [tgt_node](auto st) { return st->is_applicable_to(tgt_node); });
+
+  if (applicable_stepper == single_site_steppers.end()) {
+    throw std::runtime_error(
+        "No single-site stepper applies to node " +
+        std::to_string(tgt_node->index));
+  }
+
+  return *applicable_stepper;
 }
 
 void NMC::collect_samples(uint num_samples, InferConfig infer_config) {
@@ -228,6 +237,12 @@ NodeValue NMC::sample(const std::unique_ptr<proposer::Proposer>& prop) {
   NodeValue v = prop->sample(gen);
   g->pd_finish(ProfilerEvent::NMC_SAMPLE);
   return v;
+}
+
+NMC::~NMC() {
+  for (auto single_site_stepper : single_site_steppers) {
+    delete single_site_stepper;
+  }
 }
 
 void Graph::nmc(uint num_samples, uint seed, InferConfig infer_config) {

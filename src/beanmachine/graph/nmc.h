@@ -26,6 +26,9 @@ namespace beanmachine {
 namespace graph {
 
 class NMC {
+ public:
+  virtual ~NMC();
+
  private:
   Graph* g;
 
@@ -94,6 +97,8 @@ class NMC {
 
   void generate_sample();
 
+  NMCSingleSiteStepper* find_applicable_stepper(Node* tgt_node);
+
   void collect_samples(uint num_samples, InferConfig infer_config);
 
   void collect_sample(InferConfig infer_config);
@@ -115,9 +120,7 @@ class NMC {
   // TEMPORARY: we are in the process of moving ad hoc code out of NMC.
   // Eventually NMC will receive an arbitray list of single-site steppers that
   // will known to which random variables they apply.
-  NMCScalarSingleSiteStepper nmc_scalar_single_site_stepper;
-  NMCDirichletBetaSingleSiteStepper dirichlet_beta_single_site_stepper;
-  NMCDirichletGammaSingleSiteStepper dirichlet_gamma_single_site_stepper;
+  std::vector<NMCSingleSiteStepper*> single_site_steppers;
 };
 
 } // namespace graph

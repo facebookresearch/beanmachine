@@ -20,6 +20,10 @@
 namespace beanmachine {
 namespace graph {
 
+bool NMCScalarSingleSiteStepper::is_applicable_to(graph::Node* tgt_node) {
+  return tgt_node->value.type.variable_type == VariableType::SCALAR;
+}
+
 /*
 We treat the K-dimensional Dirichlet sample as K independent Gamma samples
 divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,

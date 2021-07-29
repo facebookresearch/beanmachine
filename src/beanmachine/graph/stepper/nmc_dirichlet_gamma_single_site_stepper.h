@@ -11,7 +11,8 @@ class NMCDirichletGammaSingleSiteStepper : public NMCSingleSiteStepper {
  public:
   NMCDirichletGammaSingleSiteStepper(Graph* graph, NMC* nmc)
       : NMCSingleSiteStepper(graph, nmc) {}
-
+  virtual bool is_applicable_to(graph::Node* tgt_node) override;
+  
   virtual void step(
       graph::Node* tgt_node,
       const std::vector<graph::Node*>& det_affected_nodes,
