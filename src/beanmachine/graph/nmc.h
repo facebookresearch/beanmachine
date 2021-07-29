@@ -42,7 +42,11 @@ class NMC {
   // we update the values. If we then reject the proposed new state, we need
   // to restore the values. This vector stores the original values of the
   // nodes that we change during the proposal step.
+  // We do the same for the log probability of the stochastic nodes
+  // affected by the last revertible set and propagate operation
+  // see (revertibly_set_and_propagate method).
   std::vector<NodeValue> old_values;
+  double old_sto_affected_nodes_log_prob;
 
   // The support is the set of all nodes in the graph that are queried or
   // observed, directly or indirectly. We need both the support as nodes
@@ -109,7 +113,31 @@ class NMC {
 
   void collect_sample(InferConfig infer_config);
 
-  void save_old_values(const std::vector<Node*>& det_nodes);
+  // Set a given node to a new value
+  // and update its deterministically affected
+  // nodes in a revertible manner.
+  void revertibly_set_and_propagate(
+      Node* node,
+      const NodeValue& value,
+      const std::vector<Node*>& det_affected_nodes,
+      const std::vector<Node*>& sto_affected_nodes);
+
+  // Revert the last revertibly_set_and_propagate
+  void revert_set_and_propagate(
+      Node* node,
+      const std::vector<Node*>& det_affected_nodes_for_node);
+
+  void save_old_value(const Node* node);
+
+  void save_old_values(const std::vector<Node*>& nodes);
+
+  NodeValue& get_old_value(const Node* node);
+
+  double get_old_sto_affected_nodes_log_prob() {
+    return old_sto_affected_nodes_log_prob;
+  }
+
+  void restore_old_value(Node* node);
 
   void restore_old_values(const std::vector<Node*>& det_nodes);
 

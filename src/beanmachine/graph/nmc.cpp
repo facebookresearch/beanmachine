@@ -190,12 +190,43 @@ void NMC::collect_sample(InferConfig infer_config) {
   g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
 }
 
-void NMC::save_old_values(const std::vector<Node*>& det_nodes) {
+void NMC::revertibly_set_and_propagate(
+    Node* node,
+    const NodeValue& value,
+    const std::vector<Node*>& det_affected_nodes,
+    const std::vector<Node*>& sto_affected_nodes) {
+  save_old_value(node);
+  save_old_values(det_affected_nodes);
+  old_sto_affected_nodes_log_prob = compute_log_prob_of(sto_affected_nodes);
+  node->value = value;
+  eval(det_affected_nodes);
+}
+
+void NMC::revert_set_and_propagate(
+    Node* node,
+    const std::vector<Node*>& det_affected_nodes_for_node) {
+  restore_old_value(node);
+  restore_old_values(det_affected_nodes_for_node);
+}
+
+void NMC::save_old_value(const Node* node) {
+  old_values[node->index] = node->value;
+}
+
+void NMC::save_old_values(const std::vector<Node*>& nodes) {
   g->pd_begin(ProfilerEvent::NMC_SAVE_OLD);
-  for (Node* node : det_nodes) {
+  for (Node* node : nodes) {
     old_values[node->index] = node->value;
   }
   g->pd_finish(ProfilerEvent::NMC_SAVE_OLD);
+}
+
+NodeValue& NMC::get_old_value(const Node* node) {
+  return old_values[node->index];
+}
+
+void NMC::restore_old_value(Node* node) {
+  node->value = old_values[node->index];
 }
 
 void NMC::restore_old_values(const std::vector<Node*>& det_nodes) {

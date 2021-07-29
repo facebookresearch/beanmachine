@@ -82,11 +82,11 @@ bmg_profiler_report: nmc_infer:(1) -- ms
   initialize:(1) -- ms
   collect_samples:(1) -- ms
     step:(100000) -- ms
-      save_old:(100000) -- ms
       create_prop:(200000) -- ms
         compute_grads:(200000) -- ms
         unattributed: -- ms
       sample:(100000) -- ms
+      save_old:(100000) -- ms
       eval:(100000) -- ms
       clear_grads:(100000) -- ms
       restore_old:(8136) -- ms
@@ -143,11 +143,11 @@ bmg_profiler_report: nmc_infer:(1) -- ms
   initialize:(1) -- ms
   collect_samples:(1) -- ms
     step:(100000) -- ms
-      save_old:(100000) -- ms
       create_prop:(200000) -- ms
         compute_grads:(200000) -- ms
         unattributed: -- ms
       sample:(100000) -- ms
+      save_old:(100000) -- ms
       eval:(100000) -- ms
       clear_grads:(100000) -- ms
       restore_old:(8136) -- ms

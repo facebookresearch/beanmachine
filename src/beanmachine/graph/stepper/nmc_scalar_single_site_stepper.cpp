@@ -62,23 +62,23 @@ void NMCScalarSingleSiteStepper::step(
   //   their probabilities unchanged and cancel out.
   // * If we rejected it, restore the saved state.
 
-  NodeValue old_value = tgt_node->value;
-  nmc->save_old_values(det_affected_nodes);
-
-  double old_sto_affected_nodes_log_prob =
-      nmc->compute_log_prob_of(sto_affected_nodes);
   auto proposal_distribution_given_old_value = get_proposal_distribution(
-      tgt_node, old_value, det_affected_nodes, sto_affected_nodes);
+      tgt_node, tgt_node->value, det_affected_nodes, sto_affected_nodes);
 
   NodeValue new_value = nmc->sample(proposal_distribution_given_old_value);
 
-  tgt_node->value = new_value;
-  nmc->eval(det_affected_nodes);
+  nmc->revertibly_set_and_propagate(
+      tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
 
   double new_sto_affected_nodes_log_prob =
       nmc->compute_log_prob_of(sto_affected_nodes);
+
   auto proposal_distribution_given_new_value = get_proposal_distribution(
       tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
+
+  NodeValue& old_value = nmc->get_old_value(tgt_node);
+  double old_sto_affected_nodes_log_prob =
+      nmc->get_old_sto_affected_nodes_log_prob();
 
   double logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob +
@@ -87,8 +87,7 @@ void NMCScalarSingleSiteStepper::step(
 
   bool accepted = logacc > 0 or util::sample_logprob(nmc->gen, logacc);
   if (!accepted) {
-    nmc->restore_old_values(det_affected_nodes);
-    tgt_node->value = old_value;
+    nmc->revert_set_and_propagate(tgt_node, det_affected_nodes);
   }
 
   // Gradients must be cleared (equal to 0)
