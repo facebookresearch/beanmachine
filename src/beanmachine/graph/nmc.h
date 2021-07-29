@@ -58,6 +58,10 @@ class NMC {
   // Nodes in unobserved_supp that are stochastic; similarly, order matters.
   std::vector<Node*> unobserved_sto_supp;
 
+  // Single-site steppers application to nodes in unobserved_supp that are
+  // stochastic; similarly, order matters.
+  std::vector<NMCSingleSiteStepper*> stepper_for_node;
+
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
   // respectively the vector of
@@ -86,6 +90,8 @@ class NMC {
   void collect_node_ptrs();
 
   void compute_support();
+
+  void find_steppers();
 
   static bool is_not_supported(Node* node);
 

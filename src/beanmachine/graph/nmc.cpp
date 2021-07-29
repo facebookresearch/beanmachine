@@ -47,6 +47,7 @@ void NMC::initialize() {
   g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
   collect_node_ptrs();
   compute_support();
+  find_steppers();
   ensure_continuous();
   compute_initial_values();
   compute_affected_nodes();
@@ -75,6 +76,29 @@ void NMC::compute_support() {
       }
     }
   }
+}
+
+void NMC::find_steppers() {
+  for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
+    auto tgt_node = unobserved_sto_supp[i];
+    auto stepper = find_applicable_stepper(tgt_node);
+    stepper_for_node.push_back(stepper);
+  }
+}
+
+NMCSingleSiteStepper* NMC::find_applicable_stepper(Node* tgt_node) {
+  auto applicable_stepper = std::find_if(
+      single_site_steppers.begin(),
+      single_site_steppers.end(),
+      [tgt_node](auto st) { return st->is_applicable_to(tgt_node); });
+
+  if (applicable_stepper == single_site_steppers.end()) {
+    throw std::runtime_error(
+        "No single-site stepper applies to node " +
+        std::to_string(tgt_node->index));
+  }
+
+  return *applicable_stepper;
 }
 
 bool NMC::is_not_supported(Node* node) { // specific to NMC
@@ -141,24 +165,9 @@ void NMC::compute_affected_nodes() {
 void NMC::generate_sample() {
   for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
     auto tgt_node = unobserved_sto_supp[i];
-    auto stepper = find_applicable_stepper(tgt_node);
-    stepper->step(tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
+    stepper_for_node[i]->step(
+        tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
   }
-}
-
-NMCSingleSiteStepper* NMC::find_applicable_stepper(Node* tgt_node) {
-  auto applicable_stepper = std::find_if(
-      single_site_steppers.begin(),
-      single_site_steppers.end(),
-      [tgt_node](auto st) { return st->is_applicable_to(tgt_node); });
-
-  if (applicable_stepper == single_site_steppers.end()) {
-    throw std::runtime_error(
-        "No single-site stepper applies to node " +
-        std::to_string(tgt_node->index));
-  }
-
-  return *applicable_stepper;
 }
 
 void NMC::collect_samples(uint num_samples, InferConfig infer_config) {

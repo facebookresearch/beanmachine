@@ -24,12 +24,6 @@ bool NMCScalarSingleSiteStepper::is_applicable_to(graph::Node* tgt_node) {
   return tgt_node->value.type.variable_type == VariableType::SCALAR;
 }
 
-/*
-We treat the K-dimensional Dirichlet sample as K independent Gamma samples
-divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
-Y_k = X_k / sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
-the attribute value, and X in unconstrainted_value.
-*/
 void NMCScalarSingleSiteStepper::step(
     Node* tgt_node,
     const std::vector<Node*>& det_affected_nodes,
