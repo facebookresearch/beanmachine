@@ -85,7 +85,7 @@ void NMCScalarSingleSiteStepper::step(
       proposal_distribution_given_new_value->log_prob(old_value) -
       proposal_distribution_given_old_value->log_prob(new_value);
 
-  bool accepted = logacc > 0 or util::sample_logprob(nmc->gen, logacc);
+  bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
   if (!accepted) {
     nmc->revert_set_and_propagate(tgt_node, det_affected_nodes);
   }

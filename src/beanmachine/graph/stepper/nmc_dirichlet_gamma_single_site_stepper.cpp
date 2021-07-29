@@ -97,7 +97,7 @@ void NMCDirichletGammaSingleSiteStepper::step(
         old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
         old_prop->log_prob(new_value);
     // Accept or reject, reset (values and) gradients
-    bool accepted = logacc > 0 or util::sample_logprob(nmc->gen, logacc);
+    bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
     if (!accepted) {
       nmc->restore_old_values(det_nodes);
       *(src_node->unconstrained_value._matrix.data() + k) = old_X_k;

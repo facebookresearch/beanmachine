@@ -16,9 +16,17 @@ bool sample_logodds(std::mt19937& gen, double logodds);
 Sample a boolean value given the log of the probability.
 :param gen: random number generator
 :param logprob: log of probability
-:returns: true or false
+:returns: true with probability exp(logprob), false otherwise
 */
 bool sample_logprob(std::mt19937& gen, double logprob);
+
+/*
+A more intuitive name for :sample_logprob.
+:param gen: random number generator
+:param logprob: log of probability
+:returns: true with probability exp(logprob), false otherwise
+*/
+bool flip_coin_with_log_prob(std::mt19937& gen, double logprob);
 
 /*
 Sample a value from a Beta distribution

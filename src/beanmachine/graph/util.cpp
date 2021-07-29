@@ -29,8 +29,16 @@ bool sample_logodds(std::mt19937& gen, double logodds) {
 }
 
 bool sample_logprob(std::mt19937& gen, double logprob) {
-  std::bernoulli_distribution dist(std::exp(logprob));
-  return dist(gen);
+  if (logprob > 0)
+    return true;
+  else {
+    std::bernoulli_distribution dist(std::exp(logprob));
+    return dist(gen);
+  }
+}
+
+bool flip_coin_with_log_prob(std::mt19937& gen, double logprob) {
+  return sample_logprob(gen, logprob);
 }
 
 double sample_beta(std::mt19937& gen, double a, double b) {
