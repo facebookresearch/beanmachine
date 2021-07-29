@@ -116,6 +116,10 @@ void NMCDirichletGammaSingleSiteStepper::step(
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 
+// TODO: create_proposer_dirichlet_gamma is not
+// computing gradients like the scalar one is.
+// Consolidate that.
+
 std::unique_ptr<proposer::Proposer>
 NMCDirichletGammaSingleSiteStepper::create_proposer_dirichlet_gamma(
     const std::vector<Node*>& sto_nodes,
