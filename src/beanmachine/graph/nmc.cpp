@@ -17,7 +17,12 @@
 namespace beanmachine {
 namespace graph {
 
-NMC::NMC(Graph* g, uint seed) : g(g), gen(seed) {}
+NMC::NMC(Graph* g, uint seed)
+    : g(g),
+      gen(seed),
+      nmc_scalar_single_site_stepper(g, this),
+      dirichlet_beta_single_site_stepper(g, this),
+      dirichlet_gamma_single_site_stepper(g, this) {}
 
 void NMC::infer(uint num_samples, InferConfig infer_config) {
   g->pd_begin(ProfilerEvent::NMC_INFER);
@@ -128,16 +133,21 @@ void NMC::generate_sample() {
   for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
     Node* tgt_node = unobserved_sto_supp[i];
     if (tgt_node->value.type.variable_type ==
-        VariableType::COL_SIMPLEX_MATRIX) { // TODO make more generic
+        VariableType::COL_SIMPLEX_MATRIX) {
+      // TODO make more generic
+      // This will not be hard-coded, but instead map
+      // the variable to its stepper in a more
+      // flexible way.
       if (tgt_node->value.type.rows == 2) {
-        nmc_step_for_dirichlet_beta(
+        dirichlet_beta_single_site_stepper.step(
             tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
       } else {
-        nmc_step_for_dirichlet_gamma(
+        dirichlet_gamma_single_site_stepper.step(
             tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
       }
     } else {
-      mh_step(tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
+      nmc_scalar_single_site_stepper.step(
+          tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
     }
   }
 }
@@ -213,365 +223,11 @@ double NMC::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
   return log_prob;
 }
 
-// Returns the NMC proposal distribution conditioned on the
-// target node's current value.
-// NOTE: assumes that det_affected_nodes's values are already
-// evaluated according to the target node's value.
-std::unique_ptr<proposer::Proposer> NMC::get_proposal_distribution(
-    Node* tgt_node,
-    NodeValue value,
-    const std::vector<Node*>& det_affected_nodes,
-    const std::vector<Node*>& sto_affected_nodes) {
-  g->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
-
-  tgt_node->grad1 = 1;
-  tgt_node->grad2 = 0;
-  compute_gradients(det_affected_nodes);
-
-  double grad1 = 0;
-  double grad2 = 0;
-  for (Node* node : sto_affected_nodes) {
-    node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
-  }
-
-  // TODO: generalize so it works with any proposer, not just nmc_proposer:
-  std::unique_ptr<proposer::Proposer> prop =
-      proposer::nmc_proposer(value, grad1, grad2);
-  g->pd_finish(ProfilerEvent::NMC_CREATE_PROP);
-  return prop;
-}
-
-std::unique_ptr<proposer::Proposer> NMC::create_proposer_dirichlet_gamma(
-    const std::vector<Node*>& sto_nodes,
-    Node* tgt_node,
-    double param_a,
-    NodeValue value,
-    /* out */ double& logweight) {
-  g->pd_begin(ProfilerEvent::NMC_CREATE_PROP_DIR);
-  logweight = 0;
-  double grad1 = 0;
-  double grad2 = 0;
-  for (Node* node : sto_nodes) {
-    if (node == tgt_node) {
-      // TODO: unify this computation of logweight
-      // and grad1, grad2 with those present in methods
-      // log_prob and gradient_log_prob
-
-      // X_k ~ Gamma(param_a, 1)
-      // PDF of Gamma(a, 1) is x^(a - 1)exp(-x)/gamma(a)
-      // so log pdf(x) = log(x^(a - 1)) + (-x) - log(gamma(a))
-      // = (a - 1)*log(x) - x - log(gamma(a))
-      logweight += (param_a - 1.0) * std::log(value._double) - value._double -
-          lgamma(param_a);
-      grad1 += (param_a - 1.0) / value._double - 1.0;
-      grad2 += (1.0 - param_a) / (value._double * value._double);
-    } else {
-      logweight += node->log_prob();
-      node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
-    }
-  }
-  std::unique_ptr<proposer::Proposer> prop =
-      proposer::nmc_proposer(value, grad1, grad2);
-  g->pd_finish(ProfilerEvent::NMC_CREATE_PROP_DIR);
-  return prop;
-}
-
-std::unique_ptr<proposer::Proposer> NMC::create_proposer_dirichlet_beta(
-    const std::vector<Node*>& sto_nodes,
-    Node* tgt_node,
-    double param_a,
-    double param_b,
-    NodeValue value,
-    /* out */ double& logweight) {
-  logweight = 0;
-  double grad1 = 0;
-  double grad2 = 0;
-  for (Node* node : sto_nodes) {
-    if (node == tgt_node) {
-      double x = value._double;
-      // X_k ~ Beta(param_a, param_b)
-      logweight += (param_a - 1) * log(x) + (param_b - 1) * log(1 - x) +
-          lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b);
-
-      grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);
-      grad2 += -(param_a - 1) / (x * x) - (param_b - 1) / ((1 - x) * (1 - x));
-    } else {
-      logweight += node->log_prob();
-      node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
-    }
-  }
-
-  std::unique_ptr<proposer::Proposer> prop =
-      proposer::nmc_proposer(value, grad1, grad2);
-  return prop;
-}
-
 NodeValue NMC::sample(const std::unique_ptr<proposer::Proposer>& prop) {
   g->pd_begin(ProfilerEvent::NMC_SAMPLE);
   NodeValue v = prop->sample(gen);
   g->pd_finish(ProfilerEvent::NMC_SAMPLE);
   return v;
-}
-
-void NMC::mh_step(
-    Node* tgt_node,
-    const std::vector<Node*>& det_affected_nodes,
-    const std::vector<Node*>& sto_affected_nodes) {
-  g->pd_begin(ProfilerEvent::NMC_STEP);
-  // Implements a Metropolis-Hastings step using the NMC proposer.
-  //
-  // We are given an unobserved stochastic "target" node and we wish
-  // to compute a new value for it. The basic idea of the algorithm is:
-  //
-  // * Save the current state of the graph. Only deterministic nodes need be
-  //   saved because stochastic nodes values may are in principle
-  //   compatible with any values of other nodes.
-  // * Compute the probability of the current state.
-  //   Note that we only need the probability of the immediate stochastic
-  //   descendants of the target node, since those are the only ones
-  //   whose probability changes when its value is changed
-  //   (the probabilities of other nodes becomes irrelevant since
-  //   it gets canceled out in the acceptable probability calculation,
-  //   as explained below).
-  // * Obtains the proposal distribution (old_prop) conditioned on
-  //   target node's initial ('old') value.
-  // * Propose a new value for the target node.
-  // * Evaluate the probability of the proposed new state.
-  //   Again, only immediate stochastic nodes need be considered.
-  // * Obtains the proposal distribution (new_prop) conditioned on
-  //   target node's new value.
-  // * Accept or reject the proposed new value based on the
-  //   Metropolis-Hastings acceptance probability:
-  //          P(new state) * P_new_prop(old state | new state)
-  //   min(1, ------------------------------------------------ )
-  //          P(old state) * P_old_prop(new state | old state)
-  //   but note how the probabilities for the states only need to include
-  //   the immediate stochastic descendants since the distributions
-  //   are factorized and the remaining stochastic nodes have
-  //   their probabilities unchanged and cancel out.
-  // * If we rejected it, restore the saved state.
-
-  NodeValue old_value = tgt_node->value;
-  save_old_values(det_affected_nodes);
-
-  double old_sto_affected_nodes_log_prob =
-      compute_log_prob_of(sto_affected_nodes);
-  auto proposal_distribution_given_old_value = get_proposal_distribution(
-      tgt_node, old_value, det_affected_nodes, sto_affected_nodes);
-
-  NodeValue new_value = sample(proposal_distribution_given_old_value);
-
-  tgt_node->value = new_value;
-  eval(det_affected_nodes);
-
-  double new_sto_affected_nodes_log_prob =
-      compute_log_prob_of(sto_affected_nodes);
-  auto proposal_distribution_given_new_value = get_proposal_distribution(
-      tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
-
-  double logacc = new_sto_affected_nodes_log_prob -
-      old_sto_affected_nodes_log_prob +
-      proposal_distribution_given_new_value->log_prob(old_value) -
-      proposal_distribution_given_old_value->log_prob(new_value);
-
-  bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
-  if (!accepted) {
-    restore_old_values(det_affected_nodes);
-    tgt_node->value = old_value;
-  }
-
-  // Gradients must be cleared (equal to 0)
-  // at the end of each iteration.
-  // TODO: the reason for that is not clear;
-  // it should be possible to compute gradients
-  // when needed without depending on them
-  // being 0.
-  // However, some code depends on this
-  // but it is not clear where.
-  // It would be good to identify these dependencies
-  // and possibly remove the
-  // dependency.
-  // This was the case for example for
-  // StochasticOperator::gradient_log_prob,
-  // but that dependence has been removed.
-  clear_gradients(det_affected_nodes);
-  tgt_node->grad1 = 0;
-  tgt_node->grad2 = 0;
-  g->pd_finish(ProfilerEvent::NMC_STEP);
-}
-
-/*
-We treat the K-dimensional Dirichlet sample as K independent Gamma samples
-divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
-Y_k = X_k / sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
-the attribute value, and X in unconstrainted_value.
-*/
-void NMC::nmc_step_for_dirichlet_gamma(
-    Node* tgt_node,
-    const std::vector<Node*>& det_nodes,
-    const std::vector<Node*>& sto_nodes) {
-  g->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
-  uint K = tgt_node->value._matrix.size();
-  // Cast needed to access fields such as unconstrained_value:
-  auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
-  // @lint-ignore CLANGTIDY
-  auto dirichlet_distribution_node = src_node->in_nodes[0];
-  auto param_node = dirichlet_distribution_node->in_nodes[0];
-  for (uint k = 0; k < K; k++) {
-    // Prepare gradients
-    // Grad1 = (dY_1/dX_k, dY_2/dX_k, ..., dY_K/X_k)
-    // where dY_k/dX_k = (sum(X) - X_k)/sum(X)^2
-    //       dY_j/dX_k = - X_j/sum(X)^2, for j != k
-    // Grad2 = (d^2Y_1/dX^2_k, ..., d^2Y_K/X^2_k)
-    // where d2Y_k/dX2_k = -2 * (sum(X) - X_k)/sum(X)^3
-    //       d2Y_j/dX2_k = -2 * X_j/sum(X)^3
-    double param_a = param_node->value._matrix.coeff(k);
-    double old_X_k = src_node->unconstrained_value._matrix.coeff(k);
-    double sum = src_node->unconstrained_value._matrix.sum();
-    src_node->Grad1 =
-        -src_node->unconstrained_value._matrix.array() / (sum * sum);
-    *(src_node->Grad1.data() + k) += 1 / sum;
-    src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
-    src_node->grad1 = 1;
-    src_node->grad2 = 0;
-    // Propagate gradients
-    NodeValue old_value(AtomicType::POS_REAL, old_X_k);
-    save_old_values(det_nodes);
-    compute_gradients(det_nodes);
-    double old_sto_affected_nodes_log_prob;
-    auto old_prop = create_proposer_dirichlet_gamma(
-        sto_nodes,
-        tgt_node,
-        param_a,
-        old_value,
-        /* out */ old_sto_affected_nodes_log_prob);
-
-    NodeValue new_value = sample(old_prop);
-
-    *(src_node->unconstrained_value._matrix.data() + k) = new_value._double;
-    sum = src_node->unconstrained_value._matrix.sum();
-    src_node->value._matrix =
-        src_node->unconstrained_value._matrix.array() / sum;
-
-    // Propagate values and gradients at new value of X_k
-    src_node->Grad1 =
-        -src_node->unconstrained_value._matrix.array() / (sum * sum);
-    *(src_node->Grad1.data() + k) += 1 / sum;
-    src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
-    eval(det_nodes);
-    compute_gradients(det_nodes);
-
-    double new_sto_affected_nodes_log_prob;
-    auto new_prop = create_proposer_dirichlet_gamma(
-        sto_nodes,
-        tgt_node,
-        param_a,
-        new_value,
-        /* out */ new_sto_affected_nodes_log_prob);
-    double logacc = new_sto_affected_nodes_log_prob -
-        old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
-        old_prop->log_prob(new_value);
-    // Accept or reject, reset (values and) gradients
-    bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
-    if (!accepted) {
-      restore_old_values(det_nodes);
-      *(src_node->unconstrained_value._matrix.data() + k) = old_X_k;
-      sum = src_node->unconstrained_value._matrix.sum();
-      src_node->value._matrix =
-          src_node->unconstrained_value._matrix.array() / sum;
-    }
-    // Gradients are must be cleared (equal to 0)
-    // at the end of each iteration.
-    // Some code relies on that to decide whether a node
-    // is the one we are computing gradients with respect to.
-    clear_gradients(det_nodes);
-    tgt_node->grad1 = 0;
-    tgt_node->grad2 = 0;
-  } // k
-  g->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
-}
-
-/*
-We treat the 2-dimensional Dirichlet sample as a Beta sample
-i.e. Let X_1 ~ Beta(alpha, beta)
-Y_1 = X_1 and Y_2 = 1 - X_1
-We store Y in the attribute value, and X in unconstrainted_value.
-*/
-void NMC::nmc_step_for_dirichlet_beta(
-    Node* tgt_node,
-    const std::vector<Node*>& det_nodes,
-    const std::vector<Node*>& sto_nodes) {
-  g->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
-  assert(tgt_node->value._matrix.size() == 2);
-  auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
-  // @lint-ignore CLANGTIDY
-  auto param_a = src_node->in_nodes[0]->in_nodes[0]->value._matrix.coeff(0);
-  auto param_b = src_node->in_nodes[0]->in_nodes[0]->value._matrix.coeff(1);
-  double old_X_k;
-  // Prepare gradients
-  // Grad1 = (dY_1/dX_1, dY_2/dX_1)
-  // where dY_1/dX_1 = 1
-  //       dY_j/dX_k = -1
-  // Grad2 = (d^2Y_1/dX^2_1, d^2Y_2/X^2_1)
-  // where d2Y_k/dX2_k = 0
-  //       d2Y_j/dX2_k = 0
-  old_X_k = src_node->value._matrix.coeff(0);
-  Eigen::MatrixXd Grad1(2, 1);
-  Grad1 << 1, -1;
-  src_node->Grad1 = Grad1;
-  *(src_node->Grad1.data() + 1) = -1;
-  src_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  src_node->grad1 = 1;
-  src_node->grad2 = 0;
-
-  // Propagate gradients
-  NodeValue old_value(AtomicType::PROBABILITY, old_X_k);
-  save_old_values(det_nodes);
-  compute_gradients(det_nodes);
-  double old_sto_affected_nodes_log_prob;
-  auto old_prop = create_proposer_dirichlet_beta(
-      sto_nodes,
-      tgt_node,
-      param_a,
-      param_b,
-      old_value,
-      /* out */ old_sto_affected_nodes_log_prob);
-
-  NodeValue new_value = sample(old_prop);
-  *(src_node->value._matrix.data()) = new_value._double;
-  *(src_node->value._matrix.data() + 1) = 1 - new_value._double;
-
-  src_node->Grad1 = Grad1;
-  src_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  eval(det_nodes);
-  compute_gradients(det_nodes);
-
-  double new_sto_affected_nodes_log_prob;
-  auto new_prop = create_proposer_dirichlet_beta(
-      sto_nodes,
-      tgt_node,
-      param_a,
-      param_b,
-      new_value,
-      /* out */ new_sto_affected_nodes_log_prob);
-  double logacc = new_sto_affected_nodes_log_prob -
-      old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
-      old_prop->log_prob(new_value);
-  // Accept or reject, reset (values and) gradients
-  bool accepted = logacc > 0 or util::sample_logprob(gen, logacc);
-  if (!accepted) {
-    restore_old_values(det_nodes);
-    *(src_node->value._matrix.data()) = old_X_k;
-    *(src_node->value._matrix.data() + 1) = 1 - old_X_k;
-  }
-  // Gradients are must be cleared (equal to 0)
-  // at the end of each iteration.
-  // Some code relies on that to decide whether a node
-  // is the one we are computing gradients with respect to.
-  clear_gradients(det_nodes);
-  tgt_node->grad1 = 0;
-  tgt_node->grad2 = 0;
-  g->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 
 void Graph::nmc(uint num_samples, uint seed, InferConfig infer_config) {

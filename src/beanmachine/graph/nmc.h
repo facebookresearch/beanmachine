@@ -15,6 +15,9 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
+#include "beanmachine/graph/stepper/nmc_dirichlet_beta_single_site_stepper.h"
+#include "beanmachine/graph/stepper/nmc_dirichlet_gamma_single_site_stepper.h"
+#include "beanmachine/graph/stepper/nmc_scalar_single_site_stepper.h"
 #include "beanmachine/graph/util.h"
 
 #define NATURAL_TYPE unsigned long long int
@@ -25,7 +28,6 @@ namespace graph {
 class NMC {
  private:
   Graph* g;
-  std::mt19937 gen;
 
   // A graph maintains of a vector of nodes; the index into that vector is
   // the id of the node. We often need to translate from node ids into node
@@ -70,6 +72,8 @@ class NMC {
   // To do this, it may help to think of this class as an "enriched Graph",
   // since it contains graph but adds NMC-useful operations to it.
 
+  std::mt19937 gen;
+
   NMC(Graph* g, uint seed);
 
   void infer(uint num_samples, InferConfig infer_config);
@@ -106,43 +110,14 @@ class NMC {
 
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
 
-  std::unique_ptr<proposer::Proposer> get_proposal_distribution(
-      Node* tgt_node,
-      NodeValue value,
-      const std::vector<Node*>& det_affected_nodes,
-      const std::vector<Node*>& sto_affected_nodes);
-
-  std::unique_ptr<proposer::Proposer> create_proposer_dirichlet_gamma(
-      const std::vector<Node*>& sto_nodes,
-      Node* tgt_node,
-      double param_a,
-      NodeValue value,
-      /* out */ double& logweight);
-
-  std::unique_ptr<proposer::Proposer> create_proposer_dirichlet_beta(
-      const std::vector<Node*>& sto_nodes,
-      Node* tgt_node,
-      double param_a,
-      double param_b,
-      NodeValue value,
-      /* out */ double& logweight);
-
   NodeValue sample(const std::unique_ptr<proposer::Proposer>& prop);
 
-  void mh_step(
-      Node* tgt_node,
-      const std::vector<Node*>& det_affected_nodes,
-      const std::vector<Node*>& sto_affected_nodes);
-
-  void nmc_step_for_dirichlet_gamma(
-      Node* tgt_node,
-      const std::vector<Node*>& det_nodes,
-      const std::vector<Node*>& sto_nodes);
-
-  void nmc_step_for_dirichlet_beta(
-      Node* tgt_node,
-      const std::vector<Node*>& det_nodes,
-      const std::vector<Node*>& sto_nodes);
+  // TEMPORARY: we are in the process of moving ad hoc code out of NMC.
+  // Eventually NMC will receive an arbitray list of single-site steppers that
+  // will known to which random variables they apply.
+  NMCScalarSingleSiteStepper nmc_scalar_single_site_stepper;
+  NMCDirichletBetaSingleSiteStepper dirichlet_beta_single_site_stepper;
+  NMCDirichletGammaSingleSiteStepper dirichlet_gamma_single_site_stepper;
 };
 
 } // namespace graph
