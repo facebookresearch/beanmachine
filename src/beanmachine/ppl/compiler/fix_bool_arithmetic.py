@@ -17,9 +17,10 @@ class BoolArithmeticFixer(ProblemFixerBase):
         # We can simplify 1*anything, 0*anything or bool*anything
         # to anything, 0, or an if-then-else respectively.
         if isinstance(n, bn.MultiplicationNode):
-            return self._typer.is_bool(n.left) or self._typer.is_bool(  # pyre-ignore
-                n.right
-            )
+            assert len(n.inputs) == 2
+            return self._typer.is_bool(  # pyre-ignore
+                n.inputs[0]
+            ) or self._typer.is_bool(n.inputs[1])
         # We can simplify 0+anything.
         if isinstance(n, bn.AdditionNode):
             assert len(n.inputs) == 2
@@ -50,19 +51,20 @@ class BoolArithmeticFixer(ProblemFixerBase):
         return self._fix_power(n)
 
     def _fix_multiplication(self, n: bn.MultiplicationNode) -> bn.BMGNode:
-        if bn.is_zero(n.left):
-            return n.left
-        if bn.is_one(n.left):
-            return n.right
-        if bn.is_zero(n.right):
-            return n.right
-        if bn.is_one(n.right):
-            return n.left
+        assert len(n.inputs) == 2
+        if bn.is_zero(n.inputs[0]):
+            return n.inputs[0]
+        if bn.is_one(n.inputs[0]):
+            return n.inputs[1]
+        if bn.is_zero(n.inputs[1]):
+            return n.inputs[1]
+        if bn.is_one(n.inputs[1]):
+            return n.inputs[0]
         zero = self._bmg.add_constant(0.0)
-        if self._typer.is_bool(n.left):  # pyre-ignore
-            return self._bmg.add_if_then_else(n.left, n.right, zero)
-        assert self._typer.is_bool(n.right)
-        return self._bmg.add_if_then_else(n.right, n.left, zero)
+        if self._typer.is_bool(n.inputs[0]):  # pyre-ignore
+            return self._bmg.add_if_then_else(n.inputs[0], n.inputs[1], zero)
+        assert self._typer.is_bool(n.inputs[1])
+        return self._bmg.add_if_then_else(n.inputs[1], n.inputs[0], zero)
 
     def _fix_addition(self, n: bn.AdditionNode) -> bn.BMGNode:
         assert len(n.inputs) == 2

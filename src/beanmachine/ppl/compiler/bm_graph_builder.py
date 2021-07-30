@@ -604,13 +604,14 @@ class BMGraphBuilder:
     def add_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value * right.value)
-        node = bn.MultiplicationNode(left, right)
+        inps = [left, right]
+        node = bn.MultiplicationNode(inps)
         self.add_node(node)
         return node
 
     @memoize
-    def add_multi_multiplication(self, *inputs: BMGNode) -> bn.MultiMultiplicationNode:
-        node = bn.MultiMultiplicationNode(list(inputs))
+    def add_multi_multiplication(self, *inputs: BMGNode) -> BMGNode:
+        node = bn.MultiplicationNode(list(inputs))
         self.add_node(node)
         return node
 

@@ -976,10 +976,8 @@ class AdditionNode(OperatorNode):
         return positive_infinity
 
 
-class MultiMultiplicationNode(OperatorNode):
+class MultiplicationNode(OperatorNode):
     """This represents multiplication of values."""
-
-    # TODO: Consider a base class for multi add, logsumexp, and so on.
 
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
@@ -987,13 +985,28 @@ class MultiMultiplicationNode(OperatorNode):
 
     @property
     def size(self) -> torch.Size:
+        if len(self.inputs) == 2:
+            return (
+                torch.zeros(self.inputs[0].size) * torch.zeros(self.inputs[1].size)
+            ).size()
         return self.inputs[0].size
 
     def support(self) -> Iterable[Any]:
+        if len(self.inputs) == 2:
+            return SetOfTensors(
+                el * ar
+                for el in self.inputs[0].support()
+                for ar in self.inputs[1].support()
+            )
         raise ValueError("support of multiary multiplication not yet implemented")
 
     def __str__(self) -> str:
-        return "MultiMultiplication"
+        return "(" + "*".join([str(inp) for inp in self.inputs]) + ")"
+
+    def support_size(self) -> float:
+        if len(self.inputs) == 2:
+            return self.inputs[0].support_size() * self.inputs[1].support_size()
+        return positive_infinity
 
 
 # We have three kinds of logsumexp nodes.
@@ -1490,25 +1503,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
             torch.mm(el, ar)
             for el in self.left.support()
             for ar in self.right.support()
-        )
-
-
-class MultiplicationNode(BinaryOperatorNode):
-    """This represents a multiplication of nodes."""
-
-    def __init__(self, left: BMGNode, right: BMGNode):
-        BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def size(self) -> torch.Size:
-        return (torch.zeros(self.left.size) * torch.zeros(self.right.size)).size()
-
-    def __str__(self) -> str:
-        return "(" + str(self.left) + "*" + str(self.right) + ")"
-
-    def support(self) -> Iterable[Any]:
-        return SetOfTensors(
-            el * ar for el in self.left.support() for ar in self.right.support()
         )
 
 

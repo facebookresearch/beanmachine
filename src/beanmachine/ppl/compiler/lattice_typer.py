@@ -155,7 +155,6 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.IfThenElseNode: self._type_if,
             bn.LogNode: self._type_log,
             bn.MultiplicationNode: self._type_multiplication,
-            bn.MultiMultiplicationNode: self._type_multiplication,
             bn.NegateNode: self._type_negate,
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
