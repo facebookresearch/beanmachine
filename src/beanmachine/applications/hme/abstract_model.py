@@ -108,9 +108,8 @@ class AbstractModel(object, metaclass=ABCMeta):
         # if outcome is specified by the formula,
         # then we need to compare it with self.model_config.mean_regression.outcome
         if model_desc.lhs_termlist:
-            if (
-                outcome := model_desc.lhs_termlist[0].factors[0].code
-            ) != self.model_config.mean_regression.outcome:
+            outcome = model_desc.lhs_termlist[0].factors[0].code
+            if outcome != self.model_config.mean_regression.outcome:
                 raise ValueError(
                     f"Inconsistent outcome variable encountered! Formula: {outcome}; RegressionConfig: {self.model_config.mean_regression.outcome}."
                 )
