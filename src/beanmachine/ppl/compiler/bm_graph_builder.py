@@ -539,7 +539,8 @@ class BMGraphBuilder:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value + right.value)
 
-        node = bn.AdditionNode(left, right)
+        inps = [left, right]
+        node = bn.AdditionNode(inps)
         self.add_node(node)
         return node
 
@@ -594,8 +595,8 @@ class BMGraphBuilder:
         return self.add_addition(left, self.add_negate(right))
 
     @memoize
-    def add_multi_addition(self, *inputs: BMGNode) -> bn.MultiAdditionNode:
-        node = bn.MultiAdditionNode(list(inputs))
+    def add_multi_addition(self, *inputs: BMGNode) -> BMGNode:
+        node = bn.AdditionNode(list(inputs))
         self.add_node(node)
         return node
 

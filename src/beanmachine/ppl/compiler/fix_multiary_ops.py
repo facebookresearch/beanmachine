@@ -33,6 +33,8 @@ class MultiaryAdditionFixer(ProblemFixerBase):
     def _addition_single_output_is_addition(self, n: bn.BMGNode) -> bool:
         if not isinstance(n, bn.AdditionNode):
             return False
+        if len(n.inputs) > 2:
+            return False
         return self._single_output_is_addition(n)
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
@@ -110,10 +112,11 @@ class MultiaryAdditionFixer(ProblemFixerBase):
         # desired graph.
         return (
             isinstance(n, bn.AdditionNode)
+            and len(n.inputs) == 2
             and not self._single_output_is_addition(n)
             and (
-                self._addition_single_output_is_addition(n.left)
-                or self._addition_single_output_is_addition(n.right)
+                self._addition_single_output_is_addition(n.inputs[0])
+                or self._addition_single_output_is_addition(n.inputs[1])
             )
         )
 
@@ -122,14 +125,16 @@ class MultiaryAdditionFixer(ProblemFixerBase):
         # path through the graph could be longer than the Python
         # recursion limit.
         assert isinstance(n, bn.AdditionNode)
+        assert len(n.inputs) == 2
         acc = []
-        stack = [n.right, n.left]
+        stack = [n.inputs[1], n.inputs[0]]
         while len(stack) > 0:
             c = stack.pop()
             if self._addition_single_output_is_addition(c):
                 assert isinstance(c, bn.AdditionNode)
-                stack.append(c.right)
-                stack.append(c.left)
+                assert len(n.inputs) == 2
+                stack.append(c.inputs[1])
+                stack.append(c.inputs[0])
             else:
                 acc.append(c)
         assert len(acc) >= 3

@@ -77,7 +77,6 @@ _node_labels = {
     bn.LShiftNode: "<<",
     bn.MatrixMultiplicationNode: "*",
     bn.ModNode: "%",
-    bn.MultiAdditionNode: "+",
     bn.MultiplicationNode: "*",
     bn.MultiMultiplicationNode: "*",
     bn.NaturalNode: _val,
@@ -122,7 +121,9 @@ def _numbers(n: int) -> List[str]:
     return [str(x) for x in range(n)]
 
 
-def _numbered(node: bn.BMGNode) -> List[str]:
+def _numbered_or_left_right(node: bn.BMGNode) -> List[str]:
+    if len(node.inputs) == 2:
+        return _left_right
     return _numbers(len(node.inputs))
 
 
@@ -131,7 +132,7 @@ def _to_matrix(node: bn.BMGNode) -> List[str]:
 
 
 _edge_labels = {
-    bn.AdditionNode: _left_right,
+    bn.AdditionNode: _numbered_or_left_right,
     bn.BernoulliLogitNode: _probability,
     bn.BernoulliNode: _probability,
     bn.BetaNode: ["alpha", "beta"],
@@ -155,7 +156,7 @@ _edge_labels = {
     bn.EqualNode: _left_right,
     bn.ExpM1Node: _operand,
     bn.ExpNode: _operand,
-    bn.ExpProductFactorNode: _numbered,
+    bn.ExpProductFactorNode: _numbered_or_left_right,
     bn.FlatNode: _none,
     bn.GammaNode: ["concentration", "rate"],
     bn.GreaterThanEqualNode: _left_right,
@@ -168,14 +169,13 @@ _edge_labels = {
     bn.Log1mexpNode: _operand,
     bn.LogisticNode: _operand,
     bn.LogNode: _operand,
-    bn.LogSumExpNode: _numbered,
+    bn.LogSumExpNode: _numbered_or_left_right,
     bn.LogSumExpTorchNode: ["operand", "dim", "keepdim"],
     bn.LogSumExpVectorNode: _operand,
-    bn.SwitchNode: _numbered,
+    bn.SwitchNode: _numbered_or_left_right,
     bn.MatrixMultiplicationNode: _left_right,
-    bn.MultiAdditionNode: _numbered,
     bn.MultiplicationNode: _left_right,
-    bn.MultiMultiplicationNode: _numbered,
+    bn.MultiMultiplicationNode: _numbered_or_left_right,
     bn.NaturalNode: _none,
     bn.NegateNode: _operand,
     bn.NegativeRealNode: _none,
@@ -192,7 +192,7 @@ _edge_labels = {
     bn.RealNode: _none,
     bn.SampleNode: _operand,
     bn.StudentTNode: ["df", "loc", "scale"],
-    bn.TensorNode: _numbered,
+    bn.TensorNode: _numbered_or_left_right,
     bn.ToMatrixNode: _to_matrix,
     bn.ToNegativeRealNode: _operand,
     bn.ToPositiveRealMatrixNode: _operand,
@@ -238,6 +238,4 @@ def get_edge_label(node: bn.BMGNode, i: int) -> str:
     if isinstance(labels, list):
         return labels[i]
     assert isinstance(labels, Callable)
-    if labels is _numbered:
-        return str(i)
     return labels(node)[i]

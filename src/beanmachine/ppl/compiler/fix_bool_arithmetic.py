@@ -22,7 +22,8 @@ class BoolArithmeticFixer(ProblemFixerBase):
             )
         # We can simplify 0+anything.
         if isinstance(n, bn.AdditionNode):
-            return bn.is_zero(n.left) or bn.is_zero(n.right)
+            assert len(n.inputs) == 2
+            return bn.is_zero(n.inputs[0]) or bn.is_zero(n.inputs[1])
 
         # We can simplify anything**bool.
         if isinstance(n, bn.PowerNode):
@@ -64,10 +65,11 @@ class BoolArithmeticFixer(ProblemFixerBase):
         return self._bmg.add_if_then_else(n.right, n.left, zero)
 
     def _fix_addition(self, n: bn.AdditionNode) -> bn.BMGNode:
-        if bn.is_zero(n.left):
-            return n.right
-        assert bn.is_zero(n.right)
-        return n.left
+        assert len(n.inputs) == 2
+        if bn.is_zero(n.inputs[0]):
+            return n.inputs[1]
+        assert bn.is_zero(n.inputs[1])
+        return n.inputs[0]
 
     def _fix_power(self, n: bn.PowerNode) -> bn.BMGNode:
         # x ** b  -->   if b then x else 1
