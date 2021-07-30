@@ -166,16 +166,19 @@ class MultiaryMultiplicationFixer(ProblemFixerBase):
     def _multiplication_single_output_is_multiplication(self, n: bn.BMGNode) -> bool:
         if not isinstance(n, bn.MultiplicationNode):
             return False
+        if len(n.inputs) > 2:
+            return False
         return self._single_output_is_multiplication(n)
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
         # This follows the same heuristic as multiary addition
         return (
             isinstance(n, bn.MultiplicationNode)
+            and len(n.inputs) == 2
             and not self._single_output_is_multiplication(n)
             and (
-                self._multiplication_single_output_is_multiplication(n.left)
-                or self._multiplication_single_output_is_multiplication(n.right)
+                self._multiplication_single_output_is_multiplication(n.inputs[0])
+                or self._multiplication_single_output_is_multiplication(n.inputs[1])
             )
         )
 
@@ -184,14 +187,16 @@ class MultiaryMultiplicationFixer(ProblemFixerBase):
         # path through the graph could be longer than the Python
         # recursion limit.
         assert isinstance(n, bn.MultiplicationNode)
+        assert len(n.inputs) == 2
         acc = []
-        stack = [n.right, n.left]
+        stack = [n.inputs[1], n.inputs[0]]
         while len(stack) > 0:
             c = stack.pop()
             if self._multiplication_single_output_is_multiplication(c):
                 assert isinstance(c, bn.MultiplicationNode)
-                stack.append(c.right)
-                stack.append(c.left)
+                assert len(n.inputs) == 2
+                stack.append(c.inputs[1])
+                stack.append(c.inputs[0])
             else:
                 acc.append(c)
         assert len(acc) >= 3
