@@ -26,22 +26,24 @@ class AdditionFixer(ProblemFixerBase):
         )
 
     def _can_be_complement(self, n: bn.AdditionNode) -> bool:
-        return self._is_one_minus_prob(n.left, n.right) or self._is_one_minus_prob(
-            n.right, n.left
-        )
+        assert len(n.inputs) == 2
+        return self._is_one_minus_prob(
+            n.inputs[0], n.inputs[1]
+        ) or self._is_one_minus_prob(n.inputs[1], n.inputs[0])
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
         return isinstance(n, bn.AdditionNode) and self._can_be_complement(n)
 
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         assert isinstance(n, bn.AdditionNode)
+        assert len(n.inputs) == 2
         assert self._can_be_complement(n)
         # We have 1+(-x) or (-x)+1 where x is either P or B, and require
         # a P or B. Complement(x) is of the same type as x if x is P or B.
-        if bn.is_one(n.left):
-            other = n.right
+        if bn.is_one(n.inputs[0]):
+            other = n.inputs[1]
         else:
-            assert bn.is_one(n.right)
-            other = n.left
+            assert bn.is_one(n.inputs[1])
+            other = n.inputs[0]
         assert isinstance(other, bn.NegateNode)
         return self._bmg.add_complement(other.operand)

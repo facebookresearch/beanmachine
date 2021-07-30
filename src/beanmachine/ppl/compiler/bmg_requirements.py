@@ -84,7 +84,6 @@ class EdgeRequirements:
             bn.LogNode: self._requirements_log,
             bn.LogSumExpNode: self._requirements_logsumexp,
             bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
-            bn.MultiAdditionNode: self._requirements_addition,
             bn.MultiplicationNode: self._requirements_multiplication,
             bn.MultiMultiplicationNode: self._requirements_multiplication,
             bn.NegateNode: self._requirements_exp_neg,

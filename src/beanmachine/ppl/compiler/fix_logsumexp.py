@@ -20,16 +20,16 @@ class LogSumExpFixer(ProblemFixerBase):
     def __init__(self, bmg: BMGraphBuilder, typer: LatticeTyper) -> None:
         ProblemFixerBase.__init__(self, bmg, typer)
 
-    def _is_exp_input(self, n: bn.MultiAdditionNode) -> bool:
+    def _is_exp_input(self, n: bn.AdditionNode) -> bool:
         return all(isinstance(i, bn.ExpNode) for i in n.inputs)
 
     def can_be_log_sum_exp(self, n: bn.LogNode) -> bool:
         o = n.operand
-        return isinstance(o, bn.MultiAdditionNode) and self._is_exp_input(o)
+        return isinstance(o, bn.AdditionNode) and self._is_exp_input(o)
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
-        # A log expression is fixable if operand is a MultiAdditionNode.
-        # Additionally, each input of this MultiAdditionNode is an ExpNode
+        # A log expression is fixable if operand is a AdditionNode.
+        # Additionally, each input of this AdditionNode is an ExpNode
 
         return isinstance(n, bn.LogNode) and self.can_be_log_sum_exp(n)
 
