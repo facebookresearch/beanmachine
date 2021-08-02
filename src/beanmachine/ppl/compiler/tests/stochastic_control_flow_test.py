@@ -4,6 +4,7 @@ import unittest
 import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
+from beanmachine.ppl.inference import BMGInference
 from torch import tensor
 from torch.distributions import Bernoulli, Beta, Normal
 
@@ -77,10 +78,8 @@ def choice_of_flips(n):
     return Bernoulli(0.25)
 
 
-# Demonstrate that composition is broken.
-# TODO: When it is fixed, update this comment.
 @bm.random_variable
-def composition_is_broken():
+def composition():
     return Normal(spike_and_slab(choice_of_flips(flip())), 1)
 
 
@@ -245,19 +244,76 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-    def test_stochastic_control_flow_composition_broken(self) -> None:
+    def test_stochastic_control_flow_composition(self) -> None:
         self.maxDiff = None
 
-        queries = [composition_is_broken()]
+        queries = [composition()]
         observations = {}
 
         # Here we have a case where we have composed one stochastic control flow
-        # as the input to another, and that is currently broken.
-        #
-        # TODO: Fix it.
+        # as the input to another:
+        # * we flip a beta(2,2) coin
+        # * that flip decides whether the next coin flipped is 0.75 or 0.25
+        # * which decides whether to sample from a normal or a 0.5 coin
+        # * the result is the mean of a normal.
 
-        with self.assertRaises(ValueError):
-            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Write a similar test that shows composition of categoricals.
+
+        observed = BMGInference().to_dot(queries, observations)
+        expected = """
+digraph "graph" {
+  N00[label=2.0];
+  N01[label=Beta];
+  N02[label=Sample];
+  N03[label=Bernoulli];
+  N04[label=Sample];
+  N05[label=0.25];
+  N06[label=Bernoulli];
+  N07[label=Sample];
+  N08[label=0.75];
+  N09[label=Bernoulli];
+  N10[label=Sample];
+  N11[label=0.0];
+  N12[label=1.0];
+  N13[label=Normal];
+  N14[label=Sample];
+  N15[label=0.5];
+  N16[label=Bernoulli];
+  N17[label=Sample];
+  N18[label=if];
+  N19[label=ToReal];
+  N20[label=if];
+  N21[label=Normal];
+  N22[label=Sample];
+  N23[label=Query];
+  N00 -> N01;
+  N00 -> N01;
+  N01 -> N02;
+  N02 -> N03;
+  N03 -> N04;
+  N04 -> N18;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N18;
+  N08 -> N09;
+  N09 -> N10;
+  N10 -> N18;
+  N11 -> N13;
+  N12 -> N13;
+  N12 -> N21;
+  N13 -> N14;
+  N14 -> N20;
+  N15 -> N16;
+  N16 -> N17;
+  N17 -> N19;
+  N18 -> N20;
+  N19 -> N20;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N23;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
 
     def test_stochastic_control_flow_4(self) -> None:
         self.maxDiff = None
@@ -325,8 +381,6 @@ digraph "graph" {
         self.assertEqual(expected.strip(), observed.strip())
 
 
-# TODO: Test that shows that map support is broken
-# TODO: Fix it!
 # TODO: Test that shows what happens when multiple graph node
 # arguments are not independent. Can get some false paths
 # in the graph when this happens. Can we prune them?

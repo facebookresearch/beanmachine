@@ -71,7 +71,11 @@ def c_multi():
     return Categorical(tensor([[0.5, 0.5], [0.5, 0.5]]))
 
 
-# TODO: random variable indexed by categorical
+# NOTE: A random variable indexed by a categorical is tested in
+# stochastic_control_flow_test.py.
+
+# TODO: Once categorical inference is supported in BMG add a test
+# here which demonstrates that.
 
 
 class CategoricalTest(unittest.TestCase):
