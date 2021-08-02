@@ -116,6 +116,12 @@ class BMGNode(ABC):
         # 0, 1 or 2.  But we assume that there are two possibilities on
         # the left, two on the right, so four possible outcomes. We can
         # therefore over-estimate; we should however not under-estimate.
+
+        # TODO: We need to refactor support() and support_size so that they
+        # are not recursive, because we need to be able to do these computations
+        # for graphs which contain long paths without blowing past Python's small
+        # recursion limit. Consider using the lattice typer as a model for this.
+
         return positive_infinity
 
     @property
@@ -1136,6 +1142,8 @@ class IfThenElseNode(OperatorNode):
         return f"(if {i} then {t} else {e})"
 
     def support(self) -> Iterable[Any]:
+        # We should never need to compute the support of an IfThenElse because
+        # this node is not generated until after graph accumulation is complete.
         raise ValueError("support of IfThenElseNode not yet implemented")
 
 
@@ -1399,17 +1407,23 @@ class SwitchNode(BMGNode):
         # TODO: Check that there is one value for each case.
         BMGNode.__init__(self, inputs)
 
-    # TODO: We need to compute the support of a switch node in order to handle
-    # nested switch cases. Suppose for example we have a model where an RV is
-    # of the form:
-    #
-    # return Normal(weird(flips(flip())), 1.0)
-    #
-    # flips(flip()) will be a SwitchNode; we will then need to know its support
-    # in order to generate a *second* SwitchNode representing the call to weird().
-    #
-    # The support of a switch is the union of the supports of the case values.
-    #
+    def support(self) -> Iterable[Any]:
+        from itertools import chain
+
+        return SetOfTensors(
+            chain(
+                *(
+                    self.inputs[2 + i * 2].support()
+                    for i in range((len(self.inputs) - 1) // 2)
+                )
+            )
+        )
+
+    def support_size(self) -> float:
+        s = 0
+        for i in range((len(self.inputs) - 1) // 2):
+            s += self.inputs[2 + i * 2].support_size()
+        return s
 
 
 # This represents an indexing operation in the original source code.
