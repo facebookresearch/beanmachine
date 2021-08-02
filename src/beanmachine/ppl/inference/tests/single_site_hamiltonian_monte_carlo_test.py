@@ -54,9 +54,9 @@ class SingleSiteHamiltonianMonteCarloTest(unittest.TestCase):
 
         parent_one_key = model.parent_one()
         child_key = model.bad_child()
-        hmc.queries_ = [parent_one_key]
-        hmc.observations_ = {child_key: torch.tensor(0.0)}
+        queries_ = [parent_one_key]
+        obs_ = {child_key: torch.tensor(0.0)}
 
         with self.assertRaises(RuntimeError):
             torch.manual_seed(17)
-            hmc._infer(10)
+            hmc.infer(queries_, obs_, 10)

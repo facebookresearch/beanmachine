@@ -239,51 +239,44 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
         _verify_queries_and_observations(
             queries, observations, self._observations_must_be_rv
         )
-        try:
-            random_seed = (
-                torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
-            )
-            self.queries_ = queries
-            self.observations_ = observations
-            if num_chains > 1 and run_in_parallel:
-                manager = mp.Manager()
-                q = manager.Queue()
-                for chain in range(num_chains):
-                    p = mp.Process(
-                        target=self._parallel_infer,
-                        args=(
-                            q,
-                            chain,
-                            num_samples,
-                            random_seed,
-                            num_adaptive_samples,
-                            verbose,
-                        ),
-                    )
-                    p.start()
-
-                chain_queries = [{}] * num_chains
-                for _ in range(num_chains):
-                    (error, chain, string_dict) = q.get()
-                    if error is not None:
-                        raise error
-                    rv_dict = {rv: string_dict[str(rv)] for rv in queries}
-                    chain_queries[chain] = rv_dict
-            else:
-                chain_queries = []
-                for chain in range(num_chains):
-                    AbstractMCInference.set_seed_for_chain(random_seed, chain)
-                    rv_dicts = self._infer(
+        random_seed = torch.randint(AbstractInference._rand_int_max, (1,)).int().item()
+        self.queries_ = queries
+        self.observations_ = observations
+        if num_chains > 1 and run_in_parallel:
+            manager = mp.Manager()
+            q = manager.Queue()
+            for chain in range(num_chains):
+                p = mp.Process(
+                    target=self._parallel_infer,
+                    args=(
+                        q,
+                        chain,
                         num_samples,
+                        random_seed,
                         num_adaptive_samples,
                         verbose,
-                        initialize_from_prior,
-                    )
-                    chain_queries.append(rv_dicts)
+                    ),
+                )
+                p.start()
 
-            monte_carlo_samples = MonteCarloSamples(chain_queries, num_adaptive_samples)
-        except BaseException as x:
-            raise x
-        finally:
-            self.reset()
+            chain_queries = [{}] * num_chains
+            for _ in range(num_chains):
+                (error, chain, string_dict) = q.get()
+                if error is not None:
+                    raise error
+                rv_dict = {rv: string_dict[str(rv)] for rv in queries}
+                chain_queries[chain] = rv_dict
+        else:
+            chain_queries = []
+            for chain in range(num_chains):
+                AbstractMCInference.set_seed_for_chain(random_seed, chain)
+                rv_dicts = self._infer(
+                    num_samples,
+                    num_adaptive_samples,
+                    verbose,
+                    initialize_from_prior,
+                )
+                chain_queries.append(rv_dicts)
+        monte_carlo_samples = MonteCarloSamples(chain_queries, num_adaptive_samples)
+        self.reset()
         return monte_carlo_samples

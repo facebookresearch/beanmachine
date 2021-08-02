@@ -1,7 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
+import warnings
 
 import beanmachine.ppl as bm
+import torch
 from torch import tensor
 from torch.distributions import Bernoulli
 
@@ -24,6 +26,29 @@ def h():
 @bm.random_variable
 def flip():
     return Bernoulli(0.5)
+
+
+class ErrorDist(torch.distributions.Distribution):
+    support = torch.distributions.constraints.real
+
+    def __init__(self):
+        self.counter = 0
+        super().__init__()
+
+    def sample(self):
+        if self.counter == 20:
+            # throw error
+            torch.cholesky(torch.zeros(3, 3))
+        self.counter += 1
+        return torch.randn(1)
+
+    def log_prob(self, *args):
+        return torch.randn(1)
+
+
+@bm.random_variable
+def bad():
+    return ErrorDist()
 
 
 class InferenceErrorReportingTest(unittest.TestCase):
@@ -114,3 +139,9 @@ class InferenceErrorReportingTest(unittest.TestCase):
             str(ex.exception),
             "The key is required to be a random variable but is of type function.",
         )
+
+    def test_early_return_on_error(self):
+        warnings.simplefilter("ignore")
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([bad()], {}, 40, num_chains=1)
+        self.assertEqual(samples[bad()].shape, (1, 9, 1))

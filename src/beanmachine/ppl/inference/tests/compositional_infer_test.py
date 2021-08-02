@@ -110,7 +110,7 @@ class CompositionalInferenceTest(unittest.TestCase):
         def discrete(self):
             return dist.Poisson(tensor(2.0))
 
-    def test_single_site_compositionl_inference(self):
+    def test_single_site_compositional_inference(self):
         model = self.SampleModel()
         c = bm.CompositionalInference()
         foo_key = model.foo()
@@ -186,7 +186,7 @@ class CompositionalInferenceTest(unittest.TestCase):
             True,
         )
 
-    def test_single_site_compositionl_inference_with_input(self):
+    def test_single_site_compositional_inference_with_input(self):
         model = self.SampleModel()
         c = bm.CompositionalInference({model.foo: SingleSiteAncestralProposer()})
         foo_key = model.foo()

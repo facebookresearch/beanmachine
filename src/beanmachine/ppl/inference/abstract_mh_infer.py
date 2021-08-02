@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
+import warnings
 from abc import ABCMeta, abstractmethod
 from random import shuffle
 from typing import Dict, List, Optional, Tuple
@@ -310,9 +311,19 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
             desc="Samples collected",
             disable=not verbose == VerboseLevel.LOAD_BAR,
         ):
-            query_samples.append(
-                self._single_iteration_run(iteration, num_adaptive_samples)
-            )
+            try:
+                sample = self._single_iteration_run(iteration, num_adaptive_samples)
+                query_samples.append(sample)
+            except RuntimeError as e:
+                # TODO adjust log density on numerical runtime errors
+                # and handle multi-chain early return
+                # convert cholesky errors into warnings and early return
+                if "singular U" in str(e):
+                    msg = "\nReturning samples collected so far."
+                    warnings.warn(str(e) + msg, RuntimeWarning)
+                    return merge_dicts(query_samples)
+                else:
+                    raise e
         return merge_dicts(query_samples)
 
     def _single_iteration_run(
