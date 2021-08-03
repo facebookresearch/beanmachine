@@ -2195,6 +2195,9 @@ class SingleAssignment:
                     targets=[source_term.targets[0].elts[0].value],
                     value=new_name,
                 ),
+                # pyre-fixme[6]: Expected `(AST, AST) -> List[_ast.expr]` for 4th
+                #  param but got `(source_term: Any, new_name: Any) ->
+                #  List[_ast.List]`.
                 lambda source_term, new_name: [
                     ast.List(elts=[ast.Starred(value=new_name)])
                 ],
@@ -2219,6 +2222,9 @@ class SingleAssignment:
                     targets=[ast.List(elts=[source_term.targets[0].elts[0].elts[0]])],
                     value=new_name,
                 ),
+                # pyre-fixme[6]: Expected `(AST, AST) -> List[_ast.expr]` for 4th
+                #  param but got `(source_term: Any, new_name: Any) ->
+                #  List[_ast.List]`.
                 lambda source_term, new_name: [ast.List(elts=[new_name])],
             ),
             "_handle_left_value_list_list_star",

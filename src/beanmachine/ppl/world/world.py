@@ -733,11 +733,16 @@ class World(BaseWorld):
         node_var = Variable(
             # pyre-fixme
             distribution=None,
+            # pyre-fixme[6]: Expected `Tensor` for 2nd param but got `None`.
             value=None,
+            # pyre-fixme[6]: Expected `Tensor` for 3rd param but got `None`.
             log_prob=None,
             children=set() if len(self.stack_) == 0 else set({self.stack_[-1]}),
+            # pyre-fixme[6]: Expected `Transform` for 5th param but got `None`.
             transform=None,
+            # pyre-fixme[6]: Expected `Tensor` for 6th param but got `None`.
             transformed_value=None,
+            # pyre-fixme[6]: Expected `Tensor` for 7th param but got `None`.
             jacobian=None,
         )
 
