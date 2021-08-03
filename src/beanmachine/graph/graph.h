@@ -319,6 +319,7 @@ enum class OperatorType {
   TO_REAL_MATRIX,
   TO_POS_REAL_MATRIX,
   TO_NEG_REAL,
+  CHOICE,
 };
 
 enum class DistributionType {

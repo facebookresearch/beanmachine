@@ -14,6 +14,10 @@ bool IfThenElse::is_registered = OperatorFactory::register_op(
     graph::OperatorType::IF_THEN_ELSE,
     &(IfThenElse::new_op));
 
+bool Choice::is_registered = OperatorFactory::register_op(
+    graph::OperatorType::CHOICE,
+    &(Choice::new_op));
+
 // multiary op
 bool Add::is_registered =
     OperatorFactory::register_op(graph::OperatorType::ADD, &(Add::new_op));
