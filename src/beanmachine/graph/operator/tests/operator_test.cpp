@@ -84,7 +84,7 @@ TEST(testoperator, multiply) {
   const auto& means = g.infer_mean(10, InferenceType::NMC);
   EXPECT_NEAR(means[0], -2.184, 0.001);
   // test backward():
-  // verification with pyTorh
+  // verification with PyTorch
   // X = tensor([1.3, -0.8, 2.1], requires_grad=True)
   // m = X.prod()
   // log_p = (
@@ -153,7 +153,7 @@ TEST(testoperator, phi) {
   g.observe(y, true);
   // check gradient:
   // f(x) = log(Phi(x)); want to check f'(x) and f''(x)
-  // Verified in pytorch using the following code:
+  // Verified in PyTorch using the following code:
   // x = torch.tensor([0.5], requires_grad=True)
   // f_x = torch.log(torch.distributions.normal.Normal(0,1).cdf(x**2))
   // f_grad = torch.autograd.grad(f_x, x, create_graph=True)
@@ -203,7 +203,7 @@ TEST(testoperator, logistic) {
   g.observe(y, true);
   // check gradient:
   // f(x) = log(logistic(x^2)); want to check f'(x) and f''(x) for x=0.5
-  // Verified in pytorch using the following code:
+  // Verified in PyTorch using the following code:
   // x = torch.tensor([0.5], requires_grad=True)
   // f_x = -torch.log(1 + torch.exp(-x**2))
   // f_grad = torch.autograd.grad(f_x, x, create_graph=True)
@@ -281,6 +281,58 @@ TEST(testoperator, if_then_else) {
   EXPECT_NEAR(grad[1]->_double, 1240, 1e-3);
 }
 
+TEST(testoperator, choice) {
+  Graph g;
+
+  Eigen::MatrixXd matrix(3, 1);
+  matrix << 0.25, 0.25, 0.5;
+  uint simplex = g.add_constant_col_simplex_matrix(matrix);
+
+  auto cat = g.add_distribution(
+      DistributionType::CATEGORICAL,
+      AtomicType::NATURAL,
+      std::vector<uint>{simplex});
+  auto natural = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{cat});
+
+  auto boolean = g.add_constant(true);
+  auto real1 = g.add_constant(10.0);
+  auto real2 = g.add_constant(20.0);
+  auto real3 = g.add_constant(30.0);
+
+  // We need at least two parents:
+  EXPECT_THROW(
+      g.add_operator(OperatorType::CHOICE, std::vector<uint>{}),
+      std::invalid_argument);
+
+  EXPECT_THROW(
+      g.add_operator(OperatorType::CHOICE, std::vector<uint>{natural}),
+      std::invalid_argument);
+
+  // First parent must be natural
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::CHOICE, std::vector<uint>{boolean, real1, real2}),
+      std::invalid_argument);
+
+  // Remaining parents must be of all the same type
+  EXPECT_THROW(
+      g.add_operator(
+          OperatorType::CHOICE,
+          std::vector<uint>{natural, boolean, real2, real3}),
+      std::invalid_argument);
+
+  // Evaluate it
+  auto choice = g.add_operator(
+      OperatorType::CHOICE, std::vector<uint>{natural, real1, real2, real3});
+
+  g.query(choice);
+  const auto& means = g.infer_mean(10000, InferenceType::REJECTION);
+  double expected = 10.0 * 0.25 + 20.0 * 0.25 + 30.0 * 0.5;
+  EXPECT_NEAR(means[0], expected, 1.0);
+
+  // TODO: Test gradients
+}
+
 TEST(testoperator, log1pexp) {
   Graph g;
   // negative tests: exactly one real/pos/tensor should be the input
@@ -315,7 +367,7 @@ TEST(testoperator, log1pexp) {
   EXPECT_NEAR(means[0], 0.826, 0.01);
   g.observe(y, 0.0);
   // check gradient:
-  // Verified in pytorch using the following code:
+  // Verified in PyTorch using the following code:
   // x = tensor([0.5], requires_grad=True)
   // x_sq = x * x
   // f_x = dist.Normal(x_sq.exp().log1p(), tensor(1.0)).log_prob(tensor(0.0))
@@ -372,7 +424,7 @@ TEST(testoperator, log1mexp) {
   EXPECT_NEAR(means[0], -1.5087, 0.01);
   g.observe(y, 0.0);
   // check gradient:
-  // Verified in pytorch using the following code:
+  // Verified in PyTorch using the following code:
   // x = tensor([0.5], requires_grad=True)
   // neg_x_sq = -x * x
   // f_x = dist.Normal(
@@ -436,7 +488,7 @@ TEST(testoperator, logsumexp) {
   EXPECT_NEAR(means[0], 0.773, 0.01);
   g.observe(y, 0.0);
   // check gradient:
-  // Verified in pytorch using the following code:
+  // Verified in PyTorch using the following code:
   // x = tensor([0.5], requires_grad=True)
   // z = tensor([-0.5], requires_grad=True)
   // x_sq = x * x
@@ -570,7 +622,7 @@ TEST(testoperator, log) {
   EXPECT_NEAR(means[0], -1.386, 0.01);
   g.observe(y, 0.0);
   // check gradient:
-  // Verified in pytorch using the following code:
+  // Verified in PyTorch using the following code:
   //
   // x = tensor(0.5, requires_grad=True)
   // fx = Normal((x * x).log(), tensor(1.0)).log_prob(tensor(0.0))
@@ -631,7 +683,7 @@ TEST(testoperator, pow) {
   EXPECT_NEAR(means[0], 0.21, 0.01);
   g.observe(y, 0.0);
   // check gradient:
-  // Verified in pytorch using the following code:
+  // Verified in PyTorch using the following code:
   //
   // x = tensor(0.5, requires_grad=True)
   // y = tensor(2.25, requires_grad=True)
@@ -849,7 +901,7 @@ TEST(testoperator, matrix_multiply) {
   auto xyzw_sample =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{xyzw_dist});
   g.observe(xyzw_sample, 1.7);
-  // to verify with pyTorch:
+  // to verify with PyTorch:
   // X = tensor([0.4, 0.1, 0.5], requires_grad=True)
   // Y = tensor([[0.3, -0.1], [1.2, 0.9], [-2.6, 0.8]], requires_grad=True)
   // Z = tensor([[-1.1, 0.7], [-0.6, 0.2]], requires_grad=True)

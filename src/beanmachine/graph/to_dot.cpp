@@ -147,6 +147,8 @@ class DOT {
         return "Logistic";
       case OperatorType::IF_THEN_ELSE:
         return "IfThenElse";
+      case OperatorType::CHOICE:
+        return "Choice";
       case OperatorType::LOG1PEXP:
         return "Log1pExp";
       case OperatorType::LOGSUMEXP:

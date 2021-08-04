@@ -161,10 +161,10 @@ Node 5 type 2 parents [ 3 4 ] children [ 6 ] unknown
 Node 6 type 3 parents [ 5 ] children [ ] real 0
 Node 7 type 1 parents [ ] children [ 9 ] natural 1
 Node 8 type 1 parents [ ] children [ 9 ] natural 0
-Node 9 type 3 parents [ 2 7 8 ] children [ 13 ] natural 0
+Node 9 type 3 parents [ 2 7 8 ] children [ 13 ] natural 1
 Node 10 type 1 parents [ ] children [ 12 ] probability 1
 Node 11 type 1 parents [ ] children [ 12 ] probability 1e-10
-Node 12 type 3 parents [ 2 10 11 ] children [ 13 ] probability 1e-10
+Node 12 type 3 parents [ 2 10 11 ] children [ 13 ] probability 1
 Node 13 type 2 parents [ 9 12 ] children [ 14 ] unknown
 Node 14 type 3 parents [ 13 ] children [ ] natural 0
 """

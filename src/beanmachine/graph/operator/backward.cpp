@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <cmath>
 
+#include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/operator/controlop.h"
 #include "beanmachine/graph/operator/linalgop.h"
 #include "beanmachine/graph/operator/multiaryop.h"
@@ -149,14 +150,17 @@ void LogSumExpVector::backward() {
 
 void IfThenElse::backward() {
   assert(in_nodes.size() == 3);
-  if (in_nodes[0]->value._bool) {
-    if (in_nodes[1]->needs_gradient()) {
-      in_nodes[1]->back_grad1._double += back_grad1._double;
-    }
-  } else {
-    if (in_nodes[2]->needs_gradient()) {
-      in_nodes[2]->back_grad1._double += back_grad1._double;
-    }
+  int choice = in_nodes[0]->value._bool ? 1 : 2;
+  if (in_nodes[choice]->needs_gradient()) {
+    in_nodes[choice]->back_grad1._double += back_grad1._double;
+  }
+}
+
+void Choice::backward() {
+  graph::natural_t choice = in_nodes[0]->value._natural + 1;
+  assert(in_nodes.size() < choice);
+  if (in_nodes[choice]->needs_gradient()) {
+    in_nodes[choice]->back_grad1._double += back_grad1._double;
   }
 }
 
