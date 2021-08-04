@@ -20,13 +20,13 @@ def _value_to_cpp_eigen(value: torch.Tensor, variable: str) -> str:
     # BMG expects a column.  That's why we swap rows with columns here.
     r, c = _size_to_rc(value.size())
     v = value.reshape(r, c).transpose(0, 1).contiguous()
-    values = ", ".join(str(element) for element in v.storage())  # pyre-ignore
+    values = ", ".join(str(element) for element in v.reshape(-1).tolist())
     return f"Eigen::MatrixXd {variable}({c}, {r})\n{variable} << {values};"
 
 
 def _value_to_cpp(value: Any) -> str:
     if isinstance(value, torch.Tensor):
-        values = ",".join(str(element) for element in value.storage())  # pyre-ignore
+        values = ",".join(str(element) for element in value.reshape(-1).tolist())
         dims = ",".join(str(dim) for dim in value.shape)
         return f"torch::from_blob((float[]){{{values}}}, {{{dims}}})"
     return str(value).lower()
