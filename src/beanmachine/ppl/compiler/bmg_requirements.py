@@ -76,6 +76,7 @@ class EdgeRequirements:
             bn.DirichletNode: self._requirements_dirichlet,
             # Operators
             bn.AdditionNode: self._requirements_addition,
+            bn.ChoiceNode: self._requirements_choice,
             bn.ColumnIndexNode: self._requirements_column_index,
             bn.ComplementNode: self._same_as_output,
             bn.ExpM1Node: self._same_as_output,
@@ -208,8 +209,17 @@ class EdgeRequirements:
     def _requirements_if(self, node: bn.IfThenElseNode) -> List[bt.Requirement]:
         # The condition has to be Boolean; the consequence and alternative need
         # to be the same.
+        # TODO: Consider what to do if the node type is Tensor.
         it = self.typer[node]
         return [bt.Boolean, it, it]
+
+    def _requirements_choice(self, node: bn.ChoiceNode) -> List[bt.Requirement]:
+        # The condition has to be Natural; the values must all be of the same type.
+        # TODO: Consider what to do if the node type is Tensor.
+        node_type = self.typer[node]
+        c: List[bt.Requirement] = [bt.Natural]
+        v: List[bt.Requirement] = [node_type]
+        return c + v * (len(node.inputs) - 1)
 
     def _requirements_index(self, node: bn.VectorIndexNode) -> List[bt.Requirement]:
         # The index operator introduces an interesting wrinkle into the

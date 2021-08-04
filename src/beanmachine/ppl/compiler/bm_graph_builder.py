@@ -630,6 +630,14 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_choice(self, condition: BMGNode, *values: BMGNode) -> bn.ChoiceNode:
+        vs = list(values)
+        assert len(values) >= 2
+        node = bn.ChoiceNode(condition, vs)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_matrix_multiplication(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(torch.mm(left.value, right.value))

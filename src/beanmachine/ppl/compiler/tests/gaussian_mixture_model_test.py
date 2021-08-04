@@ -49,12 +49,6 @@ class GaussianMixtureModelTest(unittest.TestCase):
         # yet implemented because the gradients are not yet computed correctly
         # and because BMG NMC does not yet implement a discrete sampler. Once
         # that work is complete, update this test to actually do inference.
-        #
-        # TODO: We generate the choice step by putting the three samples into
-        # a 3x1 matrix and then indexing into the matrix. This seems like a
-        # bit of a hack, and it does not generalize to choices amongst matrices,
-        # only choices amongst scalars.  We should consider implementing a more
-        # general version of IF_THEN_ELSE that allows more than two choices.
 
         observed = BMGInference().to_dot(queries, observations)
         expected = """
@@ -68,32 +62,26 @@ digraph "graph" {
   N06[label=Sample];
   N07[label=Sample];
   N08[label=Sample];
-  N09[label=3];
-  N10[label=1];
-  N11[label=ToMatrix];
-  N12[label=index];
-  N13[label=2.0];
-  N14[label=Normal];
-  N15[label=Sample];
-  N16[label=Query];
+  N09[label=Choice];
+  N10[label=2.0];
+  N11[label=Normal];
+  N12[label=Sample];
+  N13[label=Query];
   N00 -> N01;
   N01 -> N02;
-  N02 -> N12;
+  N02 -> N09;
   N03 -> N05;
   N04 -> N05;
   N05 -> N06;
   N05 -> N07;
   N05 -> N08;
-  N06 -> N11;
-  N07 -> N11;
-  N08 -> N11;
+  N06 -> N09;
+  N07 -> N09;
+  N08 -> N09;
   N09 -> N11;
   N10 -> N11;
   N11 -> N12;
-  N12 -> N14;
-  N13 -> N14;
-  N14 -> N15;
-  N15 -> N16;
+  N12 -> N13;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())

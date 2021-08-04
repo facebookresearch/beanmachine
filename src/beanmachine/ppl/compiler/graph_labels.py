@@ -38,6 +38,7 @@ _node_labels = {
     bn.CategoricalLogitNode: "Categorical(logits)",
     bn.CategoricalNode: "Categorical",
     bn.Chi2Node: "Chi2",
+    bn.ChoiceNode: "Choice",
     bn.ColumnIndexNode: "ColumnIndex",
     bn.ComplementNode: "complement",
     bn.ConstantBooleanMatrixNode: _tensor_val,
@@ -126,8 +127,8 @@ def _numbered_or_left_right(node: bn.BMGNode) -> List[str]:
     return _numbers(len(node.inputs))
 
 
-def _to_matrix(node: bn.BMGNode) -> List[str]:
-    return ["rows", "columns"] + _numbers(len(node.inputs) - 2)
+def _prefix_numbered(prefix: List[str]) -> Callable:
+    return lambda node: prefix + _numbers(len(node.inputs) - len(prefix))
 
 
 _edge_labels = {
@@ -140,6 +141,7 @@ _edge_labels = {
     bn.BooleanNode: _none,
     bn.CategoricalNode: _probability,
     bn.Chi2Node: ["df"],
+    bn.ChoiceNode: _prefix_numbered(["condition"]),
     bn.ColumnIndexNode: _left_right,
     bn.ComplementNode: _operand,
     bn.ConstantBooleanMatrixNode: _none,
@@ -191,7 +193,7 @@ _edge_labels = {
     bn.SampleNode: _operand,
     bn.StudentTNode: ["df", "loc", "scale"],
     bn.TensorNode: _numbered_or_left_right,
-    bn.ToMatrixNode: _to_matrix,
+    bn.ToMatrixNode: _prefix_numbered(["rows", "columns"]),
     bn.ToNegativeRealNode: _operand,
     bn.ToPositiveRealMatrixNode: _operand,
     bn.ToPositiveRealNode: _operand,
