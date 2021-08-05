@@ -59,7 +59,7 @@ ground_truth = {
 # [Visualization code in tutorial skipped]
 
 # Inference parameters
-n_samples = (
+num_samples = (
     1  ###00 Sample size should not affect (the ability to find) compilation issues.
 )
 
@@ -91,8 +91,16 @@ class tutorialGMM1Dimension2Components(unittest.TestCase):
         mh.infer(
             queries,
             observations,
-            num_samples=n_samples,
+            num_samples=num_samples,
             num_chains=1,
+        )
+
+        bmg = BMGInference()
+        bmg.infer(
+            queries=queries,
+            observations=observations,
+            num_samples=num_samples,
+            # num_chains=1, # TODO[Walid]: Passing this param causes a failure
         )
 
         self.assertTrue(True, msg="We just want to check this point is reached")

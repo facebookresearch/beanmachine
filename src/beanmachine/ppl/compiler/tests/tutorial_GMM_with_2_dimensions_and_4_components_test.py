@@ -74,7 +74,7 @@ ground_truth = {
 # [Visualization code in tutorial skipped]
 
 # Inference parameters
-n_samples = (
+num_samples = (
     1  ###00 Sample size should not affect (the ability to find) compilation issues.
 )
 
@@ -107,7 +107,7 @@ class tutorialGMMwith2DimensionsAnd4Components(unittest.TestCase):
         mh.infer(
             queries,
             observations,
-            num_samples=n_samples,
+            num_samples=num_samples,
             num_chains=1,
         )
 
