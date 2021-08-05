@@ -16,7 +16,7 @@ class NMCDirichletBetaSingleSiteStepper : public NMCSingleSiteStepper {
   virtual void step(
       graph::Node* tgt_node,
       const std::vector<graph::Node*>& det_affected_nodes,
-      const std::vector<graph::Node*>& sto_affected_nodes);
+      const std::vector<graph::Node*>& sto_affected_nodes) override;
 
  private:
   std::unique_ptr<proposer::Proposer> create_proposer_dirichlet_beta(
