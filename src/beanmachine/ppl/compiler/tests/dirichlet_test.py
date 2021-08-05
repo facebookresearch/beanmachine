@@ -200,7 +200,7 @@ digraph "graph" {
 }"""
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             label_edges=False,
             after_transform=True,
         )
@@ -265,7 +265,7 @@ Node 2 type 1 parents [ ] children [ ] matrix<positive real>   1   2
         bmg = BMGRuntime().accumulate_graph(queries, {})
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=False,
             label_edges=False,
@@ -364,7 +364,7 @@ digraph "graph" {
         bmg = BMGRuntime().accumulate_graph(queries, observations)
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=True,
             label_edges=False,
@@ -394,7 +394,7 @@ digraph "graph" {
         bmg = BMGRuntime().accumulate_graph(queries, {})
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=True,
             label_edges=False,

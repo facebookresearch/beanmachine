@@ -17,7 +17,7 @@ from beanmachine.ppl.utils.dotbuilder import DotBuilder
 
 def to_dot(
     bmg: BMGraphBuilder,
-    inf_types: bool = False,  # TODO: Rename this to node_types
+    node_types: bool = False,
     edge_requirements: bool = False,
     after_transform: bool = False,
     label_edges: bool = True,
@@ -58,7 +58,7 @@ def to_dot(
     for node, index in nodes.items():
         n = to_id(index)
         node_label = get_node_label(node)
-        if inf_types:
+        if node_types:
             node_label += ":" + lt[node].short_name
         db.with_node(n, node_label)
         for (i, edge_name, req) in zip(

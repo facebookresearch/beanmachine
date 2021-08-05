@@ -38,7 +38,7 @@ class FixProblemsTest(unittest.TestCase):
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -72,7 +72,7 @@ digraph "graph" {
         fix_problems(bmg)
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -147,7 +147,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -178,7 +178,7 @@ digraph "graph" {
         fix_problems(bmg)
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -291,7 +291,7 @@ The sigma of a Normal is required to be a positive real but is a negative real.
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -327,7 +327,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -393,7 +393,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -456,7 +456,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -487,7 +487,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
         expected = """
@@ -577,7 +577,7 @@ The unsupported node is the operand of a Sample.
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -603,7 +603,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -660,7 +660,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -696,7 +696,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -761,7 +761,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -794,7 +794,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -849,7 +849,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -879,7 +879,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -976,7 +976,7 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
         self.assertEqual(str(error_report).strip(), "")
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
@@ -1037,7 +1037,7 @@ digraph "graph" {
         self.assertEqual(str(error_report).strip(), "")
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
         )
 
