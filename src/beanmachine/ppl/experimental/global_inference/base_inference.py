@@ -70,7 +70,7 @@ class BaseInference(metaclass=ABCMeta):
                 world = next(sampler)
                 # Extract samples
                 for query in queries:
-                    samples[query].append(world[query])
+                    samples[query].append(world.call(query))
 
             samples = {node: torch.stack(val) for node, val in samples.items()}
             chain_results.append(samples)
