@@ -33,9 +33,15 @@ class HeadsRateModel(object):
         }
         num_samples = 1000
         bmg = BMGInference()
-        posterior = bmg.infer(queries, observations, num_samples)
+        skip_optimizations = set()
+        posterior = bmg.infer(
+            queries, observations, num_samples, skip_optimizations=skip_optimizations
+        )
+        bmg_graph = bmg.to_dot(
+            queries, observations, num_samples, skip_optimizations=skip_optimizations
+        )
         theta_samples = posterior[self.theta()][0]
-        return theta_samples
+        return theta_samples, bmg_graph
 
 
 class HeadsRateModelTransformed(object):
@@ -71,11 +77,18 @@ class HeadsRateModelTransformed(object):
             queries_transformed, observations_transformed, num_samples
         )
         # theta_samples = posterior[self.theta](0)
+        bmg_graph = bmg.to_dot(queries_transformed, observations_transformed)
         theta_samples_transformed = posterior_transformed[self.theta_transformed()][0]
-        return theta_samples_transformed
+        return theta_samples_transformed, bmg_graph
 
 
 class HeadsRateModelTest(unittest.TestCase):
+    def test_beta_bernoulli_conjugate_graph(self) -> None:
+        _, heads_rate_model_graph = HeadsRateModel().run()
+        _, heads_rate_model_transformed_graph = HeadsRateModelTransformed().run()
+
+        self.assertEqual(heads_rate_model_graph, heads_rate_model_transformed_graph)
+
     def test_beta_binomial_conjugate(self) -> None:
         """
         KS test to check if HeadsRateModel().run() and HeadsRateModelTransformed().run()
@@ -86,8 +99,8 @@ class HeadsRateModelTest(unittest.TestCase):
         torch.manual_seed(seed)
         random.seed(seed)
 
-        heads_rate_model_samples = HeadsRateModel().run()
-        heads_rate_model_transformed_samples = HeadsRateModelTransformed().run()
+        heads_rate_model_samples, _ = HeadsRateModel().run()
+        heads_rate_model_transformed_samples, _ = HeadsRateModelTransformed().run()
 
         self.assertEqual(
             type(heads_rate_model_samples),
