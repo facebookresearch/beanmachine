@@ -19,11 +19,15 @@ class SampleModel:
     def bar(self):
         return dist.Normal(self.foo(), 1.0)
 
+    @bm.functional
+    def baz(self):
+        return self.bar() * 2.0
+
 
 def test_inference():
     model = SampleModel()
     nuts = bm.GlobalNoUTurnSampler()
-    queries = [model.foo()]
+    queries = [model.foo(), model.baz()]
     observations = {model.bar(): torch.tensor(0.5)}
     num_samples = 30
     num_chains = 2
