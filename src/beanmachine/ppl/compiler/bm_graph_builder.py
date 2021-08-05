@@ -134,6 +134,22 @@ class BMGraphBuilder:
             i.outputs.remove_item(node)
         del self._nodes[node]
 
+    def remove_node(self, node: BMGNode) -> None:
+        # TODO: This is only used to remove observation sample node that
+        # are factored into posterior computation; restrict it
+        # accordingly. Particularly because this code is not correct with
+        # respect to the memoizers. We could add a node, memoize it,
+        # remove, it, add it again, and the memoizer would hand the node
+        # back without adding it to the graph.
+
+        """This removes a node from the builder, and ensures that the
+        output edges of all its input nodes are removed as well."""
+        if node not in self._nodes:
+            raise ValueError("remove_node called with node from wrong builder")
+        for i in node.inputs.inputs:
+            i.outputs.remove_item(node)
+        del self._nodes[node]
+
     # ####
     # #### Graph accumulation for constant values
     # ####
