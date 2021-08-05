@@ -47,7 +47,7 @@ class ToMatrixTest(unittest.TestCase):
         bmg = BMGRuntime().accumulate_graph([f1by2()], {})
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=True,
             label_edges=True,
@@ -159,7 +159,7 @@ digraph "graph" {
         bmg = BMGRuntime().accumulate_graph([f2by1()], {})
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=True,
             label_edges=True,
@@ -271,7 +271,7 @@ digraph "graph" {
         bmg = BMGRuntime().accumulate_graph([f2by3()], {})
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=True,
             label_edges=True,
@@ -345,7 +345,7 @@ digraph "graph" {
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=True,
             label_edges=True,
@@ -495,7 +495,7 @@ The unsupported node is the operator of a Query."""
         with self.assertRaises(ValueError) as ex:
             to_dot(
                 bmg,
-                inf_types=True,
+                node_types=True,
                 edge_requirements=True,
                 after_transform=True,
                 label_edges=True,

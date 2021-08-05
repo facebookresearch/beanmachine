@@ -29,7 +29,7 @@ class ColumnIndexTest(unittest.TestCase):
 
         observed = to_dot(
             bmg,
-            inf_types=True,
+            node_types=True,
             edge_requirements=True,
             after_transform=True,
             label_edges=True,
