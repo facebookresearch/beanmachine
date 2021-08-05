@@ -2,12 +2,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 # This is a simplified version of the CLARA model which uses categorical
-# distributions. We do not support compiling this to BMG yet because
-# we do not have categorical distributions in BMG or
-# stochastic control flows other than if-then-else.
+# distributions.
 #
-# This module tests whether we can (1) accumulate a graph for this
-# model, and (2) produce sensible error messages.
+# This module tests whether we can produce a legal BMG graph for this model.
+# TODO: Actual inference is not yet implemented because (1) we do not have
+# NMC inference implemented in BMG for graphs which contain natural values,
+# and (2) categorical distribution does not yet compute gradients correctly.
 
 import unittest
 
@@ -92,7 +92,7 @@ class ClaraCategoricalTest(unittest.TestCase):
             category_of_item(bar_jpg),
         ]
 
-        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+        observed = BMGInference().to_dot(queries, observations)
         expected = """
 digraph "graph" {
   N00[label="[1.0,1.0,1.0]"];
@@ -100,137 +100,83 @@ digraph "graph" {
   N02[label=Sample];
   N03[label=Categorical];
   N04[label=Sample];
-  N05[label=0];
-  N06[label="[10.0,5.0,1.0]"];
-  N07[label=Dirichlet];
-  N08[label=Sample];
-  N09[label=1];
-  N10[label="[5.0,10.0,1.0]"];
-  N11[label=Dirichlet];
-  N12[label=Sample];
-  N13[label=2];
-  N14[label="[1.0,1.0,10.0]"];
-  N15[label=Dirichlet];
+  N05[label="[10.0,5.0,1.0]"];
+  N06[label=Dirichlet];
+  N07[label=Sample];
+  N08[label="[5.0,10.0,1.0]"];
+  N09[label=Dirichlet];
+  N10[label=Sample];
+  N11[label="[1.0,1.0,10.0]"];
+  N12[label=Dirichlet];
+  N13[label=Sample];
+  N14[label=Choice];
+  N15[label=Categorical];
   N16[label=Sample];
-  N17[label=Switch];
-  N18[label=Categorical];
+  N17[label="Observation 0"];
+  N18[label=Sample];
   N19[label=Sample];
-  N20[label="Observation tensor(0)"];
-  N21[label=Sample];
-  N22[label=Sample];
+  N20[label=Sample];
+  N21[label=Choice];
+  N22[label=Categorical];
   N23[label=Sample];
-  N24[label=Switch];
-  N25[label=Categorical];
-  N26[label=Sample];
-  N27[label="Observation tensor(1)"];
+  N24[label="Observation 1"];
+  N25[label=Sample];
+  N26[label=Choice];
+  N27[label=Categorical];
   N28[label=Sample];
-  N29[label=Switch];
-  N30[label=Categorical];
-  N31[label=Sample];
-  N32[label="Observation tensor(2)"];
-  N33[label=Switch];
-  N34[label=Categorical];
-  N35[label=Sample];
-  N36[label="Observation tensor(2)"];
-  N37[label=Query];
-  N38[label=Query];
+  N29[label="Observation 2"];
+  N30[label=Choice];
+  N31[label=Categorical];
+  N32[label=Sample];
+  N33[label="Observation 2"];
+  N34[label=Query];
+  N35[label=Query];
   N00 -> N01;
   N01 -> N02;
   N02 -> N03;
   N03 -> N04;
-  N03 -> N28;
-  N04 -> N17;
-  N04 -> N24;
-  N04 -> N37;
-  N05 -> N17;
-  N05 -> N24;
-  N05 -> N29;
-  N05 -> N33;
+  N03 -> N25;
+  N04 -> N14;
+  N04 -> N21;
+  N04 -> N34;
+  N05 -> N06;
   N06 -> N07;
-  N07 -> N08;
-  N07 -> N21;
-  N08 -> N17;
-  N08 -> N29;
-  N09 -> N17;
-  N09 -> N24;
-  N09 -> N29;
-  N09 -> N33;
-  N10 -> N11;
+  N06 -> N18;
+  N07 -> N14;
+  N07 -> N26;
+  N08 -> N09;
+  N09 -> N10;
+  N09 -> N19;
+  N10 -> N14;
+  N10 -> N26;
   N11 -> N12;
-  N11 -> N22;
-  N12 -> N17;
-  N12 -> N29;
-  N13 -> N17;
-  N13 -> N24;
-  N13 -> N29;
-  N13 -> N33;
+  N12 -> N13;
+  N12 -> N20;
+  N13 -> N14;
+  N13 -> N26;
   N14 -> N15;
   N15 -> N16;
-  N15 -> N23;
   N16 -> N17;
-  N16 -> N29;
-  N17 -> N18;
-  N18 -> N19;
-  N19 -> N20;
-  N21 -> N24;
-  N21 -> N33;
-  N22 -> N24;
-  N22 -> N33;
+  N18 -> N21;
+  N18 -> N30;
+  N19 -> N21;
+  N19 -> N30;
+  N20 -> N21;
+  N20 -> N30;
+  N21 -> N22;
+  N22 -> N23;
   N23 -> N24;
-  N23 -> N33;
-  N24 -> N25;
   N25 -> N26;
+  N25 -> N30;
+  N25 -> N35;
   N26 -> N27;
+  N27 -> N28;
   N28 -> N29;
-  N28 -> N33;
-  N28 -> N38;
-  N29 -> N30;
   N30 -> N31;
   N31 -> N32;
-  N33 -> N34;
-  N34 -> N35;
-  N35 -> N36;
-}
-"""
+  N32 -> N33;
+}"""
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: The obscure "switch" error here is a result of an unsupported
-        # stochastic control flow for which we do not yet produce a useful
-        # error message.
-        #
-        # The unsupported control flow is theta(classifier, category_of_item(item));
-        # category_of_item is a small natural, but theta produces a simplex, and
-        # we have no way yet to build a graph to represent the operation "choose
-        # one of these simplexes from a list of simplexes".
-        #
-        # That is, we have k samples from theta, each of which is of type simplex, and
-        # we have category_of_item, which is a number from 0 to k-1.  But we cannot
-        # use TO_MATRIX on those k samples because TO_MATRIX requires its inputs to be
-        # all atomic values; it does not paste together a bunch of column simplexes into
-        # a column simplex matrix from which we can select a single column via indexing.
-        #
-        # What we need to do is either (1) make TO_MATRIX do that, (2) make a new operation
-        # similar to TO_MATRIX for gluing together columns, or (3) make a generalized
-        # IF_THEN_ELSE that chooses from k choices rather than two choices.  (And of course
-        # it is possible to do more than one of these options; they are more generally useful
-        # than just solving this problem alone.)
-
-        # TODO: Raise a better error than a generic ValueError
-        # TODO: These error messages are needlessly repetitive.
-        # Deduplicate them.
-        # TODO: These error messages are phrased in terms of the
-        # graph operations, not the source code.
-        with self.assertRaises(ValueError) as ex:
-            BMGInference().infer(queries, observations, 10)
-        observed = str(ex.exception)
-        expected = """
-The model uses a Switch operation unsupported by Bean Machine Graph.
-The unsupported node is the probability of a Categorical.
-The model uses a Switch operation unsupported by Bean Machine Graph.
-The unsupported node is the probability of a Categorical.
-The model uses a Switch operation unsupported by Bean Machine Graph.
-The unsupported node is the probability of a Categorical.
-The model uses a Switch operation unsupported by Bean Machine Graph.
-The unsupported node is the probability of a Categorical.
-        """
-        self.assertEqual(expected.strip(), observed.strip())
+        # TODO: When inference is supported on categoricals, test:
+        # BMGInference().infer(queries, observations, 10)

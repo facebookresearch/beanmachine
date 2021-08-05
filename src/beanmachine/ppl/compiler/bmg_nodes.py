@@ -1096,7 +1096,7 @@ class ToMatrixNode(OperatorNode):
 
 
 # ####
-# #### Ternary operators
+# #### Control flow operators
 # ####
 
 
@@ -1145,6 +1145,23 @@ class IfThenElseNode(OperatorNode):
         # We should never need to compute the support of an IfThenElse because
         # this node is not generated until after graph accumulation is complete.
         raise ValueError("support of IfThenElseNode not yet implemented")
+
+
+class ChoiceNode(OperatorNode):
+    """This class represents a stochastic choice between n options, where
+    the condition is a natural."""
+
+    # See comments in SwitchNode for more details.
+
+    def __init__(self, condition: BMGNode, items: List[BMGNode]):
+        assert isinstance(items, list)
+        # We should not generate a choice node if there is only one choice.
+        assert len(items) >= 2
+        c: List[BMGNode] = [condition]
+        BMGNode.__init__(self, c + items)
+
+    def __str__(self) -> str:
+        return "Choice"
 
 
 # ####
@@ -1392,8 +1409,8 @@ class SwitchNode(BMGNode):
     # Note that we do not have a generalized switch in BMG. Rather, we have
     # the simpler cases of (1) the IfThenElse node, where the leftmost input
     # is a Boolean quantity and the other two inputs are the values, and
-    # (2) a TensorNode with an IndexNode, where the index is a natural less
-    # than the number of elements in the tensor.
+    # (2) a ChoiceNode, which takes a natural and then chooses from amongst
+    # n possible values.
     #
     # TODO: Should we implement a general switch node in BMG?
     #

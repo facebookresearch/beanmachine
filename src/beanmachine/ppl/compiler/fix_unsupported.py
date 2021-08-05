@@ -151,21 +151,16 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         # If:
         #
         # * the switched value is natural, and
-        # * the cases are 0, 1, 2, ... n, and
-        # * the values are atomic
-        # then we can generate Index(ToMatrix(stochastic_values), choice).
-        #
-        # TODO: This is a bit of a hack to get around the fact that we are missing
-        # in BMG a generalization of IF_THEN_ELSE that chooses from n choices
-        # instead of just two. Consider implementing that in BMG, and then we can
-        # choose amongst arbitrary values, not just atomic values.
+        # * the cases are 0, 1, 2, ... n
+
+        # then we can generate Choice(choice, [stochastic_values]).
         #
         # TODO: If we have a contiguous set of cases, say {2, 3, 4}, then
-        # we could generate the matrix from the elements and the index could
+        # we could generate the choice from the elements and the index could
         # be the choice node minus two.
         #
         # TODO: If we have a slightly noncontiguous set of cases, say {0, 1, 3},
-        # then we can generate a matrix with a dummy value of the appropriate type
+        # then we can generate a choice with a dummy value of the appropriate type
         # in the missing place.
         #
         # TODO: If we have arbitrary natural cases, say 1, 10, 101, then we could
@@ -183,14 +178,7 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         if min(cases) != 0 or max(cases) != num_cases - 1 or len(cases) != num_cases:
             return None
 
-        # Are all the values atomic?
-        for i in range(num_cases):
-            v = node.inputs[i * 2 + 2]
-            vt = self._typer[v]
-            if not bt.is_atomic(vt):
-                return None
-
-        # We're all set; generate a one-column matrix and an indexer.
+        # We're all set; generate a choice.
         values = [None] * num_cases
         for i in range(num_cases):
             c = node.inputs[i * 2 + 1]
@@ -198,10 +186,7 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             v = node.inputs[i * 2 + 2]
             values[int(c.value)] = v  # pyre-ignore
         assert None not in values
-        rows = self._bmg.add_natural(num_cases)
-        cols = self._bmg.add_natural(1)
-        tm = self._bmg.add_to_matrix(rows, cols, *values)
-        return self._bmg.add_vector_index(tm, node.inputs[0])
+        return self._bmg.add_choice(node.inputs[0], *values)
 
     def _replace_switch(self, node: bn.SwitchNode) -> Optional[bn.BMGNode]:
         # inputs[0] is the value used to perform the switch; there are
@@ -245,7 +230,6 @@ class UnsupportedNodeFixer(ProblemFixerBase):
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         # TODO:
         # Not -> Complement
-        # Index/Map -> IfThenElse
         if isinstance(n, bn.Chi2Node):
             return self._replace_chi2(n)
         if isinstance(n, bn.DivisionNode):

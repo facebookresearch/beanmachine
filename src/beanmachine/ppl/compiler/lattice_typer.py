@@ -148,6 +148,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.DirichletNode: self._type_dirichlet,
             # Operators
             bn.AdditionNode: self._type_addition,
+            bn.ChoiceNode: self._type_choice,
             bn.ColumnIndexNode: self._type_column_index,
             bn.ComplementNode: self._type_complement,
             bn.ExpM1Node: self._type_expm1,
@@ -219,7 +220,27 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         # on the other? That has not yet arisen in practice but we might
         # consider putting a matrix constraint on the atomic side and
         # marking IF as producing a matrix in that case.
+
+        # TODO: We need to consider what happens if the consequence and alternative
+        # types have no supremum other than Tensor. In bmg_requirements.py we impose
+        # the requirement that the consequence and alternative are both of their
+        # supremum, but if that is Tensor then we need to give an error.
+
         result = bt.supremum(self[node.consequence], self[node.alternative])
+        if result == bt.Zero or result == bt.One:
+            result = bt.Boolean
+        return result
+
+    def _type_choice(self, node: bn.ChoiceNode) -> bt.BMGLatticeType:
+        # The type of a choice node is the supremum of all its value's types.
+
+        # TODO: We need to consider what happens if the value's types
+        # have no supremum other than Tensor. In bmg_requirements.py we
+        # impose the requirement that the values are both of their
+        # supremum, but if that is Tensor then we need to give an error.
+        result = bt.supremum(
+            *(self[node.inputs[i]] for i in range(1, len(node.inputs)))
+        )
         if result == bt.Zero or result == bt.One:
             result = bt.Boolean
         return result
