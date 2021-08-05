@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-"""Compare original and conjugate prior transformed model"""
+"""Compare original and conjugate prior transformed
+   Beta-Bernoulli model"""
 
 import random
 import unittest
@@ -89,7 +90,7 @@ class HeadsRateModelTest(unittest.TestCase):
 
         self.assertEqual(heads_rate_model_graph, heads_rate_model_transformed_graph)
 
-    def test_beta_binomial_conjugate(self) -> None:
+    def test_beta_bernoulli_conjugate(self) -> None:
         """
         KS test to check if HeadsRateModel().run() and HeadsRateModelTransformed().run()
         is within a certain bound.
