@@ -1,5 +1,6 @@
 # Copyright(C) Facebook, Inc. and its affiliates. All Rights Reserved.
 import logging
+import re as regx
 from abc import ABCMeta, abstractmethod
 from typing import Dict, Tuple
 
@@ -27,6 +28,7 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         self.fixed_effects = []
         self.random_effects = []
         self.customized_priors = {}
+        self.default_priors = {}
 
     @abstractmethod
     def _add_observation_byrow(self, index: int, row: pd.Series, fere_i: int) -> None:
@@ -38,11 +40,12 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         pass
 
     def _set_priors(self) -> None:
-        """Pre-defines a bunch of useful prior distributions:
+        """Pre-defines the following common prior distributions:
 
         * Beta(alpha=1, beta=1),
         * Gamma(alpha=1, beta=1),
         * Half-Cauchy(gamma=1),
+        * Half-Normal(sigma=1),
         * Normal(mu=0, sigma=2),
         * Non-standardized Student's t(df=3, mu=0, sigma=3).
         """
@@ -67,6 +70,11 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
             bmgraph.AtomicType.POS_REAL,
             [self.one],
         )
+        self.halfnormal_prior = self.g.add_distribution(
+            bmgraph.DistributionType.HALF_NORMAL,
+            bmgraph.AtomicType.POS_REAL,
+            [self.one],
+        )
         self.normal_prior = self.g.add_distribution(
             bmgraph.DistributionType.NORMAL,
             bmgraph.AtomicType.REAL,
@@ -78,74 +86,87 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
             [self.three, self.zero, self.three],
         )
 
+    def _set_default_priors(self) -> None:
+        self.default_priors = {}
+
+        self.default_priors["fixed_effects"] = self.normal_prior
+
+        re_scale = self.g.add_operator(
+            bmgraph.OperatorType.SAMPLE, [self.halfnormal_prior]
+        )
+        re_dist = self.g.add_distribution(
+            bmgraph.DistributionType.NORMAL,
+            bmgraph.AtomicType.REAL,
+            [self.zero, re_scale],
+        )
+        self.default_priors["random_effects"] = (re_dist, {"scale": re_scale})
+        self.default_priors["prob_h"] = self.beta_prior
+        self.default_priors["prob_sign"] = self.beta_prior
+
     def _initialize_fixed_effect_nodes(self) -> Dict[str, int]:
         """Initializes fixed effect nodes in the graph, whose values are sampled from
         pre-specified prior distributions, defaults to Normal(mu=0, sigma=2).
 
         :return: a mapping of fixed effects to their corresponding nodes
-        :rtype: dict
         """
 
-        fe_prior = self.customized_priors.get("fe", self.normal_prior)
+        if self._has_user_specified_fe_priors():
+            fixed_effects_params = {}
 
-        fixed_effects_params = {
-            fe: self.g.add_operator(bmgraph.OperatorType.SAMPLE, [fe_prior])
-            for fe in self.fixed_effects
-        }
+            for fe in self.fixed_effects:
+                for key, val in self.customized_priors["fixed_effects"].items():
+                    pattern = "^" + key + r"(\[T.\w+\])*"
+                    if regx.match(pattern, fe):
+                        fixed_effects_params[fe] = self.g.add_operator(
+                            bmgraph.OperatorType.SAMPLE, [val]
+                        )
+                        break
+                else:
+                    fixed_effects_params[fe] = self.g.add_operator(
+                        bmgraph.OperatorType.SAMPLE,
+                        [self.default_priors["fixed_effects"]],
+                    )
+
+        else:
+            fixed_effects_params = {
+                fe: self.g.add_operator(
+                    bmgraph.OperatorType.SAMPLE, [self.default_priors["fixed_effects"]]
+                )
+                for fe in self.fixed_effects
+            }
+
         return fixed_effects_params
 
-    def _initialize_random_effect_nodes(self, use_t_random_effect: bool) -> Tuple:
+    def _has_user_specified_fe_priors(self) -> bool:
+        return "fixed_effects" in self.customized_priors
+
+    def _initialize_random_effect_nodes(self) -> Tuple[dict, dict, dict]:
         """Initializes random effect nodes in the graph. This includes assigning priors to
         the random effect nodes as well as assigning priors to hyper-parameters. The method
-        allows for a t-distribution prior on random effects if the user desires to better model
+        allows for any flexible prior on random effects if the user desires to better model
         heavy tailed effects.
 
-        :param use_t_random_effect: flag indicating whether to assign a Normal or Student's t-distribution to random effects
-        :type use_t_random_effect: bool
-        :return: a tuple of dictionaries, which map random effects to their parameter, distribution, and sampled value nodes
-        :rtype: (dict, dict, dict, dict)
+        :return: a tuple of dictionaries, which map random effects to their parameters, distribution, and sampled value nodes
         """
 
-        re_scale_prior = (
-            self.customized_priors["re_scale"]
-            if "re_scale" in self.customized_priors
-            else self.halfcauchy_prior
-        )
-        re_scale = {
-            re: self.g.add_operator(bmgraph.OperatorType.SAMPLE, [re_scale_prior])
-            for re in self.random_effects
-        }
-        if use_t_random_effect:
-            # FIXME: add truncated normal to support dof prior
-            re_dof_prior = (
-                self.customized_priors["re_dof"]
-                if "re_dof" in self.customized_priors
-                else self.halfcauchy_prior
-            )
-            re_dof = {
-                re: self.g.add_operator(bmgraph.OperatorType.SAMPLE, [re_dof_prior])
-                for re in self.random_effects
-            }
-            re_dist = {
-                re: self.g.add_distribution(
-                    bmgraph.DistributionType.STUDENT_T,
-                    bmgraph.AtomicType.REAL,
-                    [re_dof[re], self.zero, re_scale[re]],
-                )
-                for re in self.random_effects
-            }
+        re_dist, re_param = {}, {}
+
+        if self._has_user_specified_re_priors():
+            for re in self.random_effects:
+                re_dist[re], re_param[re] = self.customized_priors[
+                    "random_effects"
+                ].get(re, self.default_priors["random_effects"])
+
         else:
-            re_dof = None
-            re_dist = {
-                re: self.g.add_distribution(
-                    bmgraph.DistributionType.NORMAL,
-                    bmgraph.AtomicType.REAL,
-                    [self.zero, re_scale[re]],
-                )
-                for re in self.random_effects
-            }
+            for re in self.random_effects:
+                re_dist[re], re_param[re] = self.default_priors["random_effects"]
+
         re_value = {re: {} for re in self.random_effects}
-        return re_dof, re_scale, re_dist, re_value
+
+        return re_param, re_dist, re_value
+
+    def _has_user_specified_re_priors(self) -> bool:
+        return "random_effects" in self.customized_priors
 
     def _add_fixed_effects_byrow(self, row: pd.Series, params: Dict[str, int]) -> int:
         """Forms the systematic component from the fixed effects per subject (i.e. per row in the training data).
@@ -163,8 +184,7 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
             return self.zero
         fe_list = []
         for fe in self.fixed_effects:
-            # FIXME: add support for categorical data
-            x = self.g.add_constant(row[fe])
+            x = self.g.add_constant(row[fe])  # Q: what if x is pos_real or prob?
             x_param = self.g.add_operator(
                 bmgraph.OperatorType.MULTIPLY, [x, params[fe]]
             )
@@ -179,8 +199,8 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
 
         :param row: one individual training data with random effect covariates
         :type row: class:`pd.Series`
-        :param params: a tuple of dictionaries, which map random effects to their parameter, distribution, and sampled value nodes
-        :type params: (dict, dict, dict, dict)
+        :param params: a tuple of dictionaries, which map random effects to their distribution, and sampled value nodes
+        :type params: (dict, dict)
         :return: BMGraph node that sums over all random effects for a given observation (i.e. a row from the training data).
         :type: int
         """

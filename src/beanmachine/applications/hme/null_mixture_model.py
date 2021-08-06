@@ -35,14 +35,12 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         )
         self._preprocess_data()
 
-        if self.model_config.priors:
-            self.prior_configs.update(self.model_config.priors)
-
         self.queries.clear()
         self.query_map.clear()
 
         self.g = bmgraph.Graph()
         self._set_priors()
+        self._set_default_priors()
         self._customize_priors()
         self._initialize_likelihood()
         for index, row in self.preprocessed_data.iterrows():
@@ -77,26 +75,19 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         # fixed and random effects component
         self.fixed_effects_params = self._initialize_fixed_effect_nodes()
         (
-            self.re_dof,
-            self.re_scale,
+            self.re_param,
             self.re_dist,
             self.re_value,
-        ) = self._initialize_random_effect_nodes(
-            self.model_config.mean_regression.random_effect_distribution == "t"
-        )
+        ) = self._initialize_random_effect_nodes()
         self.queries.update(
             fixed_effect=self.fixed_effects_params,
-            re_scale=self.re_scale,
+            re=self.re_param,
             re_value=self.re_value,
         )
-        if self.model_config.mean_regression.random_effect_distribution == "t":
-            self.queries["re_dof"] = self.re_dof
         # mixture component
         if self.model_config.mean_mixture.use_null_mixture:
-            prob_h_prior = (
-                self.customized_priors["prob_h"]
-                if "prob_h" in self.customized_priors
-                else self.beta_prior
+            prob_h_prior = self.customized_priors.get(
+                "prob_h", self.default_priors["prob_h"]
             )
             self.prob_h = self.g.add_operator(
                 bmgraph.OperatorType.SAMPLE, [prob_h_prior]
@@ -110,10 +101,8 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
             self.mu_H1_all = {}
             self.queries.update(prob_h=self.prob_h, h=self.h_all, mu_H1=self.mu_H1_all)
             if self.model_config.mean_mixture.use_bimodal_alternative:
-                prob_sign_prior = (
-                    self.customized_priors["prob_sign"]
-                    if "prob_sign" in self.customized_priors
-                    else self.beta_prior
+                prob_sign_prior = self.customized_priors.get(
+                    "prob_sign", self.default_priors["prob_sign"]
                 )
                 self.prob_sign = self.g.add_operator(
                     bmgraph.OperatorType.SAMPLE, [prob_sign_prior]
@@ -136,20 +125,11 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
                     )
                     if not self.model_config.mean_mixture.use_partial_asymmetric_modes:
                         (
-                            self.re_dof_neg,
-                            self.re_scale_neg,
+                            self.re_param_neg,
                             self.re_dist_neg,
                             _,
-                        ) = self._initialize_random_effect_nodes(
-                            self.model_config.mean_regression.random_effect_distribution
-                            == "t"
-                        )
-                        self.queries["re_scale_neg"] = self.re_scale_neg
-                        if (
-                            self.model_config.mean_regression.random_effect_distribution
-                            == "t"
-                        ):
-                            self.queries["re_dof_neg"] = self.re_dof_neg
+                        ) = self._initialize_random_effect_nodes()
+                        self.queries["re_neg"] = self.re_param_neg
         else:
             self.yhat_all = {}
             self.queries["yhat"] = self.yhat_all
@@ -213,6 +193,7 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         elif self.sei:
             sei = self.sei
         else:
+            # same prior for all se_i's
             sei = self.g.add_operator(
                 bmgraph.OperatorType.SAMPLE, [self.halfcauchy_prior]
             )

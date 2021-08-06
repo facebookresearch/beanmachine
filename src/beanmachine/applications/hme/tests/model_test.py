@@ -43,7 +43,6 @@ class ModelTest(unittest.TestCase):
             stderr="sei",
             formula="~ 1 + (1|team)",
             link="identity",
-            random_effect_distribution="normal",
         )
 
     def test_parse_formula(self) -> None:

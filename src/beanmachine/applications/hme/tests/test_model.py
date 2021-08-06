@@ -33,7 +33,6 @@ def mean_config():
         stderr="sei",
         formula="~ 1 + (1|team)",
         link="identity",
-        random_effect_distribution="normal",
     )
 
 
@@ -97,7 +96,6 @@ def test_model_infer(
                 stderr="sei",
                 formula="~ 1 + group + (1|team)",
                 link="identity",
-                random_effect_distribution="normal",
             ),
             MixtureConfig(use_null_mixture=False),
             pd.DataFrame(

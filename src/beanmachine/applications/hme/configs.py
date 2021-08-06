@@ -18,8 +18,6 @@ class RegressionConfig:
     :type formula: str
     :param link: link function linking the systematic component (mixed effects) and outcome y, defaults to 'identity'
     :type link: str
-    :param random_effect_distribution: prior distribution for random effects, defaults to 'normal'
-    :type random_effect_distribution: str
     """
 
     distribution: str = "normal"
@@ -27,15 +25,12 @@ class RegressionConfig:
     stderr: str = None
     formula: str = "1"
     link: str = "identity"
-    random_effect_distribution: str = "normal"
 
     def __post_init__(self):
         if self.distribution not in ["normal", "bernoulli"]:
             raise ValueError("distribution must be normal or bernoulli")
         if self.link not in ["identity", "logit"]:
             raise ValueError("link function must be identity or logit")
-        if self.random_effect_distribution not in ["normal", "t"]:
-            raise ValueError("random_effect_distribution must be normal or t")
 
 
 @dataclass
@@ -81,14 +76,11 @@ class PriorConfig:
 
     :param distribution: prior distribution family, defaults to flat prior
     :type distribution: str
-    :param support: set of values that prior distribution has positive probability, defaults to 'real'
-    :type support: str
     :param parameters: parameter values of prior distribution family
     :type parameters: list
     """
 
     distribution: str = "flat"
-    support: str = "real"
     parameters: List[Any] = field(default_factory=list)
 
 
