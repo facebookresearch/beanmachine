@@ -57,8 +57,6 @@ void NMCDirichletGammaSingleSiteStepper::step(
         -src_node->unconstrained_value._matrix.array() / (sum * sum);
     *(src_node->Grad1.data() + k) += 1 / sum;
     src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
-    src_node->grad1 = 1;
-    src_node->grad2 = 0;
     // Propagate gradients
     NodeValue old_value(AtomicType::POS_REAL, old_X_k);
     nmc->save_old_values(det_nodes);
@@ -110,8 +108,6 @@ void NMCDirichletGammaSingleSiteStepper::step(
     // Some code relies on that to decide whether a node
     // is the one we are computing gradients with respect to.
     nmc->clear_gradients(det_nodes);
-    tgt_node->grad1 = 0;
-    tgt_node->grad2 = 0;
   } // k
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
