@@ -3,6 +3,7 @@ import logging
 import re as regx
 import time
 from abc import ABCMeta, abstractmethod
+from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 
 import beanmachine.graph as bmgraph
@@ -12,8 +13,9 @@ import pandas as pd
 from patsy import ModelDesc, dmatrix, dmatrices, build_design_matrices
 import torch  # usort: skip # noqa: F401
 
-from .configs import InferConfig, ModelConfig
+from .configs import InferConfig, ModelConfig, PriorConfig
 from .patsy_mixed import evaluate_formula, RandomEffectsTerm
+from .priors import DIST_TYPE_DICT, SAMPLE_TYPE_DICT, PARAM_TYPE_DICT, ATOMIC_TYPE_DICT
 
 
 logger = logging.getLogger("hme")
@@ -303,14 +305,151 @@ class AbstractModel(object, metaclass=ABCMeta):
 
     def _customize_priors(self) -> None:
         """Create customized prior dist based on model_config.priors. e.g.
-        {"fe": PriorConfig('normal', 'real', [0.0, 1.0])}
+        {"fe": PriorConfig('normal', [0.0, 1.0])}
+        {"re": PriorConfig('t', [PriorConfig(), 0.0, PriorConfig()])}
         """
         self.customized_priors = {}
-        # FIXME: update the parser of priors
-        # for key, val in self.model_config.priors.items():
-        #     param_list = []
-        #     for param in val.parameters:
-        #         pass
-        #     self.customized_priors[key] = self.g.add_distribution(
-        #         val.distribution, val.support, param_list
-        #     )
+
+        for param, prior_config in self.model_config.priors.items():
+            if param == "fixed_effects":
+                # universal prior for all fixed effects
+                if isinstance(prior_config, PriorConfig):
+                    self.default_priors[param] = self._generate_prior_node(prior_config)
+
+                # customized priors for certain fixed effects
+                else:
+                    self.customized_priors[param] = {}
+                    for key, val in prior_config.items():
+                        self.customized_priors[param][key] = self._generate_prior_node(
+                            val
+                        )
+
+            elif param == "random_effects":
+                # universal prior for all random effects
+                if isinstance(prior_config, PriorConfig):
+                    self.default_priors[param] = self._interpret_re_prior_config(
+                        prior_config, param
+                    )
+
+                # customized priors for certain random effects
+                else:
+                    self.customized_priors[param] = defaultdict(tuple)
+                    for key, val in prior_config.items():
+                        self.customized_priors[param][
+                            key
+                        ] = self._interpret_re_prior_config(val, key)
+
+            # -------- prob_h, prob_sign ----------
+            else:
+                self.customized_priors[param] = self._generate_prior_node(prior_config)
+
+    def _generate_prior_node(self, prior_config: PriorConfig) -> int:
+        """Generates a BMGraph distribution node based on the distribution description.
+
+        :param prior_config: a distribution configuration including type and params
+        :return: BMGraph distribution node for some fixed effect
+        """
+
+        dist_type = DIST_TYPE_DICT[prior_config.distribution]
+        sample_type = ATOMIC_TYPE_DICT[SAMPLE_TYPE_DICT[prior_config.distribution]]
+
+        if len(PARAM_TYPE_DICT[prior_config.distribution]) != len(
+            prior_config.parameters
+        ):
+            raise ValueError(
+                f"Number of {prior_config.distribution} distribution parameters doesn't match!"
+                f"Given: {len(prior_config.parameters)}; Expected: {len(PARAM_TYPE_DICT[prior_config.distribution])}."
+            )
+
+        param_list = []
+        for idx, param in enumerate(prior_config.parameters):
+            param_type = list(PARAM_TYPE_DICT[prior_config.distribution].values())[idx]
+            # constant param
+            param_list.append(self._generate_const_node(param, param_type))
+
+        # relevant error messages will be raised by bmgraph if any
+        return self.g.add_distribution(
+            dist_type,
+            sample_type,
+            param_list,
+        )
+
+    def _generate_const_node(
+        self, param_value: float or List[List[float]], param_type: str
+    ) -> int:
+        """Generates a BMGraph constant node based on parameter value and type.
+
+        :param param_value: parameter value, can be either a float number of a one-column simplex
+        :param param_type: parameter type
+        :return: BMGraph constant node of the given value and type
+        """
+
+        if param_type == "real" or param_type == "natural":
+            return self.g.add_constant(param_value)
+        elif param_type == "pos_real":
+            return self.g.add_constant_pos_real(param_value)
+        elif param_type == "prob":
+            return self.g.add_constant_probability(param_value)
+        elif param_type == "simplex":  # param_value is a 1xn matrix in this case
+            return self.g.add_constant_col_simplex_matrix(param_value)
+        else:
+            logger.warning(
+                "Parameter type '{s}' is not supported!".format(s=param_type)
+            )
+
+    def _interpret_re_prior_config(
+        self,
+        re_prior_config: PriorConfig,
+        re_key: str,
+    ) -> Tuple[int, dict]:  # (dist: int, param: dict)
+        """Generates a BMGraph distribution node for the given random effect as well as hyper-prior samples of parameters within.
+
+        :param re_prior_config: a distribution configuration including type and parameters, where parameters can either be real
+            values or another `PriorConfig` instance
+        :param re_key: variable name of the random effect, being "fixed_effects" implies universal priors for all random effects
+        :return: BMGraph distribution node for the random effect as well as a dictionary, which maps hyper-parameters of the distribution
+            to their samples
+        """
+
+        hyper_param_queries = {}
+        param_list = []
+        for idx, param in enumerate(re_prior_config.parameters):
+            param_name = list(PARAM_TYPE_DICT[re_prior_config.distribution])[idx]
+            param_type = list(PARAM_TYPE_DICT[re_prior_config.distribution].values())[
+                idx
+            ]
+
+            # hyper-prior on param
+            if isinstance(param, PriorConfig):
+                # sanity check: hyper-prior return type
+                if SAMPLE_TYPE_DICT[param.distribution] != param_type:
+                    raise TypeError(
+                        "Random effect: '{r}' | Prior distribution: '{d}' | Parameter: '{p}' has inconsistent value type!\n"
+                        "Expected: '{e}'; Hyper-prior returns: '{h}'.".format(
+                            d=re_prior_config.distribution,
+                            r=re_key,
+                            p=param_name,
+                            e=param_type,
+                            h=SAMPLE_TYPE_DICT[param.distribution],
+                        )
+                    )
+
+                param_dist = self._generate_prior_node(param)
+                param_sample = self.g.add_operator(
+                    bmgraph.OperatorType.SAMPLE, [param_dist]
+                )
+
+                hyper_param_queries[param_name] = param_sample
+                param_list.append(param_sample)
+            # constant param
+            else:
+                param_list.append(self._generate_const_node(param, param_type))
+
+        return (
+            self.g.add_distribution(
+                DIST_TYPE_DICT[re_prior_config.distribution],
+                ATOMIC_TYPE_DICT[SAMPLE_TYPE_DICT[re_prior_config.distribution]],
+                param_list,
+            ),
+            hyper_param_queries,
+        )
