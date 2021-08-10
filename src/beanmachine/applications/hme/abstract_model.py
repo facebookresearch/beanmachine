@@ -4,7 +4,7 @@ import re as regx
 import time
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import beanmachine.graph as bmgraph
 import beanmachine.ppl.diagnostics.common_statistics as bm_diag_util
@@ -15,8 +15,7 @@ import torch  # usort: skip # noqa: F401
 
 from .configs import InferConfig, ModelConfig, PriorConfig
 from .patsy_mixed import evaluate_formula, RandomEffectsTerm
-from .priors import DIST_TYPE_DICT, SAMPLE_TYPE_DICT, PARAM_TYPE_DICT, ATOMIC_TYPE_DICT
-
+from .priors import ParamType, Distribution
 
 logger = logging.getLogger("hme")
 
@@ -350,51 +349,49 @@ class AbstractModel(object, metaclass=ABCMeta):
         :return: BMGraph distribution node for some fixed effect
         """
 
-        dist_type = DIST_TYPE_DICT[prior_config.distribution]
-        sample_type = ATOMIC_TYPE_DICT[SAMPLE_TYPE_DICT[prior_config.distribution]]
+        prior_dist = Distribution.match_str(prior_config.distribution)
 
-        if len(PARAM_TYPE_DICT[prior_config.distribution]) != len(
-            prior_config.parameters
-        ):
+        if len(prior_dist.params) != len(prior_config.parameters):
             raise ValueError(
                 f"Number of {prior_config.distribution} distribution parameters doesn't match!"
-                f"Given: {len(prior_config.parameters)}; Expected: {len(PARAM_TYPE_DICT[prior_config.distribution])}."
+                f"Given: {len(prior_config.parameters)}; Expected: {len(prior_dist.params)}."
             )
 
         param_list = []
         for idx, param in enumerate(prior_config.parameters):
-            param_type = list(PARAM_TYPE_DICT[prior_config.distribution].values())[idx]
-            # constant param
+            param_type = list(prior_dist.params.values())[idx]
             param_list.append(self._generate_const_node(param, param_type))
 
         # relevant error messages will be raised by bmgraph if any
         return self.g.add_distribution(
-            dist_type,
-            sample_type,
+            prior_dist.dist_type,
+            prior_dist.sample_type.atomic_type,
             param_list,
         )
 
     def _generate_const_node(
-        self, param_value: float or List[List[float]], param_type: str
+        self, param_value: Union[float, List[List[float]]], param_type: ParamType
     ) -> int:
         """Generates a BMGraph constant node based on parameter value and type.
 
-        :param param_value: parameter value, can be either a float number of a one-column simplex
+        :param param_value: parameter value, can be either a float number or a one-column simplex
         :param param_type: parameter type
         :return: BMGraph constant node of the given value and type
         """
 
-        if param_type == "real" or param_type == "natural":
+        if param_type in {ParamType.REAL, ParamType.NATURAL}:
             return self.g.add_constant(param_value)
-        elif param_type == "pos_real":
+        elif param_type == ParamType.POS_REAL:
             return self.g.add_constant_pos_real(param_value)
-        elif param_type == "prob":
+        elif param_type == ParamType.PROB:
             return self.g.add_constant_probability(param_value)
-        elif param_type == "simplex":  # param_value is a 1xn matrix in this case
+        elif (
+            param_type == ParamType.COL_SIMPLEX_MATRIX
+        ):  # param_value is a 1xn matrix in this case
             return self.g.add_constant_col_simplex_matrix(param_value)
         else:
             logger.warning(
-                "Parameter type '{s}' is not supported!".format(s=param_type)
+                "Parameter type '{s}' is not supported!".format(s=param_type.str_name)
             )
 
     def _interpret_re_prior_config(
@@ -411,26 +408,27 @@ class AbstractModel(object, metaclass=ABCMeta):
             to their samples
         """
 
+        prior_dist = Distribution.match_str(re_prior_config.distribution)
+
         hyper_param_queries = {}
         param_list = []
         for idx, param in enumerate(re_prior_config.parameters):
-            param_name = list(PARAM_TYPE_DICT[re_prior_config.distribution])[idx]
-            param_type = list(PARAM_TYPE_DICT[re_prior_config.distribution].values())[
-                idx
-            ]
+            param_name = list(prior_dist.params)[idx]
+            param_type = list(prior_dist.params.values())[idx]
 
             # hyper-prior on param
             if isinstance(param, PriorConfig):
                 # sanity check: hyper-prior return type
-                if SAMPLE_TYPE_DICT[param.distribution] != param_type:
+                hyper_prior_dist = Distribution.match_str(param.distribution)
+                if hyper_prior_dist.sample_type != param_type:
                     raise TypeError(
                         "Random effect: '{r}' | Prior distribution: '{d}' | Parameter: '{p}' has inconsistent value type!\n"
                         "Expected: '{e}'; Hyper-prior returns: '{h}'.".format(
-                            d=re_prior_config.distribution,
+                            d=prior_dist.str_name,
                             r=re_key,
                             p=param_name,
-                            e=param_type,
-                            h=SAMPLE_TYPE_DICT[param.distribution],
+                            e=param_type.str_name,
+                            h=hyper_prior_dist.sample_type.str_name,
                         )
                     )
 
@@ -447,8 +445,8 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         return (
             self.g.add_distribution(
-                DIST_TYPE_DICT[re_prior_config.distribution],
-                ATOMIC_TYPE_DICT[SAMPLE_TYPE_DICT[re_prior_config.distribution]],
+                prior_dist.dist_type,
+                prior_dist.sample_type.atomic_type,
                 param_list,
             ),
             hyper_param_queries,

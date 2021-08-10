@@ -12,6 +12,7 @@ from beanmachine.applications.hme import (
 )
 from beanmachine.applications.hme.abstract_linear_model import AbstractLinearModel
 from beanmachine.applications.hme.abstract_model import AbstractModel
+from beanmachine.applications.hme.priors import ParamType, Distribution
 
 
 class RealizedModel(AbstractModel):
@@ -33,6 +34,28 @@ class RealizedLinearModel(AbstractLinearModel):
 
 
 @pytest.mark.parametrize(
+    "label",
+    ["unknown"],
+)
+def test_paramtype_exception(label):
+    with pytest.raises(
+        ValueError, match="Unknown parameter type: '{s}'".format(s=label)
+    ):
+        ParamType.match_str(label)
+
+
+@pytest.mark.parametrize(
+    "label",
+    ["unknown"],
+)
+def test_distribution_exception(label):
+    with pytest.raises(
+        ValueError, match="Unknown distribution type: '{s}'".format(s=label)
+    ):
+        Distribution.match_str(label)
+
+
+@pytest.mark.parametrize(
     "const_value, const_type, expected_dot",
     [
         (1.0, "pos_real", 'digraph "graph" {\n  N0[label="1"];\n}\n'),
@@ -43,7 +66,7 @@ class RealizedLinearModel(AbstractLinearModel):
 )
 def test_generate_const_node(const_value, const_type, expected_dot):
     model = RealizedModel(data=None, model_config=ModelConfig())
-    model._generate_const_node(const_value, const_type)
+    model._generate_const_node(const_value, ParamType.match_str(const_type))
     assert model.g.to_dot() == expected_dot
 
 
