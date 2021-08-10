@@ -57,8 +57,6 @@ void NMCDirichletBetaSingleSiteStepper::step(
   src_node->Grad1 = Grad1;
   *(src_node->Grad1.data() + 1) = -1;
   src_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  src_node->grad1 = 1;
-  src_node->grad2 = 0;
 
   // Propagate gradients
   NodeValue old_value(AtomicType::PROBABILITY, old_X_k);
@@ -95,8 +93,6 @@ void NMCDirichletBetaSingleSiteStepper::step(
   // Some code relies on that to decide whether a node
   // is the one we are computing gradients with respect to.
   nmc->clear_gradients(det_nodes);
-  tgt_node->grad1 = 0;
-  tgt_node->grad2 = 0;
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 
