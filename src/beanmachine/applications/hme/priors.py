@@ -1,56 +1,100 @@
 # Copyright(C) Facebook, Inc. and its affiliates. All Rights Reserved.
+
+from enum import Enum
+
 import beanmachine.graph as bmgraph
 
 
-DIST_TYPE_DICT = {
-    # prob
-    "beta": bmgraph.DistributionType.BETA,
-    # pos_real
-    "gamma": bmgraph.DistributionType.GAMMA,
-    "half_cauchy": bmgraph.DistributionType.HALF_CAUCHY,
-    "half_normal": bmgraph.DistributionType.HALF_NORMAL,
-    # real
-    "normal": bmgraph.DistributionType.NORMAL,
-    "t": bmgraph.DistributionType.STUDENT_T,
-    # prob/pos_real/real
-    "flat": bmgraph.DistributionType.FLAT,
-    # natural
-    "binomial": bmgraph.DistributionType.BINOMIAL,
-    "categorical": bmgraph.DistributionType.CATEGORICAL,
-}
+class ParamType(Enum):
+    REAL = ("real", bmgraph.AtomicType.REAL)
+    POS_REAL = ("pos_real", bmgraph.AtomicType.POS_REAL)
+    PROB = ("prob", bmgraph.AtomicType.PROBABILITY)
+    NATURAL = ("natural", bmgraph.AtomicType.NATURAL)
+    COL_SIMPLEX_MATRIX = ("simplex", bmgraph.AtomicType.NATURAL)
 
-SAMPLE_TYPE_DICT = {
-    # prob
-    "beta": "prob",
-    # pos_real
-    "gamma": "pos_real",
-    "half_cauchy": "pos_real",
-    "half_normal": "pos_real",
-    # real
-    "normal": "real",
-    "t": "real",
-    # prob/pos_real/real
-    "flat": "real",  # FIXME: more flexible support of flat prior
-    # natural
-    "binomial": "natural",
-    "categorical": "natural",
-}
+    def __init__(self, str_name, atomic_type):
+        self.str_name = str_name
+        self.atomic_type = atomic_type
 
-PARAM_TYPE_DICT = {
-    "beta": {"alpha": "pos_real", "beta": "pos_real"},
-    "gamma": {"alpha": "pos_real", "beta": "pos_real"},
-    "half_cauchy": {"scale": "pos_real"},
-    "half_normal": {"scale": "pos_real"},
-    "normal": {"mean": "real", "scale": "pos_real"},
-    "t": {"dof": "pos_real", "mean": "real", "scale": "pos_real"},
-    "flat": {},
-    "binomial": {"total_count": "natural", "prob": "prob"},
-    "categorical": {"p_vec": "simplex"},
-}
+    @classmethod
+    def match_str(cls, label):
+        for param_type in cls:
+            if param_type.str_name == label:
+                return param_type
+        else:
+            raise ValueError("Unknown parameter type: '{s}'!".format(s=label))
 
-ATOMIC_TYPE_DICT = {
-    "real": bmgraph.AtomicType.REAL,
-    "pos_real": bmgraph.AtomicType.POS_REAL,
-    "prob": bmgraph.AtomicType.PROBABILITY,
-    "natural": bmgraph.AtomicType.NATURAL,
-}
+
+class Distribution(Enum):
+    BETA = (
+        "beta",
+        bmgraph.DistributionType.BETA,
+        ParamType.PROB,
+        {"alpha": ParamType.POS_REAL, "beta": ParamType.POS_REAL},
+    )
+    GAMMA = (
+        "gamma",
+        bmgraph.DistributionType.GAMMA,
+        ParamType.POS_REAL,
+        {"alpha": ParamType.POS_REAL, "beta": ParamType.POS_REAL},
+    )
+    HALF_CAUCHY = (
+        "half_cauchy",
+        bmgraph.DistributionType.HALF_CAUCHY,
+        ParamType.POS_REAL,
+        {"scale": ParamType.POS_REAL},
+    )
+    HALF_NORMAL = (
+        "half_normal",
+        bmgraph.DistributionType.HALF_NORMAL,
+        ParamType.POS_REAL,
+        {"scale": ParamType.POS_REAL},
+    )
+    NORMAL = (
+        "normal",
+        bmgraph.DistributionType.NORMAL,
+        ParamType.REAL,
+        {"mean": ParamType.REAL, "scale": ParamType.POS_REAL},
+    )
+    STUDENT_T = (
+        "t",
+        bmgraph.DistributionType.STUDENT_T,
+        ParamType.REAL,
+        {
+            "dof": ParamType.POS_REAL,
+            "mean": ParamType.REAL,
+            "scale": ParamType.POS_REAL,
+        },
+    )
+    FLAT = (
+        "flat",
+        bmgraph.DistributionType.FLAT,
+        ParamType.REAL,
+        {},
+    )
+    BINOMIAL = (
+        "binomial",
+        bmgraph.DistributionType.BINOMIAL,
+        ParamType.NATURAL,
+        {"total_count": ParamType.NATURAL, "prob": ParamType.PROB},
+    )
+    CATEGORICAL = (
+        "categorical",
+        bmgraph.DistributionType.CATEGORICAL,
+        ParamType.NATURAL,
+        {"p_vec": ParamType.COL_SIMPLEX_MATRIX},
+    )
+
+    def __init__(self, str_name, dist_type, sample_type, params):
+        self.str_name = str_name
+        self.dist_type = dist_type
+        self.sample_type = sample_type
+        self.params = params
+
+    @classmethod
+    def match_str(cls, label):
+        for dist in cls:
+            if dist.str_name == label:
+                return dist
+        else:
+            raise ValueError("Unknown distribution type: '{s}'!".format(s=label))
