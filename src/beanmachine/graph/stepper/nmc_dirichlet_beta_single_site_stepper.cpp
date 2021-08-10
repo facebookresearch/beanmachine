@@ -64,14 +64,9 @@ void NMCDirichletBetaSingleSiteStepper::step(
   NodeValue old_value(AtomicType::PROBABILITY, old_X_k);
   nmc->save_old_values(det_nodes);
   nmc->compute_gradients(det_nodes);
-  double old_sto_affected_nodes_log_prob;
+  double old_sto_affected_nodes_log_prob = nmc->compute_log_prob_of(sto_nodes);
   auto old_prop = create_proposer_dirichlet_beta(
-      sto_nodes,
-      tgt_node,
-      param_a,
-      param_b,
-      old_value,
-      /* out */ old_sto_affected_nodes_log_prob);
+      sto_nodes, tgt_node, param_a, param_b, old_value);
 
   NodeValue new_value = nmc->sample(old_prop);
   *(src_node->value._matrix.data()) = new_value._double;
@@ -82,14 +77,9 @@ void NMCDirichletBetaSingleSiteStepper::step(
   nmc->eval(det_nodes);
   nmc->compute_gradients(det_nodes);
 
-  double new_sto_affected_nodes_log_prob;
+  double new_sto_affected_nodes_log_prob = nmc->compute_log_prob_of(sto_nodes);
   auto new_prop = create_proposer_dirichlet_beta(
-      sto_nodes,
-      tgt_node,
-      param_a,
-      param_b,
-      new_value,
-      /* out */ new_sto_affected_nodes_log_prob);
+      sto_nodes, tgt_node, param_a, param_b, new_value);
   double logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
       old_prop->log_prob(new_value);
@@ -116,24 +106,18 @@ NMCDirichletBetaSingleSiteStepper::create_proposer_dirichlet_beta(
     Node* tgt_node,
     double param_a,
     double param_b,
-    NodeValue value,
-    /* out */ double& logweight) {
+    NodeValue value) {
   // TODO: Reorganize in the same manner the default NMC
   // proposer has been reorganized
-  logweight = 0;
   double grad1 = 0;
   double grad2 = 0;
   for (Node* node : sto_nodes) {
     if (node == tgt_node) {
       double x = value._double;
       // X_k ~ Beta(param_a, param_b)
-      logweight += (param_a - 1) * log(x) + (param_b - 1) * log(1 - x) +
-          lgamma(param_a + param_b) - lgamma(param_a) - lgamma(param_b);
-
       grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);
       grad2 += -(param_a - 1) / (x * x) - (param_b - 1) / ((1 - x) * (1 - x));
     } else {
-      logweight += node->log_prob();
       node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
     }
   }

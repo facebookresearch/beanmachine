@@ -24,8 +24,7 @@ class NMCDirichletBetaSingleSiteStepper : public NMCSingleSiteStepper {
       Node* tgt_node,
       double param_a,
       double param_b,
-      NodeValue value,
-      /* out */ double& logweight);
+      NodeValue value);
 };
 
 } // namespace graph
