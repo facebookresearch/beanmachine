@@ -8,6 +8,7 @@ from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_additions import AdditionFixer
 from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
     BetaBernoulliConjguateFixer,
+    BetaBinomialConjguateFixer,
 )
 from beanmachine.ppl.compiler.fix_bool_arithmetic import BoolArithmeticFixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import BoolComparisonFixer
@@ -44,11 +45,15 @@ _standard_fixer_types: List[Type] = [
     LogSumExpFixer,
     MultiaryMultiplicationFixer,
     BetaBernoulliConjguateFixer,
+    BetaBinomialConjguateFixer,
     RequirementsFixer,
     ObservationsFixer,
 ]
 
-default_skip_optimizations: Set[str] = {"BetaBernoulliConjguateFixer"}
+default_skip_optimizations: Set[str] = {
+    "BetaBernoulliConjguateFixer",
+    "BetaBinomialConjguateFixer",
+}
 
 
 def fix_problems(
