@@ -14,18 +14,18 @@ class InferenceCompilationTest(unittest.TestCase):
     class RandomGaussianSum:
         @bm.random_variable
         def N(self):
-            k = 10
+            k = 3
             return dist.Categorical(probs=torch.ones(k) * 1.0 / k)
 
         @bm.random_variable
         def x(self, i):
-            return dist.Normal(loc=tensor(1.0), scale=tensor(1.0))
+            return dist.Normal(loc=tensor(1.0), scale=tensor(0.1))
 
         @bm.random_variable
         def S(self):
             "The Markov blanket of S varies depending on the value of N"
             loc = sum(self.x(i) for i in range(self.N().int().item()))
-            return dist.Normal(loc=loc, scale=tensor(1.0))
+            return dist.Normal(loc=loc, scale=tensor(0.1))
 
     class GMM:
         def __init__(self, K=2, d=1):
@@ -79,7 +79,7 @@ class InferenceCompilationTest(unittest.TestCase):
         ic = ICInference()
         ic.compile(observations.keys())
         queries = [model.normal_p()]
-        samples = ic.infer(queries, observations, num_samples=1500, num_chains=1)
+        samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
         assert samples[model.normal_p()].mean().item() <= prior_mean
         assert samples[model.normal_p()].mean().item() >= observed_value
 
@@ -87,16 +87,15 @@ class InferenceCompilationTest(unittest.TestCase):
         model = self.RandomGaussianSum()
         ic = ICInference()
         observations = {model.S(): tensor(2.0)}
-        ic.compile(observations.keys(), num_worlds=100)
+        ic.compile(observations.keys(), num_worlds=50)
         queries = [model.N()]
-        samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
+        samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
-        # observations likelihood (by Wald's identity) maximized at N=2, so
-        # posterior mean should be below prior mean E[N] = 4.5
+        # observations likelihood (by Wald's identity) maximized at N=2 > E[N]
         N_posterior_mean_estimate = samples[model.N()].float().mean().item()
         assert (
-            N_posterior_mean_estimate < 4.5
-        ), f"Expected {N_posterior_mean_estimate} < 4.5"
+            N_posterior_mean_estimate > 1.5
+        ), f"Expected {N_posterior_mean_estimate} > 1.5"
 
     def test_gmm(self):
         model = self.GMM(K=2)
@@ -107,13 +106,13 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor(1.0),
             model.x(3): tensor(-1.0),
         }
-        ic.compile(observations.keys(), num_worlds=100)
+        ic.compile(observations.keys(), num_worlds=50)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=200, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
 
     def test_gmm_random_rvidentifier_embeddings(self):
         model = self.GMM(K=2)
@@ -124,13 +123,13 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor(1.0),
             model.x(3): tensor(-1.0),
         }
-        ic.compile(observations.keys(), num_worlds=100, node_id_embedding_dim=32)
+        ic.compile(observations.keys(), num_worlds=50, node_id_embedding_dim=32)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=200, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
 
     def test_gmm_2d(self):
         model = self.GMM(K=2, d=2)
@@ -141,13 +140,13 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor([0.0, 1.0]),
             model.x(3): tensor([0.0, -1.0]),
         }
-        ic.compile(observations.keys(), num_worlds=500)
+        ic.compile(observations.keys(), num_worlds=50)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=300, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
 
     def test_raises_on_matrix_distributions(self):
         rv = bm.random_variable(lambda: Flat((2, 2)))
@@ -206,7 +205,7 @@ class InferenceCompilationTest(unittest.TestCase):
         ic.infer(
             [model.foo()] + [model.bar(i) for i in range(100)],
             {model.bar(10): torch.tensor(1.0)},
-            num_samples=100,
+            num_samples=10,
             num_chains=1,
         )
 
@@ -219,13 +218,13 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor(1.0),
             model.x(3): tensor(-1.0),
         }
-        ic.compile(observations.keys(), num_worlds=100, gmm_num_components=3)
+        ic.compile(observations.keys(), num_worlds=50, gmm_num_components=3)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=200, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
 
     def test_multiple_component_2d_gmm_density_estimator(self):
         model = self.GMM(K=2, d=2)
@@ -236,10 +235,10 @@ class InferenceCompilationTest(unittest.TestCase):
             model.x(2): tensor([0.0, 1.0]),
             model.x(3): tensor([0.0, -1.0]),
         }
-        ic.compile(observations.keys(), num_worlds=500, gmm_num_components=3)
+        ic.compile(observations.keys(), num_worlds=50, gmm_num_components=2)
         queries = [model.mu(i) for i in range(model.K)]
-        ic_samples = ic.infer(queries, observations, num_samples=300, num_chains=1)
+        ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.3)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.3)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
