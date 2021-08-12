@@ -60,7 +60,10 @@ class BinaryVsMultiaryMultiplicationPerformanceTest(unittest.TestCase):
         torch.manual_seed(seed)
         random.seed(seed)
 
-        skip_optimizations = {"BetaBernoulliConjguateFixer"}
+        skip_optimizations = {
+            "BetaBernoulliConjguateFixer",
+            "BetaBinomialConjguateFixer",
+        }
         report_w_optimization = get_report(skip_optimizations)
 
         observed_report_w_optimization = str(report_w_optimization)
@@ -124,6 +127,7 @@ infer:(1) -- ms
         skip_optimizations = {
             "MultiaryMultiplicationFixer",
             "BetaBernoulliConjguateFixer",
+            "BetaBinomialConjguateFixer",
         }
         report_wo_optimization = get_report(skip_optimizations)
 

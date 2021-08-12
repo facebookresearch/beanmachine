@@ -60,7 +60,10 @@ class BinaryVsMultiaryAdditionPerformanceTest(unittest.TestCase):
         torch.manual_seed(seed)
         random.seed(seed)
 
-        skip_optimizations = {"BetaBernoulliConjguateFixer"}
+        skip_optimizations = {
+            "BetaBernoulliConjguateFixer",
+            "BetaBinomialConjguateFixer",
+        }
         report_w_optimization = get_report(skip_optimizations)
 
         observed_report_w_optimization = str(report_w_optimization)
@@ -121,7 +124,11 @@ infer:(1) -- ms
             tidy(expected_report_w_optimization).strip(),
         )
 
-        skip_optimizations = {"MultiaryAdditionFixer", "BetaBernoulliConjguateFixer"}
+        skip_optimizations = {
+            "MultiaryAdditionFixer",
+            "BetaBernoulliConjguateFixer",
+            "BetaBinomialConjguateFixer",
+        }
         report_wo_optimization = get_report(skip_optimizations)
 
         observed_report_wo_optimization = str(report_wo_optimization)
