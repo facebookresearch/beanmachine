@@ -107,38 +107,26 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         """Initializes fixed effect nodes in the graph, whose values are sampled from
         pre-specified prior distributions, defaults to Normal(mu=0, sigma=2).
 
-        :return: a mapping of fixed effects to their corresponding nodes
+        :return: a mapping of fixed effects to their corresponding BMGraph sample nodes
         """
 
-        if self._has_user_specified_fe_priors():
-            fixed_effects_params = {}
+        fixed_effects_params = {}
 
-            for fe in self.fixed_effects:
-                for key, val in self.customized_priors["fixed_effects"].items():
-                    pattern = "^" + key + r"(\[T.\w+\])*"
-                    if regx.match(pattern, fe):
-                        fixed_effects_params[fe] = self.g.add_operator(
-                            bmgraph.OperatorType.SAMPLE, [val]
-                        )
-                        break
-                else:
+        for fe in self.fixed_effects:
+            for key, val in self.customized_priors.items():
+                pattern = "^" + key + r"(\[T.\w+\])*"
+                if regx.match(pattern, fe):
                     fixed_effects_params[fe] = self.g.add_operator(
-                        bmgraph.OperatorType.SAMPLE,
-                        [self.default_priors["fixed_effects"]],
+                        bmgraph.OperatorType.SAMPLE, [val]
                     )
-
-        else:
-            fixed_effects_params = {
-                fe: self.g.add_operator(
-                    bmgraph.OperatorType.SAMPLE, [self.default_priors["fixed_effects"]]
+                    break
+            else:
+                fixed_effects_params[fe] = self.g.add_operator(
+                    bmgraph.OperatorType.SAMPLE,
+                    [self.default_priors["fixed_effects"]],
                 )
-                for fe in self.fixed_effects
-            }
 
         return fixed_effects_params
-
-    def _has_user_specified_fe_priors(self) -> bool:
-        return "fixed_effects" in self.customized_priors
 
     def _initialize_random_effect_nodes(self) -> Tuple[dict, dict, dict]:
         """Initializes random effect nodes in the graph. This includes assigning priors to
@@ -151,22 +139,14 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
 
         re_dist, re_param = {}, {}
 
-        if self._has_user_specified_re_priors():
-            for re in self.random_effects:
-                re_dist[re], re_param[re] = self.customized_priors[
-                    "random_effects"
-                ].get(re, self.default_priors["random_effects"])
-
-        else:
-            for re in self.random_effects:
-                re_dist[re], re_param[re] = self.default_priors["random_effects"]
+        for re in self.random_effects:
+            re_dist[re], re_param[re] = self.customized_priors.get(
+                re, self.default_priors["random_effects"]
+            )
 
         re_value = {re: {} for re in self.random_effects}
 
         return re_param, re_dist, re_value
-
-    def _has_user_specified_re_priors(self) -> bool:
-        return "random_effects" in self.customized_priors
 
     def _add_fixed_effects_byrow(self, row: pd.Series, params: Dict[str, int]) -> int:
         """Forms the systematic component from the fixed effects per subject (i.e. per row in the training data).

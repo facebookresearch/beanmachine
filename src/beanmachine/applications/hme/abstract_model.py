@@ -3,7 +3,6 @@ import logging
 import re as regx
 import time
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import beanmachine.graph as bmgraph
@@ -304,43 +303,26 @@ class AbstractModel(object, metaclass=ABCMeta):
 
     def _customize_priors(self) -> None:
         """Create customized prior dist based on model_config.priors. e.g.
-        {"fe": PriorConfig('normal', [0.0, 1.0])}
-        {"re": PriorConfig('t', [PriorConfig(), 0.0, PriorConfig()])}
+        {"x": PriorConfig('normal', [0.0, 1.0])}
+        {"group": PriorConfig('t', [PriorConfig(), 0.0, PriorConfig()])}
         """
         self.customized_priors = {}
 
-        for param, prior_config in self.model_config.priors.items():
-            if param == "fixed_effects":
-                # universal prior for all fixed effects
-                if isinstance(prior_config, PriorConfig):
-                    self.default_priors[param] = self._generate_prior_node(prior_config)
+        for predictor, prior_config in self.model_config.priors.items():
+            # If all parameters are scalars (as opposed to distributions),
+            # then this is a prior for a fixed effect, prob_h, or prob_sign.
+            if not any(
+                isinstance(param, PriorConfig) for param in prior_config.parameters
+            ):
+                self.customized_priors[predictor] = self._generate_prior_node(
+                    prior_config
+                )
 
-                # customized priors for certain fixed effects
-                else:
-                    self.customized_priors[param] = {}
-                    for key, val in prior_config.items():
-                        self.customized_priors[param][key] = self._generate_prior_node(
-                            val
-                        )
-
-            elif param == "random_effects":
-                # universal prior for all random effects
-                if isinstance(prior_config, PriorConfig):
-                    self.default_priors[param] = self._interpret_re_prior_config(
-                        prior_config, param
-                    )
-
-                # customized priors for certain random effects
-                else:
-                    self.customized_priors[param] = defaultdict(tuple)
-                    for key, val in prior_config.items():
-                        self.customized_priors[param][
-                            key
-                        ] = self._interpret_re_prior_config(val, key)
-
-            # -------- prob_h, prob_sign ----------
+            # otherwise, parse prior configurations for some random effect
             else:
-                self.customized_priors[param] = self._generate_prior_node(prior_config)
+                self.customized_priors[predictor] = self._parse_re_prior_config(
+                    prior_config, predictor
+                )
 
     def _generate_prior_node(self, prior_config: PriorConfig) -> int:
         """Generates a BMGraph distribution node based on the distribution description.
@@ -394,7 +376,7 @@ class AbstractModel(object, metaclass=ABCMeta):
                 "Parameter type '{s}' is not supported!".format(s=param_type.str_name)
             )
 
-    def _interpret_re_prior_config(
+    def _parse_re_prior_config(
         self,
         re_prior_config: PriorConfig,
         re_key: str,
