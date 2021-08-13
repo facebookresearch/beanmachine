@@ -97,78 +97,30 @@ def test_generate_prior_node(prior_config, expected_dot):
     assert model.g.to_dot() == expected_dot
 
 
-@pytest.mark.parametrize(
-    "priors_desc, expected",
-    [
-        # universal priors for fixed/random effects
-        (
-            {
-                "fixed_effects": PriorConfig("normal", [0.0, 1.0]),
-                "random_effects": PriorConfig(
-                    "t",
-                    [
-                        PriorConfig("half_cauchy", [1.0]),
-                        PriorConfig("normal", [2.0, 1.0]),
-                        1.0,
-                    ],
-                ),
-                "prob_h": PriorConfig("beta", [1.0, 1.0]),
-                "prob_sign": PriorConfig("beta", [1.0, 1.0]),
-            },
-            {
-                "fixed_effects": 14,
-                "random_effects": (23, {"dof": 17, "mean": 21}),
-                "prob_h": 4,
-                "prob_sign": 4,
-            },
-        ),
-        # customized priors for certain fixed/random effects
-        (
-            {
-                "fixed_effects": {
-                    "x1": PriorConfig("normal", [0.0, 1.0]),
-                    "x2": PriorConfig("flat", []),
-                },
-                "random_effects": {
-                    "group": PriorConfig(
-                        "t",
-                        [
-                            PriorConfig("half_cauchy", [1.0]),
-                            PriorConfig("normal", [2.0, 1.0]),
-                            1.0,
-                        ],
-                    ),
-                },
-            },
-            {
-                "fixed_effects": 8,
-                "random_effects": (11, {"scale": 10}),
-                "prob_h": 4,
-                "prob_sign": 4,
-            },
-        ),
-    ],
-)
-def test_default_priors(priors_desc, expected):
+def test_default_priors():
     model = RealizedLinearModel(
         data=None,
-        model_config=ModelConfig(
-            mean_regression=RegressionConfig(formula="y~1"),
-            priors=priors_desc,
-        ),
+        model_config=ModelConfig(),
     )
-    model.build_graph()
+    model._set_priors()
+    model._set_default_priors()
+    expected = {
+        "fixed_effects": 8,
+        "random_effects": (11, {"scale": 10}),
+        "prob_h": 4,
+        "prob_sign": 4,
+    }
     assert model.default_priors == expected
 
 
 @pytest.mark.parametrize(
     "priors_desc, expected",
     [
-        # universal priors for fixed/random effects
         (
             {
-                "fixed_effects": PriorConfig("normal", [0.0, 1.0]),
-                "random_effects": PriorConfig(
+                "x1": PriorConfig("normal", [0.0, 1.0]),
+                "x2": PriorConfig("flat", []),
+                "group": PriorConfig(
                     "t",
                     [
                         PriorConfig("half_cauchy", [1.0]),
@@ -180,31 +132,11 @@ def test_default_priors(priors_desc, expected):
                 "prob_sign": PriorConfig("beta", [1.0, 1.0]),
             },
             {
-                "prob_h": 26,
-                "prob_sign": 29,
-            },
-        ),
-        # customized priors for certain fixed/random effects
-        (
-            {
-                "fixed_effects": {
-                    "x1": PriorConfig("normal", [0.0, 1.0]),
-                    "x2": PriorConfig("flat", []),
-                },
-                "random_effects": {
-                    "group": PriorConfig(
-                        "t",
-                        [
-                            PriorConfig("half_cauchy", [1.0]),
-                            PriorConfig("normal", [2.0, 1.0]),
-                            1.0,
-                        ],
-                    ),
-                },
-            },
-            {
-                "fixed_effects": {"x1": 14, "x2": 15},
-                "random_effects": {"group": (24, {"dof": 18, "mean": 22})},
+                "x1": 14,
+                "x2": 15,
+                "group": (24, {"dof": 18, "mean": 22}),
+                "prob_h": 27,
+                "prob_sign": 30,
             },
         ),
     ],
@@ -221,54 +153,32 @@ def test_customize_priors(priors_desc, expected):
     assert model.customized_priors == expected
 
 
-def test_has_user_specified_fe_priors():
-    model = RealizedLinearModel(data=None, model_config=ModelConfig())
-    model.customized_priors["fixed_effects"] = {}
-    assert model._has_user_specified_fe_priors()
-
-
 @pytest.mark.parametrize(
     "priors_desc, expected_dot",
     [
         (
             {
-                "fixed_effects": {
-                    "x2": PriorConfig("beta", [1.0, 1.0]),
-                },
+                "x1": PriorConfig("t", [2.0, 0.0, 1.0]),
+                "x2": PriorConfig("beta", [1.0, 1.0]),
             },
             (
-                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  '
-                'N3[label="3"];\n  N4[label="Beta"];\n  N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  '
-                'N7[label="distribution"];\n  N8[label="Normal"];\n  N9[label="StudentT"];\n  N10[label="~"];\n  '
-                'N11[label="Normal"];\n  N12[label="1"];\n  N13[label="1"];\n  N14[label="Beta"];\n  N15[label="~"];\n  '
-                'N16[label="~"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  '
-                "N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  "
-                "N8 -> N15;\n  N10 -> N11;\n  N12 -> N14;\n  N13 -> N14;\n  N14 -> N16;\n}\n"
-            ),
-        ),
-        (
-            {
-                "fixed_effects": PriorConfig("t", [2.0, 0.0, 1.0]),
-            },
-            (
-                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  '
-                'N4[label="Beta"];\n  N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  '
-                'N8[label="Normal"];\n  N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  '
-                'N12[label="2"];\n  N13[label="0"];\n  N14[label="1"];\n  N15[label="StudentT"];\n  N16[label="~"];\n  '
-                'N17[label="~"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  '
-                "N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  N10 -> N11;\n  "
-                "N12 -> N15;\n  N13 -> N15;\n  N14 -> N15;\n  N15 -> N16;\n  N15 -> N17;\n}\n"
+                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  '
+                'N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N12[label="2"];\n  N13[label="0"];\n  '
+                'N14[label="1"];\n  N15[label="StudentT"];\n  N16[label="1"];\n  N17[label="1"];\n  N18[label="Beta"];\n  '
+                'N19[label="~"];\n  N20[label="~"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  '
+                "N1 -> N5;\n  N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  "
+                "N10 -> N11;\n  N12 -> N15;\n  N13 -> N15;\n  N14 -> N15;\n  N15 -> N19;\n  N16 -> N18;\n  N17 -> N18;\n  N18 -> N20;\n}\n"
             ),
         ),
         (
             {},
             (
-                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  '
-                'N4[label="Beta"];\n  N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  '
-                'N8[label="Normal"];\n  N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N12[label="~"];\n  '
-                'N13[label="~"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  '
-                "N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  N8 -> N12;\n  N8 -> N13;\n  "
-                "N10 -> N11;\n}\n"
+                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  N9[label="StudentT"];\n  '
+                'N10[label="~"];\n  N11[label="Normal"];\n  N12[label="~"];\n  N13[label="~"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  '
+                "N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  "
+                "N7 -> N10;\n  N8 -> N12;\n  N8 -> N13;\n  N10 -> N11;\n}\n"
             ),
         ),
     ],
@@ -286,47 +196,38 @@ def test_initialize_fixed_effect_nodes(priors_desc, expected_dot):
     assert model.g.to_dot() == expected_dot
 
 
-def test_has_user_specified_re_priors():
-    model = RealizedLinearModel(data=None, model_config=ModelConfig())
-    model.customized_priors["random_effects"] = {}
-    assert model._has_user_specified_re_priors()
-
-
 @pytest.mark.parametrize(
     "priors_desc, expected_dot",
     [
         (
             {
-                "random_effects": {
-                    "group": PriorConfig(
-                        "t",
-                        [
-                            PriorConfig("half_normal", [1.0]),
-                            PriorConfig("normal", [2.0, 1.0]),
-                            1.0,
-                        ],
-                    ),
-                },
+                "group": PriorConfig(
+                    "t",
+                    [
+                        PriorConfig("half_normal", [1.0]),
+                        PriorConfig("normal", [2.0, 1.0]),
+                        1.0,
+                    ],
+                ),
             },
             (
-                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  '
-                'N4[label="Beta"];\n  N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  '
-                'N8[label="Normal"];\n  N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  '
-                'N12[label="1"];\n  N13[label="distribution"];\n  N14[label="~"];\n  N15[label="2"];\n  N16[label="1"];\n  '
-                'N17[label="Normal"];\n  N18[label="~"];\n  N19[label="1"];\n  N20[label="StudentT"];\n  '
-                "N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  N1 -> N6;\n  "
-                "N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  N10 -> N11;\n  N12 -> N13;\n  N13 -> N14;\n  "
-                "N14 -> N20;\n  N15 -> N17;\n  N16 -> N17;\n  N17 -> N18;\n  N18 -> N20;\n  N19 -> N20;\n}\n"
+                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  '
+                'N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N12[label="1"];\n  N13[label="distribution"];\n  '
+                'N14[label="~"];\n  N15[label="2"];\n  N16[label="1"];\n  N17[label="Normal"];\n  N18[label="~"];\n  N19[label="1"];\n  '
+                'N20[label="StudentT"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  '
+                "N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  N10 -> N11;\n  N12 -> N13;\n  "
+                "N13 -> N14;\n  N14 -> N20;\n  N15 -> N17;\n  N16 -> N17;\n  N17 -> N18;\n  N18 -> N20;\n  N19 -> N20;\n}\n"
             ),
         ),
         (
             {},
             (
-                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  '
-                'N4[label="Beta"];\n  N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  '
-                'N8[label="Normal"];\n  N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N0 -> N8;\n  '
-                "N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  "
-                "N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  N10 -> N11;\n}\n"
+                'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  '
+                'N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  '
+                "N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  "
+                "N7 -> N10;\n  N10 -> N11;\n}\n"
             ),
         ),
     ],
@@ -357,19 +258,15 @@ def test_initialize_random_effect_nodes(priors_desc, expected_dot):
             ),
             MixtureConfig(use_null_mixture=True),
             {
-                "fixed_effects": {
-                    "x1": PriorConfig("normal", [0.0, 1.0]),
-                },
-                "random_effects": {
-                    "group": PriorConfig(
-                        "t",
-                        [
-                            PriorConfig("half_cauchy", [1.0]),
-                            PriorConfig("normal", [2.0, 1.0]),
-                            1.0,
-                        ],
-                    ),
-                },
+                "x1": PriorConfig("normal", [0.0, 1.0]),
+                "group": PriorConfig(
+                    "t",
+                    [
+                        PriorConfig("half_cauchy", [1.0]),
+                        PriorConfig("normal", [2.0, 1.0]),
+                        1.0,
+                    ],
+                ),
             },
             pd.DataFrame(
                 {
