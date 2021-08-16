@@ -56,6 +56,19 @@ def test_distribution_exception(label):
 
 
 @pytest.mark.parametrize(
+    "prior_config",
+    [
+        PriorConfig("normal", {"mean": 0.0, "sigma": 1.0}),
+        PriorConfig("t", {"scale": 1.0, "mean": 0.0, "degree-of-freedom": 2.0}),
+    ],
+)
+def test_parameter_dict_exception(prior_config):
+    model = RealizedModel(data=None, model_config=ModelConfig())
+    with pytest.raises(ValueError):
+        model._parse_fe_prior_config(prior_config, "test")
+
+
+@pytest.mark.parametrize(
     "const_value, const_type, expected_dot",
     [
         (1.0, "pos_real", 'digraph "graph" {\n  N0[label="1"];\n}\n'),
@@ -74,26 +87,26 @@ def test_generate_const_node(const_value, const_type, expected_dot):
     "prior_config, expected_dot",
     [
         (
-            PriorConfig("normal", [0.0, 1.0]),
+            PriorConfig("normal", {"scale": 1.0, "mean": 0.0}),
             'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="Normal"];\n  N0 -> N2;\n  N1 -> N2;\n}\n',
         ),
         (
-            PriorConfig("beta", [1.0, 1.0]),
+            PriorConfig("beta", {"alpha": 1.0, "beta": 1.0}),
             'digraph "graph" {\n  N0[label="1"];\n  N1[label="1"];\n  N2[label="Beta"];\n  N0 -> N2;\n  N1 -> N2;\n}\n',
         ),
         (
-            PriorConfig("gamma", [1.0, 1.0]),
+            PriorConfig("gamma", {"beta": 1.0, "alpha": 1.0}),
             'digraph "graph" {\n  N0[label="1"];\n  N1[label="1"];\n  N2[label="Gamma"];\n  N0 -> N2;\n  N1 -> N2;\n}\n',
         ),
         (
-            PriorConfig("t", [2.0, 0.0, 1.0]),
+            PriorConfig("t", {"scale": 1.0, "mean": 0.0, "dof": 2.0}),
             'digraph "graph" {\n  N0[label="2"];\n  N1[label="0"];\n  N2[label="1"];\n  N3[label="StudentT"];\n  N0 -> N3;\n  N1 -> N3;\n  N2 -> N3;\n}\n',
         ),
     ],
 )
-def test_generate_prior_node(prior_config, expected_dot):
+def test_parse_fe_prior_config(prior_config, expected_dot):
     model = RealizedModel(data=None, model_config=ModelConfig())
-    model._generate_prior_node(prior_config)
+    model._parse_fe_prior_config(prior_config, "test")
     assert model.g.to_dot() == expected_dot
 
 
@@ -118,18 +131,18 @@ def test_default_priors():
     [
         (
             {
-                "x1": PriorConfig("normal", [0.0, 1.0]),
-                "x2": PriorConfig("flat", []),
+                "x1": PriorConfig("normal", {"mean": 0.0, "scale": 1.0}),
+                "x2": PriorConfig("flat", {}),
                 "group": PriorConfig(
                     "t",
-                    [
-                        PriorConfig("half_cauchy", [1.0]),
-                        PriorConfig("normal", [2.0, 1.0]),
-                        1.0,
-                    ],
+                    {
+                        "mean": PriorConfig("normal", {"mean": 2.0, "scale": 1.0}),
+                        "dof": PriorConfig("half_cauchy", {"scale": 1.0}),
+                        "scale": 1.0,
+                    },
                 ),
-                "prob_h": PriorConfig("beta", [1.0, 1.0]),
-                "prob_sign": PriorConfig("beta", [1.0, 1.0]),
+                "prob_h": PriorConfig("beta", {"beta": 1.0, "alpha": 1.0}),
+                "prob_sign": PriorConfig("beta", {"alpha": 1.0, "beta": 1.0}),
             },
             {
                 "x1": 14,
@@ -158,8 +171,8 @@ def test_customize_priors(priors_desc, expected):
     [
         (
             {
-                "x1": PriorConfig("t", [2.0, 0.0, 1.0]),
-                "x2": PriorConfig("beta", [1.0, 1.0]),
+                "x1": PriorConfig("t", {"dof": 2.0, "scale": 1.0, "mean": 0.0}),
+                "x2": PriorConfig("beta", {"alpha": 1.0, "beta": 1.0}),
             },
             (
                 'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
@@ -203,11 +216,11 @@ def test_initialize_fixed_effect_nodes(priors_desc, expected_dot):
             {
                 "group": PriorConfig(
                     "t",
-                    [
-                        PriorConfig("half_normal", [1.0]),
-                        PriorConfig("normal", [2.0, 1.0]),
-                        1.0,
-                    ],
+                    {
+                        "mean": PriorConfig("normal", {"mean": 2.0, "scale": 1.0}),
+                        "dof": PriorConfig("half_normal", {"scale": 1.0}),
+                        "scale": 1.0,
+                    },
                 ),
             },
             (
@@ -258,14 +271,14 @@ def test_initialize_random_effect_nodes(priors_desc, expected_dot):
             ),
             MixtureConfig(use_null_mixture=True),
             {
-                "x1": PriorConfig("normal", [0.0, 1.0]),
+                "x1": PriorConfig("normal", {"mean": 0.0, "scale": 1.0}),
                 "group": PriorConfig(
                     "t",
-                    [
-                        PriorConfig("half_cauchy", [1.0]),
-                        PriorConfig("normal", [2.0, 1.0]),
-                        1.0,
-                    ],
+                    {
+                        "scale": 1.0,
+                        "dof": PriorConfig("half_cauchy", {"scale": 1.0}),
+                        "mean": PriorConfig("normal", {"mean": 2.0, "scale": 1.0}),
+                    },
                 ),
             },
             pd.DataFrame(

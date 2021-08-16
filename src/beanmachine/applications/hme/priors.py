@@ -30,36 +30,42 @@ class Distribution(Enum):
         "beta",
         bmgraph.DistributionType.BETA,
         ParamType.PROB,
+        ["alpha", "beta"],
         {"alpha": ParamType.POS_REAL, "beta": ParamType.POS_REAL},
     )
     GAMMA = (
         "gamma",
         bmgraph.DistributionType.GAMMA,
         ParamType.POS_REAL,
+        ["alpha", "beta"],
         {"alpha": ParamType.POS_REAL, "beta": ParamType.POS_REAL},
     )
     HALF_CAUCHY = (
         "half_cauchy",
         bmgraph.DistributionType.HALF_CAUCHY,
         ParamType.POS_REAL,
+        ["scale"],
         {"scale": ParamType.POS_REAL},
     )
     HALF_NORMAL = (
         "half_normal",
         bmgraph.DistributionType.HALF_NORMAL,
         ParamType.POS_REAL,
+        ["scale"],
         {"scale": ParamType.POS_REAL},
     )
     NORMAL = (
         "normal",
         bmgraph.DistributionType.NORMAL,
         ParamType.REAL,
+        ["mean", "scale"],
         {"mean": ParamType.REAL, "scale": ParamType.POS_REAL},
     )
     STUDENT_T = (
         "t",
         bmgraph.DistributionType.STUDENT_T,
         ParamType.REAL,
+        ["dof", "mean", "scale"],
         {
             "dof": ParamType.POS_REAL,
             "mean": ParamType.REAL,
@@ -70,25 +76,29 @@ class Distribution(Enum):
         "flat",
         bmgraph.DistributionType.FLAT,
         ParamType.REAL,
+        [],
         {},
     )
     BINOMIAL = (
         "binomial",
         bmgraph.DistributionType.BINOMIAL,
         ParamType.NATURAL,
+        ["total_count", "prob"],
         {"total_count": ParamType.NATURAL, "prob": ParamType.PROB},
     )
     CATEGORICAL = (
         "categorical",
         bmgraph.DistributionType.CATEGORICAL,
         ParamType.NATURAL,
+        ["p_vec"],
         {"p_vec": ParamType.COL_SIMPLEX_MATRIX},
     )
 
-    def __init__(self, str_name, dist_type, sample_type, params):
+    def __init__(self, str_name, dist_type, sample_type, param_order, params):
         self.str_name = str_name
         self.dist_type = dist_type
         self.sample_type = sample_type
+        self.param_order = param_order
         self.params = params
 
     @classmethod

@@ -303,8 +303,8 @@ class AbstractModel(object, metaclass=ABCMeta):
 
     def _customize_priors(self) -> None:
         """Create customized prior dist based on model_config.priors. e.g.
-        {"x": PriorConfig('normal', [0.0, 1.0])}
-        {"group": PriorConfig('t', [PriorConfig(), 0.0, PriorConfig()])}
+        {"x": PriorConfig('normal', {'mean': 0.0, 'scale': 1.0})}
+        {"group": PriorConfig('t', {'dof': PriorConfig(), 'mean': 0.0, 'scale': PriorConfig()})}
         """
         self.customized_priors = {}
 
@@ -312,10 +312,11 @@ class AbstractModel(object, metaclass=ABCMeta):
             # If all parameters are scalars (as opposed to distributions),
             # then this is a prior for a fixed effect, prob_h, or prob_sign.
             if not any(
-                isinstance(param, PriorConfig) for param in prior_config.parameters
+                isinstance(param, PriorConfig)
+                for param in prior_config.parameters.values()
             ):
-                self.customized_priors[predictor] = self._generate_prior_node(
-                    prior_config
+                self.customized_priors[predictor] = self._parse_fe_prior_config(
+                    prior_config, predictor
                 )
 
             # otherwise, parse prior configurations for some random effect
@@ -324,10 +325,11 @@ class AbstractModel(object, metaclass=ABCMeta):
                     prior_config, predictor
                 )
 
-    def _generate_prior_node(self, prior_config: PriorConfig) -> int:
+    def _parse_fe_prior_config(self, prior_config: PriorConfig, fe_key: str) -> int:
         """Generates a BMGraph distribution node based on the distribution description.
 
         :param prior_config: a distribution configuration including type and params
+        :param fe_key: variable name of the fixed effect
         :return: BMGraph distribution node for some fixed effect
         """
 
@@ -340,9 +342,16 @@ class AbstractModel(object, metaclass=ABCMeta):
             )
 
         param_list = []
-        for idx, param in enumerate(prior_config.parameters):
-            param_type = list(prior_dist.params.values())[idx]
-            param_list.append(self._generate_const_node(param, param_type))
+        for param_name in prior_dist.param_order:
+            param_type = prior_dist.params[param_name]
+            if param_name not in prior_config.parameters:
+                raise ValueError(
+                    f"Prior distribution: '{prior_config.distribution}' | Parameter: '{param_name}' "
+                    f"is not specified for covariate '{fe_key}'!"
+                )
+            else:
+                param_value = prior_config.parameters[param_name]
+            param_list.append(self._generate_const_node(param_value, param_type))
 
         # relevant error messages will be raised by bmgraph if any
         return self.g.add_distribution(
@@ -385,7 +394,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         :param re_prior_config: a distribution configuration including type and parameters, where parameters can either be real
             values or another `PriorConfig` instance
-        :param re_key: variable name of the random effect, being "fixed_effects" implies universal priors for all random effects
+        :param re_key: variable name of the random effect
         :return: BMGraph distribution node for the random effect as well as a dictionary, which maps hyper-parameters of the distribution
             to their samples
         """
@@ -394,9 +403,17 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         hyper_param_queries = {}
         param_list = []
-        for idx, param in enumerate(re_prior_config.parameters):
-            param_name = list(prior_dist.params)[idx]
-            param_type = list(prior_dist.params.values())[idx]
+
+        for param_name in prior_dist.param_order:
+            param_type = prior_dist.params[param_name]
+
+            if param_name not in re_prior_config.parameters:
+                raise ValueError(
+                    f"Prior distribution: '{re_prior_config.distribution}' | Parameter: '{param_name}' "
+                    f"is not specified for covariate '{re_key}'!"
+                )
+
+            param = re_prior_config.parameters[param_name]
 
             # hyper-prior on param
             if isinstance(param, PriorConfig):
@@ -414,7 +431,7 @@ class AbstractModel(object, metaclass=ABCMeta):
                         )
                     )
 
-                param_dist = self._generate_prior_node(param)
+                param_dist = self._parse_fe_prior_config(param, param_name)
                 param_sample = self.g.add_operator(
                     bmgraph.OperatorType.SAMPLE, [param_dist]
                 )
