@@ -321,9 +321,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
             # otherwise, parse prior configurations for some random effect
             else:
-                self.customized_priors[predictor] = self._parse_re_prior_config(
-                    prior_config, predictor
-                )
+                self.customized_priors[predictor] = prior_config
 
     def _parse_fe_prior_config(self, prior_config: PriorConfig, fe_key: str) -> int:
         """Generates a BMGraph distribution node based on the distribution description.
@@ -381,7 +379,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         ):  # param_value is a 1xn matrix in this case
             return self.g.add_constant_col_simplex_matrix(param_value)
         else:
-            logger.warning(
+            raise ValueError(
                 "Parameter type '{s}' is not supported!".format(s=param_type.str_name)
             )
 
