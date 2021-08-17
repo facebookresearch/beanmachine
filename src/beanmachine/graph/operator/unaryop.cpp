@@ -123,12 +123,13 @@ ToPosReal::ToPosReal(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::TO_POS_REAL, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;
   if (type0 != graph::AtomicType::PROBABILITY and
+      type0 != graph::AtomicType::REAL and
       type0 != graph::AtomicType::POS_REAL and
       type0 != graph::AtomicType::NATURAL and
       type0 != graph::AtomicType::BOOLEAN) {
     throw std::invalid_argument(
         "operator TO_POS_REAL requires a "
-        "pos_real, probability, natural or boolean parent");
+        "pos_real, probability, real, natural or boolean parent");
   }
   value = graph::NodeValue(graph::AtomicType::POS_REAL);
 }
@@ -141,6 +142,13 @@ void ToPosReal::eval(std::mt19937& /* gen */) {
   } else if (
       parent.type == graph::AtomicType::POS_REAL or
       parent.type == graph::AtomicType::PROBABILITY) {
+    value._double = parent._double;
+  } else if (parent.type == graph::AtomicType::REAL) {
+    if (parent._double < 0) {
+      throw std::runtime_error(
+          "invalid value of " + std::to_string(parent._double) +
+          " for TO_POS_REAL operator at node_id " + std::to_string(index));
+    }
     value._double = parent._double;
   } else if (parent.type == graph::AtomicType::NATURAL) {
     value._double = (double)parent._natural;

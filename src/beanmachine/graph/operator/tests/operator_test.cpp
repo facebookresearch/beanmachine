@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <gtest/gtest.h>
+#include <stdexcept>
 
 #include "beanmachine/graph/distribution/bernoulli.h"
 #include "beanmachine/graph/distribution/beta.h"
@@ -1226,4 +1227,44 @@ TEST(testoperator, broadcast_add) {
   EXPECT_EQ(eval2[0][0]._matrix(0, 1), 0.0);
   EXPECT_EQ(eval2[0][0]._matrix(1, 0), 1.0);
   EXPECT_EQ(eval2[0][0]._matrix(1, 1), 2.0);
+}
+
+TEST(testoperator, to_pos_real) {
+  Graph g;
+  auto zero = g.add_constant(0.0);
+  auto c1 = g.add_constant(1.0);
+
+  // normal distribution requires scale to be POS_REAL
+  EXPECT_THROW(
+      g.add_distribution(
+          DistributionType::NORMAL,
+          AtomicType::REAL,
+          std::vector<uint>{zero, c1}),
+      std::invalid_argument);
+
+  // no errors should be thrown
+  auto pos_c1 =
+      g.add_operator(OperatorType::TO_POS_REAL, std::vector<uint>{c1});
+  auto norm_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, pos_c1});
+  auto sample =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{norm_dist});
+  g.query(sample);
+  g.infer(2, InferenceType::REJECTION);
+
+  // runtime error for negative value should be thrown
+  Graph g1;
+  zero = g1.add_constant(0.0);
+  c1 = g1.add_constant(-1.0);
+  auto invalid_c1 =
+      g1.add_operator(OperatorType::TO_POS_REAL, std::vector<uint>{c1});
+  norm_dist = g1.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{zero, invalid_c1});
+  sample = g1.add_operator(OperatorType::SAMPLE, std::vector<uint>{norm_dist});
+  g1.query(sample);
+  EXPECT_THROW(g1.infer(2, InferenceType::REJECTION), std::runtime_error);
 }
