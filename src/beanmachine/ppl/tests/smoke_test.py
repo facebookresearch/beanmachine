@@ -24,18 +24,18 @@ class ToplevelSmokeTest(unittest.TestCase):
         # exercise invocation from top-level package directly
         # Compositional Inference
         samples = bm.CompositionalInference().infer(
-            [foo_sum(3)], {foo(0): tensor(0.0)}, 1000, 1
+            [foo_sum(3)], {foo(0): tensor(0.0)}, 100, 1
         )
         bm.Diagnostics(samples)
 
         # Rejection Sampling
         samples = bm.RejectionSampling().infer(
-            [foo_sum(2)], {foo(0): tensor(0.0)}, 1000, 1
+            [foo_sum(2)], {foo(0): tensor(0.0)}, 100, 1
         )
         bm.Diagnostics(samples)
 
         # NUTS
         samples = bm.SingleSiteNoUTurnSampler().infer(
-            [bar()], {foo(0): tensor(0.0)}, 100, 1, num_adaptive_samples=200
+            [bar()], {foo(0): tensor(0.0)}, 100, 1, num_adaptive_samples=100
         )
         bm.Diagnostics(samples)
