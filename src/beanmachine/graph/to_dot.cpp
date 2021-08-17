@@ -109,6 +109,8 @@ class DOT {
         return "Bimixture";
       case DistributionType::CATEGORICAL:
         return "Categorical";
+      case DistributionType::HALF_NORMAL:
+        return "HalfNormal";
       default:
         return "distribution";
     }

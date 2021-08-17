@@ -176,7 +176,7 @@ def test_customize_priors(priors_desc, expected):
             },
             (
                 'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
-                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="HalfNormal"];\n  N8[label="Normal"];\n  '
                 'N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N12[label="2"];\n  N13[label="0"];\n  '
                 'N14[label="1"];\n  N15[label="StudentT"];\n  N16[label="1"];\n  N17[label="1"];\n  N18[label="Beta"];\n  '
                 'N19[label="~"];\n  N20[label="~"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  '
@@ -188,7 +188,7 @@ def test_customize_priors(priors_desc, expected):
             {},
             (
                 'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
-                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  N9[label="StudentT"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="HalfNormal"];\n  N8[label="Normal"];\n  N9[label="StudentT"];\n  '
                 'N10[label="~"];\n  N11[label="Normal"];\n  N12[label="~"];\n  N13[label="~"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  '
                 "N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  "
                 "N7 -> N10;\n  N8 -> N12;\n  N8 -> N13;\n  N10 -> N11;\n}\n"
@@ -225,8 +225,8 @@ def test_initialize_fixed_effect_nodes(priors_desc, expected_dot):
             },
             (
                 'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
-                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  '
-                'N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N12[label="1"];\n  N13[label="distribution"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="HalfNormal"];\n  N8[label="Normal"];\n  '
+                'N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N12[label="1"];\n  N13[label="HalfNormal"];\n  '
                 'N14[label="~"];\n  N15[label="2"];\n  N16[label="1"];\n  N17[label="Normal"];\n  N18[label="~"];\n  N19[label="1"];\n  '
                 'N20[label="StudentT"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  '
                 "N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  N7 -> N10;\n  N10 -> N11;\n  N12 -> N13;\n  "
@@ -237,7 +237,7 @@ def test_initialize_fixed_effect_nodes(priors_desc, expected_dot):
             {},
             (
                 'digraph "graph" {\n  N0[label="0"];\n  N1[label="1"];\n  N2[label="2"];\n  N3[label="3"];\n  N4[label="Beta"];\n  '
-                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="distribution"];\n  N8[label="Normal"];\n  '
+                'N5[label="Gamma"];\n  N6[label="HalfCauchy"];\n  N7[label="HalfNormal"];\n  N8[label="Normal"];\n  '
                 'N9[label="StudentT"];\n  N10[label="~"];\n  N11[label="Normal"];\n  N0 -> N8;\n  N0 -> N9;\n  N0 -> N11;\n  '
                 "N1 -> N4;\n  N1 -> N4;\n  N1 -> N5;\n  N1 -> N5;\n  N1 -> N6;\n  N1 -> N7;\n  N2 -> N8;\n  N3 -> N9;\n  N3 -> N9;\n  "
                 "N7 -> N10;\n  N10 -> N11;\n}\n"
