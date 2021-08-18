@@ -1011,7 +1011,7 @@ class BMGraphBuilder:
                 # We want to process the left inputs before the right inputs, so
                 # reverse them so that the left inputs go on the stack last, and
                 # are therefore closer to the top.
-                for i in reversed(current.inputs):  # pyre-ignore
+                for i in reversed(current.inputs):
                     work_stack.append(i)
                 inputs_already_pushed.add(current)
 

@@ -41,7 +41,7 @@ class SimpleWorld(BaseWorld, MutableMapping[RVIdentifier, torch.Tensor]):
         assert node in self.transforms
         self._transformed_values[node] = value
 
-    def __delitem__(self, node: RVIdentifier) -> None:  # pyre-ignore[14]
+    def __delitem__(self, node: RVIdentifier) -> None:
         del self._transformed_values[node]
         del self.transforms[node]
 
