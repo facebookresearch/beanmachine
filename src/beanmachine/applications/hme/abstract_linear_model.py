@@ -90,16 +90,6 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         self.default_priors = {}
 
         self.default_priors["fixed_effects"] = self.normal_prior
-
-        re_scale = self.g.add_operator(
-            bmgraph.OperatorType.SAMPLE, [self.halfnormal_prior]
-        )
-        re_dist = self.g.add_distribution(
-            bmgraph.DistributionType.NORMAL,
-            bmgraph.AtomicType.REAL,
-            [self.zero, re_scale],
-        )
-        self.default_priors["random_effects"] = (re_dist, {"scale": re_scale})
         self.default_priors["prob_h"] = self.beta_prior
         self.default_priors["prob_sign"] = self.beta_prior
 
@@ -140,9 +130,20 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         re_dist, re_param = {}, {}
 
         for re in self.random_effects:
-            re_dist[re], re_param[re] = self.customized_priors.get(
-                re, self.default_priors["random_effects"]
-            )
+            if re in self.customized_priors:
+                re_dist[re], re_param[re] = self._parse_re_prior_config(
+                    self.customized_priors[re], re
+                )
+            else:
+                re_scale = self.g.add_operator(
+                    bmgraph.OperatorType.SAMPLE, [self.halfnormal_prior]
+                )
+                re_dist[re] = self.g.add_distribution(
+                    bmgraph.DistributionType.NORMAL,
+                    bmgraph.AtomicType.REAL,
+                    [self.zero, re_scale],
+                )
+                re_param[re] = {"scale": re_scale}
 
         re_value = {re: {} for re in self.random_effects}
 

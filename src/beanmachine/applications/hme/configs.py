@@ -84,7 +84,6 @@ class ModelConfig:
             stderr=None,
             formula="y ~ 1 + (1|x)",
             link="identity",
-            random_effect_distribution="normal",
         ),
         mean_mixture = MixtureConfig(
             use_null_mixture=True,
@@ -93,7 +92,7 @@ class ModelConfig:
             use_partial_asymmetric_modes=True,
         ),
         priors = {
-            "fe": PriorConfig('normal', 'real', [0.0, 1.0]),
+            "fe": PriorConfig('normal', {"mean": 0.0, "scale": 1.0}),
             }
     )
 
