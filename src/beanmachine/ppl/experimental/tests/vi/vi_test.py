@@ -186,9 +186,10 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
         self.assertGreater(sample_var, 0.1)
 
     def test_brlr(self):
-        brlr = BayesianRobustLinearRegression(n=83, d=7)
+        brlr = BayesianRobustLinearRegression(n=100, d=7)
         vi_dicts = MeanFieldVariationalInference().infer(
             queries=[brlr.beta()],
+            num_iter=50,
             observations={
                 brlr.X(): brlr.X_train,
                 brlr.y(): brlr.y_train,
