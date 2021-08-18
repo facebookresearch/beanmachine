@@ -11,7 +11,7 @@ Subpackages
    beanmachine.ppl.diagnostics
    beanmachine.ppl.distribution
    beanmachine.ppl.examples
-   beanmachine.ppl.experimental
+   beanmachine.contrib
    beanmachine.ppl.inference
    beanmachine.ppl.model
    beanmachine.ppl.testlib

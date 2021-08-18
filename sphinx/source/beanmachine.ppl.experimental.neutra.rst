@@ -4,58 +4,58 @@ experimental.neutra package
 Submodules
 ----------
 
-beanmachine.ppl.experimental.neutra.iafflow module
+beanmachine.contrib.neutra.iafflow module
 --------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra.iafflow
+.. automodule:: beanmachine.contrib.neutra.iafflow
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.neutra.iaflayer module
+beanmachine.contrib.neutra.iaflayer module
 ---------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra.iaflayer
+.. automodule:: beanmachine.contrib.neutra.iaflayer
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.neutra.iafmcmc\_infer module
+beanmachine.contrib.neutra.iafmcmc\_infer module
 ---------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra.iafmcmc_infer
+.. automodule:: beanmachine.contrib.neutra.iafmcmc_infer
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.neutra.iafmcmc\_proposer module
+beanmachine.contrib.neutra.iafmcmc\_proposer module
 ------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra.iafmcmc_proposer
+.. automodule:: beanmachine.contrib.neutra.iafmcmc_proposer
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.neutra.maskedautoencoder module
+beanmachine.contrib.neutra.maskedautoencoder module
 ------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra.maskedautoencoder
+.. automodule:: beanmachine.contrib.neutra.maskedautoencoder
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.neutra.maskedlinear module
+beanmachine.contrib.neutra.maskedlinear module
 -------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra.maskedlinear
+.. automodule:: beanmachine.contrib.neutra.maskedlinear
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.neutra.train module
+beanmachine.contrib.neutra.train module
 ------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra.train
+.. automodule:: beanmachine.contrib.neutra.train
    :members:
    :undoc-members:
    :show-inheritance:
@@ -63,7 +63,7 @@ beanmachine.ppl.experimental.neutra.train module
 Module contents
 ---------------
 
-.. automodule:: beanmachine.ppl.experimental.neutra
+.. automodule:: beanmachine.contrib.neutra
    :members:
    :undoc-members:
    :show-inheritance:

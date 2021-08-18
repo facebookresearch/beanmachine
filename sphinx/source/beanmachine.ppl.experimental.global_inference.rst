@@ -7,39 +7,39 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   beanmachine.ppl.experimental.global_inference.proposer
+   beanmachine.ppl.global_inference.proposer
 
 Submodules
 ----------
 
-beanmachine.ppl.experimental.global\_inference.base\_inference module
+beanmachine.contrib.global\_inference.base\_inference module
 ---------------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.global_inference.base_inference
+.. automodule:: beanmachine.ppl.global_inference.base_inference
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.global\_inference.hmc\_inference module
+beanmachine.contrib.global\_inference.hmc\_inference module
 --------------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.global_inference.hmc_inference
+.. automodule:: beanmachine.ppl.global_inference.hmc_inference
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.global\_inference.sampler module
+beanmachine.contrib.global\_inference.sampler module
 -------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.global_inference.sampler
+.. automodule:: beanmachine.ppl.global_inference.sampler
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.global\_inference.simple\_world module
+beanmachine.contrib.global\_inference.simple\_world module
 -------------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.global_inference.simple_world
+.. automodule:: beanmachine.ppl.global_inference.simple_world
    :members:
    :undoc-members:
    :show-inheritance:
@@ -47,7 +47,7 @@ beanmachine.ppl.experimental.global\_inference.simple\_world module
 Module contents
 ---------------
 
-.. automodule:: beanmachine.ppl.experimental.global_inference
+.. automodule:: beanmachine.ppl.global_inference
    :members:
    :undoc-members:
    :show-inheritance:

@@ -4,18 +4,18 @@ experimental.inference\_compilation package
 Submodules
 ----------
 
-beanmachine.ppl.experimental.inference\_compilation.ic\_infer module
+beanmachine.contrib.inference\_compilation.ic\_infer module
 --------------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.inference_compilation.ic_infer
+.. automodule:: beanmachine.contrib.inference_compilation.ic_infer
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.ppl.experimental.inference\_compilation.utils module
+beanmachine.contrib.inference\_compilation.utils module
 ----------------------------------------------------------------
 
-.. automodule:: beanmachine.ppl.experimental.inference_compilation.utils
+.. automodule:: beanmachine.contrib.inference_compilation.utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ beanmachine.ppl.experimental.inference\_compilation.utils module
 Module contents
 ---------------
 
-.. automodule:: beanmachine.ppl.experimental.inference_compilation
+.. automodule:: beanmachine.contrib.inference_compilation
    :members:
    :undoc-members:
    :show-inheritance:

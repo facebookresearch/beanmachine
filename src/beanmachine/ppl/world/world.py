@@ -5,11 +5,11 @@ from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import torch
 import torch.nn as nn
-from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
-    MeanFieldVariationalApproximation,
-)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
+from beanmachine.ppl.vi.mean_field_variational_approximation import (
+    MeanFieldVariationalApproximation,
+)
 from beanmachine.ppl.world.base_world import BaseWorld
 from beanmachine.ppl.world.diff import Diff
 from beanmachine.ppl.world.diff_stack import DiffStack

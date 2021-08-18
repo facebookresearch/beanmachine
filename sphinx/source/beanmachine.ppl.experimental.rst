@@ -7,17 +7,17 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   beanmachine.ppl.experimental.abc
-   beanmachine.ppl.experimental.global_inference
-   beanmachine.ppl.experimental.gp
-   beanmachine.ppl.experimental.inference_compilation
-   beanmachine.ppl.experimental.neutra
-   beanmachine.ppl.experimental.vi
+   beanmachine.contrib.abc
+   beanmachine.ppl.global_inference
+   beanmachine.contrib.gp
+   beanmachine.contrib.inference_compilation
+   beanmachine.contrib.neutra
+   beanmachine.ppl.vi
 
 Module contents
 ---------------
 
-.. automodule:: beanmachine.ppl.experimental
+.. automodule:: beanmachine.contrib
    :members:
    :undoc-members:
    :show-inheritance:

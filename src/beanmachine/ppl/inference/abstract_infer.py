@@ -8,7 +8,7 @@ from typing import Callable, ClassVar, Dict, List, Optional
 import torch
 import torch.multiprocessing as mp
 import torch.nn as nn
-from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
+from beanmachine.ppl.vi.mean_field_variational_approximation import (
     MeanFieldVariationalApproximation,
 )
 from torch import Tensor

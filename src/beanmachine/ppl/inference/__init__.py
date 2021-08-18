@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from beanmachine.ppl.experimental.global_inference.hmc_inference import (
+from beanmachine.ppl.global_inference.hmc_inference import (
     GlobalHamiltonianMonteCarlo,
     GlobalNoUTurnSampler,
 )
