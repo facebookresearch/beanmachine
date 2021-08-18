@@ -1,47 +1,44 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """Compare original and conjugate prior transformed model"""
 
-import math
 import random
 import unittest
 
-import beanmachine.ppl as bm
 import scipy
 import torch
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
 from beanmachine.ppl.inference.bmg_inference import BMGInference
+from torch import tensor
 from torch.distributions import Normal
 
 
-class TransformedModel(NormalNormalModel):
-    """Conjugate Prior Transformed model"""
-
-    @bm.random_variable
-    def normal_p_transformed(self):
-        # Analytical posterior computed using transform_mu and transform_sigma_p
-        return Normal(self.mu_, self.std_)
-
-    def transform_mu(self, observations):
-        precision_prior = pow(self.std_, -2.0)
-        precision_data = len(observations) * pow(self.sigma_, -2.0)
-        precision_inv = pow((precision_prior + precision_data), -1.0)
-        data_sum = sum(observations.values())
-        self.mu_ = precision_inv * (
-            (self.mu_ * pow(self.std_, -2.0)) + (data_sum * pow(self.sigma_, -2.0))
-        )
-
-    def transform_std(self, observations):
-        precision_prior = pow(self.std_, -2.0)
-        precision_data = len(observations) * pow(self.sigma_, -2.0)
-        precision_inv = pow((precision_prior + precision_data), -1.0)
-        self.std = math.sqrt(precision_inv)
-
-
 class NormalNormalConjugacyTest(unittest.TestCase):
+    def test_conjugate_graph(self) -> None:
+        bmg = BMGInference()
+
+        model = NormalNormalModel(10.0, 2.0, 5.0)
+        queries = [model.normal_p()]
+        observations = {model.normal(): tensor(15.9)}
+        observed_bmg = bmg.to_dot(queries, observations, skip_optimizations=set())
+        expected_bmg = """
+digraph "graph" {
+  N0[label=10.813793182373047];
+  N1[label=1.8569534304710584];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+}
+"""
+        self.assertEqual(observed_bmg.strip(), expected_bmg.strip())
+
     def test_normal_normal_conjugate(self) -> None:
         """
-        KS test to check if samples from NormalNormalModel and
-        TransformedModel is within a certain bound.
+        KS test to check if samples from the original NormalNormalModel and
+        transformed model is within a certain bound.
         We initialize the seed to ensure the test is deterministic.
         """
         seed = 0
@@ -52,23 +49,22 @@ class NormalNormalConjugacyTest(unittest.TestCase):
         num_samples = 1000
         bmg = BMGInference()
 
-        original_model = NormalNormalModel(10.0, 2.0, 5.0)
-        queries = [original_model.normal_p()]
+        model = NormalNormalModel(10.0, 2.0, 5.0)
+        queries = [model.normal_p()]
         observations = {
-            original_model.normal(): true_y.sample(),
+            model.normal(): true_y.sample(),
         }
 
-        original_posterior = bmg.infer(queries, observations, num_samples)
-        original_samples = original_posterior[original_model.normal_p()][0]
+        skip_optimizations = set("NormalNormalConjugateFixer")
+        original_posterior = bmg.infer(
+            queries, observations, num_samples, skip_optimizations=skip_optimizations
+        )
+        original_samples = original_posterior[model.normal_p()][0]
 
-        transformed_model = TransformedModel(10.0, 2.0, 5.0)
-        transformed_model.transform_mu(observations)
-        transformed_model.transform_std(observations)
-        transformed_queries = [transformed_model.normal_p_transformed()]
-        transformed_posterior = bmg.infer(transformed_queries, {}, num_samples)
-        transformed_samples = transformed_posterior[
-            transformed_model.normal_p_transformed()
-        ][0]
+        transformed_posterior = bmg.infer(
+            queries, observations, num_samples, skip_optimizations=set()
+        )
+        transformed_samples = transformed_posterior[model.normal_p()][0]
 
         self.assertEqual(
             type(original_samples),
