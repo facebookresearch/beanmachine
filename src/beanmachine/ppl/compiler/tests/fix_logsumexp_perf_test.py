@@ -63,6 +63,7 @@ class LogSumExpPerformanceTest(unittest.TestCase):
         skip_optimizations = {
             "BetaBernoulliConjguateFixer",
             "BetaBinomialConjguateFixer",
+            "NormalNormalConjugateFixer",
         }
         report_w_optimization = get_report(skip_optimizations)
 
@@ -128,6 +129,7 @@ infer:(1) -- ms
             "LogSumExpFixer",
             "BetaBernoulliConjguateFixer",
             "BetaBinomialConjguateFixer",
+            "NormalNormalConjugateFixer",
         }
         report_wo_optimization = get_report(skip_optimizations)
 

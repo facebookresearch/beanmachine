@@ -17,6 +17,9 @@ from beanmachine.ppl.compiler.fix_multiary_ops import (
     MultiaryAdditionFixer,
     MultiaryMultiplicationFixer,
 )
+from beanmachine.ppl.compiler.fix_normal_conjugate_prior import (
+    NormalNormalConjugateFixer,
+)
 from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_requirements import RequirementsFixer
@@ -46,6 +49,7 @@ _standard_fixer_types: List[Type] = [
     MultiaryMultiplicationFixer,
     BetaBernoulliConjguateFixer,
     BetaBinomialConjguateFixer,
+    NormalNormalConjugateFixer,
     RequirementsFixer,
     ObservationsFixer,
 ]
@@ -53,6 +57,7 @@ _standard_fixer_types: List[Type] = [
 default_skip_optimizations: Set[str] = {
     "BetaBernoulliConjguateFixer",
     "BetaBinomialConjguateFixer",
+    "NormalNormalConjugateFixer",
 }
 
 
