@@ -229,14 +229,14 @@ void Multiply::compute_gradients() {
   // the sum of all products with exactly one variable replaced with its
   // second grad
   double sum_product_one_grad2 = 0.0;
-  for (const auto node : in_nodes) {
-    sum_product_one_grad2 *= node->value._double;
-    sum_product_one_grad2 += product * node->grad2;
-    sum_product_two_grad1 *= node->value._double;
-    sum_product_two_grad1 += sum_product_one_grad1 * node->grad1;
-    sum_product_one_grad1 *= node->value._double;
-    sum_product_one_grad1 += product * node->grad1;
-    product *= node->value._double;
+  for (const auto in_node : in_nodes) {
+    sum_product_one_grad2 *= in_node->value._double;
+    sum_product_one_grad2 += product * in_node->grad2;
+    sum_product_two_grad1 *= in_node->value._double;
+    sum_product_two_grad1 += sum_product_one_grad1 * in_node->grad1;
+    sum_product_one_grad1 *= in_node->value._double;
+    sum_product_one_grad1 += product * in_node->grad1;
+    product *= in_node->value._double;
   }
   grad1 = sum_product_one_grad1;
   grad2 = sum_product_two_grad1 * 2 + sum_product_one_grad2;
