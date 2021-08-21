@@ -74,6 +74,13 @@ class PriorConfig:
 
 
 @dataclass
+class StructuredPriorConfig:
+
+    specification: str
+    category_order: List[str] = field(default_factory=list)
+
+
+@dataclass
 class ModelConfig:
     """A configuration class for integrated models. E.g.,
 

@@ -12,7 +12,12 @@ import pandas as pd
 from patsy import ModelDesc, dmatrix, dmatrices, build_design_matrices
 import torch  # usort: skip # noqa: F401
 
-from .configs import InferConfig, ModelConfig, PriorConfig
+from .configs import (
+    InferConfig,
+    ModelConfig,
+    PriorConfig,
+    StructuredPriorConfig,
+)
 from .patsy_mixed import evaluate_formula, RandomEffectsTerm
 from .priors import ParamType, Distribution
 
@@ -309,17 +314,17 @@ class AbstractModel(object, metaclass=ABCMeta):
         self.customized_priors = {}
 
         for predictor, prior_config in self.model_config.priors.items():
-            # If all parameters are scalars (as opposed to distributions),
-            # then this is a prior for a fixed effect, prob_h, or prob_sign.
-            if not any(
+            if isinstance(prior_config, PriorConfig) and not any(
                 isinstance(param, PriorConfig)
                 for param in prior_config.parameters.values()
             ):
+                # If all parameters are scalars (as opposed to distributions),
+                # then this is a prior for a fixed effect, prob_h, or prob_sign.
                 self.customized_priors[predictor] = self._parse_fe_prior_config(
                     prior_config, predictor
                 )
 
-            # otherwise, parse prior configurations for some random effect
+            # otherwise, just cache prior configurations for random effect
             else:
                 self.customized_priors[predictor] = prior_config
 
@@ -387,7 +392,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         self,
         re_prior_config: PriorConfig,
         re_key: str,
-    ) -> Tuple[int, dict]:  # (dist: int, param: dict)
+    ) -> Tuple[int, Dict[str, int]]:  # (dist: int, param: dict)
         """Generates a BMGraph distribution node for the given random effect as well as hyper-prior samples of parameters within.
 
         :param re_prior_config: a distribution configuration including type and parameters, where parameters can either be real
@@ -448,3 +453,224 @@ class AbstractModel(object, metaclass=ABCMeta):
             ),
             hyper_param_queries,
         )
+
+    def _parse_re_structured_prior_config(
+        self, re_structured_prior_config: StructuredPriorConfig, re_key: str
+    ) -> Tuple[Dict[str, int], Dict[str, int]]:
+        """Generates BMGraph sample nodes for all categories of the random effect
+        as well as hyper-prior samples of parameters in the structured prior.
+
+        :param re_structured_prior_config: a structured prior configuration instance
+            describing the prior specification as well as ordinal structure of the
+            random effect category
+        :param re_key: variable name of the random effect
+        :return: a tuple of two dictionaries, which maps categories of the random effect
+            as well as hyper-parameters of the structured prior to their BMGraph sample node
+        """
+
+        structured_prior_spec = re_structured_prior_config.specification
+        category_order = re_structured_prior_config.category_order
+        if structured_prior_spec == "AR":
+            return self._initialize_AR_structured_prior(category_order)
+        elif structured_prior_spec == "RW":
+            return self._initialize_RW_structured_prior(category_order)
+        else:
+            raise ValueError(
+                f"Random effect: '{re_key}' | Structured prior: '{structured_prior_spec}' is not supported!"
+            )
+
+    def _initialize_AR_structured_prior(
+        self, category_order: List[str]
+    ) -> Tuple[Dict[str, int], Dict[str, int]]:
+        """Generates BMGraph sample nodes for all categories of the random effect
+        as well as hyper-prior samples of parameters in the autoregressive structured
+        prior given its ordinal structure, where rho is the autoregression coefficient
+        of the AR(1) process and controls the amount of information being shared between
+        adjacent categories. More detailed explanation can be found in this paper: https://arxiv.org/abs/1908.06716.
+
+        :param category_order: list of all categories of the random effect, specifying its ordinal structure
+        :return: a tuple of two dictionaries, which maps categories of the random effect
+            as well as hyper-parameters of the autoregressive structured prior to their BMGraph sample nodes
+        """
+
+        # sigma ~ N+(1)
+        sigma = self.g.add_operator(
+            bmgraph.OperatorType.SAMPLE,
+            [self.halfnormal_prior],
+        )
+
+        # rho_prime ~ Beta(0.5, 0.5)
+        # rho = 2 * rho_prime - 1
+        one_half = self.g.add_constant_pos_real(0.5)
+
+        rho_prime = self.g.add_operator(
+            bmgraph.OperatorType.TO_REAL,
+            [
+                self.g.add_operator(
+                    bmgraph.OperatorType.SAMPLE,
+                    [
+                        self.g.add_distribution(
+                            bmgraph.DistributionType.BETA,
+                            bmgraph.AtomicType.PROBABILITY,
+                            [one_half, one_half],
+                        )
+                    ],
+                )
+            ],
+        )
+
+        minus_one = self.g.add_constant(-1.0)
+
+        rho = self.g.add_operator(
+            bmgraph.OperatorType.ADD,
+            [
+                self.g.add_operator(
+                    bmgraph.OperatorType.MULTIPLY,
+                    [self.g.add_constant(2.0), rho_prime],
+                ),
+                minus_one,
+            ],
+        )
+
+        hyper_param_queries = {"sigma": sigma, "rho": rho}
+
+        one_minus_rho2 = self.g.add_operator(
+            bmgraph.OperatorType.ADD,
+            [
+                self.g.add_constant(1.0),
+                self.g.add_operator(
+                    bmgraph.OperatorType.NEGATE,
+                    [
+                        self.g.add_operator(
+                            bmgraph.OperatorType.MULTIPLY,
+                            [rho, rho],
+                        )
+                    ],
+                ),
+            ],
+        )
+
+        one_minus_rho2_sqrt_inv = self.g.add_operator(
+            bmgraph.OperatorType.TO_POS_REAL,
+            [
+                self.g.add_operator(
+                    bmgraph.OperatorType.POW,
+                    [one_minus_rho2, self.g.add_constant(-0.5)],
+                ),
+            ],
+        )
+
+        cat_samples = {}
+        # alpha_0 ~ N(0, sqrt(1/(1-rho^2)) * sigma)
+        initial_cat_prior = self.g.add_distribution(
+            bmgraph.DistributionType.NORMAL,
+            bmgraph.AtomicType.REAL,
+            [
+                self.zero,
+                self.g.add_operator(
+                    bmgraph.OperatorType.MULTIPLY,
+                    [one_minus_rho2_sqrt_inv, sigma],
+                ),
+            ],
+        )
+
+        cat_samples[category_order[0]] = self.g.add_operator(
+            bmgraph.OperatorType.SAMPLE, [initial_cat_prior]
+        )
+
+        for idx in range(1, len(category_order)):
+            # alpha_{j} ~ N(rho * alpha_{j-1}, sigma)
+            next_cat_prior = self.g.add_distribution(
+                bmgraph.DistributionType.NORMAL,
+                bmgraph.AtomicType.REAL,
+                [
+                    self.g.add_operator(
+                        bmgraph.OperatorType.MULTIPLY,
+                        [rho, cat_samples[category_order[idx - 1]]],
+                    ),
+                    sigma,
+                ],
+            )
+            cat_samples[category_order[idx]] = self.g.add_operator(
+                bmgraph.OperatorType.SAMPLE, [next_cat_prior]
+            )
+
+        return cat_samples, hyper_param_queries
+
+    def _initialize_RW_structured_prior(
+        self, category_order: List[str]
+    ) -> Tuple[Dict[str, int], Dict[str, int]]:
+        """Generates BMGraph sample nodes for all categories of the random effect
+        as well as hyper-prior samples of parameters in the random walk structured
+        prior given its ordinal structure. Here, the autoregressive coefficient rho
+        is equal to one, indicating full information shared between adjacent categories.
+        More detailed explanation can be found in this paper: https://arxiv.org/abs/1908.06716.
+
+        :param category_order: list of all categories of the random effect, specifying its ordinal structure
+        :return: a tuple of two dictionaries, which maps categories of the random effect
+            as well as hyper-parameters of the random walk structured prior to their BMGraph sample nodes
+        """
+
+        # sigma ~ N+(1)
+        sigma = self.g.add_operator(
+            bmgraph.OperatorType.SAMPLE,
+            [self.halfnormal_prior],
+        )
+
+        hyper_param_queries = {"sigma": sigma}
+
+        cat_samples = {}
+        J = len(category_order)
+
+        # TODO: alternative implementation: sum(alpha_j) ~ N(0, 0.01 * J)
+        # https://github.com/alexgao09/structuredpriorsmrp_public/blob/master/simulation/proposedN01_v3.stan.
+
+        # alpha_0 ~ Flat()
+        initial_cat_prior = self.g.add_distribution(
+            bmgraph.DistributionType.FLAT,
+            bmgraph.AtomicType.REAL,
+            [],
+        )
+
+        cat_samples[category_order[0]] = self.g.add_operator(
+            bmgraph.OperatorType.SAMPLE, [initial_cat_prior]
+        )
+
+        for idx in range(1, J - 1):
+            # alpha_{j} ~ N(alpha_{j-1}, sigma)
+            next_cat_prior = self.g.add_distribution(
+                bmgraph.DistributionType.NORMAL,
+                bmgraph.AtomicType.REAL,
+                [
+                    cat_samples[category_order[idx - 1]],
+                    sigma,
+                ],
+            )
+            cat_samples[category_order[idx]] = self.g.add_operator(
+                bmgraph.OperatorType.SAMPLE, [next_cat_prior]
+            )
+
+        # alpha_{J} ~ N(- sum_{j=1}^{J-1} alpha_{j}, 0.01 * J)
+        cat_samples_sum_except_last = self.g.add_operator(
+            bmgraph.OperatorType.ADD,
+            list(cat_samples.values()),
+        )
+
+        SUM_TO_ZERO_TOLERANCE = 0.01
+        last_cat_prior = self.g.add_distribution(
+            bmgraph.DistributionType.NORMAL,
+            bmgraph.AtomicType.REAL,
+            [
+                self.g.add_operator(
+                    bmgraph.OperatorType.NEGATE,
+                    [cat_samples_sum_except_last],
+                ),
+                self.g.add_constant_pos_real(SUM_TO_ZERO_TOLERANCE * J),
+            ],
+        )
+
+        cat_samples[category_order[J - 1]] = self.g.add_operator(
+            bmgraph.OperatorType.SAMPLE, [last_cat_prior]
+        )
+
+        return cat_samples, hyper_param_queries

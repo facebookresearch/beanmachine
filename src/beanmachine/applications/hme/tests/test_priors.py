@@ -2,16 +2,17 @@
 
 import pandas as pd
 import pytest
-from beanmachine.applications.hme import (
-    HME,
+from beanmachine.applications.hme.abstract_linear_model import AbstractLinearModel
+from beanmachine.applications.hme.abstract_model import AbstractModel
+from beanmachine.applications.hme.configs import (
     InferConfig,
     ModelConfig,
     MixtureConfig,
-    PriorConfig,
     RegressionConfig,
+    PriorConfig,
+    StructuredPriorConfig,
 )
-from beanmachine.applications.hme.abstract_linear_model import AbstractLinearModel
-from beanmachine.applications.hme.abstract_model import AbstractModel
+from beanmachine.applications.hme.interface import HME
 from beanmachine.applications.hme.priors import ParamType, Distribution
 
 
@@ -467,6 +468,172 @@ def test_iid_random_effect_nodes(priors_desc, expected_dot):
     assert model.g.to_dot().strip() == expected_dot.strip()
 
 
+def test_initialize_AR_structured_priors():
+    priors_desc = {
+        "age": StructuredPriorConfig("AR", ["Young", "Middle", "Elderly"]),
+    }
+
+    model = RealizedLinearModel(
+        data=None,
+        model_config=ModelConfig(
+            mean_regression=RegressionConfig(formula="y~1+(1|age)"),
+            priors=priors_desc,
+        ),
+    )
+    model.build_graph()
+    # structured priors can only be defined for random effects
+    model._initialize_random_effect_nodes()
+
+    expected_dot = """
+digraph "graph" {
+  N0[label="0"];
+  N1[label="1"];
+  N2[label="2"];
+  N3[label="3"];
+  N4[label="Beta"];
+  N5[label="Gamma"];
+  N6[label="HalfCauchy"];
+  N7[label="HalfNormal"];
+  N8[label="Normal"];
+  N9[label="StudentT"];
+  N10[label="~"];
+  N11[label="0.5"];
+  N12[label="Beta"];
+  N13[label="~"];
+  N14[label="ToReal"];
+  N15[label="-1"];
+  N16[label="2"];
+  N17[label="*"];
+  N18[label="+"];
+  N19[label="1"];
+  N20[label="*"];
+  N21[label="Negate"];
+  N22[label="+"];
+  N23[label="-0.5"];
+  N24[label="^"];
+  N25[label="ToPosReal"];
+  N26[label="*"];
+  N27[label="Normal"];
+  N28[label="~"];
+  N29[label="*"];
+  N30[label="Normal"];
+  N31[label="~"];
+  N32[label="*"];
+  N33[label="Normal"];
+  N34[label="~"];
+  N0 -> N8;
+  N0 -> N9;
+  N0 -> N27;
+  N1 -> N4;
+  N1 -> N4;
+  N1 -> N5;
+  N1 -> N5;
+  N1 -> N6;
+  N1 -> N7;
+  N2 -> N8;
+  N3 -> N9;
+  N3 -> N9;
+  N7 -> N10;
+  N10 -> N26;
+  N10 -> N30;
+  N10 -> N33;
+  N11 -> N12;
+  N11 -> N12;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N17;
+  N15 -> N18;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N20;
+  N18 -> N20;
+  N18 -> N29;
+  N18 -> N32;
+  N19 -> N22;
+  N20 -> N21;
+  N21 -> N22;
+  N22 -> N24;
+  N23 -> N24;
+  N24 -> N25;
+  N25 -> N26;
+  N26 -> N27;
+  N27 -> N28;
+  N28 -> N29;
+  N29 -> N30;
+  N30 -> N31;
+  N31 -> N32;
+  N32 -> N33;
+  N33 -> N34;
+}
+"""
+    assert model.g.to_dot().strip() == expected_dot.strip()
+
+
+def test_initialize_RW_structured_priors():
+    priors_desc = {
+        "age": StructuredPriorConfig("RW", ["Young", "Middle", "Elderly"]),
+    }
+
+    model = RealizedLinearModel(
+        data=None,
+        model_config=ModelConfig(
+            mean_regression=RegressionConfig(formula="y~1+(1|age)"),
+            priors=priors_desc,
+        ),
+    )
+    model.build_graph()
+    # structured priors can only be defined for random effects
+    model._initialize_random_effect_nodes()
+
+    expected_dot = """
+digraph "graph" {
+  N0[label="0"];
+  N1[label="1"];
+  N2[label="2"];
+  N3[label="3"];
+  N4[label="Beta"];
+  N5[label="Gamma"];
+  N6[label="HalfCauchy"];
+  N7[label="HalfNormal"];
+  N8[label="Normal"];
+  N9[label="StudentT"];
+  N10[label="~"];
+  N11[label="Flat"];
+  N12[label="~"];
+  N13[label="Normal"];
+  N14[label="~"];
+  N15[label="+"];
+  N16[label="Negate"];
+  N17[label="0.03"];
+  N18[label="Normal"];
+  N19[label="~"];
+  N0 -> N8;
+  N0 -> N9;
+  N1 -> N4;
+  N1 -> N4;
+  N1 -> N5;
+  N1 -> N5;
+  N1 -> N6;
+  N1 -> N7;
+  N2 -> N8;
+  N3 -> N9;
+  N3 -> N9;
+  N7 -> N10;
+  N10 -> N13;
+  N11 -> N12;
+  N12 -> N13;
+  N12 -> N15;
+  N13 -> N14;
+  N14 -> N15;
+  N15 -> N16;
+  N16 -> N18;
+  N17 -> N18;
+  N18 -> N19;
+}
+"""
+    assert model.g.to_dot().strip() == expected_dot.strip()
+
+
 @pytest.mark.parametrize(
     "mean_config, mixture_config, priors_desc, data, expected",
     [
@@ -475,7 +642,7 @@ def test_iid_random_effect_nodes(priors_desc, expected_dot):
                 distribution="normal",
                 outcome="y",
                 stderr="se",
-                formula="~ 1+x1+x2+(1|team)+(1|group)",
+                formula="~ 1+x1+x2+(1|age)+(1|group)",
                 link="identity",
             ),
             MixtureConfig(use_null_mixture=True),
@@ -489,6 +656,7 @@ def test_iid_random_effect_nodes(priors_desc, expected_dot):
                         "mean": PriorConfig("normal", {"mean": 2.0, "scale": 1.0}),
                     },
                 ),
+                "age": StructuredPriorConfig("AR", ["young", "middle", "elderly"]),
             },
             pd.DataFrame(
                 {
@@ -498,19 +666,22 @@ def test_iid_random_effect_nodes(priors_desc, expected_dot):
                     "se": [0.15] * 6,
                     "group": ["a"] * 3 + ["b"] * 3,
                     "team": ["x", "y"] * 3,
+                    "age": ["young", "middle", "elderly"] * 2,
                 }
             ),
             {
                 "fixed_effect_Intercept",
                 "fixed_effect_x1",
                 "fixed_effect_x2",
+                "re_age_rho",
+                "re_age_sigma",
                 "re_group_dof",
                 "re_group_mean",
-                "re_team_scale",
+                "re_value_age_young",
+                "re_value_age_middle",
+                "re_value_age_elderly",
                 "re_value_group_a",
                 "re_value_group_b",
-                "re_value_team_x",
-                "re_value_team_y",
             },
         ),
     ],
