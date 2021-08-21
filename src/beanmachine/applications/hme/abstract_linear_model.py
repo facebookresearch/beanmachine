@@ -1,4 +1,5 @@
 # Copyright(C) Facebook, Inc. and its affiliates. All Rights Reserved.
+import copy
 import logging
 import re as regx
 from abc import ABCMeta, abstractmethod
@@ -8,7 +9,11 @@ import beanmachine.graph as bmgraph
 import pandas as pd
 
 from .abstract_model import AbstractModel
-from .configs import ModelConfig
+from .configs import (
+    ModelConfig,
+    PriorConfig,
+    StructuredPriorConfig,
+)
 
 
 logger = logging.getLogger("hme")
@@ -131,9 +136,17 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
 
         for re in self.random_effects:
             if re in self.customized_priors:
-                re_dist[re], re_param[re] = self._parse_re_prior_config(
-                    self.customized_priors[re], re
-                )
+                if isinstance(self.customized_priors[re], PriorConfig):
+                    re_dist[re], re_param[re] = self._parse_re_prior_config(
+                        self.customized_priors[re], re
+                    )
+                elif isinstance(self.customized_priors[re], StructuredPriorConfig):
+                    # Assumption: if structured prior is specified for some r.e., then
+                    # self.model_config.mean_mixture.use_bimodal_alternative = False
+                    re_dist[re], re_param[re] = self._parse_re_structured_prior_config(
+                        self.customized_priors[re], re
+                    )
+            # default
             else:
                 re_scale = self.g.add_operator(
                     bmgraph.OperatorType.SAMPLE, [self.halfnormal_prior]
@@ -196,9 +209,14 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         for re in self.random_effects:
             key = tuple(row[x] for x in re) if isinstance(re, tuple) else row[re]
             if key not in re_value[re]:
-                re_value[re][key] = self.g.add_operator(
-                    bmgraph.OperatorType.SAMPLE, [re_dist[re]]
-                )
+                if isinstance(re_dist[re], dict):
+                    # structured prior: re_dist[re] is a dictionary, mapping r.e. levels to their sample nodes
+                    # then just copy re_dist[re] to re_value[re]
+                    re_value[re][key] = copy.deepcopy(re_dist[re][key])
+                else:
+                    re_value[re][key] = self.g.add_operator(
+                        bmgraph.OperatorType.SAMPLE, [re_dist[re]]
+                    )
             re_list.append(re_value[re][key])
         if len(re_list) < 2:
             return re_list[0]
