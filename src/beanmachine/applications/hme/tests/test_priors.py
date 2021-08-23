@@ -470,7 +470,9 @@ def test_iid_random_effect_nodes(priors_desc, expected_dot):
 
 def test_initialize_AR_structured_priors():
     priors_desc = {
-        "age": StructuredPriorConfig("AR", ["Young", "Middle", "Elderly"]),
+        "age": StructuredPriorConfig(
+            specification="AR", category_order=["Young", "Middle", "Elderly"]
+        ),
     }
 
     model = RealizedLinearModel(
@@ -571,7 +573,9 @@ digraph "graph" {
 
 def test_initialize_RW_structured_priors():
     priors_desc = {
-        "age": StructuredPriorConfig("RW", ["Young", "Middle", "Elderly"]),
+        "age": StructuredPriorConfig(
+            specification="RW", category_order=["Young", "Middle", "Elderly"]
+        ),
     }
 
     model = RealizedLinearModel(

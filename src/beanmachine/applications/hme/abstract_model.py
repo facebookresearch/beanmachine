@@ -493,7 +493,7 @@ class AbstractModel(object, metaclass=ABCMeta):
             as well as hyper-parameters of the autoregressive structured prior to their BMGraph sample nodes
         """
 
-        # sigma ~ N+(1)
+        # sigma ~ N+(0, 1)
         sigma = self.g.add_operator(
             bmgraph.OperatorType.SAMPLE,
             [self.halfnormal_prior],
@@ -650,7 +650,7 @@ class AbstractModel(object, metaclass=ABCMeta):
                 bmgraph.OperatorType.SAMPLE, [next_cat_prior]
             )
 
-        # alpha_{J} ~ N(- sum_{j=1}^{J-1} alpha_{j}, 0.01 * J)
+        # alpha_{J-1} ~ N(- sum_{j=0}^{J-2} alpha_{j}, 0.01 * J)
         cat_samples_sum_except_last = self.g.add_operator(
             bmgraph.OperatorType.ADD,
             list(cat_samples.values()),

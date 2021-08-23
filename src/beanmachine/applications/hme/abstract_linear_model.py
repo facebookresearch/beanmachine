@@ -143,6 +143,10 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
                 elif isinstance(self.customized_priors[re], StructuredPriorConfig):
                     # Assumption: if structured prior is specified for some r.e., then
                     # self.model_config.mean_mixture.use_bimodal_alternative = False
+                    if self.model_config.mean_mixture.use_bimodal_alternative:
+                        raise ValueError(
+                            "Structured Priors are not supported for bimodal alternatives!"
+                        )
                     re_dist[re], re_param[re] = self._parse_re_structured_prior_config(
                         self.customized_priors[re], re
                     )
