@@ -81,13 +81,11 @@ class ApproximateBayesianComputation(RejectionSampling, metaclass=ABCMeta):
 
             # if user passed a dict for distance functions, load from it, else load default
             if isinstance(self.distance_function, dict):
-                # pyre-fixme
                 distance_function = self.distance_function[summary_statistic]
             else:
                 distance_function = self.distance_function
             # we allow users to pass either a dict or a single value for tolerance
             if isinstance(self.tolerance, dict):
-                # pyre-fixme
                 tolerance = self.tolerance[summary_statistic]
             else:
                 tolerance = self.tolerance

@@ -135,7 +135,6 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
 
             # if user passed a dict for distance functions, load from it, else load default
             if isinstance(self.distance_function, dict):
-                # pyre-fixme
                 distance_function = self.distance_function[summary_statistic]
             else:
                 distance_function = self.distance_function
@@ -188,7 +187,6 @@ class ApproximateBayesianComputationSequentialMonteCarlo(
         """
         if isinstance(self.tolerance_schedule, dict):
             num_stages = len(
-                # pyre-fixme
                 self.tolerance_schedule[list(self.tolerance_schedule.keys())[0]]
             )
         else:
