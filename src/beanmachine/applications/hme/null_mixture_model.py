@@ -226,13 +226,13 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
     def predict(
         self, new_data: pd.DataFrame, post_samples: pd.DataFrame
     ) -> pd.DataFrame:
-        """Generates mixed effect predictive distributions given new test data.
+        """Computes predictive distributions given new test data.
 
-        :param new_data: multiple test data for prediction
+        :param new_data: test data for prediction
         :type new_data: class:`pd.DataFrame`
         :param post_samples: MCMC posterior inference samples on model parameters
         :type post_samples: class:`pd.DataFrame`
-        :return: mixed effect predictive distributions
+        :return: predictive distributions on the new test data
         :rtype: class:`pd.Series`
         """
 

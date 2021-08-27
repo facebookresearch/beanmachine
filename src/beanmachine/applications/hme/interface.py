@@ -36,3 +36,13 @@ class HME:
             infer_config
         )
         return self.posterior_samples, self.posterior_diagnostics
+
+    def predict(self, new_data: pd.DataFrame) -> pd.DataFrame:
+        """Computes predictive distributions on the new test data according to
+        MCMC posterior samples.
+
+        :param new_data: test data for prediction
+        :return: predictive distributions on the new test data
+        """
+
+        return self.model.predict(new_data, self.posterior_samples)
