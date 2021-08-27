@@ -120,7 +120,7 @@ def test_model_predict(data, mean_config, mixture_config, new_data, expected_pre
         InferConfig(n_iter=10000, n_warmup=1000, seed=0)
     )
     actual = tensor(
-        model.model.predict(new_data, post_samples).mean(axis=1),
+        model.predict(new_data).mean(axis=1),
         dtype=torch.float32,
     )
     assert torch.allclose(actual, expected_pred_mean, atol=0.01)
