@@ -36,8 +36,6 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
 
   const std::vector<Node*>& det_affected_nodes =
       nmc->get_det_affected_nodes(tgt_node);
-  const std::vector<Node*>& sto_affected_nodes =
-      nmc->get_sto_affected_nodes(tgt_node);
 
   uint K = tgt_node->value._matrix.size();
   // Cast needed to access fields such as unconstrained_value:
@@ -68,8 +66,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
     // get proposal given old value
     double old_sto_affected_nodes_log_prob; // TODO: make this a separate
                                             // calculation
-    auto old_prop = create_proposer_dirichlet_gamma(
-        sto_affected_nodes,
+    auto old_prop = create_proposal_dirichlet_gamma(
         tgt_node,
         param_a,
         old_value,
@@ -97,8 +94,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
     // Obtain proposal given new value
     double new_sto_affected_nodes_log_prob; // TODO make this a separate
                                             // computation
-    auto new_prop = create_proposer_dirichlet_gamma(
-        sto_affected_nodes,
+    auto new_prop = create_proposal_dirichlet_gamma(
         tgt_node,
         param_a,
         new_value,
@@ -128,13 +124,12 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 
-// TODO: create_proposer_dirichlet_gamma is not
+// TODO: create_proposal_dirichlet_gamma is not
 // computing gradients like the scalar one is.
 // Consolidate that.
 
 std::unique_ptr<proposer::Proposer>
-NMCDirichletGammaSingleSiteStepper::create_proposer_dirichlet_gamma(
-    const std::vector<Node*>& sto_affected_nodes,
+NMCDirichletGammaSingleSiteStepper::create_proposal_dirichlet_gamma(
     Node* tgt_node,
     double param_a,
     NodeValue value,
@@ -145,12 +140,8 @@ NMCDirichletGammaSingleSiteStepper::create_proposer_dirichlet_gamma(
   logweight = 0;
   double grad1 = 0;
   double grad2 = 0;
-  for (Node* node : sto_affected_nodes) {
+  for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
-      // TODO: unify this computation of logweight
-      // and grad1, grad2 with those present in methods
-      // log_prob and gradient_log_prob
-
       // X_k ~ Gamma(param_a, 1)
       // PDF of Gamma(a, 1) is x^(a - 1)exp(-x)/gamma(a)
       // so log pdf(x) = log(x^(a - 1)) + (-x) - log(gamma(a))
@@ -164,10 +155,10 @@ NMCDirichletGammaSingleSiteStepper::create_proposer_dirichlet_gamma(
       node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
     }
   }
-  std::unique_ptr<proposer::Proposer> prop =
+  std::unique_ptr<proposer::Proposer> proposal =
       proposer::nmc_proposer(value, grad1, grad2);
   graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP_DIR);
-  return prop;
+  return proposal;
 }
 
 } // namespace graph
