@@ -77,7 +77,7 @@ void NMC::compute_support() {
             unobserved_sto_supp.size();
         unobserved_sto_supp.push_back(node);
         uint node_id = node->index;
-        unobserved_sto_support_index_by_node_id[node->index] =
+        unobserved_sto_support_index_by_node_id[node_id] =
             index_of_next_unobserved_sto_supp_node;
       }
     }
