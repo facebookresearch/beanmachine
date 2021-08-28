@@ -62,11 +62,8 @@ void NMCDirichletBetaSingleSiteStepper::step(
     nmc->revert_set_and_propagate(tgt_node, det_affected_nodes);
   }
 
-  // Gradients must be cleared (made equal to 0)
-  // at the end of each iteration.
-  // Some code relies on that to decide whether a node
-  // is the one we are computing gradients with respect to.
-  nmc->clear_gradients(det_affected_nodes);
+  nmc->clear_gradients(tgt_node, det_affected_nodes, sto_affected_nodes);
+
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 

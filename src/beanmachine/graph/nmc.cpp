@@ -253,13 +253,44 @@ void NMC::eval(const std::vector<Node*>& det_nodes) {
   g->pd_finish(ProfilerEvent::NMC_EVAL);
 }
 
-void NMC::clear_gradients(const std::vector<Node*>& det_nodes) {
+void NMC::clear_gradients(Node* node) {
+  // TODO: eventually we want to have different classes of Node
+  // and have this be a virtual method
+  switch (node->value.type.variable_type) {
+    case VariableType::SCALAR:
+      node->grad1 = 0;
+      node->grad2 = 0;
+      break;
+    case VariableType::BROADCAST_MATRIX:
+    case VariableType::COL_SIMPLEX_MATRIX: {
+      auto rows = node->value._matrix.rows();
+      auto cols = node->value._matrix.cols();
+      node->Grad1 = Eigen::MatrixXd::Zero(rows, cols);
+      node->Grad2 = Eigen::MatrixXd::Zero(rows, cols);
+      break;
+    }
+    default:
+      throw std::runtime_error(
+          "clear_gradients invoked for nodes of an unsupported variable type " +
+          std::to_string(int(node->value.type.variable_type)));
+  }
+}
+
+void NMC::clear_gradients(const std::vector<Node*>& nodes) {
   g->pd_begin(ProfilerEvent::NMC_CLEAR_GRADS);
-  for (Node* node : det_nodes) {
-    node->grad1 = 0;
-    node->grad2 = 0;
+  for (Node* node : nodes) {
+    clear_gradients(node);
   }
   g->pd_finish(ProfilerEvent::NMC_CLEAR_GRADS);
+}
+
+void NMC::clear_gradients(
+    Node* node,
+    const std::vector<Node*>& det_affected_nodes,
+    const std::vector<Node*>& sto_affected_nodes) {
+  clear_gradients(node);
+  clear_gradients(det_affected_nodes);
+  clear_gradients(sto_affected_nodes);
 }
 
 // Computes the log probability with respect to a given
