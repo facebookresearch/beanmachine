@@ -2,6 +2,8 @@
 #pragma once
 #include "beanmachine/graph/graph.h"
 
+// TODO: should change name to "Proposal" to better match the literature.
+
 namespace beanmachine {
 namespace proposer {
 
