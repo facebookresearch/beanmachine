@@ -12,6 +12,7 @@
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
+#include "beanmachine/graph/proposer/from_probability_to_dirichlet_proposer_adapter.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
@@ -111,13 +112,6 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
   double x = sto_tgt_node->value._matrix.coeff(0);
 
-  // @lint-ignore CLANGTIDY
-  auto dirichlet_distribution = sto_tgt_node->in_nodes[0];
-  auto dirichlet_parameters_node = dirichlet_distribution->in_nodes[0];
-  auto dirichlet_parameters_matrix = dirichlet_parameters_node->value._matrix;
-  auto param_a = dirichlet_parameters_matrix.coeff(0);
-  auto param_b = dirichlet_parameters_matrix.coeff(1);
-
   // Propagate gradients
   // Prepare gradients of Y wrt X.
   // Those are used by descendants to compute the log prod gradient
@@ -134,6 +128,14 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
   sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
   nmc->compute_gradients(det_affected_nodes);
 
+  // Use gradients to obtain NMC proposal
+  // @lint-ignore CLANGTIDY
+  auto dirichlet_distribution = sto_tgt_node->in_nodes[0];
+  auto dirichlet_parameters_node = dirichlet_distribution->in_nodes[0];
+  auto dirichlet_parameters_matrix = dirichlet_parameters_node->value._matrix;
+  auto param_a = dirichlet_parameters_matrix.coeff(0);
+  auto param_b = dirichlet_parameters_matrix.coeff(1);
+
   double grad1 = 0;
   double grad2 = 0;
 
@@ -147,11 +149,13 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
     }
   }
 
+  // Wrap x proposal within y proposal
   auto x_node_value = NodeValue(AtomicType::PROBABILITY, x);
-  auto x_proposer = proposer::nmc_proposer(x_node_value, grad1, grad2);
-  auto y_proposer = std::make_unique<FromProbabilityToDirichletProposerAdapter>(
-      std::move(x_proposer));
-  return y_proposer;
+  auto x_proposal = proposer::nmc_proposer(x_node_value, grad1, grad2);
+  auto y_proposal =
+      std::make_unique<proposer::FromProbabilityToDirichletProposerAdapter>(
+          std::move(x_proposal));
+  return y_proposal;
 }
 
 } // namespace graph
