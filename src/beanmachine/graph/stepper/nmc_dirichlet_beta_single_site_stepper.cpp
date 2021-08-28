@@ -28,43 +28,8 @@ bool NMCDirichletBetaSingleSiteStepper::is_applicable_to(
       tgt_node->value.type.rows == 2;
 }
 
-void NMCDirichletBetaSingleSiteStepper::step(
-    Node* tgt_node,
-    const std::vector<Node*>& det_affected_nodes,
-    const std::vector<Node*>& sto_affected_nodes) {
-  graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
-
-  auto proposal_distribution_given_old_value = get_proposal_distribution(
-      tgt_node, det_affected_nodes, sto_affected_nodes);
-
-  NodeValue new_value = nmc->sample(proposal_distribution_given_old_value);
-
-  nmc->revertibly_set_and_propagate(
-      tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
-
-  double new_sto_affected_nodes_log_prob =
-      nmc->compute_log_prob_of(sto_affected_nodes);
-
-  auto proposal_distribution_given_new_value = get_proposal_distribution(
-      tgt_node, det_affected_nodes, sto_affected_nodes);
-
-  NodeValue& old_value = nmc->get_old_value(tgt_node);
-  double old_sto_affected_nodes_log_prob =
-      nmc->get_old_sto_affected_nodes_log_prob();
-
-  double logacc = new_sto_affected_nodes_log_prob -
-      old_sto_affected_nodes_log_prob +
-      proposal_distribution_given_new_value->log_prob(old_value) -
-      proposal_distribution_given_old_value->log_prob(new_value);
-
-  bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
-  if (!accepted) {
-    nmc->revert_set_and_propagate(tgt_node, det_affected_nodes);
-  }
-
-  nmc->clear_gradients(tgt_node, det_affected_nodes, sto_affected_nodes);
-
-  graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
+ProfilerEvent NMCDirichletBetaSingleSiteStepper::get_step_profiler_event() {
+  return ProfilerEvent::NMC_STEP_DIRICHLET;
 }
 
 /*
@@ -110,7 +75,7 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
   double x = sto_tgt_node->value._matrix.coeff(0);
 
   // Propagate gradients
-  // Prepare gradients of Y wrt X.
+  // Prepare gradients of Dirichlet values wrt Beta value.
   // Those are used by descendants to compute the log prod gradient
   // with respect to X.
   // Grad1 = (dY_1/dX_1, dY_2/dX_1)
@@ -146,13 +111,17 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
     }
   }
 
-  // Wrap x proposal within y proposal
-  auto x_node_value = NodeValue(AtomicType::PROBABILITY, x);
-  auto x_proposal = proposer::nmc_proposer(x_node_value, grad1, grad2);
-  auto y_proposal =
+  // Obtain Beta proposal
+  auto beta_sample_node_value = NodeValue(AtomicType::PROBABILITY, x);
+  auto beta_proposal =
+      proposer::nmc_proposer(beta_sample_node_value, grad1, grad2);
+
+  // Wrap Beta proposal within Dirichlet proposal
+  auto dirichlet_proposal =
       std::make_unique<proposer::FromProbabilityToDirichletProposerAdapter>(
-          std::move(x_proposal));
-  return y_proposal;
+          std::move(beta_proposal));
+
+  return dirichlet_proposal;
 }
 
 } // namespace graph
