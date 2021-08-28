@@ -19,12 +19,11 @@ class NMCDirichletBetaSingleSiteStepper : public NMCSingleSiteStepper {
       const std::vector<graph::Node*>& sto_affected_nodes) override;
 
  private:
-  std::unique_ptr<proposer::Proposer> create_proposer_dirichlet_beta(
-      const std::vector<Node*>& sto_nodes,
+  std::unique_ptr<proposer::Proposer> get_proposal_distribution(
       Node* tgt_node,
-      double param_a,
-      double param_b,
-      NodeValue value);
+      NodeValue value,
+      const std::vector<Node*>& det_affected_nodes,
+      const std::vector<Node*>& sto_affected_nodes);
 };
 
 } // namespace graph
