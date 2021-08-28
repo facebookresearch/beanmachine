@@ -33,13 +33,17 @@ the attribute value, and X in unconstrainted_value.
 */
 void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
   graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
-  const std::vector<Node*>& det_nodes = nmc->get_det_affected_nodes(tgt_node);
-  const std::vector<Node*>& sto_nodes = nmc->get_sto_affected_nodes(tgt_node);
+
+  const std::vector<Node*>& det_affected_nodes =
+      nmc->get_det_affected_nodes(tgt_node);
+  const std::vector<Node*>& sto_affected_nodes =
+      nmc->get_sto_affected_nodes(tgt_node);
+
   uint K = tgt_node->value._matrix.size();
   // Cast needed to access fields such as unconstrained_value:
-  auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
+  auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
   // @lint-ignore CLANGTIDY
-  auto dirichlet_distribution_node = src_node->in_nodes[0];
+  auto dirichlet_distribution_node = sto_tgt_node->in_nodes[0];
   auto param_node = dirichlet_distribution_node->in_nodes[0];
   for (uint k = 0; k < K; k++) {
     // Prepare gradients
@@ -50,63 +54,76 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
     // where d2Y_k/dX2_k = -2 * (sum(X) - X_k)/sum(X)^3
     //       d2Y_j/dX2_k = -2 * X_j/sum(X)^3
     double param_a = param_node->value._matrix.coeff(k);
-    double old_X_k = src_node->unconstrained_value._matrix.coeff(k);
-    double sum = src_node->unconstrained_value._matrix.sum();
-    src_node->Grad1 =
-        -src_node->unconstrained_value._matrix.array() / (sum * sum);
-    *(src_node->Grad1.data() + k) += 1 / sum;
-    src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
+    double old_X_k = sto_tgt_node->unconstrained_value._matrix.coeff(k);
+    double sum = sto_tgt_node->unconstrained_value._matrix.sum();
+    sto_tgt_node->Grad1 =
+        -sto_tgt_node->unconstrained_value._matrix.array() / (sum * sum);
+    *(sto_tgt_node->Grad1.data() + k) += 1 / sum;
+    sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / sum;
+
     // Propagate gradients
     NodeValue old_value(AtomicType::POS_REAL, old_X_k);
-    nmc->save_old_values(det_nodes);
-    nmc->compute_gradients(det_nodes);
-    double old_sto_affected_nodes_log_prob;
+    nmc->compute_gradients(det_affected_nodes);
+
+    // get proposal given old value
+    double old_sto_affected_nodes_log_prob; // TODO: make this a separate
+                                            // calculation
     auto old_prop = create_proposer_dirichlet_gamma(
-        sto_nodes,
+        sto_affected_nodes,
         tgt_node,
         param_a,
         old_value,
         /* out */ old_sto_affected_nodes_log_prob);
 
+    // sample new value
     NodeValue new_value = nmc->sample(old_prop);
 
-    *(src_node->unconstrained_value._matrix.data() + k) = new_value._double;
-    sum = src_node->unconstrained_value._matrix.sum();
-    src_node->value._matrix =
-        src_node->unconstrained_value._matrix.array() / sum;
+    // set new value
+    nmc->save_old_values(det_affected_nodes);
+
+    *(sto_tgt_node->unconstrained_value._matrix.data() + k) = new_value._double;
+    sum = sto_tgt_node->unconstrained_value._matrix.sum();
+    sto_tgt_node->value._matrix =
+        sto_tgt_node->unconstrained_value._matrix.array() / sum;
 
     // Propagate values and gradients at new value of X_k
-    src_node->Grad1 =
-        -src_node->unconstrained_value._matrix.array() / (sum * sum);
-    *(src_node->Grad1.data() + k) += 1 / sum;
-    src_node->Grad2 = src_node->Grad1 * (-2.0) / sum;
-    nmc->eval(det_nodes);
-    nmc->compute_gradients(det_nodes);
+    sto_tgt_node->Grad1 =
+        -sto_tgt_node->unconstrained_value._matrix.array() / (sum * sum);
+    *(sto_tgt_node->Grad1.data() + k) += 1 / sum;
+    sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / sum;
+    nmc->eval(det_affected_nodes);
+    nmc->compute_gradients(det_affected_nodes);
 
-    double new_sto_affected_nodes_log_prob;
+    // Obtain proposal given new value
+    double new_sto_affected_nodes_log_prob; // TODO make this a separate
+                                            // computation
     auto new_prop = create_proposer_dirichlet_gamma(
-        sto_nodes,
+        sto_affected_nodes,
         tgt_node,
         param_a,
         new_value,
         /* out */ new_sto_affected_nodes_log_prob);
+
+    // Decide acceptance
     double logacc = new_sto_affected_nodes_log_prob -
         old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
         old_prop->log_prob(new_value);
     // Accept or reject, reset (values and) gradients
     bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
     if (!accepted) {
-      nmc->restore_old_values(det_nodes);
-      *(src_node->unconstrained_value._matrix.data() + k) = old_X_k;
-      sum = src_node->unconstrained_value._matrix.sum();
-      src_node->value._matrix =
-          src_node->unconstrained_value._matrix.array() / sum;
+      // Revert
+      nmc->restore_old_values(det_affected_nodes);
+      *(sto_tgt_node->unconstrained_value._matrix.data() + k) = old_X_k;
+      sum = sto_tgt_node->unconstrained_value._matrix.sum();
+      sto_tgt_node->value._matrix =
+          sto_tgt_node->unconstrained_value._matrix.array() / sum;
     }
+
     // Gradients are must be cleared (equal to 0)
     // at the end of each iteration.
     // Some code relies on that to decide whether a node
     // is the one we are computing gradients with respect to.
-    nmc->clear_gradients(det_nodes);
+    nmc->clear_gradients(det_affected_nodes);
   } // k
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
@@ -117,7 +134,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
 
 std::unique_ptr<proposer::Proposer>
 NMCDirichletGammaSingleSiteStepper::create_proposer_dirichlet_gamma(
-    const std::vector<Node*>& sto_nodes,
+    const std::vector<Node*>& sto_affected_nodes,
     Node* tgt_node,
     double param_a,
     NodeValue value,
@@ -128,7 +145,7 @@ NMCDirichletGammaSingleSiteStepper::create_proposer_dirichlet_gamma(
   logweight = 0;
   double grad1 = 0;
   double grad2 = 0;
-  for (Node* node : sto_nodes) {
+  for (Node* node : sto_affected_nodes) {
     if (node == tgt_node) {
       // TODO: unify this computation of logweight
       // and grad1, grad2 with those present in methods
