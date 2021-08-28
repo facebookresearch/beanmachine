@@ -46,7 +46,7 @@ void NMCDirichletBetaSingleSiteStepper::step(
   double old_sto_affected_nodes_log_prob =
       nmc->compute_log_prob_of(sto_affected_nodes);
   auto old_prop = get_proposal_distribution(
-      sto_tgt_node, old_value, det_affected_nodes, sto_affected_nodes);
+      sto_tgt_node, det_affected_nodes, sto_affected_nodes);
 
   // We sample a new value for X and update Y as a result.
   NodeValue new_value = nmc->sample(old_prop);
@@ -64,7 +64,7 @@ void NMCDirichletBetaSingleSiteStepper::step(
   double new_sto_affected_nodes_log_prob =
       nmc->compute_log_prob_of(sto_affected_nodes);
   auto new_prop = get_proposal_distribution(
-      sto_tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
+      sto_tgt_node, det_affected_nodes, sto_affected_nodes);
   double logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
       old_prop->log_prob(new_value);
@@ -85,20 +85,21 @@ void NMCDirichletBetaSingleSiteStepper::step(
 std::unique_ptr<proposer::Proposer>
 NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
     Node* tgt_node,
-    NodeValue value,
     const std::vector<Node*>& det_affected_nodes,
     const std::vector<Node*>& sto_affected_nodes) {
-      
   // TODO: Reorganize in the same manner the default NMC
   // proposer has been reorganized
 
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
+  double x = sto_tgt_node->value._matrix.coeff(0);
+
   // @lint-ignore CLANGTIDY
   auto dirichlet_distribution = sto_tgt_node->in_nodes[0];
   auto dirichlet_parameters_node = dirichlet_distribution->in_nodes[0];
   auto dirichlet_parameters_matrix = dirichlet_parameters_node->value._matrix;
   auto param_a = dirichlet_parameters_matrix.coeff(0);
   auto param_b = dirichlet_parameters_matrix.coeff(1);
+
 
   // Propagate gradients
   // Prepare gradients of Y wrt X.
@@ -121,7 +122,6 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
 
   for (Node* node : sto_affected_nodes) {
     if (node == tgt_node) {
-      double x = value._double;
       // X ~ Beta(param_a, param_b)
       grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);
       grad2 += -(param_a - 1) / (x * x) - (param_b - 1) / ((1 - x) * (1 - x));
@@ -130,8 +130,9 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
     }
   }
 
+  auto x_node_value = NodeValue(AtomicType::PROBABILITY, x);
   std::unique_ptr<proposer::Proposer> prop =
-      proposer::nmc_proposer(value, grad1, grad2);
+      proposer::nmc_proposer(x_node_value, grad1, grad2);
   return prop;
 }
 
