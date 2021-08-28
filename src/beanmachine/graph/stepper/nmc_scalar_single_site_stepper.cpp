@@ -63,7 +63,7 @@ void NMCScalarSingleSiteStepper::step(
   // * If we rejected it, restore the saved state.
 
   auto proposal_distribution_given_old_value = get_proposal_distribution(
-      tgt_node, tgt_node->value, det_affected_nodes, sto_affected_nodes);
+      tgt_node, det_affected_nodes, sto_affected_nodes);
 
   NodeValue new_value = nmc->sample(proposal_distribution_given_old_value);
 
@@ -74,7 +74,7 @@ void NMCScalarSingleSiteStepper::step(
       nmc->compute_log_prob_of(sto_affected_nodes);
 
   auto proposal_distribution_given_new_value = get_proposal_distribution(
-      tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
+      tgt_node, det_affected_nodes, sto_affected_nodes);
 
   NodeValue& old_value = nmc->get_old_value(tgt_node);
   double old_sto_affected_nodes_log_prob =
@@ -117,7 +117,6 @@ void NMCScalarSingleSiteStepper::step(
 std::unique_ptr<proposer::Proposer>
 NMCScalarSingleSiteStepper::get_proposal_distribution(
     Node* tgt_node,
-    NodeValue value,
     const std::vector<Node*>& det_affected_nodes,
     const std::vector<Node*>& sto_affected_nodes) {
   graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
@@ -134,7 +133,7 @@ NMCScalarSingleSiteStepper::get_proposal_distribution(
 
   // TODO: generalize so it works with any proposer, not just nmc_proposer:
   std::unique_ptr<proposer::Proposer> prop =
-      proposer::nmc_proposer(value, grad1, grad2);
+      proposer::nmc_proposer(tgt_node->value, grad1, grad2);
   graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP);
   return prop;
 }

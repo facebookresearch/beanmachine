@@ -21,7 +21,6 @@ class NMCDirichletBetaSingleSiteStepper : public NMCSingleSiteStepper {
  private:
   std::unique_ptr<proposer::Proposer> get_proposal_distribution(
       Node* tgt_node,
-      NodeValue value,
       const std::vector<Node*>& det_affected_nodes,
       const std::vector<Node*>& sto_affected_nodes);
 };
