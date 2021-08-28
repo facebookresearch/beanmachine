@@ -16,11 +16,14 @@ class NMCDirichletGammaSingleSiteStepper : public NMCSingleSiteStepper {
   virtual void step(graph::Node* tgt_node) override;
 
  private:
+  double compute_sto_affected_nodes_log_prob(
+      Node* tgt_node,
+      double param_a,
+      NodeValue value);
   std::unique_ptr<proposer::Proposer> create_proposal_dirichlet_gamma(
       Node* tgt_node,
       double param_a,
-      NodeValue value,
-      /* out */ double& logweight);
+      NodeValue value);
 };
 
 } // namespace graph
