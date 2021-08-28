@@ -12,13 +12,13 @@ namespace proposer {
  */
 class FromProbabilityToDirichletProposerAdapter : public Proposer {
  public:
-  FromProbabilityToDirichletProposerAdapter(
+  explicit FromProbabilityToDirichletProposerAdapter(
       std::unique_ptr<Proposer> probability_proposer)
       : probability_proposer(std::move(probability_proposer)) {}
 
-  virtual graph::NodeValue sample(std::mt19937& gen) const;
+  virtual graph::NodeValue sample(std::mt19937& gen) const override;
 
-  virtual double log_prob(graph::NodeValue& value) const;
+  virtual double log_prob(graph::NodeValue& value) const override;
 
  private:
   std::unique_ptr<Proposer> probability_proposer;
