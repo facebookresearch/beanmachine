@@ -145,7 +145,14 @@ class NMC {
 
   void eval(const std::vector<Node*>& det_nodes);
 
-  void clear_gradients(const std::vector<Node*>& det_nodes);
+  void clear_gradients(Node* node);
+
+  void clear_gradients(const std::vector<Node*>& nodes);
+
+  void clear_gradients(
+      Node* node,
+      const std::vector<Node*>& det_affected_nodes,
+      const std::vector<Node*>& sto_affected_nodes);
 
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
 

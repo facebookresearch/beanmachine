@@ -104,9 +104,8 @@ void NMCScalarSingleSiteStepper::step(
   // This was the case for example for
   // StochasticOperator::gradient_log_prob,
   // but that dependence has been removed.
-  nmc->clear_gradients(det_affected_nodes);
-  tgt_node->grad1 = 0;
-  tgt_node->grad2 = 0;
+  nmc->clear_gradients(tgt_node, det_affected_nodes, sto_affected_nodes);
+
   graph->pd_finish(ProfilerEvent::NMC_STEP);
 }
 
