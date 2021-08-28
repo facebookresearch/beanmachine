@@ -16,9 +16,7 @@ class NMCDirichletBetaSingleSiteStepper : public NMCDefaultSingleSiteStepper {
 
  protected:
   virtual std::unique_ptr<proposer::Proposer> get_proposal_distribution(
-      Node* tgt_node,
-      const std::vector<Node*>& det_affected_nodes,
-      const std::vector<Node*>& sto_affected_nodes) override;
+      Node* tgt_node) override;
 
   virtual ProfilerEvent get_step_profiler_event() override;
 };

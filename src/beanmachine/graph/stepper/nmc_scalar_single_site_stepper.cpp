@@ -33,19 +33,16 @@ ProfilerEvent NMCScalarSingleSiteStepper::get_step_profiler_event() {
 // NOTE: assumes that det_affected_nodes's values are already
 // evaluated according to the target node's value.
 std::unique_ptr<proposer::Proposer>
-NMCScalarSingleSiteStepper::get_proposal_distribution(
-    Node* tgt_node,
-    const std::vector<Node*>& det_affected_nodes,
-    const std::vector<Node*>& sto_affected_nodes) {
+NMCScalarSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {
   graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
 
   tgt_node->grad1 = 1;
   tgt_node->grad2 = 0;
-  nmc->compute_gradients(det_affected_nodes);
+  nmc->compute_gradients(nmc->get_det_affected_nodes(tgt_node));
 
   double grad1 = 0;
   double grad2 = 0;
-  for (Node* node : sto_affected_nodes) {
+  for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {
     node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
   }
 

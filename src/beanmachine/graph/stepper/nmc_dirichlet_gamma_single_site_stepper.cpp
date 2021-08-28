@@ -31,11 +31,10 @@ divided by their sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
 Y_k = X_k / sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
 the attribute value, and X in unconstrainted_value.
 */
-void NMCDirichletGammaSingleSiteStepper::step(
-    Node* tgt_node,
-    const std::vector<Node*>& det_nodes,
-    const std::vector<Node*>& sto_nodes) {
+void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
   graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
+  const std::vector<Node*>& det_nodes = nmc->get_det_affected_nodes(tgt_node);
+  const std::vector<Node*>& sto_nodes = nmc->get_sto_affected_nodes(tgt_node);
   uint K = tgt_node->value._matrix.size();
   // Cast needed to access fields such as unconstrained_value:
   auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
