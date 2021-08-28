@@ -16,8 +16,7 @@ class NMCDirichletGammaSingleSiteStepper : public NMCSingleSiteStepper {
   virtual void step(graph::Node* tgt_node) override;
 
  private:
-  std::unique_ptr<proposer::Proposer> create_proposer_dirichlet_gamma(
-      const std::vector<Node*>& sto_nodes,
+  std::unique_ptr<proposer::Proposer> create_proposal_dirichlet_gamma(
       Node* tgt_node,
       double param_a,
       NodeValue value,
