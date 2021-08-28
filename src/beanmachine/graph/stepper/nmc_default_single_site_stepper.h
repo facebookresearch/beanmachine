@@ -20,7 +20,7 @@ class NMCDefaultSingleSiteStepper : public NMCSingleSiteStepper {
   NMCDefaultSingleSiteStepper(Graph* graph, NMC* nmc)
       : NMCSingleSiteStepper(graph, nmc) {}
 
-  virtual bool is_applicable_to(graph::Node* tgt_node) = 0;
+  virtual bool is_applicable_to(graph::Node* tgt_node) override = 0;
 
   virtual void step(
       graph::Node* tgt_node,
