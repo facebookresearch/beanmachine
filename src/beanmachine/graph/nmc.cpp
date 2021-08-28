@@ -25,7 +25,7 @@ NMC::NMC(Graph* g, uint seed)
     : g(g),
       gen(seed),
       // Note: the order of steppers below is important
-      // because DirichletGamma is also application to
+      // because DirichletGamma is also applicable to
       // nodes to which Beta is applicable,
       // but we want to give priority to Beta in those cases.
       single_site_steppers{

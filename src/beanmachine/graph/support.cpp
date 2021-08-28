@@ -7,8 +7,10 @@
 namespace beanmachine {
 namespace graph {
 
-// the support of a graph is the set of operator and factor nodes that are the
-// ancestors of the queried and observed variables
+// the support of a graph is the set of operator and factor nodes that are
+// needed to determine the value of query and observed variables.
+// In other words, it is the set of queried and observed variables themselves
+// plus their ancestors that are operator and factor nodes.
 std::set<uint> Graph::compute_support() {
   // we will do a standard BFS except that we are doing a BFS
   // in the reverse direction of the graph edges
