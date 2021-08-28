@@ -44,64 +44,47 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
   auto dirichlet_distribution_node = sto_tgt_node->in_nodes[0];
   auto param_node = dirichlet_distribution_node->in_nodes[0];
   for (uint k = 0; k < K; k++) {
-    // Prepare gradients
-    // Grad1 = (dY_1/dX_k, dY_2/dX_k, ..., dY_K/X_k)
-    // where dY_k/dX_k = (sum(X) - X_k)/sum(X)^2
-    //       dY_j/dX_k = - X_j/sum(X)^2, for j != k
-    // Grad2 = (d^2Y_1/dX^2_k, ..., d^2Y_K/X^2_k)
-    // where d2Y_k/dX2_k = -2 * (sum(X) - X_k)/sum(X)^3
-    //       d2Y_j/dX2_k = -2 * X_j/sum(X)^3
     double param_a = param_node->value._matrix.coeff(k);
-    double old_X_k = sto_tgt_node->unconstrained_value._matrix.coeff(k);
     double sum = sto_tgt_node->unconstrained_value._matrix.sum();
-    sto_tgt_node->Grad1 =
-        -sto_tgt_node->unconstrained_value._matrix.array() / (sum * sum);
-    *(sto_tgt_node->Grad1.data() + k) += 1 / sum;
-    sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / sum;
-
-    // Propagate gradients
-    NodeValue old_value(AtomicType::POS_REAL, old_X_k);
-    nmc->compute_gradients(det_affected_nodes);
 
     // get proposal given old value
+    double old_X_k = sto_tgt_node->unconstrained_value._matrix.coeff(k);
+    NodeValue old_value(AtomicType::POS_REAL, old_X_k);
     auto old_prop =
-        create_proposal_dirichlet_gamma(tgt_node, param_a, old_value);
-    double old_sto_affected_nodes_log_prob =
-        compute_sto_affected_nodes_log_prob(tgt_node, param_a, old_value);
+        create_proposal_dirichlet_gamma(tgt_node, param_a, sum, old_value, k);
 
     // sample new value
     NodeValue new_value = nmc->sample(old_prop);
 
-    // set new value
+    // save old values
     nmc->save_old_values(det_affected_nodes);
+    double old_sto_affected_nodes_log_prob =
+        compute_sto_affected_nodes_log_prob(tgt_node, param_a, old_value);
 
+    // set new value
     *(sto_tgt_node->unconstrained_value._matrix.data() + k) = new_value._double;
     sum = sto_tgt_node->unconstrained_value._matrix.sum();
     sto_tgt_node->value._matrix =
         sto_tgt_node->unconstrained_value._matrix.array() / sum;
 
-    // Propagate values and gradients at new value of X_k
-    sto_tgt_node->Grad1 =
-        -sto_tgt_node->unconstrained_value._matrix.array() / (sum * sum);
-    *(sto_tgt_node->Grad1.data() + k) += 1 / sum;
-    sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / sum;
+    // propagate new value
     nmc->eval(det_affected_nodes);
-    nmc->compute_gradients(det_affected_nodes);
-
-    // Obtain proposal given new value
-    auto new_prop =
-        create_proposal_dirichlet_gamma(tgt_node, param_a, new_value);
     double new_sto_affected_nodes_log_prob =
         compute_sto_affected_nodes_log_prob(tgt_node, param_a, new_value);
 
-    // Decide acceptance
+    // obtain proposal given new value
+    auto new_prop =
+        create_proposal_dirichlet_gamma(tgt_node, param_a, sum, new_value, k);
+
+    // compute acceptance probability
     double logacc = new_sto_affected_nodes_log_prob -
         old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
         old_prop->log_prob(new_value);
-    // Accept or reject, reset (values and) gradients
+
+    // decide acceptance
     bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
     if (!accepted) {
-      // Revert
+      // revert
       nmc->restore_old_values(det_affected_nodes);
       *(sto_tgt_node->unconstrained_value._matrix.data() + k) = old_X_k;
       sum = sto_tgt_node->unconstrained_value._matrix.sum();
@@ -138,18 +121,31 @@ double NMCDirichletGammaSingleSiteStepper::compute_sto_affected_nodes_log_prob(
   return logweight;
 }
 
-// TODO: create_proposal_dirichlet_gamma is not
-// computing gradients like the scalar one is.
-// Consolidate that.
-
 std::unique_ptr<proposer::Proposer>
 NMCDirichletGammaSingleSiteStepper::create_proposal_dirichlet_gamma(
     Node* tgt_node,
     double param_a,
-    NodeValue value) {
-  // TODO: Reorganize in the same manner the default NMC
-  // proposer has been reorganized
+    double sum,
+    NodeValue value,
+    uint k) {
   graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP_DIR);
+  // Cast needed to access fields such as unconstrained_value:
+  auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
+  // Prepare gradients
+  // Grad1 = (dY_1/dX_k, dY_2/dX_k, ..., dY_K/X_k)
+  // where dY_k/dX_k = (sum(X) - X_k)/sum(X)^2
+  //       dY_j/dX_k = - X_j/sum(X)^2, for j != k
+  // Grad2 = (d^2Y_1/dX^2_k, ..., d^2Y_K/X^2_k)
+  // where d2Y_k/dX2_k = -2 * (sum(X) - X_k)/sum(X)^3
+  //       d2Y_j/dX2_k = -2 * X_j/sum(X)^3
+  sto_tgt_node->Grad1 =
+      -sto_tgt_node->unconstrained_value._matrix.array() / (sum * sum);
+  *(sto_tgt_node->Grad1.data() + k) += 1 / sum;
+  sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / sum;
+
+  // Propagate gradients
+  nmc->compute_gradients(nmc->get_det_affected_nodes(tgt_node));
+
   double grad1 = 0;
   double grad2 = 0;
   for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {

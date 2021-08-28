@@ -23,7 +23,9 @@ class NMCDirichletGammaSingleSiteStepper : public NMCSingleSiteStepper {
   std::unique_ptr<proposer::Proposer> create_proposal_dirichlet_gamma(
       Node* tgt_node,
       double param_a,
-      NodeValue value);
+      double sum,
+      NodeValue value,
+      uint k);
 };
 
 } // namespace graph
