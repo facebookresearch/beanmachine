@@ -32,27 +32,24 @@ void NMCDirichletBetaSingleSiteStepper::step(
     const std::vector<Node*>& det_affected_nodes,
     const std::vector<Node*>& sto_affected_nodes) {
   graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
-  assert(tgt_node->value._matrix.size() == 2);
-  auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
 
   auto proposal_distribution_given_old_value = get_proposal_distribution(
       tgt_node, det_affected_nodes, sto_affected_nodes);
 
   NodeValue new_value = nmc->sample(proposal_distribution_given_old_value);
 
-  // Proto-reversibly_set_and_propagate
-  auto old_value = sto_tgt_node->value;
-  nmc->save_old_values(det_affected_nodes);
-  double old_sto_affected_nodes_log_prob =
-      nmc->compute_log_prob_of(sto_affected_nodes);
-  sto_tgt_node->value = new_value;
-  nmc->eval(det_affected_nodes);
+  nmc->revertibly_set_and_propagate(
+      tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
 
   double new_sto_affected_nodes_log_prob =
       nmc->compute_log_prob_of(sto_affected_nodes);
 
   auto proposal_distribution_given_new_value = get_proposal_distribution(
-      sto_tgt_node, det_affected_nodes, sto_affected_nodes);
+      tgt_node, det_affected_nodes, sto_affected_nodes);
+
+  NodeValue& old_value = nmc->get_old_value(tgt_node);
+  double old_sto_affected_nodes_log_prob =
+      nmc->get_old_sto_affected_nodes_log_prob();
 
   double logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob +
@@ -61,8 +58,7 @@ void NMCDirichletBetaSingleSiteStepper::step(
 
   bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
   if (!accepted) {
-    nmc->restore_old_values(det_affected_nodes);
-    sto_tgt_node->value = old_value;
+    nmc->revert_set_and_propagate(tgt_node, det_affected_nodes);
   }
 
   // Gradients must be cleared (made equal to 0)
@@ -110,6 +106,8 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
   // TODO: Reorganize in the same manner the default NMC
   // proposer has been reorganized
 
+  assert(tgt_node->value._matrix.size() == 2);
+
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
   double x = sto_tgt_node->value._matrix.coeff(0);
 
@@ -151,8 +149,9 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
 
   auto x_node_value = NodeValue(AtomicType::PROBABILITY, x);
   auto x_proposer = proposer::nmc_proposer(x_node_value, grad1, grad2);
-  return std::make_unique<FromProbabilityToDirichletProposerAdapter>(
+  auto y_proposer = std::make_unique<FromProbabilityToDirichletProposerAdapter>(
       std::move(x_proposer));
+  return y_proposer;
 }
 
 } // namespace graph
