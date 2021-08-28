@@ -27,11 +27,6 @@ bool NMCDirichletBetaSingleSiteStepper::is_applicable_to(
       tgt_node->value.type.rows == 2;
 }
 
-/*
-We treat the 2-dimensional Dirichlet-distributed (Y_1, Y_2)
-as a deterministic function of a Beta-distributed X:
-(Y_1, Y_2) = (X, 1 - X)
-*/
 void NMCDirichletBetaSingleSiteStepper::step(
     Node* tgt_node,
     const std::vector<Node*>& det_affected_nodes,
@@ -41,19 +36,16 @@ void NMCDirichletBetaSingleSiteStepper::step(
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
 
   auto proposal_distribution_given_old_value = get_proposal_distribution(
-      sto_tgt_node, det_affected_nodes, sto_affected_nodes);
+      tgt_node, det_affected_nodes, sto_affected_nodes);
 
-  // We sample a new value for X and update Y as a result.
   NodeValue new_value = nmc->sample(proposal_distribution_given_old_value);
 
   // Proto-reversibly_set_and_propagate
-  auto old_X = sto_tgt_node->value._matrix.coeff(0);
-  NodeValue x_node_value(AtomicType::PROBABILITY, old_X);
+  auto old_value = sto_tgt_node->value;
   nmc->save_old_values(det_affected_nodes);
   double old_sto_affected_nodes_log_prob =
       nmc->compute_log_prob_of(sto_affected_nodes);
-  *(sto_tgt_node->value._matrix.data()) = new_value._double;
-  *(sto_tgt_node->value._matrix.data() + 1) = 1 - new_value._double;
+  sto_tgt_node->value = new_value;
   nmc->eval(det_affected_nodes);
 
   double new_sto_affected_nodes_log_prob =
@@ -64,23 +56,51 @@ void NMCDirichletBetaSingleSiteStepper::step(
 
   double logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob +
-      proposal_distribution_given_new_value->log_prob(x_node_value) -
+      proposal_distribution_given_new_value->log_prob(old_value) -
       proposal_distribution_given_old_value->log_prob(new_value);
 
   bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
   if (!accepted) {
     nmc->restore_old_values(det_affected_nodes);
-    *(sto_tgt_node->value._matrix.data()) = old_X;
-    *(sto_tgt_node->value._matrix.data() + 1) = 1 - old_X;
+    sto_tgt_node->value = old_value;
   }
 
-  // Gradients are must be cleared (equal to 0)
+  // Gradients must be cleared (made equal to 0)
   // at the end of each iteration.
   // Some code relies on that to decide whether a node
   // is the one we are computing gradients with respect to.
   nmc->clear_gradients(det_affected_nodes);
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
+
+/*
+ * An adapter to go from a base proposer producing a probability p
+ * to a new proposer that produces a Dirichlet sample (p, 1 - p).
+ */
+class FromProbabilityToDirichletProposerAdapter : public proposer::Proposer {
+ public:
+  FromProbabilityToDirichletProposerAdapter(
+      std::unique_ptr<proposer::Proposer> probability_proposer)
+      : probability_proposer(std::move(probability_proposer)) {}
+
+  virtual graph::NodeValue sample(std::mt19937& gen) const {
+    auto x = probability_proposer->sample(gen);
+    ValueType value_type(
+        VariableType::COL_SIMPLEX_MATRIX, AtomicType::PROBABILITY, 2, 1);
+    Eigen::MatrixXd values(2, 1);
+    values << x._double, 1 - x._double;
+    NodeValue y(value_type, values);
+    return y;
+  }
+
+  virtual double log_prob(graph::NodeValue& value) const {
+    NodeValue x(AtomicType::PROBABILITY, value._matrix.coeff(0));
+    return probability_proposer->log_prob(x);
+  }
+
+ private:
+  std::unique_ptr<proposer::Proposer> probability_proposer;
+};
 
 std::unique_ptr<proposer::Proposer>
 NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
@@ -130,9 +150,9 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
   }
 
   auto x_node_value = NodeValue(AtomicType::PROBABILITY, x);
-  std::unique_ptr<proposer::Proposer> prop =
-      proposer::nmc_proposer(x_node_value, grad1, grad2);
-  return prop;
+  auto x_proposer = proposer::nmc_proposer(x_node_value, grad1, grad2);
+  return std::make_unique<FromProbabilityToDirichletProposerAdapter>(
+      std::move(x_proposer));
 }
 
 } // namespace graph
