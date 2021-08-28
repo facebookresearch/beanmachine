@@ -34,20 +34,73 @@ as a deterministic function of a Beta-distributed X:
 */
 void NMCDirichletBetaSingleSiteStepper::step(
     Node* tgt_node,
-    const std::vector<Node*>& det_nodes,
-    const std::vector<Node*>& sto_nodes) {
+    const std::vector<Node*>& det_affected_nodes,
+    const std::vector<Node*>& sto_affected_nodes) {
   graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
   assert(tgt_node->value._matrix.size() == 2);
-  auto src_node = static_cast<oper::StochasticOperator*>(tgt_node);
+  auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
+
+  auto old_X = sto_tgt_node->value._matrix.coeff(0);
+  NodeValue old_value(AtomicType::PROBABILITY, old_X);
+  nmc->save_old_values(det_affected_nodes);
+  double old_sto_affected_nodes_log_prob =
+      nmc->compute_log_prob_of(sto_affected_nodes);
+  auto old_prop = get_proposal_distribution(
+      sto_tgt_node, old_value, det_affected_nodes, sto_affected_nodes);
+
+  // We sample a new value for X and update Y as a result.
+  NodeValue new_value = nmc->sample(old_prop);
+  *(sto_tgt_node->value._matrix.data()) = new_value._double;
+  *(sto_tgt_node->value._matrix.data() + 1) = 1 - new_value._double;
+
+  // In general we would have to update Grad_i given the new X,
+  // but since they are constant functions, they remain the same as before.
+  // Showing it here for completeness:
+  // sto_tgt_node->Grad1 = Grad1;
+  // sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
+  nmc->eval(det_affected_nodes);
+  nmc->compute_gradients(det_affected_nodes);
+
+  double new_sto_affected_nodes_log_prob =
+      nmc->compute_log_prob_of(sto_affected_nodes);
+  auto new_prop = get_proposal_distribution(
+      sto_tgt_node, new_value, det_affected_nodes, sto_affected_nodes);
+  double logacc = new_sto_affected_nodes_log_prob -
+      old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
+      old_prop->log_prob(new_value);
+  bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
+  if (!accepted) {
+    nmc->restore_old_values(det_affected_nodes);
+    *(sto_tgt_node->value._matrix.data()) = old_X;
+    *(sto_tgt_node->value._matrix.data() + 1) = 1 - old_X;
+  }
+  // Gradients are must be cleared (equal to 0)
+  // at the end of each iteration.
+  // Some code relies on that to decide whether a node
+  // is the one we are computing gradients with respect to.
+  nmc->clear_gradients(det_affected_nodes);
+  graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
+}
+
+std::unique_ptr<proposer::Proposer>
+NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
+    Node* tgt_node,
+    NodeValue value,
+    const std::vector<Node*>& det_affected_nodes,
+    const std::vector<Node*>& sto_affected_nodes) {
+      
+  // TODO: Reorganize in the same manner the default NMC
+  // proposer has been reorganized
+
+  auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
   // @lint-ignore CLANGTIDY
-  // in_node[0] is the Dirichlet distribution from which this node is sampled.
-  // in_node[0]
-  auto dirichlet_distribution = src_node->in_nodes[0];
+  auto dirichlet_distribution = sto_tgt_node->in_nodes[0];
   auto dirichlet_parameters_node = dirichlet_distribution->in_nodes[0];
   auto dirichlet_parameters_matrix = dirichlet_parameters_node->value._matrix;
   auto param_a = dirichlet_parameters_matrix.coeff(0);
   auto param_b = dirichlet_parameters_matrix.coeff(1);
 
+  // Propagate gradients
   // Prepare gradients of Y wrt X.
   // Those are used by descendants to compute the log prod gradient
   // with respect to X.
@@ -59,64 +112,14 @@ void NMCDirichletBetaSingleSiteStepper::step(
   //       (d/dX_1)^2 Y_2 = 0
   Eigen::MatrixXd Grad1(2, 1);
   Grad1 << 1, -1;
-  src_node->Grad1 = Grad1;
-  src_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
+  sto_tgt_node->Grad1 = Grad1;
+  sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
+  nmc->compute_gradients(det_affected_nodes);
 
-  // Propagate gradients
-  auto old_X = src_node->value._matrix.coeff(0);
-  NodeValue old_value(AtomicType::PROBABILITY, old_X);
-  nmc->save_old_values(det_nodes);
-  nmc->compute_gradients(det_nodes);
-  double old_sto_affected_nodes_log_prob = nmc->compute_log_prob_of(sto_nodes);
-  auto old_prop = create_proposer_dirichlet_beta(
-      sto_nodes, tgt_node, param_a, param_b, old_value);
-
-  // We sample a new value for X and update Y as a result.
-  NodeValue new_value = nmc->sample(old_prop);
-  *(src_node->value._matrix.data()) = new_value._double;
-  *(src_node->value._matrix.data() + 1) = 1 - new_value._double;
-
-  // In general we would have to update Grad_i given the new X,
-  // but since they are constant functions, they remain the same as before.
-  // Showing it here for completeness:
-  // src_node->Grad1 = Grad1;
-  // src_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  nmc->eval(det_nodes);
-  nmc->compute_gradients(det_nodes);
-
-  double new_sto_affected_nodes_log_prob = nmc->compute_log_prob_of(sto_nodes);
-  auto new_prop = create_proposer_dirichlet_beta(
-      sto_nodes, tgt_node, param_a, param_b, new_value);
-  double logacc = new_sto_affected_nodes_log_prob -
-      old_sto_affected_nodes_log_prob + new_prop->log_prob(old_value) -
-      old_prop->log_prob(new_value);
-  // Accept or reject, reset (values and) gradients
-  bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
-  if (!accepted) {
-    nmc->restore_old_values(det_nodes);
-    *(src_node->value._matrix.data()) = old_X;
-    *(src_node->value._matrix.data() + 1) = 1 - old_X;
-  }
-  // Gradients are must be cleared (equal to 0)
-  // at the end of each iteration.
-  // Some code relies on that to decide whether a node
-  // is the one we are computing gradients with respect to.
-  nmc->clear_gradients(det_nodes);
-  graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
-}
-
-std::unique_ptr<proposer::Proposer>
-NMCDirichletBetaSingleSiteStepper::create_proposer_dirichlet_beta(
-    const std::vector<Node*>& sto_nodes,
-    Node* tgt_node,
-    double param_a,
-    double param_b,
-    NodeValue value) {
-  // TODO: Reorganize in the same manner the default NMC
-  // proposer has been reorganized
   double grad1 = 0;
   double grad2 = 0;
-  for (Node* node : sto_nodes) {
+
+  for (Node* node : sto_affected_nodes) {
     if (node == tgt_node) {
       double x = value._double;
       // X ~ Beta(param_a, param_b)
