@@ -62,6 +62,11 @@ class NMC {
   // Nodes in unobserved_supp that are stochastic; similarly, order matters.
   std::vector<Node*> unobserved_sto_supp;
 
+  // A vector containing the index of a node in unobserved_sto_supp for each
+  // node_id. Since not all nodes are in unobserved_sto_support, some elements
+  // of this vector should never be accessed.
+  std::vector<uint> unobserved_sto_support_index_by_node_id;
+
   // Single-site steppers application to nodes in unobserved_supp that are
   // stochastic; similarly, order matters.
   std::vector<NMCSingleSiteStepper*> stepper_for_node;
@@ -113,19 +118,20 @@ class NMC {
 
   void collect_sample(InferConfig infer_config);
 
-  // Set a given node to a new value
-  // and update its deterministically affected
-  // nodes in a revertible manner.
-  void revertibly_set_and_propagate(
-      Node* node,
-      const NodeValue& value,
-      const std::vector<Node*>& det_affected_nodes,
-      const std::vector<Node*>& sto_affected_nodes);
+  const std::vector<Node*>& get_det_affected_nodes(Node* node);
+
+  const std::vector<Node*>& get_sto_affected_nodes(Node* node);
+
+  // Sets a given node to a new value and
+  // updates its deterministically affected nodes.
+  // Does so in a revertible manner by saving old values and old stochastic
+  // affected nodes log prob.
+  // Old values can be accessed through get_old_* methods.
+  // The reversion is executed by invoking revert_set_and_propagate.
+  void revertibly_set_and_propagate(Node* node, const NodeValue& value);
 
   // Revert the last revertibly_set_and_propagate
-  void revert_set_and_propagate(
-      Node* node,
-      const std::vector<Node*>& det_affected_nodes_for_node);
+  void revert_set_and_propagate(Node* node);
 
   void save_old_value(const Node* node);
 
@@ -149,10 +155,7 @@ class NMC {
 
   void clear_gradients(const std::vector<Node*>& nodes);
 
-  void clear_gradients(
-      Node* node,
-      const std::vector<Node*>& det_affected_nodes,
-      const std::vector<Node*>& sto_affected_nodes);
+  void clear_gradients_of_node_and_its_affected_nodes(Node* node);
 
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
 

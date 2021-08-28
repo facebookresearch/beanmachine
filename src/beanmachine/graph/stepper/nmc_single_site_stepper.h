@@ -16,10 +16,7 @@ class NMCSingleSiteStepper {
 
   virtual bool is_applicable_to(graph::Node* tgt_node) = 0;
 
-  virtual void step(
-      graph::Node* tgt_node,
-      const std::vector<graph::Node*>& det_affected_nodes,
-      const std::vector<graph::Node*>& sto_affected_nodes) = 0;
+  virtual void step(graph::Node* tgt_node) = 0;
 
   virtual ~NMCSingleSiteStepper() {}
 

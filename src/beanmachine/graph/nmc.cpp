@@ -23,6 +23,7 @@ namespace graph {
 
 NMC::NMC(Graph* g, uint seed)
     : g(g),
+      unobserved_sto_support_index_by_node_id(g->nodes.size(), 0),
       gen(seed),
       // Note: the order of steppers below is important
       // because DirichletGamma is also applicable to
@@ -72,7 +73,12 @@ void NMC::compute_support() {
     if (node_is_not_observed) {
       unobserved_supp.push_back(node);
       if (node->is_stochastic()) {
+        uint index_of_next_unobserved_sto_supp_node =
+            unobserved_sto_supp.size();
         unobserved_sto_supp.push_back(node);
+        uint node_id = node->index;
+        unobserved_sto_support_index_by_node_id[node->index] =
+            index_of_next_unobserved_sto_supp_node;
       }
     }
   }
@@ -165,8 +171,7 @@ void NMC::compute_affected_nodes() {
 void NMC::generate_sample() {
   for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
     auto tgt_node = unobserved_sto_supp[i];
-    stepper_for_node[i]->step(
-        tgt_node, det_affected_nodes[i], sto_affected_nodes[i]);
+    stepper_for_node[i]->step(tgt_node);
   }
 }
 
@@ -190,23 +195,28 @@ void NMC::collect_sample(InferConfig infer_config) {
   g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
 }
 
-void NMC::revertibly_set_and_propagate(
-    Node* node,
-    const NodeValue& value,
-    const std::vector<Node*>& det_affected_nodes,
-    const std::vector<Node*>& sto_affected_nodes) {
-  save_old_value(node);
-  save_old_values(det_affected_nodes);
-  old_sto_affected_nodes_log_prob = compute_log_prob_of(sto_affected_nodes);
-  node->value = value;
-  eval(det_affected_nodes);
+const std::vector<Node*>& NMC::get_det_affected_nodes(Node* node) {
+  return det_affected_nodes
+      [unobserved_sto_support_index_by_node_id[node->index]];
 }
 
-void NMC::revert_set_and_propagate(
-    Node* node,
-    const std::vector<Node*>& det_affected_nodes_for_node) {
+const std::vector<Node*>& NMC::get_sto_affected_nodes(Node* node) {
+  return sto_affected_nodes
+      [unobserved_sto_support_index_by_node_id[node->index]];
+}
+
+void NMC::revertibly_set_and_propagate(Node* node, const NodeValue& value) {
+  save_old_value(node);
+  save_old_values(get_det_affected_nodes(node));
+  old_sto_affected_nodes_log_prob =
+      compute_log_prob_of(get_sto_affected_nodes(node));
+  node->value = value;
+  eval(get_det_affected_nodes(node));
+}
+
+void NMC::revert_set_and_propagate(Node* node) {
   restore_old_value(node);
-  restore_old_values(det_affected_nodes_for_node);
+  restore_old_values(get_det_affected_nodes(node));
 }
 
 void NMC::save_old_value(const Node* node) {
@@ -284,13 +294,10 @@ void NMC::clear_gradients(const std::vector<Node*>& nodes) {
   g->pd_finish(ProfilerEvent::NMC_CLEAR_GRADS);
 }
 
-void NMC::clear_gradients(
-    Node* node,
-    const std::vector<Node*>& det_affected_nodes,
-    const std::vector<Node*>& sto_affected_nodes) {
+void NMC::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
   clear_gradients(node);
-  clear_gradients(det_affected_nodes);
-  clear_gradients(sto_affected_nodes);
+  clear_gradients(get_det_affected_nodes(node));
+  clear_gradients(get_sto_affected_nodes(node));
 }
 
 // Computes the log probability with respect to a given

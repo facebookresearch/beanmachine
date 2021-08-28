@@ -62,10 +62,7 @@ class FromProbabilityToDirichletProposerAdapter : public proposer::Proposer {
 };
 
 std::unique_ptr<proposer::Proposer>
-NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
-    Node* tgt_node,
-    const std::vector<Node*>& det_affected_nodes,
-    const std::vector<Node*>& sto_affected_nodes) {
+NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {
   // TODO: Reorganize in the same manner the default NMC
   // proposer has been reorganized
 
@@ -88,7 +85,7 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
   Grad1 << 1, -1;
   sto_tgt_node->Grad1 = Grad1;
   sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  nmc->compute_gradients(det_affected_nodes);
+  nmc->compute_gradients(nmc->get_det_affected_nodes(tgt_node));
 
   // Use gradients to obtain NMC proposal
   // @lint-ignore CLANGTIDY
@@ -101,7 +98,7 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(
   double grad1 = 0;
   double grad2 = 0;
 
-  for (Node* node : sto_affected_nodes) {
+  for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
       // X ~ Beta(param_a, param_b)
       grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);
