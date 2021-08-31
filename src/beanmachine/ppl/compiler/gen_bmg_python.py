@@ -106,6 +106,8 @@ class GeneratedGraphPython:
             self._code.append(f"  {i},")
             self._code.append(")")
 
+    # pyre-fixme[30]: Pyre gave up inferring some types - function `_add_constant`
+    #  was too complex.
     def _add_constant(self, node: bn.ConstantNode) -> None:  # noqa
         graph_id = len(self.node_to_graph_id)
         self.node_to_graph_id[node] = graph_id

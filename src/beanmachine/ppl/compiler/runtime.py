@@ -1162,6 +1162,8 @@ class BMGRuntime:
             return value
         return self.rv_map[key]
 
+    # pyre-fixme[30]: Pyre gave up inferring some types - function `handle_sample`
+    #  was too complex.
     def handle_sample(self, operand: Any) -> bn.SampleNode:  # noqa
         """As we execute the lifted program, this method is called every
         time a model function decorated with @bm.random_variable returns; we verify that the
