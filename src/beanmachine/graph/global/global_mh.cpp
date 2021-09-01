@@ -8,7 +8,9 @@ GlobalMH::GlobalMH(Graph& g, uint seed)
 
 std::vector<std::vector<NodeValue>>& GlobalMH::infer(
     int num_samples,
-    uint seed) {
+    uint seed,
+    int num_warmup_samples,
+    bool save_warmup) {
   std::mt19937 gen(seed);
   // TODO: tie samples directly to inference
   graph.agg_type = AggregationType::NONE;
@@ -18,7 +20,7 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
   prepare_graph();
   initialize_proposer();
 
-  for (int i = 0; i < num_samples; i++) {
+  for (int i = 0; i < num_samples + num_warmup_samples; i++) {
     double acceptance_log_prob = proposer->propose(state, gen);
 
     bool accept_sample;
@@ -43,7 +45,15 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
       state.update_log_prob();
     }
 
-    graph.collect_sample();
+    if (i < num_warmup_samples) {
+      double acceptance_prob = std::min(std::exp(acceptance_log_prob), 1.0);
+      proposer->warmup(acceptance_prob, i + 1, num_warmup_samples);
+      if (save_warmup) {
+        graph.collect_sample();
+      }
+    } else {
+      graph.collect_sample();
+    }
   }
 
   return graph.samples;
