@@ -34,8 +34,8 @@ TEST(testglobal, global_hmc_normal_normal) {
 
   uint seed = 17;
   HMC mh = HMC(g, seed, 1.0, 1.0);
-  std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed);
-  EXPECT_EQ(samples.size(), 2000);
+  std::vector<std::vector<NodeValue>> samples = mh.infer(10000, seed);
+  EXPECT_EQ(samples.size(), 10000);
 
   double mean = 0;
   for (int i = 0; i < samples.size(); i++) {
@@ -109,4 +109,113 @@ TEST(testglobal, global_hmc_half_cauchy) {
   }
   // check that ~50% of the samples are greater than the median
   EXPECT_NEAR(above_expected_median / num_samples, 0.5, 0.02);
+}
+
+TEST(testglobal, global_hmc_warmup_normal_normal) {
+  /*
+  p1 ~ Normal(0, 1)
+  p2 ~ Normal(p1, 1)
+  p3 ~ Normal(p1, 1)
+  p2 observed as 0.5
+  p3 observed as 1.5
+  posterior is Normal(0.66.., 0.5)
+  */
+  Graph g;
+  uint zero = g.add_constant(0.0);
+  uint one = g.add_constant_pos_real(1.0);
+
+  uint norm_dist = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {zero, one});
+  uint sample = g.add_operator(OperatorType::SAMPLE, {norm_dist});
+
+  uint norm_norm_dist = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {sample, one});
+  uint obs1 = g.add_operator(OperatorType::SAMPLE, {norm_norm_dist});
+  uint obs2 = g.add_operator(OperatorType::SAMPLE, {norm_norm_dist});
+
+  g.observe(obs1, 0.5);
+  g.observe(obs2, 1.5);
+  g.query(sample);
+
+  uint seed = 17;
+  HMC mh = HMC(g, seed, 1.0, 1.0);
+  std::vector<std::vector<NodeValue>> samples = mh.infer(500, seed, 500);
+  EXPECT_EQ(samples.size(), 500);
+
+  double mean = 0;
+  for (int i = 0; i < samples.size(); i++) {
+    mean += samples[i][0]._double;
+  }
+  mean /= samples.size();
+  EXPECT_NEAR(mean, 2.0 / 3, 0.01);
+}
+
+TEST(testglobal, global_hmc_warmup) {
+  /*
+  Test multiple queries and global inference
+  p1 ~ Gamma(2, 2)
+  p2 ~ Gamma(1.5, p1)
+  p2 observed as 2
+  posterior is Gamma(3.5, 4)
+
+  p3 ~ Normal(0, 1)
+  p4 ~ Normal(p1, 1)
+  p5 ~ Normal(p1, 1)
+  p4 observed as 0.5
+  p5 observed as 1.5
+  posterior is Normal(0.66.., 0.5)
+  */
+  Graph g;
+  uint onepointfive = g.add_constant_pos_real(1.5);
+  uint two = g.add_constant_pos_real(2.0);
+
+  uint gamma_dist = g.add_distribution(
+      DistributionType::GAMMA, AtomicType::POS_REAL, {two, two});
+  uint gamma_sample = g.add_operator(OperatorType::SAMPLE, {gamma_dist});
+
+  uint gamma_gamma_dist = g.add_distribution(
+      DistributionType::GAMMA,
+      AtomicType::POS_REAL,
+      {onepointfive, gamma_sample});
+  uint gamma_obs1 = g.add_operator(OperatorType::SAMPLE, {gamma_gamma_dist});
+  g.customize_transformation(TransformType::LOG, {gamma_sample});
+
+  g.observe(gamma_obs1, 2.0);
+  g.query(gamma_sample);
+
+  uint zero = g.add_constant(0.0);
+  uint one = g.add_constant_pos_real(1.0);
+
+  uint norm_dist = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {zero, one});
+  uint sample = g.add_operator(OperatorType::SAMPLE, {norm_dist});
+
+  uint norm_norm_dist = g.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, {sample, one});
+  uint obs1 = g.add_operator(OperatorType::SAMPLE, {norm_norm_dist});
+  uint obs2 = g.add_operator(OperatorType::SAMPLE, {norm_norm_dist});
+
+  g.observe(obs1, 0.5);
+  g.observe(obs2, 1.5);
+  g.query(sample);
+
+  uint seed = 17;
+  HMC mh = HMC(g, seed, 1.0, 0.1);
+  std::vector<std::vector<NodeValue>> samples =
+      mh.infer(2000, seed, 1000, false);
+  EXPECT_EQ(samples.size(), 2000);
+
+  double mean = 0;
+  for (int i = 0; i < samples.size(); i++) {
+    mean += samples[i][1]._double;
+  }
+  mean /= samples.size();
+  EXPECT_NEAR(mean, 2.0 / 3, 0.02);
+
+  mean = 0;
+  for (int i = 0; i < samples.size(); i++) {
+    mean += samples[i][0]._double;
+  }
+  mean /= samples.size();
+  EXPECT_NEAR(mean, 0.875, 0.03);
 }

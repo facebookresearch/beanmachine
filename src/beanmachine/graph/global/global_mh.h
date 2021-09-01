@@ -18,7 +18,6 @@ class GlobalMH {
       int num_warmup_samples = 0,
       bool save_warmup = false);
   virtual void prepare_graph() {}
-  virtual void initialize_proposer() {}
   void single_mh_step(GlobalState& state);
   virtual ~GlobalMH() {}
 };
