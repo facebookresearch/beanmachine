@@ -786,6 +786,7 @@ struct Graph {
   friend class GlobalMH;
   friend class GlobalMH;
   friend class RandomWalkMH;
+  friend class HMC;
 
   void collect_performance_data(bool b);
   std::string performance_report();
