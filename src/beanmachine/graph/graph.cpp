@@ -287,6 +287,29 @@ std::string Graph::to_string() const {
   return os.str();
 }
 
+void Graph::update_backgrad(std::vector<Node*>& ordered_supp) {
+  for (auto node : ordered_supp) {
+    node->reset_backgrad();
+  }
+  for (auto it = ordered_supp.rbegin(); it != ordered_supp.rend(); ++it) {
+    Node* node = *it;
+    if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
+      auto sto_node = static_cast<oper::StochasticOperator*>(node);
+      // TODO: Investigate the semantics of _backward(skip_observed),
+      // understand when/why it is appropriate to pass true or false,,
+      // and provide a correctness argument.
+      sto_node->_backward(false);
+      if (sto_node->transform_type != TransformType::NONE) {
+        // sync value with unconstrained_value
+        sto_node->get_original_value(true);
+        sto_node->get_unconstrained_gradient();
+      }
+    } else {
+      node->backward();
+    }
+  }
+}
+
 void Graph::eval_and_grad(
     uint tgt_idx,
     uint src_idx,
@@ -322,14 +345,11 @@ void Graph::eval_and_grad(
   }
 }
 
-void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
-  std::mt19937 generator(seed);
-  std::set<uint> supp = compute_support();
+void Graph::_test_backgrad(
+    std::set<uint>& supp,
+    std::vector<DoubleMatrix*>& grad1) {
   for (auto it = supp.begin(); it != supp.end(); ++it) {
     Node* node = nodes[*it].get();
-    if (!node->is_observed) {
-      node->eval(generator);
-    }
     node->reset_backgrad();
   }
   grad1.clear();
@@ -348,6 +368,23 @@ void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
     }
   }
   std::reverse(grad1.begin(), grad1.end());
+}
+
+void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
+  std::set<uint> supp = compute_support();
+  _test_backgrad(supp, grad1);
+}
+
+void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
+  std::mt19937 generator(seed);
+  std::set<uint> supp = compute_support();
+  for (auto it = supp.begin(); it != supp.end(); ++it) {
+    Node* node = nodes[*it].get();
+    if (!node->is_observed) {
+      node->eval(generator);
+    }
+  }
+  _test_backgrad(supp, grad1);
 }
 
 void set_value(Eigen::MatrixXd& variable, double value) {
@@ -458,6 +495,20 @@ double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
       if (node->node_type == NodeType::OPERATOR) {
         auto sto_node = static_cast<oper::StochasticOperator*>(node);
         if (sto_node->transform_type != TransformType::NONE) {
+          // If y = g(x), then by Change of Variables as using in statistics
+          // (see references below),
+          // then the density f_Y of Y can be computed from
+          // the density f_X of X as
+          // f_Y(y) = f_X(g^{-1}(y)) * |d/dy g^{-1}(y)|
+          // log(f_Y(y)) = log(f_X(x)) + log(|d/dy f^{-1}(y)|)
+          //   = node->log_prob() + log_abs_jacobian_determinant()
+          // TODO: rename log_abs_jacobian_determinant
+          // to log_abs_jacobian_detesrminant_of_inverse_transform
+          //
+          // References on Change of Variables in statistics:
+          // https://online.stat.psu.edu/stat414/lesson/22/22.2
+          // Stan reference:
+          // https://mc-stan.org/docs/2_27/reference-manual/change-of-variables-section.html
           sum_log_prob += sto_node->log_abs_jacobian_determinant();
         }
       }
