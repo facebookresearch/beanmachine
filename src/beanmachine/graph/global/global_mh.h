@@ -18,5 +18,10 @@ class GlobalMH {
   virtual ~GlobalMH() {}
 };
 
+class RandomWalkMH : public GlobalMH {
+ public:
+  RandomWalkMH(Graph& g, uint seed, double step_size);
+};
+
 } // namespace graph
 } // namespace beanmachine

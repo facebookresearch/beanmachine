@@ -784,6 +784,8 @@ struct Graph {
   friend class GlobalState;
   // TODO: create Samples class and remove the following friend classes
   friend class GlobalMH;
+  friend class GlobalMH;
+  friend class RandomWalkMH;
 
   void collect_performance_data(bool b);
   std::string performance_report();
