@@ -20,5 +20,17 @@ class RandomWalkProposer : public GlobalProposer {
   double step_size;
 };
 
+class HmcProposer : public GlobalProposer {
+ public:
+  explicit HmcProposer(double path_length, double step_size);
+  double propose(GlobalState& state, std::mt19937& gen) override;
+
+ private:
+  double path_length;
+  double step_size;
+  double compute_kinetic_energy(Eigen::VectorXd p);
+  Eigen::VectorXd compute_potential_gradient(GlobalState& state);
+};
+
 } // namespace graph
 } // namespace beanmachine
