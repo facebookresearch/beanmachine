@@ -23,9 +23,7 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
     """An abstract class for creating linear mixed effects model using BMGraph.
 
     :param data: observed training data
-    :type data: class:`pd.DataFrame`
     :param model_config: model configuration parameters
-    :type model_config: class:`ModelConfig`
     """
 
     def __init__(self, data: pd.DataFrame, model_config: ModelConfig) -> None:
@@ -169,11 +167,8 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         In the other words, this method returns XB for fixed effects for a given obs (row) from the training data.
 
         :param row: one row of training data with fixed effect covariates
-        :type row: class:`pd.Series`
         :param params: a mapping of fixed effects to their corresponding nodes
-        :type params: dict
         :return: bmgraph node that sums over all fixed effects for a given observation (i.e. a row from the training data)
-        :type: int
         """
 
         if not self.fixed_effects:
@@ -194,11 +189,8 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         In the other words, this method returns XZ for random effects for a given obs (row) from the training data.
 
         :param row: one individual training data with random effect covariates
-        :type row: class:`pd.Series`
         :param params: a tuple of dictionaries, which map random effects to their distribution, and sampled value nodes
-        :type params: (dict, dict)
         :return: BMGraph node that sums over all random effects for a given observation (i.e. a row from the training data).
-        :type: int
         """
 
         if not self.random_effects:
@@ -230,11 +222,8 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
         """Generates response variable predictive distribution given new test data.
 
         :param new_row: one individual test data for prediction
-        :type new_row: class:`pd.Series`
         :param post_samples: MCMC posterior inference samples on model parameters
-        :type post_samples: class:`pd.DataFrame`
         :return: response variable predictive distribution
-        :rtype: class:`pd.Series`
         """
 
         pred_val = pd.Series(0.0, index=range(post_samples.shape[0]))

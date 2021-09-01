@@ -18,9 +18,7 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
     """Represents a generalized linear mixed effects model with optional null mixture.
 
     :param data: observed train data
-    :type data: class:`pd.DataFrame`
     :param model_config: model configuration parameters
-    :type model_config: class:`ModelConfig`
     """
 
     def __init__(self, data: pd.DataFrame, model_config: ModelConfig) -> None:
@@ -138,11 +136,8 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         """Returns a multiplicative H1 model as a mixture of both positive and negative effects.
 
         :param mu_parents: BMGraph nodes of positive effect distribution component
-        :type mu_parents: list
         :param mu_neg_parents: BMGraph nodes of negative effect distribution component
-        :type mu_neg_parents: list
         :return: BMGraph node representing a mixtrue of positive and negative effect distribution
-        :rtype: int
         """
 
         log_mu = self.g.add_operator(bmgraph.OperatorType.ADD, mu_parents)
@@ -169,11 +164,8 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         """Defines the response variable distribution BMGraph node conditional on the mixed effect node: fere_i.
 
         :param index: train data index
-        :type index: int
         :param row: one realization (aka observed value) of response and predictor variables
-        :type row: class:`pd.Series`
         :param fere_i: mixed effect BMGraph node
-        :type fere_i: int
         """
 
         if self.model_config.mean_mixture.use_null_mixture:
@@ -229,11 +221,8 @@ class NullMixtureMixedEffectModel(AbstractLinearModel):
         """Computes predictive distributions given new test data.
 
         :param new_data: test data for prediction
-        :type new_data: class:`pd.DataFrame`
         :param post_samples: MCMC posterior inference samples on model parameters
-        :type post_samples: class:`pd.DataFrame`
         :return: predictive distributions on the new test data
-        :rtype: class:`pd.Series`
         """
 
         # FIXME: update the method to support customized prediction goal

@@ -28,9 +28,7 @@ class AbstractModel(object, metaclass=ABCMeta):
     """An abstract class for Bayesian graphical models using BMGraph.
 
     :param data: observed train data
-    :type data: class:`pd.DataFrame`
     :param model_config: model configuration parameters
-    :type model_config: class:`ModelConfig`
     """
 
     def __init__(self, data: pd.DataFrame, model_config: ModelConfig) -> None:
@@ -46,9 +44,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         """Extracts fixed and/or random effects from given statistical formula.
 
         :param formula: statistical formula establishing the relationship between response and predictor variables
-        :type formula: str
         :return: A tuple of fixed and/or random effects lists
-        :rtype: (list, list)
         """
 
         def make_joint_effect(effect):
@@ -102,9 +98,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         """Parses statistical formula as well as performs data pre-processing given statistical formula.
 
         :param formula: statistical formula establishing the relationship between response and predictor variables
-        :type formula: str
         :return: A tuple of fixed and/or random effects lists
-        :rtype: (list, list)
         """
 
         model_desc = evaluate_formula(formula)
@@ -191,11 +185,8 @@ class AbstractModel(object, metaclass=ABCMeta):
         """Helper function of set_queries.
 
         :param prev_key: None, or model parameter names of fixed or random effects
-        :type prev_key: any
         :param queries: a mapping from model parameter to its BMGraph node, or just node itself
-        :type queries: any
         :param query_map: a mapping from model parameter to query-index specified in the graph
-        :type query_map: dict
         """
         if isinstance(queries, dict):
             try:
@@ -212,9 +203,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         """Performs MCMC posterior inference on model parameters.
 
         :param infer_config: configuration settings of posterior inference
-        :type infer_config: class:`InferConfig`
         :return: posterior samples and their diagnostic summary statistics
-        :rtype: (class:`pd.DataFrame`, class:`pd.DataFrame`)
         """
 
         t0 = time.time()
@@ -241,9 +230,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         """Stacks posterior sample lists across different chains and transforms them into a dataframe.
 
         :param dat_list: posterior samples in multiple chains generated from `bmgraph.infer()`
-        :type dat_list: list
         :return: stacked posterior samples with corresponding parameter names
-        :rtype: class:`pd.DataFrame`
         """
 
         df_list = []
@@ -263,9 +250,7 @@ class AbstractModel(object, metaclass=ABCMeta):
         """Checks convergence of MCMC posterior inference results and returns diagnostic summary statistics.
 
         :param samples: posterior samples list generated from `bmgraph.infer()`
-        :type samples: list
         :return: diagnostic summary statistics, including effective sample size, R_hat (when n_chain > 1), sample mean, and acceptance rates (for continuous R.V.)
-        :rtype: class:`pd.DataFrame`
         """
 
         # conversion to torch
