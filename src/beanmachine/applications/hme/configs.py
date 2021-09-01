@@ -75,6 +75,11 @@ class PriorConfig:
 
 @dataclass
 class StructuredPriorConfig:
+    """A configuration class for structured prior distributions.
+
+    :param specification: type (e.g., AR, RW, etc) of the structured prior
+    :param category_order: list of categorical covariate levels, specifying its ordinal structure
+    """
 
     specification: str
     category_order: List[str] = field(default_factory=list)
@@ -84,24 +89,24 @@ class StructuredPriorConfig:
 class ModelConfig:
     """A configuration class for integrated models. E.g.,
 
-    ModelConfig(
-        mean_regression = RegressionConfig(
-            distribution="normal",
-            outcome="y",
-            stderr=None,
-            formula="y ~ 1 + (1|x)",
-            link="identity",
-        ),
-        mean_mixture = MixtureConfig(
-            use_null_mixture=True,
-            use_bimodal_alternative=True,
-            use_asymmetric_modes=True,
-            use_partial_asymmetric_modes=True,
-        ),
-        priors = {
-            "fe": PriorConfig('normal', {"mean": 0.0, "scale": 1.0}),
-            }
-    )
+        ModelConfig(
+            mean_regression = RegressionConfig(
+                distribution="normal",
+                outcome="y",
+                stderr=None,
+                formula="y ~ 1 + (1|x)",
+                link="identity",
+            ),
+            mean_mixture = MixtureConfig(
+                use_null_mixture=True,
+                use_bimodal_alternative=True,
+                use_asymmetric_modes=True,
+                use_partial_asymmetric_modes=True,
+            ),
+            priors = {
+                "fe": PriorConfig('normal', {"mean": 0.0, "scale": 1.0}),
+                }
+        )
 
     :param mean_regression: regression model configurations for fixed and random effects components
     :param mean_mixture:  configuration settings for mixture components

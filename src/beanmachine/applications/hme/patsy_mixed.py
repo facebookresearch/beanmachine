@@ -57,9 +57,7 @@ def evaluate_formula(formula: str) -> ModelDesc:
     """Given a mixed effects formula, return a model description.
 
     :param formula: mixed effects model formula
-    :type formula: str
     :return: model description including outcome variable (lhs) and fixed and/or random effects (rhs)
-    :rtype: `class:ModelDesc`
     """
 
     # mixed effects specific operators
