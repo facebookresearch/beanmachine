@@ -18,7 +18,7 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
   std::vector<std::vector<NodeValue>> values;
 
   prepare_graph();
-  initialize_proposer();
+  proposer->initialize(state, gen, num_warmup_samples);
 
   for (int i = 0; i < num_samples + num_warmup_samples; i++) {
     double acceptance_log_prob = proposer->propose(state, gen);
