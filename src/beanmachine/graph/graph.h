@@ -710,6 +710,8 @@ struct Graph {
 
   std::tuple<std::vector<uint>, std::vector<uint>> compute_ancestors(
       uint node_id);
+
+  void update_backgrad(std::vector<Node*>& ordered_supp);
   /*
   Evaluate the target node and compute its gradient w.r.t. source_node
   (used for unit tests)
@@ -735,6 +737,14 @@ struct Graph {
   :param seed: Random number generator seed.
   */
   void eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed = 5123412);
+
+  /*
+  Compute the backward mode gradients for all nodes in the support
+  (used for unit tests)
+  :param grad1: Output value of first gradient.
+  */
+  void test_grad(std::vector<DoubleMatrix*>& grad1);
+
   /*
   Evaluate the deterministic descendants of the source node and compute
   the logprob_gradient of all stochastic descendants in the support including
@@ -771,6 +781,7 @@ struct Graph {
   // to the value of the node and mutates that value to see what happens.
   // We should consider trying to find a safer way to test this functionality.
   Node* check_node(uint node_id, NodeType node_type);
+  friend class GlobalState;
 
   void collect_performance_data(bool b);
   std::string performance_report();
@@ -843,6 +854,7 @@ struct Graph {
   std::vector<std::vector<double>> log_prob_allchains;
   std::map<TransformType, std::unique_ptr<Transformation>>
       common_transformations;
+  void _test_backgrad(std::set<uint>& supp, std::vector<DoubleMatrix*>& grad1);
 
   ProfilerData profiler_data;
   bool _collect_performance_data = false;
