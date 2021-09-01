@@ -782,6 +782,8 @@ struct Graph {
   // We should consider trying to find a safer way to test this functionality.
   Node* check_node(uint node_id, NodeType node_type);
   friend class GlobalState;
+  // TODO: create Samples class and remove the following friend classes
+  friend class GlobalMH;
 
   void collect_performance_data(bool b);
   std::string performance_report();
