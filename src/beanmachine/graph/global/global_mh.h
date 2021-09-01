@@ -23,5 +23,10 @@ class RandomWalkMH : public GlobalMH {
   RandomWalkMH(Graph& g, uint seed, double step_size);
 };
 
+class HMC : public GlobalMH {
+ public:
+  HMC(Graph& g, uint seed, double path_length, double step_size);
+};
+
 } // namespace graph
 } // namespace beanmachine
