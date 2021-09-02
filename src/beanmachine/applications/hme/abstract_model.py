@@ -264,24 +264,26 @@ class AbstractModel(object, metaclass=ABCMeta):
         posterior_diagnostics = pd.DataFrame()
         posterior_diagnostics["names"] = np.array(list(self.query_map.keys()))
         posterior_diagnostics["Mean"] = np.array(
-            [bmg_mean[self.query_map[k]] for k in posterior_diagnostics["names"].values]
+            [bmg_mean[self.query_map[k]] for k in posterior_diagnostics["names"]]
         )
         posterior_diagnostics["Acceptance"] = np.array(
             [
                 len(samples[:, :, self.query_map[k]].reshape(-1).unique())
                 / len(samples[:, :, self.query_map[k]].reshape(-1))
-                for k in posterior_diagnostics["names"].values
+                for k in posterior_diagnostics["names"]
             ]
         )
-        posterior_diagnostics["N_Eff"] = np.array(
-            [bmg_neff[self.query_map[k]] for k in posterior_diagnostics["names"].values]
-        )
+
+        if not bmg_neff.size():
+            logger.warning("NaN encountered in computing effective sample size.")
+        else:
+            posterior_diagnostics["N_Eff"] = np.array(
+                [bmg_neff[self.query_map[k]] for k in posterior_diagnostics["names"]]
+            )
+
         if n_chain > 1:
             posterior_diagnostics["R_hat"] = np.array(
-                [
-                    bmg_rhat[self.query_map[k]]
-                    for k in posterior_diagnostics["names"].values
-                ]
+                [bmg_rhat[self.query_map[k]] for k in posterior_diagnostics["names"]]
             )
         else:
             logger.warning("Convergence diagnostic, R_hat, requires more than 1 chain.")
