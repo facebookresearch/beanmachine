@@ -238,8 +238,10 @@ class HMCProposer(BaseProposer):
             self._mass_inv,
             self._pe_grad,
         )
-        new_energy = self._hamiltonian(self.world, momentums, self._mass_inv, pe)
-        delta_energy = torch.nan_to_num(new_energy - current_energy, float("inf"))
+        new_energy = torch.nan_to_num(
+            self._hamiltonian(self.world, momentums, self._mass_inv, pe), float("inf")
+        )
+        delta_energy = new_energy - current_energy
         self._alpha = torch.clamp(torch.exp(-delta_energy), max=1.0)
         # accept/reject new world
         if torch.bernoulli(self._alpha):
