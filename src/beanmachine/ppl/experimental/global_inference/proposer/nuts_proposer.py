@@ -101,9 +101,11 @@ class NUTSProposer(HMCProposer):
             args.mass_inv,
             root.pe_grad,
         )
-        new_energy = self._hamiltonian(world, momentums, args.mass_inv, pe)
+        new_energy = torch.nan_to_num(
+            self._hamiltonian(world, momentums, args.mass_inv, pe), float("inf")
+        )
         # initial_energy == -L(\theta^{m-1}) + 1/2 r_0^2 in Algorithm 6 of [1]
-        delta_energy = torch.nan_to_num(new_energy - args.initial_energy, float("inf"))
+        delta_energy = new_energy - args.initial_energy
         if self._multinomial_sampling:
             log_weight = -delta_energy
         else:
