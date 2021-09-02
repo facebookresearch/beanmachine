@@ -63,6 +63,7 @@ class NUTSProposer(HMCProposer):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
+        target_accept_prob: float = 0.8,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(
@@ -71,6 +72,7 @@ class NUTSProposer(HMCProposer):
             initial_step_size=initial_step_size,
             adapt_step_size=adapt_step_size,
             adapt_mass_matrix=adapt_mass_matrix,
+            target_accept_prob=target_accept_prob,
         )
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy

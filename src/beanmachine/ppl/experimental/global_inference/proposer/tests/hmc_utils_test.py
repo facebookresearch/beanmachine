@@ -31,6 +31,17 @@ def test_dual_average_adapter():
     assert epsilon2 < adapter.finalize() < epsilon1
 
 
+def test_dual_average_with_different_delta():
+    adapter1 = DualAverageAdapter(1.0, delta=0.8)
+    adapter2 = DualAverageAdapter(1.0, delta=0.2)
+    prob = torch.tensor(0.5)
+    # prob > delta means we can increase the step size, wherease prob < delta means
+    # we need to decrease the step size
+    epsilon1 = adapter1.step(prob)
+    epsilon2 = adapter2.step(prob)
+    assert epsilon1 < epsilon2
+
+
 def test_small_window_scheme():
     num_adaptive_samples = 10
     scheme = WindowScheme(num_adaptive_samples)
