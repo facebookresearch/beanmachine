@@ -103,7 +103,7 @@ class InverseAutoregressiveFlow(nn.Module):
         len_j = len(x)
         log_jacobian = torch.zeros(len_j)
         for layer_ in self.flows_:
-            # loop through the NN to add log_abs_jacobain to ELBO
+            # loop through the NN to add log_abs_jacobian to ELBO
             tmp = z_f[-1][:]
             x, log_d = layer_.forward(tmp)
             elbo += log_d

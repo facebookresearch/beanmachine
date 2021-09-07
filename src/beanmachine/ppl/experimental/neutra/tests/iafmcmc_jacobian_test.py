@@ -14,7 +14,7 @@ from beanmachine.ppl.world.world import TransformType
 from torch import nn, tensor as tensor
 
 
-class IAFJacobainTest(unittest.TestCase):
+class IAFJacobianTest(unittest.TestCase):
     class SampleModel(object):
         @bm.random_variable
         def foo(self):
@@ -47,7 +47,7 @@ class IAFJacobainTest(unittest.TestCase):
             parameters, lr=1e-4, weight_decay=1e-5
         )
 
-    def test_jacobain_for_iaf_proposer(self):
+    def test_jacobian_for_iaf_proposer(self):
         world = World()
         model = self.SampleModel()
         foo_key = model.foo()
