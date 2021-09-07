@@ -2,12 +2,9 @@
 """Compare original and conjugate prior transformed
    Beta-Bernoulli model"""
 
-import random
 import unittest
 
 import beanmachine.ppl as bm
-import scipy
-import torch
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
 from torch.distributions import Bernoulli, Beta
@@ -89,35 +86,3 @@ class HeadsRateModelTest(unittest.TestCase):
         _, heads_rate_model_transformed_graph = HeadsRateModelTransformed().run()
 
         self.assertEqual(heads_rate_model_graph, heads_rate_model_transformed_graph)
-
-    def test_beta_bernoulli_conjugate(self) -> None:
-        """
-        KS test to check if HeadsRateModel().run() and HeadsRateModelTransformed().run()
-        is within a certain bound.
-        We initialize the seed to ensure the test is deterministic.
-        """
-        seed = 0
-        torch.manual_seed(seed)
-        random.seed(seed)
-
-        heads_rate_model_samples, _ = HeadsRateModel().run()
-        heads_rate_model_transformed_samples, _ = HeadsRateModelTransformed().run()
-
-        self.assertEqual(
-            type(heads_rate_model_samples),
-            type(heads_rate_model_transformed_samples),
-            "Sample type of original and transformed model should be the same.",
-        )
-
-        self.assertEqual(
-            len(heads_rate_model_samples),
-            len(heads_rate_model_transformed_samples),
-            "Sample size of original and transformed model should be the same.",
-        )
-
-        self.assertGreaterEqual(
-            scipy.stats.ks_2samp(
-                heads_rate_model_samples, heads_rate_model_transformed_samples
-            ).pvalue,
-            0.05,
-        )

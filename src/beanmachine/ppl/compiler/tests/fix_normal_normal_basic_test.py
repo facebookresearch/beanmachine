@@ -55,7 +55,7 @@ digraph "graph" {
             model.normal(): true_y.sample(),
         }
 
-        skip_optimizations = set("NormalNormalConjugateFixer")
+        skip_optimizations = {"NormalNormalConjugateFixer"}
         original_posterior = bmg.infer(
             queries, observations, num_samples, skip_optimizations=skip_optimizations
         )
