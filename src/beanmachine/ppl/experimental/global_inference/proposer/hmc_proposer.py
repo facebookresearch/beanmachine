@@ -40,6 +40,7 @@ class HMCProposer(BaseProposer):
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
+        target_accept_prob: float = 0.8,
     ):
         self.world = initial_world
         # cache pe and pe_grad to prevent re-computation
@@ -56,7 +57,9 @@ class HMCProposer(BaseProposer):
             self.step_size = self._find_reasonable_step_size(
                 initial_step_size, self.world, self._pe, self._pe_grad
             )
-            self._step_size_adapter = DualAverageAdapter(self.step_size)
+            self._step_size_adapter = DualAverageAdapter(
+                self.step_size, target_accept_prob
+            )
         else:
             self.step_size = initial_step_size
         # alpha will store the accept prob and will be used to adapt step size
@@ -235,8 +238,10 @@ class HMCProposer(BaseProposer):
             self._mass_inv,
             self._pe_grad,
         )
-        new_energy = self._hamiltonian(self.world, momentums, self._mass_inv, pe)
-        delta_energy = torch.nan_to_num(new_energy - current_energy, float("inf"))
+        new_energy = torch.nan_to_num(
+            self._hamiltonian(self.world, momentums, self._mass_inv, pe), float("inf")
+        )
+        delta_energy = new_energy - current_energy
         self._alpha = torch.clamp(torch.exp(-delta_energy), max=1.0)
         # accept/reject new world
         if torch.bernoulli(self._alpha):

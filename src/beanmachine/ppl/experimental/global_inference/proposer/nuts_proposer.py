@@ -63,6 +63,7 @@ class NUTSProposer(HMCProposer):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
+        target_accept_prob: float = 0.8,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(
@@ -71,6 +72,7 @@ class NUTSProposer(HMCProposer):
             initial_step_size=initial_step_size,
             adapt_step_size=adapt_step_size,
             adapt_mass_matrix=adapt_mass_matrix,
+            target_accept_prob=target_accept_prob,
         )
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
@@ -99,9 +101,11 @@ class NUTSProposer(HMCProposer):
             args.mass_inv,
             root.pe_grad,
         )
-        new_energy = self._hamiltonian(world, momentums, args.mass_inv, pe)
+        new_energy = torch.nan_to_num(
+            self._hamiltonian(world, momentums, args.mass_inv, pe), float("inf")
+        )
         # initial_energy == -L(\theta^{m-1}) + 1/2 r_0^2 in Algorithm 6 of [1]
-        delta_energy = torch.nan_to_num(new_energy - args.initial_energy, float("inf"))
+        delta_energy = new_energy - args.initial_energy
         if self._multinomial_sampling:
             log_weight = -delta_energy
         else:

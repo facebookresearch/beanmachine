@@ -69,12 +69,12 @@ class DualAverageAdapter:
         https://arxiv.org/abs/1111.4246
     """
 
-    def __init__(self, initial_epsilon: float):
+    def __init__(self, initial_epsilon: float, delta: float = 0.8):
         self._log_avg_epsilon = 0.0
         self._H = 0.0
         self._mu = math.log(10 * initial_epsilon)
         self._t0 = 10
-        self._delta = 0.8  # target mean accept prob
+        self._delta = delta  # target mean accept prob
         self._gamma = 0.05
         self._kappa = 0.75
         self._m = 1.0  # iteration count

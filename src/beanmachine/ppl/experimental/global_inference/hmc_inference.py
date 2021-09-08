@@ -16,6 +16,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
     initial_step_size: float = 1.0
     adapt_step_size: bool = True
     adapt_mass_matrix: bool = True
+    target_accept_prob: float = 0.8
 
     def get_proposer(self, world: SimpleWorld) -> HMCProposer:
         return HMCProposer(world, **dataclasses.asdict(self))
@@ -29,6 +30,7 @@ class GlobalNoUTurnSampler(BaseInference):
     adapt_step_size: bool = True
     adapt_mass_matrix: bool = True
     multinomial_sampling: bool = True
+    target_accept_prob: float = 0.8
 
     def get_proposer(self, world: SimpleWorld) -> NUTSProposer:
         return NUTSProposer(world, **dataclasses.asdict(self))
