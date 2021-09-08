@@ -8,6 +8,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     RealNode,
     MultiplicationNode,
     ConstantTensorNode,
+    ConstantRealMatrixNode,
 )
 
 
@@ -40,6 +41,16 @@ class BMGNodesTest(unittest.TestCase):
     def test_ConstantTensorNode_2d(self) -> None:
         v42 = torch.tensor([[42, 43], [44, 45]])
         t42 = ConstantTensorNode(v42)
+        self.assertEqual(t42.value[0, 0], v42[0, 0])
+        self.assertEqual(t42.value[1, 0], v42[1, 0])
+        self.assertEqual(v42.size(), torch.Size([2, 2]))
+        self.assertEqual(t42.size, v42.size())
+        self.assertEqual(t42.support_size(), 1.0)
+        self.assertEqual(list(t42.support()), [v42])
+
+    def test_ConstantRealMatrixNode_2d(self) -> None:
+        v42 = torch.tensor([[42, 43], [44, 45]])
+        t42 = ConstantRealMatrixNode(v42)
         self.assertEqual(t42.value[0, 0], v42[0, 0])
         self.assertEqual(t42.value[1, 0], v42[1, 0])
         self.assertEqual(v42.size(), torch.Size([2, 2]))
