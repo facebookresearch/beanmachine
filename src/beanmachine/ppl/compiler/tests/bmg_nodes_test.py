@@ -2,10 +2,18 @@
 """Tests for bmg_nodes.py"""
 import unittest
 
+import torch
 from beanmachine.ppl.compiler.bmg_nodes import NormalNode, RealNode
 
 
 class BMGNodesTest(unittest.TestCase):
+    def test_RealNode(self) -> None:
+        r42 = RealNode(42.0)
+        self.assertEqual(r42.value, 42.0)
+        self.assertEqual(r42.size, torch.Size([]))
+        self.assertEqual(r42.support_size(), 1.0)
+        self.assertEqual(list(r42.support()), [42.0])
+
     def test_inputs_and_outputs(self) -> None:
         # We must maintain the invariant that the output set and the
         # input set of every node are consistent even when the graph
