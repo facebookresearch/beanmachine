@@ -9,17 +9,13 @@ import unittest
 import beanmachine.ppl as bm
 import scipy
 import torch
+import torch.distributions as dist
+from beanmachine.ppl.examples.conjugate_models.beta_bernoulli import BetaBernoulliModel
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Beta
 
 
-class HeadsRateModel(object):
-    """Original, untransformed model"""
-
-    _alpha = 0.5
-    _beta = 1.5
-
+class BetaBernoulliScaleHyperParameters(BetaBernoulliModel):
     def scale_alpha(self):
         factor = 2.0
         for i in range(0, 3):
@@ -28,108 +24,87 @@ class HeadsRateModel(object):
 
     @bm.random_variable
     def theta(self):
-        return Beta(self._alpha + self.scale_alpha(), self._beta + 2.0)
+        return dist.Beta(self.alpha_ + self.scale_alpha(), self.beta_ + 2.0)
 
-    @bm.random_variable
-    def y(self, i):
-        return Bernoulli(self.theta())
 
-    def run(self):
-        queries = [self.theta()]
+class BetaBernoulliWithScaledHPConjugateTest(unittest.TestCase):
+    def test_beta_bernoulli_conjugate_graph(self) -> None:
+        model = BetaBernoulliScaleHyperParameters(0.5, 1.5)
+        queries = [model.theta()]
         observations = {
-            self.y(0): tensor(0.0),
-            self.y(1): tensor(0.0),
-            self.y(2): tensor(1.0),
-            self.y(3): tensor(0.0),
+            model.y(0): tensor(0.0),
+            model.y(1): tensor(0.0),
+            model.y(2): tensor(1.0),
+            model.y(3): tensor(0.0),
         }
         num_samples = 1000
         bmg = BMGInference()
+
+        # This is the model after beta-bernoulli conjugate rewrite is done
         skip_optimizations = set()
-        posterior = bmg.infer(
+        observed_bmg = bmg.to_dot(
             queries, observations, num_samples, skip_optimizations=skip_optimizations
         )
-        bmg_graph = bmg.to_dot(
-            queries, observations, num_samples, skip_optimizations=skip_optimizations
-        )
-        theta_samples = posterior[self.theta()][0]
-        return theta_samples, bmg_graph
-
-
-class HeadsRateModelTransformed(object):
-    """Closed-form Posterior due to conjugacy"""
-
-    _alpha = 0.5
-    _beta = 1.5
-
-    def scale_alpha(self):
-        factor = 2.0
-        for i in range(0, 3):
-            factor = factor * i
-        return factor
-
-    @bm.random_variable
-    def theta(self):
-        return Beta(self._alpha + self.scale_alpha(), self._beta + 2.0)
-
-    @bm.random_variable
-    def y(self, i):
-        return Bernoulli(self.theta())
-
-    @bm.random_variable
-    def theta_transformed(self):
-        # Analytical posterior Beta(alpha + sum y_i, beta + n - sum y_i)
-        return Beta(
-            self._alpha + self.scale_alpha() + 1.0, self._beta + 2.0 + (4.0 - 1.0)
-        )
-
-    def run(self):
-        queries_transformed = [self.theta_transformed()]
-        observations_transformed = {}
-        num_samples = 1000
-        bmg = BMGInference()
-        posterior_transformed = bmg.infer(
-            queries_transformed, observations_transformed, num_samples
-        )
-        bmg_graph = bmg.to_dot(queries_transformed, observations_transformed)
-        theta_samples_transformed = posterior_transformed[self.theta_transformed()][0]
-        return theta_samples_transformed, bmg_graph
-
-
-class HeadsRateModelTest(unittest.TestCase):
-    def test_beta_bernoulli_conjugate_graph(self) -> None:
-        _, heads_rate_model_graph = HeadsRateModel().run()
-        _, heads_rate_model_transformed_graph = HeadsRateModelTransformed().run()
-
-        self.assertEqual(heads_rate_model_graph, heads_rate_model_transformed_graph)
+        expected_bmg = """
+digraph "graph" {
+  N0[label=1.5];
+  N1[label=6.5];
+  N2[label=Beta];
+  N3[label=Sample];
+  N4[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N4;
+}
+"""
+        self.assertEqual(expected_bmg.strip(), observed_bmg.strip())
 
     def test_beta_bernoulli_conjugate(self) -> None:
         """
-        KS test to check if HeadsRateModel().run() and HeadsRateModelTransformed().run()
-        is within a certain bound.
+        KS test to check if samples before and after beta-bernoulli conjugate
+        transformation is within a certain bound.
         We initialize the seed to ensure the test is deterministic.
         """
         seed = 0
         torch.manual_seed(seed)
         random.seed(seed)
 
-        heads_rate_model_samples, _ = HeadsRateModel().run()
-        heads_rate_model_transformed_samples, _ = HeadsRateModelTransformed().run()
+        model = BetaBernoulliScaleHyperParameters(2.0, 2.0)
+        queries = [model.theta()]
+        observations = {
+            model.y(0): tensor(0.0),
+            model.y(1): tensor(0.0),
+            model.y(2): tensor(1.0),
+            model.y(3): tensor(0.0),
+        }
+        num_samples = 1000
+        bmg = BMGInference()
+
+        posterior_without_opt = bmg.infer(queries, observations, num_samples)
+        theta_samples_without_opt = posterior_without_opt[model.theta()][0]
+
+        skip_optimizations = set()
+        posterior_with_opt = bmg.infer(
+            queries, observations, num_samples, skip_optimizations=skip_optimizations
+        )
+        theta_samples_with_opt = posterior_with_opt[model.theta()][0]
 
         self.assertEqual(
-            type(heads_rate_model_samples),
-            type(heads_rate_model_transformed_samples),
+            type(theta_samples_without_opt),
+            type(theta_samples_with_opt),
             "Sample type of original and transformed model should be the same.",
         )
 
         self.assertEqual(
-            len(heads_rate_model_samples),
-            len(heads_rate_model_transformed_samples),
+            len(theta_samples_without_opt),
+            len(theta_samples_with_opt),
             "Sample size of original and transformed model should be the same.",
         )
 
         self.assertGreaterEqual(
             scipy.stats.ks_2samp(
-                heads_rate_model_samples, heads_rate_model_transformed_samples
+                theta_samples_without_opt, theta_samples_with_opt
             ).pvalue,
             0.05,
         )
