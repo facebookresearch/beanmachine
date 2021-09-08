@@ -29,7 +29,7 @@ class IAFLayerTest(unittest.TestCase):
         z = x * torch.exp(loga) + (1 - torch.exp(loga)) * mu
         # calculate if x->z is correct.
         self.assertCountEqual(xtrhat.tolist(), z.tolist())
-        # check if jacobain is correct.
+        # check if jacobian is correct.
         self.assertEqual(ja, loga.sum())
 
         # Here we don't expect to have a stable inverse direction,
