@@ -3,7 +3,12 @@
 import unittest
 
 import torch
-from beanmachine.ppl.compiler.bmg_nodes import NormalNode, RealNode, MultiplicationNode
+from beanmachine.ppl.compiler.bmg_nodes import (
+    NormalNode,
+    RealNode,
+    MultiplicationNode,
+    ConstantTensorNode,
+)
 
 
 class BMGNodesTest(unittest.TestCase):
@@ -21,6 +26,16 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(rx.size, torch.Size([]))
         self.assertEqual(rx.support_size(), 1.0)
         self.assertEqual(list(rx.support()), [6.0])
+
+    def test_ConstantTensorNode(self) -> None:
+        v42 = torch.tensor([42, 43])
+        t42 = ConstantTensorNode(v42)
+        self.assertEqual(t42.value[0], v42[0])
+        self.assertEqual(t42.value[1], v42[1])
+        self.assertEqual(v42.size(), torch.Size([2]))
+        self.assertEqual(t42.size, v42.size())
+        self.assertEqual(t42.support_size(), 1.0)
+        self.assertEqual(list(t42.support()), [v42])
 
     def test_inputs_and_outputs(self) -> None:
         # We must maintain the invariant that the output set and the
