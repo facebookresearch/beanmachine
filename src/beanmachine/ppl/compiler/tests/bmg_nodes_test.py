@@ -27,12 +27,22 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(rx.support_size(), 1.0)
         self.assertEqual(list(rx.support()), [6.0])
 
-    def test_ConstantTensorNode(self) -> None:
+    def test_ConstantTensorNode_1d(self) -> None:
         v42 = torch.tensor([42, 43])
         t42 = ConstantTensorNode(v42)
         self.assertEqual(t42.value[0], v42[0])
         self.assertEqual(t42.value[1], v42[1])
         self.assertEqual(v42.size(), torch.Size([2]))
+        self.assertEqual(t42.size, v42.size())
+        self.assertEqual(t42.support_size(), 1.0)
+        self.assertEqual(list(t42.support()), [v42])
+
+    def test_ConstantTensorNode_2d(self) -> None:
+        v42 = torch.tensor([[42, 43], [44, 45]])
+        t42 = ConstantTensorNode(v42)
+        self.assertEqual(t42.value[0, 0], v42[0, 0])
+        self.assertEqual(t42.value[1, 0], v42[1, 0])
+        self.assertEqual(v42.size(), torch.Size([2, 2]))
         self.assertEqual(t42.size, v42.size())
         self.assertEqual(t42.support_size(), 1.0)
         self.assertEqual(list(t42.support()), [v42])
