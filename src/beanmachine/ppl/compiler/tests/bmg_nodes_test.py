@@ -3,7 +3,7 @@
 import unittest
 
 import torch
-from beanmachine.ppl.compiler.bmg_nodes import NormalNode, RealNode
+from beanmachine.ppl.compiler.bmg_nodes import NormalNode, RealNode, MultiplicationNode
 
 
 class BMGNodesTest(unittest.TestCase):
@@ -13,6 +13,14 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(r42.size, torch.Size([]))
         self.assertEqual(r42.support_size(), 1.0)
         self.assertEqual(list(r42.support()), [42.0])
+
+    def test_MultiplicationNode(self) -> None:
+        r2 = RealNode(2.0)
+        r3 = RealNode(3.0)
+        rx = MultiplicationNode([r2, r3])
+        self.assertEqual(rx.size, torch.Size([]))
+        self.assertEqual(rx.support_size(), 1.0)
+        self.assertEqual(list(rx.support()), [6.0])
 
     def test_inputs_and_outputs(self) -> None:
         # We must maintain the invariant that the output set and the
