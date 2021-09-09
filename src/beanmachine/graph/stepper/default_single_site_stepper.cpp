@@ -8,21 +8,21 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/nmc.h"
+#include "beanmachine/graph/mh.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/nmc_default_single_site_stepper.h"
+#include "beanmachine/graph/stepper/default_single_site_stepper.h"
 
 namespace beanmachine {
 namespace graph {
 
-void NMCDefaultSingleSiteStepper::step(Node* tgt_node) {
+void DefaultSingleSiteStepper::step(Node* tgt_node) {
   graph->pd_begin(get_step_profiler_event());
-  // Implements a Metropolis-Hastings step using the NMC proposer.
+  // Implements a Metropolis-Hastings step using the MH proposer.
   //
   // We are given an unobserved stochastic "target" node and we wish
   // to compute a new value for it. The basic idea of the algorithm is:
@@ -57,27 +57,27 @@ void NMCDefaultSingleSiteStepper::step(Node* tgt_node) {
 
   auto proposal_given_old_value = get_proposal_distribution(tgt_node);
 
-  NodeValue new_value = nmc->sample(proposal_given_old_value);
+  NodeValue new_value = mh->sample(proposal_given_old_value);
 
-  nmc->revertibly_set_and_propagate(tgt_node, new_value);
+  mh->revertibly_set_and_propagate(tgt_node, new_value);
 
   double new_sto_affected_nodes_log_prob =
-      nmc->compute_log_prob_of(nmc->get_sto_affected_nodes(tgt_node));
+      mh->compute_log_prob_of(mh->get_sto_affected_nodes(tgt_node));
 
   auto proposal_given_new_value = get_proposal_distribution(tgt_node);
 
-  NodeValue& old_value = nmc->get_old_value(tgt_node);
+  NodeValue& old_value = mh->get_old_value(tgt_node);
   double old_sto_affected_nodes_log_prob =
-      nmc->get_old_sto_affected_nodes_log_prob();
+      mh->get_old_sto_affected_nodes_log_prob();
 
   double logacc = new_sto_affected_nodes_log_prob -
       old_sto_affected_nodes_log_prob +
       proposal_given_new_value->log_prob(old_value) -
       proposal_given_old_value->log_prob(new_value);
 
-  bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
+  bool accepted = util::flip_coin_with_log_prob(mh->gen, logacc);
   if (!accepted) {
-    nmc->revert_set_and_propagate(tgt_node);
+    mh->revert_set_and_propagate(tgt_node);
   }
 
   // Gradients must be cleared (equal to 0)
@@ -94,7 +94,7 @@ void NMCDefaultSingleSiteStepper::step(Node* tgt_node) {
   // This was the case for example for
   // StochasticOperator::gradient_log_prob,
   // but that dependence has been removed.
-  nmc->clear_gradients_of_node_and_its_affected_nodes(tgt_node);
+  mh->clear_gradients_of_node_and_its_affected_nodes(tgt_node);
 
   graph->pd_finish(get_step_profiler_event());
 }
