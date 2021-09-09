@@ -16,7 +16,7 @@
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/nmc_dirichlet_beta_single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepper.h"
 
 namespace beanmachine {
 namespace graph {
@@ -31,35 +31,6 @@ bool NMCDirichletBetaSingleSiteStepper::is_applicable_to(
 ProfilerEvent NMCDirichletBetaSingleSiteStepper::get_step_profiler_event() {
   return ProfilerEvent::NMC_STEP_DIRICHLET;
 }
-
-/*
- * An adapter to go from a base proposer producing a probability p
- * to a new proposer that produces a Dirichlet sample (p, 1 - p).
- */
-class FromProbabilityToDirichletProposerAdapter : public proposer::Proposer {
- public:
-  FromProbabilityToDirichletProposerAdapter(
-      std::unique_ptr<proposer::Proposer> probability_proposer)
-      : probability_proposer(std::move(probability_proposer)) {}
-
-  virtual graph::NodeValue sample(std::mt19937& gen) const {
-    auto x = probability_proposer->sample(gen);
-    ValueType value_type(
-        VariableType::COL_SIMPLEX_MATRIX, AtomicType::PROBABILITY, 2, 1);
-    Eigen::MatrixXd values(2, 1);
-    values << x._double, 1 - x._double;
-    NodeValue y(value_type, values);
-    return y;
-  }
-
-  virtual double log_prob(graph::NodeValue& value) const {
-    NodeValue x(AtomicType::PROBABILITY, value._matrix.coeff(0));
-    return probability_proposer->log_prob(x);
-  }
-
- private:
-  std::unique_ptr<proposer::Proposer> probability_proposer;
-};
 
 std::unique_ptr<proposer::Proposer>
 NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {

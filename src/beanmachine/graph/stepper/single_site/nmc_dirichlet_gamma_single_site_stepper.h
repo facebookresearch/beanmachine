@@ -2,7 +2,7 @@
 #pragma once
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
 
 namespace beanmachine {
 namespace graph {
