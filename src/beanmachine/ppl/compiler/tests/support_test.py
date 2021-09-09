@@ -4,7 +4,8 @@ import unittest
 from typing import Any
 
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bmg_nodes import SetOfTensors, positive_infinity
+from beanmachine.ppl.compiler.bmg_nodes import positive_infinity
+from beanmachine.ppl.utils.set_of_tensors import SetOfTensors
 from torch import Size, Tensor, tensor
 
 
