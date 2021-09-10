@@ -8,7 +8,7 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/nmc.h"
+#include "beanmachine/graph/mh.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
@@ -63,9 +63,6 @@ class FromProbabilityToDirichletProposerAdapter : public proposer::Proposer {
 
 std::unique_ptr<proposer::Proposer>
 NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {
-  // TODO: Reorganize in the same manner the default NMC
-  // proposer has been reorganized
-
   assert(tgt_node->value._matrix.size() == 2);
 
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
@@ -85,7 +82,7 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {
   Grad1 << 1, -1;
   sto_tgt_node->Grad1 = Grad1;
   sto_tgt_node->Grad2 = Eigen::MatrixXd::Zero(2, 1);
-  nmc->compute_gradients(nmc->get_det_affected_nodes(tgt_node));
+  mh->compute_gradients(mh->get_det_affected_nodes(tgt_node));
 
   // Use gradients to obtain NMC proposal
   // @lint-ignore CLANGTIDY
@@ -98,7 +95,7 @@ NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {
   double grad1 = 0;
   double grad2 = 0;
 
-  for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {
+  for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
       // X ~ Beta(param_a, param_b)
       grad1 += (param_a - 1) / x - (param_b - 1) / (1 - x);

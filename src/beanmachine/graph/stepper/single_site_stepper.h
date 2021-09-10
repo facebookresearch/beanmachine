@@ -5,24 +5,22 @@
 namespace beanmachine {
 namespace graph {
 
-class NMC;
+class MH;
 
-// An abstraction for code taking a single-site NMC step.
-// TODO: we will eventually have a more abstract SingleSiteStepper
-// that is not NMC-specific.
-class NMCSingleSiteStepper {
+// An abstraction for code taking a single-site MH step.
+class SingleSiteStepper {
  public:
-  NMCSingleSiteStepper(Graph* graph, NMC* nmc) : graph(graph), nmc(nmc) {}
+  SingleSiteStepper(Graph* graph, MH* mh) : graph(graph), mh(mh) {}
 
   virtual bool is_applicable_to(graph::Node* tgt_node) = 0;
 
   virtual void step(graph::Node* tgt_node) = 0;
 
-  virtual ~NMCSingleSiteStepper() {}
+  virtual ~SingleSiteStepper() {}
 
  protected:
   Graph* graph;
-  NMC* nmc;
+  MH* mh;
 };
 
 } // namespace graph

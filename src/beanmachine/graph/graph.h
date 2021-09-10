@@ -530,7 +530,13 @@ class ConstNode : public Node {
 
 struct Graph {
   Graph() {}
+
+  /*
+  This copy constructor does not copy the inference results (if available)
+  from the source graph.
+  */
   Graph(const Graph& other);
+
   ~Graph() {}
   std::string to_string() const;
   std::string to_dot() const;
