@@ -318,7 +318,7 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
                 # TODO adjust log density on numerical runtime errors
                 # and handle multi-chain early return
                 # convert cholesky errors into warnings and early return
-                if "singular U" in str(e):
+                if "singular U" in str(e) or "input is not positive-definite" in str(e):
                     msg = "\nReturning samples collected so far."
                     warnings.warn(str(e) + msg, RuntimeWarning)
                     return merge_dicts(query_samples)
