@@ -23,8 +23,8 @@ sidebar_label: TOC
   * Worlds
 * **[Inference](framework_topics/inference/inference.md)**
   * Inference methods
-    * [Uniform sampler](framework_topics/inference/uniform_metropolis_hastings.md)
     * [Ancestral Metropolis-Hastings](framework_topics/inference/ancestral_metropolis_hastings.md)
+    * [Uniform sampler](framework_topics/inference/uniform_metropolis_hastings.md)
     * [Random Walk Metropolis-Hastings](framework_topics/inference/random_walk.md)
     * Metropolis-Adjusted Langevin Algorithm
     * [Hamiltonian Monte Carlo and NUTS](framework_topics/inference/hamiltonian_monte_carlo.md)

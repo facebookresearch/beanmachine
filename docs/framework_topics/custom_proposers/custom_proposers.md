@@ -1,6 +1,6 @@
 ## Custom Proposers
 
-Bean Machine is flexible and easily allows users to supply custom Metropolis Hastings proposers for specific random variables. The enables users to easily incorporate domain knowledge to inference.
+Bean Machine is flexible and easily allows users to supply custom Metropolis Hastings proposers for specific random variables. This enables users to easily incorporate domain knowledge to inference.
 
 For each iteration of sampling of variable $X$ with value $x$ using the Metropolis Hastings algorithm, we first sample a new value $x'$ for $X$ using proposal distribution $g$. We then update the world to reflect this change, and use the Metropolis Hastings ratio of
 $$\text{min}\big[1, \frac{p(x')g(x \mid x')}{p(x)g(x' \mid x)}\big]$$
@@ -56,7 +56,7 @@ def det_attr(station):
     return Laplace(det_loc, scale)
 ```
 
-There is domain knowledge within seismology to mathematically solve for the most likely attributes of an event given the detection attributes for a specific station. Due to the noisy nature of the data, these predicted locations can be inaccurate. However, with enough stations, it is likely that one of the predictions will be close to the true values. With this intuition, we used Bean Machine’s easily implementable proposer interface to write a custom proposer for the `event_attr` variable, which inspects the `det_attr(s)` children variables and uses a Gaussian mixture model proposer around the predicted attributes for each of the detections.
+There is domain knowledge within seismology to mathematically solve for the most likely attributes of an event given the detection attributes for a specific station. Due to the noisy nature of the data, these predicted locations can be inaccurate. However, with enough stations, it is likely that one of the predictions will be close to the true values. With this intuition, we used Bean Machine's easily implementable proposer interface to write a custom proposer for the `event_attr` variable, which inspects the `det_attr(s)` children variables and uses a Gaussian mixture model proposer around the predicted attributes for each of the detections.
 
 ```py
 class SingleSiteSeismicProposer(AbstractSingleSiteProposer):
@@ -75,7 +75,7 @@ class SingleSiteSeismicProposer(AbstractSingleSiteProposer):
 
     def post_process(
         self, node: RVIdentifier, world: World, auxiliary_variables: Dict
-    ) -> Tensor:      
+    ) -> Tensor:
         node_var = world.get_node_in_world_raise_error(node, False)
         current_value = node_var.value
         # compute gmm as before

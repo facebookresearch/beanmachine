@@ -16,7 +16,7 @@ As you can tell, there are a variety of ways of proposing new worlds from the cu
 
 ## Programmable inference
 
-One of the key innovations in Bean Machine is the idea that inference is programmable. Bean Machine's single-site paradigm allow you to modularly mix-and-match inference components to get the most out of your model.
+One of the key innovations in Bean Machine is the idea that inference is programmable. Bean Machine's single-site paradigm allows you to modularly mix-and-match inference components to get the most out of your model.
 
 Compositional inference allows you to utilize distinct inference methods for different random variables when fitting a model. Our flexible transformations framework allows you to leverage domain-specific transformations or proposers, which can be especially powerful to avoid worse edge-case performance when running inference over constrained random variables. Block inference allows you to propose updates for several random variables jointly, which can be necessary when dealing with highly-correlated variables. All of these techniques are covered in the **Programmable inference** section.
 

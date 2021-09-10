@@ -13,7 +13,7 @@ Bean Machine's generative modeling is concerned not only with providing useful p
 
 Generative modeling with Bean Machine offers many benefits:
 
-  1. **Uncertainty estimation.**  Predictions are quantified with reliable measures of uncertainty in the form of probability distributions. An analyst can understand not only the system’s prediction, but also the relative likelihood of other possibilities.
+  1. **Uncertainty estimation.**  Predictions are quantified with reliable measures of uncertainty in the form of probability distributions. An analyst can understand not only the system's prediction, but also the relative likelihood of other possibilities.
   2. **Expressivity.**  It's extremely easy to encode a rich model directly in source code. This allows one to match the structure of the model to the structure of the problem.
   3. **Interpretability.**  Because the model matches the domain, one can query intermediate learned properties within the model. This can be used to interpret *why* a particular prediction was made, and can aid the model development process.
 
