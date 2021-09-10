@@ -15,7 +15,7 @@
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/nmc_scalar_single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepper.h"
 
 namespace beanmachine {
 namespace graph {

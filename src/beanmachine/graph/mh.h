@@ -15,7 +15,7 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
 #include "beanmachine/graph/util.h"
 
 #define NATURAL_TYPE unsigned long long int
