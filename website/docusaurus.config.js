@@ -22,7 +22,7 @@ module.exports = {
   projectName: 'beanmachine', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'Bean Machine',
+      title: 'Testing',
       logo: {
         alt: 'Bean Machine Logo',
         src: 'img/beanmachine.svg',
