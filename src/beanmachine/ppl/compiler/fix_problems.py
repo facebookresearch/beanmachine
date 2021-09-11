@@ -24,6 +24,7 @@ from beanmachine.ppl.compiler.fix_observations import ObservationsFixer
 from beanmachine.ppl.compiler.fix_observe_true import ObserveTrueFixer
 from beanmachine.ppl.compiler.fix_requirements import RequirementsFixer
 from beanmachine.ppl.compiler.fix_unsupported import UnsupportedNodeFixer
+from beanmachine.ppl.compiler.fix_vectorized_models import VectorizedModelFixer
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
@@ -40,6 +41,7 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 # TODO: Add other notes on ordering constraints here.
 
 _standard_fixer_types: List[Type] = [
+    VectorizedModelFixer,
     BoolArithmeticFixer,
     AdditionFixer,
     BoolComparisonFixer,
