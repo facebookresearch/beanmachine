@@ -79,16 +79,14 @@ digraph "graph" {
   N09[label=Sample];
   N10[label=ToMatrix];
   N11[label=Query];
-  N12[label="[0.25,0.75]"];
-  N13[label=0];
-  N14[label=index];
-  N15[label=Bernoulli];
-  N16[label=Sample];
-  N17[label=index];
-  N18[label=Bernoulli];
-  N19[label=Sample];
-  N20[label=ToMatrix];
-  N21[label=Query];
+  N12[label=0.25];
+  N13[label=Bernoulli];
+  N14[label=Sample];
+  N15[label=0.75];
+  N16[label=Bernoulli];
+  N17[label=Sample];
+  N18[label=ToMatrix];
+  N19[label=Query];
   N00 -> N01;
   N00 -> N01;
   N01 -> N02;
@@ -96,25 +94,21 @@ digraph "graph" {
   N02 -> N06;
   N03 -> N08;
   N04 -> N10;
-  N04 -> N20;
+  N04 -> N18;
   N05 -> N10;
-  N05 -> N17;
-  N05 -> N20;
+  N05 -> N18;
   N06 -> N07;
   N07 -> N10;
   N08 -> N09;
   N09 -> N10;
   N10 -> N11;
-  N12 -> N14;
-  N12 -> N17;
+  N12 -> N13;
   N13 -> N14;
-  N14 -> N15;
+  N14 -> N18;
   N15 -> N16;
-  N16 -> N20;
+  N16 -> N17;
   N17 -> N18;
   N18 -> N19;
-  N19 -> N20;
-  N20 -> N21;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
