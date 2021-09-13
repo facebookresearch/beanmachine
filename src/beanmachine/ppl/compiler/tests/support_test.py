@@ -1,11 +1,20 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-"""Tests for bm_graph_builder.py"""
 import unittest
 from typing import Any
 
+import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bmg_nodes import SetOfTensors, positive_infinity
+from beanmachine.ppl.compiler.bmg_nodes import positive_infinity
+from beanmachine.ppl.compiler.runtime import BMGRuntime
+from beanmachine.ppl.compiler.support import ComputeSupport, Infinite
+from beanmachine.ppl.utils.set_of_tensors import SetOfTensors
 from torch import Size, Tensor, tensor
+from torch.distributions import Bernoulli, Normal
+
+# TODO: The first half of this file tests the support instance method
+# on nodes which we are going to delete and replace with a nonrecursive
+# support computation in its own module.  Delete these tests once
+# that is ready.
 
 
 def tidy(s: str) -> str:
@@ -17,6 +26,26 @@ def tensor_equality(x: Tensor, y: Tensor) -> bool:
     # tensor([1.0, 2.0]). Then x.eq(y) is tensor([True, True]),
     # and x.eq(y).all() is tensor(True).
     return bool(x.eq(y).all())
+
+
+@bm.random_variable
+def flip1(n):
+    return Bernoulli(0.5)
+
+
+@bm.random_variable
+def flip2(n):
+    return Bernoulli(tensor([[0.5, 0.5]]))
+
+
+@bm.functional
+def to_tensor():
+    return tensor([2.5, flip1(0), flip1(1), flip1(2)])
+
+
+@bm.random_variable
+def normal():
+    return Normal(0.0, 1.0)
 
 
 class NodeSupportTest(unittest.TestCase):
@@ -89,3 +118,50 @@ class NodeSupportTest(unittest.TestCase):
         # Exp(normal) has infinite support
         en = bmg.add_exp(n1)
         self.assertEqual(en.support_size(), positive_infinity)
+
+    def test_bernoulli_support(self) -> None:
+
+        self.maxDiff = None
+
+        rt = BMGRuntime()
+        rt.accumulate_graph([flip2(0)], {})
+        sample = rt._rv_to_node(flip2(0))
+        s = ComputeSupport()
+        observed = str(s[sample])
+        expected = """
+tensor([[0., 0.]])
+tensor([[0., 1.]])
+tensor([[1., 0.]])
+tensor([[1., 1.]])"""
+
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_stochastic_tensor_support(self) -> None:
+        self.maxDiff = None
+
+        rt = BMGRuntime()
+        rt.accumulate_graph([to_tensor()], {})
+        tm = rt._rv_to_node(to_tensor())
+        s = ComputeSupport()
+        observed = str(s[tm])
+        expected = """
+tensor([2.5000, 0.0000, 0.0000, 0.0000])
+tensor([2.5000, 0.0000, 0.0000, 1.0000])
+tensor([2.5000, 0.0000, 1.0000, 0.0000])
+tensor([2.5000, 0.0000, 1.0000, 1.0000])
+tensor([2.5000, 1.0000, 0.0000, 0.0000])
+tensor([2.5000, 1.0000, 0.0000, 1.0000])
+tensor([2.5000, 1.0000, 1.0000, 0.0000])
+tensor([2.5000, 1.0000, 1.0000, 1.0000])
+"""
+
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_infinite_support(self) -> None:
+        self.maxDiff = None
+        rt = BMGRuntime()
+        rt.accumulate_graph([normal()], {})
+        sample = rt._rv_to_node(normal())
+        s = ComputeSupport()
+        observed = s[sample]
+        self.assertEqual(Infinite, observed)

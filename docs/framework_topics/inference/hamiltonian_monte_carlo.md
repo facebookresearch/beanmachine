@@ -18,9 +18,9 @@ $$\frac{dq_i}{dt} = [\Sigma p]_i$$
 $$\frac{dp_i}{dt} = -\frac{\partial U}{\partial q_i}$$
 
 However, because these equations cannot be directly computed, Bean Machine uses the leapfrog method to approximate the trajectory. For leapfrog step at time $t$ of size $\epsilon$, we take a half-step for momentum and a full-step for position using the updated momentum, and finally another half step for the momentum.
-$$ p_i(t + \epsilon/2) = p - (\epsilon/2)\frac{\partial U}{\partial q_i}(q(t)) $$
-$$ q_i(t + \epsilon) = q_i(t) + \epsilon \Sigma p_i(t + \epsilon/2) $$
-$$ p_i(t + \epsilon) = p_i(t + \epsilon/2) - (\epsilon/2)\frac{\partial U}{\partial q_i}(q(t + \epsilon))$$
+$$p_i(t + \epsilon/2) = p - (\epsilon/2)\frac{\partial U}{\partial q_i}(q(t))$$
+$$q_i(t + \epsilon) = q_i(t) + \epsilon \Sigma p_i(t + \epsilon/2)$$
+$$p_i(t + \epsilon) = p_i(t + \epsilon/2) - (\epsilon/2)\frac{\partial U}{\partial q_i}(q(t + \epsilon))$$
 
 With target path length $\lambda$ and step size $\epsilon$, the number of leapfrog steps is calculated by $\lceil\lambda / \epsilon\rceil$. The final sample for $q$ is chosen by the value of $q$ after the last leapfrog step.
 
@@ -41,21 +41,21 @@ hmc = bm.CompositionalInference(
 );
 ```
 The parameters for HMC have to be carefully selected, as different parameters may lead to vastly different behavior.
-* Path length:  
+* Path length:
 Because the samples should be minimally correlated, it is ideal to follow the trajectory for long path lengths. However, distributions may have periodic behavior, and long path lengths may waste computation. The ideal path length is the minimal path length where the samples have low correlation.
-* Step Size:  
+* Step Size:
 If the Hamiltonian equations were followed perfectly, all samples would be accepted. However, error is introduced into the system during the discretization of Hamilton equations. The larger the step size, the worse the final approximation will be; however, if the steps are too small, the number of steps needed as well as the overall runtime of the algorithm will increase.
 
 ### Adaptive Hamiltonian Monte Carlo
 
 Adaptive HMC requires an adaptive phase, where we use the HMC algorithm to generate samples while tuning its own step size and covariance matrix. Adaptive HMC provides two main improvements over HMC.
 
-* Users do not have to specify a step size:  
-    The ideal acceptance rate for HMC is 65%, where step size is aggressive enough to minimize computation costs, but small enough that the discretization does not introduce too much error into the system.  
-    During the adaptive phase, the step size is adjusted based on the acceptance probability of the samples. If the acceptance rate is above the ideal acceptance rate, then Bean Machine is being too careful and discretizing in steps that are too small; therefore, the step size should be increased. If the acceptance rate is too low, then the step size should be decreased. We follow the Robbins Munro stochastic approximation method, where earlier iterations within the adaptive phase have a larger influence over the step size than later iterations.  
-* HMC can take different step sizes in different dimensions:  
-    During the adaptive phase, tune the momentum in each dimension is tuned depending on the covariance of the previously accepted samples. The amount of momentum used is controlled by the covariance matrix, which allows HMC to move through the dimensions at different rates.  
-    The estimated covariance matrix is adjusted based on the covariance of the samples. Since the ideal covariance matrix is the true covariance, we can approximate this during the adaptive phase by using the covariance of the samples.  
+* Users do not have to specify a step size:
+    The ideal acceptance rate for HMC is 65%, where step size is aggressive enough to minimize computation costs, but small enough that the discretization does not introduce too much error into the system.
+    During the adaptive phase, the step size is adjusted based on the acceptance probability of the samples. If the acceptance rate is above the ideal acceptance rate, then Bean Machine is being too careful and discretizing in steps that are too small; therefore, the step size should be increased. If the acceptance rate is too low, then the step size should be decreased. We follow the Robbins Munro stochastic approximation method, where earlier iterations within the adaptive phase have a larger influence over the step size than later iterations.
+* HMC can take different step sizes in different dimensions:
+    During the adaptive phase, tune the momentum in each dimension is tuned depending on the covariance of the previously accepted samples. The amount of momentum used is controlled by the covariance matrix, which allows HMC to move through the dimensions at different rates.
+    The estimated covariance matrix is adjusted based on the covariance of the samples. Since the ideal covariance matrix is the true covariance, we can approximate this during the adaptive phase by using the covariance of the samples.
 
 Once the adaptive phase ends, we no longer update our parameters, and the original HMC algorithm is used to generate new samples. Since the samples generated during the adaptive phase use untuned parameters, they may not be of the highest quality and are not returned by default.
 

@@ -214,12 +214,14 @@ class BMGInference:
     ) -> str:
         """Produce a string containing a program in the GraphViz DOT language
         representing the graph deduced from the model."""
-        inf_types = False
+        node_types = False
+        node_sizes = False
         edge_requirements = False
         bmg = self._accumulate_graph(queries, observations)._bmg
         return to_dot(
             bmg,
-            inf_types,
+            node_types,
+            node_sizes,
             edge_requirements,
             after_transform,
             label_edges,

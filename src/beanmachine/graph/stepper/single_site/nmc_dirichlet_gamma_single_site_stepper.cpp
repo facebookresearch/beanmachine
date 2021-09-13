@@ -8,14 +8,14 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/nmc.h"
+#include "beanmachine/graph/mh.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/nmc_dirichlet_gamma_single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepper.h"
 
 namespace beanmachine {
 namespace graph {
@@ -35,7 +35,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
   graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
 
   const std::vector<Node*>& det_affected_nodes =
-      nmc->get_det_affected_nodes(tgt_node);
+      mh->get_det_affected_nodes(tgt_node);
 
   // Cast needed to access fields such as unconstrained_value:
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
@@ -49,7 +49,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
     double x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
 
     // save old values
-    nmc->save_old_values(det_affected_nodes);
+    mh->save_old_values(det_affected_nodes);
     double old_x_k = sto_tgt_node->unconstrained_value._matrix.coeff(k);
     NodeValue old_x_k_value(AtomicType::POS_REAL, old_x_k);
     double old_sto_affected_nodes_log_prob =
@@ -60,7 +60,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
         tgt_node, param_a_k, x_sum, old_x_k_value, k);
 
     // sample new value
-    NodeValue new_x_k_value = nmc->sample(proposal_given_old_value);
+    NodeValue new_x_k_value = mh->sample(proposal_given_old_value);
 
     // set new value
     *(sto_tgt_node->unconstrained_value._matrix.data() + k) =
@@ -70,7 +70,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
         sto_tgt_node->unconstrained_value._matrix.array() / x_sum;
 
     // propagate new value
-    nmc->eval(det_affected_nodes);
+    mh->eval(det_affected_nodes);
     double new_sto_affected_nodes_log_prob =
         compute_sto_affected_nodes_log_prob(tgt_node, param_a_k, new_x_k_value);
 
@@ -85,10 +85,10 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
         proposal_given_old_value->log_prob(new_x_k_value);
 
     // decide acceptance
-    bool accepted = util::flip_coin_with_log_prob(nmc->gen, logacc);
+    bool accepted = util::flip_coin_with_log_prob(mh->gen, logacc);
     if (!accepted) {
       // revert
-      nmc->restore_old_values(det_affected_nodes);
+      mh->restore_old_values(det_affected_nodes);
       *(sto_tgt_node->unconstrained_value._matrix.data() + k) = old_x_k;
       x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
       sto_tgt_node->value._matrix =
@@ -102,7 +102,7 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
     // TODO: identify code that depends on this, let it zero gradients
     // itself, and remove it from here since that's a long-distance,
     // implicit dependence that is hard to watch for.
-    nmc->clear_gradients(det_affected_nodes);
+    mh->clear_gradients(det_affected_nodes);
   } // k
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
@@ -112,7 +112,7 @@ double NMCDirichletGammaSingleSiteStepper::compute_sto_affected_nodes_log_prob(
     double param_a_k,
     NodeValue x_k_value) {
   double logweight = 0;
-  for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {
+  for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
       double& x_k = x_k_value._double;
       // X_k ~ Gamma(param_a_k, 1)
@@ -152,7 +152,7 @@ NMCDirichletGammaSingleSiteStepper::create_proposal_dirichlet_gamma(
   sto_tgt_node->Grad2 = sto_tgt_node->Grad1 * (-2.0) / x_sum;
 
   // Propagate gradients
-  nmc->compute_gradients(nmc->get_det_affected_nodes(tgt_node));
+  mh->compute_gradients(mh->get_det_affected_nodes(tgt_node));
 
   // We want to compute the gradient of log prob with respect to x_k.
   // The probability is the product of the probabilities of x_k
@@ -169,7 +169,7 @@ NMCDirichletGammaSingleSiteStepper::create_proposal_dirichlet_gamma(
   // stochastic affected node S_i other than the target node.
   double grad1 = 0;
   double grad2 = 0;
-  for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {
+  for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
     if (node == tgt_node) {
       double& x_k = x_k_value._double;
       // X_k ~ Gamma(param_a_k, 1)

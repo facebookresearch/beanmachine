@@ -204,6 +204,10 @@ std::string NodeValue::to_string() const {
   return os.str();
 }
 
+// TODO: the following is used in beta.cpp only. Does it really need to be here?
+// Why is it used there only, given the name sounds pretty generic?
+// Are other classes using different versions of the same idea?
+// Can it be de-duplicated?
 template <class T1, class T2>
 void Node::forward_gradient_scalarops(
     T1& jacobian,
@@ -317,6 +321,8 @@ void Graph::eval_and_grad(
     NodeValue& value,
     double& grad1,
     double& grad2) {
+  // TODO: used for testing only, should integrate it with
+  // whatever code is actually being used for eval and grad.
   if (src_idx >= nodes.size()) {
     throw std::out_of_range("src_idx " + std::to_string(src_idx));
   }
@@ -465,6 +471,7 @@ template void
 Graph::gradient_log_prob<double>(uint src_idx, double& grad1, double& grad2);
 
 double Graph::log_prob(uint src_idx) {
+  // TODO: also used in tests only
   Node* src_node = check_node(src_idx, NodeType::OPERATOR);
   if (not src_node->is_stochastic()) {
     throw std::runtime_error("log_prob only supported on stochastic nodes");
@@ -486,6 +493,8 @@ double Graph::log_prob(uint src_idx) {
   return log_prob;
 }
 
+// TODO: this is the one actually used in code (as opposed to full_log_prob used
+// in testing only, so why the _?)
 double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
   double sum_log_prob = 0.0;
   std::mt19937 generator(12131); // seed is irrelevant for deterministic ops
@@ -519,6 +528,9 @@ double Graph::_full_log_prob(std::vector<Node*>& ordered_supp) {
   return sum_log_prob;
 }
 
+/* TODO: used in testing only; it looks like there has not been a need for it in
+ * actual code so far; notheless we can leave it here as it is a natural
+ * operation */
 double Graph::full_log_prob() {
   std::set<uint> supp = compute_support();
   std::vector<Node*> ordered_supp;
@@ -528,18 +540,25 @@ double Graph::full_log_prob() {
   return _full_log_prob(ordered_supp);
 }
 
+// TODO: from now on, we have methods for adding nodes, checking validity,
+// inference and a copy constructor Those are essentially as they should be.
+// Note that methods for determining support and affected nodes are in
+// support.cpp, for not a very clear reason.
+
 std::vector<Node*> Graph::convert_parent_ids(
+    // TODO: this does not have to apply to parents only; make it a more general
+    // function from ids to nodes.
     const std::vector<uint>& parent_ids) const {
   // check that the parent ids are valid indices and convert them to
   // an array of Node* pointers
   std::vector<Node*> parent_nodes;
-  for (uint paridx : parent_ids) {
-    if (paridx >= nodes.size()) {
+  for (uint parent_id : parent_ids) {
+    if (parent_id >= nodes.size()) {
       throw std::out_of_range(
-          "parent node_id " + std::to_string(paridx) + "must be less than " +
+          "parent node_id " + std::to_string(parent_id) + "must be less than " +
           std::to_string(nodes.size()));
     }
-    parent_nodes.push_back(nodes[paridx].get());
+    parent_nodes.push_back(nodes[parent_id].get());
   }
   return parent_nodes;
 }
@@ -939,6 +958,9 @@ void Graph::collect_log_prob(double log_prob) {
 }
 
 std::vector<std::vector<double>>& Graph::get_log_prob() {
+  // TODO: clarify the meaning of log_prob_vals and log_prob_allchains
+  // so we can check correctness of this method
+
   if (log_prob_vals.size() > 0) {
     log_prob_allchains.clear();
     log_prob_allchains.push_back(log_prob_vals);
@@ -1013,6 +1035,10 @@ void Graph::_infer(
 std::vector<std::vector<NodeValue>>&
 Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
   InferConfig infer_config = InferConfig();
+  // TODO: why don't the initialization below to be done for _infer?
+  // If they do, move them there.
+  // Not clear why we have infer and _infer instead of just infer with
+  // a default infer_config.
   agg_type = AggregationType::NONE;
   samples.clear();
   log_prob_vals.clear();
@@ -1142,7 +1168,8 @@ std::vector<std::vector<double>>& Graph::variational(
   elbo_vals.clear();
   std::mt19937 generator(seed);
   cavi(num_iters, steps_per_iter, generator, elbo_samples);
-  return variational_params;
+  return variational_params; // TODO: this should have been defined as a field,
+                             // but a value returned by cavi.
 }
 
 std::vector<uint> Graph::get_parent_ids(

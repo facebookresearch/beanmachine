@@ -12,12 +12,14 @@ from beanmachine.ppl.compiler.fix_problems import (
 )
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels, get_node_label
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
+from beanmachine.ppl.compiler.sizer import Sizer, size_to_str
 from beanmachine.ppl.utils.dotbuilder import DotBuilder
 
 
 def to_dot(
     bmg: BMGraphBuilder,
     node_types: bool = False,
+    node_sizes: bool = False,
     edge_requirements: bool = False,
     after_transform: bool = False,
     label_edges: bool = True,
@@ -27,6 +29,7 @@ def to_dot(
     orphans, as a DOT graph description; nodes are enumerated in the order
     they were created."""
     lt = LatticeTyper()
+    sizer = Sizer()
     reqs = EdgeRequirements(lt)
     db = DotBuilder()
 
@@ -60,6 +63,8 @@ def to_dot(
         node_label = get_node_label(node)
         if node_types:
             node_label += ":" + lt[node].short_name
+        if node_sizes:
+            node_label += ":" + size_to_str(sizer[node])
         db.with_node(n, node_label)
         for (i, edge_name, req) in zip(
             node.inputs, get_edge_labels(node), reqs.requirements(node)

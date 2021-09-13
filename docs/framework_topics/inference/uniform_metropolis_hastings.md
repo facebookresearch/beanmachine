@@ -14,6 +14,8 @@ mh = SingleSiteUniformMetropolisHastings()
 coin_samples = mh.infer(queries, observations, num_samples, num_chains, run_in_parallel)
 ```
 
+*TODO Remove the explanation of parameters below; they have already been explained in `overview/inference/inference.md`, with the exception of `run_in_paralell`*
+
 ```queries ```: List of random variables that we want to get posterior samples for
 ```observations```: Dict, where key is the random variable, and value is the value of the random variable
 ```num_samples```: number of samples to run inference for

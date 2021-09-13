@@ -13,6 +13,21 @@ def _tuplify(t: Any) -> Any:
     return t
 
 
+# This returns a tuple or value whose shape is the same as the input tensor.
+# That is:
+#
+# tensor(1)                --> 1
+# tensor([])               --> ()
+# tensor([1])              --> (1,)
+# tensor([1, 2])           --> (1, 2)
+# tensor([[1, 2], [3, 4]]) --> ((1, 2), (3, 4))
+#
+# and so on
+def tensor_to_tuple(t: Tensor) -> Any:
+    result = _tuplify(t.tolist())
+    return result
+
+
 class MemoizationKey:
     # It would be nice to just use a tuple (wrapper, args) for the memoization
     # key, but tensors can only be compared for equality with torch.equal(t1, t2),
@@ -30,7 +45,7 @@ class MemoizationKey:
         self.arguments = (
             wrapper,
             tuple(
-                _tuplify(a.tolist()) if isinstance(a, Tensor) else a for a in arguments
+                tensor_to_tuple(a) if isinstance(a, Tensor) else a for a in arguments
             ),
         )
         self.wrapper = wrapper

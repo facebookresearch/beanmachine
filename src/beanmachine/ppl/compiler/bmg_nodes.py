@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import collections
 import functools
 import itertools
 import operator
@@ -10,6 +9,7 @@ from typing import Any, Iterable, List
 import beanmachine.ppl.compiler.bmg_types as bt
 import torch
 from beanmachine.ppl.utils.item_counter import ItemCounter
+from beanmachine.ppl.utils.set_of_tensors import SetOfTensors
 from torch import Tensor, tensor
 from torch.distributions import Normal
 from torch.distributions.utils import broadcast_all
@@ -127,38 +127,6 @@ class BMGNode(ABC):
     @property
     def is_leaf(self) -> bool:
         return len(self.outputs.items) == 0
-
-
-# When constructing the support of various nodes we are often
-# having to remove duplicates from a set of possible values.
-# Unfortunately, it is not easy to do so with torch tensors.
-# This helper class implements a set of tensors.
-
-# TODO: Move this to its own module.
-
-
-class SetOfTensors(collections.abc.Set):
-    """Tensors cannot be put into a normal set because tensors that compare as
-    equal do not hash to equal hashes. This is a linear-time set implementation.
-    Most of the time the sets will be very small."""
-
-    elements: List[Tensor]
-
-    def __init__(self, iterable):
-        self.elements = []
-        for value in iterable:
-            t = value if isinstance(value, Tensor) else tensor(value)
-            if t not in self.elements:
-                self.elements.append(t)
-
-    def __iter__(self):
-        return iter(self.elements)
-
-    def __contains__(self, value):
-        return value in self.elements
-
-    def __len__(self):
-        return len(self.elements)
 
 
 # ####

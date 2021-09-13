@@ -8,14 +8,14 @@
 
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
-#include "beanmachine/graph/nmc.h"
+#include "beanmachine/graph/mh.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/nmc_scalar_single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepper.h"
 
 namespace beanmachine {
 namespace graph {
@@ -38,11 +38,11 @@ NMCScalarSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {
 
   tgt_node->grad1 = 1;
   tgt_node->grad2 = 0;
-  nmc->compute_gradients(nmc->get_det_affected_nodes(tgt_node));
+  mh->compute_gradients(mh->get_det_affected_nodes(tgt_node));
 
   double grad1 = 0;
   double grad2 = 0;
-  for (Node* node : nmc->get_sto_affected_nodes(tgt_node)) {
+  for (Node* node : mh->get_sto_affected_nodes(tgt_node)) {
     node->gradient_log_prob(tgt_node, /* in-out */ grad1, /* in-out */ grad2);
   }
 

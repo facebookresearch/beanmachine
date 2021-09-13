@@ -102,6 +102,7 @@ bmg_profiler_report: nmc_infer:(1) -- ms
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
   fix_problems:(1) -- ms
+    VectorizedModelFixer:(--) -- ms
     BoolArithmeticFixer:(1) -- ms
     AdditionFixer:(1) -- ms
     BoolComparisonFixer:(1) -- ms
@@ -169,6 +170,7 @@ bmg_profiler_report: nmc_infer:(1) -- ms
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
   fix_problems:(1) -- ms
+    VectorizedModelFixer:(--) -- ms
     BoolArithmeticFixer:(1) -- ms
     AdditionFixer:(1) -- ms
     BoolComparisonFixer:(1) -- ms
