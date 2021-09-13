@@ -36,7 +36,7 @@ class SetOfTensorsTest(unittest.TestCase):
 
         self.assertEqual(9, len(s))
 
-        observed = "\n".join(sorted(str(i) for i in s))
+        observed = str(s)
         expected = """
 tensor(1.)
 tensor([1., 2., 3., 4.])

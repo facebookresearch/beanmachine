@@ -34,3 +34,6 @@ class SetOfTensors(collections.abc.Set):
 
     def __len__(self):
         return len(self._elements)
+
+    def __str__(self):
+        return "\n".join(sorted(str(t) for t in self))
