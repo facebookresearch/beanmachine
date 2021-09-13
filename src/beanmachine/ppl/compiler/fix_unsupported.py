@@ -66,29 +66,41 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         mult = self._bmg.add_multiplication(node.df, half)
         return self._bmg.add_gamma(mult, half)
 
+    def _replace_index_one_column(self, node: bn.IndexNode) -> bn.BMGNode:
+        left = node.left
+        right = node.right
+        typer = self._typer
+        assert isinstance(typer, LatticeTyper)
+
+        # It is possible during rewrites to end up with a constant for both
+        # operands of the index; in that case, fold the index away entirely.
+
+        # If we have a ToMatrix indexed by a constant, we can similarly
+        # eliminate the indexing operation.
+
+        if isinstance(right, bn.ConstantNode) and typer.is_natural(right):
+            r = int(right.value)
+            if isinstance(left, bn.ConstantNode):
+                return self._bmg.add_constant(left.value[r])
+            if isinstance(left, bn.ToMatrixNode):
+                return left.inputs[r + 2]
+
+        # We cannot optimize it away; add a vector index operation.
+        return self._bmg.add_vector_index(left, right)
+
     def _replace_index(self, node: bn.IndexNode) -> Optional[bn.BMGNode]:
         # * If we have an index into a one-column matrix, replace it with
         #   a vector index.
         # * If we have an index into a multi-column matrix, replace it with
         #   a column index
-        # TODO: Consider if there are more optimizations we can make here
-        # if either operand is a constant.
-        typer = self._typer
-        assert isinstance(typer, LatticeTyper)
-        right = node.right
         left = node.left
-        node_type = typer[left]
-        if isinstance(node_type, bt.BMGMatrixType):
-            if node_type.columns == 1:
-                if (
-                    isinstance(left, bn.ToMatrixNode)
-                    and isinstance(right, bn.ConstantNode)
-                    and typer.is_natural(right)
-                ):
-                    return left.inputs[right.value + 2]
-                return self._bmg.add_vector_index(left, right)
-            return self._bmg.add_column_index(left, right)
-        return None
+        node_type = self._typer[left]
+        if not isinstance(node_type, bt.BMGMatrixType):
+            return None
+        right = node.right
+        if node_type.columns == 1:
+            return self._replace_index_one_column(node)
+        return self._bmg.add_column_index(left, right)
 
     def _replace_lse(self, node: bn.LogSumExpTorchNode) -> Optional[bn.BMGNode]:
         # We only support compiling models where dim=0 and keepDims=False.
