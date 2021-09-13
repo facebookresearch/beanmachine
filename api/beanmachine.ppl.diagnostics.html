@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diagnostics &mdash; BeanMachine  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="distribution" href="beanmachine.ppl.distribution.html" />
+    <link rel="prev" title="compiler" href="beanmachine.ppl.compiler.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">compiler</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">diagnostics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.diagnostics.common_plots">beanmachine.ppl.diagnostics.common_plots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.diagnostics.common_statistics">beanmachine.ppl.diagnostics.common_statistics module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.diagnostics.diagnostics">beanmachine.ppl.diagnostics.diagnostics module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.diagnostics">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.conjugate_models.html">examples.conjugate_models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experimental.html">experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experimental.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">inference package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+      <li>diagnostics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.diagnostics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="diagnostics">
+<h1>diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-beanmachine.ppl.diagnostics.common_plots">
+<span id="beanmachine-ppl-diagnostics-common-plots-module"></span><h2>beanmachine.ppl.diagnostics.common_plots module<a class="headerlink" href="#module-beanmachine.ppl.diagnostics.common_plots" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.diagnostics.common_plots.SamplesSummary">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.diagnostics.common_plots.</code><code class="descname">SamplesSummary</code><span class="sig-paren">(</span><em>num_chain</em>, <em>num_samples</em>, <em>single_sample_sz</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.SamplesSummary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.diagnostics.common_plots.SamplesSummary.num_chain">
+<code class="descname">num_chain</code><a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.SamplesSummary.num_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.diagnostics.common_plots.SamplesSummary.num_samples">
+<code class="descname">num_samples</code><a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.SamplesSummary.num_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.diagnostics.common_plots.SamplesSummary.single_sample_sz">
+<code class="descname">single_sample_sz</code><a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.SamplesSummary.single_sample_sz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_plots.autocorr">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_plots.</code><code class="descname">autocorr</code><span class="sig-paren">(</span><em>x: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Tuple[List[int], List[float]]<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.autocorr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_plots.plot_helper">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_plots.</code><code class="descname">plot_helper</code><span class="sig-paren">(</span><em>query_samples: torch.Tensor</em>, <em>func: Callable</em><span class="sig-paren">)</span> &#x2192; Tuple[List[plotly.graph_objs._scatter.Scatter], List[str]]<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.plot_helper" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function executes a plot-related function, passed as input parameter func, and
+outputs a tuple including plotly object and its corresponding legend.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_plots.trace_helper">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_plots.</code><code class="descname">trace_helper</code><span class="sig-paren">(</span><em>x: List[List[List[int]]], y: List[List[List[float]]], labels: List[str]</em><span class="sig-paren">)</span> &#x2192; Tuple[List[plotly.graph_objs._scatter.Scatter], List[str]]<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.trace_helper" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function gets results prepared by a plot-related function and
+outputs a tuple including plotly object and its corresponding legend.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_plots.trace_plot">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_plots.</code><code class="descname">trace_plot</code><span class="sig-paren">(</span><em>x: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Tuple[List[int], torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_plots.trace_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-beanmachine.ppl.diagnostics.common_statistics">
+<span id="beanmachine-ppl-diagnostics-common-statistics-module"></span><h2>beanmachine.ppl.diagnostics.common_statistics module<a class="headerlink" href="#module-beanmachine.ppl.diagnostics.common_statistics" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_statistics.confidence_interval">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_statistics.</code><code class="descname">confidence_interval</code><span class="sig-paren">(</span><em>query_samples: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_statistics.confidence_interval" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_statistics.effective_sample_size">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_statistics.</code><code class="descname">effective_sample_size</code><span class="sig-paren">(</span><em>query_samples: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_statistics.effective_sample_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_statistics.mean">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_statistics.</code><code class="descname">mean</code><span class="sig-paren">(</span><em>query_samples: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_statistics.mean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_statistics.r_hat">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_statistics.</code><code class="descname">r_hat</code><span class="sig-paren">(</span><em>query_samples: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Optional[torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_statistics.r_hat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_statistics.split_r_hat">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_statistics.</code><code class="descname">split_r_hat</code><span class="sig-paren">(</span><em>query_samples: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Optional[torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_statistics.split_r_hat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.diagnostics.common_statistics.std">
+<code class="descclassname">beanmachine.ppl.diagnostics.common_statistics.</code><code class="descname">std</code><span class="sig-paren">(</span><em>query_samples: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.diagnostics.common_statistics.std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-beanmachine.ppl.diagnostics.diagnostics">
+<span id="beanmachine-ppl-diagnostics-diagnostics-module"></span><h2>beanmachine.ppl.diagnostics.diagnostics module<a class="headerlink" href="#module-beanmachine.ppl.diagnostics.diagnostics" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.diagnostics.diagnostics.</code><code class="descname">BaseDiagnostics</code><span class="sig-paren">(</span><em>samples: beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>query_list: Optional[List[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = None</em>, <em>display: Optional[bool] = False</em>, <em>chain: Optional[int] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function outputs plots related to registered functions in
+self.plots_dict for requested queries in query_list
+:param query_list: list of queries for which plot functions will be called
+:param chain: the chain that query samples are extracted from
+:returns: plotly object holding the results from registered plot functions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.plotfn">
+<code class="descname">plotfn</code><span class="sig-paren">(</span><em>func: Callable</em>, <em>display_name: str</em><span class="sig-paren">)</span> &#x2192; Callable<a class="headerlink" href="#beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.plotfn" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function keeps a directory of all plot-related functions
+so it could handle the overridden functions and new ones that user defines</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>func</strong> – method which is going to be executed when plot() is called.</li>
+<li><strong>display_name</strong> – appears as part of the plot title for func</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">user-visible function that can be called over a list of queries</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><em>query_list: Optional[List[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = None</em>, <em>chain: Optional[int] = None</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function outputs a table summarizing results of registered functions
+in self.statistics_dict for requested queries in query_list,
+if chain is None, results correspond to the aggreagated chains</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.summaryfn">
+<code class="descname">summaryfn</code><span class="sig-paren">(</span><em>func: Callable, display_names: List[str]</em><span class="sig-paren">)</span> &#x2192; Callable<a class="headerlink" href="#beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics.summaryfn" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function keeps a directory of all summary-related functions,
+so it could handle the overridden functions and new ones that user defines</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>func</strong> – method which is going to be executed when summary() is called.</li>
+<li><strong>display_name</strong> – the name appears in the summary() output dataframe</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">user-visible function that can be called over a list of queries</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.diagnostics.diagnostics.Diagnostics">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.diagnostics.diagnostics.</code><code class="descname">Diagnostics</code><span class="sig-paren">(</span><em>samples: beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.diagnostics.diagnostics.Diagnostics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics" title="beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-beanmachine.ppl.diagnostics">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.diagnostics" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.diagnostics.Diagnostics">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.diagnostics.</code><code class="descname">Diagnostics</code><span class="sig-paren">(</span><em>samples: beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.diagnostics.Diagnostics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics" title="beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.diagnostics.diagnostics.BaseDiagnostics</span></code></a></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.compiler.html" class="btn btn-neutral float-left" title="compiler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.distribution.html" class="btn btn-neutral float-right" title="distribution" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

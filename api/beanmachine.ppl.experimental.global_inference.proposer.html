@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>experimental.global_inference.proposer package &mdash; BeanMachine  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="experimental.gp package" href="beanmachine.ppl.experimental.gp.html" />
+    <link rel="prev" title="experimental.global_inference package" href="beanmachine.ppl.experimental.global_inference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.conjugate_models.html">examples.conjugate_models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="experimental.html">experimental</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">experimental.abc package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">experimental.global_inference.proposer package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.global_inference.proposer.base_proposer">beanmachine.ppl.experimental.global_inference.proposer.base_proposer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer">beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.global_inference.proposer.hmc_utils">beanmachine.ppl.experimental.global_inference.proposer.hmc_utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer">beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.global_inference.proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">experimental.global_inference package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">experimental.gp package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">experimental.inference_compilation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">experimental.neutra package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.html">experimental package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">experimental.vi package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html">inference package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.model.html">model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="experimental.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">inference package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.html">experimental package</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.global_inference.html">experimental.global_inference package</a> &raquo;</li>
+      <li>experimental.global_inference.proposer package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.experimental.global_inference.proposer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="experimental-global-inference-proposer-package">
+<h1>experimental.global_inference.proposer package<a class="headerlink" href="#experimental-global-inference-proposer-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-beanmachine.ppl.experimental.global_inference.proposer.base_proposer">
+<span id="beanmachine-ppl-experimental-global-inference-proposer-base-proposer-module"></span><h2>beanmachine.ppl.experimental.global_inference.proposer.base_proposer module<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer.base_proposer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.base_proposer.</code><code class="descname">BaseProposer</code><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.do_adaptation">
+<code class="descname">do_adaptation</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.do_adaptation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.finish_adaptation">
+<code class="descname">finish_adaptation</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.finish_adaptation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.init_adaptation">
+<code class="descname">init_adaptation</code><span class="sig-paren">(</span><em>num_adaptive_samples: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.init_adaptation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.propose">
+<code class="descname">propose</code><span class="sig-paren">(</span><em>world: Optional[beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld] = None</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.propose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer">
+<span id="beanmachine-ppl-experimental-global-inference-proposer-hmc-proposer-module"></span><h2>beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer module<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.</code><code class="descname">HMCProposer</code><span class="sig-paren">(</span><em>initial_world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>trajectory_length: float</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer</span></code></a></p>
+<p>The basic Hamiltonian Monte Carlo (HMC) algorithm as described in [1] plus a
+dual-averaging mechanism for dynamically adjusting the step size [2].</p>
+<p>Reference:
+[1] Radford Neal. “MCMC Using Hamiltonian Dynamics” (2011).</p>
+<blockquote>
+<div><a class="reference external" href="https://arxiv.org/abs/1206.1901">https://arxiv.org/abs/1206.1901</a></div></blockquote>
+<dl class="docutils">
+<dt>[2] Matthew Hoffman and Andrew Gelman. “The No-U-Turn Sampler: Adaptively</dt>
+<dd>Setting Path Lengths in Hamiltonian Monte Carlo” (2014).
+<a class="reference external" href="https://arxiv.org/abs/1111.4246">https://arxiv.org/abs/1111.4246</a></dd>
+</dl>
+<p>The current implementation does not use nor adapt a mass matrix – which is
+equivalent to setting the matrix M to I.</p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.do_adaptation">
+<code class="descname">do_adaptation</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.do_adaptation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.finish_adaptation">
+<code class="descname">finish_adaptation</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.finish_adaptation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.init_adaptation">
+<code class="descname">init_adaptation</code><span class="sig-paren">(</span><em>num_adaptive_samples: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.init_adaptation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.propose">
+<code class="descname">propose</code><span class="sig-paren">(</span><em>world: Optional[beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld] = None</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.propose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-beanmachine.ppl.experimental.global_inference.proposer.hmc_utils">
+<span id="beanmachine-ppl-experimental-global-inference-proposer-hmc-utils-module"></span><h2>beanmachine.ppl.experimental.global_inference.proposer.hmc_utils module<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer.hmc_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.DualAverageAdapter">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.</code><code class="descname">DualAverageAdapter</code><span class="sig-paren">(</span><em>initial_epsilon: float</em>, <em>delta: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.DualAverageAdapter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The dual averaging mechanism that’s introduced in [1] and was applied to HMC and
+NUTS for adapting step size in [2]. The implementation and notations follows [2].</p>
+<p>Reference:
+[1] Yurii Nesterov. “Primal-dual subgradient methods for convex problems” (2009).</p>
+<blockquote>
+<div><a class="reference external" href="https://doi.org/10.1007/s10107-007-0149-x">https://doi.org/10.1007/s10107-007-0149-x</a></div></blockquote>
+<dl class="docutils">
+<dt>[2] Matthew Hoffman and Andrew Gelman. “The No-U-Turn Sampler: Adaptively</dt>
+<dd>Setting Path Lengths in Hamiltonian Monte Carlo” (2014).
+<a class="reference external" href="https://arxiv.org/abs/1111.4246">https://arxiv.org/abs/1111.4246</a></dd>
+</dl>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.DualAverageAdapter.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.DualAverageAdapter.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.DualAverageAdapter.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>alpha: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.DualAverageAdapter.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.</code><code class="descname">MassMatrixAdapter</code><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Reference:
+[1] “HMC algorithm parameters” from Stan Reference Manual
+<a class="reference external" href="https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric">https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric</a></p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums">
+<code class="descname">initialize_momentums</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span> &#x2192; Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
+is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
+for the first time, this also initialize their (inverse) mass matrices to
+identity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.MassMatrixAdapter.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WelfordCovariance">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.</code><code class="descname">WelfordCovariance</code><span class="sig-paren">(</span><em>diagonal: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WelfordCovariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An implementation of Welford’s online algorithm for estimating the (co)variance of
+samples.
+Reference:
+[1] “Algorithms for calculating variance” on Wikipedia
+<a class="reference external" href="https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm">https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford’s_online_algorithm</a></p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WelfordCovariance.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><em>regularize: bool = True</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WelfordCovariance.finalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WelfordCovariance.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>sample: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WelfordCovariance.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.</code><code class="descname">WindowScheme</code><span class="sig-paren">(</span><em>num_adaptive_samples: int</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Spliting adaptation iterations into a series of monotonically increasing windows,
+which can be used to learn the mass matrices in HMC.
+Reference:
+[1] “HMC algorithm parameters” from Stan Reference Manual
+<a class="reference external" href="https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#automatic-parameter-tuning">https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#automatic-parameter-tuning</a></p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme.is_end_window">
+<code class="descname">is_end_window</code><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme.is_end_window" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme.is_in_window">
+<code class="descname">is_in_window</code><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme.is_in_window" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme.step">
+<code class="descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_utils.WindowScheme.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer">
+<span id="beanmachine-ppl-experimental-global-inference-proposer-nuts-proposer-module"></span><h2>beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer module<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.</code><code class="descname">NUTSProposer</code><span class="sig-paren">(</span><em>initial_world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>max_tree_depth: int = 10</em>, <em>max_delta_energy: float = 1000.0</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>multinomial_sampling: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer" title="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer</span></code></a></p>
+<p>The No-U-Turn Sampler (NUTS) as described in [1]. Unlike vanilla HMC, it does not
+require users to specify a trajectory length. The current implementation roughly
+follows Algorithm 6 of [1]. If multinomial_sampling is True, then the next state
+will be drawn from a multinomial distribution (weighted by acceptance probability,
+as introduced in Appendix 2 of [2]) instead of drawn uniformly.</p>
+<p>Reference:
+[1] Matthew Hoffman and Andrew Gelman. “The No-U-Turn Sampler: Adaptively</p>
+<blockquote>
+<div>Setting Path Lengths in Hamiltonian Monte Carlo” (2014).
+<a class="reference external" href="https://arxiv.org/abs/1111.4246">https://arxiv.org/abs/1111.4246</a></div></blockquote>
+<dl class="docutils">
+<dt>[2] Michael Betancourt. “A Conceptual Introduction to Hamiltonian Monte Carlo”</dt>
+<dd>(2017). <a class="reference external" href="https://arxiv.org/abs/1701.02434">https://arxiv.org/abs/1701.02434</a></dd>
+</dl>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer.propose">
+<code class="descname">propose</code><span class="sig-paren">(</span><em>world: Optional[beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld] = None</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer.propose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-beanmachine.ppl.experimental.global_inference.proposer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.experimental.global_inference.html" class="btn btn-neutral float-left" title="experimental.global_inference package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.experimental.gp.html" class="btn btn-neutral float-right" title="experimental.gp package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

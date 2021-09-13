@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>experimental package &mdash; BeanMachine  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="experimental.abc package" href="beanmachine.ppl.experimental.abc.html" />
+    <link rel="prev" title="examples.conjugate_models" href="beanmachine.ppl.examples.conjugate_models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.conjugate_models.html">examples.conjugate_models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="experimental.html">experimental</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">experimental.abc package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html">experimental.global_inference.proposer package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">experimental.global_inference package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">experimental.gp package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">experimental.inference_compilation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">experimental.neutra package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">experimental package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">experimental.abc package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">experimental.global_inference package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">experimental.gp package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">experimental.inference_compilation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">experimental.neutra package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">experimental.vi package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">experimental.vi package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html">inference package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.model.html">model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="experimental.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">inference package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+      <li>experimental package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.experimental.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="experimental-package">
+<h1>experimental package<a class="headerlink" href="#experimental-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">experimental.abc package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html#beanmachine-ppl-experimental-abc-abc-infer-module">beanmachine.ppl.experimental.abc.abc_infer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html#beanmachine-ppl-experimental-abc-abc-smc-infer-module">beanmachine.ppl.experimental.abc.abc_smc_infer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html#beanmachine-ppl-experimental-abc-adaptive-abc-smc-infer-module">beanmachine.ppl.experimental.abc.adaptive_abc_smc_infer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html#module-beanmachine.ppl.experimental.abc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">experimental.global_inference package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html">experimental.global_inference.proposer package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html#module-beanmachine.ppl.experimental.global_inference.proposer.base_proposer">beanmachine.ppl.experimental.global_inference.proposer.base_proposer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html#module-beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer">beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html#module-beanmachine.ppl.experimental.global_inference.proposer.hmc_utils">beanmachine.ppl.experimental.global_inference.proposer.hmc_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html#module-beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer">beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.html#module-beanmachine.ppl.experimental.global_inference.proposer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#module-beanmachine.ppl.experimental.global_inference.base_inference">beanmachine.ppl.experimental.global_inference.base_inference module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#module-beanmachine.ppl.experimental.global_inference.hmc_inference">beanmachine.ppl.experimental.global_inference.hmc_inference module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#module-beanmachine.ppl.experimental.global_inference.sampler">beanmachine.ppl.experimental.global_inference.sampler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#module-beanmachine.ppl.experimental.global_inference.simple_world">beanmachine.ppl.experimental.global_inference.simple_world module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#module-beanmachine.ppl.experimental.global_inference">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">experimental.gp package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#beanmachine-ppl-experimental-gp-kernels-module">beanmachine.ppl.experimental.gp.kernels module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#beanmachine-ppl-experimental-gp-likelihoods-module">beanmachine.ppl.experimental.gp.likelihoods module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#beanmachine-ppl-experimental-gp-models-module">beanmachine.ppl.experimental.gp.models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#module-contents">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">experimental.inference_compilation package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html#beanmachine-ppl-experimental-inference-compilation-ic-infer-module">beanmachine.ppl.experimental.inference_compilation.ic_infer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html#module-beanmachine.ppl.experimental.inference_compilation.utils">beanmachine.ppl.experimental.inference_compilation.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html#module-beanmachine.ppl.experimental.inference_compilation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">experimental.neutra package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#module-beanmachine.ppl.experimental.neutra.iafflow">beanmachine.ppl.experimental.neutra.iafflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#module-beanmachine.ppl.experimental.neutra.iaflayer">beanmachine.ppl.experimental.neutra.iaflayer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#beanmachine-ppl-experimental-neutra-iafmcmc-infer-module">beanmachine.ppl.experimental.neutra.iafmcmc_infer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#beanmachine-ppl-experimental-neutra-iafmcmc-proposer-module">beanmachine.ppl.experimental.neutra.iafmcmc_proposer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#module-beanmachine.ppl.experimental.neutra.maskedautoencoder">beanmachine.ppl.experimental.neutra.maskedautoencoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#module-beanmachine.ppl.experimental.neutra.maskedlinear">beanmachine.ppl.experimental.neutra.maskedlinear module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#module-beanmachine.ppl.experimental.neutra.train">beanmachine.ppl.experimental.neutra.train module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html#module-beanmachine.ppl.experimental.neutra">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">experimental.vi package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html#module-beanmachine.ppl.experimental.vi.mean_field_variational_approximation">beanmachine.ppl.experimental.vi.mean_field_variational_approximation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html#module-beanmachine.ppl.experimental.vi.variational_infer">beanmachine.ppl.experimental.vi.variational_infer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html#module-beanmachine.ppl.experimental.vi">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-beanmachine.ppl.experimental">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.examples.conjugate_models.html" class="btn btn-neutral float-left" title="examples.conjugate_models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.experimental.abc.html" class="btn btn-neutral float-right" title="experimental.abc package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

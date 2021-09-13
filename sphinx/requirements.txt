@@ -1,5 +1,0 @@
-plotly
-flowtorch
-arviz
-sphinx
-sphinx_rtd_theme
