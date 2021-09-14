@@ -2,7 +2,6 @@
 import logging
 from typing import Dict, Tuple
 
-import numpy
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
@@ -131,16 +130,11 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
         neg_hessian = -1 * hessian
         _arguments = {"node_val_reshaped": node_val_reshaped}
         # we will first attempt a covariance-inverse-based proposer
-        try:
-            # TODO(nazaninkt): Change this back to torch once the issue with
-            # cholesky runtime is fixed.
-            # See: N212219
-            L = torch.from_numpy(
-                numpy.linalg.cholesky(neg_hessian.flip([0, 1]).numpy())
-            ).to(
-                dtype=neg_hessian.dtype,
-                device=node_device,
-            )
+
+        # We don't want to set check_errors to True because error propagation is slow
+        # in PyTorch (see N1136967)
+        L, info = torch.linalg.cholesky_ex(neg_hessian.flip([0, 1]), check_errors=False)
+        if info == 0:  # info > 0 means the matrix isn't positive-definite
             # See: https://math.stackexchange.com/questions/1434899/is-there-a-decomposition-u-ut
             # Let, flip(H) = L @ L' (`flip` flips the x, y axes of X: torch.flip(X, (0, 1)))
             # equiv. to applying W @ X @ W'; where W is the permutation matrix
@@ -167,7 +161,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
             ).squeeze(0)
             _proposer = dist.MultivariateNormal(mean, scale_tril=L_chol)
             _arguments["scale_tril"] = L_chol
-        except numpy.linalg.LinAlgError:
+        else:
             LOGGER.warning(
                 "Error: Cholesky decomposition failed. "
                 + "Falls back to Eigen decomposition."
