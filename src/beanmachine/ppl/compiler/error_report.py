@@ -6,7 +6,7 @@ when compiling Bean Machine models to Bean Machine Graph."""
 from abc import ABC
 from typing import List
 
-from beanmachine.ppl.compiler.bmg_nodes import BMGNode, Observation
+from beanmachine.ppl.compiler.bmg_nodes import BMGNode, Observation, SampleNode
 from beanmachine.ppl.compiler.bmg_types import (
     BMGLatticeType,
     Requirement,
@@ -69,7 +69,9 @@ class ImpossibleObservation(BMGError):
 
     def __str__(self) -> str:
         v = self.node.value
-        d = get_node_label(self.node.observed.operand)
+        s = self.node.observed
+        assert isinstance(s, SampleNode)
+        d = get_node_label(s.operand)
         t = self.distribution_type.long_name
         msg = (
             f"A {d} distribution is observed to have value {v} "

@@ -25,7 +25,7 @@ def flip_const():
 class FixVectorizedModelsTest(unittest.TestCase):
     def test_fix_vectorized_models_1(self) -> None:
         self.maxDiff = None
-        observations = {}
+        observations = {flip_beta(): tensor([0.0, 1.0])}
         queries = [flip_beta(), flip_const()]
 
         observed = BMGInference().to_dot(queries, observations, after_transform=False)
@@ -41,11 +41,12 @@ digraph "graph" {
   N04[label=Tensor];
   N05[label=Bernoulli];
   N06[label=Sample];
-  N07[label=Query];
-  N08[label="[0.25,0.75]"];
-  N09[label=Bernoulli];
-  N10[label=Sample];
-  N11[label=Query];
+  N07[label="Observation tensor([0., 1.])"];
+  N08[label=Query];
+  N09[label="[0.25,0.75]"];
+  N10[label=Bernoulli];
+  N11[label=Sample];
+  N12[label=Query];
   N00 -> N01;
   N00 -> N01;
   N01 -> N02;
@@ -55,9 +56,10 @@ digraph "graph" {
   N04 -> N05;
   N05 -> N06;
   N06 -> N07;
-  N08 -> N09;
+  N06 -> N08;
   N09 -> N10;
   N10 -> N11;
+  N11 -> N12;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
@@ -87,6 +89,8 @@ digraph "graph" {
   N17[label=Sample];
   N18[label=ToMatrix];
   N19[label=Query];
+  N20[label="Observation False"];
+  N21[label="Observation True"];
   N00 -> N01;
   N00 -> N01;
   N01 -> N02;
@@ -99,8 +103,10 @@ digraph "graph" {
   N05 -> N18;
   N06 -> N07;
   N07 -> N10;
+  N07 -> N20;
   N08 -> N09;
   N09 -> N10;
+  N09 -> N21;
   N10 -> N11;
   N12 -> N13;
   N13 -> N14;

@@ -24,9 +24,6 @@ from torch import Size
 # @functional def flip(): return tensor([f0()), f1())])
 #
 # which we can represent in BMG.
-#
-# TODO: If we have an observation on flip() in the original model we need
-# to rewrite it into observations of f0() and f1()
 
 
 class VectorizedDistributionFixer(ProblemFixerBase):
@@ -82,14 +79,35 @@ class VectorizedModelFixer:
         self._bmg = bmg
         self.errors = ErrorReport()
 
+    def _fix_observations(self) -> None:
+        for o in self._bmg.all_observations():
+            observed = o.observed
+            if not isinstance(observed, bn.TensorNode):
+                continue
+            if observed._size != Size([2]):
+                continue
+            assert len(observed.inputs) == 2
+            for i in range(0, len(observed.inputs)):
+                s = observed.inputs[i]
+                assert isinstance(s, bn.SampleNode)
+                self._bmg.add_observation(s, o.value[i])
+            self._bmg.remove_leaf(o)
+
     def fix_problems(self) -> None:
         vdf = VectorizedDistributionFixer(self._bmg, Sizer())
         vdf.fix_problems()
         assert not vdf.errors.any()
 
-        if vdf.fixed_one:
-            # We should now have one or more leaf sample nodes.
-            for n in self._bmg.all_nodes():
-                if vdf._needs_fixing(n):
-                    assert n.is_leaf
-                    self._bmg.remove_leaf(n)
+        if not vdf.fixed_one:
+            # We changed nothing so there is nothing more to do.
+            return
+
+        # We changed something. We should now have one or more leaf
+        # sample nodes.
+        for n in self._bmg.all_nodes():
+            if vdf._needs_fixing(n):
+                assert n.is_leaf
+                self._bmg.remove_leaf(n)
+
+        # We might have an illegal observation. Fix it.
+        self._fix_observations()
