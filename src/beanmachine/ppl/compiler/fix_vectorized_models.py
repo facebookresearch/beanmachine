@@ -24,6 +24,14 @@ from torch import Size
 # @functional def flip(): return tensor([f0()), f1())])
 #
 # which we can represent in BMG.
+#
+# The tensor probability can be of any length > 1 but it must be one-dimensional.
+#
+# TODO: Implement the same logic for two-dimensional probabilities.
+
+
+def _is_fixable_size(s: Size) -> bool:
+    return len(s) == 1 and s[0] > 1
 
 
 class VectorizedDistributionFixer(ProblemFixerBase):
@@ -41,11 +49,12 @@ class VectorizedDistributionFixer(ProblemFixerBase):
         if not isinstance(dist, bn.BernoulliNode):
             return False
         s = self._typer[dist.probability]
-        return s == Size([2])
+        return _is_fixable_size(s)
 
     def _add_sample(self, node: bn.BernoulliNode, i: int) -> bn.SampleNode:
         p = node.probability
-        assert self._typer[p] == Size([2])
+        size = self._typer[p]
+        assert _is_fixable_size(size)
         ci = self._bmg.add_constant(i)
         pi = self._bmg.add_index(p, ci)
         bi = self._bmg.add_bernoulli(pi)
@@ -56,10 +65,11 @@ class VectorizedDistributionFixer(ProblemFixerBase):
         dist = node.operand
         assert isinstance(dist, bn.BernoulliNode)
         size = self._typer[dist.probability]
-        assert size == Size([2])
-        s0 = self._add_sample(dist, 0)
-        s1 = self._add_sample(dist, 1)
-        t = self._bmg.add_tensor(size, s0, s1)
+        assert _is_fixable_size(size)
+        samples = []
+        for i in range(0, size[0]):
+            samples.append(self._add_sample(dist, i))
+        t = self._bmg.add_tensor(size, *samples)
         self.fixed_one = True
         return t
 
@@ -84,9 +94,12 @@ class VectorizedModelFixer:
             observed = o.observed
             if not isinstance(observed, bn.TensorNode):
                 continue
-            if observed._size != Size([2]):
+            if not _is_fixable_size(observed._size):
                 continue
-            assert len(observed.inputs) == 2
+            # TODO: What if the observation is of a different size than the
+            # tensor node we've just generated? That should be an error, but instead
+            # we just crash here. Figure out where to put an error detection pass
+            # which prevents this crash and reports the error.
             for i in range(0, len(observed.inputs)):
                 s = observed.inputs[i]
                 assert isinstance(s, bn.SampleNode)
