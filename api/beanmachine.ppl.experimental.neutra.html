@@ -51,13 +51,13 @@
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">experimental.inference_compilation package</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">experimental.neutra package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#beanmachine-ppl-experimental-neutra-iafflow-module">beanmachine.ppl.experimental.neutra.iafflow module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.neutra.iafflow">beanmachine.ppl.experimental.neutra.iafflow module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.neutra.iaflayer">beanmachine.ppl.experimental.neutra.iaflayer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#beanmachine-ppl-experimental-neutra-iafmcmc-infer-module">beanmachine.ppl.experimental.neutra.iafmcmc_infer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#beanmachine-ppl-experimental-neutra-iafmcmc-proposer-module">beanmachine.ppl.experimental.neutra.iafmcmc_proposer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.neutra.maskedautoencoder">beanmachine.ppl.experimental.neutra.maskedautoencoder module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.neutra.maskedlinear">beanmachine.ppl.experimental.neutra.maskedlinear module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#beanmachine-ppl-experimental-neutra-train-module">beanmachine.ppl.experimental.neutra.train module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.neutra.train">beanmachine.ppl.experimental.neutra.train module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.neutra">Module contents</a></li>
 </ul>
 </li>
@@ -110,8 +110,71 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="beanmachine-ppl-experimental-neutra-iafflow-module">
-<h2>beanmachine.ppl.experimental.neutra.iafflow module<a class="headerlink" href="#beanmachine-ppl-experimental-neutra-iafflow-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.experimental.neutra.iafflow">
+<span id="beanmachine-ppl-experimental-neutra-iafflow-module"></span><h2>beanmachine.ppl.experimental.neutra.iafflow module<a class="headerlink" href="#module-beanmachine.ppl.experimental.neutra.iafflow" title="Permalink to this headline">¶</a></h2>
+<p>Implements inverse autoregressive flows.</p>
+<p>reference:</p>
+<p>Germain, Mathieu, et al. “Made: Masked autoencoder for distribution estimation.”
+International Conference on Machine Learning. 2015.
+<a class="reference external" href="http://proceedings.mlr.press/v37/germain15.pdf">http://proceedings.mlr.press/v37/germain15.pdf</a>
+(MADE)</p>
+<p>Improved Variational Inference with Inverse Autoregressive Flow, Kingma et al June 2016
+<a class="reference external" href="https://arxiv.org/abs/1606.04934">https://arxiv.org/abs/1606.04934</a>
+(IAF)</p>
+<p>MIT License, this work refers to an open source from Github, you can find the original code here:
+<a class="reference external" href="https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/made.py#L1">https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/made.py#L1</a>
+<a class="reference external" href="https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/flows.py#L169">https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/flows.py#L169</a></p>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.neutra.iafflow.InverseAutoregressiveFlow">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.neutra.iafflow.</code><code class="descname">InverseAutoregressiveFlow</code><span class="sig-paren">(</span><em>based_distribution</em>, <em>network_architecture</em>, <em>length: int</em>, <em>dim: int</em>, <em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>world: beanmachine.ppl.world.world.World</em>, <em>stable: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.neutra.iafflow.InverseAutoregressiveFlow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>A IAF Model is a (prior, flow) pair. We try to calculate the evidence lower
+bound (ELBO) is calculated in z space instead of original θ space,using by
+default Eq (3) from Hoffman, Matthew, et al. (2019).</p>
+<blockquote>
+<div>L(φ) = A − KL(q(θ) || p(θ))
+= integrals q(z) log π(f(z))/(q(z)|∂f/∂z <a href="#id1"><span class="problematic" id="id2">|</span></a>^−1) dz  Eq (3)</div></blockquote>
+<p>Thus we compute Monte Carlo estimate of the ELBO by evaluating the log-ratio
+in Eq (3) at a z sampled from q(z). Use estimates to maximize the ELBO in z
+space, and therefore minimize the KL divergence from q(θ) to p(θ).</p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.neutra.iafflow.InverseAutoregressiveFlow.backward">
+<code class="descname">backward</code><span class="sig-paren">(</span><em>z: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Tuple[List[torch.Tensor], torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.experimental.neutra.iafflow.InverseAutoregressiveFlow.backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>the backward method that compute the f(z) = z*sigma+mu,
+log_jacobian and ELBO in the inverse direction of the flow.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>z</strong> – the samples has been transformed by flows.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">f_z, which is the inverse map from f(z) to z,</td>
+</tr>
+</tbody>
+</table>
+<p>and log_jacobian. But we do not need to use the output in
+the training.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.neutra.iafflow.InverseAutoregressiveFlow.forward">
+<code class="descname">forward</code><span class="sig-paren">(</span><em>x: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Tuple[List[torch.Tensor], torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.experimental.neutra.iafflow.InverseAutoregressiveFlow.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>the forward method that compute the f(z) = z*sigma+mu, log_jacobian
+and ELBO of IAF flow (has many IAF layers).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – the samples draw from previous distribution which later would</td>
+</tr>
+</tbody>
+</table>
+<p>be transofrmed by flows.
+:returns: f(z), ELBO, log_jacobian.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-beanmachine.ppl.experimental.neutra.iaflayer">
 <span id="beanmachine-ppl-experimental-neutra-iaflayer-module"></span><h2>beanmachine.ppl.experimental.neutra.iaflayer module<a class="headerlink" href="#module-beanmachine.ppl.experimental.neutra.iaflayer" title="Permalink to this headline">¶</a></h2>
@@ -267,7 +330,7 @@ International Conference on Machine Learning. 2015.
 <code class="descname">forward</code><span class="sig-paren">(</span><em>input_: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.experimental.neutra.maskedlinear.MaskedLinear.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>the forward method that does the masked linear computation
 and returns the result.
-:param <a href="#id1"><span class="problematic" id="id2">input_</span></a>: the layer with dimension in_features x out_features.
+:param <a href="#id3"><span class="problematic" id="id4">input_</span></a>: the layer with dimension in_features x out_features.
 :return: the output of the linear layer with masked weights.</p>
 </dd></dl>
 
@@ -282,8 +345,38 @@ and returns the result.
 </dd></dl>
 
 </div>
-<div class="section" id="beanmachine-ppl-experimental-neutra-train-module">
-<h2>beanmachine.ppl.experimental.neutra.train module<a class="headerlink" href="#beanmachine-ppl-experimental-neutra-train-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.experimental.neutra.train">
+<span id="beanmachine-ppl-experimental-neutra-train-module"></span><h2>beanmachine.ppl.experimental.neutra.train module<a class="headerlink" href="#module-beanmachine.ppl.experimental.neutra.train" title="Permalink to this headline">¶</a></h2>
+<p>Implements inverse autoregressive flows.</p>
+<p>reference:</p>
+<p>Germain, Mathieu, et al. “Made: Masked autoencoder for distribution estimation.”
+International Conference on Machine Learning. 2015.
+<a class="reference external" href="http://proceedings.mlr.press/v37/germain15.pdf">http://proceedings.mlr.press/v37/germain15.pdf</a>
+(MADE)</p>
+<p>Improved Variational Inference with Inverse Autoregressive Flow, Kingma et al June 2016
+<a class="reference external" href="https://arxiv.org/abs/1606.04934">https://arxiv.org/abs/1606.04934</a>
+(IAF)</p>
+<p>MIT License, this work refers to an open source from Github, you can find the original code here:
+<a class="reference external" href="https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/made.py#L1">https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/made.py#L1</a>
+<a class="reference external" href="https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/flows.py#L169">https://github.com/karpathy/pytorch-normalizing-flows/blob/b60e119b37be10ce2930ef9fa17e58686aaf2b3d/nflib/flows.py#L169</a></p>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.neutra.train.IAFMap">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.neutra.train.</code><code class="descname">IAFMap</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>world: beanmachine.ppl.world.world.World</em>, <em>length: int</em>, <em>dim: int</em>, <em>network_architecture</em>, <em>stable: bool</em>, <em>num_sample: int</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.neutra.train.IAFMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Learn mapping f from IAF and get a series of mu and sigma.</p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.neutra.train.IAFMap.train_iaf">
+<code class="descname">train_iaf</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.world.world.World</em>, <em>optimizer</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.neutra.train.IAFMap.train_iaf" title="Permalink to this definition">¶</a></dt>
+<dd><p>train IAF model.
+:param world: the world in which we have already proposed a new value
+for the node.
+:param optimizer: the optimization algorithm you chose to optimize the
+parameters based on the computed gradients.
+:return: None</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-beanmachine.ppl.experimental.neutra">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental.neutra" title="Permalink to this headline">¶</a></h2>

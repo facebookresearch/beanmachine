@@ -50,9 +50,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.model.rv_identifier">beanmachine.ppl.model.rv_identifier module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-model-statistical-model-module">beanmachine.ppl.model.statistical_model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-model-utils-module">beanmachine.ppl.model.utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.model.statistical_model">beanmachine.ppl.model.statistical_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.model.utils">beanmachine.ppl.model.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.model">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
@@ -116,14 +116,298 @@
 </dd></dl>
 
 </div>
-<div class="section" id="beanmachine-ppl-model-statistical-model-module">
-<h2>beanmachine.ppl.model.statistical_model module<a class="headerlink" href="#beanmachine-ppl-model-statistical-model-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.model.statistical_model">
+<span id="beanmachine-ppl-model-statistical-model-module"></span><h2>beanmachine.ppl.model.statistical_model module<a class="headerlink" href="#module-beanmachine.ppl.model.statistical_model" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.model.statistical_model.StatisticalModel">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.model.statistical_model.</code><code class="descname">StatisticalModel</code><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.StatisticalModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parent class to all statistical models implemented in Bean Machine.</p>
+<p>every random variable in the model needs to be defined with function
+declaration accompanied with &#64;bm.random_variable decorator.</p>
+<p>for instance, here is Gaussian Mixture Model implementation:</p>
+<p>K, alpha, beta, gamma = init()</p>
+<p>&#64;bm.random_variable
+def mu():</p>
+<blockquote>
+<div>return Normal(alpha, beta)</div></blockquote>
+<p>&#64;bm.random_variable
+def z(i):</p>
+<blockquote>
+<div>return Uniform(K)</div></blockquote>
+<p>&#64;bm.random_variable
+def y(i):</p>
+<blockquote>
+<div>return Normal(mu(z(i)), gamma)</div></blockquote>
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.statistical_model.StatisticalModel.functional">
+<em class="property">static </em><code class="descname">functional</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.StatisticalModel.functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every query defined in statistical model.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.statistical_model.StatisticalModel.get_func_key">
+<em class="property">static </em><code class="descname">get_func_key</code><span class="sig-paren">(</span><em>wrapper</em>, <em>arguments</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.model.rv_identifier.RVIdentifier<a class="headerlink" href="#beanmachine.ppl.model.statistical_model.StatisticalModel.get_func_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a key to uniquely identify the Random Variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>wrapper</strong> – reference to the wrapper function</li>
+<li><strong>arguments</strong> – function arguments</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of function and arguments which is to be used to identify</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>a particular function call.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.statistical_model.StatisticalModel.param">
+<em class="property">static </em><code class="descname">param</code><span class="sig-paren">(</span><em>init_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.StatisticalModel.param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for params (variable to be optimized).</p>
+<p>TODO: DRY out with <cite>random_variable</cite></p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.statistical_model.StatisticalModel.query">
+<em class="property">static </em><code class="descname">query</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.StatisticalModel.query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.statistical_model.StatisticalModel.random_variable">
+<em class="property">static </em><code class="descname">random_variable</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.StatisticalModel.random_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every stochastic random variable defined in
+all statistical models.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.statistical_model.StatisticalModel.sample">
+<em class="property">static </em><code class="descname">sample</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.StatisticalModel.sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.statistical_model.functional">
+<code class="descclassname">beanmachine.ppl.model.statistical_model.</code><code class="descname">functional</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every query defined in statistical model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.statistical_model.param">
+<code class="descclassname">beanmachine.ppl.model.statistical_model.</code><code class="descname">param</code><span class="sig-paren">(</span><em>init_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for params (variable to be optimized).</p>
+<p>TODO: DRY out with <cite>random_variable</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.statistical_model.query">
+<code class="descclassname">beanmachine.ppl.model.statistical_model.</code><code class="descname">query</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every query defined in statistical model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.statistical_model.random_variable">
+<code class="descclassname">beanmachine.ppl.model.statistical_model.</code><code class="descname">random_variable</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.random_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every stochastic random variable defined in
+all statistical models.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.statistical_model.sample">
+<code class="descclassname">beanmachine.ppl.model.statistical_model.</code><code class="descname">sample</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.statistical_model.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every stochastic random variable defined in
+all statistical models.</p>
+</dd></dl>
+
 </div>
-<div class="section" id="beanmachine-ppl-model-utils-module">
-<h2>beanmachine.ppl.model.utils module<a class="headerlink" href="#beanmachine-ppl-model-utils-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.model.utils">
+<span id="beanmachine-ppl-model-utils-module"></span><h2>beanmachine.ppl.model.utils module<a class="headerlink" href="#module-beanmachine.ppl.model.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.model.utils.LogLevel">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.model.utils.</code><code class="descname">LogLevel</code><a class="headerlink" href="#beanmachine.ppl.model.utils.LogLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Enum class mapping the logging levels to numeric values.</p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.utils.LogLevel.DEBUG_GRAPH">
+<code class="descname">DEBUG_GRAPH</code><em class="property"> = 12</em><a class="headerlink" href="#beanmachine.ppl.model.utils.LogLevel.DEBUG_GRAPH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.utils.LogLevel.DEBUG_PROPOSER">
+<code class="descname">DEBUG_PROPOSER</code><em class="property"> = 14</em><a class="headerlink" href="#beanmachine.ppl.model.utils.LogLevel.DEBUG_PROPOSER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.utils.LogLevel.DEBUG_UPDATES">
+<code class="descname">DEBUG_UPDATES</code><em class="property"> = 16</em><a class="headerlink" href="#beanmachine.ppl.model.utils.LogLevel.DEBUG_UPDATES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.utils.LogLevel.ERROR">
+<code class="descname">ERROR</code><em class="property"> = 40</em><a class="headerlink" href="#beanmachine.ppl.model.utils.LogLevel.ERROR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.utils.LogLevel.INFO">
+<code class="descname">INFO</code><em class="property"> = 20</em><a class="headerlink" href="#beanmachine.ppl.model.utils.LogLevel.INFO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.utils.LogLevel.WARNING">
+<code class="descname">WARNING</code><em class="property"> = 30</em><a class="headerlink" href="#beanmachine.ppl.model.utils.LogLevel.WARNING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.utils.get_beanmachine_logger">
+<code class="descclassname">beanmachine.ppl.model.utils.</code><code class="descname">get_beanmachine_logger</code><span class="sig-paren">(</span><em>console_level: beanmachine.ppl.model.utils.LogLevel = &lt;LogLevel.WARNING: 30&gt;</em>, <em>file_level: beanmachine.ppl.model.utils.LogLevel = &lt;LogLevel.INFO: 20&gt;</em><span class="sig-paren">)</span> &#x2192; logging.Logger<a class="headerlink" href="#beanmachine.ppl.model.utils.get_beanmachine_logger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.model">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.model" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.model.RVIdentifier">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.model.</code><code class="descname">RVIdentifier</code><span class="sig-paren">(</span><em>wrapper: Callable</em>, <em>arguments: Tuple</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.RVIdentifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.RVIdentifier.function">
+<code class="descname">function</code><a class="headerlink" href="#beanmachine.ppl.model.RVIdentifier.function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.RVIdentifier.is_functional">
+<code class="descname">is_functional</code><a class="headerlink" href="#beanmachine.ppl.model.RVIdentifier.is_functional" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.model.RVIdentifier.is_random_variable">
+<code class="descname">is_random_variable</code><a class="headerlink" href="#beanmachine.ppl.model.RVIdentifier.is_random_variable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.model.StatisticalModel">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.model.</code><code class="descname">StatisticalModel</code><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parent class to all statistical models implemented in Bean Machine.</p>
+<p>every random variable in the model needs to be defined with function
+declaration accompanied with &#64;bm.random_variable decorator.</p>
+<p>for instance, here is Gaussian Mixture Model implementation:</p>
+<p>K, alpha, beta, gamma = init()</p>
+<p>&#64;bm.random_variable
+def mu():</p>
+<blockquote>
+<div>return Normal(alpha, beta)</div></blockquote>
+<p>&#64;bm.random_variable
+def z(i):</p>
+<blockquote>
+<div>return Uniform(K)</div></blockquote>
+<p>&#64;bm.random_variable
+def y(i):</p>
+<blockquote>
+<div>return Normal(mu(z(i)), gamma)</div></blockquote>
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.StatisticalModel.functional">
+<em class="property">static </em><code class="descname">functional</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel.functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every query defined in statistical model.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.StatisticalModel.get_func_key">
+<em class="property">static </em><code class="descname">get_func_key</code><span class="sig-paren">(</span><em>wrapper</em>, <em>arguments</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.model.rv_identifier.RVIdentifier<a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel.get_func_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a key to uniquely identify the Random Variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>wrapper</strong> – reference to the wrapper function</li>
+<li><strong>arguments</strong> – function arguments</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of function and arguments which is to be used to identify</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>a particular function call.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.StatisticalModel.param">
+<em class="property">static </em><code class="descname">param</code><span class="sig-paren">(</span><em>init_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel.param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for params (variable to be optimized).</p>
+<p>TODO: DRY out with <cite>random_variable</cite></p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.StatisticalModel.query">
+<em class="property">static </em><code class="descname">query</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel.query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.StatisticalModel.random_variable">
+<em class="property">static </em><code class="descname">random_variable</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel.random_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every stochastic random variable defined in
+all statistical models.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="beanmachine.ppl.model.StatisticalModel.sample">
+<em class="property">static </em><code class="descname">sample</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.StatisticalModel.sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.functional">
+<code class="descclassname">beanmachine.ppl.model.</code><code class="descname">functional</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every query defined in statistical model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.param">
+<code class="descclassname">beanmachine.ppl.model.</code><code class="descname">param</code><span class="sig-paren">(</span><em>init_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for params (variable to be optimized).</p>
+<p>TODO: DRY out with <cite>random_variable</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.query">
+<code class="descclassname">beanmachine.ppl.model.</code><code class="descname">query</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every query defined in statistical model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.random_variable">
+<code class="descclassname">beanmachine.ppl.model.</code><code class="descname">random_variable</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.random_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every stochastic random variable defined in
+all statistical models.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.sample">
+<code class="descclassname">beanmachine.ppl.model.</code><code class="descname">sample</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.model.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to be used for every stochastic random variable defined in
+all statistical models.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.model.get_beanmachine_logger">
+<code class="descclassname">beanmachine.ppl.model.</code><code class="descname">get_beanmachine_logger</code><span class="sig-paren">(</span><em>console_level: beanmachine.ppl.model.utils.LogLevel = &lt;LogLevel.WARNING: 30&gt;</em>, <em>file_level: beanmachine.ppl.model.utils.LogLevel = &lt;LogLevel.INFO: 20&gt;</em><span class="sig-paren">)</span> &#x2192; logging.Logger<a class="headerlink" href="#beanmachine.ppl.model.get_beanmachine_logger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 </div>
 

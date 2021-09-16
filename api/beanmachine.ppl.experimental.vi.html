@@ -53,8 +53,8 @@
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.html">experimental package</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">experimental.vi package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#beanmachine-ppl-experimental-vi-mean-field-variational-approximation-module">beanmachine.ppl.experimental.vi.mean_field_variational_approximation module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#beanmachine-ppl-experimental-vi-variational-infer-module">beanmachine.ppl.experimental.vi.variational_infer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.vi.mean_field_variational_approximation">beanmachine.ppl.experimental.vi.mean_field_variational_approximation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.vi.variational_infer">beanmachine.ppl.experimental.vi.variational_infer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-beanmachine.ppl.experimental.vi">Module contents</a></li>
 </ul>
 </li>
@@ -105,11 +105,186 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="beanmachine-ppl-experimental-vi-mean-field-variational-approximation-module">
-<h2>beanmachine.ppl.experimental.vi.mean_field_variational_approximation module<a class="headerlink" href="#beanmachine-ppl-experimental-vi-mean-field-variational-approximation-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.experimental.vi.mean_field_variational_approximation">
+<span id="beanmachine-ppl-experimental-vi-mean-field-variational-approximation-module"></span><h2>beanmachine.ppl.experimental.vi.mean_field_variational_approximation module<a class="headerlink" href="#module-beanmachine.ppl.experimental.vi.mean_field_variational_approximation" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.vi.mean_field_variational_approximation.</code><code class="descname">MeanFieldVariationalApproximation</code><span class="sig-paren">(</span><em>target_dist: torch.distributions.distribution.Distribution</em>, <em>lr=0.01</em>, <em>base_dist=&lt;class 'torch.distributions.normal.Normal'&gt;</em>, <em>base_args=None</em>, <em>validate_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.distribution.Distribution</span></code></p>
+<p>Mean field variational approximations on R^d.</p>
+<p>A variational approximation is a probability distribution with
+variational parameters which are optimized to maximize ELBO. Mean field
+approximations construct an independent non-interacting approximation for
+each <cite>random_variable</cite> site. This class encapsulates both the training
+(ELBO maximization against a target density’s log_prob) as well as the
+resulting artifact (a probability distribution).</p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.elbo">
+<code class="descname">elbo</code><span class="sig-paren">(</span><em>target_log_prob: Callable[[torch.Tensor], torch.Tensor], num_elbo_mc_samples: int = 100</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.elbo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Monte-Carlo approximate the ELBO against <cite>self.target_log_prob</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.log_prob">
+<code class="descname">log_prob</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the log of the probability density/mass function evaluated at
+<cite>value</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>Tensor</em>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.parameters">
+<code class="descname">parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.recompute_transformed_distribution">
+<code class="descname">recompute_transformed_distribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.recompute_transformed_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recomputes the flow’s base distribution after <cite>transform_to(arg_constraints)</cite>
+is applied to the base distribution’s arguments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.rsample">
+<code class="descname">rsample</code><span class="sig-paren">(</span><em>sample_shape=None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation.rsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a sample_shape shaped reparameterized sample or sample_shape
+shaped batch of reparameterized samples if the distribution parameters
+are batched.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="beanmachine-ppl-experimental-vi-variational-infer-module">
-<h2>beanmachine.ppl.experimental.vi.variational_infer module<a class="headerlink" href="#beanmachine-ppl-experimental-vi-variational-infer-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.experimental.vi.variational_infer">
+<span id="beanmachine-ppl-experimental-vi-variational-infer-module"></span><h2>beanmachine.ppl.experimental.vi.variational_infer module<a class="headerlink" href="#module-beanmachine.ppl.experimental.vi.variational_infer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.vi.variational_infer.MeanFieldVariationalInference">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.vi.variational_infer.</code><code class="descname">MeanFieldVariationalInference</code><a class="headerlink" href="#beanmachine.ppl.experimental.vi.variational_infer.MeanFieldVariationalInference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.html#beanmachine.ppl.inference.abstract_infer.AbstractInference" title="beanmachine.ppl.inference.abstract_infer.AbstractInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_infer.AbstractInference</span></code></a></p>
+<p>Inference class for mean-field variational inference.</p>
+<p>Fits a mean-field reparameterized guide on unconstrained latent space
+following ADVI (<a class="reference external" href="https://arxiv.org/pdf/1603.00788.pdf">https://arxiv.org/pdf/1603.00788.pdf</a>). The mean-field
+factors are IAF transforms (<a class="reference external" href="https://arxiv.org/pdf/1606.04934.pdf">https://arxiv.org/pdf/1606.04934.pdf</a>) of a
+given <cite>base_dist</cite>.</p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.variational_infer.MeanFieldVariationalInference.infer">
+<code class="descname">infer</code><span class="sig-paren">(</span><em>queries: List[beanmachine.ppl.model.rv_identifier.RVIdentifier], observations: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor], num_iter: int = 100, lr: float = 0.001, base_dist: Optional[torch.distributions.distribution.Distribution] = None, base_args: Optional[dict] = None, random_seed: Optional[int] = None, num_elbo_mc_samples=100</em><span class="sig-paren">)</span> &#x2192; Callable[[beanmachine.ppl.model.rv_identifier.RVIdentifier], beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation]<a class="headerlink" href="#beanmachine.ppl.experimental.vi.variational_infer.MeanFieldVariationalInference.infer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a set of mean-field variational approximation (one per site).</p>
+<p>All tensors in <cite>queries</cite> and <cite>observations</cite> must be allocated on the
+same <cite>torch.device</cite>. Inference algorithms will attempt to allocate
+intermediate tensors on the same device.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>queries</strong> – queried random variables</li>
+<li><strong>observations</strong> – observations dict</li>
+<li><strong>num_iter</strong> – number of  worlds to train over</li>
+<li><strong>lr</strong> – learning rate</li>
+<li><strong>base_dist</strong> – constructor fn for base distribution for flow</li>
+<li><strong>base_args</strong> – arguments to base_dist (will optimize any <a href="#id1"><span class="problematic" id="id2">`</span></a>nn.Parameter`s)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.experimental.vi.variational_infer.VariationalInference">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.vi.variational_infer.</code><code class="descname">VariationalInference</code><a class="headerlink" href="#beanmachine.ppl.experimental.vi.variational_infer.VariationalInference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.html#beanmachine.ppl.inference.abstract_infer.AbstractInference" title="beanmachine.ppl.inference.abstract_infer.AbstractInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_infer.AbstractInference</span></code></a></p>
+<p>Stochastic Variational Inference.</p>
+<p>Fits a variational approximation represented as a guide program by
+Monte-Carlo approximating ELBO and optimizing over any <a href="#id3"><span class="problematic" id="id4">`</span></a>bm.param`s
+used in the guide.</p>
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.variational_infer.VariationalInference.infer">
+<code class="descname">infer</code><span class="sig-paren">(</span><em>model_to_guide_ids: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, beanmachine.ppl.model.rv_identifier.RVIdentifier], observations: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor], num_iter: int = 100, lr: float = 0.001, random_seed: Optional[int] = None, on_iter: Optional[Callable] = None, params: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.nn.parameter.Parameter] = {}, optimizer: Optional[beanmachine.ppl.experimental.vi.optim.BMMultiOptimizer] = None, progress_bar: Optional[bool] = True, device: Optional[torch.device] = device(type='cpu')</em><span class="sig-paren">)</span> &#x2192; Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.nn.parameter.Parameter]<a class="headerlink" href="#beanmachine.ppl.experimental.vi.variational_infer.VariationalInference.infer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A multiple-step version of <cite>.step()</cite> to perform Stochastic Variational Inference.
+This is convenient for full-batch training.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model_to_guide_ids</strong> – mapping from latent variables to their
+respective guide random variables</li>
+<li><strong>observations</strong> – observed random variables with their values</li>
+<li><strong>num_iter</strong> – number of iterations of optimizer steps</li>
+<li><strong>lr</strong> – learning rate</li>
+<li><strong>random_seed</strong> – random seed</li>
+<li><strong>on_iter</strong> – callable executed after each optimizer iteration</li>
+<li><strong>params</strong> – parameter random_variable keys and their values, used
+to initialize optimization if present</li>
+<li><strong>optimizer</strong> – BMOptim (wrapped torch optimizer) instance to reuse</li>
+<li><strong>progress_bar</strong> – flag for tqdm progress, disable for less output
+when minibatching</li>
+<li><strong>device</strong> – default torch device for tensor allocations</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">mapping from all <cite>bm.param</cite> <a href="#id5"><span class="problematic" id="id6">`</span></a>RVIdentifier`s encountered
+to their optimized values</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.experimental.vi.variational_infer.VariationalInference.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>model_to_guide_ids: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, beanmachine.ppl.model.rv_identifier.RVIdentifier], observations: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor], optimizer: beanmachine.ppl.experimental.vi.optim.BMMultiOptimizer, params: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.nn.parameter.Parameter] = {}, device: Optional[torch.device] = device(type='cpu')</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.nn.parameter.Parameter], beanmachine.ppl.experimental.vi.optim.BMMultiOptimizer]<a class="headerlink" href="#beanmachine.ppl.experimental.vi.variational_infer.VariationalInference.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform one step of stochastic variational inference.</p>
+<p>All <cite>bm.param`s referenced in guide random variables are optimized to
+minimize a Monte Carlo approximation of negative ELBO loss. The
+negative ELBO loss is Monte-Carlo approximated by sampling the guide
+`bm.random_variable`s (i.e. values of `model_to_guide_ids</cite>) to draw
+trace samples from the variational approximation and scored against
+the model <cite>bm.random_variables</cite> (i.e. keys of <cite>model_to_guide_ids</cite>).
+It is the end-user’s responsibility to interpret the optimized values
+for the <a href="#id7"><span class="problematic" id="id8">`</span></a>bm.param`s returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model_to_guide_ids</strong> – mapping from latent variables to their</td>
+</tr>
+</tbody>
+</table>
+<p>respective guide random variables
+:param observations: observed random variables with their values
+:param lr: learning rate
+:param random_seed: random seed
+:param params: parameter random_variable keys and their values, used
+to initialize optimization if present
+:param optimizer: optimizer state (e.g. momentum and weight decay)
+to reuse
+:param device: default torch device for tensor allocations</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">loss value, mapping from all <cite>bm.param</cite> <a href="#id9"><span class="problematic" id="id10">`</span></a>RVIdentifier`s</td>
+</tr>
+</tbody>
+</table>
+<p>encountered to their optimized values, optimizer for the respective
+<cite>bm.param</cite> tensors</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-beanmachine.ppl.experimental.vi">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental.vi" title="Permalink to this headline">¶</a></h2>

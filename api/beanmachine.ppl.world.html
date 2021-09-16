@@ -58,9 +58,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.world.diff_stack">beanmachine.ppl.world.diff_stack module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.world.utils">beanmachine.ppl.world.utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.world.variable">beanmachine.ppl.world.variable module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-world-world-module">beanmachine.ppl.world.world module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.world.world">beanmachine.ppl.world.world module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.world.world_vars">beanmachine.ppl.world.world_vars module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.world">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -838,8 +838,646 @@ transforms and transformed values.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="beanmachine-ppl-world-world-module">
-<h2>beanmachine.ppl.world.world module<a class="headerlink" href="#beanmachine-ppl-world-world-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.world.world">
+<span id="beanmachine-ppl-world-world-module"></span><h2>beanmachine.ppl.world.world module<a class="headerlink" href="#module-beanmachine.ppl.world.world" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.world.world.World">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.world.</code><code class="descname">World</code><a class="headerlink" href="#beanmachine.ppl.world.world.World" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.world.base_world.BaseWorld" title="beanmachine.ppl.world.base_world.BaseWorld"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.world.base_world.BaseWorld</span></code></a></p>
+<p>Represents the world through inference run.</p>
+<dl class="docutils">
+<dt>takes in:</dt>
+<dd>init_world_likelihood: the likelihood of the initial world being passed
+in.
+init_world: the initial world from which the inference algorithm can
+start from. (helps us to support resumable inference)</dd>
+<dt>holds:</dt>
+<dd><p class="first"><a href="#id1"><span class="problematic" id="id2">variables_</span></a>: a dict of variables keyed with their function signature.
+<a href="#id3"><span class="problematic" id="id4">log_prob_</span></a>: joint log probability of the world
+<a href="#id5"><span class="problematic" id="id6">diff_</span></a>: it is a subset of the <a href="#id7"><span class="problematic" id="id8">variables_</span></a> thats includes changes to the</p>
+<blockquote>
+<div>world <a href="#id9"><span class="problematic" id="id10">variables_</span></a>.</div></blockquote>
+<dl class="last docutils">
+<dt><a href="#id11"><span class="problematic" id="id12">diff_log_update_</span></a>: it is the variable that tracks the update in the diff</dt>
+<dd>log probability.</dd>
+</dl>
+</dd>
+</dl>
+<p>for instance for model below:</p>
+<p>&#64;bm.random_variable
+def foo():</p>
+<blockquote>
+<div>return dist.Bernoulli(torch.tensor(0.1))</div></blockquote>
+<p>&#64;bm.random_variable
+def bar():</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>if not foo().item():</dt>
+<dd>return dist.Bernoulli(torch.tensor(0.1))</dd>
+<dt>else:</dt>
+<dd>return dist.Bernoulli(torch.tensor(0.9))</dd>
+</dl>
+</div></blockquote>
+<p><a href="#id13"><span class="problematic" id="id14">World.variables_</span></a> will be:</p>
+<p>defaultdict(&lt;class ‘beanmachine.ppl.utils.variable.Variable’&gt;,
+{</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>RVIdentifier(function=&lt;function bar at 0x7f6c82b0e488&gt;, arguments=()):</dt>
+<dd><dl class="first last docutils">
+<dt>Variable(</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt>distribution=Bernoulli(probs: 0.8999999761581421,</dt>
+<dd>logits: 2.1972243785858154),</dd>
+</dl>
+<p>value=tensor(0.),
+parent={RVIdentifier(function=&lt;function foo at 0x7f6d343c8bf8&gt;,</p>
+<blockquote>
+<div>arguments=())},</div></blockquote>
+<p>children=set(),
+log_prob=tensor(-2.3026)</p>
+</div></blockquote>
+<p class="last">),</p>
+</dd>
+</dl>
+</dd>
+<dt>RVIdentifier(function=&lt;function foo at 0x7f6d343c8bf8&gt;, arguments=()):</dt>
+<dd><dl class="first last docutils">
+<dt>Variable(</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt>distribution=Bernoulli(probs: 0.10000000149011612,</dt>
+<dd>logits: -2.1972246170043945),</dd>
+</dl>
+<p>value=tensor(0.),
+parent=set(),
+children={RVIdentifier(</p>
+<blockquote>
+<div>function=&lt;function bar at 0x7f6c82b0e488&gt;,
+arguments=())},</div></blockquote>
+<p>log_prob=tensor(-0.1054)</p>
+</div></blockquote>
+<p class="last">)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>)</p>
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.accept_diff">
+<code class="descname">accept_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.world.World.accept_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>If changes in a diff is accepted, world’s <a href="#id15"><span class="problematic" id="id16">variables_</span></a> are updated with
+their corrseponding <a href="#id17"><span class="problematic" id="id18">diff_</span></a> value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.add_node_to_world">
+<code class="descname">add_node_to_world</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>var: beanmachine.ppl.world.variable.Variable</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.world.World.add_node_to_world" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the node to the world. Since all updates are done through <a href="#id19"><span class="problematic" id="id20">diff_</span></a>,
+here we will just update <a href="#id21"><span class="problematic" id="id22">diff_</span></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> – the node signature to be added to world</li>
+<li><strong>var</strong> – the variable to be added to the world for node</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.compute_score">
+<code class="descname">compute_score</code><span class="sig-paren">(</span><em>node_var: beanmachine.ppl.world.variable.Variable</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.world.World.compute_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the score of the node plus its children</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_var</strong> – the node variable whose score we are going to compute</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the computed score</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.contains_in_world">
+<code class="descname">contains_in_world</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.world.World.contains_in_world" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up both <a href="#id23"><span class="problematic" id="id24">variables_</span></a> and <a href="#id25"><span class="problematic" id="id26">diff_</span></a> and returns true if node is available
+in any of them, otherwise, returns false</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – node to be looked up in the world</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">true if found else false</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of the world.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.create_child_with_new_distributions">
+<code class="descname">create_child_with_new_distributions</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, bool]<a class="headerlink" href="#beanmachine.ppl.world.world.World.create_child_with_new_distributions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds all node’s children to <a href="#id27"><span class="problematic" id="id28">diff_</span></a> and re-computes their distrbutions
+and log_prob</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node whose value was just updated to a proposed value</td>
+</tr>
+</tbody>
+</table>
+<p>and thus its children’s distributions are needed to be recomputed.
+:returns: difference of old and new log probability of the immediate
+children of the resampled node, and flag indicating if parents of children
+have changed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_all_nodes_from_func">
+<code class="descname">get_all_nodes_from_func</code><span class="sig-paren">(</span><em>node_func: str</em><span class="sig-paren">)</span> &#x2192; Set[beanmachine.ppl.model.rv_identifier.RVIdentifier]<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_all_nodes_from_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches all nodes that have a given node function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_func</strong> – the node function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of nodes with a given node function</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_all_world_vars">
+<code class="descname">get_all_world_vars</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_all_world_vars" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">all variables in the world</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_cache_functionals">
+<code class="descname">get_cache_functionals</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_cache_functionals" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns if the cache_functionals flag is set in the world</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_markov_blanket">
+<code class="descname">get_markov_blanket</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Set[beanmachine.ppl.model.rv_identifier.RVIdentifier]<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_markov_blanket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the markov block of a node in the world and we exclude the
+observed random variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node for which we’d like to extract the markov blanket</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the markov blanket of a specific node passed in</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_node_earlier_version">
+<code class="descname">get_node_earlier_version</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_node_earlier_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the earlier version of the node in the world.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the RVIdentifier of the node to be looked up in the world.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the earlier version of the node.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_node_in_world">
+<code class="descname">get_node_in_world</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>to_be_copied: bool = True</em>, <em>to_create_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_node_in_world" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in the world, by first looking up <a href="#id29"><span class="problematic" id="id30">diff_</span></a>, if not available,
+then it can be looked up in <a href="#id31"><span class="problematic" id="id32">variables_</span></a>, while copying into <a href="#id33"><span class="problematic" id="id34">diff_</span></a> and
+returns the new <a href="#id35"><span class="problematic" id="id36">diff_</span></a> node (if to_be_copied is true, if not returns
+node’s variable in <a href="#id37"><span class="problematic" id="id38">variables_</span></a>) and if not available in any, returns None</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> – node to be looked up in world</li>
+<li><strong>to_be_copied</strong> – a flag to determine whether add the new node to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><a href="#id39"><span class="problematic" id="id40">diff_</span></a> and start tracking its changes or not.
+:returns: the corresponding node from the world</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_node_in_world_raise_error">
+<code class="descname">get_node_in_world_raise_error</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>to_be_copied: bool = True</em>, <em>to_create_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.world.variable.Variable<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_node_in_world_raise_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in the world, by first looking up <a href="#id41"><span class="problematic" id="id42">diff_</span></a>, if not available,
+then it can be looked up in <a href="#id43"><span class="problematic" id="id44">variables_</span></a>, while copying into <a href="#id45"><span class="problematic" id="id46">diff_</span></a> and
+returns the new <a href="#id47"><span class="problematic" id="id48">diff_</span></a> node (if to_be_copied is true, if not returns
+node’s variable in <a href="#id49"><span class="problematic" id="id50">variables_</span></a>) and if not available in any, returns None</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> – node to be looked up in world</li>
+<li><strong>to_be_copied</strong> – a flag to determine whether add the new node to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><a href="#id51"><span class="problematic" id="id52">diff_</span></a> and start tracking its changes or not.
+:returns: the corresponding node from the world and raises an error if
+node is not available</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_number_of_variables">
+<code class="descname">get_number_of_variables</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_number_of_variables" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of random variables in the world.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_old_transformed_value">
+<code class="descname">get_old_transformed_value</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_old_transformed_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up the node in the world and returns the old transformed value
+of the node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">old transformed value of the node.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_old_value">
+<code class="descname">get_old_value</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_old_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up the node in the world and returns the old value of the node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">old value of the node.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_param">
+<code class="descname">get_param</code><span class="sig-paren">(</span><em>param: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; torch.nn.parameter.Parameter<a class="headerlink" href="#beanmachine.ppl.world.world.World.get_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a parameter or initializes it if not found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_proposer_for_node">
+<code class="descname">get_proposer_for_node</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.get_proposer_for_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the proposer for a given node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the associate proposer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.get_transforms_for_node">
+<code class="descname">get_transforms_for_node</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.get_transforms_for_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether transform is enabled for a given node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">whether the node has transform enabled or not</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.is_marked_node_for_delete">
+<code class="descname">is_marked_node_for_delete</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.world.World.is_marked_node_for_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether a node is marked for delete.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to be looked up in the world.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">whether the node is marked for delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.propose_change">
+<code class="descname">propose_change</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>proposed_value: torch.Tensor</em>, <em>allow_graph_update: bool = True</em>, <em>start_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.world.World.propose_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the diff for the proposed change</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>node</strong> – the node who has a new proposed value</li>
+<li><strong>proposed_value</strong> – the proposed value for node</li>
+<li><strong>allow_graph_update</strong> – allow parents of node to update</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">difference of old and new log probability of node’s children,</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>difference of old and new log probability of world, difference of old
+and new log probability of node, new score of world</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.propose_change_transformed_value">
+<code class="descname">propose_change_transformed_value</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>proposed_transformed_value: torch.Tensor</em>, <em>allow_graph_update: bool = True</em>, <em>start_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.world.World.propose_change_transformed_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the diff for the proposed change</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>node</strong> – the node who has a new proposed value</li>
+<li><strong>proposed_value</strong> – the proposed value for node</li>
+<li><strong>allow_graph_update</strong> – allow parents of node to update</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">difference of old and new log probability of node’s children,</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>difference of old and new log probability of world, difference of old
+and new log probability of node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.reject_diff">
+<code class="descname">reject_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.world.World.reject_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the <a href="#id53"><span class="problematic" id="id54">diff_</span></a> to an empty dictionary once the <a href="#id55"><span class="problematic" id="id56">diff_</span></a> is rejected.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.reject_latest_diff">
+<code class="descname">reject_latest_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.reject_latest_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reject the top diff.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.reset_diff">
+<code class="descname">reset_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.world.World.reset_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the diff and diff stack.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_all_nodes_proposer">
+<code class="descname">set_all_nodes_proposer</code><span class="sig-paren">(</span><em>proposer</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_all_nodes_proposer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the default proposers for all nodes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>proposer</strong> – the default proposer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_all_nodes_transform">
+<code class="descname">set_all_nodes_transform</code><span class="sig-paren">(</span><em>transform_type: beanmachine.ppl.world.variable.TransformType</em>, <em>transforms: Optional[List[T]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_all_nodes_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_cache_functionals">
+<code class="descname">set_cache_functionals</code><span class="sig-paren">(</span><em>cache_functionals: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_cache_functionals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cache any functionals computed in world. <a href="#id57"><span class="problematic" id="id58">maintain_graph_</span></a> needs to be False for cache_funtionals
+to be True</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_functionals</strong> – if True cache functionals</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_initialize_from_prior">
+<code class="descname">set_initialize_from_prior</code><span class="sig-paren">(</span><em>initialize_from_prior: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_initialize_from_prior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the random variables from their priors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>initialize_from_prior</strong> – if True sample from prior else initialize to 0 in</td>
+</tr>
+</tbody>
+</table>
+<p>unconstrained space.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_maintain_graph">
+<code class="descname">set_maintain_graph</code><span class="sig-paren">(</span><em>maintain_graph: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_maintain_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate if updates to nodes in graph requires updating it’s markov blanket.
+Some inference methds do not require updates to world and node log probs upon proposal.
+chache_functionals needs to be False for maintain_graph to be True
+:param maintain_graph: if True compute log prob updates and markov blankets</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_observations">
+<code class="descname">set_observations</code><span class="sig-paren">(</span><em>val: Dict[KT, VT]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.world.World.set_observations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the observations in the world</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>val</strong> – dict of observations</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_params">
+<code class="descname">set_params</code><span class="sig-paren">(</span><em>params: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.nn.parameter.Parameter]</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the parameters in this World to specified values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_proposer">
+<code class="descname">set_proposer</code><span class="sig-paren">(</span><em>func_wrapper</em>, <em>proposer</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_proposer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets proposer for a given node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func_wrapper</strong> – the function wrapper</li>
+<li><strong>proposer</strong> – the associated proposer</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.set_transforms">
+<code class="descname">set_transforms</code><span class="sig-paren">(</span><em>func_wrapper</em>, <em>transform_type: beanmachine.ppl.world.variable.TransformType</em>, <em>transforms: Optional[List[T]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.set_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables transform for a given node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to enable the transform for</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.start_diff_with_proposed_val">
+<code class="descname">start_diff_with_proposed_val</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>proposed_value: torch.Tensor</em>, <em>start_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.world.World.start_diff_with_proposed_val" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts a diff with new value for node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>node</strong> – the node who has a new proposed value</li>
+<li><strong>proposed_value</strong> – the proposed value for node</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">difference of old and new log probability of the node after</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>updating the node value to the proposed value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.to_dot">
+<code class="descname">to_dot</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.world.world.World.to_dot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.update_cached_functionals">
+<code class="descname">update_cached_functionals</code><span class="sig-paren">(</span><em>f</em>, <em>*args</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.world.World.update_cached_functionals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.update_children_parents">
+<code class="descname">update_children_parents</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.world.World.update_children_parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the parents that the child no longer depends on.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node whose parents are being evaluated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.update_diff_log_prob">
+<code class="descname">update_diff_log_prob</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.world.World.update_diff_log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the log update to <a href="#id59"><span class="problematic" id="id60">diff_log_update_</span></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – updates the <a href="#id61"><span class="problematic" id="id62">diff_log_update_</span></a> with the log_prob update of</td>
+</tr>
+</tbody>
+</table>
+<p>the node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.update_graph">
+<code class="descname">update_graph</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.world.World.update_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the parents and children of the node based on the stack</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node which was called from StatisticalModel.random_variable()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-beanmachine.ppl.world.world_vars">
 <span id="beanmachine-ppl-world-world-vars-module"></span><h2>beanmachine.ppl.world.world_vars module<a class="headerlink" href="#module-beanmachine.ppl.world.world_vars" title="Permalink to this headline">¶</a></h2>
@@ -1009,8 +1647,1476 @@ exists.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-beanmachine.ppl.world">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.world" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="beanmachine.ppl.world.ProposalDistribution">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">ProposalDistribution</code><span class="sig-paren">(</span><em>proposal_distribution: Union[Any, NoneType], requires_transform: bool, requires_reshape: bool, arguments: Dict</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.ProposalDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.Variable">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>distribution: torch.distributions.distribution.Distribution</em>, <em>value: torch.Tensor</em>, <em>log_prob: torch.Tensor</em>, <em>transformed_value: torch.Tensor</em>, <em>jacobian: torch.Tensor</em>, <em>proposal_distribution: Optional[beanmachine.ppl.world.variable.ProposalDistribution] = None</em>, <em>parent: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>children: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>transform: torch.distributions.transforms.Transform = ComposeTransform(      )</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents each random variable instantiation in the World:</p>
+<dl class="docutils">
+<dt>Its fields are:</dt>
+<dd><p class="first">distribution: the distribution from the variable is drawn from
+value: a sample value drawn from the random variable distribution</p>
+<blockquote>
+<div>or the observation value</div></blockquote>
+<p class="last">parent: set of parents
+children: set of children
+log_prob: log probability of value given the distribution</p>
+</dd>
+</dl>
+<p>for instance, for the following randodm variable:</p>
+<p>&#64;bm.random_variable
+def bar(self):</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>if not self.foo():</dt>
+<dd>return dist.Bernoulli(torch.tensor(0.1))</dd>
+<dt>else:</dt>
+<dd>return dist.Bernoulli(torch.tensor(0.9))</dd>
+</dl>
+</div></blockquote>
+<p>we have the following:</p>
+<dl class="docutils">
+<dt>Variable(</dt>
+<dd><dl class="first docutils">
+<dt>distribution=Bernoulli(probs: 0.8999999761581421,</dt>
+<dd>logits: 2.1972243785858154),</dd>
+</dl>
+<p class="last">value=tensor(0.),
+parent={RandomVariable(function=&lt;function foo at 0x7fa9c87eabf8&gt;, arguments=())},
+children=set(),
+log_prob=tensor(-2.3026)</p>
+</dd>
+</dl>
+<p>)</p>
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a copy of self and returns it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">copy of self.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.inverse_transform_value">
+<code class="descname">inverse_transform_value</code><span class="sig-paren">(</span><em>transformed_value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.Variable.inverse_transform_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms the value from transformed space to original space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transformed_value</strong> – transformed space sample</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">original space sample</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.Variable.is_discrete">
+<code class="descname">is_discrete</code><a class="headerlink" href="#beanmachine.ppl.world.Variable.is_discrete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.Variable.proposal_distribution">
+<code class="descname">proposal_distribution</code><em class="property"> = None</em><a class="headerlink" href="#beanmachine.ppl.world.Variable.proposal_distribution" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.set_transform">
+<code class="descname">set_transform</code><span class="sig-paren">(</span><em>transform_data: beanmachine.ppl.world.variable.TransformData</em>, <em>proposer</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable.set_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the variable transform to the transform passed in.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transform</strong> – the transform value to the set the variable transform</td>
+</tr>
+</tbody>
+</table>
+<p>to</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.Variable.transform">
+<code class="descname">transform</code><em class="property"> = ComposeTransform(      )</em><a class="headerlink" href="#beanmachine.ppl.world.Variable.transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.transform_value">
+<code class="descname">transform_value</code><span class="sig-paren">(</span><em>value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.Variable.transform_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms the value from original space to transformed space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – value in original space</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">value in transformed space</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.update_fields">
+<code class="descname">update_fields</code><span class="sig-paren">(</span><em>value: Optional[torch.Tensor], obs_value: Optional[torch.Tensor], transform_data: beanmachine.ppl.world.variable.TransformData, proposer, initialize_from_prior: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable.update_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates log probability, transforms and is_discrete, value,
+transformed_value and jacobian parameters in the Variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – the value of the tensor if available, otherwise, a new</td>
+</tr>
+</tbody>
+</table>
+<p>initialized value will be set.
+:params obs_value: the observation value if observed else None.
+:params should_transform: a boolean to identify whether to set
+:param initialize_from_prior: if true, returns sample from prior
+transforms and transformed values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.update_jacobian">
+<code class="descname">update_jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable.update_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.update_log_prob">
+<code class="descname">update_log_prob</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.Variable.update_log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the log probability of the value of the random varialble</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Variable.update_value">
+<code class="descname">update_value</code><span class="sig-paren">(</span><em>value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.Variable.update_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the value of the variable</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – the value to update the variable to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.World">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">World</code><a class="headerlink" href="#beanmachine.ppl.world.World" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.world.base_world.BaseWorld" title="beanmachine.ppl.world.base_world.BaseWorld"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.world.base_world.BaseWorld</span></code></a></p>
+<p>Represents the world through inference run.</p>
+<dl class="docutils">
+<dt>takes in:</dt>
+<dd>init_world_likelihood: the likelihood of the initial world being passed
+in.
+init_world: the initial world from which the inference algorithm can
+start from. (helps us to support resumable inference)</dd>
+<dt>holds:</dt>
+<dd><p class="first"><a href="#id63"><span class="problematic" id="id64">variables_</span></a>: a dict of variables keyed with their function signature.
+<a href="#id65"><span class="problematic" id="id66">log_prob_</span></a>: joint log probability of the world
+<a href="#id67"><span class="problematic" id="id68">diff_</span></a>: it is a subset of the <a href="#id69"><span class="problematic" id="id70">variables_</span></a> thats includes changes to the</p>
+<blockquote>
+<div>world <a href="#id71"><span class="problematic" id="id72">variables_</span></a>.</div></blockquote>
+<dl class="last docutils">
+<dt><a href="#id73"><span class="problematic" id="id74">diff_log_update_</span></a>: it is the variable that tracks the update in the diff</dt>
+<dd>log probability.</dd>
+</dl>
+</dd>
+</dl>
+<p>for instance for model below:</p>
+<p>&#64;bm.random_variable
+def foo():</p>
+<blockquote>
+<div>return dist.Bernoulli(torch.tensor(0.1))</div></blockquote>
+<p>&#64;bm.random_variable
+def bar():</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>if not foo().item():</dt>
+<dd>return dist.Bernoulli(torch.tensor(0.1))</dd>
+<dt>else:</dt>
+<dd>return dist.Bernoulli(torch.tensor(0.9))</dd>
+</dl>
+</div></blockquote>
+<p><a href="#id75"><span class="problematic" id="id76">World.variables_</span></a> will be:</p>
+<p>defaultdict(&lt;class ‘beanmachine.ppl.utils.variable.Variable’&gt;,
+{</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>RVIdentifier(function=&lt;function bar at 0x7f6c82b0e488&gt;, arguments=()):</dt>
+<dd><dl class="first last docutils">
+<dt>Variable(</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt>distribution=Bernoulli(probs: 0.8999999761581421,</dt>
+<dd>logits: 2.1972243785858154),</dd>
+</dl>
+<p>value=tensor(0.),
+parent={RVIdentifier(function=&lt;function foo at 0x7f6d343c8bf8&gt;,</p>
+<blockquote>
+<div>arguments=())},</div></blockquote>
+<p>children=set(),
+log_prob=tensor(-2.3026)</p>
+</div></blockquote>
+<p class="last">),</p>
+</dd>
+</dl>
+</dd>
+<dt>RVIdentifier(function=&lt;function foo at 0x7f6d343c8bf8&gt;, arguments=()):</dt>
+<dd><dl class="first last docutils">
+<dt>Variable(</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt>distribution=Bernoulli(probs: 0.10000000149011612,</dt>
+<dd>logits: -2.1972246170043945),</dd>
+</dl>
+<p>value=tensor(0.),
+parent=set(),
+children={RVIdentifier(</p>
+<blockquote>
+<div>function=&lt;function bar at 0x7f6c82b0e488&gt;,
+arguments=())},</div></blockquote>
+<p>log_prob=tensor(-0.1054)</p>
+</div></blockquote>
+<p class="last">)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>)</p>
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.accept_diff">
+<code class="descname">accept_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.World.accept_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>If changes in a diff is accepted, world’s <a href="#id77"><span class="problematic" id="id78">variables_</span></a> are updated with
+their corrseponding <a href="#id79"><span class="problematic" id="id80">diff_</span></a> value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.add_node_to_world">
+<code class="descname">add_node_to_world</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>var: beanmachine.ppl.world.variable.Variable</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.World.add_node_to_world" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the node to the world. Since all updates are done through <a href="#id81"><span class="problematic" id="id82">diff_</span></a>,
+here we will just update <a href="#id83"><span class="problematic" id="id84">diff_</span></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> – the node signature to be added to world</li>
+<li><strong>var</strong> – the variable to be added to the world for node</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.compute_score">
+<code class="descname">compute_score</code><span class="sig-paren">(</span><em>node_var: beanmachine.ppl.world.variable.Variable</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.World.compute_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the score of the node plus its children</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_var</strong> – the node variable whose score we are going to compute</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the computed score</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.contains_in_world">
+<code class="descname">contains_in_world</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.World.contains_in_world" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up both <a href="#id85"><span class="problematic" id="id86">variables_</span></a> and <a href="#id87"><span class="problematic" id="id88">diff_</span></a> and returns true if node is available
+in any of them, otherwise, returns false</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – node to be looked up in the world</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">true if found else false</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of the world.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.create_child_with_new_distributions">
+<code class="descname">create_child_with_new_distributions</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, bool]<a class="headerlink" href="#beanmachine.ppl.world.World.create_child_with_new_distributions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds all node’s children to <a href="#id89"><span class="problematic" id="id90">diff_</span></a> and re-computes their distrbutions
+and log_prob</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node whose value was just updated to a proposed value</td>
+</tr>
+</tbody>
+</table>
+<p>and thus its children’s distributions are needed to be recomputed.
+:returns: difference of old and new log probability of the immediate
+children of the resampled node, and flag indicating if parents of children
+have changed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_all_nodes_from_func">
+<code class="descname">get_all_nodes_from_func</code><span class="sig-paren">(</span><em>node_func: str</em><span class="sig-paren">)</span> &#x2192; Set[beanmachine.ppl.model.rv_identifier.RVIdentifier]<a class="headerlink" href="#beanmachine.ppl.world.World.get_all_nodes_from_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches all nodes that have a given node function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node_func</strong> – the node function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of nodes with a given node function</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_all_world_vars">
+<code class="descname">get_all_world_vars</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.World.get_all_world_vars" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">all variables in the world</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_cache_functionals">
+<code class="descname">get_cache_functionals</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.World.get_cache_functionals" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns if the cache_functionals flag is set in the world</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_markov_blanket">
+<code class="descname">get_markov_blanket</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Set[beanmachine.ppl.model.rv_identifier.RVIdentifier]<a class="headerlink" href="#beanmachine.ppl.world.World.get_markov_blanket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the markov block of a node in the world and we exclude the
+observed random variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node for which we’d like to extract the markov blanket</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the markov blanket of a specific node passed in</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_node_earlier_version">
+<code class="descname">get_node_earlier_version</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.World.get_node_earlier_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the earlier version of the node in the world.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the RVIdentifier of the node to be looked up in the world.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the earlier version of the node.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_node_in_world">
+<code class="descname">get_node_in_world</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>to_be_copied: bool = True</em>, <em>to_create_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.World.get_node_in_world" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in the world, by first looking up <a href="#id91"><span class="problematic" id="id92">diff_</span></a>, if not available,
+then it can be looked up in <a href="#id93"><span class="problematic" id="id94">variables_</span></a>, while copying into <a href="#id95"><span class="problematic" id="id96">diff_</span></a> and
+returns the new <a href="#id97"><span class="problematic" id="id98">diff_</span></a> node (if to_be_copied is true, if not returns
+node’s variable in <a href="#id99"><span class="problematic" id="id100">variables_</span></a>) and if not available in any, returns None</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> – node to be looked up in world</li>
+<li><strong>to_be_copied</strong> – a flag to determine whether add the new node to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><a href="#id101"><span class="problematic" id="id102">diff_</span></a> and start tracking its changes or not.
+:returns: the corresponding node from the world</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_node_in_world_raise_error">
+<code class="descname">get_node_in_world_raise_error</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>to_be_copied: bool = True</em>, <em>to_create_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.world.variable.Variable<a class="headerlink" href="#beanmachine.ppl.world.World.get_node_in_world_raise_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in the world, by first looking up <a href="#id103"><span class="problematic" id="id104">diff_</span></a>, if not available,
+then it can be looked up in <a href="#id105"><span class="problematic" id="id106">variables_</span></a>, while copying into <a href="#id107"><span class="problematic" id="id108">diff_</span></a> and
+returns the new <a href="#id109"><span class="problematic" id="id110">diff_</span></a> node (if to_be_copied is true, if not returns
+node’s variable in <a href="#id111"><span class="problematic" id="id112">variables_</span></a>) and if not available in any, returns None</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>node</strong> – node to be looked up in world</li>
+<li><strong>to_be_copied</strong> – a flag to determine whether add the new node to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><a href="#id113"><span class="problematic" id="id114">diff_</span></a> and start tracking its changes or not.
+:returns: the corresponding node from the world and raises an error if
+node is not available</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_number_of_variables">
+<code class="descname">get_number_of_variables</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#beanmachine.ppl.world.World.get_number_of_variables" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of random variables in the world.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_old_transformed_value">
+<code class="descname">get_old_transformed_value</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.World.get_old_transformed_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up the node in the world and returns the old transformed value
+of the node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">old transformed value of the node.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_old_value">
+<code class="descname">get_old_value</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.World.get_old_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up the node in the world and returns the old value of the node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">old value of the node.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_param">
+<code class="descname">get_param</code><span class="sig-paren">(</span><em>param: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; torch.nn.parameter.Parameter<a class="headerlink" href="#beanmachine.ppl.world.World.get_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a parameter or initializes it if not found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_proposer_for_node">
+<code class="descname">get_proposer_for_node</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.get_proposer_for_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the proposer for a given node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the associate proposer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.get_transforms_for_node">
+<code class="descname">get_transforms_for_node</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.get_transforms_for_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether transform is enabled for a given node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">whether the node has transform enabled or not</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.is_marked_node_for_delete">
+<code class="descname">is_marked_node_for_delete</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.World.is_marked_node_for_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether a node is marked for delete.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to be looked up in the world.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">whether the node is marked for delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.propose_change">
+<code class="descname">propose_change</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>proposed_value: torch.Tensor</em>, <em>allow_graph_update: bool = True</em>, <em>start_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.World.propose_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the diff for the proposed change</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>node</strong> – the node who has a new proposed value</li>
+<li><strong>proposed_value</strong> – the proposed value for node</li>
+<li><strong>allow_graph_update</strong> – allow parents of node to update</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">difference of old and new log probability of node’s children,</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>difference of old and new log probability of world, difference of old
+and new log probability of node, new score of world</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.propose_change_transformed_value">
+<code class="descname">propose_change_transformed_value</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>proposed_transformed_value: torch.Tensor</em>, <em>allow_graph_update: bool = True</em>, <em>start_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.World.propose_change_transformed_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the diff for the proposed change</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>node</strong> – the node who has a new proposed value</li>
+<li><strong>proposed_value</strong> – the proposed value for node</li>
+<li><strong>allow_graph_update</strong> – allow parents of node to update</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">difference of old and new log probability of node’s children,</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>difference of old and new log probability of world, difference of old
+and new log probability of node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.reject_diff">
+<code class="descname">reject_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.World.reject_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the <a href="#id115"><span class="problematic" id="id116">diff_</span></a> to an empty dictionary once the <a href="#id117"><span class="problematic" id="id118">diff_</span></a> is rejected.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.reject_latest_diff">
+<code class="descname">reject_latest_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.reject_latest_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reject the top diff.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.reset_diff">
+<code class="descname">reset_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.World.reset_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the diff and diff stack.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_all_nodes_proposer">
+<code class="descname">set_all_nodes_proposer</code><span class="sig-paren">(</span><em>proposer</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_all_nodes_proposer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the default proposers for all nodes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>proposer</strong> – the default proposer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_all_nodes_transform">
+<code class="descname">set_all_nodes_transform</code><span class="sig-paren">(</span><em>transform_type: beanmachine.ppl.world.variable.TransformType</em>, <em>transforms: Optional[List[T]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_all_nodes_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_cache_functionals">
+<code class="descname">set_cache_functionals</code><span class="sig-paren">(</span><em>cache_functionals: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_cache_functionals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cache any functionals computed in world. <a href="#id119"><span class="problematic" id="id120">maintain_graph_</span></a> needs to be False for cache_funtionals
+to be True</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_functionals</strong> – if True cache functionals</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_initialize_from_prior">
+<code class="descname">set_initialize_from_prior</code><span class="sig-paren">(</span><em>initialize_from_prior: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_initialize_from_prior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the random variables from their priors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>initialize_from_prior</strong> – if True sample from prior else initialize to 0 in</td>
+</tr>
+</tbody>
+</table>
+<p>unconstrained space.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_maintain_graph">
+<code class="descname">set_maintain_graph</code><span class="sig-paren">(</span><em>maintain_graph: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_maintain_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate if updates to nodes in graph requires updating it’s markov blanket.
+Some inference methds do not require updates to world and node log probs upon proposal.
+chache_functionals needs to be False for maintain_graph to be True
+:param maintain_graph: if True compute log prob updates and markov blankets</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_observations">
+<code class="descname">set_observations</code><span class="sig-paren">(</span><em>val: Dict[KT, VT]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.World.set_observations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the observations in the world</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>val</strong> – dict of observations</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_params">
+<code class="descname">set_params</code><span class="sig-paren">(</span><em>params: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.nn.parameter.Parameter]</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the parameters in this World to specified values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_proposer">
+<code class="descname">set_proposer</code><span class="sig-paren">(</span><em>func_wrapper</em>, <em>proposer</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_proposer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets proposer for a given node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func_wrapper</strong> – the function wrapper</li>
+<li><strong>proposer</strong> – the associated proposer</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.set_transforms">
+<code class="descname">set_transforms</code><span class="sig-paren">(</span><em>func_wrapper</em>, <em>transform_type: beanmachine.ppl.world.variable.TransformType</em>, <em>transforms: Optional[List[T]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.set_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables transform for a given node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to enable the transform for</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.start_diff_with_proposed_val">
+<code class="descname">start_diff_with_proposed_val</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>proposed_value: torch.Tensor</em>, <em>start_new_diff: bool = False</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.World.start_diff_with_proposed_val" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts a diff with new value for node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>node</strong> – the node who has a new proposed value</li>
+<li><strong>proposed_value</strong> – the proposed value for node</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">difference of old and new log probability of the node after</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>updating the node value to the proposed value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.to_dot">
+<code class="descname">to_dot</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.world.World.to_dot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.update_cached_functionals">
+<code class="descname">update_cached_functionals</code><span class="sig-paren">(</span><em>f</em>, <em>*args</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.World.update_cached_functionals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.update_children_parents">
+<code class="descname">update_children_parents</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World.update_children_parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the parents that the child no longer depends on.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node whose parents are being evaluated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.update_diff_log_prob">
+<code class="descname">update_diff_log_prob</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.World.update_diff_log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the log update to <a href="#id121"><span class="problematic" id="id122">diff_log_update_</span></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – updates the <a href="#id123"><span class="problematic" id="id124">diff_log_update_</span></a> with the log_prob update of</td>
+</tr>
+</tbody>
+</table>
+<p>the node</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.update_graph">
+<code class="descname">update_graph</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.world.World.update_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the parents and children of the node based on the stack</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node which was called from StatisticalModel.random_variable()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.world.get_default_transforms">
+<code class="descclassname">beanmachine.ppl.world.</code><code class="descname">get_default_transforms</code><span class="sig-paren">(</span><em>distribution: torch.distributions.distribution.Distribution</em><span class="sig-paren">)</span> &#x2192; torch.distributions.transforms.Transform<a class="headerlink" href="#beanmachine.ppl.world.get_default_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get transforms of a distribution to transform it from constrained space
+into unconstrained space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>distribution</strong> – the distribution to check</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a Transform that need to be applied to the distribution</td>
+</tr>
+</tbody>
+</table>
+<p>to transform it from constrained space into unconstrained space</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.Diff">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">Diff</code><a class="headerlink" href="#beanmachine.ppl.world.Diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents the collection of random variables in Word based inference, which
+handles making updates to world random variable in each iteration of
+inference.</p>
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.add_node">
+<code class="descname">add_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>value: beanmachine.ppl.world.variable.Variable</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.Diff.add_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add and/or update the node to the diff with its corresponding random
+variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier (key) of the node to be added/updated in</td>
+</tr>
+</tbody>
+</table>
+<p>the diff.
+:params value: the Variable corresponding to the node to be added/updated
+in the diff.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.contains_node">
+<code class="descname">contains_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.Diff.contains_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the Diff contains the node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier (key) of the node to looked up in the diff.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">whether the node exists in the diff.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.Diff.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete node’s random variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to delete</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.get_node">
+<code class="descname">get_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.Diff.get_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in the diff.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier of the node to be looked up in the diff.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the variable of the node in the diff and None if the node</td>
+</tr>
+</tbody>
+</table>
+<p>does not exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.get_node_raise_error">
+<code class="descname">get_node_raise_error</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.world.variable.Variable<a class="headerlink" href="#beanmachine.ppl.world.Diff.get_node_raise_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in the diff and raise a ValueError if the node does not
+exists in the diff.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier of node to be looked up in the diff.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the variable of the node in the diff and raises an error if</td>
+</tr>
+</tbody>
+</table>
+<p>the node does not exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.is_marked_for_delete">
+<code class="descname">is_marked_for_delete</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.Diff.is_marked_for_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether a node is marked to be deleted in the diff.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier of the node to be looked up.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">whether the node is marked for delete in the diff.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.len">
+<code class="descname">len</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#beanmachine.ppl.world.Diff.len" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of random variable in the diff.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.log_prob">
+<code class="descname">log_prob</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Union[float, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.Diff.log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the log probability update of the diff.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.mark_for_delete">
+<code class="descname">mark_for_delete</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Diff.mark_for_delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.to_be_deleted_vars">
+<code class="descname">to_be_deleted_vars</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[KT, VT]<a class="headerlink" href="#beanmachine.ppl.world.Diff.to_be_deleted_vars" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dictionary that includes whether a random variable is marked</td>
+</tr>
+</tbody>
+</table>
+<p>to be deleted or not.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.update_log_prob">
+<code class="descname">update_log_prob</code><span class="sig-paren">(</span><em>value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.Diff.update_log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the log_prob with value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params value:</th><td class="field-body">the value to update the log_prob with.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.Diff.vars">
+<code class="descname">vars</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[KT, VT]<a class="headerlink" href="#beanmachine.ppl.world.Diff.vars" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the collection of random variables.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.DiffStack">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">DiffStack</code><span class="sig-paren">(</span><em>diff: Optional[beanmachine.ppl.world.diff.Diff] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.DiffStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents the collection of random variables in World based inference.</p>
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.add_diff">
+<code class="descname">add_diff</code><span class="sig-paren">(</span><em>diff: beanmachine.ppl.world.diff.Diff</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.add_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds diff to the diff stack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>diff</strong> – add diff to the diff stack.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.add_node">
+<code class="descname">add_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>value: beanmachine.ppl.world.variable.Variable</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.add_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add/update the node variable in the diff.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.contains_node">
+<code class="descname">contains_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.contains_node" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">whether the diff stack contains the node.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.diffs_log_prob">
+<code class="descname">diffs_log_prob</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Union[float, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.diffs_log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the log_prob of all diffs in the diff stack.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.get_diff_stack">
+<code class="descname">get_diff_stack</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.get_diff_stack" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the diff stack</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.get_node">
+<code class="descname">get_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.get_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node from diff stack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the RVIdentifier to be looked up in the diff stack.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the latest node Variable available in diff stack and returns</td>
+</tr>
+</tbody>
+</table>
+<p>None if not available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.get_node_earlier_version">
+<code class="descname">get_node_earlier_version</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.get_node_earlier_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the earlier version of the node in the diff stack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to be looked up in the diff stack.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the earlier version of the node in the diff stack if None, it</td>
+</tr>
+</tbody>
+</table>
+<p>means the node is not available in diff stack and instead it can be
+available in the world vars.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.get_node_raise_error">
+<code class="descname">get_node_raise_error</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.world.variable.Variable<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.get_node_raise_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node from diff stack and raise an error if not available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the RVIdentifier to be looked up in the diff stack.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the latest node Variable available in diff stack.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.is_marked_for_delete">
+<code class="descname">is_marked_for_delete</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.is_marked_for_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get whether a node is marked for delete.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the RVIdentifier to be looked up in the diff stack.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">whether a node is marked for delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.len">
+<code class="descname">len</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.len" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the length of the diff stack</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.mark_for_delete">
+<code class="descname">mark_for_delete</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.mark_for_delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marks the node to be deleted in the latest diff in the diff stack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to be marked to be deleted in the diff.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.push_changes">
+<code class="descname">push_changes</code><span class="sig-paren">(</span><em>world_vars: beanmachine.ppl.world.world_vars.WorldVars</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.push_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push changes of the diff_stack over to world_vars.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>world_vars</strong> – the world variable to push the diff stack changes to.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.remove_last_diff">
+<code class="descname">remove_last_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.world.diff.Diff<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.remove_last_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete latest diff and returns the new latest diff</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the new latest diff</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the diff stacks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.top">
+<code class="descname">top</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.world.diff.Diff<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.top" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the latest diff on the diff stack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the latest diff on the stack.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.DiffStack.update_log_prob">
+<code class="descname">update_log_prob</code><span class="sig-paren">(</span><em>value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.DiffStack.update_log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the log prob of the latest diff in the diff stack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – add value to the log prob of the latest diff in the diff</td>
+</tr>
+</tbody>
+</table>
+<p>stack.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.WorldVars">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">WorldVars</code><a class="headerlink" href="#beanmachine.ppl.world.WorldVars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents the collection of random variables in World based inference.</p>
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.add_node">
+<code class="descname">add_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>value: beanmachine.ppl.world.variable.Variable</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.add_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add and/or update the node to the WorldVars with its corresponding
+random variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier (key) of the node to be added/updated in</td>
+</tr>
+</tbody>
+</table>
+<p>the WorldVars.
+:params value: the Variable corresponding to the node to be added/updated
+in the WorldVars.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.contains_node">
+<code class="descname">contains_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.contains_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the WorlVars contains the node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier (key) of the node to looked up in the</td>
+</tr>
+</tbody>
+</table>
+<p>worldvars.
+:returns: whether the node exists in WorldVars.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.contains_node_by_func">
+<code class="descname">contains_node_by_func</code><span class="sig-paren">(</span><em>node_func: str</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.contains_node_by_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the WorlVars contains the node with function node_func.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Params node_func:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">the node_func of the node to looked up in the</td>
+</tr>
+</tbody>
+</table>
+<p>worldvars.
+:returns: whether a node with node_func exists in WorldVars.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete node’s random variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – the node to delete</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.get_node">
+<code class="descname">get_node</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; Optional[beanmachine.ppl.world.variable.Variable]<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.get_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in WorldVars.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier of the node to be looked up in WorldVars.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the variable of the node in WorldVars and None if the node</td>
+</tr>
+</tbody>
+</table>
+<p>does not exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.get_node_raise_error">
+<code class="descname">get_node_raise_error</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.world.variable.Variable<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.get_node_raise_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the node in WorldVars and raise a ValueError if the node does not
+exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params node:</th><td class="field-body">the RVIdentifier of node to be looked up in WorldVars.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the variable of the node in WorldVars and raises an error if</td>
+</tr>
+</tbody>
+</table>
+<p>the node does not exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.get_nodes_by_func">
+<code class="descname">get_nodes_by_func</code><span class="sig-paren">(</span><em>node_func: str</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.WorldVars.get_nodes_by_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the nodes in WorldVars with the given node_func.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Params node_func:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">the node_func to be looked up in WorldVars.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the variable of the node in WorldVars and None if the node</td>
+</tr>
+</tbody>
+</table>
+<p>does not exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.len">
+<code class="descname">len</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.len" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of random variable in WorldVars.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.update_log_prob">
+<code class="descname">update_log_prob</code><span class="sig-paren">(</span><em>value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.update_log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the log_prob with value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params value:</th><td class="field-body">the value to update the log_prob with.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.WorldVars.vars">
+<code class="descname">vars</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict[KT, VT]<a class="headerlink" href="#beanmachine.ppl.world.WorldVars.vars" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the collection of random variables.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.TransformData">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">TransformData</code><span class="sig-paren">(</span><em>transform_type: beanmachine.ppl.world.variable.TransformType, transforms: Union[List, NoneType]</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.TransformData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.TransformType">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">TransformType</code><a class="headerlink" href="#beanmachine.ppl.world.TransformType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.TransformType.CUSTOM">
+<code class="descname">CUSTOM</code><em class="property"> = 2</em><a class="headerlink" href="#beanmachine.ppl.world.TransformType.CUSTOM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.TransformType.DEFAULT">
+<code class="descname">DEFAULT</code><em class="property"> = 1</em><a class="headerlink" href="#beanmachine.ppl.world.TransformType.DEFAULT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.TransformType.NONE">
+<code class="descname">NONE</code><em class="property"> = 0</em><a class="headerlink" href="#beanmachine.ppl.world.TransformType.NONE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="beanmachine.ppl.world.BetaDimensionTransform">
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">BetaDimensionTransform</code><span class="sig-paren">(</span><em>cache_size=0</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.transforms.Transform</span></code></p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.BetaDimensionTransform.bijective">
+<code class="descname">bijective</code><em class="property"> = True</em><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform.bijective" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.BetaDimensionTransform.codomain">
+<code class="descname">codomain</code><em class="property"> = IndependentConstraint(Real(), 1)</em><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform.codomain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.BetaDimensionTransform.domain">
+<code class="descname">domain</code><em class="property"> = Real()</em><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform.domain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.BetaDimensionTransform.forward_shape">
+<code class="descname">forward_shape</code><span class="sig-paren">(</span><em>shape</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform.forward_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Infers the shape of the forward computation, given the input shape.
+Defaults to preserving shape.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.BetaDimensionTransform.inverse_shape">
+<code class="descname">inverse_shape</code><span class="sig-paren">(</span><em>shape</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform.inverse_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Infers the shapes of the inverse computation, given the output shape.
+Defaults to preserving shape.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.BetaDimensionTransform.log_abs_det_jacobian">
+<code class="descname">log_abs_det_jacobian</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.BetaDimensionTransform.log_abs_det_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the log det jacobian <cite>log |dy/dx|</cite> given input and output.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="beanmachine.ppl.world.get_world_context">
+<code class="descclassname">beanmachine.ppl.world.</code><code class="descname">get_world_context</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.get_world_context" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 </div>
 
