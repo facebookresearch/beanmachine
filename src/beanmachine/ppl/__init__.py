@@ -19,7 +19,13 @@ from .inference import (
     empirical,
     simulate,
 )
-from .model import functional, get_beanmachine_logger, param, random_variable
+from .model import (
+    functional,
+    get_beanmachine_logger,
+    param,
+    random_variable,
+    RVIdentifier,
+)
 
 
 LOGGER = get_beanmachine_logger()
@@ -29,23 +35,24 @@ Distribution.set_default_validate_args(False)
 __all__ = [
     "CompositionalInference",
     "Diagnostics",
+    "GlobalHamiltonianMonteCarlo",
+    "GlobalNoUTurnSampler",
+    "Predictive",
     "RejectionSampling",
+    "RVIdentifier",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
     "SingleSiteNewtonianMonteCarlo",
     "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
-    "GlobalHamiltonianMonteCarlo",
-    "GlobalNoUTurnSampler",
+    "effective_sample_size",
+    "empirical",
     "experimental",
     "functional",
     "param",
-    "random_variable",
-    "effective_sample_size",
-    "split_r_hat",
     "r_hat",
-    "Predictive",
-    "empirical",
+    "random_variable",
     "simulate",
+    "split_r_hat",
 ]
