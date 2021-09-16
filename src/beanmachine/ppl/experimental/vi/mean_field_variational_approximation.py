@@ -4,13 +4,15 @@ import logging
 from typing import Callable, Dict
 
 import flowtorch.bijectors
-import flowtorch.params
+import flowtorch.distributions
+import flowtorch.parameters
 import torch
 import torch.distributions as dist
 import torch.distributions.constraints as constraints
 import torch.optim
 from torch import Tensor
 from torch.distributions.constraint_registry import biject_to, transform_to
+from torch.distributions.utils import _sum_rightmost
 
 
 LOGGER = logging.getLogger("beanmachine.vi")
@@ -51,7 +53,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
         self.base_arg_constraints = base_dist.arg_constraints
         assert (
             base_dist.has_rsample
-        ), "The base distribution used for mean-field variational inferene must support reparametereized sampling"
+        ), "The base distribution used for mean-field variational inference must support reparameterized sampling"
         self.has_rsample = True
 
         if not base_args:
@@ -62,7 +64,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
         if len(event_shape) == 0:
             self.base_args = base_args
             self.base_dist = base_dist
-        elif len(event_shape) == 1:
+        elif len(event_shape) <= 1:
             d = event_shape[0]
             self.base_args = {
                 k: torch.nn.Parameter(torch.ones(d) * base_args[k]) for k in base_args
@@ -82,13 +84,16 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
             )
 
         # TODO: remove once fixed upstream
-        _tmp = flowtorch.params.DenseAutoregressive()
-        # pyre-ignore
-        _tmp._init_weights = lambda layers: None
-        self.flow = flowtorch.bijectors.AffineAutoregressive(_tmp)
+        _tmp = flowtorch.parameters.DenseAutoregressive()
+
+        # TODO: This needs to be now set after self.new_dist has been instantiated
+        # _tmp._init_weights = lambda layers: None
+        self.flow = flowtorch.bijectors.AffineAutoregressive(params=_tmp)
 
         assert len(base_dist(**base_args).event_shape) <= 1
-        self.new_dist = self.flow(self.recompute_transformed_distribution())
+        self.new_dist = flowtorch.distributions.Flow(
+            self.recompute_transformed_distribution(), self.flow
+        )
         self._flow_params = self.new_dist.bijector.params
         self.optim = torch.optim.Adam(
             self.parameters(),
@@ -102,8 +107,8 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
         self._transform = biject_to(support)
 
         super().__init__(
-            self.new_dist.batch_shape,
-            self.new_dist.event_shape,
+            self.new_dist.batch_shape,  # pyre-ignore
+            self.new_dist.event_shape,  # pyre-ignore
             validate_args=validate_args,
         )
 
@@ -153,12 +158,11 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
     def log_prob(self, value):
         value_inv = self._transform.inv(value)
 
-        # TODO: this only works if `batch_shape` is `[]` or `[1]`, remove
-        # `squeeze()` after
-        # https://github.com/stefanwebb/flowtorch/issues/46 resolves
-        log_prob = self.new_dist.log_prob(value_inv).squeeze()
-        log_prob -= (
-            self._transform.log_abs_det_jacobian(value_inv, value).sum(dim=1).squeeze()
+        # TODO: do we need to a _sum_rightmost here?
+        log_prob = self.new_dist.log_prob(value_inv)
+        log_prob -= _sum_rightmost(
+            self._transform.log_abs_det_jacobian(value_inv, value),
+            len(self.new_dist.event_shape),
         )
 
         return log_prob

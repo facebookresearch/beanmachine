@@ -25,8 +25,13 @@ from torch import Size
 #
 # which we can represent in BMG.
 #
-# TODO: If we have an observation on flip() in the original model we need
-# to rewrite it into observations of f0() and f1()
+# The tensor probability can be of any length > 1 but it must be one-dimensional.
+#
+# TODO: Implement the same logic for two-dimensional probabilities.
+
+
+def _is_fixable_size(s: Size) -> bool:
+    return len(s) == 1 and s[0] > 1
 
 
 class VectorizedDistributionFixer(ProblemFixerBase):
@@ -44,11 +49,12 @@ class VectorizedDistributionFixer(ProblemFixerBase):
         if not isinstance(dist, bn.BernoulliNode):
             return False
         s = self._typer[dist.probability]
-        return s == Size([2])
+        return _is_fixable_size(s)
 
     def _add_sample(self, node: bn.BernoulliNode, i: int) -> bn.SampleNode:
         p = node.probability
-        assert self._typer[p] == Size([2])
+        size = self._typer[p]
+        assert _is_fixable_size(size)
         ci = self._bmg.add_constant(i)
         pi = self._bmg.add_index(p, ci)
         bi = self._bmg.add_bernoulli(pi)
@@ -59,10 +65,11 @@ class VectorizedDistributionFixer(ProblemFixerBase):
         dist = node.operand
         assert isinstance(dist, bn.BernoulliNode)
         size = self._typer[dist.probability]
-        assert size == Size([2])
-        s0 = self._add_sample(dist, 0)
-        s1 = self._add_sample(dist, 1)
-        t = self._bmg.add_tensor(size, s0, s1)
+        assert _is_fixable_size(size)
+        samples = []
+        for i in range(0, size[0]):
+            samples.append(self._add_sample(dist, i))
+        t = self._bmg.add_tensor(size, *samples)
         self.fixed_one = True
         return t
 
@@ -82,14 +89,38 @@ class VectorizedModelFixer:
         self._bmg = bmg
         self.errors = ErrorReport()
 
+    def _fix_observations(self) -> None:
+        for o in self._bmg.all_observations():
+            observed = o.observed
+            if not isinstance(observed, bn.TensorNode):
+                continue
+            if not _is_fixable_size(observed._size):
+                continue
+            # TODO: What if the observation is of a different size than the
+            # tensor node we've just generated? That should be an error, but instead
+            # we just crash here. Figure out where to put an error detection pass
+            # which prevents this crash and reports the error.
+            for i in range(0, len(observed.inputs)):
+                s = observed.inputs[i]
+                assert isinstance(s, bn.SampleNode)
+                self._bmg.add_observation(s, o.value[i])
+            self._bmg.remove_leaf(o)
+
     def fix_problems(self) -> None:
         vdf = VectorizedDistributionFixer(self._bmg, Sizer())
         vdf.fix_problems()
         assert not vdf.errors.any()
 
-        if vdf.fixed_one:
-            # We should now have one or more leaf sample nodes.
-            for n in self._bmg.all_nodes():
-                if vdf._needs_fixing(n):
-                    assert n.is_leaf
-                    self._bmg.remove_leaf(n)
+        if not vdf.fixed_one:
+            # We changed nothing so there is nothing more to do.
+            return
+
+        # We changed something. We should now have one or more leaf
+        # sample nodes.
+        for n in self._bmg.all_nodes():
+            if vdf._needs_fixing(n):
+                assert n.is_leaf
+                self._bmg.remove_leaf(n)
+
+        # We might have an illegal observation. Fix it.
+        self._fix_observations()
