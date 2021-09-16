@@ -675,7 +675,7 @@ equals the constraint in <cite>check_constraints</cite>.</p>
 
 <dl class="class">
 <dt id="beanmachine.ppl.world.variable.Variable">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.variable.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>distribution: torch.distributions.distribution.Distribution</em>, <em>value: torch.Tensor</em>, <em>log_prob: torch.Tensor</em>, <em>transformed_value: torch.Tensor</em>, <em>jacobian: torch.Tensor</em>, <em>proposal_distribution: Optional[beanmachine.ppl.world.variable.ProposalDistribution] = None</em>, <em>parent: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>children: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>transform: torch.distributions.transforms.Transform = ComposeTransform(      )</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.variable.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>distribution: torch.distributions.distribution.Distribution</em>, <em>value: torch.Tensor</em>, <em>log_prob: torch.Tensor</em>, <em>transformed_value: torch.Tensor</em>, <em>jacobian: torch.Tensor</em>, <em>proposal_distribution: Optional[beanmachine.ppl.world.variable.ProposalDistribution] = None</em>, <em>parent: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>children: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>transform: torch.distributions.transforms.Transform = ComposeTransform(      )</em>, <em>cardinality: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Represents each random variable instantiation in the World:</p>
 <dl class="docutils">
@@ -714,6 +714,11 @@ log_prob=tensor(-2.3026)</p>
 </dd>
 </dl>
 <p>)</p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.variable.Variable.cardinality">
+<code class="descname">cardinality</code><em class="property"> = -1</em><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.cardinality" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="beanmachine.ppl.world.variable.Variable.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.variable.Variable.copy" title="Permalink to this definition">¶</a></dt>
@@ -1476,6 +1481,14 @@ chache_functionals needs to be False for maintain_graph to be True
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="beanmachine.ppl.world.world.World.update_support">
+<code class="descname">update_support</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#beanmachine.ppl.world.world.World.update_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>In place update all the supports of the world variables.
+Only for discrete variables.</p>
+<p>Returns the support of the variable.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -1657,7 +1670,7 @@ exists.</p>
 
 <dl class="class">
 <dt id="beanmachine.ppl.world.Variable">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>distribution: torch.distributions.distribution.Distribution</em>, <em>value: torch.Tensor</em>, <em>log_prob: torch.Tensor</em>, <em>transformed_value: torch.Tensor</em>, <em>jacobian: torch.Tensor</em>, <em>proposal_distribution: Optional[beanmachine.ppl.world.variable.ProposalDistribution] = None</em>, <em>parent: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>children: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>transform: torch.distributions.transforms.Transform = ComposeTransform(      )</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.world.</code><code class="descname">Variable</code><span class="sig-paren">(</span><em>distribution: torch.distributions.distribution.Distribution</em>, <em>value: torch.Tensor</em>, <em>log_prob: torch.Tensor</em>, <em>transformed_value: torch.Tensor</em>, <em>jacobian: torch.Tensor</em>, <em>proposal_distribution: Optional[beanmachine.ppl.world.variable.ProposalDistribution] = None</em>, <em>parent: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>children: Set[Optional[beanmachine.ppl.model.rv_identifier.RVIdentifier]] = &lt;factory&gt;</em>, <em>transform: torch.distributions.transforms.Transform = ComposeTransform(      )</em>, <em>cardinality: int = -1</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Represents each random variable instantiation in the World:</p>
 <dl class="docutils">
@@ -1696,6 +1709,11 @@ log_prob=tensor(-2.3026)</p>
 </dd>
 </dl>
 <p>)</p>
+<dl class="attribute">
+<dt id="beanmachine.ppl.world.Variable.cardinality">
+<code class="descname">cardinality</code><em class="property"> = -1</em><a class="headerlink" href="#beanmachine.ppl.world.Variable.cardinality" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="beanmachine.ppl.world.Variable.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.Variable.copy" title="Permalink to this definition">¶</a></dt>
@@ -2453,6 +2471,14 @@ chache_functionals needs to be False for maintain_graph to be True
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="beanmachine.ppl.world.World.update_support">
+<code class="descname">update_support</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#beanmachine.ppl.world.World.update_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>In place update all the supports of the world variables.
+Only for discrete variables.</p>
+<p>Returns the support of the variable.</p>
 </dd></dl>
 
 </dd></dl>
