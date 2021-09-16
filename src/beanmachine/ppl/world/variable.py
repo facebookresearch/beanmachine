@@ -86,6 +86,7 @@ class Variable:
     parent: Set[Optional[RVIdentifier]] = dataclasses.field(default_factory=set)
     children: Set[Optional[RVIdentifier]] = dataclasses.field(default_factory=set)
     transform: dist.Transform = dist.transforms.identity_transform
+    cardinality: int = -1
 
     @property
     def is_discrete(self) -> bool:

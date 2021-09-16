@@ -3,6 +3,7 @@ import itertools
 import unittest
 
 import beanmachine.ppl as bm
+import torch
 import torch.distributions as dist
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import Variable, World
@@ -89,6 +90,18 @@ class WorldTest(unittest.TestCase):
         @bm.random_variable
         def Y(self):
             return dist.Normal(self.D(self.X().item()), tensor(1.0))
+
+    class ChangeSupportModel:
+        @bm.random_variable
+        def a(self):
+            return dist.Bernoulli(0.001)
+
+        @bm.random_variable
+        def b(self):
+            if self.a().item():
+                return dist.Categorical(torch.ones(3))
+            else:
+                return dist.Categorical(torch.ones(4))
 
     def test_world_change(self):
         model = self.SampleModel()
@@ -731,3 +744,22 @@ class WorldTest(unittest.TestCase):
             # We're supposed to be out of any world context, so calling foo(i) should
             # returns RVIdentifier instead of its value
             self.assertIsInstance(foo(i), RVIdentifier)
+
+    def test_update_support(self):
+        model = self.ChangeSupportModel()
+        world = World()
+        world.set_initialize_from_prior(True)
+        world.set_observations({model.a(): tensor(1.0)})
+        world.update_graph(model.b())
+        world.accept_diff()
+        world.update_support(model.b())
+        self.assertEqual(world.variables_.get_node(model.b()).cardinality, 3)
+        var = world.variables_.get_node_raise_error(model.a())
+        var.update_fields(
+            torch.tensor(0.0),
+            None,
+            world.get_transforms_for_node(model.a()),
+            world.get_proposer_for_node(model.a()),
+        )
+        world.update_support(model.b())
+        self.assertEqual(world.variables_.get_node(model.b()).cardinality, 4)

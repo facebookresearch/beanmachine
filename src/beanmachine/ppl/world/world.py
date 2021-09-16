@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import torch
+import torch.distributions as dist
 import torch.nn as nn
 from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
     MeanFieldVariationalApproximation,
@@ -800,3 +801,23 @@ class World(BaseWorld):
             self.update_diff_log_prob(node)
 
         return node_var.value
+
+    def update_support(self, node) -> List:
+        """
+        In place update all the supports of the world variables.
+        Only for discrete variables.
+
+        Returns the support of the variable.
+        """
+        with self:
+            pdist = node.function(*node.arguments)
+            if not isinstance(pdist, dist.Categorical) and not isinstance(
+                pdist, dist.Bernoulli
+            ):
+                raise ValueError(
+                    "Node must be Categorical or Bernoulli, but was %s"
+                    % str(node.function)
+                )
+            var = self.variables_.get_node_raise_error(node)
+            var.cardinality = max(len(pdist.probs), var.cardinality)
+        return list(range(0, var.cardinality))
