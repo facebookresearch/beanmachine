@@ -22,6 +22,11 @@ def flip_const():
     return Bernoulli(tensor([0.25, 0.75]))
 
 
+@bm.random_variable
+def flip_const_4():
+    return Bernoulli(tensor([0.25, 0.75, 0.5, 0.5]))
+
+
 class FixVectorizedModelsTest(unittest.TestCase):
     def test_fix_vectorized_models_1(self) -> None:
         self.maxDiff = None
@@ -115,6 +120,81 @@ digraph "graph" {
   N16 -> N17;
   N17 -> N18;
   N18 -> N19;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_2(self) -> None:
+        self.maxDiff = None
+        observations = {flip_const_4(): tensor([0.0, 1.0, 0.0, 1.0])}
+        queries = [flip_const_4()]
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+
+        # The model before the rewrite:
+
+        expected = """
+digraph "graph" {
+  N0[label="[0.25,0.75,0.5,0.5]"];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label="Observation tensor([0., 1., 0., 1.])"];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N2 -> N4;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # After:
+
+        # Note that due to the order in which we do the rewriting we
+        # end up with a not-deduplicated Bernoulli(0.5) node here, which
+        # is slightly unfortunate but probably not worth fixing right now.
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        expected = """
+digraph "graph" {
+  N00[label=4];
+  N01[label=1];
+  N02[label=0.25];
+  N03[label=Bernoulli];
+  N04[label=Sample];
+  N05[label=0.75];
+  N06[label=Bernoulli];
+  N07[label=Sample];
+  N08[label=0.5];
+  N09[label=Bernoulli];
+  N10[label=Sample];
+  N11[label=Bernoulli];
+  N12[label=Sample];
+  N13[label=ToMatrix];
+  N14[label=Query];
+  N15[label="Observation False"];
+  N16[label="Observation True"];
+  N17[label="Observation False"];
+  N18[label="Observation True"];
+  N00 -> N13;
+  N01 -> N13;
+  N02 -> N03;
+  N03 -> N04;
+  N04 -> N13;
+  N04 -> N15;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N13;
+  N07 -> N16;
+  N08 -> N09;
+  N08 -> N11;
+  N09 -> N10;
+  N10 -> N13;
+  N10 -> N17;
+  N11 -> N12;
+  N12 -> N13;
+  N12 -> N18;
+  N13 -> N14;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
