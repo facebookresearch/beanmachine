@@ -27,6 +27,11 @@ def flip_const_4():
     return Bernoulli(tensor([0.25, 0.75, 0.5, 0.5]))
 
 
+@bm.random_variable
+def flip_const_2_3():
+    return Bernoulli(tensor([[0.25, 0.75, 0.5], [0.125, 0.875, 0.625]]))
+
+
 class FixVectorizedModelsTest(unittest.TestCase):
     def test_fix_vectorized_models_1(self) -> None:
         self.maxDiff = None
@@ -197,4 +202,116 @@ digraph "graph" {
   N13 -> N14;
 }
 """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_3(self) -> None:
+        self.maxDiff = None
+        observations = {flip_const_2_3(): tensor([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])}
+        queries = [flip_const_2_3()]
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+
+        # The model before the rewrite:
+
+        expected = """
+digraph "graph" {
+  N0[label="[[0.25,0.75,0.5],\\\\n[0.125,0.875,0.625]]"];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label="Observation tensor([[0., 0., 0.],\\n        [1., 1., 1.]])"];
+  N4[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N2 -> N4;
+}
+    """
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # After:
+
+        # TODO: We are not optimizing away the multiple-level indexing
+        # operations where all operands are constants. Do so.
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        expected = """
+digraph "graph" {
+  N00[label=3];
+  N01[label=2];
+  N02[label="[[0.25,0.75,0.5],\\\\n[0.125,0.875,0.625]]"];
+  N03[label=0];
+  N04[label=ColumnIndex];
+  N05[label=index];
+  N06[label=Bernoulli];
+  N07[label=Sample];
+  N08[label=1];
+  N09[label=index];
+  N10[label=Bernoulli];
+  N11[label=Sample];
+  N12[label=index];
+  N13[label=Bernoulli];
+  N14[label=Sample];
+  N15[label=ColumnIndex];
+  N16[label=index];
+  N17[label=Bernoulli];
+  N18[label=Sample];
+  N19[label=index];
+  N20[label=Bernoulli];
+  N21[label=Sample];
+  N22[label=index];
+  N23[label=Bernoulli];
+  N24[label=Sample];
+  N25[label=ToMatrix];
+  N26[label=Query];
+  N27[label="Observation False"];
+  N28[label="Observation False"];
+  N29[label="Observation False"];
+  N30[label="Observation True"];
+  N31[label="Observation True"];
+  N32[label="Observation True"];
+  N00 -> N25;
+  N01 -> N12;
+  N01 -> N22;
+  N01 -> N25;
+  N02 -> N04;
+  N02 -> N15;
+  N03 -> N04;
+  N03 -> N05;
+  N03 -> N16;
+  N04 -> N05;
+  N04 -> N09;
+  N04 -> N12;
+  N05 -> N06;
+  N06 -> N07;
+  N07 -> N25;
+  N07 -> N27;
+  N08 -> N09;
+  N08 -> N15;
+  N08 -> N19;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N25;
+  N11 -> N28;
+  N12 -> N13;
+  N13 -> N14;
+  N14 -> N25;
+  N14 -> N29;
+  N15 -> N16;
+  N15 -> N19;
+  N15 -> N22;
+  N16 -> N17;
+  N17 -> N18;
+  N18 -> N25;
+  N18 -> N30;
+  N19 -> N20;
+  N20 -> N21;
+  N21 -> N25;
+  N21 -> N31;
+  N22 -> N23;
+  N23 -> N24;
+  N24 -> N25;
+  N24 -> N32;
+  N25 -> N26;
+}
+    """
         self.assertEqual(expected.strip(), observed.strip())
