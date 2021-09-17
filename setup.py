@@ -112,7 +112,7 @@ setup(
         "botorch>=0.3.3",
         "xarray>=0.16.0",
         "arviz>=0.11.0",
-        "flowtorch>=0.2",
+        "flowtorch>=0.3",
         "parameterized>=0.8.1",
     ],
     packages=find_packages("src/"),
