@@ -230,88 +230,64 @@ digraph "graph" {
 
         # After:
 
-        # TODO: We are not optimizing away the multiple-level indexing
-        # operations where all operands are constants. Do so.
-
         observed = BMGInference().to_dot(queries, observations, after_transform=True)
         expected = """
 digraph "graph" {
   N00[label=3];
   N01[label=2];
-  N02[label="[[0.25,0.75,0.5],\\\\n[0.125,0.875,0.625]]"];
-  N03[label=0];
-  N04[label=ColumnIndex];
-  N05[label=index];
+  N02[label=0.25];
+  N03[label=Bernoulli];
+  N04[label=Sample];
+  N05[label=0.75];
   N06[label=Bernoulli];
   N07[label=Sample];
-  N08[label=1];
-  N09[label=index];
-  N10[label=Bernoulli];
-  N11[label=Sample];
-  N12[label=index];
-  N13[label=Bernoulli];
-  N14[label=Sample];
-  N15[label=ColumnIndex];
-  N16[label=index];
-  N17[label=Bernoulli];
-  N18[label=Sample];
-  N19[label=index];
-  N20[label=Bernoulli];
-  N21[label=Sample];
-  N22[label=index];
-  N23[label=Bernoulli];
-  N24[label=Sample];
-  N25[label=ToMatrix];
-  N26[label=Query];
-  N27[label="Observation False"];
-  N28[label="Observation False"];
-  N29[label="Observation False"];
-  N30[label="Observation True"];
-  N31[label="Observation True"];
-  N32[label="Observation True"];
-  N00 -> N25;
-  N01 -> N12;
-  N01 -> N22;
-  N01 -> N25;
-  N02 -> N04;
-  N02 -> N15;
+  N08[label=0.5];
+  N09[label=Bernoulli];
+  N10[label=Sample];
+  N11[label=0.125];
+  N12[label=Bernoulli];
+  N13[label=Sample];
+  N14[label=0.875];
+  N15[label=Bernoulli];
+  N16[label=Sample];
+  N17[label=0.625];
+  N18[label=Bernoulli];
+  N19[label=Sample];
+  N20[label=ToMatrix];
+  N21[label=Query];
+  N22[label="Observation False"];
+  N23[label="Observation False"];
+  N24[label="Observation False"];
+  N25[label="Observation True"];
+  N26[label="Observation True"];
+  N27[label="Observation True"];
+  N00 -> N20;
+  N01 -> N20;
+  N02 -> N03;
   N03 -> N04;
-  N03 -> N05;
-  N03 -> N16;
-  N04 -> N05;
-  N04 -> N09;
-  N04 -> N12;
+  N04 -> N20;
+  N04 -> N22;
   N05 -> N06;
   N06 -> N07;
-  N07 -> N25;
-  N07 -> N27;
+  N07 -> N20;
+  N07 -> N23;
   N08 -> N09;
-  N08 -> N15;
-  N08 -> N19;
   N09 -> N10;
-  N10 -> N11;
-  N11 -> N25;
-  N11 -> N28;
+  N10 -> N20;
+  N10 -> N24;
+  N11 -> N12;
   N12 -> N13;
-  N13 -> N14;
-  N14 -> N25;
-  N14 -> N29;
+  N13 -> N20;
+  N13 -> N25;
+  N14 -> N15;
   N15 -> N16;
-  N15 -> N19;
-  N15 -> N22;
-  N16 -> N17;
+  N16 -> N20;
+  N16 -> N26;
   N17 -> N18;
-  N18 -> N25;
-  N18 -> N30;
+  N18 -> N19;
   N19 -> N20;
+  N19 -> N27;
   N20 -> N21;
-  N21 -> N25;
-  N21 -> N31;
-  N22 -> N23;
-  N23 -> N24;
-  N24 -> N25;
-  N24 -> N32;
-  N25 -> N26;
 }
     """
         self.assertEqual(expected.strip(), observed.strip())
