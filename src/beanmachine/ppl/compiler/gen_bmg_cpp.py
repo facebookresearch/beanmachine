@@ -10,8 +10,9 @@ from beanmachine.ppl.compiler.bmg_node_types import (
     factor_type,
     operator_type,
 )
-from beanmachine.ppl.compiler.bmg_types import _size_to_rc
+from beanmachine.ppl.compiler.bmg_types import _size_to_rc, SimplexMatrix
 from beanmachine.ppl.compiler.fix_problems import fix_problems
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 def _value_to_cpp_eigen(value: torch.Tensor, variable: str) -> str:
@@ -84,13 +85,15 @@ class GeneratedGraphCPP:
         self.node_to_graph_id[node] = graph_id
         i = self._inputs(node)
         if isinstance(node, bn.DirichletNode):
+            t = LatticeTyper()[node]
+            assert isinstance(t, SimplexMatrix)
             self._code.append(f"uint n{graph_id} = g.add_distribution(")
             self._code.append("  graph::DistributionType::DIRICHLET,")
             self._code.append("  graph::ValueType(")
             self._code.append("    graph::VariableType::COL_SIMPLEX_MATRIX,")
             self._code.append("    graph::AtomicType::PROBABILITY,")
-            self._code.append(f"    {node._required_columns},")
-            self._code.append("    1")
+            self._code.append(f"    {t.rows},")
+            self._code.append(f"    {t.columns}")
             self._code.append("  ),")
             self._code.append(f"  {i});")
         else:

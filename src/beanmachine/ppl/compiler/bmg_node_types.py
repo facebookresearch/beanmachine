@@ -16,6 +16,8 @@ from beanmachine.graph import (
     ValueType,
     VariableType,
 )
+from beanmachine.ppl.compiler.bmg_types import SimplexMatrix
+from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
 _factor_types = {
@@ -46,11 +48,13 @@ _dist_types = {
 def dist_type(node: bn.DistributionNode) -> Tuple[dt, Any]:
     t = type(node)
     if t is bn.DirichletNode:
+        simplex = LatticeTyper()[node]
+        assert isinstance(simplex, SimplexMatrix)
         element_type = ValueType(
             VariableType.COL_SIMPLEX_MATRIX,
             AtomicType.PROBABILITY,
-            node._required_columns,
-            1,
+            simplex.rows,
+            simplex.columns,
         )
         return dt.DIRICHLET, element_type
     return _dist_types[t]
