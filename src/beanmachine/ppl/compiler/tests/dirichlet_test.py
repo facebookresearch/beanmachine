@@ -297,9 +297,9 @@ digraph "graph" {
   N22[label="Sample:S[2,1]"];
   N23[label="Query:S[2,1]"];
   N24[label="[[[4.5,5.0]]]:T"];
-  N25[label="Dirichlet:S[2,1]"];
-  N26[label="Sample:S[2,1]"];
-  N27[label="Query:S[2,1]"];
+  N25[label="Dirichlet:S[1,1]"];
+  N26[label="Sample:S[1,1]"];
+  N27[label="Query:S[1,1]"];
   N28[label="[[5.5,6.0,6.5],\\\\n[7.0,7.5,8.0]]:MR+[3,2]"];
   N29[label="Dirichlet:S[3,1]"];
   N30[label="Sample:S[3,1]"];
@@ -322,8 +322,8 @@ digraph "graph" {
   N20 -> N21[label="MR+[2,1]"];
   N21 -> N22[label="S[2,1]"];
   N22 -> N23[label=any];
-  N24 -> N25[label="MR+[2,1]"];
-  N25 -> N26[label="S[2,1]"];
+  N24 -> N25[label="R+"];
+  N25 -> N26[label="S[1,1]"];
   N26 -> N27[label=any];
   N28 -> N29[label="MR+[3,1]"];
   N29 -> N30[label="S[3,1]"];

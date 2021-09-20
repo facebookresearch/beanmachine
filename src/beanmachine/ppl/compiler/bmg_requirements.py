@@ -126,11 +126,24 @@ class EdgeRequirements:
         # not a broadcast matrix. Do some research here; do we actually
         # need the semantics of "always a broadcast matrix" ?
 
-        # TODO: Note that "required_columns" here is misnamed; it should be
-        # "required_length".
+        # To compute the requirement we get the matrix column size of the input.
+
+        input_type = self.typer[node]
+        required_columns = 1
+        required_rows = 1
+
+        # TODO: This will produce a bad error message experience. What we want to
+        # say in the case where the input is not a matrix at all is "we require a
+        # one-column positive real matrix" and not "we require a 1x1 positive real
+        # matrix".
+
+        if isinstance(input_type, bt.BMGMatrixType):
+            required_rows = input_type.rows
 
         return [
-            bt.always_matrix(bt.PositiveReal.with_dimensions(node._required_columns, 1))
+            bt.always_matrix(
+                bt.PositiveReal.with_dimensions(required_rows, required_columns)
+            )
         ]
 
     def _requirements_categorical(
