@@ -4,12 +4,9 @@ from typing import Any
 
 import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.runtime import BMGRuntime
-from beanmachine.ppl.compiler.support import ComputeSupport, Infinite
+from beanmachine.ppl.compiler.support import ComputeSupport, Infinite, TooBig
 from torch import Tensor, tensor
-from torch.distributions import Bernoulli, Normal
-
-
-# TODO: Add a test for a case where the support is finite but too large.
+from torch.distributions import Bernoulli, Normal, Categorical
 
 
 def tidy(s: str) -> str:
@@ -71,6 +68,36 @@ def and1():
 @bm.functional
 def negexp1():
     return -prod1().exp()
+
+
+@bm.random_variable
+def cat3():
+    return Categorical(tensor([0.5, 0.25, 0.25]))
+
+
+@bm.random_variable
+def cat2_3():
+    return Categorical(tensor([[0.5, 0.25, 0.25], [0.25, 0.25, 0.5]]))
+
+
+@bm.random_variable
+def cat8_3():
+    return Categorical(
+        tensor(
+            [
+                [0.5, 0.25, 0.25],
+                [0.25, 0.25, 0.5],
+                [0.5, 0.25, 0.25],
+                [0.25, 0.25, 0.5],
+                [0.5, 0.25, 0.25],
+                [0.25, 0.25, 0.5],
+                [0.5, 0.25, 0.25],
+                [0.25, 0.25, 0.5],
+                [0.5, 0.25, 0.25],
+                [0.25, 0.25, 0.5],
+            ]
+        )
+    )
 
 
 class NodeSupportTest(unittest.TestCase):
@@ -153,6 +180,42 @@ tensor([[1., 0.]])
 tensor([[1., 1.]])"""
 
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_categorical_support(self) -> None:
+
+        self.maxDiff = None
+
+        rt = BMGRuntime()
+        rt.accumulate_graph([cat3(), cat2_3(), cat8_3()], {})
+        s = ComputeSupport()
+
+        c3 = rt._rv_to_node(cat3())
+        observed_c3 = str(s[c3])
+        expected_c3 = """
+tensor(0)
+tensor(1)
+tensor(2)
+"""
+        self.assertEqual(expected_c3.strip(), observed_c3.strip())
+
+        c23 = rt._rv_to_node(cat2_3())
+        observed_c23 = str(s[c23])
+        expected_c23 = """
+tensor([0, 0])
+tensor([0, 1])
+tensor([0, 2])
+tensor([1, 0])
+tensor([1, 1])
+tensor([1, 2])
+tensor([2, 0])
+tensor([2, 1])
+tensor([2, 2])
+"""
+        self.assertEqual(expected_c23.strip(), observed_c23.strip())
+
+        c83 = rt._rv_to_node(cat8_3())
+        observed_c23 = s[c83]
+        self.assertTrue(observed_c23 is TooBig)
 
     def test_stochastic_tensor_support(self) -> None:
         self.maxDiff = None

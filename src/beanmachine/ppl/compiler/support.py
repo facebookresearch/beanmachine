@@ -147,6 +147,8 @@ class ComputeSupport(TyperBase[SetOfTensors]):
         self._dispatch = {
             bn.BernoulliLogitNode: self._support_bernoulli,
             bn.BernoulliNode: self._support_bernoulli,
+            bn.CategoricalLogitNode: self._support_categorical,
+            bn.CategoricalNode: self._support_categorical,
             bn.SampleNode: self._support_sample,
             bn.TensorNode: self._support_tensor,
         }
@@ -223,6 +225,38 @@ class ComputeSupport(TyperBase[SetOfTensors]):
             return TooBig
         return SetOfTensors(
             tensor(i).reshape(s) for i in itertools.product(*([[0.0, 1.0]] * p))
+        )
+
+    def _support_categorical(self, node: bn.CategoricalNodeBase) -> SetOfTensors:
+        # Suppose we have something like Categorical(tensor([0.25, 0.25, 0.5])),
+        # with size [3]. The support is 0, 1, 2.
+        # If we have a higher dimensional categorical, say size [2, 3] such as
+        # [[0.25, 0.25, 0.5], [0.5, 0.25, 0.25]], then the support is
+        # [0, 0], [0, 1], ... [2, 2], each is of size [2].
+        #
+        # That is: the range of values is determined by the last element
+        # of the categorical input size, and the size of each member of
+        # the support is the truncation of the last member off the categorical
+        # input size.
+
+        input_size = self._sizer[node.probability]
+        if len(input_size) == 0:
+            return Unknown
+        max_element = input_size[-1]  # 3, in our example above.
+        r = list(range(max_element))  # [0, 1, 2]
+        result_size = input_size[:-1]  # [2] in our example above
+        # In our example above we would have 3 ** 2 members of the
+        # support. Compute how many members we're going to get and
+        # bail out if it is too large.
+
+        # TODO: Move this prod helper function out of bmg_nodes.py
+        num_result_elements = bn.prod(result_size)
+        if max_element ** num_result_elements >= _limit:
+            return TooBig
+
+        return SetOfTensors(
+            tensor(i).reshape(result_size)
+            for i in itertools.product(*([r] * num_result_elements))
         )
 
     def _support_sample(self, node: bn.SampleNode) -> SetOfTensors:
