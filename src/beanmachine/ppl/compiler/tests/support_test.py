@@ -3,18 +3,13 @@ import unittest
 from typing import Any
 
 import beanmachine.ppl as bm
-from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
-from beanmachine.ppl.compiler.bmg_nodes import positive_infinity
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.compiler.support import ComputeSupport, Infinite
-from beanmachine.ppl.utils.set_of_tensors import SetOfTensors
-from torch import Size, Tensor, tensor
+from torch import Tensor, tensor
 from torch.distributions import Bernoulli, Normal
 
-# TODO: The first half of this file tests the support instance method
-# on nodes which we are going to delete and replace with a nonrecursive
-# support computation in its own module.  Delete these tests once
-# that is ready.
+
+# TODO: Add a test for a case where the support is finite but too large.
 
 
 def tidy(s: str) -> str:
@@ -48,76 +43,99 @@ def normal():
     return Normal(0.0, 1.0)
 
 
+@bm.functional
+def sum1():
+    return flip1(0) + 1.0
+
+
+@bm.functional
+def prod1():
+    return sum1() * sum1()
+
+
+@bm.functional
+def pow1():
+    return prod1() ** prod1()
+
+
+@bm.functional
+def ge1():
+    return pow1() >= prod1()
+
+
+@bm.functional
+def and1():
+    return ge1() & ge1()
+
+
+@bm.functional
+def negexp1():
+    return -prod1().exp()
+
+
 class NodeSupportTest(unittest.TestCase):
-    def assertEqual(self, x: Any, y: Any) -> bool:
+    def assertEqual(self, x: Any, y: Any) -> None:
         if isinstance(x, Tensor) and isinstance(y, Tensor):
-            return tensor_equality(x, y)
-        return super().assertEqual(x, y)
+            self.assertTrue(tensor_equality(x, y))
+        else:
+            super().assertEqual(x, y)
 
     def test_node_supports(self) -> None:
-        # TODO: More tests.
-        bmg = BMGraphBuilder()
-        t5 = tensor(0.5)
-        t1 = tensor(1.0)
-        t2 = tensor(2.0)
-        t0 = tensor(0.0)
-        t = bmg.add_constant_tensor(t5)
-        bern = bmg.add_bernoulli(t)
-        s = bmg.add_sample(bern)
-        a1 = bmg.add_addition(s, t)
-        a2 = bmg.add_addition(s, s)
-        self.assertEqual(SetOfTensors(t.support()), SetOfTensors([t5]))
-        self.assertEqual(SetOfTensors(s.support()), SetOfTensors([t0, t1]))
-        self.assertEqual(SetOfTensors(a1.support()), SetOfTensors([t0 + t5, t1 + t5]))
-        self.assertEqual(SetOfTensors(a2.support()), SetOfTensors([t0, t1, t2]))
+        self.maxDiff = None
 
-    def test_node_support_sizes(self) -> None:
-        bmg = BMGraphBuilder()
-        c = bmg.add_constant(2.5)
-        self.assertEqual(c.support_size(), 1)
-        bern = bmg.add_bernoulli(bmg.add_constant_tensor(tensor(0.5)))
-        self.assertEqual(bern.support_size(), 2)
-        berns = bmg.add_sample(bern)
-        self.assertEqual(berns.support_size(), 2)
-        self.assertTrue(berns.support_size() >= len(list(berns.support())))
-        # bern() + 2.5 has two possible values
-        a = bmg.add_addition(berns, c)
-        self.assertEqual(a.support_size(), 2)
-        self.assertTrue(a.support_size() >= len(list(a.support())))
-        # bern() * bern() has two possible values but we think it is four
-        # because we do not know they are constrained to be equal.
-        m = bmg.add_multiplication(berns, berns)
-        self.assertEqual(m.support_size(), 4)
-        self.assertTrue(m.support_size() >= len(list(m.support())))
-        # Similarly [bern(), bern()] has two possible values but we think four.
-        t = bmg.add_tensor(Size([2]), berns, berns)
-        self.assertEqual(t.support_size(), 4)
-        self.assertTrue(t.support_size() >= len(list(t.support())))
-        cat = bmg.add_categorical(bmg.add_constant_tensor(tensor([0.5, 0.25, 0.25])))
-        self.assertEqual(cat.support_size(), 3)
-        self.assertTrue(cat.support_size() >= len(list(cat.support())))
-        n = bmg.add_normal(c, c)
-        self.assertEqual(n.support_size(), positive_infinity)
-        n1 = bmg.add_sample(n)
-        self.assertEqual(n1.support_size(), positive_infinity)
-        n2 = bmg.add_sample(n)
-        self.assertEqual(n2.support_size(), positive_infinity)
-        # The support of a comparison is two, even if the operands have
-        # infinite support
-        gt = bmg.add_greater_than(n1, n2)
-        self.assertEqual(gt.support_size(), 2)
+        rt = BMGRuntime()
+        rt.accumulate_graph([and1(), negexp1()], {})
+        cs = ComputeSupport()
 
-        # TODO: There's a bug in gt.support(); it should return { True, False }
-        # TODO: Disable the next line of the test until we fix that.
-        # TODO: self.assertTrue(gt.support_size() >= len(list(gt.support())))
+        expected_flip1 = """
+tensor(0.)
+tensor(1.)"""
+        observed_flip1 = str(cs[rt._rv_to_node(flip1(0))])
+        self.assertEqual(expected_flip1.strip(), observed_flip1.strip())
 
-        # Exp(bool) has support two.
-        eb = bmg.add_exp(berns)
-        self.assertEqual(eb.support_size(), 2)
-        self.assertTrue(eb.support_size() >= len(list(eb.support())))
-        # Exp(normal) has infinite support
-        en = bmg.add_exp(n1)
-        self.assertEqual(en.support_size(), positive_infinity)
+        expected_sum1 = """
+tensor(1.)
+tensor(2.)"""
+        observed_sum1 = str(cs[rt._rv_to_node(sum1())])
+        self.assertEqual(expected_sum1.strip(), observed_sum1.strip())
+
+        expected_prod1 = """
+tensor(1.)
+tensor(2.)
+tensor(4.)"""
+        observed_prod1 = str(cs[rt._rv_to_node(prod1())])
+        self.assertEqual(expected_prod1.strip(), observed_prod1.strip())
+
+        expected_pow1 = """
+tensor(1.)
+tensor(16.)
+tensor(2.)
+tensor(256.)
+tensor(4.)
+"""
+        observed_pow1 = str(cs[rt._rv_to_node(pow1())])
+        self.assertEqual(expected_pow1.strip(), observed_pow1.strip())
+
+        expected_ge1 = """
+tensor(False)
+tensor(True)
+"""
+        observed_ge1 = str(cs[rt._rv_to_node(ge1())])
+        self.assertEqual(expected_ge1.strip(), observed_ge1.strip())
+
+        expected_and1 = expected_ge1
+        observed_and1 = str(cs[rt._rv_to_node(and1())])
+        self.assertEqual(expected_and1.strip(), observed_and1.strip())
+
+        # Some versions of torch display -exp(4) as -54.5981, and some display it
+        # as -54.5982. (The actual value is -54.5981500331..., which is not an excuse
+        # for some versions getting it wrong.)  To avoid this test randomly failing
+        # depending on which version of torch we're using, we'll truncate to integers.
+
+        expected_exp1 = "['-2', '-54', '-7']"
+        results = [str(int(t)) for t in cs[rt._rv_to_node(negexp1())]]
+        results.sort()
+        self.assertEqual(expected_exp1.strip(), str(results).strip())
 
     def test_bernoulli_support(self) -> None:
 
