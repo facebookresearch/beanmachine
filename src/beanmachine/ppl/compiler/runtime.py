@@ -58,6 +58,13 @@ from beanmachine.ppl.compiler.beanstalk_common import allowed_functions
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder, phi
 from beanmachine.ppl.compiler.bmg_nodes import BMGNode, ConstantNode
 from beanmachine.ppl.compiler.hint import log1mexp, math_log1mexp
+from beanmachine.ppl.compiler.support import (
+    ComputeSupport,
+    TooBig,
+    Infinite,
+    Unknown,
+    _limit as max_possibilities,
+)
 from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.memoize import MemoizationKey
@@ -878,7 +885,7 @@ class BMGRuntime:
         return (f, args, kwargs)
 
     def _handle_random_variable_call_checked(
-        self, function: Any, arguments: List[Any]
+        self, function: Any, arguments: List[Any], cs: ComputeSupport
     ) -> BMGNode:
         assert isinstance(arguments, list)
 
@@ -909,11 +916,14 @@ class BMGRuntime:
 
         replaced_arg = arguments[index]
         switch_inputs = [replaced_arg]
-        for new_arg in replaced_arg.support():
+
+        for new_arg in cs[replaced_arg]:
             key = self._bmg.add_constant(new_arg)
             new_arguments = list(arguments)
             new_arguments[index] = new_arg
-            value = self._handle_random_variable_call_checked(function, new_arguments)
+            value = self._handle_random_variable_call_checked(
+                function, new_arguments, cs
+            )
             switch_inputs.append(key)
             switch_inputs.append(value)
         return self._bmg.add_switch(*switch_inputs)
@@ -928,28 +938,50 @@ class BMGRuntime:
                 "Random variable function calls must not have named arguments."
             )
 
+        cs = ComputeSupport()
+
         # If we have one or more graph nodes as arguments to an RV function call
         # then we need to try every possible value for those arguments. We require
         # that there be a finite number of possibilities, and that the total number
         # of branches generated for this call is small. Check that *once* before
         # recursively processing the call one argument at a time.
 
-        # TODO: Make this a global tweakable setting of the accumulator.
-        max_possibilities = 1000
+        # First let's see if any are not yet implemented.
+        for arg in arguments:
+            if isinstance(arg, BMGNode) and cs[arg] is Unknown:
+                # TODO: Better exception
+                raise ValueError(
+                    f"Stochastic control flow not implemented for {str(arg)}."
+                )
+
+        # Are any infinite?
+        for arg in arguments:
+            if isinstance(arg, BMGNode) and cs[arg] is Infinite:
+                # TODO: Better exception
+                raise ValueError("Stochastic control flow must have finite support.")
+
+        # Are any finite but too large?
+        for arg in arguments:
+            if isinstance(arg, BMGNode) and cs[arg] is TooBig:
+                # TODO: Better exception
+                raise ValueError("Stochastic control flow is too complex.")
+
+        # Every argument has known, finite, small support. How many combinations are there?
+        # TODO: Note that this can be a considerable overestimate. For example, if we
+        # have outer(inner(), inner(), inner()) and the support of inner has 100 elements,
+        # then there are 100 possible code paths to trace through outer, but we assume there
+        # are 1000000. Is there anything we can do about that?
+
+        # TODO: Make max_possibilities a global tweakable setting of the accumulator.
         possibilities = 1
         for arg in arguments:
             if isinstance(arg, BMGNode):
-                possibilities *= arg.support_size()
-                if possibilities == bn.positive_infinity:
-                    # TODO: Better exception
-                    raise ValueError(
-                        "Stochastic control flow must have finite support."
-                    )
+                possibilities *= len(cs[arg])
                 if possibilities > max_possibilities:
                     # TODO: Better exception
                     raise ValueError("Stochastic control flow is too complex.")
 
-        return self._handle_random_variable_call_checked(function, arguments)
+        return self._handle_random_variable_call_checked(function, arguments, cs)
 
     def _handle_functional_call(
         self, function: Any, arguments: List[Any], kwargs: Dict[str, Any]
