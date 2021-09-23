@@ -100,6 +100,30 @@ def cat8_3():
     )
 
 
+@bm.random_variable
+def normal_or_bern(n):
+    if n:
+        return Normal(0.0, 1.0)
+    return Bernoulli(0.5)
+
+
+@bm.random_variable
+def cat_or_bern(n):
+    if n:
+        return Categorical(tensor([0.5, 0.25, 0.25, 0.25]))
+    return Bernoulli(0.5)
+
+
+@bm.functional
+def switch_inf():
+    return normal_or_bern(flip1(0))
+
+
+@bm.functional
+def switch_4():
+    return cat_or_bern(flip1(0))
+
+
 class NodeSupportTest(unittest.TestCase):
     def assertEqual(self, x: Any, y: Any) -> None:
         if isinstance(x, Tensor) and isinstance(y, Tensor):
@@ -246,3 +270,34 @@ tensor([2.5000, 1.0000, 1.0000, 1.0000])
         s = ComputeSupport()
         observed = s[sample]
         self.assertEqual(Infinite, observed)
+
+    def test_switch_support(self) -> None:
+        # This is also tested in stochastic_control_flow_test.py.
+        self.maxDiff = None
+        rt = BMGRuntime()
+        rt.accumulate_graph([switch_inf(), switch_4()], {})
+        s = ComputeSupport()
+
+        switch_inf_sample = rt._rv_to_node(switch_inf())
+        observed_inf = s[switch_inf_sample]
+        self.assertEqual(Infinite, observed_inf)
+
+        switch_4_sample = rt._rv_to_node(switch_4())
+        observed_4 = str(s[switch_4_sample])
+
+        # Notice an oddity here: in torch, Bernoulli produces 0. and 1. -- floats --
+        # but Categorical produces 0, 1, 2, 3 -- integers. When taking the union we
+        # detect that tensor(0) and tensor(1) are equal to tensor(0.) and tensor(1.);
+        # they are deduplicated.
+
+        # TODO: Can this cause any problems? Do we need to canonicalize Bernoulli output
+        # to integers?
+
+        expected_4 = """
+tensor(0.)
+tensor(1.)
+tensor(2)
+tensor(3)
+"""
+
+        self.assertEqual(expected_4.strip(), observed_4.strip())

@@ -150,6 +150,7 @@ class ComputeSupport(TyperBase[SetOfTensors]):
             bn.CategoricalLogitNode: self._support_categorical,
             bn.CategoricalNode: self._support_categorical,
             bn.SampleNode: self._support_sample,
+            bn.SwitchNode: self._support_switch,
             bn.TensorNode: self._support_tensor,
         }
 
@@ -261,6 +262,36 @@ class ComputeSupport(TyperBase[SetOfTensors]):
 
     def _support_sample(self, node: bn.SampleNode) -> SetOfTensors:
         return self[node.operand]
+
+    def _support_switch(self, node: bn.SwitchNode) -> SetOfTensors:
+
+        for i in range((len(node.inputs) - 1) // 2):
+            if self[node.inputs[2 + i * 2]] == Infinite:
+                return Infinite
+
+        for i in range((len(node.inputs) - 1) // 2):
+            if self[node.inputs[2 + i * 2]] == TooBig:
+                return TooBig
+
+        for i in range((len(node.inputs) - 1) // 2):
+            if self[node.inputs[2 + i * 2]] == Unknown:
+                return Unknown
+
+        s = 0
+        for i in range((len(node.inputs) - 1) // 2):
+            s += len(self[node.inputs[2 + i * 2]])
+
+        if s >= _limit:
+            return TooBig
+
+        return SetOfTensors(
+            itertools.chain(
+                *(
+                    self[node.inputs[2 + i * 2]]
+                    for i in range((len(node.inputs) - 1) // 2)
+                )
+            )
+        )
 
     def _support_tensor(self, node: bn.TensorNode) -> SetOfTensors:
         return self._product(tensor, *node.inputs)
