@@ -664,6 +664,18 @@ def is_one(v: Any) -> bool:
     return type_of_value(v) == One
 
 
+def lattice_to_bmg(t: BMGLatticeType) -> BMGLatticeType:
+    # There are situations where we have a Zero or One type in hand
+    # but those are just used for type convertibility analysis;
+    # we sometimes actually need a valid BMG type. In those
+    # situations, choose Boolean.
+    assert t is not Tensor
+    assert t is not Untypable
+    if isinstance(t, OneHotMatrix) or isinstance(t, ZeroMatrix):
+        return BooleanMatrix(t.rows, t.columns)
+    return t
+
+
 # TODO: Move this to bmg_requirements.py
 
 # We need to be able to express requirements on inputs;
