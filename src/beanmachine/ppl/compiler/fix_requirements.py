@@ -76,8 +76,14 @@ class RequirementsFixer:
         # NOTE: By this point we should have already rejected any graph that contains
         # a reachable but untypable constant node.  See comment in fix_unsupported
         # regarding UntypedConstantNode support.
+
         if self._type_meets_requirement(it, bt.upper_bound(requirement)):
-            required_type = bt.requirement_to_type(requirement)
+            if isinstance(requirement, bt.AnyRequirement):
+                # The lattice type of the constant might be Zero or One; in that case,
+                # generate a bool constant node.
+                required_type = bt.lattice_to_bmg(it)
+            else:
+                required_type = bt.requirement_to_type(requirement)
             if bt.must_be_matrix(requirement):
                 assert isinstance(required_type, bt.BMGMatrixType)
                 result = self.bmg.add_constant_of_matrix_type(node.value, required_type)
