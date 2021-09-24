@@ -11,6 +11,11 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ConstantRealMatrixNode,
     MatrixMultiplicationNode,
 )
+from beanmachine.ppl.compiler.support import ComputeSupport
+
+
+def support(n):
+    return str(ComputeSupport()[n])
 
 
 class BMGNodesTest(unittest.TestCase):
@@ -18,16 +23,17 @@ class BMGNodesTest(unittest.TestCase):
         r42 = RealNode(42.0)
         self.assertEqual(r42.value, 42.0)
         self.assertEqual(r42.size, torch.Size([]))
-        self.assertEqual(r42.support_size(), 1.0)
-        self.assertEqual(list(r42.support()), [42.0])
+        # Note that support always returns a set of tensors, even though this
+        # node is technically scalar valued. In practice we never need to compute
+        # the support of a RealNode, so fixing this minor oddity is unnecessary.
+        self.assertEqual(support(r42), "tensor(42.)")
 
     def test_MultiplicationNode(self) -> None:
         r2 = RealNode(2.0)
         r3 = RealNode(3.0)
         rx = MultiplicationNode([r2, r3])
         self.assertEqual(rx.size, torch.Size([]))
-        self.assertEqual(rx.support_size(), 1.0)
-        self.assertEqual(list(rx.support()), [6.0])
+        self.assertEqual(support(rx), "tensor(6.)")
 
     def test_ConstantTensorNode_1d(self) -> None:
         v42 = torch.tensor([42, 43])
@@ -36,8 +42,7 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(t42.value[1], v42[1])
         self.assertEqual(v42.size(), torch.Size([2]))
         self.assertEqual(t42.size, v42.size())
-        self.assertEqual(t42.support_size(), 1.0)
-        self.assertEqual(list(t42.support()), [v42])
+        self.assertEqual(support(t42), "tensor([42, 43])")
 
     def test_ConstantTensorNode_2d(self) -> None:
         v42 = torch.tensor([[42, 43], [44, 45]])
@@ -46,8 +51,10 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(t42.value[1, 0], v42[1, 0])
         self.assertEqual(v42.size(), torch.Size([2, 2]))
         self.assertEqual(t42.size, v42.size())
-        self.assertEqual(t42.support_size(), 1.0)
-        self.assertEqual(list(t42.support()), [v42])
+        expected = """
+tensor([[42, 43],
+        [44, 45]])"""
+        self.assertEqual(support(t42).strip(), expected.strip())
 
     def test_ConstantRealMatrixNode_2d(self) -> None:
         v42 = torch.tensor([[42, 43], [44, 45]])
@@ -56,28 +63,23 @@ class BMGNodesTest(unittest.TestCase):
         self.assertEqual(t42.value[1, 0], v42[1, 0])
         self.assertEqual(v42.size(), torch.Size([2, 2]))
         self.assertEqual(t42.size, v42.size())
-        self.assertEqual(t42.support_size(), 1.0)
-        self.assertEqual(list(t42.support()), [v42])
+        expected = """
+tensor([[42, 43],
+        [44, 45]])"""
+        self.assertEqual(support(t42).strip(), expected.strip())
 
     def test_MatrixMultiplicationNode(self) -> None:
         v42 = torch.tensor([[42, 43], [44, 45]])
         mv = torch.mm(v42, v42)
         t42 = ConstantRealMatrixNode(v42)
         mt = MatrixMultiplicationNode(t42, t42)
-        # Note: Unlike constants, we cannot inspect the value directly
-        #  self.assertEqual(mt.value[0, 0], mv[0, 0])
-        #  self.assertEqual(mt.value[1, 0], mv[1, 0])
-        # but shortly we will be able to inspect the support
         self.assertEqual(v42.size(), torch.Size([2, 2]))
         self.assertEqual(mt.size, mv.size())
-        self.assertEqual(mt.support_size(), 1.0)
-        support_list = list(mt.support())
-        self.assertEqual(len(support_list), 1)
-        support = support_list[0]
-        self.assertEqual(support[0, 0], mv[0, 0])
-        self.assertEqual(support[0, 1], mv[0, 1])
-        self.assertEqual(support[1, 0], mv[1, 0])
-        self.assertEqual(support[1, 1], mv[1, 1])
+        expected = """
+tensor([[3656, 3741],
+        [3828, 3917]])
+"""
+        self.assertEqual(support(mt).strip(), expected.strip())
 
     def test_inputs_and_outputs(self) -> None:
         # We must maintain the invariant that the output set and the
