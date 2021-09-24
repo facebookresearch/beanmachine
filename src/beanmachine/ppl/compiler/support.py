@@ -36,19 +36,28 @@
 
 import functools
 import itertools
+import operator
 from math import isnan
 from typing import Callable, Dict
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import torch
-from beanmachine.ppl.compiler.bmg_nodes import SetOfTensors, positive_infinity
 from beanmachine.ppl.compiler.sizer import Sizer
 from beanmachine.ppl.compiler.typer_base import TyperBase
+from beanmachine.ppl.utils.set_of_tensors import SetOfTensors
 from torch import tensor
 
 Infinite = SetOfTensors([])
 TooBig = SetOfTensors([])
 Unknown = SetOfTensors([])
+
+positive_infinity = float("inf")
+
+
+def _prod(x):
+    """Compute the product of a sequence of values of arbitrary length"""
+    return functools.reduce(operator.mul, x, 1)
+
 
 _limit = 1000
 
@@ -81,9 +90,9 @@ _product_of_inputs = {
     bn.BitOrNode: torch.Tensor.__or__,
     bn.BitXorNode: torch.Tensor.__xor__,
     bn.DivisionNode: torch.Tensor.div,
-    bn.ExpNode: torch.Tensor.exp,  # pyre-ignore
-    bn.ExpM1Node: torch.Tensor.expm1,  # pyre-ignore
     bn.EqualNode: torch.Tensor.eq,
+    bn.ExpM1Node: torch.Tensor.expm1,  # pyre-ignore
+    bn.ExpNode: torch.Tensor.exp,  # pyre-ignore
     bn.FloorDivNode: torch.Tensor.__floordiv__,
     bn.GreaterThanEqualNode: torch.Tensor.ge,
     bn.GreaterThanNode: torch.Tensor.gt,
@@ -93,6 +102,7 @@ _product_of_inputs = {
     bn.LogisticNode: torch.Tensor.sigmoid,
     bn.LogNode: torch.Tensor.log,
     bn.LShiftNode: torch.Tensor.__lshift__,
+    bn.MatrixMultiplicationNode: torch.Tensor.mm,  # pyre-ignore
     bn.ModNode: torch.Tensor.__mod__,
     bn.MultiplicationNode: torch.Tensor.mul,
     bn.NegateNode: torch.Tensor.neg,
@@ -110,10 +120,46 @@ _product_of_inputs = {
 # which executes "not" on each element and returns a tensor of the same size as t.
 #
 # LogSumExpTorchNode
-# SwitchNode
-# IndexNode
-# MatrixMultiplicationNode
 # Log1mexpNode
+# IndexNode
+# ItemNode
+# Log1mexpNode
+#
+# We will need to implement computation of the support
+# of an arbitrary binomial distribution because samples are
+# discrete values between 0 and count, which is typically small.
+# Though implementing support computation if count is non-stochastic
+# is straightforward, we do not yet have the gear to implement
+# this for stochastic counts. Consider this contrived case:
+#
+# @bm.random_variable def a(): return Binomial(2, 0.5)
+# @bm.random_variable def b(): return Binomial(a() + 1, 0.4)
+# @bm.random_variable def c(i): return Normal(0.0, 2.0)
+# @bm.random_variable def d(): return Normal(c(b()), 3.0)
+#
+# The support of a() is 0, 1, 2 -- easy.
+#
+# We need to know the support of b() in order to build the
+# graph for d(). But how do we know the support of b()?
+#
+# What we must do is compute that the maximum possible value
+# for a() + 1 is 3, and so the support of b() is 0, 1, 2, 3,
+# and therefore there are four samples of c(i) generated.
+#
+# There are two basic ways to do this that immediately come to
+# mind.
+#
+# The first is to simply ask the graph for the support of
+# a() + 1, which we can generate, and then take the maximum
+# value thus generated.
+#
+# If that turns out to be too expensive for some reason then
+# we can write a bit of code that answers the question
+# "what is the maximum value of your support?" and have each
+# node implement that. However, that then introduces new
+# problems; to compute the maximum value of a negation, for
+# instance, we then would also need to answer the question
+# "what is the minimum value you support?" and so on.
 
 
 _nan = float("nan")
@@ -221,7 +267,7 @@ class ComputeSupport(TyperBase[SetOfTensors]):
         # we have too big a shape then just bail out rather than handling
         # thousands or millions of possibilities.
         s = self._sizer[node]
-        p = bn.prod(s)
+        p = _prod(s)
         if 2.0 ** p >= _limit:
             return TooBig
         return SetOfTensors(
@@ -251,7 +297,7 @@ class ComputeSupport(TyperBase[SetOfTensors]):
         # bail out if it is too large.
 
         # TODO: Move this prod helper function out of bmg_nodes.py
-        num_result_elements = bn.prod(result_size)
+        num_result_elements = _prod(result_size)
         if max_element ** num_result_elements >= _limit:
             return TooBig
 
