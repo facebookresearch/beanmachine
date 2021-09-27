@@ -148,7 +148,7 @@ class UnsupportedNodeFixer(ProblemFixerBase):
 
     def _replace_tensor(self, node: bn.TensorNode) -> Optional[bn.BMGNode]:
         # Replace a 1-d or 2-d tensor with a TO_MATRIX node.
-        size = node.size
+        size = node._size
         if len(size) > 2:
             return None
         # This is the row and column count of the torch tensor.

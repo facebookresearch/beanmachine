@@ -365,7 +365,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         elif t in _constant_matrix_graph_types:
             assert isinstance(node, bn.ConstantTensorNode)
             r = _constant_matrix_graph_types[t]
-            result = r.with_size(node.size)
+            result = r.with_size(node.value.size())
         elif t in self._dispatch:
             result = self._dispatch[t](node)
         else:

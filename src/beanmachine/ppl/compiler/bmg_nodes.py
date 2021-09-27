@@ -7,7 +7,6 @@ import beanmachine.ppl.compiler.bmg_types as bt
 import torch
 from beanmachine.ppl.utils.item_counter import ItemCounter
 from torch import Tensor
-from torch.distributions.utils import broadcast_all
 
 
 # Note that we're not going to subclass list or UserList here because we
@@ -78,12 +77,6 @@ class BMGNode(ABC):
         self.outputs = ItemCounter()
 
     @property
-    def size(self) -> torch.Size:
-        """The tensor size associated with this node.
-        If the node represents a scalar value then produce Size([])."""
-        raise NotImplementedError("size")
-
-    @property
     def is_leaf(self) -> bool:
         return len(self.outputs.items) == 0
 
@@ -114,12 +107,6 @@ class UntypedConstantNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
-    @property
-    def size(self) -> torch.Size:
-        if isinstance(self.value, torch.Tensor):
-            return self.value.size()
-        return torch.Size([])
-
 
 class BooleanNode(ConstantNode):
     """A Boolean constant"""
@@ -132,10 +119,6 @@ class BooleanNode(ConstantNode):
 
     def __str__(self) -> str:
         return str(self.value)
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
 
 class NaturalNode(ConstantNode):
@@ -150,10 +133,6 @@ class NaturalNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
-
 
 class PositiveRealNode(ConstantNode):
     """A real constant restricted to non-negative values"""
@@ -166,10 +145,6 @@ class PositiveRealNode(ConstantNode):
 
     def __str__(self) -> str:
         return str(self.value)
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
 
 class NegativeRealNode(ConstantNode):
@@ -184,10 +159,6 @@ class NegativeRealNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
-
 
 class ProbabilityNode(ConstantNode):
     """A real constant restricted to values from 0.0 to 1.0"""
@@ -200,10 +171,6 @@ class ProbabilityNode(ConstantNode):
 
     def __str__(self) -> str:
         return str(self.value)
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
 
 class RealNode(ConstantNode):
@@ -218,10 +185,6 @@ class RealNode(ConstantNode):
     def __str__(self) -> str:
         return str(self.value)
 
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
-
 
 class ConstantTensorNode(ConstantNode):
     """A tensor constant"""
@@ -234,10 +197,6 @@ class ConstantTensorNode(ConstantNode):
 
     def __str__(self) -> str:
         return str(self.value)
-
-    @property
-    def size(self) -> torch.Size:
-        return self.value.size()
 
 
 class ConstantPositiveRealMatrixNode(ConstantTensorNode):
@@ -295,10 +254,6 @@ class TensorNode(BMGNode):
     def __str__(self) -> str:
         return "TensorNode"
 
-    @property
-    def size(self) -> torch.Size:
-        return self._size
-
 
 # ####
 # #### Nodes representing distributions
@@ -320,10 +275,6 @@ class BernoulliBase(DistributionNode):
     @property
     def probability(self) -> BMGNode:
         return self.inputs[0]
-
-    @property
-    def size(self) -> torch.Size:
-        return self.probability.size
 
 
 class BernoulliNode(BernoulliBase):
@@ -363,10 +314,6 @@ class BetaNode(DistributionNode):
     def beta(self) -> BMGNode:
         return self.inputs[1]
 
-    @property
-    def size(self) -> torch.Size:
-        return self.alpha.size
-
     def __str__(self) -> str:
         return f"Beta({str(self.alpha)},{str(self.beta)})"
 
@@ -380,10 +327,6 @@ class PoissonNode(DistributionNode):
     @property
     def rate(self) -> BMGNode:
         return self.inputs[0]
-
-    @property
-    def size(self) -> torch.Size:
-        return self.rate.size
 
     def __str__(self) -> str:
         return f"Poisson({str(self.rate)})"
@@ -400,12 +343,6 @@ class BinomialNodeBase(DistributionNode):
     @property
     def probability(self) -> BMGNode:
         return self.inputs[1]
-
-    @property
-    def size(self) -> torch.Size:
-        return broadcast_all(
-            torch.zeros(self.count.size), torch.zeros(self.probability.size)
-        ).size()
 
     def __str__(self) -> str:
         return f"Binomial({self.count}, {self.probability})"
@@ -482,10 +419,6 @@ class Chi2Node(DistributionNode):
     def df(self) -> BMGNode:
         return self.inputs[0]
 
-    @property
-    def size(self) -> torch.Size:
-        return self.df.size
-
     def __str__(self) -> str:
         return f"Chi2({str(self.df)})"
 
@@ -503,10 +436,6 @@ class DirichletNode(DistributionNode):
     def concentration(self) -> BMGNode:
         return self.inputs[0]
 
-    @property
-    def size(self) -> torch.Size:
-        return self.concentration.size
-
     def __str__(self) -> str:
         return f"Dirichlet({str(self.concentration)})"
 
@@ -517,10 +446,6 @@ class FlatNode(DistributionNode):
 
     def __init__(self):
         DistributionNode.__init__(self, [])
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
     def __str__(self) -> str:
         return "Flat()"
@@ -541,10 +466,6 @@ class GammaNode(DistributionNode):
     @property
     def rate(self) -> BMGNode:
         return self.inputs[1]
-
-    @property
-    def size(self) -> torch.Size:
-        return self.concentration.size
 
     def __str__(self) -> str:
         return f"Gamma({str(self.concentration)}, {str(self.rate)})"
@@ -570,10 +491,6 @@ class HalfCauchyNode(DistributionNode):
     def scale(self) -> BMGNode:
         return self.inputs[0]
 
-    @property
-    def size(self) -> torch.Size:
-        return self.scale.size
-
     def __str__(self) -> str:
         return f"HalfCauchy({str(self.scale)})"
 
@@ -594,10 +511,6 @@ class NormalNode(DistributionNode):
     def sigma(self) -> BMGNode:
         return self.inputs[1]
 
-    @property
-    def size(self) -> torch.Size:
-        return self.mu.size
-
     def __str__(self) -> str:
         return f"Normal({str(self.mu)},{str(self.sigma)})"
 
@@ -614,10 +527,6 @@ class HalfNormalNode(DistributionNode):
     @property
     def sigma(self) -> BMGNode:
         return self.inputs[0]
-
-    @property
-    def size(self) -> torch.Size:
-        return self.sigma.size
 
     def __str__(self) -> str:
         return f"HalfNormal({str(self.sigma)})"
@@ -647,10 +556,6 @@ class StudentTNode(DistributionNode):
     def scale(self) -> BMGNode:
         return self.inputs[2]
 
-    @property
-    def size(self) -> torch.Size:
-        return self.df.size
-
     def __str__(self) -> str:
         return f"StudentT({str(self.df)},{str(self.loc)},{str(self.scale)})"
 
@@ -674,10 +579,6 @@ class UniformNode(DistributionNode):
     @property
     def high(self) -> BMGNode:
         return self.inputs[1]
-
-    @property
-    def size(self) -> torch.Size:
-        return self.low.size
 
     def __str__(self) -> str:
         return f"Uniform({str(self.low)},{str(self.high)})"
@@ -709,14 +610,6 @@ class AdditionNode(OperatorNode):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
 
-    @property
-    def size(self) -> torch.Size:
-        if len(self.inputs) == 2:
-            return (
-                torch.zeros(self.inputs[0].size) + torch.zeros(self.inputs[1].size)
-            ).size()
-        return self.inputs[0].size
-
     def __str__(self) -> str:
         return "(" + "+".join([str(inp) for inp in self.inputs]) + ")"
 
@@ -727,14 +620,6 @@ class MultiplicationNode(OperatorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
-
-    @property
-    def size(self) -> torch.Size:
-        if len(self.inputs) == 2:
-            return (
-                torch.zeros(self.inputs[0].size) * torch.zeros(self.inputs[1].size)
-            ).size()
-        return self.inputs[0].size
 
     def __str__(self) -> str:
         return "(" + "*".join([str(inp) for inp in self.inputs]) + ")"
@@ -760,11 +645,6 @@ class LogSumExpTorchNode(OperatorNode):
     def __init__(self, operand: BMGNode, dim: BMGNode, keepdim: BMGNode):
         OperatorNode.__init__(self, [operand, dim, keepdim])
 
-    @property
-    def size(self) -> torch.Size:
-        # TODO
-        raise NotImplementedError("LogSumExpTorchNode.size")
-
     def __str__(self) -> str:
         return "LogSumExp"
 
@@ -776,10 +656,6 @@ class LogSumExpNode(OperatorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         OperatorNode.__init__(self, inputs)
-
-    @property
-    def size(self) -> torch.Size:
-        raise NotImplementedError("LogSumExpTorchNode.size")
 
     def __str__(self) -> str:
         return "LogSumExp"
@@ -798,14 +674,6 @@ class ToMatrixNode(OperatorNode):
 
     def __str__(self) -> str:
         return "ToMatrix"
-
-    @property
-    def size(self) -> torch.Size:
-        rows = self.inputs[0]
-        assert isinstance(rows, NaturalNode)
-        columns = self.inputs[1]
-        assert isinstance(columns, NaturalNode)
-        return torch.Size([rows.value, columns.value])
 
 
 # ####
@@ -843,10 +711,6 @@ class IfThenElseNode(OperatorNode):
     @property
     def alternative(self) -> BMGNode:
         return self.inputs[2]
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
     def __str__(self) -> str:
         i = str(self.condition)
@@ -897,10 +761,6 @@ class ComparisonNode(BinaryOperatorNode, metaclass=ABCMeta):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def size(self) -> torch.Size:
-        return (torch.zeros(self.left.size) < torch.zeros(self.right.size)).size()
 
 
 class GreaterThanNode(ComparisonNode):
@@ -995,10 +855,6 @@ class DivisionNode(BinaryOperatorNode):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def size(self) -> torch.Size:
-        return (torch.zeros(self.left.size) / torch.zeros(self.right.size)).size()
 
     def __str__(self) -> str:
         return "(" + str(self.left) + "/" + str(self.right) + ")"
@@ -1098,10 +954,6 @@ class IndexNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    @property
-    def size(self) -> torch.Size:
-        raise NotImplementedError()
-
     def __str__(self) -> str:
         return str(self.left) + "[" + str(self.right) + "]"
 
@@ -1111,10 +963,6 @@ class ItemNode(OperatorNode):
 
     def __init__(self, operand: BMGNode):
         OperatorNode.__init__(self, [operand])
-
-    @property
-    def size(self) -> torch.Size:
-        raise NotImplementedError()
 
     def __str__(self) -> str:
         return str(self.inputs[0]) + ".item()"
@@ -1127,10 +975,6 @@ class VectorIndexNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    @property
-    def size(self) -> torch.Size:
-        raise NotImplementedError()
-
     def __str__(self) -> str:
         return str(self.left) + "[" + str(self.right) + "]"
 
@@ -1138,10 +982,6 @@ class VectorIndexNode(BinaryOperatorNode):
 class ColumnIndexNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def size(self) -> torch.Size:
-        raise NotImplementedError("size of column index operator not implemented")
 
     def __str__(self) -> str:
         return "ColumnIndex"
@@ -1155,10 +995,6 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
 
-    @property
-    def size(self) -> torch.Size:
-        return torch.zeros(self.left.size).mm(torch.zeros(self.right.size)).size()
-
     def __str__(self) -> str:
         return "(" + str(self.left) + "*" + str(self.right) + ")"
 
@@ -1168,10 +1004,6 @@ class PowerNode(BinaryOperatorNode):
 
     def __init__(self, left: BMGNode, right: BMGNode):
         BinaryOperatorNode.__init__(self, left, right)
-
-    @property
-    def size(self) -> torch.Size:
-        return (torch.zeros(self.left.size) ** torch.zeros(self.right.size)).size()
 
     def __str__(self) -> str:
         return "(" + str(self.left) + "**" + str(self.right) + ")"
@@ -1200,10 +1032,6 @@ class ExpNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
-
     def __str__(self) -> str:
         return "Exp(" + str(self.operand) + ")"
 
@@ -1221,10 +1049,6 @@ class ExpM1Node(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
-
     def __str__(self) -> str:
         return "ExpM1(" + str(self.operand) + ")"
 
@@ -1236,10 +1060,6 @@ class LogisticNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
-
     def __str__(self) -> str:
         return "Logistic(" + str(self.operand) + ")"
 
@@ -1250,10 +1070,6 @@ class LogNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
 
     def __str__(self) -> str:
         return "Log(" + str(self.operand) + ")"
@@ -1268,10 +1084,6 @@ class Log1mexpNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
 
     def __str__(self) -> str:
         return "Log1mexp(" + str(self.operand) + ")"
@@ -1341,10 +1153,6 @@ class NegateNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
-
     def __str__(self) -> str:
         return "-" + str(self.operand)
 
@@ -1354,10 +1162,6 @@ class NotNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
 
     def __str__(self) -> str:
         return "not " + str(self.operand)
@@ -1371,10 +1175,6 @@ class ComplementNode(UnaryOperatorNode):
 
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
 
     def __str__(self) -> str:
         return "complement " + str(self.operand)
@@ -1399,10 +1199,6 @@ class PhiNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return self.operand.size
-
     def __str__(self) -> str:
         return "Phi(" + str(self.operand) + ")"
 
@@ -1419,10 +1215,6 @@ class SampleNode(UnaryOperatorNode):
         UnaryOperatorNode.__init__(self, operand)
 
     @property
-    def size(self) -> torch.Size:
-        return self.operand.size
-
-    @property
     def operand(self) -> DistributionNode:
         c = self.inputs[0]
         assert isinstance(c, DistributionNode)
@@ -1436,10 +1228,6 @@ class ToRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
-
     def __str__(self) -> str:
         return "ToReal(" + str(self.operand) + ")"
 
@@ -1451,10 +1239,6 @@ class ToIntNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
-
     def __str__(self) -> str:
         return "ToInt(" + str(self.operand) + ")"
 
@@ -1462,10 +1246,6 @@ class ToIntNode(UnaryOperatorNode):
 class ToRealMatrixNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def size(self) -> torch.Size:
-        raise NotImplementedError()
 
     def __str__(self) -> str:
         return "ToRealMatrix(" + str(self.operand) + ")"
@@ -1475,10 +1255,6 @@ class ToPositiveRealMatrixNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        raise NotImplementedError()
-
     def __str__(self) -> str:
         return "ToPosRealMatrix(" + str(self.operand) + ")"
 
@@ -1487,10 +1263,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
 
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
-
     def __str__(self) -> str:
         return "ToPosReal(" + str(self.operand) + ")"
 
@@ -1498,10 +1270,6 @@ class ToPositiveRealNode(UnaryOperatorNode):
 class ToProbabilityNode(UnaryOperatorNode):
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
     def __str__(self) -> str:
         return "ToProb(" + str(self.operand) + ")"
@@ -1519,10 +1287,6 @@ class LogSumExpVectorNode(UnaryOperatorNode):
     # BMG supports a log-sum-exp operator that takes a one-column tensor.
     def __init__(self, operand: BMGNode):
         UnaryOperatorNode.__init__(self, operand)
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
     def __str__(self) -> str:
         return "LogSumExpVector"
@@ -1571,12 +1335,6 @@ class Observation(BMGNode):
     def observed(self) -> BMGNode:
         return self.inputs[0]
 
-    @property
-    def size(self) -> torch.Size:
-        if isinstance(self.value, Tensor):
-            return self.value.size()
-        return torch.Size([])
-
     def __str__(self) -> str:
         return str(self.observed) + "=" + str(self.value)
 
@@ -1603,10 +1361,6 @@ class Query(BMGNode):
     def operator(self) -> BMGNode:
         c = self.inputs[0]
         return c
-
-    @property
-    def size(self) -> torch.Size:
-        return self.operator.size
 
     def __str__(self) -> str:
         return "Query(" + str(self.operator) + ")"
@@ -1646,10 +1400,6 @@ class ExpProductFactorNode(FactorNode):
     def __init__(self, inputs: List[BMGNode]):
         assert isinstance(inputs, list)
         FactorNode.__init__(self, inputs)
-
-    @property
-    def size(self) -> torch.Size:
-        return torch.Size([])
 
     def __str__(self) -> str:
         return "ExpProduct"

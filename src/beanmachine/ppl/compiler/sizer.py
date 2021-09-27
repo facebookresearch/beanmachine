@@ -145,6 +145,8 @@ def _broadcast_two(x: Size, y: Size) -> Size:
     # then the size of the sum is the size we want.
     #
     # TODO: Is there a better way to do this other than try it and see what happens?
+    # TODO: Try torch.distributions.utils.broadcast_all
+
     if x == Unsized or y == Unsized:
         return Unsized
     try:
@@ -188,6 +190,7 @@ class Sizer(TyperBase[Size]):
         self._dispatch = {
             bn.ChoiceNode: self._size_choice,
             bn.IfThenElseNode: self._size_if,
+            bn.MatrixMultiplicationNode: self._size_mm,
             bn.SwitchNode: self._size_switch,
             bn.ToMatrixNode: self._size_to_matrix,
         }
@@ -196,8 +199,6 @@ class Sizer(TyperBase[Size]):
         # IndexNode
         # LogSumExpTorchNode --
         #   note that final parameter affects size
-        # MatrixMultiplicationNode --
-        #   remember torch has broadcasting and non-broadcasting operators
         # VectorIndexNode
         # LogSumExpVectorNode
 
@@ -214,6 +215,15 @@ class Sizer(TyperBase[Size]):
         if consequence != alternative:
             return Unsized
         return consequence
+
+    def _size_mm(self, node: bn.MatrixMultiplicationNode) -> Size:
+        # Just do the multiplication and see what size we get.
+        # TODO: Torch supports both broadcasting and non-broadcasting versions
+        # of matrix multiplication. We might need to track both separately and
+        # ensure that we compute size, support, and so on, accordingly.
+        left = torch.zeros(self[node.left])
+        right = torch.zeros(self[node.right])
+        return left.mm(right).size()
 
     def _size_switch(self, node: bn.SwitchNode) -> Size:
         s = self[node.inputs[2]]
