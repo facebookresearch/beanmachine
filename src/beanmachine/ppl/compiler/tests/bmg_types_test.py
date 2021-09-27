@@ -25,12 +25,36 @@ from beanmachine.ppl.compiler.bmg_types import (
     bottom,
     supremum,
     type_of_value,
+    _lookup,
 )
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from torch import tensor
 
 
 class BMGTypesTest(unittest.TestCase):
+    def test_lookup_table(self) -> None:
+        """Tests _lookup_table for some basic properties"""
+        # This is a simple example of "property based testing"
+        # Since the search space is finite, we can do it exhaustively
+        lookup_table = _lookup()
+        keys = lookup_table.keys()
+        for key in keys:
+            a, b = key
+            class_1 = lookup_table[(a, b)]
+            class_2 = lookup_table[(b, a)]
+            # symmertry
+            self.assertEqual(
+                class_1(1, 1),
+                class_2(1, 1),
+                msg="Table breaks symmertry when inputs are ("
+                + str(a)
+                + ","
+                + str(b)
+                + ")",
+            )
+
+        return
+
     def test_supremum(self) -> None:
         """test_supremum"""
 
