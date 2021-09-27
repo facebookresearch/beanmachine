@@ -128,6 +128,9 @@ class BMGMatrixType(BMGLatticeType):
         r, c = _size_to_rc(size)
         return self.with_dimensions(c, r)
 
+    def is_singleton(self) -> int:
+        return self.rows * self.columns == 1
+
 
 class BroadcastMatrixType(BMGMatrixType):
     def __init__(self, element_type: BMGElementType, rows: int, columns: int) -> None:
@@ -450,9 +453,9 @@ def _lookup():
             (S, P): ProbabilityMatrix,
             (S, S): SimplexMatrix,
             (S, N): PositiveRealMatrix,
-            (S, B): PositiveRealMatrix,
+            (S, B): ProbabilityMatrix,
             (S, OH): SimplexMatrix,
-            (S, Z): RealMatrix,
+            (S, Z): ProbabilityMatrix,
             (N, R): RealMatrix,
             (N, RP): PositiveRealMatrix,
             (N, RN): RealMatrix,
@@ -484,7 +487,7 @@ def _lookup():
             (Z, RP): PositiveRealMatrix,
             (Z, RN): NegativeRealMatrix,
             (Z, P): ProbabilityMatrix,
-            (Z, S): SimplexMatrix,
+            (Z, S): ProbabilityMatrix,
             (Z, N): NaturalMatrix,
             (Z, B): BooleanMatrix,
             (Z, OH): BooleanMatrix,
