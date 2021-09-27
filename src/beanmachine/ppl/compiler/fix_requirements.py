@@ -11,9 +11,11 @@ returned."""
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.bmg_types as bt
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
+from beanmachine.ppl.compiler.bmg_node_types import is_supported_by_bmg
 from beanmachine.ppl.compiler.bmg_requirements import EdgeRequirements
 from beanmachine.ppl.compiler.error_report import ErrorReport, Violation
 from beanmachine.ppl.compiler.graph_labels import get_edge_labels
+from beanmachine.ppl.compiler.internal_error import InternalError
 from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 
 
@@ -50,11 +52,13 @@ class RequirementsFixer:
         return t == r
 
     def _node_meets_requirement(self, node: bn.BMGNode, r: bt.Requirement) -> bool:
+        lattice_type = self._typer[node]
+        assert lattice_type is not bt.Untypable
         if isinstance(r, bt.AlwaysMatrix):
             return self._typer.is_matrix(node) and self._type_meets_requirement(
-                self._typer[node], r.bound
+                lattice_type, r.bound
             )
-        return self._type_meets_requirement(self._typer[node], r)
+        return self._type_meets_requirement(lattice_type, r)
 
     def _meet_constant_requirement(
         self,
@@ -291,6 +295,72 @@ class RequirementsFixer:
         assert self._node_meets_requirement(result, requirement)
         return result
 
+    def _check_requirement_validity(
+        self,
+        node: bn.BMGNode,
+        requirement: bt.Requirement,
+        consumer: bn.BMGNode,
+        edge: str,
+    ) -> None:
+        ice = "Internal compiler error in edge requirements checking:\n"
+
+        # These lattice types should never be used as requirements; a type requirement
+        # must be a valid BMG type, but these are lattice types used for detecting
+        # expressions which are convertible to more than one BMG type.
+        if requirement in {bt.Tensor, bt.One, bt.Zero, bt.Untypable}:
+            raise InternalError(
+                f"{ice} Requirement {requirement} is an invalid requirement."
+            )
+
+        # We should never be checking outgoing edge requirements on a node which
+        # has zero outgoing edges. If we are, something has gone wrong in the compiler.
+
+        node_type = type(node)
+        if node_type in [bn.Observation, bn.Query, bn.FactorNode]:
+            raise InternalError(
+                f"{ice} Node of type {node_type.__name__} is being checked for requirements but "
+                + "should never have an outgoing edge '{edge}'."
+            )
+
+        # The remaining checks determine if a precondition of the requirements checker
+        # is not met. It is always valid to have a constant node even if unsupported by BMG.
+        # The requirements checker will replace it with an equivalent node with a valid
+        # BMG type if necessary, in _meet_constant_requirement above.
+
+        if isinstance(node, bn.ConstantNode):
+            return
+
+        # If we get here then the node is not a  constant.  Leaving aside constants, we
+        # should never ask the requirements checker to consider the requirements on an
+        # outgoing edge from a node that BMG does not even support.  The unsupported node
+        # fixer should already have removed all such nodes.
+
+        if not is_supported_by_bmg(node):
+            raise InternalError(
+                f"{ice} Node of type {node_type.__name__} is being checked for requirements but "
+                + "is not supported by BMG; the unsupported node checker should already "
+                + "have either replaced the node or produced an error."
+            )
+
+        # If we get here then the node is supported by BMG. The requirements checker needs to
+        # know the lattice type of the node in order to check whether it meets the requirement,
+        # even if the requirement is "any". If this throws then you probably need to implement
+        # type analysis in the lattice typer.
+
+        # CONSIDER: Note that we do not make a distinction here between "the lattice typer simply does
+        # not have the code to type check this node" and "the lattice typer tried but failed".
+        # If it is important to make that distinction then we need to have two different "untyped"
+        # objects, one representing "not implemented" and one representing "failure".
+
+        lattice_type = self._typer[node]
+        if lattice_type is bt.Untypable:
+            raise InternalError(
+                f"{ice} Node of type {node_type.__name__} is being checked for requirements but "
+                + "the lattice typer is unable to assign it a type. Requirements checking always "
+                + "needs to know the lattice type of a node when checking requirements on its "
+                + "outgoing edges."
+            )
+
     def meet_requirement(
         self,
         node: bn.BMGNode,
@@ -301,14 +371,7 @@ class RequirementsFixer:
         """The consumer node consumes the value of the input node. The consumer's
         requirement is given; the name of this edge is provided for error reporting."""
 
-        # These lattice types should never be used as requirements.
-        assert requirement not in {bt.Tensor, bt.One, bt.Zero, bt.Untypable}
-
-        # There is never a requirement on these nodes because they only have
-        # input edges.
-        assert not isinstance(node, bn.Observation)
-        assert not isinstance(node, bn.Query)
-        assert not isinstance(node, bn.FactorNode)
+        self._check_requirement_validity(node, requirement, consumer, edge)
 
         # If we have an untyped constant node we always need to replace it.
         if isinstance(node, bn.UntypedConstantNode):
