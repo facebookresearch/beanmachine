@@ -1,4 +1,4 @@
-#include "beanmachine/graph/global/global_mh.h"
+#include "beanmachine/graph/global/random_walk.h"
 #include "beanmachine/graph/global/proposer/random_walk_proposer.h"
 
 namespace beanmachine {

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "beanmachine/graph/global/global_mh.h"
+#include "beanmachine/graph/global/hmc.h"
 #include "beanmachine/graph/graph.h"
 
 using namespace beanmachine;
@@ -63,7 +63,6 @@ TEST(testglobal, global_hmc_gamma_gamma) {
   uint gamma_gamma_dist = g.add_distribution(
       DistributionType::GAMMA, AtomicType::POS_REAL, {onepointfive, sample});
   uint obs1 = g.add_operator(OperatorType::SAMPLE, {gamma_gamma_dist});
-  g.customize_transformation(TransformType::LOG, {sample});
 
   g.observe(obs1, 2.0);
   g.query(sample);
@@ -91,7 +90,6 @@ TEST(testglobal, global_hmc_half_cauchy) {
   uint sigma_prior = g.add_distribution(
       DistributionType::HALF_CAUCHY, AtomicType::POS_REAL, {one});
   uint sigma_sample = g.add_operator(OperatorType::SAMPLE, {sigma_prior});
-  g.customize_transformation(TransformType::LOG, {sigma_sample});
   g.query(sigma_sample);
 
   uint seed = 17;
@@ -178,7 +176,6 @@ TEST(testglobal, global_hmc_warmup) {
       AtomicType::POS_REAL,
       {onepointfive, gamma_sample});
   uint gamma_obs1 = g.add_operator(OperatorType::SAMPLE, {gamma_gamma_dist});
-  g.customize_transformation(TransformType::LOG, {gamma_sample});
 
   g.observe(gamma_obs1, 2.0);
   g.query(gamma_sample);

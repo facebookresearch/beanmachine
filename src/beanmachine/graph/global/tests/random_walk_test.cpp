@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <random>
 
-#include "beanmachine/graph/global/global_mh.h"
+#include "beanmachine/graph/global/random_walk.h"
 #include "beanmachine/graph/graph.h"
 
 using namespace beanmachine;

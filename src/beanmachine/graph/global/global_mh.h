@@ -1,3 +1,4 @@
+#pragma once
 #include "beanmachine/graph/global/proposer/global_proposer.h"
 #include "beanmachine/graph/graph.h"
 
@@ -20,21 +21,6 @@ class GlobalMH {
   virtual void prepare_graph() {}
   void single_mh_step(GlobalState& state);
   virtual ~GlobalMH() {}
-};
-
-class RandomWalkMH : public GlobalMH {
- public:
-  RandomWalkMH(Graph& g, double step_size);
-};
-
-class HMC : public GlobalMH {
- public:
-  HMC(Graph& g, double path_length, double step_size);
-};
-
-class NUTS : public GlobalMH {
- public:
-  explicit NUTS(Graph& g);
 };
 
 } // namespace graph

@@ -3,6 +3,8 @@
 #include <pybind11/eigen.h>
 
 #include "beanmachine/graph/global/global_mh.h"
+#include "beanmachine/graph/global/hmc.h"
+#include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
 
 // to keep the linter happy this template specialization has been declared here

@@ -1,7 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include <gtest/gtest.h>
 
-#include "beanmachine/graph/global/global_mh.h"
+#include "beanmachine/graph/global/nuts.h"
 #include "beanmachine/graph/graph.h"
 
 using namespace beanmachine;
@@ -13,6 +13,7 @@ TEST(testglobal, nuts_normal_normal) {
   p2 ~ Normal(p1, 1)
   p2 observed as 0.5
   posterior is Normal(0.25, 0.5)
+  expected mean is 0.25
   */
   Graph g;
   uint zero = g.add_constant(0.0);
@@ -38,6 +39,10 @@ TEST(testglobal, nuts_normal_normal) {
     mean += samples[i][0]._double;
   }
   mean /= samples.size();
+  /*
+  posterior is Normal(0.25, 0.5)
+  expected mean is 0.25
+  */
   EXPECT_NEAR(mean, 0.25, 0.02);
 }
 
@@ -73,6 +78,10 @@ TEST(testglobal, nuts_gamma_gamma) {
     mean += samples[i][0]._double;
   }
   mean /= samples.size();
+  /*
+  true posterior is Gamma(3.5, 4)
+  mean should be 3.4 / 4 = 0.875
+  */
   EXPECT_NEAR(mean, 0.875, 0.03);
 }
 
@@ -115,6 +124,7 @@ TEST(testglobal, global_nuts_mixed) {
   p2 ~ Gamma(1.5, p1)
   p2 observed as 2
   posterior is Gamma(3.5, 4)
+  expected mean is 3.5 / 4 = 0.875
 
   p3 ~ Normal(0, 1)
   p4 ~ Normal(p1, 1)
@@ -122,6 +132,7 @@ TEST(testglobal, global_nuts_mixed) {
   p4 observed as 0.5
   p5 observed as 1.5
   posterior is Normal(0.66.., 0.5)
+  expected mean is 0.66...
   */
   Graph g;
   uint onepointfive = g.add_constant_pos_real(1.5);
@@ -208,7 +219,7 @@ TEST(testglobal, global_nuts_halfnormal) {
   g.observe(c_sample, 5.0);
   g.query(a_sample);
 
-  uint seed = 17;
+  uint seed = 31;
   NUTS mh = NUTS(g);
   std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed, 2000);
 
@@ -217,5 +228,5 @@ TEST(testglobal, global_nuts_halfnormal) {
     mean += samples[i][0]._double;
   }
   mean /= samples.size();
-  EXPECT_NEAR(mean, 1.65, 0.02);
+  EXPECT_NEAR(mean, 1.69, 0.04);
 }

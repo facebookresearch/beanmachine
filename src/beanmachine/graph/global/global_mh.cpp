@@ -17,8 +17,8 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
   graph.samples.clear();
   std::vector<std::vector<NodeValue>> values;
 
-  state.initialize_values(init_type, seed);
   prepare_graph();
+  state.initialize_values(init_type, seed);
   proposer->initialize(state, gen, num_warmup_samples);
 
   for (int i = 0; i < num_samples + num_warmup_samples; i++) {
