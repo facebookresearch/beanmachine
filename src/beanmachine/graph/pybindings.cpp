@@ -11,6 +11,10 @@ namespace py = pybind11;
 PYBIND11_MODULE(graph, module) {
   module.doc() = "module for python bindings to the graph API";
 
+  py::enum_<TransformType>(module, "TransformType")
+      .value("NONE", TransformType::NONE)
+      .value("LOG", TransformType::LOG);
+
   py::enum_<VariableType>(module, "VariableType")
       .value("SCALAR", VariableType::SCALAR)
       .value("BROADCAST_MATRIX", VariableType::BROADCAST_MATRIX)
@@ -328,6 +332,12 @@ PYBIND11_MODULE(graph, module) {
           py::arg("seed") = 5123401,
           py::arg("elbo_samples") = 0)
       .def(
+          "customize_transformation",
+          &Graph::customize_transformation,
+          "customize transformation",
+          py::arg("transform_type"),
+          py::arg("node_ids"))
+      .def(
           "get_elbo",
           &Graph::get_elbo,
           "get the evidence lower bound (ELBO) of the last variational call")
@@ -344,6 +354,28 @@ PYBIND11_MODULE(graph, module) {
           "performance_report",
           &Graph::performance_report,
           "performance report");
+
+  py::class_<NUTS>(module, "NUTS")
+      .def(py::init<Graph&, uint>())
+      .def(
+          "infer",
+          &NUTS::infer,
+          "infer",
+          py::arg("num_samples"),
+          py::arg("seed"),
+          py::arg("num_warmup_samples") = 0,
+          py::arg("save_warmup") = false);
+
+  py::class_<HMC>(module, "HMC")
+      .def(py::init<Graph&, uint, double, double>())
+      .def(
+          "infer",
+          &HMC::infer,
+          "infer",
+          py::arg("num_samples"),
+          py::arg("seed"),
+          py::arg("num_warmup_samples") = 0,
+          py::arg("save_warmup") = false);
 }
 
 } // namespace graph

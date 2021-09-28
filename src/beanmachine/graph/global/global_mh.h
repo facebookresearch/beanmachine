@@ -32,5 +32,10 @@ class HMC : public GlobalMH {
   HMC(Graph& g, uint seed, double path_length, double step_size);
 };
 
+class NUTS : public GlobalMH {
+ public:
+  NUTS(Graph& g, uint seed);
+};
+
 } // namespace graph
 } // namespace beanmachine
