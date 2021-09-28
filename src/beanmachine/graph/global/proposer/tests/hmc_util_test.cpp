@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <random>
 
-#include "beanmachine/graph/global/hmc_util.h"
+#include "beanmachine/graph/global/proposer/hmc_util.h"
 
 using namespace beanmachine;
 using namespace graph;
