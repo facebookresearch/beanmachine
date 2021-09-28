@@ -10,7 +10,7 @@ class GlobalMH {
   GlobalState state;
   std::unique_ptr<GlobalProposer> proposer;
 
-  GlobalMH(Graph& g, uint seed);
+  explicit GlobalMH(Graph& g);
   std::vector<std::vector<NodeValue>>& infer(
       int num_samples,
       uint seed,
@@ -23,17 +23,17 @@ class GlobalMH {
 
 class RandomWalkMH : public GlobalMH {
  public:
-  RandomWalkMH(Graph& g, uint seed, double step_size);
+  RandomWalkMH(Graph& g, double step_size);
 };
 
 class HMC : public GlobalMH {
  public:
-  HMC(Graph& g, uint seed, double path_length, double step_size);
+  HMC(Graph& g, double path_length, double step_size);
 };
 
 class NUTS : public GlobalMH {
  public:
-  NUTS(Graph& g, uint seed);
+  explicit NUTS(Graph& g);
 };
 
 } // namespace graph

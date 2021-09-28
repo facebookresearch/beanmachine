@@ -4,8 +4,7 @@
 namespace beanmachine {
 namespace graph {
 
-RandomWalkMH::RandomWalkMH(Graph& g, uint seed, double step_size)
-    : GlobalMH(g, seed) {
+RandomWalkMH::RandomWalkMH(Graph& g, double step_size) : GlobalMH(g) {
   proposer =
       std::make_unique<RandomWalkProposer>(RandomWalkProposer(step_size));
 }

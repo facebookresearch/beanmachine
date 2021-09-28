@@ -4,8 +4,7 @@
 namespace beanmachine {
 namespace graph {
 
-HMC::HMC(Graph& g, uint seed, double path_length, double step_size)
-    : GlobalMH(g, seed) {
+HMC::HMC(Graph& g, double path_length, double step_size) : GlobalMH(g) {
   proposer = std::make_unique<HmcProposer>(HmcProposer(path_length, step_size));
 }
 

@@ -30,7 +30,7 @@ TEST(testglobal, nuts_normal_normal) {
   g.query(sample);
 
   uint seed = 17;
-  NUTS mh = NUTS(g, seed);
+  NUTS mh = NUTS(g);
   std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed, 1000);
 
   double mean = 0;
@@ -65,7 +65,7 @@ TEST(testglobal, nuts_gamma_gamma) {
   g.query(sample);
 
   uint seed = 17;
-  NUTS mh = NUTS(g, seed);
+  NUTS mh = NUTS(g);
   std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed, 1000);
   EXPECT_EQ(samples.size(), 2000);
   double mean = 0;
@@ -92,7 +92,7 @@ TEST(testglobal, global_nuts_half_cauchy) {
 
   uint seed = 17;
   uint num_samples = 5000;
-  NUTS mh = NUTS(g, seed);
+  NUTS mh = NUTS(g);
   std::vector<std::vector<NodeValue>> samples =
       mh.infer(num_samples, seed, num_samples);
   EXPECT_EQ(samples.size(), num_samples);
@@ -158,7 +158,7 @@ TEST(testglobal, global_nuts_mixed) {
   g.query(sample);
 
   uint seed = 17;
-  NUTS mh = NUTS(g, seed);
+  NUTS mh = NUTS(g);
   std::vector<std::vector<NodeValue>> samples =
       mh.infer(2000, seed, 2000, false);
   EXPECT_EQ(samples.size(), 2000);
@@ -209,7 +209,7 @@ TEST(testglobal, global_nuts_halfnormal) {
   g.query(a_sample);
 
   uint seed = 17;
-  NUTS mh = NUTS(g, seed);
+  NUTS mh = NUTS(g);
   std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed, 2000);
 
   double mean = 0;

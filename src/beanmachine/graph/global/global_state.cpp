@@ -14,28 +14,21 @@
 namespace beanmachine {
 namespace graph {
 
-GlobalState::GlobalState(Graph& g, uint seed) : graph(g) {
-  std::mt19937 gen(seed);
+GlobalState::GlobalState(Graph& g) : graph(g) {
   flat_size = 0;
   std::set<uint> supp = graph.compute_support();
   for (uint node_id : supp) {
     ordered_support.push_back(graph.nodes[node_id].get());
   }
 
-  // initialize values
+  // initialize unconstrained value types
+  // TODO: rename to initialize_unconstrained_value_types
   for (auto node : ordered_support) {
-    if (!node->is_observed) {
-      // TODO: add different methods of initialization
-      node->eval(gen);
-    }
     if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
       sto_node->get_unconstrained_value(true);
     }
   }
-
-  // update backward gradients
-  update_backgrad();
 
   // save stochastic and deterministic nodes
   for (auto node : ordered_support) {
@@ -64,7 +57,25 @@ GlobalState::GlobalState(Graph& g, uint seed) : graph(g) {
       flat_size += unconstrained_value._matrix.size();
     }
   }
+}
 
+void GlobalState::initialize_values(uint seed) {
+  std::mt19937 gen(seed);
+
+  // initialize values
+  for (auto node : ordered_support) {
+    if (!node->is_observed) {
+      // TODO: add different methods of initialization
+      node->eval(gen);
+    }
+    if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
+      auto sto_node = static_cast<oper::StochasticOperator*>(node);
+      sto_node->get_unconstrained_value(true);
+    }
+  }
+
+  // update backward gradients
+  update_backgrad();
   backup_unconstrained_values();
   backup_unconstrained_grads();
   update_log_prob();

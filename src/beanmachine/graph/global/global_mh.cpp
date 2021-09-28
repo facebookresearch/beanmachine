@@ -3,8 +3,7 @@
 
 namespace beanmachine {
 namespace graph {
-GlobalMH::GlobalMH(Graph& g, uint seed)
-    : graph(g), state(GlobalState(g, seed)) {}
+GlobalMH::GlobalMH(Graph& g) : graph(g), state(GlobalState(g)) {}
 
 std::vector<std::vector<NodeValue>>& GlobalMH::infer(
     int num_samples,
@@ -17,6 +16,7 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
   graph.samples.clear();
   std::vector<std::vector<NodeValue>> values;
 
+  state.initialize_values(seed);
   prepare_graph();
   proposer->initialize(state, gen, num_warmup_samples);
 

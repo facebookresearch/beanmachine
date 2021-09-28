@@ -13,7 +13,7 @@ Reference:
     https://arxiv.org/abs/1111.4246
 */
 
-NUTS::NUTS(Graph& g, uint seed) : GlobalMH(g, seed) {
+NUTS::NUTS(Graph& g) : GlobalMH(g) {
   proposer = std::make_unique<NutsProposer>(NutsProposer());
 }
 

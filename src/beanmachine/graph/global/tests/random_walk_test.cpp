@@ -31,7 +31,7 @@ TEST(testglobal, rw_normal_normal) {
   g.query(sample);
 
   uint seed = 17;
-  RandomWalkMH mh = RandomWalkMH(g, seed, 0.5);
+  RandomWalkMH mh = RandomWalkMH(g, 0.5);
   std::vector<std::vector<NodeValue>> samples = mh.infer(10000, seed);
   EXPECT_EQ(samples.size(), 10000);
 
@@ -66,7 +66,7 @@ TEST(testglobal, rw_distant_normal_normal) {
   g.query(sample);
 
   uint seed = 17;
-  RandomWalkMH mh = RandomWalkMH(g, seed, 0.5);
+  RandomWalkMH mh = RandomWalkMH(g, 0.5);
   std::vector<std::vector<NodeValue>> samples = mh.infer(10000, seed);
   EXPECT_EQ(samples.size(), 10000);
 
@@ -102,7 +102,7 @@ TEST(testglobal, rw_gamma_gamm) {
   g.customize_transformation(TransformType::LOG, {gamma_p});
 
   uint seed = 17;
-  RandomWalkMH mh = RandomWalkMH(g, seed, 0.5);
+  RandomWalkMH mh = RandomWalkMH(g, 0.5);
   std::vector<std::vector<NodeValue>> samples = mh.infer(10000, seed);
   EXPECT_EQ(samples.size(), 10000);
 

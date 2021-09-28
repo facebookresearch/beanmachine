@@ -5,7 +5,8 @@ namespace graph {
 
 class GlobalState {
  public:
-  explicit GlobalState(Graph& g, uint seed);
+  explicit GlobalState(Graph& g);
+  void initialize_values(uint seed);
   void backup_unconstrained_values();
   void backup_unconstrained_grads();
   void revert_unconstrained_values();

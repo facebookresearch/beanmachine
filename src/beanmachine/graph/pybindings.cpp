@@ -356,7 +356,7 @@ PYBIND11_MODULE(graph, module) {
           "performance report");
 
   py::class_<NUTS>(module, "NUTS")
-      .def(py::init<Graph&, uint>())
+      .def(py::init<Graph&>())
       .def(
           "infer",
           &NUTS::infer,
@@ -367,7 +367,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("save_warmup") = false);
 
   py::class_<HMC>(module, "HMC")
-      .def(py::init<Graph&, uint, double, double>())
+      .def(py::init<Graph&, double, double>())
       .def(
           "infer",
           &HMC::infer,

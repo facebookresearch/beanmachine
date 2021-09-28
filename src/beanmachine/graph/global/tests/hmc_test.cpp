@@ -33,7 +33,7 @@ TEST(testglobal, global_hmc_normal_normal) {
   g.query(sample);
 
   uint seed = 17;
-  HMC mh = HMC(g, seed, 1.0, 1.0);
+  HMC mh = HMC(g, 1.0, 1.0);
   std::vector<std::vector<NodeValue>> samples = mh.infer(10000, seed);
   EXPECT_EQ(samples.size(), 10000);
 
@@ -69,7 +69,7 @@ TEST(testglobal, global_hmc_gamma_gamma) {
   g.query(sample);
 
   uint seed = 17;
-  HMC mh = HMC(g, seed, 1.0, 1.0);
+  HMC mh = HMC(g, 1.0, 1.0);
   std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed);
   EXPECT_EQ(samples.size(), 2000);
   double mean = 0;
@@ -96,7 +96,7 @@ TEST(testglobal, global_hmc_half_cauchy) {
 
   uint seed = 17;
   uint num_samples = 10000;
-  HMC mh = HMC(g, seed, 1.0, 1.0);
+  HMC mh = HMC(g, 1.0, 1.0);
   std::vector<std::vector<NodeValue>> samples = mh.infer(num_samples, seed);
   EXPECT_EQ(samples.size(), 10000);
 
@@ -138,7 +138,7 @@ TEST(testglobal, global_hmc_warmup_normal_normal) {
   g.query(sample);
 
   uint seed = 17;
-  HMC mh = HMC(g, seed, 1.0, 1.0);
+  HMC mh = HMC(g, 1.0, 1.0);
   std::vector<std::vector<NodeValue>> samples = mh.infer(500, seed, 500);
   EXPECT_EQ(samples.size(), 500);
 
@@ -200,7 +200,7 @@ TEST(testglobal, global_hmc_warmup) {
   g.query(sample);
 
   uint seed = 17;
-  HMC mh = HMC(g, seed, 1.0, 0.1);
+  HMC mh = HMC(g, 1.0, 0.1);
   std::vector<std::vector<NodeValue>> samples =
       mh.infer(2000, seed, 1000, false);
   EXPECT_EQ(samples.size(), 2000);

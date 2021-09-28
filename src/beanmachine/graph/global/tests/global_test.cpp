@@ -36,8 +36,7 @@ TEST(testglobal, global_state_no_transform) {
   g.query(sample_sample);
   g.query(sample3);
 
-  uint seed = 17;
-  GlobalState state = GlobalState(g, seed);
+  GlobalState state = GlobalState(g);
 
   Eigen::VectorXd unconstrained_values(3);
   Eigen::VectorXd get_flattened_values;
@@ -153,8 +152,7 @@ TEST(testglobal, global_state_transform) {
   g.query(x1);
   g.query(x2);
 
-  uint seed = 17;
-  GlobalState state = GlobalState(g, seed);
+  GlobalState state = GlobalState(g);
 
   Eigen::VectorXd unconstrained_values(4);
   unconstrained_values << -1.2, -2.0, -0.4, -0.8;
@@ -208,8 +206,7 @@ TEST(testglobal, global_state_gamma_transform_obs) {
   uint p2 = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{g2_dist});
   g.observe(p2, 0.8);
 
-  uint seed = 17;
-  GlobalState state = GlobalState(g, seed);
+  GlobalState state = GlobalState(g);
 
   Eigen::VectorXd unconstrained_values(1);
   unconstrained_values << -0.5;
@@ -260,8 +257,7 @@ TEST(testglobal, global_state_gamma_transform) {
   g.query(p2);
   g.customize_transformation(TransformType::LOG, {p, p2});
 
-  uint seed = 17;
-  GlobalState state = GlobalState(g, seed);
+  GlobalState state = GlobalState(g);
 
   Eigen::VectorXd unconstrained_values(2);
   unconstrained_values << -0.5, -0.2231;
