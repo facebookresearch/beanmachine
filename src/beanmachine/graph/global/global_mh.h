@@ -1,5 +1,4 @@
-#include <random>
-#include "beanmachine/graph/global/global_proposer.h"
+#include "beanmachine/graph/global/proposer/global_proposer.h"
 #include "beanmachine/graph/graph.h"
 
 namespace beanmachine {

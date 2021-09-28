@@ -1,6 +1,6 @@
 // (c) Facebook, Inc. and its affiliates. Confidential and proprietary.
 
-#include "beanmachine/graph/global/hmc_util.h"
+#include "beanmachine/graph/global/proposer/hmc_util.h"
 
 namespace beanmachine {
 namespace graph {
