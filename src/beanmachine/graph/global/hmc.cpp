@@ -49,6 +49,18 @@ void HmcProposer::warmup(
   }
 }
 
+Eigen::VectorXd HmcProposer::initialize_momentum(
+    Eigen::VectorXd position,
+    std::mt19937& gen) {
+  Eigen::VectorXd momentum(position.size());
+  std::normal_distribution<double> normal_dist(0.0, 1.0);
+  for (int i = 0; i < momentum.size(); i++) {
+    momentum[i] = normal_dist(gen);
+  }
+
+  return momentum;
+}
+
 double HmcProposer::propose(GlobalState& state, std::mt19937& gen) {
   Eigen::VectorXd position;
   state.get_flattened_unconstrained_values(position);
