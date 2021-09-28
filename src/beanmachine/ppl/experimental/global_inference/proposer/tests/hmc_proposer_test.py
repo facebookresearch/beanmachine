@@ -60,4 +60,4 @@ def test_leapfrog_step(world, hmc):
         world, momentums, step_size, hmc._mass_inv
     )
     assert momentums == new_momentums
-    assert new_world._transformed_values == world._transformed_values
+    assert new_world._variables == world._variables
