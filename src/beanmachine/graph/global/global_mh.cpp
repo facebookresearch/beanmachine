@@ -9,14 +9,15 @@ std::vector<std::vector<NodeValue>>& GlobalMH::infer(
     int num_samples,
     uint seed,
     int num_warmup_samples,
-    bool save_warmup) {
+    bool save_warmup,
+    InitType init_type) {
   std::mt19937 gen(seed);
   // TODO: tie samples directly to inference
   graph.agg_type = AggregationType::NONE;
   graph.samples.clear();
   std::vector<std::vector<NodeValue>> values;
 
-  state.initialize_values(seed);
+  state.initialize_values(init_type, seed);
   prepare_graph();
   proposer->initialize(state, gen, num_warmup_samples);
 

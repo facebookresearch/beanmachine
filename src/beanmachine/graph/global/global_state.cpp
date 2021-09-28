@@ -59,22 +59,30 @@ GlobalState::GlobalState(Graph& g) : graph(g) {
   }
 }
 
-void GlobalState::initialize_values(uint seed) {
-  std::mt19937 gen(seed);
-
-  // initialize values
-  for (auto node : ordered_support) {
-    if (!node->is_observed) {
-      // TODO: add different methods of initialization
-      node->eval(gen);
-    }
-    if (node->is_stochastic() and node->node_type == NodeType::OPERATOR) {
+void GlobalState::initialize_values(InitType init_type, uint seed) {
+  std::mt19937 gen(31 * seed + 17);
+  if (init_type == InitType::PRIOR) {
+    // Sample from stochastic nodes and update values directly
+    for (auto node : stochastic_nodes) {
       auto sto_node = static_cast<oper::StochasticOperator*>(node);
-      sto_node->get_unconstrained_value(true);
+      sto_node->eval(gen);
+      sto_node->get_unconstrained_value(true); // TODO: rename this function
     }
+  } else {
+    // Update using set_flattened_unconstrained_values
+    Eigen::VectorXd flattened_values(flat_size);
+    if (init_type == InitType::RANDOM) {
+      std::uniform_real_distribution<> uniform_real_distribution(-2, 2);
+      for (int i = 0; i < flat_size; i++) {
+        flattened_values[i] = uniform_real_distribution(gen);
+      }
+    } else if (init_type == InitType::ZERO) {
+      flattened_values = Eigen::VectorXd::Zero(flat_size);
+    }
+    set_flattened_unconstrained_values(flattened_values);
   }
 
-  // update backward gradients
+  // update and backup values, gradients, and log_prob
   update_backgrad();
   backup_unconstrained_values();
   backup_unconstrained_grads();

@@ -66,7 +66,7 @@ TEST(testglobal, rw_distant_normal_normal) {
   g.query(sample);
 
   uint seed = 17;
-  RandomWalkMH mh = RandomWalkMH(g, 0.5);
+  RandomWalkMH mh = RandomWalkMH(g, 1.5);
   std::vector<std::vector<NodeValue>> samples = mh.infer(10000, seed);
   EXPECT_EQ(samples.size(), 10000);
 

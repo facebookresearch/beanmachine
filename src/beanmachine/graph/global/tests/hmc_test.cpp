@@ -69,7 +69,7 @@ TEST(testglobal, global_hmc_gamma_gamma) {
   g.query(sample);
 
   uint seed = 17;
-  HMC mh = HMC(g, 1.0, 1.0);
+  HMC mh = HMC(g, 1.0, 0.5);
   std::vector<std::vector<NodeValue>> samples = mh.infer(2000, seed);
   EXPECT_EQ(samples.size(), 2000);
   double mean = 0;
@@ -147,7 +147,7 @@ TEST(testglobal, global_hmc_warmup_normal_normal) {
     mean += samples[i][0]._double;
   }
   mean /= samples.size();
-  EXPECT_NEAR(mean, 2.0 / 3, 0.01);
+  EXPECT_NEAR(mean, 2.0 / 3, 0.02);
 }
 
 TEST(testglobal, global_hmc_warmup) {

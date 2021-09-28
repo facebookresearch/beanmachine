@@ -15,7 +15,8 @@ class GlobalMH {
       int num_samples,
       uint seed,
       int num_warmup_samples = 0,
-      bool save_warmup = false);
+      bool save_warmup = false,
+      InitType init_type = InitType::RANDOM);
   virtual void prepare_graph() {}
   void single_mh_step(GlobalState& state);
   virtual ~GlobalMH() {}

@@ -278,3 +278,91 @@ TEST(testglobal, global_state_gamma_transform) {
   */
   EXPECT_NEAR(grads1[0], 2.3017, 0.001);
 }
+
+TEST(testglobal, global_state_initialization) {
+  /* Test initialization in real space */
+  Graph g;
+  uint hundred = g.add_constant(100.0);
+  uint one = g.add_constant_pos_real(1.0);
+  uint thousand = g.add_constant((natural_t)1000);
+
+  uint normal_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{hundred, one});
+  uint sample = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, thousand});
+  g.query(sample);
+
+  GlobalState state = GlobalState(g);
+  uint seed = 17;
+
+  // check all values = 0.0
+  state.initialize_values(InitType::ZERO, seed);
+  Eigen::VectorXd flattened_values;
+  state.get_flattened_unconstrained_values(flattened_values);
+  for (int i = 0; i < flattened_values.size(); i++) {
+    EXPECT_NEAR(flattened_values[i], 0.0, 1e-4);
+  }
+
+  // check all values are between -2 and 2
+  // values should be centered around 0 but nonzero
+  state.initialize_values(InitType::RANDOM, seed);
+  state.get_flattened_unconstrained_values(flattened_values);
+  for (int i = 0; i < flattened_values.size(); i++) {
+    EXPECT_GE(flattened_values[i], -2.0);
+    EXPECT_LE(flattened_values[i], 2.0);
+  }
+  EXPECT_NEAR(flattened_values.mean(), 0.0, 0.1);
+  EXPECT_FALSE(flattened_values.isZero());
+
+  // check that values are drawn from the prior Normal(100, 1)
+  state.initialize_values(InitType::PRIOR, seed);
+  state.get_flattened_unconstrained_values(flattened_values);
+  EXPECT_NEAR(flattened_values.mean(), 100.0, 0.1);
+}
+
+TEST(testglobal, global_state_transform_initialization) {
+  /* Test initialization in log_transform space */
+  Graph g;
+  uint twohundred = g.add_constant_pos_real(200.0);
+  uint hundred = g.add_constant_pos_real(100.0);
+  uint thousand = g.add_constant((natural_t)1000);
+
+  uint normal_dist = g.add_distribution(
+      DistributionType::GAMMA,
+      AtomicType::POS_REAL,
+      std::vector<uint>{twohundred, hundred});
+  uint sample = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, thousand});
+  g.query(sample);
+  g.customize_transformation(TransformType::LOG, {sample});
+
+  GlobalState state = GlobalState(g);
+  uint seed = 17;
+
+  // check all values = 0.0
+  state.initialize_values(InitType::ZERO, seed);
+  Eigen::VectorXd flattened_values;
+  state.get_flattened_unconstrained_values(flattened_values);
+  for (int i = 0; i < flattened_values.size(); i++) {
+    EXPECT_NEAR(flattened_values[i], 0.0, 1e-4);
+  }
+
+  // check all values are between -2 and 2
+  // values should be centered around 0 but nonzero
+  state.initialize_values(InitType::RANDOM, seed);
+  state.get_flattened_unconstrained_values(flattened_values);
+  for (int i = 0; i < flattened_values.size(); i++) {
+    EXPECT_GE(flattened_values[i], -2.0);
+    EXPECT_LE(flattened_values[i], 2.0);
+  }
+  EXPECT_NEAR(flattened_values.mean(), 0.0, 0.1);
+  EXPECT_FALSE(flattened_values.isZero());
+
+  // check that values are drawn from the prior Gamma(200, 100)
+  // mean of Gamma(200, 100): 2.0
+  state.initialize_values(InitType::PRIOR, seed);
+  state.get_flattened_unconstrained_values(flattened_values);
+  EXPECT_NEAR(flattened_values.mean(), std::log(2.0), 0.1);
+}

@@ -15,6 +15,11 @@ PYBIND11_MODULE(graph, module) {
       .value("NONE", TransformType::NONE)
       .value("LOG", TransformType::LOG);
 
+  py::enum_<InitType>(module, "InitType")
+      .value("PRIOR", InitType::PRIOR)
+      .value("RANDOM", InitType::RANDOM)
+      .value("ZERO", InitType::ZERO);
+
   py::enum_<VariableType>(module, "VariableType")
       .value("SCALAR", VariableType::SCALAR)
       .value("BROADCAST_MATRIX", VariableType::BROADCAST_MATRIX)
@@ -364,7 +369,8 @@ PYBIND11_MODULE(graph, module) {
           py::arg("num_samples"),
           py::arg("seed"),
           py::arg("num_warmup_samples") = 0,
-          py::arg("save_warmup") = false);
+          py::arg("save_warmup") = false,
+          py::arg("init_type") = InitType::RANDOM);
 
   py::class_<HMC>(module, "HMC")
       .def(py::init<Graph&, double, double>())
@@ -375,7 +381,8 @@ PYBIND11_MODULE(graph, module) {
           py::arg("num_samples"),
           py::arg("seed"),
           py::arg("num_warmup_samples") = 0,
-          py::arg("save_warmup") = false);
+          py::arg("save_warmup") = false,
+          py::arg("init_type") = InitType::RANDOM);
 }
 
 } // namespace graph
