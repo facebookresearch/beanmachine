@@ -79,7 +79,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         return new_mcs
 
     def get_variable(
-        self, rv: RVIdentifier, include_adapt_steps: bool = False
+        self, rv: RVIdentifier, include_adapt_steps: bool = False, thinning: int = 1
     ) -> torch.Tensor:
         """
         Let C be the number of chains,
@@ -110,10 +110,11 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         if include_adapt_steps:
             samples = torch.cat([samples, self.adaptive_samples[rv]], dim=1)
 
+        if thinning > 1:
+            samples = samples[:, ::thinning]
         if self.single_chain_view:
-            return samples.squeeze(0)
-        else:
-            return samples
+            samples = samples.squeeze(0)
+        return samples
 
     def get(
         self,
@@ -121,6 +122,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         default: Any = None,
         chain: Optional[int] = None,
         include_adapt_steps: bool = False,
+        thinning: int = 1,
     ):
         """
         Return the value of the random variable if rv is in the dictionary, otherwise
@@ -136,7 +138,7 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         else:
             samples = self.get_chain(chain)
 
-        return samples.get_variable(rv, include_adapt_steps)
+        return samples.get_variable(rv, include_adapt_steps, thinning)
 
     def get_num_samples(self, include_adapt_steps: bool = False) -> int:
         """

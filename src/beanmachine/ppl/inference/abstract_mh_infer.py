@@ -398,6 +398,7 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
         observations: Dict[RVIdentifier, Tensor],
         num_samples: Optional[int] = None,
         num_adaptive_samples: int = 0,
+        thinning: int = 1,
         return_adaptive_samples: bool = False,
     ) -> Sampler:
         return Sampler(
@@ -405,6 +406,7 @@ class AbstractMHInference(AbstractMCInference, metaclass=ABCMeta):
             queries,
             observations,
             num_samples,
-            num_adaptive_samples,
-            return_adaptive_samples,
+            num_adaptive_samples=num_adaptive_samples,
+            thinning=thinning,
+            return_adaptive_samples=return_adaptive_samples,
         )

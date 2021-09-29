@@ -60,3 +60,21 @@ class SamplerTest(unittest.TestCase):
         samples = samplers[0].to_monte_carlo_samples(chains)
         self.assertIn(model.foo(), samples)
         self.assertEqual(samples[model.foo()].shape, (num_chains, num_samples))
+
+    def test_thinning(self):
+        mock_out = iter(range(20))
+
+        def mock_single_iter(*args, **kwargs):
+            return next(mock_out)
+
+        model = self.SampleModel()
+        sampler = bm.SingleSiteAncestralMetropolisHastings().sampler(
+            [model.foo()], {model.bar(): torch.tensor(0.3)}, thinning=4
+        )
+        # mock the result of inference
+        sampler.kernel._single_iteration_run = mock_single_iter
+        expected = 0
+        for _ in range(5):
+            out = next(sampler)
+            self.assertEqual(out, expected)
+            expected += 4
