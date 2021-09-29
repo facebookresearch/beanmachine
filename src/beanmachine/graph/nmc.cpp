@@ -15,6 +15,7 @@
 #include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.h"
 #include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.h"
 #include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/single_site/sequential_single_site_stepper.h"
 #include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
 #include "beanmachine/graph/util.h"
 
@@ -28,10 +29,15 @@ NMC::NMC(Graph* g, uint seed)
          // because DirichletGamma is also applicable to
          // nodes to which Beta is applicable,
          // but we want to give priority to Beta in those cases.
-         std::vector<SingleSiteSteppingMethod*>{
-             new NMCScalarSingleSiteSteppingMethod(g, this),
-             new NMCDirichletBetaSingleSiteSteppingMethod(g, this),
-             new NMCDirichletGammaSingleSiteSteppingMethod(g, this)}) {}
+         new SequentialSingleSiteStepper( // okay to allocate but not deallocate
+                                          // because MH takes ownership of
+                                          // stepper.
+             g,
+             this,
+             std::vector<SingleSiteSteppingMethod*>{
+                 new NMCScalarSingleSiteSteppingMethod(g, this),
+                 new NMCDirichletBetaSingleSiteSteppingMethod(g, this),
+                 new NMCDirichletGammaSingleSiteSteppingMethod(g, this)})) {}
 
 NMC::~NMC() {}
 
