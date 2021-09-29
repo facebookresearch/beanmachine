@@ -62,7 +62,8 @@ class MH {
   // of this vector should never be accessed.
   std::vector<uint> unobserved_sto_support_index_by_node_id;
 
-  SequentialSingleSiteStepper stepper;
+  // The stepper responsible for taking steps over the Markov chain.
+  Stepper* stepper;
 
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
@@ -90,9 +91,9 @@ class MH {
 
   std::mt19937 gen;
 
-  MH(Graph* g,
-     uint seed,
-     std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods);
+  // Constructs MH algorithm based on stepper.
+  // Takes ownership of stepper instance.
+  MH(Graph* g, uint seed, Stepper* stepper);
 
   const std::vector<Node*>& unobserved_stochastic_support() {
     return unobserved_sto_supp;
