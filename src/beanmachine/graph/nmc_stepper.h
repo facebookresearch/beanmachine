@@ -1,0 +1,37 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+#include <algorithm>
+#include <cmath>
+#include <random>
+#include <string>
+#include <vector>
+
+#include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/nmc.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/single_site/sequential_single_site_stepper.h"
+
+namespace beanmachine {
+namespace graph {
+
+// A stepper implementing NMC; this is separate from NMC algorithm so that it
+// can be easily combined with other steppers.
+class NMCStepper : public SequentialSingleSiteStepper {
+ public:
+  NMCStepper(Graph* g, MH* mh)
+      : SequentialSingleSiteStepper(
+            g,
+            mh,
+            std::vector<SingleSiteSteppingMethod*>{
+                // Note: the order of steppers below is important
+                // because DirichletGamma is also applicable to
+                // nodes to which Beta is applicable,
+                // but we want to give priority to Beta in those cases.
+                new NMCScalarSingleSiteSteppingMethod(g, mh),
+                new NMCDirichletBetaSingleSiteSteppingMethod(g, mh),
+                new NMCDirichletGammaSingleSiteSteppingMethod(g, mh)}) {}
+};
+
+} // namespace graph
+} // namespace beanmachine

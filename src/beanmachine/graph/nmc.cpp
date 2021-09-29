@@ -8,6 +8,7 @@
 #include "beanmachine/graph/distribution/distribution.h"
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/nmc.h"
+#include "beanmachine/graph/nmc_stepper.h"
 #include "beanmachine/graph/operator/stochasticop.h"
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
@@ -22,22 +23,9 @@
 namespace beanmachine {
 namespace graph {
 
-NMC::NMC(Graph* g, uint seed)
-    : MH(g,
-         seed,
-         // Note: the order of steppers below is important
-         // because DirichletGamma is also applicable to
-         // nodes to which Beta is applicable,
-         // but we want to give priority to Beta in those cases.
-         new SequentialSingleSiteStepper( // okay to allocate but not deallocate
-                                          // because MH takes ownership of
-                                          // stepper.
-             g,
-             this,
-             std::vector<SingleSiteSteppingMethod*>{
-                 new NMCScalarSingleSiteSteppingMethod(g, this),
-                 new NMCDirichletBetaSingleSiteSteppingMethod(g, this),
-                 new NMCDirichletGammaSingleSiteSteppingMethod(g, this)})) {}
+NMC::NMC(Graph* g, uint seed) : MH(g, seed, new NMCStepper(g, this)) {}
+// Ok to allocate and not delete NMCStepper because MH takes ownership
+// of its stepper.
 
 NMC::~NMC() {}
 
