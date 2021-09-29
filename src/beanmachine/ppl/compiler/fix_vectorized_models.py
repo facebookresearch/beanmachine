@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from typing import Optional
+from typing import Optional, List, Dict, Type, Callable
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
@@ -53,74 +53,60 @@ def _is_fixable_size(s: Size) -> bool:
 class VectorizedDistributionFixer(ProblemFixerBase):
 
     fixed_one: bool
+    _factories: Dict[Type, Callable]
 
     def __init__(self, bmg: BMGraphBuilder, typer: Sizer) -> None:
         ProblemFixerBase.__init__(self, bmg, typer)
         self.fixed_one = False
+        self._factories = {
+            bn.BernoulliNode: bmg.add_bernoulli,
+            bn.BernoulliLogitNode: bmg.add_bernoulli_logit,
+        }
 
-    def _is_fixable_bernoulli(self, n: bn.BMGNode) -> bool:
-        if not isinstance(n, bn.SampleNode):
-            return False
-        dist = n.operand
-        if not isinstance(dist, bn.BernoulliBase):
-            return False
-        s = self._typer[dist.probability]
-        return _is_fixable_size(s)
-
-    def _needs_fixing(self, n: bn.BMGNode) -> bool:
-        return self._is_fixable_bernoulli(n)
-
-    def _add_bernoulli_sample_1(self, node: bn.BernoulliBase, i: int) -> bn.SampleNode:
-        p = node.probability
-        ci = self._bmg.add_constant(i)
-        pi = self._bmg.add_index(p, ci)
-        if isinstance(node, bn.BernoulliNode):
-            bi = self._bmg.add_bernoulli(pi)
-        else:
-            assert isinstance(node, bn.BernoulliLogitNode)
-            bi = self._bmg.add_bernoulli_logit(pi)
-        si = self._bmg.add_sample(bi)
-        return si
-
-    def _add_bernoulli_sample_2(
-        self, node: bn.BernoulliBase, i: int, j: int
-    ) -> bn.SampleNode:
-        p = node.probability
-        ci = self._bmg.add_constant(i)
-        cj = self._bmg.add_constant(j)
-        pi = self._bmg.add_index(p, ci)
-        pij = self._bmg.add_index(pi, cj)
-        if isinstance(node, bn.BernoulliNode):
-            bij = self._bmg.add_bernoulli(pij)
-        else:
-            assert isinstance(node, bn.BernoulliLogitNode)
-            bij = self._bmg.add_bernoulli_logit(pij)
-        sij = self._bmg.add_sample(bij)
-        return sij
-
-    def _replace_bernoulli(self, node: bn.SampleNode) -> bn.BMGNode:
-        dist = node.operand
-        assert isinstance(dist, bn.BernoulliBase)
-        size = self._typer[dist.probability]
+    def _node_to_index_list(self, n: bn.BMGNode) -> List[bn.BMGNode]:
+        size = self._typer[n]
         dim = len(size)
-        samples = []
+        index_list = []
         if dim == 1:
             for i in range(0, size[0]):
-                samples.append(self._add_bernoulli_sample_1(dist, i))
+                ci = self._bmg.add_constant(i)
+                ni = self._bmg.add_index(n, ci)
+                index_list.append(ni)
         else:
             assert dim == 2
             for i in range(0, size[0]):
                 for j in range(0, size[1]):
-                    samples.append(self._add_bernoulli_sample_2(dist, i, j))
+                    ci = self._bmg.add_constant(i)
+                    cj = self._bmg.add_constant(j)
+                    ni = self._bmg.add_index(n, ci)
+                    nij = self._bmg.add_index(ni, cj)
+                    index_list.append(nij)
+        return index_list
+
+    def _replace_sample(self, node: bn.SampleNode) -> bn.BMGNode:
+        dist = node.operand
+        prob_indexes = self._node_to_index_list(dist.inputs[0])
+        samples = []
+        for p in prob_indexes:
+            b = self._factories[type(dist)](p)
+            s = self._bmg.add_sample(b)
+            samples.append(s)
+        size = self._typer[dist]
         t = self._bmg.add_tensor(size, *samples)
-        self.fixed_one = True
         return t
 
+    def _needs_fixing(self, n: bn.BMGNode) -> bool:
+        if not isinstance(n, bn.SampleNode):
+            return False
+        dist = n.operand
+        if type(dist) not in self._factories:
+            return False
+        return _is_fixable_size(self._typer[dist])
+
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
-        if self._is_fixable_bernoulli(n):
-            assert isinstance(n, bn.SampleNode)
-            return self._replace_bernoulli(n)
-        return None
+        assert isinstance(n, bn.SampleNode)
+        self.fixed_one = True
+        return self._replace_sample(n)
 
 
 class VectorizedModelFixer:
