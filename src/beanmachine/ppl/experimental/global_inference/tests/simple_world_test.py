@@ -30,22 +30,27 @@ def test_basic_operations():
     observations = {model.bar(): torch.rand(())}
     world = SimpleWorld(observations=observations)
     assert world.observations == observations
-    assert world._transformed_values == {}
+    assert world._variables == {}
     assert len(world) == 0
 
     with world:
-        model.bar()  # this whould add bar() and its parent foo() to world
+        model.bar()  # this will add bar() and its parent foo() to world
 
     assert len(world) == 2
     assert model.bar() in world
-    assert world.transforms[model.bar()] == dist.identity_transform
+    assert world._variables[model.bar()].transform == dist.identity_transform
     assert world.latent_nodes == {model.foo()}
 
-    transformed_foo = world.get_transformed(model.foo())
-    assert world.transforms[model.foo()].inv(transformed_foo) == world.call(model.foo())
+    # edge connection
+    assert model.foo() in world._variables[model.bar()].parents
+    assert model.bar() in world._variables[model.foo()].children
+    assert len(world._variables[model.bar()].children) == 0
+    assert len(world._variables[model.foo()].parents) == 0
 
-    del world[model.foo()]
-    assert model.foo() not in world
+    transformed_foo = world.get_transformed(model.foo())
+    assert world._variables[model.foo()].transform.inv(transformed_foo) == world.call(
+        model.foo()
+    )
 
 
 def test_initialize_from_prior():
@@ -65,7 +70,7 @@ def test_log_prob():
 
     world2 = world1.copy()
     # set to a value with extremely small probability
-    world2[model.bar()] = torch.tensor(100.0)
+    world2.set_transformed(model.bar(), torch.tensor(100.0))
     log_prob2 = world2.log_prob()
 
     assert log_prob1 > log_prob2
