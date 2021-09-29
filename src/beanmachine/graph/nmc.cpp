@@ -12,10 +12,10 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepper.h"
-#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepper.h"
-#include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepper.h"
-#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/single_site/nmc_scalar_single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {
@@ -28,12 +28,16 @@ NMC::NMC(Graph* g, uint seed)
          // because DirichletGamma is also applicable to
          // nodes to which Beta is applicable,
          // but we want to give priority to Beta in those cases.
-         std::vector<SingleSiteStepper*>{
-             new NMCScalarSingleSiteStepper(g, this),
-             new NMCDirichletBetaSingleSiteStepper(g, this),
-             new NMCDirichletGammaSingleSiteStepper(g, this)}) {}
+         std::vector<SingleSiteSteppingMethod*>{
+             new NMCScalarSingleSiteSteppingMethod(g, this),
+             new NMCDirichletBetaSingleSiteSteppingMethod(g, this),
+             new NMCDirichletGammaSingleSiteSteppingMethod(g, this)}) {}
 
-NMC::~NMC() {}
+NMC::~NMC() {
+  for (auto single_site_stepping_method : single_site_stepping_methods) {
+    delete single_site_stepping_method;
+  }
+}
 
 std::string NMC::is_not_supported(Node* node) {
   if (node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX and

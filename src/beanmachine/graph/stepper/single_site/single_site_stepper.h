@@ -1,26 +1,31 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #pragma once
 #include "beanmachine/graph/graph.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/stepper.h"
 
 namespace beanmachine {
 namespace graph {
 
-class MH;
-
-// An abstraction for code taking a single-site MH step.
-class SingleSiteStepper {
+// A stepper based on a single-site stepping method bound to a specific node.
+class SingleSiteStepper : public Stepper {
  public:
-  SingleSiteStepper(Graph* graph, MH* mh) : graph(graph), mh(mh) {}
+  SingleSiteStepper(
+      SingleSiteSteppingMethod* single_site_stepping_method,
+      Node* node,
+      Graph* graph,
+      MH* mh)
+      : Stepper(graph, mh),
+        single_site_stepping_method(single_site_stepping_method),
+        node(node) {}
 
-  virtual bool is_applicable_to(graph::Node* tgt_node) = 0;
-
-  virtual void step(graph::Node* tgt_node) = 0;
-
-  virtual ~SingleSiteStepper() {}
+  void step() override {
+    single_site_stepping_method->step(node);
+  }
 
  protected:
-  Graph* graph;
-  MH* mh;
+  SingleSiteSteppingMethod* single_site_stepping_method;
+  Node* node;
 };
 
 } // namespace graph
