@@ -12,7 +12,6 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {
@@ -24,7 +23,7 @@ MH::MH(
     std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods)
     : g(g),
       unobserved_sto_support_index_by_node_id(g->nodes.size(), 0),
-      single_site_stepping_methods(single_site_stepping_methods),
+      stepper(g, this, single_site_stepping_methods),
       gen(seed) {}
 
 void MH::infer(uint num_samples, InferConfig infer_config) {
@@ -41,7 +40,6 @@ void MH::initialize() {
   g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
   collect_node_ptrs();
   compute_support();
-  find_steppers();
   ensure_all_nodes_are_supported();
   compute_initial_values();
   compute_affected_nodes();
@@ -75,32 +73,6 @@ void MH::compute_support() {
       }
     }
   }
-}
-
-void MH::find_steppers() {
-  for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
-    auto tgt_node = unobserved_sto_supp[i];
-    auto single_site_stepping_method =
-        find_applicable_single_site_stepping_method(tgt_node);
-    steppers.push_back(
-        new SingleSiteStepper(single_site_stepping_method, tgt_node, g, this));
-  }
-}
-
-SingleSiteSteppingMethod* MH::find_applicable_single_site_stepping_method(
-    Node* tgt_node) {
-  auto applicable_stepper = std::find_if(
-      single_site_stepping_methods.begin(),
-      single_site_stepping_methods.end(),
-      [tgt_node](auto st) { return st->is_applicable_to(tgt_node); });
-
-  if (applicable_stepper == single_site_stepping_methods.end()) {
-    throw std::runtime_error(
-        "No single-site stepping method applies to node " +
-        std::to_string(tgt_node->index));
-  }
-
-  return *applicable_stepper;
 }
 
 void MH::ensure_all_nodes_are_supported() {
@@ -156,9 +128,7 @@ void MH::compute_affected_nodes() {
 }
 
 void MH::generate_sample() {
-  for (auto stepper : steppers) {
-    stepper->step();
-  }
+  stepper.step();
 }
 
 void MH::collect_samples(uint num_samples, InferConfig infer_config) {
@@ -303,11 +273,7 @@ NodeValue MH::sample(const std::unique_ptr<proposer::Proposer>& prop) {
   return v;
 }
 
-MH::~MH() {
-  for (auto stepper : steppers) {
-    delete stepper;
-  }
-}
+MH::~MH() {}
 
 } // namespace graph
 } // namespace beanmachine
