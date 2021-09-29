@@ -19,10 +19,9 @@ namespace graph {
 // IMPORTANT: takes ownership of single-site stepping methods, deleting them at
 // destruction time.
 SequentialSingleSiteStepper::SequentialSingleSiteStepper(
-    Graph* graph,
     MH* mh,
     std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods)
-    : Stepper(graph, mh),
+    : Stepper(mh),
       single_site_stepping_methods(single_site_stepping_methods),
       mh(mh) {}
 
@@ -38,8 +37,8 @@ void SequentialSingleSiteStepper::make_steppers() {
     auto tgt_node = mh->unobserved_stochastic_support()[i];
     auto single_site_stepping_method =
         find_applicable_single_site_stepping_method(tgt_node);
-    steppers.push_back(new SingleSiteStepper(
-        single_site_stepping_method, tgt_node, graph, mh));
+    steppers.push_back(
+        new SingleSiteStepper(single_site_stepping_method, tgt_node, mh));
   }
 }
 

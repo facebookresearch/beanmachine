@@ -13,7 +13,6 @@ class MH;
 class SequentialSingleSiteStepper : public Stepper {
  public:
   SequentialSingleSiteStepper(
-      Graph* graph,
       MH* mh,
       std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods);
 

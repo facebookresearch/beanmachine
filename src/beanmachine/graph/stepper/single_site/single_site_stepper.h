@@ -13,9 +13,8 @@ class SingleSiteStepper : public Stepper {
   SingleSiteStepper(
       SingleSiteSteppingMethod* single_site_stepping_method,
       Node* node,
-      Graph* graph,
       MH* mh)
-      : Stepper(graph, mh),
+      : Stepper(mh),
         single_site_stepping_method(single_site_stepping_method),
         node(node) {}
 

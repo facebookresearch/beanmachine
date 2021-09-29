@@ -18,8 +18,8 @@ namespace graph {
  */
 class DefaultSingleSiteSteppingMethod : public SingleSiteSteppingMethod {
  public:
-  DefaultSingleSiteSteppingMethod(Graph* graph, MH* mh)
-      : SingleSiteSteppingMethod(graph, mh) {}
+  explicit DefaultSingleSiteSteppingMethod(MH* mh)
+      : SingleSiteSteppingMethod(mh) {}
 
   virtual bool is_applicable_to(graph::Node* tgt_node) override = 0;
 

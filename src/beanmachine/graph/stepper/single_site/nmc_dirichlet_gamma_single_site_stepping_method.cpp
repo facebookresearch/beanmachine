@@ -32,7 +32,7 @@ Y_k = X_k / x_sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
 the attribute value, and X in unconstrainted_value.
 */
 void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
-  graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
+  mh->graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
 
   const std::vector<Node*>& det_affected_nodes =
       mh->get_det_affected_nodes(tgt_node);
@@ -104,7 +104,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
     // implicit dependence that is hard to watch for.
     mh->clear_gradients(det_affected_nodes);
   } // k
-  graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
+  mh->graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 
 double
@@ -135,7 +135,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
     double x_sum,
     NodeValue x_k_value,
     uint k) {
-  graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP_DIR);
+  mh->graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP_DIR);
 
   // Cast needed to access fields such as unconstrained_value:
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
@@ -185,7 +185,7 @@ NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
   }
   std::unique_ptr<proposer::Proposer> proposal =
       proposer::nmc_proposer(x_k_value, grad1, grad2);
-  graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP_DIR);
+  mh->graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP_DIR);
   return proposal;
 }
 

@@ -10,14 +10,13 @@ class MH;
 // An abstraction for code taking a MH step.
 class Stepper {
  public:
-  Stepper(Graph* graph, MH* mh) : graph(graph), mh(mh) {}
+  explicit Stepper(MH* mh) : mh(mh) {}
 
   virtual void step() = 0;
 
   virtual ~Stepper() {}
 
  protected:
-  Graph* graph;
   MH* mh;
 };
 

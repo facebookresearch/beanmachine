@@ -10,8 +10,8 @@ namespace graph {
 class NMCDirichletGammaSingleSiteSteppingMethod
     : public SingleSiteSteppingMethod {
  public:
-  NMCDirichletGammaSingleSiteSteppingMethod(Graph* graph, MH* mh)
-      : SingleSiteSteppingMethod(graph, mh) {}
+  explicit NMCDirichletGammaSingleSiteSteppingMethod(MH* mh)
+      : SingleSiteSteppingMethod(mh) {}
   virtual bool is_applicable_to(graph::Node* tgt_node) override;
 
   virtual void step(graph::Node* tgt_node) override;

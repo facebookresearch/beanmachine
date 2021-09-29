@@ -25,8 +25,6 @@ namespace graph {
 
 class MH {
  protected:
-  Graph* g;
-
   // A graph maintains of a vector of nodes; the index into that vector is
   // the id of the node. We often need to translate from node ids into node
   // pointers in this algorithm; to do so quickly we obtain the address of
@@ -78,6 +76,8 @@ class MH {
   std::vector<std::vector<Node*>> det_affected_nodes;
 
  public:
+  Graph* graph;
+
   // Method testing whether a node is supported by algorithm.
   // It must return a non-empty string with an error message in case
   // the node is not supported.
@@ -93,7 +93,7 @@ class MH {
 
   // Constructs MH algorithm based on stepper.
   // Takes ownership of stepper instance.
-  MH(Graph* g, uint seed, Stepper* stepper);
+  MH(Graph* graph, uint seed, Stepper* stepper);
 
   const std::vector<Node*>& unobserved_stochastic_support() {
     return unobserved_sto_supp;

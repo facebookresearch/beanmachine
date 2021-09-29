@@ -17,47 +17,47 @@
 namespace beanmachine {
 namespace graph {
 
-MH::MH(Graph* g, uint seed, Stepper* stepper)
-    : g(g),
-      unobserved_sto_support_index_by_node_id(g->nodes.size(), 0),
+MH::MH(Graph* graph, uint seed, Stepper* stepper)
+    : unobserved_sto_support_index_by_node_id(graph->nodes.size(), 0),
       stepper(stepper),
+      graph(graph),
       gen(seed) {}
 
 void MH::infer(uint num_samples, InferConfig infer_config) {
-  g->pd_begin(ProfilerEvent::NMC_INFER);
+  graph->pd_begin(ProfilerEvent::NMC_INFER);
   initialize();
   collect_samples(num_samples, infer_config);
-  g->pd_finish(ProfilerEvent::NMC_INFER);
+  graph->pd_finish(ProfilerEvent::NMC_INFER);
 }
 
 // The initialization phase precomputes the vectors we are going to
 // need during inference, and verifies that the MH algorithm can
 // compute gradients of every node we need to.
 void MH::initialize() {
-  g->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
+  graph->pd_begin(ProfilerEvent::NMC_INFER_INITIALIZE);
   collect_node_ptrs();
   compute_support();
   ensure_all_nodes_are_supported();
   compute_initial_values();
   compute_affected_nodes();
-  old_values = std::vector<NodeValue>(g->nodes.size());
-  g->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
+  old_values = std::vector<NodeValue>(graph->nodes.size());
+  graph->pd_finish(ProfilerEvent::NMC_INFER_INITIALIZE);
 }
 
 void MH::collect_node_ptrs() {
-  for (uint node_id = 0; node_id < g->nodes.size(); node_id++) {
-    node_ptrs.push_back(g->nodes[node_id].get());
+  for (uint node_id = 0; node_id < graph->nodes.size(); node_id++) {
+    node_ptrs.push_back(graph->nodes[node_id].get());
   }
 }
 
 void MH::compute_support() {
-  supp_ids = g->compute_support();
+  supp_ids = graph->compute_support();
   for (uint node_id : supp_ids) {
     supp.push_back(node_ptrs[node_id]);
   }
   for (Node* node : supp) {
     bool node_is_not_observed =
-        g->observed.find(node->index) == g->observed.end();
+        graph->observed.find(node->index) == graph->observed.end();
     if (node_is_not_observed) {
       unobserved_supp.push_back(node);
       if (node->is_stochastic()) {
@@ -109,7 +109,7 @@ void MH::compute_affected_nodes() {
     std::vector<Node*> det_nodes;
     std::vector<Node*> sto_nodes;
     std::tie(det_node_ids, sto_node_ids) =
-        g->compute_affected_nodes(node->index, supp_ids);
+        graph->compute_affected_nodes(node->index, supp_ids);
     for (uint id : det_node_ids) {
       det_nodes.push_back(node_ptrs[id]);
     }
@@ -118,8 +118,8 @@ void MH::compute_affected_nodes() {
     }
     det_affected_nodes.push_back(det_nodes);
     sto_affected_nodes.push_back(sto_nodes);
-    if (g->_collect_performance_data) {
-      g->profiler_data.det_supp_count[node->index] = det_nodes.size();
+    if (graph->_collect_performance_data) {
+      graph->profiler_data.det_supp_count[node->index] = det_nodes.size();
     }
   }
 }
@@ -129,23 +129,23 @@ void MH::generate_sample() {
 }
 
 void MH::collect_samples(uint num_samples, InferConfig infer_config) {
-  g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
+  graph->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
   for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {
     generate_sample();
     if (infer_config.keep_warmup or snum >= infer_config.num_warmup) {
       collect_sample(infer_config);
     }
   }
-  g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
+  graph->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLES);
 }
 
 void MH::collect_sample(InferConfig infer_config) {
-  g->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
+  graph->pd_begin(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
   if (infer_config.keep_log_prob) {
-    g->collect_log_prob(g->_full_log_prob(supp));
+    graph->collect_log_prob(graph->_full_log_prob(supp));
   }
-  g->collect_sample();
-  g->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
+  graph->collect_sample();
+  graph->pd_finish(ProfilerEvent::NMC_INFER_COLLECT_SAMPLE);
 }
 
 const std::vector<Node*>& MH::get_det_affected_nodes(Node* node) {
@@ -177,11 +177,11 @@ void MH::save_old_value(const Node* node) {
 }
 
 void MH::save_old_values(const std::vector<Node*>& nodes) {
-  g->pd_begin(ProfilerEvent::NMC_SAVE_OLD);
+  graph->pd_begin(ProfilerEvent::NMC_SAVE_OLD);
   for (Node* node : nodes) {
     old_values[node->index] = node->value;
   }
-  g->pd_finish(ProfilerEvent::NMC_SAVE_OLD);
+  graph->pd_finish(ProfilerEvent::NMC_SAVE_OLD);
 }
 
 NodeValue& MH::get_old_value(const Node* node) {
@@ -193,27 +193,27 @@ void MH::restore_old_value(Node* node) {
 }
 
 void MH::restore_old_values(const std::vector<Node*>& det_nodes) {
-  g->pd_begin(ProfilerEvent::NMC_RESTORE_OLD);
+  graph->pd_begin(ProfilerEvent::NMC_RESTORE_OLD);
   for (Node* node : det_nodes) {
     node->value = old_values[node->index];
   }
-  g->pd_finish(ProfilerEvent::NMC_RESTORE_OLD);
+  graph->pd_finish(ProfilerEvent::NMC_RESTORE_OLD);
 }
 
 void MH::compute_gradients(const std::vector<Node*>& det_nodes) {
-  g->pd_begin(ProfilerEvent::NMC_COMPUTE_GRADS);
+  graph->pd_begin(ProfilerEvent::NMC_COMPUTE_GRADS);
   for (Node* node : det_nodes) {
     node->compute_gradients();
   }
-  g->pd_finish(ProfilerEvent::NMC_COMPUTE_GRADS);
+  graph->pd_finish(ProfilerEvent::NMC_COMPUTE_GRADS);
 }
 
 void MH::eval(const std::vector<Node*>& det_nodes) {
-  g->pd_begin(ProfilerEvent::NMC_EVAL);
+  graph->pd_begin(ProfilerEvent::NMC_EVAL);
   for (Node* node : det_nodes) {
     node->eval(gen);
   }
-  g->pd_finish(ProfilerEvent::NMC_EVAL);
+  graph->pd_finish(ProfilerEvent::NMC_EVAL);
 }
 
 void MH::clear_gradients(Node* node) {
@@ -240,11 +240,11 @@ void MH::clear_gradients(Node* node) {
 }
 
 void MH::clear_gradients(const std::vector<Node*>& nodes) {
-  g->pd_begin(ProfilerEvent::NMC_CLEAR_GRADS);
+  graph->pd_begin(ProfilerEvent::NMC_CLEAR_GRADS);
   for (Node* node : nodes) {
     clear_gradients(node);
   }
-  g->pd_finish(ProfilerEvent::NMC_CLEAR_GRADS);
+  graph->pd_finish(ProfilerEvent::NMC_CLEAR_GRADS);
 }
 
 void MH::clear_gradients_of_node_and_its_affected_nodes(Node* node) {
@@ -264,9 +264,9 @@ double MH::compute_log_prob_of(const std::vector<Node*>& sto_nodes) {
 }
 
 NodeValue MH::sample(const std::unique_ptr<proposer::Proposer>& prop) {
-  g->pd_begin(ProfilerEvent::NMC_SAMPLE);
+  graph->pd_begin(ProfilerEvent::NMC_SAMPLE);
   NodeValue v = prop->sample(gen);
-  g->pd_finish(ProfilerEvent::NMC_SAMPLE);
+  graph->pd_finish(ProfilerEvent::NMC_SAMPLE);
   return v;
 }
 

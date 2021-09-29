@@ -20,7 +20,7 @@ namespace beanmachine {
 namespace graph {
 
 void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
-  graph->pd_begin(get_step_profiler_event());
+  mh->graph->pd_begin(get_step_profiler_event());
   // Implements a Metropolis-Hastings step using the MH proposer.
   //
   // We are given an unobserved stochastic "target" node and we wish
@@ -95,7 +95,7 @@ void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
   // but that dependence has been removed.
   mh->clear_gradients_of_node_and_its_affected_nodes(tgt_node);
 
-  graph->pd_finish(get_step_profiler_event());
+  mh->graph->pd_finish(get_step_profiler_event());
 }
 
 } // namespace graph
