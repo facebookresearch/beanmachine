@@ -17,13 +17,10 @@
 namespace beanmachine {
 namespace graph {
 
-MH::MH(
-    Graph* g,
-    uint seed,
-    std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods)
+MH::MH(Graph* g, uint seed, Stepper* stepper)
     : g(g),
       unobserved_sto_support_index_by_node_id(g->nodes.size(), 0),
-      stepper(g, this, single_site_stepping_methods),
+      stepper(stepper),
       gen(seed) {}
 
 void MH::infer(uint num_samples, InferConfig infer_config) {
@@ -128,7 +125,7 @@ void MH::compute_affected_nodes() {
 }
 
 void MH::generate_sample() {
-  stepper.step();
+  stepper->step();
 }
 
 void MH::collect_samples(uint num_samples, InferConfig infer_config) {
@@ -273,7 +270,9 @@ NodeValue MH::sample(const std::unique_ptr<proposer::Proposer>& prop) {
   return v;
 }
 
-MH::~MH() {}
+MH::~MH() {
+  delete stepper;
+}
 
 } // namespace graph
 } // namespace beanmachine
