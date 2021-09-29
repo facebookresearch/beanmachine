@@ -10,7 +10,7 @@ class MH;
 // An abstraction for code taking a single-site MH step.
 class SingleSiteSteppingMethod {
  public:
-  SingleSiteSteppingMethod(Graph* graph, MH* mh) : graph(graph), mh(mh) {}
+  explicit SingleSiteSteppingMethod(MH* mh) : mh(mh) {}
 
   virtual bool is_applicable_to(graph::Node* tgt_node) = 0;
 
@@ -19,7 +19,6 @@ class SingleSiteSteppingMethod {
   virtual ~SingleSiteSteppingMethod() {}
 
  protected:
-  Graph* graph;
   MH* mh;
 };
 

@@ -35,7 +35,7 @@ ProfilerEvent NMCScalarSingleSiteSteppingMethod::get_step_profiler_event() {
 // evaluated according to the target node's value.
 std::unique_ptr<proposer::Proposer>
 NMCScalarSingleSiteSteppingMethod::get_proposal_distribution(Node* tgt_node) {
-  graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
+  mh->graph->pd_begin(ProfilerEvent::NMC_CREATE_PROP);
 
   tgt_node->grad1 = 1;
   tgt_node->grad2 = 0;
@@ -50,7 +50,7 @@ NMCScalarSingleSiteSteppingMethod::get_proposal_distribution(Node* tgt_node) {
   // TODO: generalize so it works with any proposer, not just nmc_proposer:
   std::unique_ptr<proposer::Proposer> prop =
       proposer::nmc_proposer(tgt_node->value, grad1, grad2);
-  graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP);
+  mh->graph->pd_finish(ProfilerEvent::NMC_CREATE_PROP);
   return prop;
 }
 

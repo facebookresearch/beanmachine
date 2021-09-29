@@ -20,7 +20,7 @@ class NMC : public MH {
  public:
   virtual ~NMC();
 
-  NMC(Graph* g, uint seed);
+  NMC(Graph* graph, uint seed);
 
   virtual std::string is_not_supported(Node* node) override;
 };

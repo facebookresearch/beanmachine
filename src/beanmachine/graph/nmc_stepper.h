@@ -19,18 +19,17 @@ namespace graph {
 // can be easily combined with other steppers.
 class NMCStepper : public SequentialSingleSiteStepper {
  public:
-  NMCStepper(Graph* g, MH* mh)
+  explicit NMCStepper(MH* mh)
       : SequentialSingleSiteStepper(
-            g,
             mh,
             std::vector<SingleSiteSteppingMethod*>{
                 // Note: the order of steppers below is important
                 // because DirichletGamma is also applicable to
                 // nodes to which Beta is applicable,
                 // but we want to give priority to Beta in those cases.
-                new NMCScalarSingleSiteSteppingMethod(g, mh),
-                new NMCDirichletBetaSingleSiteSteppingMethod(g, mh),
-                new NMCDirichletGammaSingleSiteSteppingMethod(g, mh)}) {}
+                new NMCScalarSingleSiteSteppingMethod(mh),
+                new NMCDirichletBetaSingleSiteSteppingMethod(mh),
+                new NMCDirichletGammaSingleSiteSteppingMethod(mh)}) {}
 };
 
 } // namespace graph

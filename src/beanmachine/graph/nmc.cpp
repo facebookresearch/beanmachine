@@ -23,7 +23,7 @@
 namespace beanmachine {
 namespace graph {
 
-NMC::NMC(Graph* g, uint seed) : MH(g, seed, new NMCStepper(g, this)) {}
+NMC::NMC(Graph* graph, uint seed) : MH(graph, seed, new NMCStepper(this)) {}
 // Ok to allocate and not delete NMCStepper because MH takes ownership
 // of its stepper.
 

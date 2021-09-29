@@ -10,8 +10,8 @@ namespace graph {
 class NMCScalarSingleSiteSteppingMethod
     : public DefaultSingleSiteSteppingMethod {
  public:
-  NMCScalarSingleSiteSteppingMethod(Graph* graph, MH* mh)
-      : DefaultSingleSiteSteppingMethod(graph, mh) {}
+  explicit NMCScalarSingleSiteSteppingMethod(MH* mh)
+      : DefaultSingleSiteSteppingMethod(mh) {}
 
   virtual bool is_applicable_to(graph::Node* tgt_node) override;
 

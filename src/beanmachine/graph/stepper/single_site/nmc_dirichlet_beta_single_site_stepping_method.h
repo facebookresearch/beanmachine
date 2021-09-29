@@ -10,8 +10,8 @@ namespace graph {
 class NMCDirichletBetaSingleSiteSteppingMethod
     : public DefaultSingleSiteSteppingMethod {
  public:
-  NMCDirichletBetaSingleSiteSteppingMethod(Graph* graph, MH* mh)
-      : DefaultSingleSiteSteppingMethod(graph, mh) {}
+  explicit NMCDirichletBetaSingleSiteSteppingMethod(MH* mh)
+      : DefaultSingleSiteSteppingMethod(mh) {}
 
   virtual bool is_applicable_to(graph::Node* tgt_node) override;
 
