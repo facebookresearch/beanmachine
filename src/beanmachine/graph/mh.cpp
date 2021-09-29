@@ -12,6 +12,7 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
 #include "beanmachine/graph/util.h"
 
 namespace beanmachine {
@@ -20,11 +21,11 @@ namespace graph {
 MH::MH(
     Graph* g,
     uint seed,
-    std::vector<SingleSiteStepper*> single_site_steppers)
+    std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods)
     : g(g),
       unobserved_sto_support_index_by_node_id(g->nodes.size(), 0),
-      gen(seed),
-      single_site_steppers(single_site_steppers) {}
+      single_site_stepping_methods(single_site_stepping_methods),
+      gen(seed) {}
 
 void MH::infer(uint num_samples, InferConfig infer_config) {
   g->pd_begin(ProfilerEvent::NMC_INFER);
@@ -79,20 +80,23 @@ void MH::compute_support() {
 void MH::find_steppers() {
   for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
     auto tgt_node = unobserved_sto_supp[i];
-    auto stepper = find_applicable_stepper(tgt_node);
-    stepper_for_node.push_back(stepper);
+    auto single_site_stepping_method =
+        find_applicable_single_site_stepping_method(tgt_node);
+    steppers.push_back(
+        new SingleSiteStepper(single_site_stepping_method, tgt_node, g, this));
   }
 }
 
-SingleSiteStepper* MH::find_applicable_stepper(Node* tgt_node) {
+SingleSiteSteppingMethod* MH::find_applicable_single_site_stepping_method(
+    Node* tgt_node) {
   auto applicable_stepper = std::find_if(
-      single_site_steppers.begin(),
-      single_site_steppers.end(),
+      single_site_stepping_methods.begin(),
+      single_site_stepping_methods.end(),
       [tgt_node](auto st) { return st->is_applicable_to(tgt_node); });
 
-  if (applicable_stepper == single_site_steppers.end()) {
+  if (applicable_stepper == single_site_stepping_methods.end()) {
     throw std::runtime_error(
-        "No single-site stepper applies to node " +
+        "No single-site stepping method applies to node " +
         std::to_string(tgt_node->index));
   }
 
@@ -152,9 +156,8 @@ void MH::compute_affected_nodes() {
 }
 
 void MH::generate_sample() {
-  for (uint i = 0; i < unobserved_sto_supp.size(); ++i) {
-    auto tgt_node = unobserved_sto_supp[i];
-    stepper_for_node[i]->step(tgt_node);
+  for (auto stepper : steppers) {
+    stepper->step();
   }
 }
 
@@ -301,8 +304,8 @@ NodeValue MH::sample(const std::unique_ptr<proposer::Proposer>& prop) {
 }
 
 MH::~MH() {
-  for (auto single_site_stepper : single_site_steppers) {
-    delete single_site_stepper;
+  for (auto stepper : steppers) {
+    delete stepper;
   }
 }
 

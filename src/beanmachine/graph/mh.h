@@ -15,7 +15,8 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
+#include "beanmachine/graph/stepper/stepper.h"
 #include "beanmachine/graph/util.h"
 
 #define NATURAL_TYPE unsigned long long int
@@ -27,7 +28,7 @@ class MH {
  public:
   virtual ~MH();
 
- private:
+ protected:
   Graph* g;
 
   // A graph maintains of a vector of nodes; the index into that vector is
@@ -65,10 +66,12 @@ class MH {
   // of this vector should never be accessed.
   std::vector<uint> unobserved_sto_support_index_by_node_id;
 
-  // Single-site steppers application to nodes in unobserved_supp that are
-  // stochastic; similarly, order matters.
-  std::vector<SingleSiteStepper*> stepper_for_node;
+  // TEMPORARY: we are in the process of moving ad hoc code out of MH.
+  // Eventually MH will receive an arbitray list of steppers (not necessarily
+  // single-site) that will know which random variables they apply to.
+  std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods;
 
+  std::vector<Stepper*> steppers;
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
   // respectively the vector of
@@ -95,7 +98,9 @@ class MH {
 
   std::mt19937 gen;
 
-  MH(Graph* g, uint seed, std::vector<SingleSiteStepper*> single_site_steppers);
+  MH(Graph* g,
+     uint seed,
+     std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods);
 
   void infer(uint num_samples, InferConfig infer_config);
 
@@ -115,7 +120,8 @@ class MH {
 
   void generate_sample();
 
-  SingleSiteStepper* find_applicable_stepper(Node* tgt_node);
+  SingleSiteSteppingMethod* find_applicable_single_site_stepping_method(
+      Node* tgt_node);
 
   void collect_samples(uint num_samples, InferConfig infer_config);
 
@@ -163,11 +169,6 @@ class MH {
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
 
   NodeValue sample(const std::unique_ptr<proposer::Proposer>& prop);
-
-  // TEMPORARY: we are in the process of moving ad hoc code out of MH.
-  // Eventually MH will receive an arbitray list of steppers (not necessarily
-  // single-site) that will know which random variables they apply to.
-  std::vector<SingleSiteStepper*> single_site_steppers;
 };
 
 } // namespace graph

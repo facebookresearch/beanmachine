@@ -16,24 +16,26 @@
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_beta_single_site_stepping_method.h"
 
 namespace beanmachine {
 namespace graph {
 
-bool NMCDirichletBetaSingleSiteStepper::is_applicable_to(
+bool NMCDirichletBetaSingleSiteSteppingMethod::is_applicable_to(
     graph::Node* tgt_node) {
   return tgt_node->value.type.variable_type ==
       VariableType::COL_SIMPLEX_MATRIX and
       tgt_node->value.type.rows == 2;
 }
 
-ProfilerEvent NMCDirichletBetaSingleSiteStepper::get_step_profiler_event() {
+ProfilerEvent
+NMCDirichletBetaSingleSiteSteppingMethod::get_step_profiler_event() {
   return ProfilerEvent::NMC_STEP_DIRICHLET;
 }
 
 std::unique_ptr<proposer::Proposer>
-NMCDirichletBetaSingleSiteStepper::get_proposal_distribution(Node* tgt_node) {
+NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
+    Node* tgt_node) {
   assert(tgt_node->value._matrix.size() == 2);
 
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
