@@ -2,15 +2,16 @@
 #pragma once
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
 
 namespace beanmachine {
 namespace graph {
 
-class NMCDirichletGammaSingleSiteStepper : public SingleSiteStepper {
+class NMCDirichletGammaSingleSiteSteppingMethod
+    : public SingleSiteSteppingMethod {
  public:
-  NMCDirichletGammaSingleSiteStepper(Graph* graph, MH* mh)
-      : SingleSiteStepper(graph, mh) {}
+  NMCDirichletGammaSingleSiteSteppingMethod(Graph* graph, MH* mh)
+      : SingleSiteSteppingMethod(graph, mh) {}
   virtual bool is_applicable_to(graph::Node* tgt_node) override;
 
   virtual void step(graph::Node* tgt_node) override;

@@ -15,12 +15,12 @@
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/nmc_dirichlet_gamma_single_site_stepping_method.h"
 
 namespace beanmachine {
 namespace graph {
 
-bool NMCDirichletGammaSingleSiteStepper::is_applicable_to(
+bool NMCDirichletGammaSingleSiteSteppingMethod::is_applicable_to(
     graph::Node* tgt_node) {
   return tgt_node->value.type.variable_type == VariableType::COL_SIMPLEX_MATRIX;
 }
@@ -31,7 +31,7 @@ divided by their x_sum. i.e. Let X_k ~ Gamma(alpha_k, 1), for k = 1, ..., K,
 Y_k = X_k / x_sum(X), then (Y_1, ..., Y_K) ~ Dirichlet(alphas). We store Y in
 the attribute value, and X in unconstrainted_value.
 */
-void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
+void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
   graph->pd_begin(ProfilerEvent::NMC_STEP_DIRICHLET);
 
   const std::vector<Node*>& det_affected_nodes =
@@ -107,7 +107,8 @@ void NMCDirichletGammaSingleSiteStepper::step(Node* tgt_node) {
   graph->pd_finish(ProfilerEvent::NMC_STEP_DIRICHLET);
 }
 
-double NMCDirichletGammaSingleSiteStepper::compute_sto_affected_nodes_log_prob(
+double
+NMCDirichletGammaSingleSiteSteppingMethod::compute_sto_affected_nodes_log_prob(
     Node* tgt_node,
     double param_a_k,
     NodeValue x_k_value) {
@@ -128,7 +129,7 @@ double NMCDirichletGammaSingleSiteStepper::compute_sto_affected_nodes_log_prob(
 }
 
 std::unique_ptr<proposer::Proposer>
-NMCDirichletGammaSingleSiteStepper::create_proposal_dirichlet_gamma(
+NMCDirichletGammaSingleSiteSteppingMethod::create_proposal_dirichlet_gamma(
     Node* tgt_node,
     double param_a_k,
     double x_sum,

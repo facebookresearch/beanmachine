@@ -14,12 +14,12 @@
 #include "beanmachine/graph/proposer/proposer.h"
 #include "beanmachine/graph/util.h"
 
-#include "beanmachine/graph/stepper/single_site/default_single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/default_single_site_stepping_method.h"
 
 namespace beanmachine {
 namespace graph {
 
-void DefaultSingleSiteStepper::step(Node* tgt_node) {
+void DefaultSingleSiteSteppingMethod::step(Node* tgt_node) {
   graph->pd_begin(get_step_profiler_event());
   // Implements a Metropolis-Hastings step using the MH proposer.
   //
