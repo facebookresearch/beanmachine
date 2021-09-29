@@ -15,8 +15,7 @@
 #include "beanmachine/graph/profiler.h"
 #include "beanmachine/graph/proposer/default_initializer.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
-#include "beanmachine/graph/stepper/stepper.h"
+#include "beanmachine/graph/stepper/single_site/sequential_single_site_stepper.h"
 #include "beanmachine/graph/util.h"
 
 #define NATURAL_TYPE unsigned long long int
@@ -25,9 +24,6 @@ namespace beanmachine {
 namespace graph {
 
 class MH {
- public:
-  virtual ~MH();
-
  protected:
   Graph* g;
 
@@ -66,12 +62,8 @@ class MH {
   // of this vector should never be accessed.
   std::vector<uint> unobserved_sto_support_index_by_node_id;
 
-  // TEMPORARY: we are in the process of moving ad hoc code out of MH.
-  // Eventually MH will receive an arbitray list of steppers (not necessarily
-  // single-site) that will know which random variables they apply to.
-  std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods;
+  SequentialSingleSiteStepper stepper;
 
-  std::vector<Stepper*> steppers;
   // These vectors are the same size as unobserved_sto_support.
   // The i-th elements are vectors of nodes which are
   // respectively the vector of
@@ -102,6 +94,10 @@ class MH {
      uint seed,
      std::vector<SingleSiteSteppingMethod*> single_site_stepping_methods);
 
+  const std::vector<Node*>& unobserved_stochastic_support() {
+    return unobserved_sto_supp;
+  }
+
   void infer(uint num_samples, InferConfig infer_config);
 
   void initialize();
@@ -109,8 +105,6 @@ class MH {
   void collect_node_ptrs();
 
   void compute_support();
-
-  void find_steppers();
 
   void ensure_all_nodes_are_supported();
 
@@ -169,6 +163,8 @@ class MH {
   double compute_log_prob_of(const std::vector<Node*>& sto_nodes);
 
   NodeValue sample(const std::unique_ptr<proposer::Proposer>& prop);
+
+  virtual ~MH();
 };
 
 } // namespace graph
