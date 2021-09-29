@@ -18,6 +18,11 @@ def flip_beta():
 
 
 @bm.random_variable
+def flip_logits():
+    return Bernoulli(logits=tensor([beta(0), beta(1)]))
+
+
+@bm.random_variable
 def flip_const():
     return Bernoulli(tensor([0.25, 0.75]))
 
@@ -288,6 +293,81 @@ digraph "graph" {
   N19 -> N20;
   N19 -> N27;
   N20 -> N21;
+}
+    """
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_fix_vectorized_models_4(self) -> None:
+
+        # Demonstrate we can also do devectorizations on logits-style Bernoullis.
+        # (A logits Bernoulli with a beta prior is a likely mistake in a real model,
+        # but it is a convenient test case.)
+
+        self.maxDiff = None
+        observations = {}
+        queries = [flip_logits()]
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=False)
+
+        # The model before the rewrite:
+
+        expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=Sample];
+  N4[label=Tensor];
+  N5[label="Bernoulli(logits)"];
+  N6[label=Sample];
+  N7[label=Query];
+  N0 -> N1;
+  N0 -> N1;
+  N1 -> N2;
+  N1 -> N3;
+  N2 -> N4;
+  N3 -> N4;
+  N4 -> N5;
+  N5 -> N6;
+  N6 -> N7;
+}
+    """
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # After:
+
+        observed = BMGInference().to_dot(queries, observations, after_transform=True)
+        expected = """
+digraph "graph" {
+  N00[label=2.0];
+  N01[label=Beta];
+  N02[label=Sample];
+  N03[label=Sample];
+  N04[label=2];
+  N05[label=1];
+  N06[label=ToReal];
+  N07[label="Bernoulli(logits)"];
+  N08[label=Sample];
+  N09[label=ToReal];
+  N10[label="Bernoulli(logits)"];
+  N11[label=Sample];
+  N12[label=ToMatrix];
+  N13[label=Query];
+  N00 -> N01;
+  N00 -> N01;
+  N01 -> N02;
+  N01 -> N03;
+  N02 -> N06;
+  N03 -> N09;
+  N04 -> N12;
+  N05 -> N12;
+  N06 -> N07;
+  N07 -> N08;
+  N08 -> N12;
+  N09 -> N10;
+  N10 -> N11;
+  N11 -> N12;
+  N12 -> N13;
 }
     """
         self.assertEqual(expected.strip(), observed.strip())
