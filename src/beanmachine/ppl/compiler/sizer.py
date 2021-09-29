@@ -190,13 +190,14 @@ class Sizer(TyperBase[Size]):
         self._dispatch = {
             bn.ChoiceNode: self._size_choice,
             bn.IfThenElseNode: self._size_if,
+            bn.IndexNode: self._size_index,
             bn.MatrixMultiplicationNode: self._size_mm,
             bn.SwitchNode: self._size_switch,
+            bn.TensorNode: lambda n: n._size,
             bn.ToMatrixNode: self._size_to_matrix,
         }
         # TODO:
         # ColumnIndexNode
-        # IndexNode
         # LogSumExpTorchNode --
         #   note that final parameter affects size
         # VectorIndexNode
@@ -215,6 +216,15 @@ class Sizer(TyperBase[Size]):
         if consequence != alternative:
             return Unsized
         return consequence
+
+    def _size_index(self, node: bn.IndexNode) -> Size:
+        collection_size = self[node.left]
+        if len(collection_size) == 0:
+            # This operation is illegal in torch, so let's just say unsized.
+            return Unsized
+        result_size = collection_size[1:]
+        assert isinstance(result_size, Size)
+        return result_size
 
     def _size_mm(self, node: bn.MatrixMultiplicationNode) -> Size:
         # Just do the multiplication and see what size we get.

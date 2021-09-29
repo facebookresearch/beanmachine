@@ -7,13 +7,17 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_problem import ProblemFixerBase
 from beanmachine.ppl.compiler.sizer import Sizer
+
+# TODO Move this to a utils module
+from beanmachine.ppl.compiler.support import _prod
 from beanmachine.ppl.compiler.typer_base import TyperBase
-from torch import Size
+from torch import Size, tensor
+
 
 # This class turns vectorized models into unvectorized models.
 #
-# For now we only implement unvectorizing Bernoulli distributions
-# where the probability input is one or two dimensional. For example,
+# For now we only implement unvectorizing samples from distributions
+# where the inputs are one or two dimensional. For example,
 # the model
 #
 # @rv def flip():
@@ -59,8 +63,9 @@ class VectorizedDistributionFixer(ProblemFixerBase):
         ProblemFixerBase.__init__(self, bmg, typer)
         self.fixed_one = False
         self._factories = {
-            bn.BernoulliNode: bmg.add_bernoulli,
             bn.BernoulliLogitNode: bmg.add_bernoulli_logit,
+            bn.BernoulliNode: bmg.add_bernoulli,
+            bn.NormalNode: bmg.add_normal,
         }
 
     def _node_to_index_list(self, n: bn.BMGNode) -> List[bn.BMGNode]:
@@ -84,11 +89,49 @@ class VectorizedDistributionFixer(ProblemFixerBase):
         return index_list
 
     def _replace_sample(self, node: bn.SampleNode) -> bn.BMGNode:
+        # This code is a bit tricky to understand so lets work an example.
+        # Suppose dist has two inputs, call them X and Y. X has size [3], Y has
+        # size [2, 3], and the distribution output has size [2, 3].
         dist = node.operand
-        prob_indexes = self._node_to_index_list(dist.inputs[0])
+        final_size = self._typer[dist]  # Size([2, 3])
+        final_length = _prod(final_size)  # 2 x 3 = 6
+        input_nodes = [self._node_to_index_list(n) for n in dist.inputs]
+        # input_nodes is [
+        #   [ Index(X, 0), Index(X, 1), Index(X, 2)],
+        #   [ Index(Index(Y, 0), 0), Index(Index(Y, 0), 1), ...]
+        # ]
+        index_lists = []
+        # Let's now look at what happens on the FIRST loop iteration:
+        for i in range(len(input_nodes)):
+            input_node = input_nodes[i]
+            # First time through the loop input_node is [Index(X, 0), Index(X, 1), Index(X, 2)]
+            input_length = len(input_node)  # 3
+            input_size = self._typer[dist.inputs[i]]  # Size([3])
+            t = (
+                tensor(range(input_length))  # tensor([0, 1, 2])
+                .reshape(input_size)  # tensor([0, 1, 2])
+                .broadcast_to(final_size)  # tensor([[0, 1, 2], [0, 1, 2]])
+                .reshape(final_length)  # tensor([0, 1, 2, 0, 1, 2])
+                .tolist()  # [0, 1, 2, 0, 1, 2]
+            )
+            index_lists.append(t)
+
+        # When we're done both iterations we have two lists of the same length:
+        # [0, 1, 2, 0, 1, 2]
+        # [0, 1, 2, 3, 4, 5]
+        #
+        # Now make tuples out of each column.
+        #
+        # [(0, 0), (1, 1), (2, 2), (0, 3), (1, 4), (2, 5)]
+        index_tuples = list(zip(*index_lists))
+        # These pairs give the elements of X and Y needed to build devectorized nodes.
+
         samples = []
-        for p in prob_indexes:
-            b = self._factories[type(dist)](p)
+        for index_tuple in index_tuples:
+            arguments = [
+                input_nodes[i][index_tuple[i]] for i in range(len(index_tuple))
+            ]
+            b = self._factories[type(dist)](*arguments)
             s = self._bmg.add_sample(b)
             samples.append(s)
         size = self._typer[dist]
