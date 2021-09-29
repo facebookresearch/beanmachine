@@ -33,11 +33,7 @@ NMC::NMC(Graph* g, uint seed)
              new NMCDirichletBetaSingleSiteSteppingMethod(g, this),
              new NMCDirichletGammaSingleSiteSteppingMethod(g, this)}) {}
 
-NMC::~NMC() {
-  for (auto single_site_stepping_method : single_site_stepping_methods) {
-    delete single_site_stepping_method;
-  }
-}
+NMC::~NMC() {}
 
 std::string NMC::is_not_supported(Node* node) {
   if (node->value.type.variable_type != VariableType::COL_SIMPLEX_MATRIX and
