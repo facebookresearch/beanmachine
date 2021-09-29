@@ -3,23 +3,23 @@
 #include "beanmachine/graph/graph.h"
 #include "beanmachine/graph/mh.h"
 #include "beanmachine/graph/proposer/proposer.h"
-#include "beanmachine/graph/stepper/single_site/single_site_stepper.h"
+#include "beanmachine/graph/stepper/single_site/single_site_stepping_method.h"
 
 namespace beanmachine {
 namespace graph {
 
 /*
- * An abstract default implementation of MH single-site stepper
- * implementing the typical MH step.
+ * An abstract default implementation of MH single-site stepping method
+ * implementing the typical MH stepping method.
  * It uses a proposal provided by method get_proposal_distribution,
  * whose implementation is left to sub-classes.
  * Sub-classes must also implement methods is_applicable_to and
  * get_step_profiler_event.
  */
-class DefaultSingleSiteStepper : public SingleSiteStepper {
+class DefaultSingleSiteSteppingMethod : public SingleSiteSteppingMethod {
  public:
-  DefaultSingleSiteStepper(Graph* graph, MH* mh)
-      : SingleSiteStepper(graph, mh) {}
+  DefaultSingleSiteSteppingMethod(Graph* graph, MH* mh)
+      : SingleSiteSteppingMethod(graph, mh) {}
 
   virtual bool is_applicable_to(graph::Node* tgt_node) override = 0;
 
