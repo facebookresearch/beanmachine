@@ -266,7 +266,7 @@ LOAD_BAR enables tqdm for full inference loop.</p>
 If a chain is specified, only the data from the chain will be accessible</p>
 <dl class="method">
 <dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>rv: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>default: Any = None</em>, <em>chain: Optional[int] = None</em>, <em>include_adapt_steps: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get</code><span class="sig-paren">(</span><em>rv: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>default: Any = None</em>, <em>chain: Optional[int] = None</em>, <em>include_adapt_steps: bool = False</em>, <em>thinning: int = 1</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the value of the random variable if rv is in the dictionary, otherwise
 return the default value. This method is analogous to Python’s dict.get(). The
 chain and include_adapt_steps parameters serve the same purpose as in get_chain
@@ -304,7 +304,7 @@ and get_variable.</p>
 
 <dl class="method">
 <dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_variable">
-<code class="descname">get_variable</code><span class="sig-paren">(</span><em>rv: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>include_adapt_steps: bool = False</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_variable" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_variable</code><span class="sig-paren">(</span><em>rv: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>include_adapt_steps: bool = False</em>, <em>thinning: int = 1</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Let C be the number of chains,
 S be the number of samples</p>
 <p>If include_adapt_steps, S’ = S.
