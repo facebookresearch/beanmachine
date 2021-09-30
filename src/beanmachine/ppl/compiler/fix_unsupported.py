@@ -78,12 +78,25 @@ class UnsupportedNodeFixer(ProblemFixerBase):
         # If we have a ToMatrix indexed by a constant, we can similarly
         # eliminate the indexing operation.
 
+        # If we have Index(ColumnIndex(ToMatrix(elements), Const1), Const2)
+        # then we can again eliminate the indexing altogether.
+
         if isinstance(right, bn.ConstantNode) and typer.is_natural(right):
             r = int(right.value)
             if isinstance(left, bn.ConstantNode):
                 return self._bmg.add_constant(left.value[r])
             if isinstance(left, bn.ToMatrixNode):
                 return left.inputs[r + 2]
+            if isinstance(left, bn.ColumnIndexNode):
+                collection = left.left
+                if isinstance(collection, bn.ToMatrixNode):
+                    column_index = left.right
+                    if isinstance(column_index, bn.ConstantNode) and typer.is_natural(
+                        column_index
+                    ):
+                        c = int(column_index.value)
+                        rows = int(collection.rows.value)
+                        return collection.inputs[rows * c + r + 2]
 
         # We cannot optimize it away; add a vector index operation.
         return self._bmg.add_vector_index(left, right)

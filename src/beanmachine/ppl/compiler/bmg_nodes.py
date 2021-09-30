@@ -672,6 +672,14 @@ class ToMatrixNode(OperatorNode):
         rc: List[BMGNode] = [rows, columns]
         BMGNode.__init__(self, rc + items)
 
+    @property
+    def rows(self) -> NaturalNode:
+        return self.inputs[0]  # pyre-ignore
+
+    @property
+    def columns(self) -> NaturalNode:
+        return self.inputs[1]  # pyre-ignore
+
     def __str__(self) -> str:
         return "ToMatrix"
 
