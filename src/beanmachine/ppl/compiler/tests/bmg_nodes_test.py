@@ -27,6 +27,7 @@ class BMGNodesTest(unittest.TestCase):
     def test_RealNode(self) -> None:
         r42 = RealNode(42.0)
         self.assertEqual(r42.value, 42.0)
+
         self.assertEqual(size(r42), torch.Size([]))
         # Note that support always returns a set of tensors, even though this
         # node is technically scalar valued. In practice we never need to compute
