@@ -160,3 +160,11 @@ class MonteCarloSamplesTest(unittest.TestCase):
 
         inference_data = samples.to_inference_data()
         self.assertIn(model.foo(), inference_data.posterior)
+
+    def test_thinning(self):
+        model = self.SampleModel()
+        mh = bm.SingleSiteAncestralMetropolisHastings()
+        samples = mh.infer([model.foo()], {}, num_samples=20, num_chains=1)
+
+        self.assertEqual(samples.get(model.foo(), chain=0).shape, (20,))
+        self.assertEqual(samples.get(model.foo(), chain=0, thinning=4).shape, (5,))

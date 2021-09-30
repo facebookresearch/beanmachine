@@ -26,6 +26,7 @@ class Sampler(Iterator[RVDict]):
         observations: RVDict,
         num_samples: Optional[int] = None,
         num_adaptive_samples: int = 0,
+        thinning: int = 1,
         initialize_from_prior: bool = False,
         return_adaptive_samples: bool = False,
     ):
@@ -35,6 +36,7 @@ class Sampler(Iterator[RVDict]):
             self._iterations = iter(range(num_samples + num_adaptive_samples))
         self.num_adaptive_samples = num_adaptive_samples
         self.iteration = None
+        self.thinning = thinning
 
         # initialize kernel
         self.kernel = copy.copy(kernel)
@@ -44,18 +46,25 @@ class Sampler(Iterator[RVDict]):
         self.kernel.world_.set_initialize_from_prior(True)
 
         if not return_adaptive_samples:
-            for _ in range(self.num_adaptive_samples):
+            burn_in = int(self.num_adaptive_samples / self.thinning)
+            for _ in range(burn_in):
                 next(self)
 
     def __next__(self) -> RVDict:
         """
-        Run a single MCMC iteration and return a dict containing the queried samples
+        Run a single MCMC iteration and return a dict containing the queried samples.
+        If thinning > 1, then only the n-th sample will be returned upon each
+        iteration.
         """
-        # this will propagate StopIteration from self._iterations
+
         self.iteration = next(self._iterations)
-        return self.kernel._single_iteration_run(
+        samples = self.kernel._single_iteration_run(
             self.iteration, self.num_adaptive_samples
         )
+
+        if self.iteration % self.thinning:
+            return next(self)
+        return samples
 
     @staticmethod
     def to_monte_carlo_samples(
