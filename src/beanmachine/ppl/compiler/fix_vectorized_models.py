@@ -15,10 +15,7 @@ from torch import Size, tensor
 
 
 # This class turns vectorized models into unvectorized models.
-#
-# For now we only implement unvectorizing samples from distributions
-# where the inputs are one or two dimensional. For example,
-# the model
+# For example, the model
 #
 # @rv def flip():
 #   return Bernoulli(tensor([0.25, 0.75]))
@@ -35,14 +32,10 @@ from torch import Size, tensor
 #
 # which we can represent in BMG.
 #
-# TODO: Extend this to more distributions.
-#
 # TODO: Consider optimizing distributions where the tensor elements are all
 # the same; if we have Bernoulli([[0.5, 0.5], [0.5, 0.5]]) then that can be represented in
 # BMG as an IID_SAMPLE(2,2) from Bernoulli(0.5). We could write another fixer
 # which makes this transformation, or we could modify this fixer.
-#
-# TODO: Extend this to operations other than sampling.
 
 
 def _is_fixable_size(s: Size) -> bool:
@@ -54,7 +47,7 @@ def _is_fixable_size(s: Size) -> bool:
     return False
 
 
-class VectorizedDistributionFixer(ProblemFixerBase):
+class VectorizedOperatorFixer(ProblemFixerBase):
 
     fixed_one: bool
     _factories: Dict[Type, Callable]
@@ -101,14 +94,13 @@ class VectorizedDistributionFixer(ProblemFixerBase):
                     index_list.append(nij)
         return index_list
 
-    def _replace_sample(self, node: bn.SampleNode) -> bn.BMGNode:
+    def _generate_arglists(self, node: bn.BMGNode):
         # This code is a bit tricky to understand so lets work an example.
-        # Suppose dist has two inputs, call them X and Y. X has size [3], Y has
-        # size [2, 3], and the distribution output has size [2, 3].
-        dist = node.operand
-        final_size = self._typer[dist]  # Size([2, 3])
+        # Suppose node has two inputs, call them X and Y. X has size [3], Y has
+        # size [2, 3], and node has size [2, 3].
+        final_size = self._typer[node]  # Size([2, 3])
         final_length = _prod(final_size)  # 2 x 3 = 6
-        input_nodes = [self._node_to_index_list(n) for n in dist.inputs]
+        input_nodes = [self._node_to_index_list(n) for n in node.inputs]
         # input_nodes is [
         #   [ Index(X, 0), Index(X, 1), Index(X, 2)],
         #   [ Index(Index(Y, 0), 0), Index(Index(Y, 0), 1), ...]
@@ -119,7 +111,7 @@ class VectorizedDistributionFixer(ProblemFixerBase):
             input_node = input_nodes[i]
             # First time through the loop input_node is [Index(X, 0), Index(X, 1), Index(X, 2)]
             input_length = len(input_node)  # 3
-            input_size = self._typer[dist.inputs[i]]  # Size([3])
+            input_size = self._typer[node.inputs[i]]  # Size([3])
             t = (
                 tensor(range(input_length))  # tensor([0, 1, 2])
                 .reshape(input_size)  # tensor([0, 1, 2])
@@ -139,19 +131,25 @@ class VectorizedDistributionFixer(ProblemFixerBase):
         index_tuples = list(zip(*index_lists))
         # These pairs give the elements of X and Y needed to build devectorized nodes.
 
+        # Now make actual argument lists for each tuple.
+        return [
+            [input_nodes[i][index_tuple[i]] for i in range(len(index_tuple))]
+            for index_tuple in index_tuples
+        ]
+
+    def _replace_sample(self, node: bn.SampleNode) -> bn.BMGNode:
+        dist = node.operand
+        arglists = self._generate_arglists(dist)
         samples = []
-        for index_tuple in index_tuples:
-            arguments = [
-                input_nodes[i][index_tuple[i]] for i in range(len(index_tuple))
-            ]
-            b = self._factories[type(dist)](*arguments)
+        for arglist in arglists:
+            b = self._factories[type(dist)](*arglist)
             s = self._bmg.add_sample(b)
             samples.append(s)
         size = self._typer[dist]
         t = self._bmg.add_tensor(size, *samples)
         return t
 
-    def _needs_fixing(self, n: bn.BMGNode) -> bool:
+    def _is_fixable_sample(self, n: bn.BMGNode) -> bool:
         if not isinstance(n, bn.SampleNode):
             return False
         dist = n.operand
@@ -159,9 +157,12 @@ class VectorizedDistributionFixer(ProblemFixerBase):
             return False
         return _is_fixable_size(self._typer[dist])
 
+    def _needs_fixing(self, n: bn.BMGNode) -> bool:
+        return self._is_fixable_sample(n)
+
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
-        assert isinstance(n, bn.SampleNode)
         self.fixed_one = True
+        assert isinstance(n, bn.SampleNode)
         return self._replace_sample(n)
 
 
@@ -202,18 +203,17 @@ class VectorizedModelFixer:
             self._bmg.remove_leaf(o)
 
     def fix_problems(self) -> None:
-        vdf = VectorizedDistributionFixer(self._bmg, Sizer())
-        vdf.fix_problems()
-        assert not vdf.errors.any()
+        vf = VectorizedOperatorFixer(self._bmg, Sizer())
+        vf.fix_problems()
+        assert not vf.errors.any()
 
-        if not vdf.fixed_one:
+        if not vf.fixed_one:
             # We changed nothing so there is nothing more to do.
             return
 
-        # We changed something. We should now have one or more leaf
-        # sample nodes.
+        # We changed something. We might have a leaf sample node; we can remove it.
         for n in self._bmg.all_nodes():
-            if vdf._needs_fixing(n):
+            if vf._is_fixable_sample(n):
                 assert n.is_leaf
                 self._bmg.remove_leaf(n)
 
