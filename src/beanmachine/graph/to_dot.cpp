@@ -165,6 +165,8 @@ class DOT {
         return "Log1mExp";
       case OperatorType::MATRIX_MULTIPLY:
         return "MatrixMultiply";
+      case OperatorType::MATRIX_SCALE:
+        return "MatrixScale";
       case OperatorType::TO_PROBABILITY:
         return "ToProb";
       case OperatorType::TO_NEG_REAL:

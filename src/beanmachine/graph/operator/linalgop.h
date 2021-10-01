@@ -27,6 +27,27 @@ class MatrixMultiply : public Operator {
   static bool is_registered;
 };
 
+class MatrixScale : public Operator {
+ public:
+  explicit MatrixScale(const std::vector<graph::Node*>& in_nodes);
+  ~MatrixScale() override {}
+
+  void eval(std::mt19937& gen) override;
+  void backward() override;
+  void compute_gradients() override {
+    throw std::runtime_error(
+        "MATRIX_SCALE does not support forward gradient propagation.");
+  }
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<MatrixScale>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 class Index : public Operator {
  public:
   explicit Index(const std::vector<graph::Node*>& in_nodes);

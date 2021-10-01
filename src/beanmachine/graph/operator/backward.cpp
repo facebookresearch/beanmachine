@@ -206,6 +206,39 @@ void MatrixMultiply::backward() {
   }
 }
 
+// TODO[Walid]: The following needs to be modified to actually
+// implement the desired functionality
+
+/*
+For C = A @ B, with the backward accumulated gradient for C is Gc,
+the backward propagation to A is Ga += Gc @ B^T and to B is
+Gb += A^T @ Gc
+*/
+void MatrixScale::backward() {
+  assert(in_nodes.size() == 2);
+  auto node_a = in_nodes[0];
+  auto node_b = in_nodes[1];
+  Eigen::MatrixXd& A = node_a->value._matrix;
+  Eigen::MatrixXd& B = node_b->value._matrix;
+  // if C = A @ B is reduced to a scalar
+  if (value.type.variable_type == graph::VariableType::SCALAR) {
+    if (node_a->needs_gradient()) {
+      node_a->back_grad1._matrix += back_grad1._double * B.transpose();
+    }
+    if (node_b->needs_gradient()) {
+      node_b->back_grad1._matrix += back_grad1._double * A.transpose();
+    }
+    return;
+  }
+  // the general form
+  if (node_a->needs_gradient()) {
+    node_a->back_grad1._matrix += back_grad1._matrix * B.transpose();
+  }
+  if (node_b->needs_gradient()) {
+    node_b->back_grad1._matrix += A.transpose() * back_grad1._matrix;
+  }
+}
+
 void Index::backward() {
   assert(in_nodes.size() == 2);
   auto matrix = in_nodes[0];

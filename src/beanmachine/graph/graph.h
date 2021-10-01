@@ -311,6 +311,7 @@ enum class OperatorType {
   POW,
   LOG1MEXP,
   MATRIX_MULTIPLY,
+  MATRIX_SCALE,
   TO_PROBABILITY,
   INDEX,
   COLUMN_INDEX,
