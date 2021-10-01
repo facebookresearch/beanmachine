@@ -1007,6 +1007,16 @@ class MatrixMultiplicationNode(BinaryOperatorNode):
         return "(" + str(self.left) + "*" + str(self.right) + ")"
 
 
+class MatrixScaleNode(BinaryOperatorNode):
+    """This represents a matrix scaling."""
+
+    def __init__(self, left: BMGNode, right: BMGNode):
+        BinaryOperatorNode.__init__(self, left, right)
+
+    def __str__(self) -> str:
+        return "(" + str(self.left) + "*" + str(self.right) + ")"
+
+
 class PowerNode(BinaryOperatorNode):
     """This represents an x-to-the-y operation."""
 
