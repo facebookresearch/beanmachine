@@ -21,8 +21,18 @@ def scaled():
 
 
 @bm.functional
+def scaled_sym():
+    return matrix * scalar()
+
+
+@bm.functional
 def scaled2():
     return scalar() * torch.tensor([scalar(), scalar()])
+
+
+@bm.functional
+def scaled2_sym():
+    return (torch.tensor([scalar(), scalar()])) * scalar()
 
 
 class FixMatrixScaleTest(unittest.TestCase):
@@ -93,7 +103,7 @@ digraph "graph" {
     def test_fix_matrix_scale_1_sym(self) -> None:
         self.maxDiff = None
         observations = {}
-        queries = [scaled()]
+        queries = [scaled_sym()]
         num_samples = 1000
         num_chains = 1
 
@@ -112,17 +122,17 @@ digraph "graph" {
 
         expected = """
 digraph "graph" {
-  N0[label=0.0];
-  N1[label=1.0];
-  N2[label=Normal];
-  N3[label=Sample];
-  N4[label="[20,40]"];
+  N0[label="[20,40]"];
+  N1[label=0.0];
+  N2[label=1.0];
+  N3[label=Normal];
+  N4[label=Sample];
   N5[label="*"];
   N6[label=Query];
-  N0 -> N2;
-  N1 -> N2;
+  N0 -> N5;
+  N1 -> N3;
   N2 -> N3;
-  N3 -> N5;
+  N3 -> N4;
   N4 -> N5;
   N5 -> N6;
 }
@@ -229,7 +239,7 @@ digraph "graph" {
     def test_fix_matrix_scale_2_sym(self) -> None:
         self.maxDiff = None
         observations = {}
-        queries = [scaled2()]
+        queries = [scaled2_sym()]
         num_samples = 1000
         num_chains = 1
 
