@@ -970,9 +970,6 @@ produces:
   EXPECT_NEAR(grad1[3]->_matrix.coeff(1), 0.8053, 1e-3);
 }
 
-// TODO[Walid]: The following needs to be modified to actually
-// implement the desired functionality
-
 TEST(testoperator, matrix_scale) {
   Graph g;
   // negative tests:
@@ -994,7 +991,8 @@ TEST(testoperator, matrix_scale) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cm1, cm1}),
       std::invalid_argument);
-  // TODO[Walid]: Following constraint should go by end of this stack
+  // TODO: At some point we may consider making the type signature symmetric
+  //       but for the time being, this typing suffices.
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cm1, c1}),
       std::invalid_argument);
@@ -1029,6 +1027,8 @@ TEST(testoperator, matrix_scale) {
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
   auto z = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two, two});
+  auto v = g.add_operator(
+      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, one, two});
   auto w = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two});
 
@@ -1038,6 +1038,9 @@ TEST(testoperator, matrix_scale) {
   Eigen::MatrixXd mz(2, 2);
   mz << -1.1, 0.7, -0.6, 0.2;
   g.observe(z, mz);
+  Eigen::MatrixXd mv(1, 2);
+  mv << 2.3, -0.4;
+  g.observe(v, mv);
   Eigen::MatrixXd mw(2, 1);
   mw << 2.3, -0.4;
   g.observe(w, mw);
@@ -1055,77 +1058,104 @@ TEST(testoperator, matrix_scale) {
       ;
     }
   }
-  // --------------------------------------------------------------
-  return; // TODO[Walid]: THIS NEEDS TO GO BY THE END OF THIS STACK
-  // --------------------------------------------------------------
 
   // test backward():
-  auto zw = g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{z, w});
-  auto xyzw =
-      g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{xy, zw});
+  auto xv = g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{x, v});
+  auto zw =
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{z, w});
+  auto xvzw =
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{xv, zw});
+
   auto xyzw_dist = g.add_distribution(
       DistributionType::NORMAL,
       AtomicType::REAL,
-      std::vector<uint>{xyzw, pos1});
-  auto xyzw_sample =
+      std::vector<uint>{xvzw, pos1});
+  auto xwzw_sample =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{xyzw_dist});
-  g.observe(xyzw_sample, 1.7);
-  /* to verify with PyTorch:
+  g.observe(xwzw_sample, 1.7);
+
+  auto zwxv =
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{zw, xv});
+  auto xvzwxv = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{xv, zwxv});
+  auto xvzwxvzw = g.add_operator(
+      OperatorType::MATRIX_MULTIPLY, std::vector<uint>{xvzwxv, zw});
+  auto xvzwxvzw_dist = g.add_distribution(
+      DistributionType::NORMAL,
+      AtomicType::REAL,
+      std::vector<uint>{xvzwxvzw, pos1});
+  auto xvzwxvzw_sample =
+      g.add_operator(OperatorType::SAMPLE, std::vector<uint>{xvzwxvzw_dist});
+  g.observe(xvzwxvzw_sample, 1.7);
+  // Reference values from PyTorch:
+  /*
 import torch
 from torch import tensor
 import torch.distributions as dist
 
-X = tensor([0.4, 0.1, 0.5], requires_grad=True)
+X = tensor(0.4, requires_grad=True)
 Y = tensor([[0.3, -0.1], [1.2, 0.9], [-2.6, 0.8]], requires_grad=True)
 Z = tensor([[-1.1, 0.7], [-0.6, 0.2]], requires_grad=True)
-W = tensor([2.3, -0.4], requires_grad=True)
+V = tensor([[2.3, -0.4]], requires_grad=True)
+W = tensor([[2.3], [-0.4]], requires_grad=True)
 def f_grad(x):
-    XY = torch.mm(X.view((1, 3)), Y)
-    ZW = torch.mm(Z, W.view((2,1)))
-    XYZW = torch.mm(XY, ZW)
+    XV = X*V                         # (1,2)
+    ZW = torch.mm(Z,W)               # (2,1)
+    XVZW = torch.mm(XV, ZW)          # (1,1)
+    ##
+    ZWXV = torch.mm(ZW, XV)          # (2,2)
+    XVZWXV = torch.mm(XV, ZWXV)      # (1,2)
+    XVZWXVZW = torch.mm(XVZWXV, ZW)  # (1,1)
+    ##
     log_p = (
-        dist.Normal(XYZW, tensor(1.0)).log_prob(tensor(1.7))
+        + dist.Normal(XVZW, tensor(1.0)).log_prob(tensor(1.7))
+        + dist.Normal(XVZWXVZW, tensor(1.0)).log_prob(tensor(1.7))
         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(X).sum()
         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Y).sum()
         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Z).sum()
+        + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(V).sum()
         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(W).sum()
     )
     return torch.autograd.grad(log_p, x)[0]
 
-[f_grad(x) for x in [X,Y,Z,W]]
-
-produces:
-
-[tensor([ 0.0333,  2.8128, -4.3154]),
- tensor([[ 0.3987,  0.4630],
-         [-1.0253, -0.8092],
-         [ 3.4733, -0.3462]]),
- tensor([[ 2.6155, -0.9636],
-         [-0.0434, -0.0881]]),
- tensor([-2.8570,  0.8053])]
+[f_grad(x) for x in [X,Y,Z,V,W]]
+  which produces
+[tensor(-130.1199),
+ tensor([[-0.3000,  0.1000],
+         [-1.2000, -0.9000],
+         [ 2.6000, -0.8000]]),
+ tensor([[47.7895, -8.8199],
+         [-7.5199,  1.2122]]),
+ tensor([[-27.1010, -12.4859]]),
+ tensor([[-22.5115],
+         [ 13.9038]])]
   */
+
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
-  EXPECT_EQ(grad1.size(), 5);
+
+  EXPECT_EQ(grad1.size(), 7);
+
   // grad x
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(0), 0.0333, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(1), 2.8128, 1e-3);
-  EXPECT_NEAR(grad1[0]->_matrix.coeff(2), -4.3154, 1e-3);
+  EXPECT_NEAR(grad1[0]->_double, -130.1199, 1e-3);
   // grad y
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), 0.3987, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.0253, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(2), 3.4733, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(3), 0.4630, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(4), -0.8092, 1e-3);
-  EXPECT_NEAR(grad1[1]->_matrix.coeff(5), -0.3462, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(0), -0.3, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(1), -1.2, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(2), 2.6, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(3), 0.1, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(4), -0.9, 1e-3);
+  EXPECT_NEAR(grad1[1]->_matrix.coeff(5), -0.8, 1e-3);
   // grad z
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(0), 2.6155, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(1), -0.0434, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(2), -0.9636, 1e-3);
-  EXPECT_NEAR(grad1[2]->_matrix.coeff(3), -0.0881, 1e-3);
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(0), 47.7895, 1e-3);
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(1), -7.5199, 1e-3);
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(2), -8.8199, 1e-3);
+  EXPECT_NEAR(grad1[2]->_matrix.coeff(3), 1.2122, 1e-3);
+  // grad v
+  EXPECT_NEAR(grad1[3]->_matrix.coeff(0), -27.1010, 1e-3);
+  EXPECT_NEAR(grad1[3]->_matrix.coeff(1), -12.4859, 1e-3);
   // grad w
-  EXPECT_NEAR(grad1[3]->_matrix.coeff(0), -2.8570, 1e-3);
-  EXPECT_NEAR(grad1[3]->_matrix.coeff(1), 0.8053, 1e-3);
+  EXPECT_NEAR(grad1[4]->_matrix.coeff(0), -22.5115, 1e-3);
+  EXPECT_NEAR(grad1[4]->_matrix.coeff(1), 13.9038, 1e-3);
 }
 
 TEST(testoperator, index) {

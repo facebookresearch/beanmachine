@@ -11,8 +11,10 @@
 namespace beanmachine {
 namespace oper {
 
-// TODO[Walid]: We need a reference for the mathematical background
-// behind for reverse mode differentiation, see:
+// This is a fairly technical code base because it requires
+// familiarity with Automatic Differentiation (AD) and
+// vector/matrix function AD. The following references help:
+// For background on reverse mode differentiation, see:
 // https://rufflewind.com/2016-12-30/reverse-mode-automatic-differentiation
 // For matrix differentation, see:
 // https://atmos.washington.edu/~dennis/MatrixCalculus.pdf
@@ -178,8 +180,6 @@ void Choice::backward() {
   }
 }
 
-// TODO[Walid]: Clone and adapt next function for MATRIX_SCALE
-
 /*
 For C = A @ B, with the backward accumulated gradient for C is Gc,
 the backward propagation to A is Ga += Gc @ B^T and to B is
@@ -222,24 +222,25 @@ void MatrixScale::backward() {
   assert(in_nodes.size() == 2);
   auto node_a = in_nodes[0];
   auto node_b = in_nodes[1];
-  Eigen::MatrixXd& A = node_a->value._matrix;
+  double A = node_a->value._double;
   Eigen::MatrixXd& B = node_b->value._matrix;
   // if C = A @ B is reduced to a scalar
+  // TODO[Walid] : Check if this case is actually ever needed
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     if (node_a->needs_gradient()) {
-      node_a->back_grad1._matrix += back_grad1._double * B.transpose();
+      node_a->back_grad1._double += (back_grad1._double * B.transpose()).sum();
     }
     if (node_b->needs_gradient()) {
-      node_b->back_grad1._matrix += back_grad1._double * A.transpose();
+      node_b->back_grad1._matrix(0, 0) += back_grad1._double * A;
     }
     return;
   }
   // the general form
   if (node_a->needs_gradient()) {
-    node_a->back_grad1._matrix += back_grad1._matrix * B.transpose();
+    node_a->back_grad1._double += (back_grad1._matrix * B.transpose()).sum();
   }
   if (node_b->needs_gradient()) {
-    node_b->back_grad1._matrix += A.transpose() * back_grad1._matrix;
+    node_b->back_grad1._matrix += A * back_grad1._matrix;
   }
 }
 
