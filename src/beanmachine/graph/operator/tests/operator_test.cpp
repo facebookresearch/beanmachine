@@ -82,7 +82,7 @@ TEST(testoperator, multiply) {
   g.observe(x1, 1.3);
   g.observe(x2, -0.8);
   g.observe(x3, 2.1);
-  const auto& means = g.infer_mean(10, InferenceType::NMC);
+  const auto& means = g.infer_mean(1, InferenceType::NMC);
   EXPECT_NEAR(means[0], -2.184, 0.001);
   // test backward():
   // verification with PyTorch
@@ -893,7 +893,7 @@ TEST(testoperator, matrix_multiply) {
   auto xy =
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{x, y});
   g.query(xy);
-  const auto& xy_eval = g.infer(10, InferenceType::NMC);
+  const auto& xy_eval = g.infer(1, InferenceType::NMC);
   EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
   EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 1);
   // result should be simply mx * m1
@@ -1012,9 +1012,6 @@ TEST(testoperator, matrix_scale) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cb2, cmb2}),
       std::invalid_argument);
-  // --------------------------------------------------------------
-  return; // TODO[Walid]: THIS NEEDS TO GO BY THE END OF THIS STACK
-  // --------------------------------------------------------------
 
   // test eval()
   auto zero = g.add_constant(0.0);
@@ -1027,8 +1024,7 @@ TEST(testoperator, matrix_scale) {
   auto two = g.add_constant((natural_t)2);
   auto three = g.add_constant((natural_t)3);
 
-  auto x = g.add_operator(
-      OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, one, three});
+  auto x = g.add_operator(OperatorType::SAMPLE, std::vector<uint>{normal_dist});
   auto y = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, three, two});
   auto z = g.add_operator(
@@ -1036,9 +1032,8 @@ TEST(testoperator, matrix_scale) {
   auto w = g.add_operator(
       OperatorType::IID_SAMPLE, std::vector<uint>{normal_dist, two});
 
-  Eigen::MatrixXd mx(1, 3);
-  mx << 0.4, 0.1, 0.5;
-  g.observe(x, mx);
+  auto vx = 0.4;
+  g.observe(x, vx);
   g.observe(y, m1);
   Eigen::MatrixXd mz(2, 2);
   mz << -1.1, 0.7, -0.6, 0.2;
@@ -1049,11 +1044,20 @@ TEST(testoperator, matrix_scale) {
 
   auto xy = g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{x, y});
   g.query(xy);
-  const auto& xy_eval = g.infer(10, InferenceType::NMC);
+  const auto& xy_eval = g.infer(1, InferenceType::NMC);
+  Eigen::MatrixXd mxy(3, 2);
+  mxy = vx * m1;
+  EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 3);
   EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
-  EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 1);
-  EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(0), -1.0600, 0.001);
-  EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(1), 0.4500, 0.001);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(i + 3 * j), mxy(i, j), 0.001);
+      ;
+    }
+  }
+  // --------------------------------------------------------------
+  return; // TODO[Walid]: THIS NEEDS TO GO BY THE END OF THIS STACK
+  // --------------------------------------------------------------
 
   // test backward():
   auto zw = g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{z, w});

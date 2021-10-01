@@ -117,7 +117,7 @@ MatrixScale::MatrixScale(const std::vector<graph::Node*>& in_nodes)
 
 void MatrixScale::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
-  value._matrix = in_nodes[0]->value._matrix * in_nodes[1]->value._matrix;
+  value._matrix = in_nodes[0]->value._double * in_nodes[1]->value._matrix;
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     to_scalar();
   }

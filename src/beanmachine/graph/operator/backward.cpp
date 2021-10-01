@@ -20,6 +20,10 @@ namespace oper {
 // https://people.maths.ox.ac.uk/gilesm/files/NA-08-01.pdf
 // or
 // https://researcher.watson.ibm.com/researcher/files/us-pederao/ADTalk.pdf
+// Note: The reader will also need to understand the definition of
+// differentiations on matrices to follow these references. For this the
+// following reference helps:
+// https://people.maths.ox.ac.uk/gilesm/files/AD2008.pdf
 
 // Note: that we use the following chain rule for the gradients of f(g(x))
 // first: f'(g(x)) g'(x), assuming f'(g(x)) is given by back_grad1.
