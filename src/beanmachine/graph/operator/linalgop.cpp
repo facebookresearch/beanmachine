@@ -1,6 +1,7 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
 #include "beanmachine/graph/operator/linalgop.h"
+#include "beanmachine/graph/graph.h"
 
 /*
 A MACRO that checks the atomic_type of a node to make sure the underlying
@@ -120,6 +121,40 @@ void MatrixScale::eval(std::mt19937& /* gen */) {
   value._matrix = in_nodes[0]->value._double * in_nodes[1]->value._matrix;
   if (value.type.variable_type == graph::VariableType::SCALAR) {
     to_scalar();
+  }
+}
+
+void MatrixScale::compute_gradients() {
+  // TODO[Walid]: This is a naive implementation based simply on the pattern
+  // used by ToMatrix:comput_gradients(). A more efficient implementation
+  // would incorporate some dynamic programming ideas similar to those used
+  // in Multiplication::compute_gradients()
+  assert(in_nodes.size() == 2);
+  int rows = in_nodes[1]->value.type.rows;
+  int cols = in_nodes[1]->value.type.cols;
+  Grad1.resize(rows, cols);
+  Grad2.resize(rows, cols);
+  // The code currently has a convention that constant values may have
+  // zero size Grad1 and Grad2. The purpose of the follow two variables
+  // (and their uses) is to accommodate this convention.
+  // TODO[Walid]: This seems to be a fairly implicit convention, and it
+  // took me a day while working on this diff figure out. It would be good
+  // to make this idea more explicit in the code. For example, explicit
+  // flags to indicate whether those derivatives are zero (or a proper
+  // union type) would help.
+  bool hasGrad1 = (in_nodes[1]->Grad1.size() != 0);
+  bool hasGrad2 = (in_nodes[1]->Grad2.size() != 0);
+  for (int j = 0; j < cols; j++) {
+    for (int i = 0; i < rows; i++) {
+      Grad1(i, j) = in_nodes[0]->grad1 * in_nodes[1]->value._matrix(i, j);
+      if (hasGrad1) {
+        Grad1(i, j) += in_nodes[0]->value._double * in_nodes[1]->Grad1(i, j);
+        Grad2(i, j) = in_nodes[0]->grad2 * in_nodes[1]->Grad1(i, j);
+      }
+      if (hasGrad2) {
+        Grad2(i, j) += in_nodes[0]->grad1 * in_nodes[1]->Grad2(i, j);
+      }
+    }
   }
 }
 
