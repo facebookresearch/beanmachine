@@ -62,10 +62,23 @@ class VectorizedDistributionFixer(ProblemFixerBase):
     def __init__(self, bmg: BMGraphBuilder, typer: Sizer) -> None:
         ProblemFixerBase.__init__(self, bmg, typer)
         self.fixed_one = False
+        # TODO: categorical
+        # TODO: categorical logit
+        # TODO: dirichlet
         self._factories = {
             bn.BernoulliLogitNode: bmg.add_bernoulli_logit,
             bn.BernoulliNode: bmg.add_bernoulli,
+            bn.BetaNode: bmg.add_beta,
+            bn.BinomialNode: bmg.add_binomial,
+            bn.BinomialLogitNode: bmg.add_binomial_logit,
+            bn.Chi2Node: bmg.add_chi2,
+            bn.GammaNode: bmg.add_gamma,
+            bn.HalfCauchyNode: bmg.add_halfcauchy,
+            bn.HalfNormalNode: bmg.add_halfnormal,
             bn.NormalNode: bmg.add_normal,
+            bn.PoissonNode: bmg.add_poisson,
+            bn.StudentTNode: bmg.add_studentt,
+            bn.UniformNode: bmg.add_uniform,
         }
 
     def _node_to_index_list(self, n: bn.BMGNode) -> List[bn.BMGNode]:
