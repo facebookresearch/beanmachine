@@ -14,7 +14,7 @@ class Extract:
 
     def _extract(self) -> Any:
         """Extract method to be written by the inheriting class."""
-        msg = 'To be implemented by the inheriting class.'
+        msg = "To be implemented by the inheriting class."
         raise NotImplementedError(msg)
 
 
@@ -30,7 +30,7 @@ class Transform:
 
     def _transform(self) -> Any:
         """Transform method to be written by the inheriting class."""
-        msg = 'To be implemented by the inheriting class.'
+        msg = "To be implemented by the inheriting class."
         raise NotImplementedError(msg)
 
 
@@ -39,7 +39,7 @@ class Load:
 
     transformer = None
     filename = None
-    data_dir = Path(__file__).parent.joinpath('data')
+    data_dir = Path(__file__).parent.joinpath("data")
 
     def is_cached(self) -> bool:
         return Path(self.data_dir.joinpath(self.filename)).exists()
@@ -60,5 +60,5 @@ class Load:
 
     def _load(self) -> Any:
         """Load method to be written by the inheriting class."""
-        msg = 'To be implemented by the inheriting class.'
+        msg = "To be implemented by the inheriting class."
         raise NotImplementedError(msg)
