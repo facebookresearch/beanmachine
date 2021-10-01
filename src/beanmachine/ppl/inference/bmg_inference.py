@@ -146,7 +146,6 @@ class BMGInference:
 
         rt = self._accumulate_graph(queries, observations)
         bmg = rt._bmg
-
         report = pr.PerformanceReport()
 
         self._begin(prof.infer)

@@ -662,6 +662,17 @@ class BMGraphBuilder:
         return node
 
     @memoize
+    def add_matrix_scale(self, scalar: BMGNode, matrix: BMGNode) -> BMGNode:
+        # Intended convention here is that the scalar comes first.
+        # However, this cannot be checked here
+        # TODO[Walid]: Fix to match reverse order convention of torch.mul
+        if isinstance(scalar, ConstantNode) and isinstance(matrix, ConstantNode):
+            return self.add_constant(scalar.value * matrix.value)
+        node = bn.MatrixScaleNode(scalar, matrix)
+        self.add_node(node)
+        return node
+
+    @memoize
     def add_division(self, left: BMGNode, right: BMGNode) -> BMGNode:
         if isinstance(left, ConstantNode) and isinstance(right, ConstantNode):
             return self.add_constant(left.value / right.value)

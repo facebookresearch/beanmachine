@@ -194,7 +194,7 @@ class RequirementsFixer:
         # Consider the graph created by a call like:
         #
         # Bernoulli(0.5 + some_beta() / 2)
-        #
+
         # The inf types of the addends are both probability, but there is
         # no addition operator on probabilities; we will add these as
         # positive reals, and then get an error when we use it as the parameter

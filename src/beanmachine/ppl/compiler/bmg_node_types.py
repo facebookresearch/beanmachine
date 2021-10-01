@@ -74,6 +74,7 @@ _operator_types = {
     bn.LogSumExpNode: OperatorType.LOGSUMEXP,
     bn.LogSumExpVectorNode: OperatorType.LOGSUMEXP_VECTOR,
     bn.MultiplicationNode: OperatorType.MULTIPLY,
+    bn.MatrixScaleNode: OperatorType.MATRIX_SCALE,
     bn.NegateNode: OperatorType.NEGATE,
     bn.PhiNode: OperatorType.PHI,
     bn.PowerNode: OperatorType.POW,

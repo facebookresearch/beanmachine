@@ -110,6 +110,7 @@ infer:(1) -- ms
     MultiaryAdditionFixer:(1) -- ms
     LogSumExpFixer:(1) -- ms
     MultiaryMultiplicationFixer:(1) -- ms
+    MatrixScaleFixer:(--) -- ms
     RequirementsFixer:(1) -- ms
     ObservationsFixer:(1) -- ms
     unattributed: -- ms
@@ -176,6 +177,7 @@ infer:(1) -- ms
     UnsupportedNodeFixer:(1) -- ms
     LogSumExpFixer:(1) -- ms
     MultiaryMultiplicationFixer:(1) -- ms
+    MatrixScaleFixer:(--) -- ms
     RequirementsFixer:(1) -- ms
     ObservationsFixer:(1) -- ms
     unattributed: -- ms

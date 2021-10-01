@@ -61,6 +61,7 @@
 # be reported when a graph cannot be transformed as required.
 
 
+import typing
 from typing import Callable, Dict, Set
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
@@ -133,6 +134,7 @@ _always_matrix_types: Set[type] = {
     bn.ConstantRealMatrixNode,
     bn.ConstantSimplexMatrixNode,
     bn.ToMatrixNode,
+    bn.MatrixScaleNode,
 }
 
 
@@ -156,6 +158,7 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
             bn.IfThenElseNode: self._type_if,
             bn.LogNode: self._type_log,
             bn.MultiplicationNode: self._type_multiplication,
+            bn.MatrixScaleNode: self._type_matrix_scale,
             bn.NegateNode: self._type_negate,
             bn.PowerNode: self._type_power,
             bn.SampleNode: self._type_sample,
@@ -283,6 +286,21 @@ class LatticeTyper(TyperBase[bt.BMGLatticeType]):
         if bt.supremum(it, bt.Real) == bt.Real:
             return it
         return bt.Real
+
+    def _type_matrix_scale(self, node: bn.MatrixScaleNode) -> bt.BMGLatticeType:
+        assert len(node.inputs) == 2
+        lt = self[node.left]
+        assert lt is not bt.Untypable
+        assert bt.supremum(lt, bt.Real) == bt.Real
+        assert isinstance(
+            lt, bt.BMGMatrixType
+        )  # Beanstalk scalars are single matrix types
+        lt = typing.cast(bt.BroadcastMatrixType, lt)
+        rt = self[node.right]
+        assert rt is not bt.Untypable
+        assert isinstance(rt, bt.BMGMatrixType)
+        ltm = lt.with_dimensions(rt.rows, rt.columns)
+        return bt.supremum(ltm, rt)
 
     def _type_negate(self, node: bn.NegateNode) -> bt.BMGLatticeType:
         ot = self[node.operand]

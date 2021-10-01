@@ -13,6 +13,7 @@ from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
 from beanmachine.ppl.compiler.fix_bool_arithmetic import BoolArithmeticFixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import BoolComparisonFixer
 from beanmachine.ppl.compiler.fix_logsumexp import LogSumExpFixer
+from beanmachine.ppl.compiler.fix_matrix_scale import MatrixScaleFixer
 from beanmachine.ppl.compiler.fix_multiary_ops import (
     MultiaryAdditionFixer,
     MultiaryMultiplicationFixer,
@@ -52,6 +53,7 @@ _standard_fixer_types: List[Type] = [
     BetaBernoulliConjguateFixer,
     BetaBinomialConjguateFixer,
     NormalNormalConjugateFixer,
+    MatrixScaleFixer,
     RequirementsFixer,
     ObservationsFixer,
 ]

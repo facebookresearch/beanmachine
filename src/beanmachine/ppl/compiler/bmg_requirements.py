@@ -20,6 +20,7 @@
 #   once the lattice type is known, we do not attempt to cache this information.
 #
 
+import typing
 from typing import Callable, Dict, List
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
@@ -86,6 +87,7 @@ class EdgeRequirements:
             bn.LogSumExpNode: self._requirements_logsumexp,
             bn.LogSumExpVectorNode: self._requirements_logsumexp_vector,
             bn.MultiplicationNode: self._requirements_multiplication,
+            bn.MatrixScaleNode: self._requirements_matrix_scale,
             bn.NegateNode: self._requirements_exp_neg,
             bn.PowerNode: self._requirements_power,
             bn.SampleNode: self._same_as_output,
@@ -379,6 +381,18 @@ class EdgeRequirements:
         it = self.typer[node]
         assert it in {bt.Probability, bt.PositiveReal, bt.Real}
         return [it] * len(node.inputs)  # pyre-ignore
+
+    def _requirements_matrix_scale(
+        self, node: bn.MatrixScaleNode
+    ) -> List[bt.Requirement]:
+        it = self.typer[node]
+        assert isinstance(it, bt.BMGMatrixType)
+        it = typing.cast(bt.BroadcastMatrixType, it)
+        it_scalar = it.with_dimensions(1, 1)
+        # TODO[Walid]: Not entirely sure if we need this asserted requirement.
+        #              It was included only for analogy with multiplication
+        assert it_scalar in {bt.Probability, bt.PositiveReal, bt.Real}
+        return [it_scalar, it]
 
     def _requirements_power(self, node: bn.PowerNode) -> List[bt.Requirement]:
         # BMG supports a power node that has these possible combinations of

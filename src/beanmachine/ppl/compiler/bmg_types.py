@@ -80,6 +80,9 @@ class BMGLatticeType:
     def __str__(self) -> str:
         return self.short_name
 
+    def is_singleton(self) -> bool:
+        return False
+
 
 class BMGElementType:
     short_name: str
@@ -128,8 +131,8 @@ class BMGMatrixType(BMGLatticeType):
         r, c = _size_to_rc(size)
         return self.with_dimensions(c, r)
 
-    def is_singleton(self) -> int:
-        return self.rows * self.columns == 1
+    def is_singleton(self) -> bool:
+        return (isinstance(self, BMGMatrixType)) and (self.rows * self.columns == 1)
 
 
 class BroadcastMatrixType(BMGMatrixType):
