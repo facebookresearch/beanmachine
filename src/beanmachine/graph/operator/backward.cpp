@@ -11,6 +11,16 @@
 namespace beanmachine {
 namespace oper {
 
+// TODO[Walid]: We need a reference for the mathematical background
+// behind for reverse mode differentiation, see:
+// https://rufflewind.com/2016-12-30/reverse-mode-automatic-differentiation
+// For matrix differentation, see:
+// https://atmos.washington.edu/~dennis/MatrixCalculus.pdf
+// or
+// https://people.maths.ox.ac.uk/gilesm/files/NA-08-01.pdf
+// or
+// https://researcher.watson.ibm.com/researcher/files/us-pederao/ADTalk.pdf
+
 // Note: that we use the following chain rule for the gradients of f(g(x))
 // first: f'(g(x)) g'(x), assuming f'(g(x)) is given by back_grad1.
 
@@ -163,6 +173,8 @@ void Choice::backward() {
     in_nodes[choice]->back_grad1._double += back_grad1._double;
   }
 }
+
+// TODO[Walid]: Clone and adapt next function for MATRIX_SCALE
 
 /*
 For C = A @ B, with the backward accumulated gradient for C is Gc,

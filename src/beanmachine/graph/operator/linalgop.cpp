@@ -36,7 +36,7 @@ MatrixMultiply::MatrixMultiply(const std::vector<graph::Node*>& in_nodes)
   CHECK_TYPE_DOUBLE(type1.atomic_type, "MATRIX_MULTIPLY")
   if (type0.cols != type1.rows) {
     throw std::invalid_argument(
-        "parent nodes have imcompatible dimensions for MATRIX_MULTIPLY");
+        "parent nodes have incompatible dimensions for MATRIX_MULTIPLY");
   }
   // AtomicType inference is not rigorous, we assume
   // (R or pos_R or neg_R or Prob) @ (R or pos_R or neg_R or Prob) -> R

@@ -826,13 +826,22 @@ TEST(testoperator, matrix_multiply) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{}),
       std::invalid_argument);
-  auto c1 = g.add_constant(1.5);
+  Eigen::MatrixXd m0(2, 2);
+  m0 << 0.3, -0.1, 1.2, 0.9;
+  auto cm0 = g.add_constant_real_matrix(m0);
   EXPECT_THROW(
-      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{c1}),
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cm0}),
       std::invalid_argument);
   // requires matrix parents
+  auto c1 = g.add_constant(1.5);
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{c1, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cm0, c1}),
+      std::invalid_argument);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{c1, cm0}),
       std::invalid_argument);
   Eigen::MatrixXd m1(3, 2);
   m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
@@ -842,7 +851,7 @@ TEST(testoperator, matrix_multiply) {
   // requires real/pos_real/neg_real/probability types
   EXPECT_THROW(
       g.add_operator(
-          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cm2, cm1}),
+          OperatorType::MATRIX_MULTIPLY, std::vector<uint>{cm2, cm0}),
       std::invalid_argument);
   // requires compatible dimension
   EXPECT_THROW(
@@ -887,6 +896,7 @@ TEST(testoperator, matrix_multiply) {
   const auto& xy_eval = g.infer(10, InferenceType::NMC);
   EXPECT_EQ(xy_eval[0][0]._matrix.cols(), 2);
   EXPECT_EQ(xy_eval[0][0]._matrix.rows(), 1);
+  // result should be simply mx * m1
   EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(0), -1.0600, 0.001);
   EXPECT_NEAR(xy_eval[0][0]._matrix.coeff(1), 0.4500, 0.001);
 
@@ -902,27 +912,40 @@ TEST(testoperator, matrix_multiply) {
   auto xyzw_sample =
       g.add_operator(OperatorType::SAMPLE, std::vector<uint>{xyzw_dist});
   g.observe(xyzw_sample, 1.7);
-  // to verify with PyTorch:
-  // X = tensor([0.4, 0.1, 0.5], requires_grad=True)
-  // Y = tensor([[0.3, -0.1], [1.2, 0.9], [-2.6, 0.8]], requires_grad=True)
-  // Z = tensor([[-1.1, 0.7], [-0.6, 0.2]], requires_grad=True)
-  // W = tensor([2.3, -0.4], requires_grad=True)
-  // def f_grad(x):
-  //     XY = torch.mm(X.view((1, 3)), Y)
-  //     ZW = torch.mm(Z, W.view((2,1)))
-  //     XYZW = torch.mm(XY, ZW)
-  //     log_p = (
-  //         dist.Normal(XYZW, tensor(1.0)).log_prob(tensor(1.7))
-  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(X).sum()
-  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Y).sum()
-  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Z).sum()
-  //         + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(W).sum()
-  //     )
-  //     return torch.autograd.grad(log_p, x)[0]
-  // f_grad(X) -> [0.0333,  2.8128, -4.3154]
-  // f_grad(Y) -> [[0.3987,  0.4630], [-1.0253, -0.8092], [3.4733, -0.3462]]
-  // f_grad(Z) -> [[2.6155, -0.9636], [-0.0434, -0.0881]]
-  // f_grad(W) -> [-2.8570,  0.8053]
+  /*   to verify with PyTorch:
+import torch
+from torch import tensor
+import torch.distributions as dist
+
+X = tensor([0.4, 0.1, 0.5], requires_grad=True)
+Y = tensor([[0.3, -0.1], [1.2, 0.9], [-2.6, 0.8]], requires_grad=True)
+Z = tensor([[-1.1, 0.7], [-0.6, 0.2]], requires_grad=True)
+W = tensor([2.3, -0.4], requires_grad=True)
+def f_grad(x):
+    XY = torch.mm(X.view((1, 3)), Y)
+    ZW = torch.mm(Z, W.view((2,1)))
+    XYZW = torch.mm(XY, ZW)
+    log_p = (
+        dist.Normal(XYZW, tensor(1.0)).log_prob(tensor(1.7))
+        + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(X).sum()
+        + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Y).sum()
+        + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(Z).sum()
+        + dist.Normal(tensor(0.0), tensor(1.0)).log_prob(W).sum()
+    )
+    return torch.autograd.grad(log_p, x)[0]
+
+[f_grad(x) for x in [X,Y,Z,W]]
+
+produces:
+
+[tensor([ 0.0333,  2.8128, -4.3154]),
+ tensor([[ 0.3987,  0.4630],
+         [-1.0253, -0.8092],
+         [ 3.4733, -0.3462]]),
+ tensor([[ 2.6155, -0.9636],
+         [-0.0434, -0.0881]]),
+ tensor([-2.8570,  0.8053])]
+  */
   std::vector<DoubleMatrix*> grad1;
   g.eval_and_grad(grad1);
   EXPECT_EQ(grad1.size(), 5);
