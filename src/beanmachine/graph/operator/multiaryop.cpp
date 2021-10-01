@@ -37,6 +37,7 @@ void Add::eval(std::mt19937& /* gen */) {
   }
 }
 
+// TODO[Walid]: Why not allow Booleans here and in MATRIX_SCALE?
 Multiply::Multiply(const std::vector<graph::Node*>& in_nodes)
     : MultiaryOperator(graph::OperatorType::MULTIPLY, in_nodes) {
   graph::ValueType type0 = in_nodes[0]->value.type;

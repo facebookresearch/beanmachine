@@ -71,27 +71,45 @@ MatrixScale::MatrixScale(const std::vector<graph::Node*>& in_nodes)
   }
   graph::ValueType type0 = in_nodes[0]->value.type;
   graph::ValueType type1 = in_nodes[1]->value.type;
-  if (type0.variable_type == graph::VariableType::SCALAR or
-      type1.variable_type == graph::VariableType::SCALAR) {
-    throw std::invalid_argument("MATRIX_SCALE cannot have SCALAR parents");
+  if (type0.variable_type != graph::VariableType::SCALAR and
+      type1.variable_type != graph::VariableType::SCALAR) {
+    throw std::invalid_argument("MATRIX_SCALE takes one SCALAR parent");
   }
-  CHECK_TYPE_DOUBLE(type0.atomic_type, "MATRIX_SCALE")
-  CHECK_TYPE_DOUBLE(type1.atomic_type, "MATRIX_SCALE")
-  if (type0.cols != type1.rows) {
+  if (type0.variable_type != graph::VariableType::BROADCAST_MATRIX and
+      type1.variable_type != graph::VariableType::BROADCAST_MATRIX) {
+    throw std::invalid_argument("MATRIX_SCALE takes one MATRIX parent");
+  }
+  // TODO[Walid]: Following constraint should go by end of this stack
+  if (type0.variable_type != graph::VariableType::SCALAR) {
+    throw std::invalid_argument("MATRIX_SCALE takes SCALAR parent first");
+  }
+  if (type1.variable_type != graph::VariableType::BROADCAST_MATRIX) {
     throw std::invalid_argument(
-        "parent nodes have imcompatible dimensions for MATRIX_SCALE");
+        "MATRIX_SCALE takes BROADCAST_MATRIX parent first");
   }
-  // AtomicType inference is not rigorous, we assume
-  // (R or pos_R or neg_R or Prob) @ (R or pos_R or neg_R or Prob) -> R
+  // For the rest, we will follow the same typing rule as for regular
+  // multiplication (MULTIPLY)
+  // TODO[Walid]: Why not allow Booleans here and in MULTIPLY?
+  if (type0 != graph::AtomicType::REAL and
+      type0 != graph::AtomicType::POS_REAL and
+      type0 != graph::AtomicType::PROBABILITY) {
+    throw std::invalid_argument(
+        "MATRIX_SCALE requires a real, pos_real or probability parent");
+  }
+
+  if (type0.atomic_type != type1.atomic_type) {
+    throw std::invalid_argument(
+        "MATRIX_SCALE requires both parents have same atomic type");
+  }
   graph::ValueType new_type;
-  if (type0.rows == 1 and type1.cols == 1) {
+  if (type1.rows == 1 and type1.cols == 1) {
     new_type = graph::ValueType(
         graph::VariableType::SCALAR, graph::AtomicType::REAL, 0, 0);
   } else {
     new_type = graph::ValueType(
         graph::VariableType::BROADCAST_MATRIX,
-        graph::AtomicType::REAL,
-        type0.rows,
+        type1.atomic_type,
+        type1.rows,
         type1.cols);
   }
   value = graph::NodeValue(new_type);

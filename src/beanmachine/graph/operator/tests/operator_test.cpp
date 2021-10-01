@@ -822,7 +822,7 @@ TEST(testoperator, iid_sample) {
 TEST(testoperator, matrix_multiply) {
   Graph g;
   // negative tests:
-  // requries two parents
+  // requires two parents
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_MULTIPLY, std::vector<uint>{}),
       std::invalid_argument);
@@ -976,7 +976,7 @@ produces:
 TEST(testoperator, matrix_scale) {
   Graph g;
   // negative tests:
-  // requries two parents
+  // requires two parents
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{}),
       std::invalid_argument);
@@ -984,23 +984,37 @@ TEST(testoperator, matrix_scale) {
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{c1}),
       std::invalid_argument);
-  // requires matrix parents
+  // requires one scalar and one matrix parent
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{c1, c1}),
       std::invalid_argument);
   Eigen::MatrixXd m1(3, 2);
   m1 << 0.3, -0.1, 1.2, 0.9, -2.6, 0.8;
   auto cm1 = g.add_constant_real_matrix(m1);
-  Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
-  auto cm2 = g.add_constant_bool_matrix(m2);
-  // requires real/pos_real/neg_real/probability types
-  EXPECT_THROW(
-      g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cm2, cm1}),
-      std::invalid_argument);
-  // requires compatible dimension
   EXPECT_THROW(
       g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cm1, cm1}),
       std::invalid_argument);
+  // TODO[Walid]: Following constraint should go by end of this stack
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cm1, c1}),
+      std::invalid_argument);
+  // Arguments should have same atomic type
+  Eigen::MatrixXd mp1(3, 2);
+  mp1 << 0.3, 0.1, 1.2, 0.9, 2.6, 0.8;
+  auto cmp1 = g.add_constant_pos_matrix(mp1);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{c1, cmp1}),
+      std::invalid_argument);
+  // requires real/pos_real/probability types
+  auto cb2 = g.add_constant(false);
+  Eigen::MatrixXb m2 = Eigen::MatrixXb::Random(1, 2);
+  auto cmb2 = g.add_constant_bool_matrix(m2);
+  EXPECT_THROW(
+      g.add_operator(OperatorType::MATRIX_SCALE, std::vector<uint>{cb2, cmb2}),
+      std::invalid_argument);
+  // --------------------------------------------------------------
+  return; // TODO[Walid]: THIS NEEDS TO GO BY THE END OF THIS STACK
+  // --------------------------------------------------------------
 
   // test eval()
   auto zero = g.add_constant(0.0);
@@ -1347,7 +1361,7 @@ TEST(testoperator, broadcast_add) {
   m1 << 2.0, -1.0;
   auto matrix1 = g1.add_constant_real_matrix(m1);
   // negative tests:
-  // requries two parents
+  // requires two parents
   EXPECT_THROW(
       g1.add_operator(OperatorType::BROADCAST_ADD, std::vector<uint>{}),
       std::invalid_argument);
