@@ -41,19 +41,22 @@ from beanmachine.ppl.compiler.lattice_typer import LatticeTyper
 #
 # TODO: Add other notes on ordering constraints here.
 
+# TODO[Walid]: Investigate ways to generalize transformations such as MatrixScale to
+# work with multiary multiplications.
+
 _standard_fixer_types: List[Type] = [
     VectorizedModelFixer,
     BoolArithmeticFixer,
     AdditionFixer,
     BoolComparisonFixer,
     UnsupportedNodeFixer,
+    MatrixScaleFixer,
     MultiaryAdditionFixer,
     LogSumExpFixer,
     MultiaryMultiplicationFixer,
     BetaBernoulliConjguateFixer,
     BetaBinomialConjguateFixer,
     NormalNormalConjugateFixer,
-    MatrixScaleFixer,
     RequirementsFixer,
     ObservationsFixer,
 ]
