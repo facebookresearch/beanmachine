@@ -149,6 +149,16 @@ class VectorizedOperatorFixer(ProblemFixerBase):
         t = self._bmg.add_tensor(size, *samples)
         return t
 
+    def _replace_addition(self, node: bn.AdditionNode) -> bn.BMGNode:
+        arglists = self._generate_arglists(node)
+        results = []
+        for arglist in arglists:
+            r = self._bmg.add_addition(*arglist)
+            results.append(r)
+        size = self._typer[node]
+        t = self._bmg.add_tensor(size, *results)
+        return t
+
     def _is_fixable_sample(self, n: bn.BMGNode) -> bool:
         if not isinstance(n, bn.SampleNode):
             return False
@@ -157,13 +167,21 @@ class VectorizedOperatorFixer(ProblemFixerBase):
             return False
         return _is_fixable_size(self._typer[dist])
 
+    def _is_fixable_operator(self, n: bn.BMGNode) -> bool:
+        if not isinstance(n, bn.AdditionNode):
+            return False
+        # TODO: Do we need to handle multiary additions here?
+        return len(n.inputs) == 2 and _is_fixable_size(self._typer[n])
+
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
-        return self._is_fixable_sample(n)
+        return self._is_fixable_sample(n) or self._is_fixable_operator(n)
 
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         self.fixed_one = True
-        assert isinstance(n, bn.SampleNode)
-        return self._replace_sample(n)
+        if isinstance(n, bn.SampleNode):
+            return self._replace_sample(n)
+        assert isinstance(n, bn.AdditionNode)
+        return self._replace_addition(n)
 
 
 class VectorizedModelFixer:
