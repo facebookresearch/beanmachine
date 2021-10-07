@@ -13,6 +13,10 @@ sidebar_label: TOC
 * [Modeling](overview/modeling/modeling.md)
 * [Inference](overview/inference/inference.md)
 * [Post-inference](overview/analysis/analysis.md)
+* [Packages](overview/packages/packages.md)
+* [Tutorials](overview/tutorials/tutorials.md)
+  * [Beanstalk compiler and Tutorials](overview/tutorials/beanstalk/beanstalk.md)
+* [Beanstalk](overview/beanstalk/beanstalk.md)
 
 **Framework topics**
 
