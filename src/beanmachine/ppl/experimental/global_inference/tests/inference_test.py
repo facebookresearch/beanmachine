@@ -58,6 +58,6 @@ def test_get_proposer():
 def test_initialize_world():
     model = SampleModel()
     nuts = bm.GlobalNoUTurnSampler()
-    world = nuts._initialize_world([model.bar()], {}, False)
+    world = nuts._initialize_world([model.bar()], {})
     assert model.foo() in world
     assert model.bar() in world

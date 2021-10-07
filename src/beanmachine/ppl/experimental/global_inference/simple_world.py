@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict, Iterator, Mapping, Optional, Set, List
+from typing import Dict, Iterator, List, Mapping, Optional, Set
 
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
+    InitializeFn,
+    init_from_prior,
+)
 from beanmachine.ppl.experimental.global_inference.variable import Variable
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.base_world import BaseWorld
@@ -24,10 +28,10 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     def __init__(
         self,
         observations: Optional[RVDict] = None,
-        initialize_from_prior: bool = False,
+        initialize_fn: InitializeFn = init_from_prior,
     ):
         self.observations: RVDict = observations or {}
-        self.initialize_from_prior: bool = initialize_from_prior
+        self._initialize_fn: InitializeFn = initialize_fn
         self._variables: Dict[RVIdentifier, Variable] = {}
 
         self._call_stack: List[_TempVar] = []
@@ -57,7 +61,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
     def copy(self) -> SimpleWorld:
         """Returns a shallow copy of the current world"""
-        world_copy = SimpleWorld(self.observations.copy(), self.initialize_from_prior)
+        world_copy = SimpleWorld(self.observations.copy(), self._initialize_fn)
         world_copy._variables = {
             node: var.copy() for node, var in self._variables.items()
         }
@@ -74,13 +78,8 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             transformed_value = self.observations[node]
             transform = dist.identity_transform
         else:
-            sample_val = distribution.sample()
             transform = get_default_transforms(distribution)
-            if self.initialize_from_prior or distribution.has_enumerate_support:
-                transformed_value = transform(sample_val)
-            else:
-                # initialize to Uniform(-2, 2) in unconstrained space
-                transformed_value = torch.rand_like(sample_val) * 4 - 2
+            transformed_value = transform(self._initialize_fn(distribution))
 
         self._variables[node] = Variable(
             transformed_value=transformed_value,
