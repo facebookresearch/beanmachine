@@ -53,11 +53,11 @@ def test_basic_operations():
     )
 
 
-def test_initialize_from_prior():
+def test_initialization():
     model = SampleModel()
-    with SimpleWorld(initialize_from_prior=True):
+    with SimpleWorld():
         val1 = model.bar()
-    with SimpleWorld(initialize_from_prior=True):
+    with SimpleWorld():
         val2 = model.bar()
     assert val1 != val2
 

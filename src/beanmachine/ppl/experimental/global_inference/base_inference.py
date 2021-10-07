@@ -10,6 +10,10 @@ from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
     SimpleWorld,
 )
+from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
+    InitializeFn,
+    init_to_uniform,
+)
 from beanmachine.ppl.inference.abstract_infer import (
     VerboseLevel,
     _verify_queries_and_observations,
@@ -24,9 +28,9 @@ class BaseInference(metaclass=ABCMeta):
     def _initialize_world(
         queries: List[RVIdentifier],
         observations: RVDict,
-        initialize_from_prior: bool,
+        initialize_fn: InitializeFn = init_to_uniform,
     ) -> SimpleWorld:
-        world = SimpleWorld(observations, initialize_from_prior)
+        world = SimpleWorld(observations, initialize_fn)
         # recursively add parent nodes to the graph
         for node in queries:
             world.call(node)
@@ -46,7 +50,7 @@ class BaseInference(metaclass=ABCMeta):
         num_chains: int = 1,
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
-        initialize_from_prior: bool = False,
+        initialize_fn: InitializeFn = init_to_uniform,
     ) -> MonteCarloSamples:
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
@@ -58,7 +62,7 @@ class BaseInference(metaclass=ABCMeta):
                 observations,
                 num_samples,
                 num_adaptive_samples,
-                initialize_from_prior,
+                initialize_fn,
             )
             samples = {query: [] for query in queries}
             # Main inference loop
@@ -82,7 +86,7 @@ class BaseInference(metaclass=ABCMeta):
         observations: RVDict,
         num_samples: Optional[int] = None,
         num_adaptive_samples: int = 0,
-        initialize_from_prior: bool = False,
+        initialize_fn: InitializeFn = init_to_uniform,
     ) -> Sampler:
         """Returns a generator that returns a new world (represents a new state of the
         graph) each time it is iterated. If num_samples is not provided, this method
@@ -90,7 +94,7 @@ class BaseInference(metaclass=ABCMeta):
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
         )
-        world = self._initialize_world(queries, observations, initialize_from_prior)
+        world = self._initialize_world(queries, observations, initialize_fn)
         proposer = self.get_proposer(world)
         sampler = Sampler(proposer, num_samples, num_adaptive_samples)
         return sampler
