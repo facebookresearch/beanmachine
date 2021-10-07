@@ -48,9 +48,7 @@ Given a generative model, the natural next step is to use it to perform inferenc
 
 In our example above, let's say we observe that `num_infected` is 1087980 and that `num_new_cases` is 238154. Now, given this observation, we might want to query the posterior distribution for `reproduction_rate`. Or, mathematically speaking, we seek the following,
 
-\[
-    \mathbb{P}(\texttt{reproduction\_rate} \mid \texttt{num\_new\_cases} = 238154, \texttt{num\_infected}=1087980)
-\]
+$$\mathbb{P}(\texttt{reproduction\_rate} \mid \texttt{num\_new\_cases} = 238154, \texttt{num\_infected}=1087980)$$
 
 One way to understand the semantics of the inference task is to think of a generative probabilistic model as specifying a distribution over possible **worlds**. A world can be thought of as an assignment of values to all random variables in the model. So, for example, some possible worlds are:
 
