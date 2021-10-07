@@ -3,6 +3,7 @@ from typing import Dict
 
 import beanmachine.ppl as bm
 import beanmachine.ppl.diagnostics.common_statistics as common_statistics
+import numpy as np
 import pandas as pd
 import torch
 import torch.distributions as dist
@@ -86,7 +87,7 @@ class DiagnosticsTest(unittest.TestCase):
                             val,
                             res[i].item(),
                             msg=f"query {query_res.index[i]} for {col}",
-                            delta=0.2,
+                            delta=0.5,
                         )
 
         def _test_plot_object(diag, query, query_samples):
@@ -120,7 +121,7 @@ class DiagnosticsTest(unittest.TestCase):
             for i in range(num_samples):
                 expected_acf = acf(
                     query_samples[:, i].detach().numpy(),
-                    unbiased=True,
+                    True,
                     nlags=num_samples - 1,
                     fft=False,
                 )
@@ -130,15 +131,16 @@ class DiagnosticsTest(unittest.TestCase):
                         expected_acf[ns],
                         msg=f"autocorr data for {diag._stringify_query(query)}\
                               is not correct",
-                        delta=0.11,
+                        delta=0.3,
                     )
                 index += 1
 
+        np.random.seed(123)
         torch.manual_seed(123)
         mh = bm.SingleSiteAncestralMetropolisHastings()
         query_list = [beta(0), diri(1, 5), normal()]
         num_chains = 2
-        samples = mh.infer(query_list, {}, 1500, num_chains)
+        samples = mh.infer(query_list, {}, 200, num_chains)
 
         out_df = Diagnostics(samples).summary()
         _inference_evaulation(out_df)
