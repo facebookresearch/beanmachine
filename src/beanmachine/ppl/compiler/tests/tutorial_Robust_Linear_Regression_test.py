@@ -3,7 +3,7 @@
 
 # This file is a manual replica of the Bento tutorial with the same name
 ### TODO: The disabled test produces the following error:
-# E       TypeError: Distribution 'HalfNormal' is not supported by Bean Machine Graph.
+# E           ValueError: The right of a * is required to be a real but is a 150 x 1 real matrix.
 # This error should be removed for OSS readiness.
 
 ### TODO: This tutorial has a couple of different calls to inference, and currently only the
