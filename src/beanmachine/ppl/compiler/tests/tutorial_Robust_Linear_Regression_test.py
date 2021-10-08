@@ -2,9 +2,6 @@
 """End-to-end test for tutorial on Robust Linear Regression"""
 
 # This file is a manual replica of the Bento tutorial with the same name
-### TODO: The disabled test produces the following error:
-# E           ValueError: The right of a * is required to be a real but is a 150 x 1 real matrix.
-# This error should be removed for OSS readiness.
 
 ### TODO: This tutorial has a couple of different calls to inference, and currently only the
 ### first call is being considered. It would be good to go through the other parts as well
@@ -136,21 +133,24 @@ class tutorialRobustLinearRegresionTest(unittest.TestCase):
 
         self.assertTrue(True, msg="We just want to check this point is reached")
 
-    def disabled_test_tutorial_Robust_Linear_Regression_to_dot_cpp_python(
+    def test_tutorial_Robust_Linear_Regression_to_dot_cpp_python(
         self,
     ) -> None:
         self.maxDiff = None
-        observed = BMGInference().to_dot(queries, observations)
-        expected = """
-        """
-        self.assertEqual(expected.strip(), observed.strip())
+        ## Intermediate forms too large w devectorization
+        # observed = BMGInference().to_dot(queries, observations)
+        # expected = """
+        # """
+        # self.assertEqual(expected.strip(), observed.strip())
+        #
+        # observed = BMGInference().to_cpp(queries, observations)
+        # expected = """"""
+        # self.assertEqual(expected.strip(), observed.strip())
+        #
+        # observed = BMGInference().to_python(queries, observations)
+        # expected = """"""
+        # self.assertEqual(expected.strip(), observed.strip())
 
-        observed = BMGInference().to_cpp(queries, observations)
-        expected = """
-"""
-        self.assertEqual(expected.strip(), observed.strip())
-
-        observed = BMGInference().to_python(queries, observations)
-        expected = """
-"""
-        self.assertEqual(expected.strip(), observed.strip())
+        _ = BMGInference().infer(
+            queries=queries, observations=observations, num_samples=num_samples
+        )
