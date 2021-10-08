@@ -77,7 +77,9 @@ def studentt_2_3():
 
 @bm.functional
 def operators():
-    return beta_2_2() + tensor([[5.0, 6.0], [7.0, 8.0]])
+    # Note that we do NOT devectorize the multiplication; it gets
+    # turned into a MatrixScale.
+    return ((beta_2_2() + tensor([[5.0, 6.0], [7.0, 8.0]])) * 10.0).exp()
 
 
 class FixVectorizedModelsTest(unittest.TestCase):
@@ -723,13 +725,19 @@ digraph "graph" {
   N3[label=Sample];
   N4[label="[[5.0,6.0],\\\\n[7.0,8.0]]"];
   N5[label="+"];
-  N6[label=Query];
+  N6[label=10.0];
+  N7[label="*"];
+  N8[label=Exp];
+  N9[label=Query];
   N0 -> N2;
   N1 -> N2;
   N2 -> N3;
   N3 -> N5;
   N4 -> N5;
-  N5 -> N6;
+  N5 -> N7;
+  N6 -> N7;
+  N7 -> N8;
+  N8 -> N9;
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
@@ -740,49 +748,87 @@ digraph "graph" {
         expected = """
 digraph "graph" {
   N00[label=2];
-  N01[label=2.0];
-  N02[label=3.0];
-  N03[label=Beta];
-  N04[label=Sample];
-  N05[label=ToPosReal];
-  N06[label=5.0];
-  N07[label="+"];
-  N08[label=4.0];
-  N09[label=Beta];
-  N10[label=Sample];
-  N11[label=ToPosReal];
-  N12[label=6.0];
-  N13[label="+"];
-  N14[label=7.0];
-  N15[label="+"];
-  N16[label=8.0];
-  N17[label="+"];
-  N18[label=ToMatrix];
-  N19[label=Query];
-  N00 -> N18;
-  N00 -> N18;
-  N01 -> N03;
-  N01 -> N09;
-  N02 -> N03;
+  N01[label=10.0];
+  N02[label=2.0];
+  N03[label=3.0];
+  N04[label=Beta];
+  N05[label=Sample];
+  N06[label=ToPosReal];
+  N07[label=5.0];
+  N08[label="+"];
+  N09[label=4.0];
+  N10[label=Beta];
+  N11[label=Sample];
+  N12[label=ToPosReal];
+  N13[label=6.0];
+  N14[label="+"];
+  N15[label=7.0];
+  N16[label="+"];
+  N17[label=8.0];
+  N18[label="+"];
+  N19[label=ToMatrix];
+  N20[label=MatrixScale];
+  N21[label=0];
+  N22[label=ColumnIndex];
+  N23[label=index];
+  N24[label=Exp];
+  N25[label=1];
+  N26[label=index];
+  N27[label=Exp];
+  N28[label=ColumnIndex];
+  N29[label=index];
+  N30[label=Exp];
+  N31[label=index];
+  N32[label=Exp];
+  N33[label=ToMatrix];
+  N34[label=Query];
+  N00 -> N19;
+  N00 -> N19;
+  N00 -> N33;
+  N00 -> N33;
+  N01 -> N20;
+  N02 -> N04;
+  N02 -> N10;
   N03 -> N04;
   N04 -> N05;
-  N05 -> N07;
-  N05 -> N15;
-  N06 -> N07;
-  N07 -> N18;
-  N08 -> N09;
+  N05 -> N06;
+  N06 -> N08;
+  N06 -> N16;
+  N07 -> N08;
+  N08 -> N19;
   N09 -> N10;
   N10 -> N11;
-  N11 -> N13;
-  N11 -> N17;
-  N12 -> N13;
-  N13 -> N18;
-  N14 -> N15;
-  N15 -> N18;
-  N16 -> N17;
+  N11 -> N12;
+  N12 -> N14;
+  N12 -> N18;
+  N13 -> N14;
+  N14 -> N19;
+  N15 -> N16;
+  N16 -> N19;
   N17 -> N18;
   N18 -> N19;
+  N19 -> N20;
+  N20 -> N22;
+  N20 -> N28;
+  N21 -> N22;
+  N21 -> N23;
+  N21 -> N29;
+  N22 -> N23;
+  N22 -> N26;
+  N23 -> N24;
+  N24 -> N33;
+  N25 -> N26;
+  N25 -> N28;
+  N25 -> N31;
+  N26 -> N27;
+  N27 -> N33;
+  N28 -> N29;
+  N28 -> N31;
+  N29 -> N30;
+  N30 -> N33;
+  N31 -> N32;
+  N32 -> N33;
+  N33 -> N34;
 }
-
 """
         self.assertEqual(expected.strip(), observed.strip())

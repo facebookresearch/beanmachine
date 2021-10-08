@@ -50,7 +50,8 @@ def _is_fixable_size(s: Size) -> bool:
 class VectorizedOperatorFixer(ProblemFixerBase):
 
     fixed_one: bool
-    _factories: Dict[Type, Callable]
+    _distribution_factories: Dict[Type, Callable]
+    _operator_factories: Dict[Type, Callable]
 
     def __init__(self, bmg: BMGraphBuilder, typer: Sizer) -> None:
         ProblemFixerBase.__init__(self, bmg, typer)
@@ -58,7 +59,7 @@ class VectorizedOperatorFixer(ProblemFixerBase):
         # TODO: categorical
         # TODO: categorical logit
         # TODO: dirichlet
-        self._factories = {
+        self._distribution_factories = {
             bn.BernoulliLogitNode: bmg.add_bernoulli_logit,
             bn.BernoulliNode: bmg.add_bernoulli,
             bn.BetaNode: bmg.add_beta,
@@ -73,12 +74,30 @@ class VectorizedOperatorFixer(ProblemFixerBase):
             bn.StudentTNode: bmg.add_studentt,
             bn.UniformNode: bmg.add_uniform,
         }
+        self._operator_factories = {
+            # TODO: Do addition and multiply need to be the multi- versions?
+            bn.AdditionNode: bmg.add_addition,
+            bn.DivisionNode: bmg.add_division,
+            bn.ExpNode: bmg.add_exp,
+            bn.LogisticNode: bmg.add_logistic,
+            bn.LogNode: bmg.add_log,
+            bn.MultiplicationNode: bmg.add_multiplication,
+            bn.NegateNode: bmg.add_negate,
+            bn.PhiNode: bmg.add_phi,
+            bn.PowerNode: bmg.add_power,
+        }
+        # TODO soon: LogSumExp, ExpM1, Logm1exp
+        # TODO later: all comparisons, all bitwise, floordiv,
+        # shifts, mod, not, invert,
 
     def _node_to_index_list(self, n: bn.BMGNode) -> List[bn.BMGNode]:
         size = self._typer[n]
         dim = len(size)
         index_list = []
-        if dim == 1:
+        if dim == 0:
+            # If we have just a single value then there's no indexing required.
+            index_list.append(n)
+        elif dim == 1:
             for i in range(0, size[0]):
                 ci = self._bmg.add_constant(i)
                 ni = self._bmg.add_index(n, ci)
@@ -142,18 +161,18 @@ class VectorizedOperatorFixer(ProblemFixerBase):
         arglists = self._generate_arglists(dist)
         samples = []
         for arglist in arglists:
-            b = self._factories[type(dist)](*arglist)
+            b = self._distribution_factories[type(dist)](*arglist)
             s = self._bmg.add_sample(b)
             samples.append(s)
         size = self._typer[dist]
         t = self._bmg.add_tensor(size, *samples)
         return t
 
-    def _replace_addition(self, node: bn.AdditionNode) -> bn.BMGNode:
+    def _replace_operator(self, node: bn.OperatorNode) -> bn.BMGNode:
         arglists = self._generate_arglists(node)
         results = []
         for arglist in arglists:
-            r = self._bmg.add_addition(*arglist)
+            r = self._operator_factories[type(node)](*arglist)
             results.append(r)
         size = self._typer[node]
         t = self._bmg.add_tensor(size, *results)
@@ -163,15 +182,24 @@ class VectorizedOperatorFixer(ProblemFixerBase):
         if not isinstance(n, bn.SampleNode):
             return False
         dist = n.operand
-        if type(dist) not in self._factories:
+        if type(dist) not in self._distribution_factories:
             return False
         return _is_fixable_size(self._typer[dist])
 
     def _is_fixable_operator(self, n: bn.BMGNode) -> bool:
-        if not isinstance(n, bn.AdditionNode):
+        if type(n) not in self._operator_factories:
             return False
-        # TODO: Do we need to handle multiary additions here?
-        return len(n.inputs) == 2 and _is_fixable_size(self._typer[n])
+        # We do not rewrite multiplications of matrices by scalars; that's
+        # handled in a later rewriter.
+        if (
+            isinstance(n, bn.MultiplicationNode)
+            and len(n.inputs) == 2
+            and (
+                len(self._typer[n.inputs[0]]) <= 1 or len(self._typer[n.inputs[1]]) <= 1
+            )
+        ):
+            return False
+        return _is_fixable_size(self._typer[n])
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
         return self._is_fixable_sample(n) or self._is_fixable_operator(n)
@@ -180,8 +208,8 @@ class VectorizedOperatorFixer(ProblemFixerBase):
         self.fixed_one = True
         if isinstance(n, bn.SampleNode):
             return self._replace_sample(n)
-        assert isinstance(n, bn.AdditionNode)
-        return self._replace_addition(n)
+        assert isinstance(n, bn.OperatorNode)
+        return self._replace_operator(n)
 
 
 class VectorizedModelFixer:
