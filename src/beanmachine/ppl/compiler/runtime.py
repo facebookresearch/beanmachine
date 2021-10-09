@@ -281,7 +281,7 @@ class BMGRuntime:
             math.exp: self.handle_exp,
             math.log: self.handle_log,
             # Tensor instance functions
-            torch.Tensor.add: self.handle_addition,  # pyre-ignore
+            torch.Tensor.add: self.handle_addition,
             torch.Tensor.div: self.handle_division,
             torch.Tensor.exp: self.handle_exp,  # pyre-ignore
             torch.Tensor.expm1: self.handle_expm1,  # pyre-ignore
