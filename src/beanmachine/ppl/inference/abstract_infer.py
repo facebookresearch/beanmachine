@@ -243,10 +243,11 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
         self.queries_ = queries
         self.observations_ = observations
         if num_chains > 1 and run_in_parallel:
-            manager = mp.Manager()
+            ctx = mp.get_context("fork")
+            manager = ctx.Manager()
             q = manager.Queue()
             for chain in range(num_chains):
-                p = mp.Process(
+                p = ctx.Process(
                     target=self._parallel_infer,
                     args=(
                         q,
