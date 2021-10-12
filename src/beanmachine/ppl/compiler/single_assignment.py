@@ -2004,24 +2004,49 @@ class SingleAssignment:
             ]
         )
 
-    def _handle_left_value_attributeref(self) -> Rule:
-        """Rewrites like a.b.c = z → x = a.b; x.c = z"""
+    def _make_left_assignment_rule(
+        self,
+        target_original: Pattern,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        target_new: Callable[[ast.AST, ast.AST], ast.AST],
+        rule_name: str,
+    ) -> Rule:
+        # This helper method produces rules that handle rewrites on the left
+        # side of an assignment. Suppose for instance we are trying to rewrite
+        # "complex.attrib = id" ==> "temp = complex ; temp.attrib = id".
+        #
+        # * target_original is the pattern to match on the left side of the
+        #   assignment, "complex.attrib".
+        # * extract_expr is a lambda which takes the left side and extracts the
+        #   portion to be assigned to the temporary: the function "complex.attrib" ==> "complex"
+        # * target_new is a lambda which takes the left side and the temporary, and returns
+        #   the left side of the new assignment: the function
+        #   ("complex.attrib", "temp") ==> "temp.attrib"
+        # * rule_name is the name of the rule, for debugging purposes.
+        name_prefix = "x"
         return PatternRule(
-            assign(targets=[attribute(value=_not_identifier)], value=name()),
+            assign(targets=[target_original], value=name()),
             self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].value,
+                name_prefix,
+                lambda source_term: extract_expr(source_term.targets[0]),
                 lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Attribute(
-                            value=new_name,
-                            attr=source_term.targets[0].attr,
-                            ctx=ast.Store(),
-                        )
-                    ],
+                    targets=[target_new(source_term.targets[0], new_name)],
                     value=source_term.value,
                 ),
             ),
+            rule_name,
+        )
+
+    def _handle_left_value_attributeref(self) -> Rule:
+        """Rewrites like complex.attrib = id → temp = complex; temp.attrib = id"""
+        return self._make_left_assignment_rule(
+            attribute(value=_not_identifier),  # complex.attrib
+            lambda original_left: original_left.value,  # complex.attrib ==> complex
+            lambda original_left, new_name: ast.Attribute(
+                value=new_name,
+                attr=original_left.attr,
+                ctx=ast.Store(),
+            ),  # (complex.attrib, temp) ==> temp.attrib
             "handle_left_value_attributeref",
         )
 
