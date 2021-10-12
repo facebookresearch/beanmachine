@@ -52,3 +52,13 @@ digraph "graph" {
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_to_graphviz_type(self) -> None:
+        self.maxDiff = None
+        observations = {}
+        queries = [X(), Y()]
+
+        observed = str(type(BMGInference().to_graphviz(queries, observations)))
+        expected = "<class 'graphviz.files.Source'>"
+
+        self.assertEqual(expected.strip(), observed.strip())

@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
+import graphviz
 import torch
 from beanmachine.graph import Graph, InferenceType  # pyre-ignore
 from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
@@ -226,6 +227,20 @@ class BMGInference:
             label_edges,
             skip_optimizations,
         )
+
+    def to_graphviz(
+        self,
+        queries: List[RVIdentifier],
+        observations: Dict[RVIdentifier, torch.Tensor],
+        after_transform: bool = True,
+        label_edges: bool = False,
+        skip_optimizations: Set[str] = default_skip_optimizations,
+    ) -> graphviz.files.Source:
+        """Small wrapper to generate an actual graphviz object"""
+        s = self.to_dot(
+            queries, observations, after_transform, label_edges, skip_optimizations
+        )
+        return graphviz.Source(s)
 
     def to_cpp(
         self,
