@@ -61,9 +61,9 @@ commands:
             conda update -q conda
             conda info -a  # print out info that're useful for debug
       - run:
-          name: "Create a new conda environment (Python 3.7)"
+          name: "Create a new conda environment (Python 3.8)"
           command: |
-            conda create -q -n test_env python=3.7
+            conda create -q -n test_env python=3.8
             # activate test_env by default for the subsequent commands
             echo "conda activate test_env" >> /Users/distiller/.bash_profile
 
@@ -148,9 +148,9 @@ commands:
 
 jobs:
 
-  dev_install_test_py37_pip:
+  dev_install_test_py38_pip:
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.8
     steps:
       - apt_get_install_deps
       - checkout
@@ -159,9 +159,9 @@ jobs:
       - pip_list
       - dev_unit_tests
 
-  user_install_test_py37_pip:
+  user_install_test_py38_pip:
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.8
     steps:
       - apt_get_install_deps
       - checkout
@@ -170,7 +170,7 @@ jobs:
       - pip_list
       - user_unit_tests
 
-  macos_dev_install_test_py37_conda:
+  macos_dev_install_test_py38_conda:
     macos:
       xcode: 12.0
     steps:
@@ -182,9 +182,9 @@ jobs:
       - pip_list
       - dev_unit_tests
 
-  lint_py37_pip:
+  lint_py38_pip:
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.8
     steps:
       - checkout
       - pip_lint_install
@@ -194,9 +194,9 @@ jobs:
       - lint_usort
       - lint_black
 
-  nightly_test_py37_pip:
+  nightly_test_py38_pip:
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.8
     steps:
       - apt_get_install_deps
       - checkout
@@ -219,16 +219,16 @@ workflows:
 
   lint_and_test:
     jobs:
-      - lint_py37_pip:
+      - lint_py38_pip:
           filters: *exclude_ghpages_fbconfig
 
-      - dev_install_test_py37_pip:
+      - dev_install_test_py38_pip:
           filters: *exclude_ghpages_fbconfig
 
-      - user_install_test_py37_pip:
+      - user_install_test_py38_pip:
           filters: *exclude_ghpages_fbconfig
 
-      - macos_dev_install_test_py37_conda:
+      - macos_dev_install_test_py38_conda:
           filters: *exclude_ghpages_fbconfig
 
   nightly_test:
@@ -240,4 +240,4 @@ workflows:
               only:
                 - master
     jobs:
-      - nightly_test_py37_pip
+      - nightly_test_py38_pip
