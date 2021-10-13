@@ -2052,152 +2052,90 @@ class SingleAssignment:
 
     def _handle_left_value_subscript_value(self) -> Rule:
         """Rewrites like a.b[c] = z → x = a.b; x[c] = z"""
-        return PatternRule(
-            assign(targets=[subscript(value=_not_identifier)], value=name()),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=new_name,
-                            slice=source_term.targets[0].slice,
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
-                ),
+        return self._make_left_assignment_rule(
+            subscript(value=_not_identifier),
+            lambda original_left: original_left.value,
+            lambda original_left, new_name: ast.Subscript(
+                value=new_name,
+                slice=original_left.slice,
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_value",
         )
 
     def _handle_left_value_subscript_slice_index(self) -> Rule:
         """Rewrites like a[b.c] = z → x = b.c; a[x] = z"""
-        return PatternRule(
-            assign(
-                targets=[subscript(value=name(), slice=index(value=_not_identifier))],
-                value=name(),
-            ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Index(
-                                value=new_name,
-                                ctx=ast.Load(),
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+        return self._make_left_assignment_rule(
+            subscript(value=name(), slice=index(value=_not_identifier)),
+            lambda original_left: original_left.slice.value,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Index(
+                    value=new_name,
+                    ctx=ast.Load(),
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_index",
         )
 
     def _handle_left_value_subscript_slice_lower(self) -> Rule:
         """Rewrites like a[b.c:] = z → x = b.c; a[x:] = z."""
-        return PatternRule(
-            assign(
-                targets=[
-                    subscript(
-                        value=name(), slice=slice_pattern(lower=_neither_name_nor_none)
-                    )
-                ],
-                value=name(),
-            ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.lower,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Slice(
-                                lower=new_name,
-                                upper=source_term.targets[0].slice.upper,
-                                step=source_term.targets[0].slice.step,
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+        return self._make_left_assignment_rule(
+            subscript(value=name(), slice=slice_pattern(lower=_neither_name_nor_none)),
+            lambda original_left: original_left.slice.lower,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Slice(
+                    lower=new_name,
+                    upper=original_left.slice.upper,
+                    step=original_left.slice.step,
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_lower",
         )
 
     def _handle_left_value_subscript_slice_upper(self) -> Rule:
         """Rewrites like a[:b.c] = z → x = b.c; a[:x] = z."""
-        return PatternRule(
-            assign(
-                targets=[
-                    subscript(
-                        value=name(),
-                        slice=slice_pattern(
-                            lower=_name_or_none, upper=_neither_name_nor_none
-                        ),
-                    )
-                ],
+        return self._make_left_assignment_rule(
+            subscript(
                 value=name(),
+                slice=slice_pattern(lower=_name_or_none, upper=_neither_name_nor_none),
             ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.upper,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Slice(
-                                lower=source_term.targets[0].slice.lower,
-                                upper=new_name,
-                                step=source_term.targets[0].slice.step,
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+            lambda original_left: original_left.slice.upper,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Slice(
+                    lower=original_left.slice.lower,
+                    upper=new_name,
+                    step=original_left.slice.step,
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_upper",
         )
 
     def _handle_left_value_subscript_slice_step(self) -> Rule:
         """Rewrites like a[:c:d.e] = z → x = c.d; a[b:c:x] = z."""
-        return PatternRule(
-            assign(
-                targets=[
-                    subscript(
-                        value=name(),
-                        slice=slice_pattern(
-                            lower=_name_or_none,
-                            upper=_name_or_none,
-                            step=_neither_name_nor_none,
-                        ),
-                    )
-                ],
+        return self._make_left_assignment_rule(
+            subscript(
                 value=name(),
-            ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.step,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Slice(
-                                lower=source_term.targets[0].slice.lower,
-                                upper=source_term.targets[0].slice.upper,
-                                step=new_name,
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+                slice=slice_pattern(
+                    lower=_name_or_none,
+                    upper=_name_or_none,
+                    step=_neither_name_nor_none,
                 ),
+            ),
+            lambda original_left: original_left.slice.step,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Slice(
+                    lower=original_left.slice.lower,
+                    upper=original_left.slice.upper,
+                    step=new_name,
+                ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_step",
         )
