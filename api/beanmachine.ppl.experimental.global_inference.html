@@ -275,9 +275,10 @@ Return next yielded value or raise StopIteration.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.get_transformed">
-<code class="descname">get_transformed</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.get_transformed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the value of the node in the unconstrained space</p>
+<dt id="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.get_variable">
+<code class="descname">get_variable</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.variable.Variable<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.get_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Variable object that contains the metadata of the current node
+in the world.</p>
 </dd></dl>
 
 <dl class="method">
@@ -298,9 +299,10 @@ Return next yielded value or raise StopIteration.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.set_transformed">
-<code class="descname">set_transformed</code><span class="sig-paren">(</span><em>node: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.set_transformed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the value of the node in the unconstrained space</p>
+<dt id="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.replace">
+<code class="descname">replace</code><span class="sig-paren">(</span><em>values: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new world where values specified in the dictionary are replaced.
+This method will update the internal graph structure.</p>
 </dd></dl>
 
 <dl class="method">
