@@ -33,7 +33,7 @@ class HeadsRateModel(object):
         bmg = BMGInference()
         skip_optimizations = set()
         posterior = bmg.infer(
-            queries, observations, num_samples, skip_optimizations=skip_optimizations
+            queries, observations, num_samples, 1, skip_optimizations=skip_optimizations
         )
         bmg_graph = bmg.to_dot(
             queries, observations, num_samples, skip_optimizations=skip_optimizations

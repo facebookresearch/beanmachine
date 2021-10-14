@@ -119,7 +119,7 @@ class tutorialNealsFunnelTest(unittest.TestCase):
             queries=queries,
             observations=observations,
             num_samples=num_samples,
-            # num_chains=num_chains, # TODO[Walid]: Passing this param causes a failure
+            num_chains=1,  # TODO[Walid]: 1 should be num_chains
         )
 
         self.assertTrue(True, msg="We just want to check this point is reached")

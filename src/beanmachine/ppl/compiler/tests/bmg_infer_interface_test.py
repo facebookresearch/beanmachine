@@ -62,7 +62,7 @@ class BMGInferInterfaceTest(unittest.TestCase):
     def test_infer_interface_constant_functional(self) -> None:
         self.maxDiff = None
 
-        samples = BMGInference().infer([c(), c2()], {}, 1)
+        samples = BMGInference().infer([c(), c2()], {}, 1, 1)
         observed = samples[c()]
         expected = "tensor([[2.5000]])"
         self.assertEqual(expected.strip(), str(observed).strip())

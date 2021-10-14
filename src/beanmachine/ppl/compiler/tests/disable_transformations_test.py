@@ -141,7 +141,7 @@ digraph "graph" {
 
         skip_optimizations = {"MultiaryAdditionFixer"}
         posterior_wo_opt = BMGInference().infer(
-            queries, observations, num_samples, skip_optimizations=skip_optimizations
+            queries, observations, num_samples, 1, skip_optimizations=skip_optimizations
         )
         sum_3_samples_wo_opt = posterior_wo_opt[sum_3()][0]
         sum_4_samples_wo_opt = posterior_wo_opt[sum_4()][0]
