@@ -11,6 +11,16 @@
 # * All "if" statements have an identifier as their condition.
 # * There are no statements that are just a single expression.
 #
+# * All simple assignments are of the form:
+#   * id = id
+#   * id = simple_expression  # TODO: List the simple expressions.
+#   * id[id] = id
+#   * id[id:id] = id     # lower and upper may be missing
+#   * id[id:id:id] = id  # lower, upper and step may be missing
+#   * id.attr = id
+#   * [id] = id  # TODO: What about tuples?
+#   * [*id] = id
+# * All augmented assignments (+=, *= and so on) have just ids on both sides.
 # * All unary operators (+, -, ~, not) have an identifier as their operand.
 # * All binary operators (+, -, *, /, //, %, **, <<, >>, |, ^, &, @) have an identifier
 #   as both operands.
@@ -48,6 +58,7 @@ from typing import Any, Callable, List, Tuple
 
 from beanmachine.ppl.compiler.ast_patterns import (
     assign,
+    aug_assign,
     ast_boolop,
     ast_compare,
     ast_dict,
@@ -674,6 +685,25 @@ class SingleAssignment:
     #
     # Start of a series of rules that will define handle_assign
     #
+
+    def _handle_aug_assign_right(self) -> Rule:
+        # This rule eliminates all augmented assignments whose right side
+        # is not an identifier but whose left side is. That is, we rewrite:
+        # id += complex  -->   t = complex ; id += t
+
+        return PatternRule(
+            aug_assign(target=name(), value=_not_identifier),
+            self._transform_with_name(
+                "a",
+                lambda source_term: source_term.value,
+                lambda source_term, new_name: ast.AugAssign(
+                    target=source_term.target,
+                    op=source_term.op,
+                    value=new_name,
+                ),
+            ),
+            "handle_aug_assign_right",
+        )
 
     def _make_right_assignment_rule(
         self,
@@ -1594,6 +1624,7 @@ class SingleAssignment:
     def _handle_assign(self) -> Rule:
         return first(
             [
+                self._handle_aug_assign_right(),
                 self._handle_assign_unaryop(),
                 self._handle_assign_subscript_slice_all(),
                 self._handle_assign_possibly_blocking_right_value(),
