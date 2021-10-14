@@ -40,13 +40,44 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         node_var = self._variables[node]
         return node_var.transform.inv(node_var.transformed_value)
 
+    def get_variable(self, node: RVIdentifier) -> Variable:
+        """Return a Variable object that contains the metadata of the current node
+        in the world."""
+        return self._variables[node]
+
     def get_transformed(self, node: RVIdentifier) -> torch.Tensor:
         """Return the value of the node in the unconstrained space"""
         return self._variables[node].transformed_value
 
-    def set_transformed(self, node: RVIdentifier, value: torch.Tensor) -> None:
-        """Set the value of the node in the unconstrained space"""
-        self._variables[node].transformed_value = value
+    def replace_transformed(self, values: RVDict) -> SimpleWorld:
+        """Return a new world where values specified in the dictionary are replaced.
+        This method will update the internal graph structure."""
+        assert not any(node in self.observations for node in values)
+        new_world = self.copy()
+        for node, value in values.items():
+            new_world._variables[node] = new_world._variables[node].replace(
+                transformed_value=value.clone()
+            )
+        # changing the value of a node can change the dependencies of its children nodes
+        nodes_to_update = set().union(
+            *(self._variables[node].children for node in values)
+        )
+        for node in nodes_to_update:
+            new_world._call_stack.append(_TempVar(node))
+            # Invoke node conditioned on the provided values
+            with new_world:
+                node.function(*node.arguments)
+            tmp_var = new_world._call_stack.pop()
+            # Update children's dependencies
+            old_node_var = new_world._variables[node]
+            new_world._variables[node] = old_node_var.replace(parents=tmp_var.parents)
+            dropped_parents = old_node_var.parents - tmp_var.parents
+            for parent in dropped_parents:
+                parent_var = new_world._variables[parent]
+                new_world._variables[parent] = parent_var.replace(
+                    children=parent_var.children - {node}
+                )
+        return new_world
 
     def __iter__(self) -> Iterator[RVIdentifier]:
         return iter(self._variables)
@@ -62,9 +93,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     def copy(self) -> SimpleWorld:
         """Returns a shallow copy of the current world"""
         world_copy = SimpleWorld(self.observations.copy(), self._initialize_fn)
-        world_copy._variables = {
-            node: var.copy() for node, var in self._variables.items()
-        }
+        world_copy._variables = self._variables.copy()
         return world_copy
 
     def initialize_value(self, node: RVIdentifier) -> None:
