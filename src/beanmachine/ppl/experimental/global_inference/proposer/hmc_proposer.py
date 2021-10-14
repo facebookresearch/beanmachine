@@ -147,14 +147,13 @@ class HMCProposer(BaseProposer):
             new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
         ke_grad = self._kinetic_grads(new_momentums, mass_inv)
 
-        new_world = world.copy()
+        new_z = {}
         for node in world.latent_nodes:
             # this should override the value of all the latent nodes in new_world
             # but does not change observations and transforms
             z = world.get_transformed(node)
-            new_world.set_transformed(
-                node, z + step_size * ke_grad[node].reshape(z.shape)
-            )
+            new_z[node] = z + step_size * ke_grad[node].reshape(z.shape)
+        new_world = world.replace_transformed(new_z)
 
         pe, pe_grad = self._potential_grads(new_world)
         for node, r in new_momentums.items():
