@@ -3336,3 +3336,21 @@ def f(x):
         ]
 
         self.check_rewrites(terms)
+
+    def test_augmented_assignment(self) -> None:
+        """Test rewrites involving += and other augmented assignments."""
+        source = """
+def f(x):
+    x += 123
+    x *= 456
+    x.y.z /= 2
+"""
+        expected = """
+def f(x):
+    a1 = 123
+    x += a1
+    a2 = 456
+    x *= a2
+    x.y.z /= 2
+        """
+        self.check_rewrite(source, expected)
