@@ -3345,12 +3345,17 @@ def f(x):
     x *= 456
     x.y.z /= 2
 """
+
         expected = """
 def f(x):
     a1 = 123
     x += a1
     a2 = 456
     x *= a2
-    x.y.z /= 2
+    a3 = x.y
+    a4 = a3.z
+    a5 = 2
+    a4 /= a5
+    a3.z = a4
         """
         self.check_rewrite(source, expected)

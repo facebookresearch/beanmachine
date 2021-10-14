@@ -705,6 +705,53 @@ class SingleAssignment:
             "handle_aug_assign_right",
         )
 
+    def _handle_aug_assign_left(self) -> Rule:
+        # This rule eliminates all augmented assignments whose left side
+        # is not an identifier AND cannot be simplified further.  For example:
+        #
+        # x.y += any
+        #
+        # is rewritten to
+        #
+        # t = x.y
+        # t += any
+        # x.y = t
+        #
+        # When combined with _handle_aug_assign_right and the rules for simplifying
+        # the left side, we can reduce all augmented assignments to having ids on
+        # both sides.
+        #
+        # TODO: The simplified left hand sides that we wish to rewrite are:
+        # TODO: x[a] += any
+        # TODO: x[a:b] += any    # a or b can be missing
+        # TODO: x[a:b:c] += any  # a or b or c can be missing
+        # x.y += any
+
+        def _do_it(r: ast.AugAssign) -> ListEdit:
+            id = self._unique_id("a")
+            return ListEdit(
+                [
+                    # t = x.y
+                    ast.Assign(
+                        targets=[ast.Name(id=id, ctx=ast.Store())], value=r.target
+                    ),
+                    # t += any
+                    ast.AugAssign(
+                        target=ast.Name(id=id, ctx=ast.Store()), op=r.op, value=r.value
+                    ),
+                    # x.y = t
+                    ast.Assign(
+                        targets=[r.target], value=ast.Name(id=id, ctx=ast.Load())
+                    ),
+                ]
+            )
+
+        return PatternRule(
+            aug_assign(target=attribute(value=name())),
+            _do_it,
+            "_handle_aug_assign_left",
+        )
+
     def _make_right_assignment_rule(
         self,
         right_original: Pattern,
@@ -1625,6 +1672,7 @@ class SingleAssignment:
         return first(
             [
                 self._handle_aug_assign_right(),
+                self._handle_aug_assign_left(),
                 self._handle_assign_unaryop(),
                 self._handle_assign_subscript_slice_all(),
                 self._handle_assign_possibly_blocking_right_value(),
@@ -1954,9 +2002,55 @@ class SingleAssignment:
             rule_name,
         )
 
+    def _make_left_aug_assignment_rule(
+        self,
+        target_original: Pattern,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        target_new: Callable[[ast.AST, ast.AST], ast.AST],
+        rule_name: str,
+    ) -> Rule:
+        # This helper does the same as _make_left_assignment_rule, except:
+        # * it works for augmented assignments, not normal assignments
+        # * it does not require that the right side be an identifier
+        #   (Non-identifier right sides are rewritten later.)
+        name_prefix = "a"
+        return PatternRule(
+            aug_assign(target=target_original),
+            self._transform_with_name(
+                name_prefix,
+                lambda source_term: extract_expr(source_term.target),
+                lambda source_term, new_name: ast.AugAssign(
+                    target=target_new(source_term.target, new_name),
+                    op=source_term.op,
+                    value=source_term.value,
+                ),
+            ),
+            rule_name,
+        )
+
+    def _make_left_any_assignment_rule(
+        self,
+        target_original: Pattern,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        target_new: Callable[[ast.AST, ast.AST], ast.AST],
+        rule_name: str,
+    ) -> Rule:
+        # This helper does the same as _make_left_assignment_rule, but for
+        # both regular and augmented assignments.
+        return first(
+            [
+                self._make_left_assignment_rule(
+                    target_original, extract_expr, target_new, rule_name
+                ),
+                self._make_left_aug_assignment_rule(
+                    target_original, extract_expr, target_new, rule_name
+                ),
+            ]
+        )
+
     def _handle_left_value_attributeref(self) -> Rule:
         """Rewrites like complex.attrib = id → temp = complex; temp.attrib = id"""
-        return self._make_left_assignment_rule(
+        return self._make_left_any_assignment_rule(
             attribute(value=_not_identifier),  # complex.attrib
             lambda original_left: original_left.value,  # complex.attrib ==> complex
             lambda original_left, new_name: ast.Attribute(
