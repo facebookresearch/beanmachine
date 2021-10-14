@@ -66,11 +66,13 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             new_world._call_stack.append(_TempVar(node))
             # Invoke node conditioned on the provided values
             with new_world:
-                node.function(*node.arguments)
+                distribution = node.function(*node.arguments)
             tmp_var = new_world._call_stack.pop()
             # Update children's dependencies
             old_node_var = new_world._variables[node]
-            new_world._variables[node] = old_node_var.replace(parents=tmp_var.parents)
+            new_world._variables[node] = old_node_var.replace(
+                parents=tmp_var.parents, distribution=distribution
+            )
             dropped_parents = old_node_var.parents - tmp_var.parents
             for parent in dropped_parents:
                 parent_var = new_world._variables[parent]
@@ -113,6 +115,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         self._variables[node] = Variable(
             transformed_value=transformed_value,
             transform=transform,
+            distribution=distribution,
             parents=temp_var.parents,
         )
 
@@ -133,21 +136,15 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     def log_prob(self) -> torch.Tensor:
         """Returns the joint log prob of all of the nodes in the current world"""
         log_prob = torch.tensor(0.0)
-        with self:
-            for node, node_var in self._variables.items():
-                distribution = node.function(*node.arguments)
-                y = node_var.transformed_value
-                x = node_var.transform.inv(y)
-                log_prob += torch.sum(
-                    distribution.log_prob(x)
-                    - node_var.transform.log_abs_det_jacobian(x, y)
-                )
+        for node_var in self._variables.values():
+            log_prob += torch.sum(node_var.log_prob)
         return log_prob
 
     def enumerate_node(self, node: RVIdentifier) -> torch.Tensor:
         """Returns a tensor enumerating the support of the node"""
-        with self:
-            distribution = node.function(*node.arguments)
-            if not distribution.has_enumerate_support:
-                raise ValueError(str(node) + " is not enumerable")
-            return distribution.enumerate_support()
+        distribution = self._variables[node].distribution
+        # pyre-ignore[16]
+        if not distribution.has_enumerate_support:
+            raise ValueError(str(node) + " is not enumerable")
+        # pyre-ignore[16]
+        return distribution.enumerate_support()

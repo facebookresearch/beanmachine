@@ -100,16 +100,15 @@ class HMCProposer(BaseProposer):
         """Returns potential energy as well as a dictionary of its gradient with
         respect to the value at each site."""
         nodes = list(world.latent_nodes)
-        values = [world.get_transformed(node) for node in nodes]
-        for value in values:
+        values_with_grad = [world.get_transformed(node).clone() for node in nodes]
+        for value in values_with_grad:
             value.requires_grad = True
+        world_with_grad = world.replace_transformed(dict(zip(nodes, values_with_grad)))
 
-        pe = self._potential_energy(world)
-        grads = torch.autograd.grad(pe, values)
+        pe = self._potential_energy(world_with_grad)
+        grads = torch.autograd.grad(pe, values_with_grad)
         grads = dict(zip(nodes, grads))
 
-        for value in values:
-            value.requires_grad = False
         return pe.detach(), grads
 
     def _hamiltonian(
