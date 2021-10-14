@@ -11,7 +11,7 @@ from beanmachine.ppl.experimental.global_inference.simple_world import (
 
 
 class _TreeNode(NamedTuple):
-    world: SimpleWorld
+    positions: RVDict
     momentums: RVDict
     pe_grad: RVDict
 
@@ -19,7 +19,7 @@ class _TreeNode(NamedTuple):
 class _Tree(NamedTuple):
     left: _TreeNode
     right: _TreeNode
-    proposal: SimpleWorld
+    proposal: RVDict
     pe: torch.Tensor
     pe_grad: RVDict
     log_weight: torch.Tensor
@@ -94,15 +94,16 @@ class NUTSProposer(HMCProposer):
     def _build_tree_base_case(self, root: _TreeNode, args: _TreeArgs) -> _Tree:
         """Base case of the recursive tree building algorithm: take a single leapfrog
         step in the specified direction and return a subtree."""
-        world, momentums, pe, pe_grad = self._leapfrog_step(
-            root.world,
+        positions, momentums, pe, pe_grad = self._leapfrog_step(
+            root.positions,
             root.momentums,
             args.step_size * args.direction,
             args.mass_inv,
             root.pe_grad,
         )
         new_energy = torch.nan_to_num(
-            self._hamiltonian(world, momentums, args.mass_inv, pe), float("inf")
+            self._hamiltonian(positions, momentums, args.mass_inv, pe),
+            float("inf"),
         )
         # initial_energy == -L(\theta^{m-1}) + 1/2 r_0^2 in Algorithm 6 of [1]
         delta_energy = new_energy - args.initial_energy
@@ -112,11 +113,11 @@ class NUTSProposer(HMCProposer):
             # slice sampling as introduced in the original NUTS paper [1]
             log_weight = (args.log_slice <= -new_energy).log()
 
-        tree_node = _TreeNode(world=world, momentums=momentums, pe_grad=pe_grad)
+        tree_node = _TreeNode(positions=positions, momentums=momentums, pe_grad=pe_grad)
         return _Tree(
             left=tree_node,
             right=tree_node,
-            proposal=world,
+            proposal=positions,
             pe=pe,
             pe_grad=pe_grad,
             log_weight=log_weight,
@@ -241,13 +242,16 @@ class NUTSProposer(HMCProposer):
 
     def propose(self, world: Optional[SimpleWorld] = None) -> SimpleWorld:
         if world is not None and world is not self.world:
-            # re-compute cached values in case world was modified by other sources
-            self._pe, self._pe_grad = self._potential_grads(self.world)
+            # re-compute cached values since world was modified by other sources
             self.world = world
+            self._positions = self._to_unconstrained(
+                {node: world[node] for node in world.latent_nodes}
+            )
+            self._pe, self._pe_grad = self._potential_grads(self._positions)
 
-        momentums = self._initialize_momentums(self.world)
+        momentums = self._initialize_momentums(self._positions)
         current_energy = self._hamiltonian(
-            self.world, momentums, self._mass_inv, self._pe
+            self._positions, momentums, self._mass_inv, self._pe
         )
         if self._multinomial_sampling:
             # log slice is only used to check the divergence
@@ -255,11 +259,11 @@ class NUTSProposer(HMCProposer):
         else:
             # this is a more stable way to sample from log(Uniform(0, exp(-current_energy)))
             log_slice = torch.log1p(-torch.rand(())) - current_energy
-        tree_node = _TreeNode(self.world, momentums, self._pe_grad)
+        tree_node = _TreeNode(self._positions, momentums, self._pe_grad)
         tree = _Tree(
             left=tree_node,
             right=tree_node,
-            proposal=self.world,
+            proposal=self._positions,
             pe=self._pe,
             pe_grad=self._pe_grad,
             log_weight=torch.tensor(0.0),  # log accept prob of staying at current state
@@ -285,6 +289,13 @@ class NUTSProposer(HMCProposer):
             if tree.turned_or_diverged:
                 break
 
-        self.world, self._pe, self._pe_grad = tree.proposal, tree.pe, tree.pe_grad
+        if tree.proposal is not self._positions:
+            self.world = self.world.replace(self._to_unconstrained.inv(tree.proposal))
+            self._positions, self._pe, self._pe_grad = (
+                tree.proposal,
+                tree.pe,
+                tree.pe_grad,
+            )
+
         self._alpha = tree.sum_accept_prob / tree.num_proposals
         return self.world

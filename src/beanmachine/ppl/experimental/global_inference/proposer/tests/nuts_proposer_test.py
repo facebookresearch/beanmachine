@@ -31,14 +31,16 @@ def nuts():
 
 @pytest.fixture
 def tree_node(nuts):
-    momentums = nuts._initialize_momentums(nuts.world)
-    return _TreeNode(world=nuts.world, momentums=momentums, pe_grad=nuts._pe_grad)
+    momentums = nuts._initialize_momentums(nuts._positions)
+    return _TreeNode(
+        positions=nuts._positions, momentums=momentums, pe_grad=nuts._pe_grad
+    )
 
 
 @pytest.fixture
 def tree_args(tree_node, nuts):
     initial_energy = nuts._hamiltonian(
-        nuts.world, tree_node.momentums, nuts._mass_inv, nuts._pe
+        nuts._positions, tree_node.momentums, nuts._mass_inv, nuts._pe
     )
     return _TreeArgs(
         log_slice=-initial_energy,

@@ -1,6 +1,6 @@
 import math
 import warnings
-from typing import Union, cast
+from typing import Union, cast, Dict
 
 import torch
 import torch.distributions as dist
@@ -8,6 +8,8 @@ from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
     SimpleWorld,
 )
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world.utils import get_default_transforms
 
 
 class WindowScheme:
@@ -108,15 +110,15 @@ class MassMatrixAdapter:
 
         self._adapters = {}
 
-    def initialize_momentums(self, world: SimpleWorld) -> RVDict:
+    def initialize_momentums(self, positions: RVDict) -> RVDict:
         """Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
         is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
         for the first time, this also initialize their (inverse) mass matrices to
         identity."""
         momentums = {}
-        for node in world.latent_nodes:
+        for node in positions:
             # initialize M^{-1} for nodes that are seen for the first time
-            node_val = world.get_transformed(node).flatten()
+            node_val = positions[node].flatten()
             if node not in self.mass_inv:
                 self.mass_inv[node] = torch.ones_like(node_val)
                 self.momentum_dists[node] = dist.Normal(
@@ -125,11 +127,11 @@ class MassMatrixAdapter:
             momentums[node] = self.momentum_dists[node].sample()
         return momentums
 
-    def step(self, world: SimpleWorld):
-        for node in world.latent_nodes:
+    def step(self, positions: RVDict):
+        for node, z in positions.items():
             if node not in self._adapters:
                 self._adapters[node] = WelfordCovariance(diagonal=True)
-            self._adapters[node].step(world.get_transformed(node).flatten())
+            self._adapters[node].step(z.flatten())
 
     def finalize(self) -> None:
         for node, adapter in self._adapters.items():
@@ -190,3 +192,45 @@ class WelfordCovariance:
             covariance += padding * torch.eye(covariance.shape[0])
 
         return covariance
+
+
+class DictTransform:
+    """A general class for applying a dictionary of Transforms to a dictionary of
+    Tensors"""
+
+    def __init__(self, transforms: Dict[RVIdentifier, dist.Transform]):
+        self.transforms = transforms
+
+    def __call__(self, node_vals: RVDict) -> RVDict:
+        """Apply each Transform to the corresponding Tensor in node_vals"""
+        return {node: self.transforms[node](val) for node, val in node_vals.items()}
+
+    def inv(self, node_vals: RVDict) -> RVDict:
+        """Apply the inverse of each Transform to the corresponding Tensor in node_vals"""
+        return {node: self.transforms[node].inv(val) for node, val in node_vals.items()}
+
+    def log_abs_det_jacobian(
+        self, untransformed_vals: RVDict, transformed_vals: RVDict
+    ) -> torch.Tensor:
+        """Computes the sum of log det jacobian `log |dy/dx|` on the pairs of Tensors"""
+        jacobian = torch.tensor(0.0)
+        for node in untransformed_vals:
+            jacobian += (
+                self.transforms[node]
+                .log_abs_det_jacobian(untransformed_vals[node], transformed_vals[node])
+                .sum()
+            )
+        return jacobian
+
+
+class RealSpaceTransform(DictTransform):
+    """Transofrm a dictionary of Tensor values from constrained space to unconstrained
+    (real) space."""
+
+    def __init__(self, world: SimpleWorld):
+        transforms = {}
+        for node in world.latent_nodes:
+            transforms[node] = get_default_transforms(
+                world.get_variable(node).distribution
+            )
+        super().__init__(transforms)
