@@ -4,7 +4,6 @@ import dataclasses
 from typing import Dict, Iterator, List, Mapping, Optional, Set
 
 import torch
-import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
     InitializeFn,
     init_from_prior,
@@ -12,7 +11,6 @@ from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
 from beanmachine.ppl.experimental.global_inference.variable import Variable
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.base_world import BaseWorld
-from beanmachine.ppl.world.utils import get_default_transforms
 
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
@@ -37,26 +35,21 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         self._call_stack: List[_TempVar] = []
 
     def __getitem__(self, node: RVIdentifier) -> torch.Tensor:
-        node_var = self._variables[node]
-        return node_var.transform.inv(node_var.transformed_value)
+        return self._variables[node].value
 
     def get_variable(self, node: RVIdentifier) -> Variable:
         """Return a Variable object that contains the metadata of the current node
         in the world."""
         return self._variables[node]
 
-    def get_transformed(self, node: RVIdentifier) -> torch.Tensor:
-        """Return the value of the node in the unconstrained space"""
-        return self._variables[node].transformed_value
-
-    def replace_transformed(self, values: RVDict) -> SimpleWorld:
+    def replace(self, values: RVDict) -> SimpleWorld:
         """Return a new world where values specified in the dictionary are replaced.
         This method will update the internal graph structure."""
         assert not any(node in self.observations for node in values)
         new_world = self.copy()
         for node, value in values.items():
             new_world._variables[node] = new_world._variables[node].replace(
-                transformed_value=value.clone()
+                value=value.clone()
             )
         # changing the value of a node can change the dependencies of its children nodes
         nodes_to_update = set().union(
@@ -106,15 +99,12 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         temp_var = self._call_stack.pop()
 
         if node in self.observations:
-            transformed_value = self.observations[node]
-            transform = dist.identity_transform
+            node_val = self.observations[node]
         else:
-            transform = get_default_transforms(distribution)
-            transformed_value = transform(self._initialize_fn(distribution))
+            node_val = self._initialize_fn(distribution)
 
         self._variables[node] = Variable(
-            transformed_value=transformed_value,
-            transform=transform,
+            value=node_val,
             distribution=distribution,
             parents=temp_var.parents,
         )
@@ -131,7 +121,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             tmp_child_var.parents.add(node)
             node_var.children.add(tmp_child_var.node)
 
-        return node_var.transform.inv(node_var.transformed_value)
+        return node_var.value
 
     def log_prob(self) -> torch.Tensor:
         """Returns the joint log prob of all of the nodes in the current world"""

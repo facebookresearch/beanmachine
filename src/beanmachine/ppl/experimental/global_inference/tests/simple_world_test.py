@@ -70,7 +70,6 @@ def test_basic_operations():
 
     assert len(world) == 2
     assert model.bar() in world
-    assert world.get_variable(model.bar()).transform == dist.identity_transform
     assert world.latent_nodes == {model.foo()}
 
     # edge connection
@@ -79,10 +78,7 @@ def test_basic_operations():
     assert len(world.get_variable(model.bar()).children) == 0
     assert len(world.get_variable(model.foo()).parents) == 0
 
-    transformed_foo = world.get_transformed(model.foo())
-    assert world.get_variable(model.foo()).transform.inv(transformed_foo) == world.call(
-        model.foo()
-    )
+    assert world.get_variable(model.foo()).value == world.call(model.foo())
 
 
 def test_initialization():
@@ -101,7 +97,7 @@ def test_log_prob():
     log_prob1 = world1.log_prob()
 
     # set to a value with extremely small probability
-    world2 = world1.replace_transformed({model.bar(): torch.tensor(100.0)})
+    world2 = world1.replace({model.bar(): torch.tensor(100.0)})
     log_prob2 = world2.log_prob()
 
     assert log_prob1 > log_prob2
@@ -126,7 +122,7 @@ def test_change_parents():
     assert model.bar(1) not in world.get_variable(model.baz()).parents
     assert model.baz() in world.get_variable(model.bar(0)).children
 
-    world2 = world.replace_transformed({model.foo(): torch.tensor(1.0)})
+    world2 = world.replace({model.foo(): torch.tensor(1.0)})
 
     assert model.bar(0) not in world2.get_variable(model.baz()).parents
     assert model.bar(1) in world2.get_variable(model.baz()).parents
@@ -140,8 +136,8 @@ def test_distribution_and_log_prob_update():
         model.bar()
         model.baz()
 
-    world = world.replace_transformed({model.foo(): torch.tensor(0.0)})
-    world2 = world.replace_transformed({model.foo(): torch.tensor(1.0)})
+    world = world.replace({model.foo(): torch.tensor(0.0)})
+    world2 = world.replace({model.foo(): torch.tensor(1.0)})
 
     bar_var = world.get_variable(model.bar())
     assert isinstance(bar_var.distribution, dist.Normal)
