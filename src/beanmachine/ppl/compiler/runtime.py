@@ -47,6 +47,7 @@ three, four and five.
 
 import inspect
 import math
+import operator
 from types import MethodType
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -599,6 +600,17 @@ class BMGRuntime:
         if isinstance(input, ConstantNode) and isinstance(other, ConstantNode):
             return input.value + other.value
         return self._bmg.add_addition(input, other)
+
+    def handle_iadd(self, left: Any, right: Any) -> Any:
+        # No graph node implements a mutating augmented assignment. If the left
+        # operand does, then we just mutate the left side regardless of whether
+        # the right side is a graph node.
+        # CONSIDER: Should a mutable left side and a graph node right side be
+        # an error? It seems like asking for trouble.
+        if hasattr(left, "__iadd__"):
+            return operator.iadd(left, right)
+        # Since the left side is not mutating, we can simply add.
+        return self.handle_addition(left, right)
 
     def handle_bitand(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):

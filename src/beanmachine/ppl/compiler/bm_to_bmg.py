@@ -14,6 +14,7 @@ from beanmachine.ppl.compiler.ast_patterns import (
     ast_assert,
     ast_domain,
     attribute,
+    aug_assign,
     binary_compare,
     binop,
     call,
@@ -137,6 +138,27 @@ def _handle_binary(p: Pattern, s: str) -> PatternRule:
     )
 
 
+def _handle_aug_assign(op: Pattern, s: str) -> PatternRule:
+    # A rule which transforms
+    #
+    # x OP= y
+    #
+    # into
+    #
+    # x = bmg.handle_iOP(x, y)
+    #
+    # Note that the x on the left of the assignment must be a Store()
+    # and the one on the right must be a Load().
+
+    return PatternRule(
+        aug_assign(target=name(), value=name(), op=op),
+        lambda a: ast.Assign(
+            [a.target],
+            _make_bmg_call(s, [ast.Name(id=a.target.id, ctx=ast.Load()), a.value]),
+        ),
+    )
+
+
 def _handle_comparison(p: Pattern, s: str) -> PatternRule:
     # A rule which transforms
     #
@@ -204,6 +226,8 @@ _math_to_bmg: Rule = _top_down(
                 _handle_comparison(binary_compare(ast.IsNot), "handle_is_not"),
                 _handle_comparison(binary_compare(ast.In), "handle_in"),
                 _handle_comparison(binary_compare(ast.NotIn), "handle_not_in"),
+                # Augmented assignments
+                _handle_aug_assign(ast.Add, "handle_iadd"),
             ]
         )
     )
