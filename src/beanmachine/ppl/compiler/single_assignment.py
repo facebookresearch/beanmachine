@@ -721,10 +721,10 @@ class SingleAssignment:
         # the left side, we can reduce all augmented assignments to having ids on
         # both sides.
         #
-        # TODO: The simplified left hand sides that we wish to rewrite are:
-        # TODO: x[a] += any
-        # TODO: x[a:b] += any    # a or b can be missing
-        # TODO: x[a:b:c] += any  # a or b or c can be missing
+        # The simplified left hand sides that we wish to rewrite are:
+        # x[a] += any
+        # x[a:b] += any    # a or b can be missing
+        # x[a:b:c] += any  # a or b or c can be missing
         # x.y += any
 
         def _do_it(r: ast.AugAssign) -> ListEdit:
@@ -746,8 +746,17 @@ class SingleAssignment:
                 ]
             )
 
+        dot = attribute(value=name())
+        sub1 = subscript(value=name(), slice=index(value=name()))
+        sub2 = subscript(
+            value=name(),
+            slice=slice_pattern(
+                lower=_name_or_none, upper=_name_or_none, step=_name_or_none
+            ),
+        )
+
         return PatternRule(
-            aug_assign(target=attribute(value=name())),
+            aug_assign(target=match_any(dot, sub1, sub2)),
             _do_it,
             "_handle_aug_assign_left",
         )
@@ -2063,7 +2072,7 @@ class SingleAssignment:
 
     def _handle_left_value_subscript_value(self) -> Rule:
         """Rewrites like a.b[c] = z → x = a.b; x[c] = z"""
-        return self._make_left_assignment_rule(
+        return self._make_left_any_assignment_rule(
             subscript(value=_not_identifier),
             lambda original_left: original_left.value,
             lambda original_left, new_name: ast.Subscript(
@@ -2076,7 +2085,7 @@ class SingleAssignment:
 
     def _handle_left_value_subscript_slice_index(self) -> Rule:
         """Rewrites like a[b.c] = z → x = b.c; a[x] = z"""
-        return self._make_left_assignment_rule(
+        return self._make_left_any_assignment_rule(
             subscript(value=name(), slice=index(value=_not_identifier)),
             lambda original_left: original_left.slice.value,
             lambda original_left, new_name: ast.Subscript(
@@ -2092,7 +2101,7 @@ class SingleAssignment:
 
     def _handle_left_value_subscript_slice_lower(self) -> Rule:
         """Rewrites like a[b.c:] = z → x = b.c; a[x:] = z."""
-        return self._make_left_assignment_rule(
+        return self._make_left_any_assignment_rule(
             subscript(value=name(), slice=slice_pattern(lower=_neither_name_nor_none)),
             lambda original_left: original_left.slice.lower,
             lambda original_left, new_name: ast.Subscript(
@@ -2109,7 +2118,7 @@ class SingleAssignment:
 
     def _handle_left_value_subscript_slice_upper(self) -> Rule:
         """Rewrites like a[:b.c] = z → x = b.c; a[:x] = z."""
-        return self._make_left_assignment_rule(
+        return self._make_left_any_assignment_rule(
             subscript(
                 value=name(),
                 slice=slice_pattern(lower=_name_or_none, upper=_neither_name_nor_none),
@@ -2129,7 +2138,7 @@ class SingleAssignment:
 
     def _handle_left_value_subscript_slice_step(self) -> Rule:
         """Rewrites like a[:c:d.e] = z → x = c.d; a[b:c:x] = z."""
-        return self._make_left_assignment_rule(
+        return self._make_left_any_assignment_rule(
             subscript(
                 value=name(),
                 slice=slice_pattern(
