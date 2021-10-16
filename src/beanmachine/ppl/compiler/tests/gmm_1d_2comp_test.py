@@ -100,7 +100,7 @@ class tutorialGMM1Dimension2Components(unittest.TestCase):
             queries=queries,
             observations=observations,
             num_samples=num_samples,
-            # num_chains=1, # TODO[Walid]: Passing this param causes a failure
+            num_chains=1,
         )
 
         self.assertTrue(True, msg="We just want to check this point is reached")
