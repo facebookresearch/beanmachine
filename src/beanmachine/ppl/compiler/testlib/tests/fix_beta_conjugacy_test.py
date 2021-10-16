@@ -48,7 +48,7 @@ class TestConjugacyTransformations(unittest.TestCase):
         observations = model.gen_obs(num_obs)
         queries = [model.theta()]
 
-        # Generate samples form model when opt is disabled
+        # Generate samples from model when opt is disabled
         skip_optimizations = {self.opt}
         posterior_original = bmg.infer(queries, observations, num_samples)
         self.graph_original = bmg.to_dot(
@@ -56,7 +56,7 @@ class TestConjugacyTransformations(unittest.TestCase):
         )
         self.theta_samples_original = posterior_original[model.theta()][0]
 
-        # Generate samples form model when opt is enabled
+        # Generate samples from model when opt is enabled
         skip_optimizations = set()
         posterior_transformed = bmg.infer(
             queries, observations, num_samples, 1, skip_optimizations=skip_optimizations
