@@ -65,8 +65,12 @@ def ordinary_arithmetic(n):
 @bm.random_variable
 def stochastic_arithmetic():
     s = 0.0
-    for n in [0, 1]:
-        s = s + torch.log(torch.tensor(0.01)) * ordinary_arithmetic(n)
+    # Verify that mutating += works on lists normally:
+    items = [0]
+    items += [1]
+    for n in items:
+        # Verify that += works on graph nodes:
+        s += torch.log(torch.tensor(0.01)) * ordinary_arithmetic(n)
     return Bernoulli(1 - torch.exp(input=torch.log(torch.tensor(0.99)) + s))
 
 
