@@ -59,7 +59,7 @@ class TestConjugacyTransformations(unittest.TestCase):
         # Generate samples form model when opt is enabled
         skip_optimizations = set()
         posterior_transformed = bmg.infer(
-            queries, observations, num_samples, skip_optimizations=skip_optimizations
+            queries, observations, num_samples, 1, skip_optimizations=skip_optimizations
         )
         self.graph_transformed = bmg.to_dot(
             queries, observations, skip_optimizations=skip_optimizations
