@@ -124,7 +124,7 @@ class BMATest(unittest.TestCase):
 
         expected_group_bias = 1.50
 
-        mcsamples = BMGInference().infer(queries, observations, 1000)
+        mcsamples = BMGInference().infer(queries, observations, 1000, 1)
 
         queries = [true_value(), bias_size(0), bias_size(1), bias_size(2)]
 
