@@ -215,7 +215,7 @@ class BMGInference:
         # TODO[Walid]: We really want this default to be 4, but we put it off to
         # another diff because that is likely to involve changes to a few more existing
         # calls to BMGInference().infer
-        num_chains: int = 1,
+        num_chains: int = 4,
         inference_type: InferenceType = InferenceType.NMC,
         skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:

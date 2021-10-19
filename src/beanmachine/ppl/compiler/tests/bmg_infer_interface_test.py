@@ -116,7 +116,7 @@ tensor([[[ 1.5000, -2.5000]],
         f2 = samples[flip2()]
         self.assertEqual(str(f), str(f2))
 
-        samples = BMGInference().infer([always_false_1(), always_false_2()], {}, 2)
+        samples = BMGInference().infer([always_false_1(), always_false_2()], {}, 2, 1)
         af1 = samples[always_false_1()]
         af2 = samples[always_false_2()]
         expected = "tensor([[False, False]])"

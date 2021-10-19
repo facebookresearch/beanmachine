@@ -133,7 +133,7 @@ q1 = g.query(n1)
         """
         self.assertEqual(expected.strip(), observed.strip())
 
-        samples = BMGInference().infer([c(), c2()], {}, 1)
+        samples = BMGInference().infer([c(), c2()], {}, 1, 1)
         observed = samples[c()]
         expected = "tensor([[2.5000]])"
         self.assertEqual(expected.strip(), str(observed).strip())
@@ -162,7 +162,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), str(observed).strip())
 
-        samples = BMGInference().infer([flip(), flip2()], {}, 10)
+        samples = BMGInference().infer([flip(), flip2()], {}, 10, 1)
         f = samples[flip()]
         f2 = samples[flip2()]
         self.assertEqual(str(f), str(f2))
@@ -186,7 +186,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), str(observed).strip())
 
-        samples = BMGInference().infer([always_false_1(), always_false_2()], {}, 2)
+        samples = BMGInference().infer([always_false_1(), always_false_2()], {}, 2, 1)
         af1 = samples[always_false_1()]
         af2 = samples[always_false_2()]
         expected = "tensor([[False, False]])"
@@ -216,7 +216,7 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), str(observed).strip())
 
-        samples = BMGInference().infer([flip3(), flip4()], {}, 10)
+        samples = BMGInference().infer([flip3(), flip4()], {}, 10, 1)
         f3 = samples[flip3()]
         f4 = samples[flip4()]
         self.assertEqual(str(f3), str(f4))
