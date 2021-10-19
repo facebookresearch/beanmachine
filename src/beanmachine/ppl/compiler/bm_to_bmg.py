@@ -228,6 +228,18 @@ _math_to_bmg: Rule = _top_down(
                 _handle_comparison(binary_compare(ast.NotIn), "handle_not_in"),
                 # Augmented assignments
                 _handle_aug_assign(ast.Add, "handle_iadd"),
+                _handle_aug_assign(ast.Sub, "handle_isub"),
+                _handle_aug_assign(ast.Mult, "handle_imul"),
+                _handle_aug_assign(ast.Div, "handle_idiv"),
+                _handle_aug_assign(ast.FloorDiv, "handle_ifloordiv"),
+                _handle_aug_assign(ast.Mod, "handle_imod"),
+                _handle_aug_assign(ast.Pow, "handle_ipow"),
+                _handle_aug_assign(ast.MatMult, "handle_imatmul"),
+                _handle_aug_assign(ast.LShift, "handle_ilshift"),
+                _handle_aug_assign(ast.RShift, "handle_irshift"),
+                _handle_aug_assign(ast.BitAnd, "handle_iand"),
+                _handle_aug_assign(ast.BitXor, "handle_ixor"),
+                _handle_aug_assign(ast.BitOr, "handle_ior"),
             ]
         )
     )

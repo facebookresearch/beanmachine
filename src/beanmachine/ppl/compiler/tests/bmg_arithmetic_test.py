@@ -68,10 +68,35 @@ def stochastic_arithmetic():
     # Verify that mutating += works on lists normally:
     items = [0]
     items += [1]
+    # Verify that +=, *=, -= all work on graph nodes:
     for n in items:
-        # Verify that += works on graph nodes:
-        s += torch.log(torch.tensor(0.01)) * ordinary_arithmetic(n)
-    return Bernoulli(1 - torch.exp(input=torch.log(torch.tensor(0.99)) + s))
+        p = torch.log(torch.tensor(0.01))
+        p *= ordinary_arithmetic(n)
+        s += p
+    m = 1
+    m -= torch.exp(input=torch.log(torch.tensor(0.99)) + s)
+    return Bernoulli(m)
+
+
+@bm.functional
+def mutating_assignments():
+    # Torch supports mutating tensors in-place, which allows for
+    # aliasing. THE COMPILER DOES NOT CORRECTLY DETECT ALIASING
+    # WHEN A STOCHASTIC QUANTITY IS INVOLVED!
+    x = torch.tensor(1.0)
+    y = x  # y is an alias for x
+    y += 2.0  # y is now 3, and so is x
+    y = y + 4.0  # y is now 7, but x is still 3
+    # So far we're all fine; every mutated tensor has been non-stochastic.
+    b = beta() * x + y  # b is beta_sample * 3 + 7
+    # Now let's see how things go wrong. We'll alias stochastic quantity b:
+    c = b
+    c *= 5.0
+    # In Python Bean Machine, c and b are now both (beta() * 3 + 7) * 5
+    # but the compiler does not detect that c and b are aliases, and does
+    # not represent tensor mutations in graph nodes. The compiler thinks
+    # that c is (beta() * 3 + 7) * 5 but b is still (beta() * 3 + 7):
+    return b
 
 
 @bm.random_variable
@@ -475,4 +500,33 @@ The model uses a foo operation unsupported by Bean Machine Graph.
 The unsupported node is the right of a +.
         """
         observed = str(ex.exception)
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_tensor_mutations_augmented_assignment(self) -> None:
+        self.maxDiff = None
+
+        # See notes in mutating_assignments() for details
+        observed = BMGInference().to_dot([mutating_assignments()], {})
+        expected = """
+digraph "graph" {
+  N0[label=2.0];
+  N1[label=Beta];
+  N2[label=Sample];
+  N3[label=ToPosReal];
+  N4[label=3.0];
+  N5[label="*"];
+  N6[label=7.0];
+  N7[label="+"];
+  N8[label=Query];
+  N0 -> N1;
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N5;
+  N4 -> N5;
+  N5 -> N7;
+  N6 -> N7;
+  N7 -> N8;
+}
+"""
         self.assertEqual(expected.strip(), observed.strip())

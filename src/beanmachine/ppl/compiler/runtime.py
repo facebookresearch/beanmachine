@@ -601,17 +601,6 @@ class BMGRuntime:
             return input.value + other.value
         return self._bmg.add_addition(input, other)
 
-    def handle_iadd(self, left: Any, right: Any) -> Any:
-        # No graph node implements a mutating augmented assignment. If the left
-        # operand does, then we just mutate the left side regardless of whether
-        # the right side is a graph node.
-        # CONSIDER: Should a mutable left side and a graph node right side be
-        # an error? It seems like asking for trouble.
-        if hasattr(left, "__iadd__"):
-            return operator.iadd(left, right)
-        # Since the left side is not mutating, we can simply add.
-        return self.handle_addition(left, right)
-
     def handle_bitand(self, input: Any, other: Any) -> Any:
         if (not isinstance(input, BMGNode)) and (not isinstance(other, BMGNode)):
             return input & other
@@ -843,6 +832,164 @@ class BMGRuntime:
         if not isinstance(keepdim, BMGNode):
             keepdim = self._bmg.add_constant(keepdim)
         return self._bmg.add_logsumexp_torch(input, dim, keepdim)
+
+    #
+    # Augmented assignment operators
+    #
+
+    def _handle_augmented_assignment(
+        self,
+        left: Any,
+        right: Any,
+        attr: str,  # "__iadd__", for example
+        native: Callable,  # operator.iadd, for example
+        handler: Callable,  # self.handle_addition, for example
+    ) -> Any:
+        # Handling augmented assignments (+=, -=, *=, and so on) has a lot of cases;
+        # to cut down on code duplication we call this higher-level method. Throughout
+        # the comments below we assume that we're handling a +=; the logic is the same
+        # for all the operators.
+
+        # TODO: We have a problem that we need to resolve regarding compilation of models
+        # which have mutations of aliased tensors. Compare the action of these two similar:
+        # models in the original Bean Machine implementation:
+        #
+        # @functional def foo():
+        #   x = flip() # 0 or 1
+        #   y = x      # y is an alias for x
+        #   y += 1     # y is mutated in place and continues to alias x
+        #   return x   # returns 1 or 2
+        #
+        # vs
+        #
+        # @functional def foo():
+        #   x = flip() # 0 or 1
+        #   y = x      # y is an alias for x
+        #   y = y + 1  # y no longer aliases x; y is 1 or 2
+        #   return x   # returns 0 or 1
+        #
+        # Suppose we are asked to compile the first model; how should we execute
+        # the rewritten form of it so as to accumulate the correct graph? Unlike
+        # tensors, graph nodes are not mutable!
+        #
+        # Here's what we're going to do for now:
+        #
+        # If neither operand is a graph node then do exactly what the model would
+        # normally do:
+        #
+        if not isinstance(left, BMGNode) and not isinstance(right, BMGNode):
+            return native(left, right)
+
+        # At least one operand is a graph node. If we have tensor += graph_node
+        # or graph_node += anything then optimistically assume that there
+        # is NOT any alias of the mutated left side, and treat the += as though
+        # it is a normal addition.
+        #
+        # TODO: Should we produce some sort of warning here telling the user that
+        # the compiled model semantics might be different than the original model?
+        # Or is that too noisy? There are going to be a lot of models with += where
+        # one of the operands is an ordinary tensor and one is a graph node, but which
+        # do not have any aliasing problem.
+
+        if isinstance(left, torch.Tensor) or isinstance(left, BMGNode):
+            return handler(left, right)
+
+        # If we've made it here then we have x += graph_node, where x is not a
+        # tensor. There are two possibilities: either x is some type which implements
+        # mutating in-place +=, or it is not.  If it is, then just call the mutator
+        # and hope for the best.
+        #
+        # TODO: This scenario is another opportunity for a warning or error, since
+        # the model is probably not one that can be compiled if it is depending on
+        # in-place mutation of an object which has a stochastic quantity added to it.
+
+        assert isinstance(right, BMGNode)
+        if hasattr(left, attr):
+            # It is possible that the operator exists but either returns
+            # NotImplemented or raises NotImplementedError. In either case,
+            # assume that we can fall back to non-mutating addition.
+            try:
+                result = native(left, right)
+                if result is not NotImplemented:
+                    return result
+            except NotImplementedError:
+                pass
+
+        # We have x += graph_node, and x is not mutating in place; just
+        return handler(left, right)
+
+    def handle_iadd(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__iadd__", operator.iadd, self.handle_addition
+        )
+
+    def handle_isub(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__isub__", operator.isub, self.handle_subtraction
+        )
+
+    def handle_imul(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__imul__", operator.imul, self.handle_multiplication
+        )
+
+    def handle_idiv(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__idiv__", operator.itruediv, self.handle_division
+        )
+
+    def handle_ifloordiv(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__ifloordiv__", operator.ifloordiv, self.handle_floordiv
+        )
+
+    def handle_imod(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__imod__", operator.imod, self.handle_mod
+        )
+
+    def handle_ipow(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__ipow__", operator.ipow, self.handle_power
+        )
+
+    def handle_imatmul(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left,
+            right,
+            "__imatmul__",
+            operator.imatmul,
+            self.handle_matrix_multiplication,
+        )
+
+    def handle_ilshift(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__ilshift__", operator.ilshift, self.handle_lshift
+        )
+
+    def handle_irshift(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__irshift__", operator.irshift, self.handle_rshift
+        )
+
+    def handle_iand(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__iand__", operator.iand, self.handle_bitand
+        )
+
+    def handle_ixor(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__ixor__", operator.ixor, self.handle_bitxor
+        )
+
+    def handle_ior(self, left: Any, right: Any) -> Any:
+        return self._handle_augmented_assignment(
+            left, right, "__ior__", operator.ior, self.handle_bitor
+        )
+
+    #
+    # Function calls
+    #
 
     def _canonicalize_function(
         self, function: Any, arguments: List[Any], kwargs: Optional[Dict[str, Any]]
