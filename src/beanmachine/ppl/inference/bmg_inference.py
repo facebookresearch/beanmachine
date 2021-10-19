@@ -9,7 +9,7 @@ import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import graphviz
 import torch
-from beanmachine.graph import Graph, InferenceType  # pyre-ignore
+from beanmachine.graph import Graph, InferenceType, InferConfig  # pyre-ignore
 from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
@@ -161,13 +161,19 @@ class BMGInference:
         if len(query_to_query_id) != 0:
             g.collect_performance_data(produce_report)
             self._begin(prof.graph_infer)
-            raw = g.infer(num_samples, inference_type)
+            default_config = InferConfig()  # pyre-ignore
+            # TODO[Walid]: In the following we were previously silently using the default seed
+            # specified in pybindings.cpp (and not passing the local one in). In the current
+            # code we are explicitly passing in the same default value used in that file (5123401).
+            # We really need a way to defer to the value defined in pybindings.py here.
+            raw = g.infer(num_samples, inference_type, 5123401, 1, default_config)
             self._finish(prof.graph_infer)
             if produce_report:
                 self._begin(prof.deserialize_perf_report)
                 js = g.performance_report()
                 report = pr.json_to_perf_report(js)
                 self._finish(prof.deserialize_perf_report)
+            raw = raw[0]  # TODO[Walid]: Temp hack!
             assert len(raw) == num_samples
             samples = self._transpose_samples(raw)
 

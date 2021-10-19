@@ -1062,6 +1062,7 @@ std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
   log_prob_allchains.clear();
   log_prob_allchains.resize(n_chains, std::vector<double>());
   _infer_parallel(num_samples, algorithm, seed, n_chains, infer_config);
+  _produce_performance_report(num_samples, algorithm, seed);
   return samples_allchains;
 }
 
