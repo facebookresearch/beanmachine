@@ -62,12 +62,50 @@ class BMGInferInterfaceTest(unittest.TestCase):
     def test_infer_interface_constant_functional(self) -> None:
         self.maxDiff = None
 
+        # First, let's check expected behavior from a regular BM inference method
+        samples = bm.SingleSiteNewtonianMonteCarlo().infer([c(), c2()], {}, 1, 1)
+        observed = samples[c()]
+        expected = "tensor([[2.5000]])"
+        self.assertEqual(expected.strip(), str(observed).strip())
+        observed = samples[c2()]
+        expected = "tensor([[[ 1.5000, -2.5000]]])"  # Note, no ", dtype=torch.float64)"
+        self.assertEqual(expected.strip(), str(observed).strip())
+
+        # Now let's do this in BMG Inference
         samples = BMGInference().infer([c(), c2()], {}, 1, 1)
         observed = samples[c()]
         expected = "tensor([[2.5000]])"
         self.assertEqual(expected.strip(), str(observed).strip())
         observed = samples[c2()]
         expected = "tensor([[[ 1.5000, -2.5000]]], dtype=torch.float64)"
+        self.assertEqual(expected.strip(), str(observed).strip())
+
+        # Again, let's check expected behavior from a regular BM inference method
+        samples = bm.SingleSiteNewtonianMonteCarlo().infer([c(), c2()], {}, 1, 2)
+        observed = samples[c()]
+        expected = """
+tensor([[2.5000],
+        [2.5000]])"""
+        self.assertEqual(expected.strip(), str(observed).strip())
+        observed = samples[c2()]
+        expected = """
+tensor([[[ 1.5000, -2.5000]],
+
+        [[ 1.5000, -2.5000]]])"""  # Note, no ", dtype=torch.float64)"
+        self.assertEqual(expected.strip(), str(observed).strip())
+
+        # And again, in BMG inference
+        samples = BMGInference().infer([c(), c2()], {}, 1, 2)
+        observed = samples[c()]
+        expected = """
+tensor([[2.5000],
+        [2.5000]])"""
+        self.assertEqual(expected.strip(), str(observed).strip())
+        observed = samples[c2()]
+        expected = """
+tensor([[[ 1.5000, -2.5000]],
+
+        [[ 1.5000, -2.5000]]], dtype=torch.float64)"""
         self.assertEqual(expected.strip(), str(observed).strip())
 
     def test_infer_interface_redundant_functionals_1(self) -> None:

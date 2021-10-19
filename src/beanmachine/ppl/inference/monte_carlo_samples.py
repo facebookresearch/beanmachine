@@ -24,10 +24,11 @@ class MonteCarloSamples(Mapping[RVIdentifier, torch.Tensor]):
         self,
         chain_results: Union[List[RVDict], RVDict],
         num_adaptive_samples: int = 0,
+        stack_not_cat: bool = True,
     ):
         if isinstance(chain_results, list):
             self.num_chains = len(chain_results)
-            chain_results = merge_dicts(chain_results)
+            chain_results = merge_dicts(chain_results, 0, stack_not_cat)
         else:
             self.num_chains = next(iter(chain_results.values())).shape[0]
         self.num_adaptive_samples = num_adaptive_samples
