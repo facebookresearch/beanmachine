@@ -15,7 +15,7 @@ module.exports = {
   title: 'Bean Machine',
   tagline:
     'A universal probabilistic programming language to enable fast and accurate Bayesian analysis',
-  url: '/', // Change to path for release.
+  url: '/',  // Change to path for release.
   baseUrl: '/', // for devserver preview use '/~brianjo/beanmachine/'
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
