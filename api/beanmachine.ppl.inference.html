@@ -259,7 +259,7 @@ LOAD_BAR enables tqdm for full inference loop.</p>
 <span id="beanmachine-ppl-inference-monte-carlo-samples-module"></span><h2>beanmachine.ppl.inference.monte_carlo_samples module<a class="headerlink" href="#module-beanmachine.ppl.inference.monte_carlo_samples" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.monte_carlo_samples.</code><code class="descname">MonteCarloSamples</code><span class="sig-paren">(</span><em>chain_results: Union[List[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], num_adaptive_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.monte_carlo_samples.</code><code class="descname">MonteCarloSamples</code><span class="sig-paren">(</span><em>chain_results: Union[List[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], num_adaptive_samples: int = 0, stack_not_cat: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Mapping</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
 <p>Represents a view of the data representing the results of infer</p>
 <p>If no chain is specified, the data across all chains is accessible
@@ -410,7 +410,7 @@ sequentially re-sampled, or joint, where nodes are jointly re-sampled.</p>
 
 <dl class="function">
 <dt id="beanmachine.ppl.inference.utils.merge_dicts">
-<code class="descclassname">beanmachine.ppl.inference.utils.</code><code class="descname">merge_dicts</code><span class="sig-paren">(</span><em>dicts: List[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], dim: int = 0</em><span class="sig-paren">)</span> &#x2192; Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.inference.utils.merge_dicts" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">beanmachine.ppl.inference.utils.</code><code class="descname">merge_dicts</code><span class="sig-paren">(</span><em>dicts: List[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], dim: int = 0, stack_not_cat=True</em><span class="sig-paren">)</span> &#x2192; Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.inference.utils.merge_dicts" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper function that merge multiple dicts of samples into a single dictionary,
 stacking across a new dimension</p>
 </dd></dl>

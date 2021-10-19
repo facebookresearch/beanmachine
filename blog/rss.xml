@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
         <title>Bean Machine Blog</title>
-        <link>https://home.fburl.com/ppl/blog</link>
+        <link>https://beanmachine.org/blog</link>
         <description>Bean Machine Blog</description>
         <lastBuildDate>Wed, 29 May 2019 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <item>
             <title><![CDATA[Welcome]]></title>
-            <link>https://home.fburl.com/ppl/blog/2019/05/29/hello-world</link>
+            <link>https://beanmachine.org/blog/2019/05/29/hello-world</link>
             <guid>Welcome</guid>
             <pubDate>Wed, 29 May 2019 00:00:00 GMT</pubDate>
             <description><![CDATA[Welcome to this the BeanMachine site blog.]]></description>
+            <content:encoded><![CDATA[<p>Welcome to this the BeanMachine site blog.</p><p>This blog is created with <a href="https://v2.docusaurus.io/"><strong>Docusaurus 2 alpha</strong></a>.</p>]]></content:encoded>
         </item>
     </channel>
 </rss>

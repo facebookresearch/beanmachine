@@ -134,8 +134,8 @@
 <em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.base_inference.</code><code class="descname">BaseInference</code><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.base_inference.BaseInference" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
-<dt id="beanmachine.ppl.experimental.global_inference.base_inference.BaseInference.get_proposer">
-<code class="descname">get_proposer</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.base_inference.BaseInference.get_proposer" title="Permalink to this definition">¶</a></dt>
+<dt id="beanmachine.ppl.experimental.global_inference.base_inference.BaseInference.get_proposers">
+<code class="descname">get_proposers</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>num_adaptive_sample: int</em><span class="sig-paren">)</span> &#x2192; List[beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer]<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.base_inference.BaseInference.get_proposers" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -160,29 +160,9 @@ will returns an infinite generator.</p>
 <dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo">
 <em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.hmc_inference.</code><code class="descname">GlobalHamiltonianMonteCarlo</code><span class="sig-paren">(</span><em>trajectory_length: float</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.global_inference.base_inference.BaseInference" title="beanmachine.ppl.experimental.global_inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.base_inference.BaseInference</span></code></a></p>
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.adapt_mass_matrix">
-<code class="descname">adapt_mass_matrix</code><em class="property"> = True</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.adapt_mass_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.adapt_step_size">
-<code class="descname">adapt_step_size</code><em class="property"> = True</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.adapt_step_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.get_proposer">
-<code class="descname">get_proposer</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.get_proposer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.initial_step_size">
-<code class="descname">initial_step_size</code><em class="property"> = 1.0</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.initial_step_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.target_accept_prob">
-<code class="descname">target_accept_prob</code><em class="property"> = 0.8</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.target_accept_prob" title="Permalink to this definition">¶</a></dt>
+<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.get_proposers">
+<code class="descname">get_proposers</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>num_adaptive_sample: int</em><span class="sig-paren">)</span> &#x2192; List[beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer]<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalHamiltonianMonteCarlo.get_proposers" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -191,44 +171,9 @@ will returns an infinite generator.</p>
 <dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler">
 <em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.hmc_inference.</code><code class="descname">GlobalNoUTurnSampler</code><span class="sig-paren">(</span><em>max_tree_depth: int = 10</em>, <em>max_delta_energy: float = 1000.0</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>multinomial_sampling: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.global_inference.base_inference.BaseInference" title="beanmachine.ppl.experimental.global_inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.base_inference.BaseInference</span></code></a></p>
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.adapt_mass_matrix">
-<code class="descname">adapt_mass_matrix</code><em class="property"> = True</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.adapt_mass_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.adapt_step_size">
-<code class="descname">adapt_step_size</code><em class="property"> = True</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.adapt_step_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.get_proposer">
-<code class="descname">get_proposer</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.get_proposer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.initial_step_size">
-<code class="descname">initial_step_size</code><em class="property"> = 1.0</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.initial_step_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.max_delta_energy">
-<code class="descname">max_delta_energy</code><em class="property"> = 1000.0</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.max_delta_energy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.max_tree_depth">
-<code class="descname">max_tree_depth</code><em class="property"> = 10</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.max_tree_depth" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.multinomial_sampling">
-<code class="descname">multinomial_sampling</code><em class="property"> = True</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.multinomial_sampling" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.target_accept_prob">
-<code class="descname">target_accept_prob</code><em class="property"> = 0.8</em><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.target_accept_prob" title="Permalink to this definition">¶</a></dt>
+<dt id="beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.get_proposers">
+<code class="descname">get_proposers</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>num_adaptive_sample: int</em><span class="sig-paren">)</span> &#x2192; List[beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer]<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.hmc_inference.GlobalNoUTurnSampler.get_proposers" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -238,7 +183,7 @@ will returns an infinite generator.</p>
 <span id="beanmachine-ppl-experimental-global-inference-sampler-module"></span><h2>beanmachine.ppl.experimental.global_inference.sampler module<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.sampler" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="beanmachine.ppl.experimental.global_inference.sampler.Sampler">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.sampler.</code><code class="descname">Sampler</code><span class="sig-paren">(</span><em>proposer: beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer</em>, <em>num_samples: Optional[int] = None</em>, <em>num_adaptive_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.sampler.Sampler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.sampler.</code><code class="descname">Sampler</code><span class="sig-paren">(</span><em>kernel: BaseInference</em>, <em>initial_world: SimpleWorld</em>, <em>num_samples: Optional[int] = None</em>, <em>num_adaptive_samples: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.sampler.Sampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Generator</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
 <dl class="method">
 <dt id="beanmachine.ppl.experimental.global_inference.sampler.Sampler.send">

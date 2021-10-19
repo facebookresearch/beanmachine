@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[8341],{29987:function(e){e.exports=JSON.parse('{"allTagsPath":"/blog/tags","slug":"/blog/tags/beanmachine","name":"beanmachine","count":1,"permalink":"/blog/tags/beanmachine"}')}}]);

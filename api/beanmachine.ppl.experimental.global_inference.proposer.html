@@ -125,13 +125,8 @@
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.init_adaptation">
-<code class="descname">init_adaptation</code><span class="sig-paren">(</span><em>num_adaptive_samples: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.init_adaptation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.propose">
-<code class="descname">propose</code><span class="sig-paren">(</span><em>world: Optional[beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld] = None</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.propose" title="Permalink to this definition">¶</a></dt>
+<code class="descname">propose</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer.propose" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -141,7 +136,7 @@
 <span id="beanmachine-ppl-experimental-global-inference-proposer-hmc-proposer-module"></span><h2>beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer module<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.</code><code class="descname">HMCProposer</code><span class="sig-paren">(</span><em>initial_world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>trajectory_length: float</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.</code><code class="descname">HMCProposer</code><span class="sig-paren">(</span><em>initial_world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>num_adaptive_samples: int</em>, <em>trajectory_length: float</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer</span></code></a></p>
 <p>The basic Hamiltonian Monte Carlo (HMC) algorithm as described in [1] plus a
 dual-averaging mechanism for dynamically adjusting the step size [2].</p>
@@ -167,13 +162,8 @@ equivalent to setting the matrix M to I.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.init_adaptation">
-<code class="descname">init_adaptation</code><span class="sig-paren">(</span><em>num_adaptive_samples: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.init_adaptation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.propose">
-<code class="descname">propose</code><span class="sig-paren">(</span><em>world: Optional[beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld] = None</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.propose" title="Permalink to this definition">¶</a></dt>
+<code class="descname">propose</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer.propose" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -316,7 +306,7 @@ Reference:
 <span id="beanmachine-ppl-experimental-global-inference-proposer-nuts-proposer-module"></span><h2>beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer module<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.</code><code class="descname">NUTSProposer</code><span class="sig-paren">(</span><em>initial_world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>max_tree_depth: int = 10</em>, <em>max_delta_energy: float = 1000.0</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>multinomial_sampling: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.</code><code class="descname">NUTSProposer</code><span class="sig-paren">(</span><em>initial_world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em>, <em>num_adaptive_sample: int</em>, <em>max_tree_depth: int = 10</em>, <em>max_delta_energy: float = 1000.0</em>, <em>initial_step_size: float = 1.0</em>, <em>adapt_step_size: bool = True</em>, <em>adapt_mass_matrix: bool = True</em>, <em>multinomial_sampling: bool = True</em>, <em>target_accept_prob: float = 0.8</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer" title="beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer.HMCProposer</span></code></a></p>
 <p>The No-U-Turn Sampler (NUTS) as described in [1]. Unlike vanilla HMC, it does not
 require users to specify a trajectory length. The current implementation roughly
@@ -334,7 +324,7 @@ as introduced in Appendix 2 of [2]) instead of drawn uniformly.</p>
 </dl>
 <dl class="method">
 <dt id="beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer.propose">
-<code class="descname">propose</code><span class="sig-paren">(</span><em>world: Optional[beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld] = None</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer.propose" title="Permalink to this definition">¶</a></dt>
+<code class="descname">propose</code><span class="sig-paren">(</span><em>world: beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld<a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer.NUTSProposer.propose" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
