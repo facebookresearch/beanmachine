@@ -1,3 +1,5 @@
+import math
+
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
@@ -5,6 +7,12 @@ from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import
     BaseProposer,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
+    SingleSiteAncestralMetropolisHastings,
+)
+from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
+    init_from_prior,
+)
 
 
 class SampleModel:
@@ -57,3 +65,18 @@ def test_initialize_world():
     world = nuts._initialize_world([model.bar()], {})
     assert model.foo() in world
     assert model.bar() in world
+
+
+def test_initialize_from_prior():
+    mh = SingleSiteAncestralMetropolisHastings()
+    model = SampleModel()
+    queries = [model.foo()]
+
+    samples_from_prior = []
+    for _ in range(10000):
+        world = mh._initialize_world(queries, {}, init_from_prior)
+        val = world.get(model.foo())
+        samples_from_prior.append(val.item())
+
+    assert samples_from_prior[0] != samples_from_prior[1]
+    assert math.isclose(sum(samples_from_prior) / 10000.0, 0.0, abs_tol=1e-2)
