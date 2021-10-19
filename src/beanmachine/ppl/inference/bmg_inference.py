@@ -21,7 +21,9 @@ from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observa
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
-
+# TODO[Walid]: At some point, to facilitate checking the idea that this works pretty
+# much like any other BM inference, we should probably make this class a subclass of
+# AbstractMCInference.
 class BMGInference:
 
     _fix_observe_true: bool = False
@@ -138,6 +140,7 @@ class BMGInference:
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
+        num_chains: int = 4,
         inference_type: InferenceType = InferenceType.NMC,  # pyre-ignore
         produce_report: bool = True,
         skip_optimizations: Set[str] = default_skip_optimizations,
@@ -166,7 +169,9 @@ class BMGInference:
             # specified in pybindings.cpp (and not passing the local one in). In the current
             # code we are explicitly passing in the same default value used in that file (5123401).
             # We really need a way to defer to the value defined in pybindings.py here.
-            raw = g.infer(num_samples, inference_type, 5123401, 1, default_config)
+            raw = g.infer(
+                num_samples, inference_type, 5123401, num_chains, default_config
+            )
             self._finish(prof.graph_infer)
             if produce_report:
                 self._begin(prof.deserialize_perf_report)
@@ -194,6 +199,7 @@ class BMGInference:
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
+        num_chains: int = 4,
         inference_type: InferenceType = InferenceType.NMC,
         skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:
@@ -204,6 +210,7 @@ class BMGInference:
             queries,
             observations,
             num_samples,
+            num_chains,
             inference_type,
             False,
             skip_optimizations,
