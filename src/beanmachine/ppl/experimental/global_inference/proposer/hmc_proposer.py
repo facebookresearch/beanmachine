@@ -37,6 +37,7 @@ class HMCProposer(BaseProposer):
     def __init__(
         self,
         initial_world: SimpleWorld,
+        num_adaptive_samples: int,
         trajectory_length: float,
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
@@ -54,7 +55,6 @@ class HMCProposer(BaseProposer):
         self.trajectory_length = trajectory_length
         # initialize adapters
         self.adapt_step_size = adapt_step_size
-        self._window_scheme: Optional[WindowScheme] = None
         self.adapt_mass_matrix = adapt_mass_matrix
         # we need mass matrix adapter to sample momentums
         self._mass_matrix_adapter = MassMatrixAdapter()
@@ -67,12 +67,12 @@ class HMCProposer(BaseProposer):
             )
         else:
             self.step_size = initial_step_size
-        # alpha will store the accept prob and will be used to adapt step size
-        self._alpha = None
-
-    def init_adaptation(self, num_adaptive_samples: int) -> None:
         if self.adapt_mass_matrix:
             self._window_scheme = WindowScheme(num_adaptive_samples)
+        else:
+            self._window_scheme = None
+        # alpha will store the accept prob and will be used to adapt step size
+        self._alpha = None
 
     @property
     def _initialize_momentums(self) -> Callable:
@@ -227,8 +227,8 @@ class HMCProposer(BaseProposer):
             new_direction = 1 if energy - new_energy > target else -1
         return step_size
 
-    def propose(self, world: Optional[SimpleWorld] = None) -> SimpleWorld:
-        if world is not None and world is not self.world:
+    def propose(self, world: SimpleWorld) -> SimpleWorld:
+        if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world
             self._positions = self._to_unconstrained(

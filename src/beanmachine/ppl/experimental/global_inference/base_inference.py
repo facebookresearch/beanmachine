@@ -1,3 +1,4 @@
+import copy
 from abc import ABCMeta, abstractmethod
 from typing import List, Optional
 
@@ -20,7 +21,7 @@ from beanmachine.ppl.inference.abstract_infer import (
 )
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from tqdm.auto import trange
+from tqdm.auto import tqdm
 
 
 class BaseInference(metaclass=ABCMeta):
@@ -39,7 +40,9 @@ class BaseInference(metaclass=ABCMeta):
         return world
 
     @abstractmethod
-    def get_proposer(self, world: SimpleWorld) -> BaseProposer:
+    def get_proposers(
+        self, world: SimpleWorld, num_adaptive_sample: int
+    ) -> List[BaseProposer]:
         raise NotImplementedError
 
     def infer(
@@ -66,12 +69,11 @@ class BaseInference(metaclass=ABCMeta):
             )
             samples = {query: [] for query in queries}
             # Main inference loop
-            for _ in trange(
-                num_samples + num_adaptive_samples,
+            for world in tqdm(
+                sampler,
                 desc="Samples collected",
                 disable=verbose == VerboseLevel.OFF,
             ):
-                world = next(sampler)
                 # Extract samples
                 for query in queries:
                     samples[query].append(world.call(query))
@@ -95,6 +97,8 @@ class BaseInference(metaclass=ABCMeta):
             queries, observations, observations_must_be_rv=True
         )
         world = self._initialize_world(queries, observations, initialize_fn)
-        proposer = self.get_proposer(world)
-        sampler = Sampler(proposer, num_samples, num_adaptive_samples)
+        # start inference with a copy of self to ensure that multi-chain or multi
+        # inference runs all start with the same pristine state
+        kernel = copy.deepcopy(self)
+        sampler = Sampler(kernel, world, num_samples, num_adaptive_samples)
         return sampler

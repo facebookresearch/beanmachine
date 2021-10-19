@@ -1,11 +1,8 @@
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
-    HMCProposer,
-)
-from beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer import (
-    NUTSProposer,
+from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
+    BaseProposer,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 
@@ -45,14 +42,13 @@ def test_inference():
     assert samples.get_num_samples(include_adapt_steps=True) == num_samples * 2
 
 
-def test_get_proposer():
+def test_get_proposers():
     world = SimpleWorld()
     model = SampleModel()
     world.call(model.bar())
     nuts = bm.GlobalNoUTurnSampler()
-    assert isinstance(nuts.get_proposer(world), NUTSProposer)
-    hmc = bm.GlobalHamiltonianMonteCarlo(1.0)
-    assert isinstance(hmc.get_proposer(world), HMCProposer)
+    proposers = nuts.get_proposers(world, 10)
+    assert all(isinstance(proposer, BaseProposer) for proposer in proposers)
 
 
 def test_initialize_world():
