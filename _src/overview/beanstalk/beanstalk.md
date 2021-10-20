@@ -28,7 +28,7 @@ The `BMGInference()` object provides three utility methods that can be used to i
 - `BMGInference().to_python(queries, observations)` - Returns a Python program that builds a version of the graph.
 
 ### Beanstalk uses the Bean Machine Graph (BMG) library
-With code generated that is powered by the Bean Machine Graph (BMG) library, which runs critical pieces of code in C++ rather than Python, to speed up the inference process significantly. 
+With code generated that is powered by the Bean Machine Graph (BMG) library, which runs critical pieces of code in C++ rather than Python, to speed up the inference process significantly.
 
 -----------
 
