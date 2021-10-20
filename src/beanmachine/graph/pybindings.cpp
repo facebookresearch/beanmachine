@@ -307,7 +307,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("num_samples"),
           py::arg("algorithm") = InferenceType::GIBBS,
           py::arg("seed") = 5123401,
-          py::arg("n_chains"),
+          py::arg("n_chains") = 4,
           py::arg("infer_config") = InferConfig())
       .def(
           "infer",
@@ -327,7 +327,7 @@ PYBIND11_MODULE(graph, module) {
           py::arg("num_samples"),
           py::arg("algorithm") = InferenceType::GIBBS,
           py::arg("seed") = 5123401,
-          py::arg("n_chains"),
+          py::arg("n_chains") = 4,
           py::arg("infer_config") = InferConfig())
       .def(
           "variational",
