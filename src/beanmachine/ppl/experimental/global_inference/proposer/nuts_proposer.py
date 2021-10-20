@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 import torch
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
@@ -57,6 +57,7 @@ class NUTSProposer(HMCProposer):
     def __init__(
         self,
         initial_world: SimpleWorld,
+        num_adaptive_sample: int,
         max_tree_depth: int = 10,
         max_delta_energy: float = 1000.0,
         initial_step_size: float = 1.0,
@@ -68,6 +69,7 @@ class NUTSProposer(HMCProposer):
         # note that trajectory_length is not used in NUTS
         super().__init__(
             initial_world,
+            num_adaptive_sample,
             trajectory_length=0.0,
             initial_step_size=initial_step_size,
             adapt_step_size=adapt_step_size,
@@ -240,8 +242,8 @@ class NUTSProposer(HMCProposer):
             turned_or_diverged=turned_or_diverged,
         )
 
-    def propose(self, world: Optional[SimpleWorld] = None) -> SimpleWorld:
-        if world is not None and world is not self.world:
+    def propose(self, world: SimpleWorld) -> SimpleWorld:
+        if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world
             self._positions = self._to_unconstrained(

@@ -9,7 +9,7 @@ import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import graphviz
 import torch
-from beanmachine.graph import Graph, InferenceType  # pyre-ignore
+from beanmachine.graph import Graph, InferenceType, InferConfig  # pyre-ignore
 from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
 from beanmachine.ppl.compiler.gen_bmg_cpp import to_bmg_cpp
 from beanmachine.ppl.compiler.gen_bmg_graph import to_bmg_graph
@@ -21,7 +21,9 @@ from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observa
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
-
+# TODO[Walid]: At some point, to facilitate checking the idea that this works pretty
+# much like any other BM inference, we should probably make this class a subclass of
+# AbstractMCInference.
 class BMGInference:
 
     _fix_observe_true: bool = False
@@ -119,15 +121,28 @@ class BMGInference:
         return samples
 
     def _build_mcsamples(
-        self, rv_to_query, samples, query_to_query_id, num_samples: int
+        self, rv_to_query, samples, query_to_query_id, num_samples: int, num_chains: int
     ) -> MonteCarloSamples:
         self._begin(prof.build_mcsamples)
 
-        result: Dict[RVIdentifier, torch.Tensor] = {}
-        for (rv, query) in rv_to_query.items():
-            query_id = query_to_query_id[query]
-            result[rv] = samples[query_id]
-        mcsamples = MonteCarloSamples(result)
+        assert len(samples) == num_chains
+
+        results = []
+        for chain_num in range(num_chains):
+            result: Dict[RVIdentifier, torch.Tensor] = {}
+            for (rv, query) in rv_to_query.items():
+                query_id = query_to_query_id[query]
+                result[rv] = samples[chain_num][query_id]
+            results.append(result)
+        # MonteCarloSamples almost provides just what we need here,
+        # but it requires the input to be of a different type in the
+        # cases of num_chains==1 and !=1 respectively. Furthermore,
+        # we had to tweak it to support the right operator for merging
+        # saumple values when num_chains!=1.
+        if num_chains == 1:
+            mcsamples = MonteCarloSamples(results[0], 0, True)
+        else:
+            mcsamples = MonteCarloSamples(results, 0, False)
 
         self._finish(prof.build_mcsamples)
 
@@ -138,6 +153,7 @@ class BMGInference:
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
+        num_chains: int = 1,
         inference_type: InferenceType = InferenceType.NMC,  # pyre-ignore
         produce_report: bool = True,
         skip_optimizations: Set[str] = default_skip_optimizations,
@@ -161,19 +177,27 @@ class BMGInference:
         if len(query_to_query_id) != 0:
             g.collect_performance_data(produce_report)
             self._begin(prof.graph_infer)
-            raw = g.infer(num_samples, inference_type)
+            default_config = InferConfig()  # pyre-ignore
+            # TODO[Walid]: In the following we were previously silently using the default seed
+            # specified in pybindings.cpp (and not passing the local one in). In the current
+            # code we are explicitly passing in the same default value used in that file (5123401).
+            # We really need a way to defer to the value defined in pybindings.py here.
+            raw = g.infer(
+                num_samples, inference_type, 5123401, num_chains, default_config
+            )
             self._finish(prof.graph_infer)
             if produce_report:
                 self._begin(prof.deserialize_perf_report)
                 js = g.performance_report()
                 report = pr.json_to_perf_report(js)
                 self._finish(prof.deserialize_perf_report)
-            assert len(raw) == num_samples
-            samples = self._transpose_samples(raw)
+            assert len(raw) == num_chains
+            assert all([len(r) == num_samples for r in raw])
+            samples = [self._transpose_samples(r) for r in raw]
 
         # TODO: Make _rv_to_query public. Add it to BMGraphBuilder?
         mcsamples = self._build_mcsamples(
-            rt._rv_to_query, samples, query_to_query_id, num_samples
+            rt._rv_to_query, samples, query_to_query_id, num_samples, num_chains
         )
 
         self._finish(prof.infer)
@@ -188,6 +212,10 @@ class BMGInference:
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
+        # TODO[Walid]: We really want this default to be 4, but we put it off to
+        # another diff because that is likely to involve changes to a few more existing
+        # calls to BMGInference().infer
+        num_chains: int = 4,
         inference_type: InferenceType = InferenceType.NMC,
         skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:
@@ -198,6 +226,7 @@ class BMGInference:
             queries,
             observations,
             num_samples,
+            num_chains,
             inference_type,
             False,
             skip_optimizations,

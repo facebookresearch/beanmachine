@@ -57,12 +57,12 @@ digraph "graph" {
 
         skip_optimizations = {"NormalNormalConjugateFixer"}
         original_posterior = bmg.infer(
-            queries, observations, num_samples, skip_optimizations=skip_optimizations
+            queries, observations, num_samples, 1, skip_optimizations=skip_optimizations
         )
         original_samples = original_posterior[model.normal_p()][0]
 
         transformed_posterior = bmg.infer(
-            queries, observations, num_samples, skip_optimizations=set()
+            queries, observations, num_samples, 1, skip_optimizations=set()
         )
         transformed_samples = transformed_posterior[model.normal_p()][0]
 

@@ -86,7 +86,7 @@ digraph "graph" {
         self.assertEqual(expected.strip(), observed.strip())
 
         self.assertTrue(
-            BMGInference().infer(queries, observations, 1),
+            BMGInference().infer(queries, observations, 1, 1),
             msg="Expected inference to complete successful on this example.",
         )
 
@@ -101,12 +101,12 @@ digraph "graph" {
         self.assertEqual(expected.strip(), str(ex.exception))
 
         with self.assertRaises(ValueError) as ex:
-            BMGInference().infer(queries, observations, 1)
+            BMGInference().infer(queries, observations, 1, 1)
         self.assertEqual(expected.strip(), str(ex.exception))
 
         queries = [right()]
         observations = {hc(): tensor(1.0)}
-        result = BMGInference().infer(queries, observations, 1)
+        result = BMGInference().infer(queries, observations, 1, 1)
         observed = result[right()]
         expected = log1mexp(tensor(-1.0))
         self.assertEqual(observed, expected)
@@ -136,7 +136,7 @@ digraph "graph" {
         self.assertEqual(expected.strip(), observed.strip())
 
         self.assertTrue(
-            BMGInference().infer(queries, observations, 1),
+            BMGInference().infer(queries, observations, 1, 1),
             msg="Expected inference to complete successful on this example.",
         )
 
@@ -151,12 +151,12 @@ digraph "graph" {
         self.assertEqual(expected.strip(), str(ex.exception))
 
         with self.assertRaises(ValueError) as ex:
-            BMGInference().infer(queries, observations, 1)
+            BMGInference().infer(queries, observations, 1, 1)
         self.assertEqual(expected.strip(), str(ex.exception))
 
         queries = [math_right()]
         observations = {hc(): tensor(1.0)}
-        result = BMGInference().infer(queries, observations, 1)
+        result = BMGInference().infer(queries, observations, 1, 1)
         observed = result[math_right()]
         expected = math_log1mexp(-1.0)
         self.assertEqual(observed, expected)
@@ -178,7 +178,7 @@ digraph "graph" {
         }
         num_samples = 1000
         inference = BMGInference()
-        mcsamples = inference.infer(queries, observations, num_samples)
+        mcsamples = inference.infer(queries, observations, num_samples, 1)
         samples = mcsamples[beta()]
         observed = samples.mean()
         expected = tensor(0.4873)
