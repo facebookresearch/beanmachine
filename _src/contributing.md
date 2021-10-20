@@ -1,7 +1,7 @@
 ---
 id: contributing
-title: Contributing
-sidebar_label: Contributing
+title: Contributing Docs
+sidebar_label: Contributing Docs
 ---
 
 This document describes how to add and update markdown content that is presented in this Docusaurus 2 project.
