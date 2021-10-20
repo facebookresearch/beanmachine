@@ -23,8 +23,8 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "usort",
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
-CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
-
+#CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
+CPP_COMPILE_ARGS = ["/WX"]   # "/std:c++14", "/Za"
 
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
@@ -56,8 +56,9 @@ INCLUDE_DIRS = [os.path.join(current_dir, "src")]
 
 # check if we're installing in a conda environment
 if "CONDA_PREFIX" in os.environ:
-    conda_include_dir = os.path.join(os.environ["CONDA_PREFIX"], "include")
+    conda_include_dir = os.path.join(os.environ["CONDA_PREFIX"], "Library/include")
     INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "eigen3")])
+    INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "boost")])
 
 if sys.platform.startswith("linux"):
     INCLUDE_DIRS.extend(
@@ -116,7 +117,7 @@ setup(
         "parameterized>=0.8.1",
         "graphviz>=0.11.1",
     ],
-    packages=find_packages("src/"),
+    packages=find_packages("src"),
     package_dir={"": "src"},
     ext_modules=[
         Pybind11Extension(

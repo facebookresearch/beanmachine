@@ -7,7 +7,7 @@ GlobalMH::GlobalMH(Graph& g) : graph(g), state(GlobalState(g)) {}
 
 std::vector<std::vector<NodeValue>>& GlobalMH::infer(
     int num_samples,
-    uint seed,
+    unsigned int seed,
     int num_warmup_samples,
     bool save_warmup,
     InitType init_type) {

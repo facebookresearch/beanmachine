@@ -1,4 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "beanmachine/graph/graph.h"
@@ -263,8 +264,8 @@ void ColumnIndex::backward() {
 }
 
 void ToMatrix::backward() {
-  int rows = in_nodes[0]->value._natural;
-  int cols = in_nodes[1]->value._natural;
+  int rows = int(in_nodes[0]->value._natural);
+  int cols = int(in_nodes[1]->value._natural);
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
       auto node = in_nodes[2 + j * rows + i];

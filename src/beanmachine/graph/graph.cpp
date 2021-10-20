@@ -214,7 +214,7 @@ void Node::forward_gradient_scalarops(
     T2& hessian,
     double& d_grad1,
     double& d_grad2) const {
-  uint in_degree = in_nodes.size();
+  uint in_degree = static_cast<uint>(in_nodes.size());
   assert(jacobian.cols() == in_degree);
   assert(hessian.cols() == in_degree and hessian.rows() == in_degree);
 
@@ -317,16 +317,16 @@ void Graph::update_backgrad(std::vector<Node*>& ordered_supp) {
 void Graph::eval_and_grad(
     uint tgt_idx,
     uint src_idx,
-    uint seed,
+    unsigned int seed,
     NodeValue& value,
     double& grad1,
     double& grad2) {
   // TODO: used for testing only, should integrate it with
   // whatever code is actually being used for eval and grad.
-  if (src_idx >= nodes.size()) {
+  if (int(src_idx) >= nodes.size()) {
     throw std::out_of_range("src_idx " + std::to_string(src_idx));
   }
-  if (tgt_idx >= nodes.size() or tgt_idx <= src_idx) {
+  if (int(tgt_idx) >= nodes.size() or tgt_idx <= src_idx) {
     throw std::out_of_range("tgt_idx " + std::to_string(tgt_idx));
   }
   // initialize the gradients of the source node to get the computation started
@@ -381,7 +381,7 @@ void Graph::test_grad(std::vector<DoubleMatrix*>& grad1) {
   _test_backgrad(supp, grad1);
 }
 
-void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed) {
+void Graph::eval_and_grad(std::vector<DoubleMatrix*>& grad1, unsigned int seed) {
   std::mt19937 generator(seed);
   std::set<uint> supp = compute_support();
   for (auto it = supp.begin(); it != supp.end(); ++it) {
@@ -553,7 +553,7 @@ std::vector<Node*> Graph::convert_parent_ids(
   // an array of Node* pointers
   std::vector<Node*> parent_nodes;
   for (uint parent_id : parent_ids) {
-    if (parent_id >= nodes.size()) {
+    if (int(parent_id) >= nodes.size()) {
       throw std::out_of_range(
           "parent node_id " + std::to_string(parent_id) + "must be less than " +
           std::to_string(nodes.size()));
@@ -584,13 +584,13 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
   }
   node->det_anc.insert(node->det_anc.end(), det_set.begin(), det_set.end());
   node->sto_anc.insert(node->sto_anc.end(), sto_set.begin(), sto_set.end());
-  uint index = node->index = nodes.size();
+  uint index = node->index = static_cast<uint>(nodes.size());
   nodes.push_back(std::move(node));
   return index;
 }
 
 void Graph::check_node_id(uint node_id) {
-  if (node_id >= nodes.size()) {
+  if (int(node_id) >= nodes.size()) {
     throw std::out_of_range(
         "node_id (" + std::to_string(node_id) + ") must be less than " +
         std::to_string(nodes.size()));
@@ -725,8 +725,8 @@ uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
       ValueType(
           VariableType::COL_SIMPLEX_MATRIX,
           AtomicType::PROBABILITY,
-          value.rows(),
-          value.cols()),
+          static_cast<uint>(value.rows()),
+          static_cast<uint>(value.cols())),
       value));
 }
 
@@ -944,10 +944,10 @@ uint Graph::query(uint node_id) {
   // very short.
   auto it = std::find(queries.begin(), queries.end(), node_id);
   if (it != queries.end()) {
-    return it - queries.begin();
+    return static_cast<uint>(it - queries.begin());
   }
   queries.push_back(node_id);
-  return queries.size() - 1; // the index is 0-based
+  return static_cast<uint>(queries.size() - 1); // the index is 0-based
 }
 
 void Graph::collect_log_prob(double log_prob) {
@@ -1015,7 +1015,7 @@ void Graph::collect_sample() {
 void Graph::_infer(
     uint num_samples,
     InferenceType algorithm,
-    uint seed,
+    unsigned int seed,
     InferConfig infer_config) {
   if (queries.size() == 0) {
     throw std::runtime_error("no nodes queried for inference");
@@ -1033,7 +1033,7 @@ void Graph::_infer(
 }
 
 std::vector<std::vector<NodeValue>>&
-Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
+Graph::infer(uint num_samples, InferenceType algorithm, unsigned int seed) {
   InferConfig infer_config = InferConfig();
   // TODO: why don't the initialization below to be done for _infer?
   // If they do, move them there.
@@ -1051,7 +1051,7 @@ Graph::infer(uint num_samples, InferenceType algorithm, uint seed) {
 std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
     uint num_samples,
     InferenceType algorithm,
-    uint seed,
+    unsigned int seed,
     uint n_chains,
     InferConfig infer_config) {
   agg_type = AggregationType::NONE;
@@ -1068,7 +1068,7 @@ std::vector<std::vector<std::vector<NodeValue>>>& Graph::infer(
 void Graph::_infer_parallel(
     uint num_samples,
     InferenceType algorithm,
-    uint seed,
+    unsigned int seed,
     uint n_chains,
     InferConfig infer_config) {
   if (n_chains < 1) {
@@ -1078,7 +1078,7 @@ void Graph::_infer_parallel(
   thread_index = 0;
   // clone graphs
   std::vector<Graph*> graph_copies;
-  std::vector<uint> seedvec;
+  std::vector<unsigned int> seedvec;
   for (uint i = 0; i < n_chains; i++) {
     if (i > 0) {
       Graph* g_ptr = new Graph(*this);
@@ -1087,7 +1087,7 @@ void Graph::_infer_parallel(
     } else {
       graph_copies.push_back(this);
     }
-    seedvec.push_back(seed + 13 * i);
+    seedvec.push_back(seed + 13 * int(i));
   }
   assert(graph_copies.size() == n_chains);
   assert(seedvec.size() == n_chains);
@@ -1119,7 +1119,7 @@ void Graph::_infer_parallel(
 }
 
 std::vector<double>&
-Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
+Graph::infer_mean(uint num_samples, InferenceType algorithm, unsigned int seed) {
   InferConfig infer_config = InferConfig();
   agg_type = AggregationType::MEAN;
   agg_samples = num_samples;
@@ -1134,7 +1134,7 @@ Graph::infer_mean(uint num_samples, InferenceType algorithm, uint seed) {
 std::vector<std::vector<double>>& Graph::infer_mean(
     uint num_samples,
     InferenceType algorithm,
-    uint seed,
+    unsigned int seed,
     uint n_chains,
     InferConfig infer_config) {
   agg_type = AggregationType::MEAN;
@@ -1152,7 +1152,7 @@ std::vector<std::vector<double>>& Graph::infer_mean(
 std::vector<std::vector<double>>& Graph::variational(
     uint num_iters,
     uint steps_per_iter,
-    uint seed,
+    unsigned int seed,
     uint elbo_samples) {
   if (queries.size() == 0) {
     throw std::runtime_error("no nodes queried for inference");
@@ -1181,10 +1181,16 @@ std::vector<uint> Graph::get_parent_ids(
   return parent_ids;
 }
 
+std::vector<std::unique_ptr<Node>> Graph::nodes{};
+
+std::set<uint> Graph::observed{};
+
+std::vector<uint> Graph::queries{};
+
 Graph::Graph(const Graph& other) {
   // This copy constructor does not copy the inference results (if available)
   // from the source graph.
-  for (uint i = 0; i < other.nodes.size(); i++) {
+  for (uint i = 0; int(i) < other.nodes.size(); i++) {
     Node* node = other.nodes[i].get();
     std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
     switch (node->node_type) {

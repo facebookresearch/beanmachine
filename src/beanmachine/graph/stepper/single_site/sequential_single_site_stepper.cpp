@@ -26,14 +26,14 @@ SequentialSingleSiteStepper::SequentialSingleSiteStepper(
       mh(mh) {}
 
 std::vector<Stepper*>& SequentialSingleSiteStepper::get_steppers() {
-  if (steppers.size() == 0) {
+  if (static_cast<uint>(steppers.size()) == 0) {
     make_steppers();
   }
   return steppers;
 }
 
 void SequentialSingleSiteStepper::make_steppers() {
-  for (uint i = 0; i < mh->unobserved_stochastic_support().size(); ++i) {
+  for (uint i = 0; i < static_cast<uint>(mh->unobserved_stochastic_support().size()); ++i) {
     auto tgt_node = mh->unobserved_stochastic_support()[i];
     auto single_site_stepping_method =
         find_applicable_single_site_stepping_method(tgt_node);

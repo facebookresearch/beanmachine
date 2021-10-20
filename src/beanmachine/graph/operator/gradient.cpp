@@ -1,4 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "beanmachine/graph/graph.h"
@@ -253,7 +254,7 @@ void LogSumExp::compute_gradients() {
   // therefore, grad2 = sum_i^n{exp(gi - f) * [(dgi/dx - grad1)*dgi/dx +
   // d(dgi/dx)/dx]}
   grad1 = grad2 = 0;
-  const uint N = in_nodes.size();
+  const uint N = static_cast<uint>(in_nodes.size());
   std::vector<double> f_grad;
   for (uint i = 0; i < N; i++) {
     const auto node_i = in_nodes[i];
@@ -312,7 +313,7 @@ void Index::compute_gradients() {
 
 void ColumnIndex::compute_gradients() {
   assert(in_nodes.size() == 2);
-  int rows = in_nodes[0]->Grad1.rows();
+  int rows = int(in_nodes[0]->Grad1.rows());
   Grad1.resize(rows, 1);
   Grad2.resize(rows, 1);
   Grad1 = in_nodes[0]->Grad1.col(in_nodes[1]->value._natural);
@@ -320,8 +321,8 @@ void ColumnIndex::compute_gradients() {
 }
 
 void ToMatrix::compute_gradients() {
-  int rows = in_nodes[0]->value._natural;
-  int cols = in_nodes[1]->value._natural;
+  int rows = int(in_nodes[0]->value._natural);
+  int cols = int(in_nodes[1]->value._natural);
   Grad1.resize(rows, cols);
   Grad2.resize(rows, cols);
   for (int j = 0; j < cols; j++) {

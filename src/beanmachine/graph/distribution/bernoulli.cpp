@@ -37,8 +37,8 @@ double Bernoulli::log_prob(const graph::NodeValue& value) const {
     return value._bool ? std::log(prob) : std::log(1 - prob);
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    int size = value._bmatrix.size();
-    int n_positive = value._bmatrix.count();
+    int size = int(value._bmatrix.size());
+    int n_positive = int(value._bmatrix.count());
     return std::log(prob) * n_positive +
         std::log(1 - prob) * (size - n_positive);
   } else {
@@ -122,8 +122,8 @@ void Bernoulli::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
     double prob = in_nodes[0]->value._double;
-    int size = value._bmatrix.size();
-    int n_positive = value._bmatrix.count();
+    int size = int(value._bmatrix.size());
+    int n_positive = int(value._bmatrix.count());
     in_nodes[0]->back_grad1._double +=
         (1 / prob * n_positive - 1 / (1 - prob) * (size - n_positive));
   }

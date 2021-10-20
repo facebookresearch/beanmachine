@@ -1,4 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <random>
 #include <string>
@@ -65,7 +66,7 @@ double Half_Normal::log_prob(const NodeValue& value) const {
     sum_xsq = value._double * value._double;
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    size = value._matrix.size();
+    size = int(value._matrix.size());
     sum_xsq = value._matrix.squaredNorm();
   } else {
     throw std::runtime_error(
@@ -181,7 +182,7 @@ void Half_Normal::backward_param_iid(const graph::NodeValue& value) const {
   double s = in_nodes[0]->value._double;
   double s_sq = s * s;
 
-  int size = value._matrix.size();
+  int size = int(value._matrix.size());
   /// The following should be deleted
   ///  if (in_nodes[0]->needs_gradient()) {
   ///    in_nodes[0]->back_grad1._double += sum_x / s_sq - size * m / s_sq;

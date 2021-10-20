@@ -17,7 +17,7 @@
 namespace beanmachine {
 namespace graph {
 
-MH::MH(Graph* graph, uint seed, Stepper* stepper)
+MH::MH(Graph* graph, unsigned int seed, Stepper* stepper)
     : unobserved_sto_support_index_by_node_id(graph->nodes.size(), 0),
       stepper(stepper),
       graph(graph),
@@ -45,7 +45,7 @@ void MH::initialize() {
 }
 
 void MH::collect_node_ptrs() {
-  for (uint node_id = 0; node_id < graph->nodes.size(); node_id++) {
+  for (uint node_id = 0; int(node_id) < graph->nodes.size(); node_id++) {
     node_ptrs.push_back(graph->nodes[node_id].get());
   }
 }
@@ -62,7 +62,7 @@ void MH::compute_support() {
       unobserved_supp.push_back(node);
       if (node->is_stochastic()) {
         uint index_of_next_unobserved_sto_supp_node =
-            unobserved_sto_supp.size();
+            static_cast<uint>(unobserved_sto_supp.size());
         unobserved_sto_supp.push_back(node);
         uint node_id = node->index;
         unobserved_sto_support_index_by_node_id[node_id] =
@@ -119,7 +119,7 @@ void MH::compute_affected_nodes() {
     det_affected_nodes.push_back(det_nodes);
     sto_affected_nodes.push_back(sto_nodes);
     if (graph->_collect_performance_data) {
-      graph->profiler_data.det_supp_count[node->index] = det_nodes.size();
+      graph->profiler_data.det_supp_count[unsigned int(node->index)] = int(det_nodes.size());
     }
   }
 }

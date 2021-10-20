@@ -58,8 +58,8 @@ double BernoulliNoisyOr::log_prob(const graph::NodeValue& value) const {
     sum_x = (double)value._bool;
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    size = value._bmatrix.size();
-    sum_x = value._bmatrix.count();
+    size = int(value._bmatrix.size());
+    sum_x = int(value._bmatrix.count());
   } else {
     throw std::runtime_error(
         "Normal::log_prob applied to invalid variable type");
@@ -127,7 +127,7 @@ void BernoulliNoisyOr::backward_param_iid(const graph::NodeValue& value) const {
     double param = in_nodes[0]->value._double;
     double mexpm1m = -std::expm1(-param); // 1 - exp(-param)
     double val_sum = (double)value._bmatrix.count();
-    int size = value._bmatrix.size();
+    int size = int(value._bmatrix.size());
     in_nodes[0]->back_grad1._double += val_sum / mexpm1m - size;
   }
 }

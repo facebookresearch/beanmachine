@@ -63,8 +63,8 @@ natural_t Flat::_natural_sampler(std::mt19937& gen) const {
 }
 
 Eigen::MatrixXd Flat::_matrix_sampler(std::mt19937& gen) const {
-  int rows = sample_type.rows;
-  int cols = sample_type.cols;
+  int rows = int(sample_type.rows);
+  int cols = int(sample_type.cols);
   Eigen::MatrixXd result(rows, cols);
   std::uniform_real_distribution<double> dist =
       _get_uniform_real_distribution();

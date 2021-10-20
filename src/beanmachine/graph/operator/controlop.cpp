@@ -44,7 +44,7 @@ Choice::Choice(const std::vector<graph::Node*>& in_nodes)
         "operator CHOICE requires a natural first parent");
   }
   graph::ValueType type1 = in_nodes[1]->value.type;
-  for (uint i = 2; i < in_nodes.size(); i += 1) {
+  for (uint i = 2; int(i) < in_nodes.size(); i += 1) {
     if (in_nodes[i]->value.type != type1) {
       throw std::invalid_argument(
           "operator CHOICE requires all parents except the first to have the same type");

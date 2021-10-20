@@ -51,13 +51,14 @@ class JSON {
 
   void date(system_clock::time_point v) {
     auto t = system_clock::to_time_t(v);
-    auto lt = localtime(&t);
-    auto timestamp = std::put_time(lt, "%Y-%m-%d %H:%M:%S");
+    struct tm lt;
+    localtime_s(&lt, &t);
+    auto timestamp = std::put_time(&lt, "%Y-%m-%d %H:%M:%S");
     os << "\"" << timestamp << "\"";
   }
 
   void ticks(high_resolution_clock::time_point v) {
-    number(v.time_since_epoch().count());
+    number(long(v.time_since_epoch().count()));
   }
 
   void number(long v) {
@@ -175,7 +176,7 @@ std::string Graph::performance_report() {
 void Graph::_produce_performance_report(
     uint num_samples,
     InferenceType algorithm,
-    uint seed) {
+    unsigned int seed) {
   _performance_report = "";
   JSON js;
   if (!_collect_performance_data)
@@ -188,9 +189,9 @@ void Graph::_produce_performance_report(
   uint op_count = 0;
   uint add_count = 0;
 
-  for (uint node_id = 0; node_id < nodes.size(); node_id++) {
+  for (uint node_id = 0; int(node_id) < nodes.size(); node_id++) {
     Node* node = nodes[node_id].get();
-    edge_count += node->in_nodes.size();
+    edge_count += static_cast<uint>(node->in_nodes.size());
     switch (node->node_type) {
       case NodeType::FACTOR:
         factor_count += 1;
@@ -217,16 +218,16 @@ void Graph::_produce_performance_report(
   js.start_object();
   js.text("title", "Bean Machine Graph performance report");
   js.date("generated_at", system_clock::now());
-  js.number("num_samples", num_samples);
+  js.number("num_samples", long(num_samples));
   js.number("algorithm", (uint)algorithm);
   js.number("seed", seed);
-  js.number("node_count", nodes.size());
-  js.number("edge_count", edge_count);
-  js.number("factor_count", factor_count);
-  js.number("dist_count", dist_count);
-  js.number("const_count", const_count);
-  js.number("op_count", op_count);
-  js.number("add_count", add_count);
+  js.number("node_count", long(nodes.size()));
+  js.number("edge_count", long(edge_count));
+  js.number("factor_count", long(factor_count));
+  js.number("dist_count", long(dist_count));
+  js.number("const_count", long(const_count));
+  js.number("op_count", long(op_count));
+  js.number("add_count", long(add_count));
 
   js.member("profiler_data");
   js.start_array();

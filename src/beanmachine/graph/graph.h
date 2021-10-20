@@ -13,6 +13,7 @@
 #include "beanmachine/graph/profiler.h"
 
 #define NATURAL_TYPE unsigned long long int
+#define uint unsigned int // std::ptrdiff_t
 
 namespace Eigen {
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
@@ -147,22 +148,22 @@ class NodeValue {
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::REAL,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _matrix(value) {}
   explicit NodeValue(Eigen::MatrixXb& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::BOOLEAN,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _bmatrix(value) {}
   explicit NodeValue(Eigen::MatrixXn& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::NATURAL,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _nmatrix(value) {}
 
   NodeValue(AtomicType type, bool value) : type(type), _bool(value) {
@@ -175,8 +176,8 @@ class NodeValue {
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             type,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _matrix(value) {
     assert(
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
@@ -598,7 +599,7 @@ struct Graph {
   :returns: The posterior samples.
   */
   std::vector<std::vector<NodeValue>>&
-  infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  infer(uint num_samples, InferenceType algorithm, unsigned int seed = 5123401);
   /*
   Draw Monte Carlo samples from the posterior distribution using multiple
   chains.
@@ -615,7 +616,7 @@ struct Graph {
   std::vector<std::vector<std::vector<NodeValue>>>& infer(
       uint num_samples,
       InferenceType algorithm,
-      uint seed,
+      unsigned int seed,
       uint n_chains,
       InferConfig infer_config = InferConfig());
   /*
@@ -626,7 +627,7 @@ struct Graph {
   :returns: The posterior means.
   */
   std::vector<double>&
-  infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
+  infer_mean(uint num_samples, InferenceType algorithm, unsigned int seed = 5123401);
   /*
   Make point estimates of the posterior means from multiple MCMC chains.
 
@@ -642,7 +643,7 @@ struct Graph {
   std::vector<std::vector<double>>& infer_mean(
       uint num_samples,
       InferenceType algorithm,
-      uint seed,
+      unsigned int seed,
       uint n_chains,
       InferConfig infer_config = InferConfig());
   /*
@@ -663,12 +664,12 @@ struct Graph {
   std::vector<std::vector<double>>& variational(
       uint num_iters,
       uint steps_per_iter,
-      uint seed = 5123401,
+      unsigned int seed = 5123401,
       uint elbo_samples = 0);
   std::vector<double>& get_elbo() {
     return elbo_vals;
   }
-  std::set<uint> compute_support();
+  static std::set<unsigned int> compute_support();
 
   /*
   Computes the _affected nodes_ of a root node.
@@ -733,7 +734,7 @@ struct Graph {
   void eval_and_grad(
       uint tgt_idx,
       uint src_idx,
-      uint seed,
+      unsigned int seed,
       NodeValue& value,
       double& grad1,
       double& grad2);
@@ -743,7 +744,7 @@ struct Graph {
   :param grad1: Output value of first gradient.
   :param seed: Random number generator seed.
   */
-  void eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed = 5123412);
+  void eval_and_grad(std::vector<DoubleMatrix*>& grad1, unsigned int seed = 5123412);
 
   /*
   Compute the backward mode gradients for all nodes in the support
@@ -818,22 +819,22 @@ struct Graph {
   void _infer(
       uint num_samples,
       InferenceType algorithm,
-      uint seed,
+      unsigned int seed,
       InferConfig infer_config);
   void _infer_parallel(
       uint num_samples,
       InferenceType algorithm,
-      uint seed,
+      unsigned int seed,
       uint n_chains,
       InferConfig infer_config);
 
   uint thread_index;
-  std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
-  std::set<uint> observed; // set of observed nodes
+  static std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
+  static std::set<uint> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a
   // cache of the queried nodes while the former gives the order of nodes
   // queried
-  std::vector<uint> queries; // list of queried node ids
+  static std::vector<uint> queries; // list of queried node ids
   std::vector<std::vector<NodeValue>> samples;
   std::vector<std::vector<std::vector<NodeValue>>> samples_allchains;
   std::vector<double> means;
@@ -844,9 +845,9 @@ struct Graph {
   std::vector<std::vector<double>> variational_params;
   std::vector<double> elbo_vals;
   void collect_sample();
-  void rejection(uint num_samples, uint seed, InferConfig infer_config);
-  void gibbs(uint num_samples, uint seed, InferConfig infer_config);
-  void nmc(uint num_samples, uint gen, InferConfig infer_config);
+  void rejection(uint num_samples, unsigned int seed, InferConfig infer_config);
+  void gibbs(uint num_samples, unsigned int seed, InferConfig infer_config);
+  void nmc(uint num_samples, unsigned int seed, InferConfig infer_config);
   void cavi(
       uint num_iters,
       uint steps_per_iter,
@@ -860,7 +861,7 @@ struct Graph {
 
   // TODO: Review what members of this class can be made static.
 
-  double _full_log_prob(std::vector<Node*>& ordered_supp);
+  static double _full_log_prob(std::vector<Node*>& ordered_supp);
   void collect_log_prob(double log_prob);
   std::vector<double> log_prob_vals;
   std::vector<std::vector<double>> log_prob_allchains;
@@ -874,7 +875,7 @@ struct Graph {
   void _produce_performance_report(
       uint num_samples,
       InferenceType algorithm,
-      uint seed);
+      unsigned int seed);
   void pd_begin(ProfilerEvent kind) {
     if (_collect_performance_data) {
       profiler_data.begin(kind);

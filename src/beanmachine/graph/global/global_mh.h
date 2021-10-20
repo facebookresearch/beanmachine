@@ -14,7 +14,7 @@ class GlobalMH {
   explicit GlobalMH(Graph& g);
   std::vector<std::vector<NodeValue>>& infer(
       int num_samples,
-      uint seed,
+      unsigned int seed,
       int num_warmup_samples = 0,
       bool save_warmup = false,
       InitType init_type = InitType::RANDOM);

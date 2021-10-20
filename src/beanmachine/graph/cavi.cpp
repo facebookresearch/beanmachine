@@ -5,6 +5,9 @@
 #include <cmath>
 #include <unordered_set>
 
+#define uint unsigned int //std::ptrdiff_t
+//#define uint std::size_t
+
 namespace beanmachine {
 namespace graph {
 
@@ -18,12 +21,12 @@ void Graph::cavi(
   std::vector<Node*> node_ptrs;
   // store all the sampled values for each node
   std::vector<std::vector<NodeValue>> var_samples;
-  for (uint node_id = 0; node_id < nodes.size(); node_id++) {
+  for (uint node_id = 0; size_t(node_id) < nodes.size(); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
     var_samples.push_back(std::vector<NodeValue>());
   }
   assert(node_ptrs.size() > 0); // keep linter happy
-  std::set<uint> supp = compute_support();
+  std::set<unsigned int> supp = compute_support();
   // the variational parameter probability for each node (initially 0.5)
   std::vector<double> param_probability =
       std::vector<double>(nodes.size(), 0.5);
