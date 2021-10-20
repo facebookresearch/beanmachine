@@ -1,7 +1,7 @@
 ---
-slug: toc
-title: Sitemap
-sidebar_label: Sitemap
+id: toc
+title: Table of Contents
+sidebar_label: TOC
 ---
 * [Landing page](landing_page/landing_page.md)
 * [Bean Machine advantages](landing_page/bean_machine_advantages.md)
@@ -13,9 +13,6 @@ sidebar_label: Sitemap
 * [Modeling](overview/modeling/modeling.md)
 * [Inference](overview/inference/inference.md)
 * [Post-inference](overview/analysis/analysis.md)
-* [Packages](overview/packages/packages.md)
-* [Tutorials](overview/tutorials/tutorials.md)
-* [Beanstalk](overview/beanstalk/beanstalk.md)
 
 **Framework topics**
 
@@ -62,7 +59,7 @@ sidebar_label: Sitemap
 * Beanstalk
 
 **API**
-<!-- Brian Johnson will link this in. See ../website/sidebars.js for where we think 'API' will go... -->
+<!-- Brian Johnson will link this in. -->
 
 **Tutorials**
 

@@ -1,7 +1,7 @@
 ---
 id: quick_start
-title: "Coding in Bean Machine"
-sidebar_label: "Coding in Bean Machine"
+title: 'Quick Start'
+sidebar_label: 'Quick Start'
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
