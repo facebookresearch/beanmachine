@@ -91,3 +91,7 @@ class TestConjugacyTransformations(unittest.TestCase):
             ).pvalue,
             0.05,
         )
+
+
+if __name__ == "__main__":
+    unittest.main()
