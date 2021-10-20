@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 import dataclasses
-from functools import cached_property
 from typing import Set
 
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from torch.distributions.utils import lazy_property
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class Variable:
     value: torch.Tensor
     distribution: dist.Distribution
     parents: Set[RVIdentifier] = dataclasses.field(default_factory=set)
     children: Set[RVIdentifier] = dataclasses.field(default_factory=set)
 
-    @cached_property
+    @lazy_property
     def log_prob(self) -> torch.Tensor:
         try:
             return self.distribution.log_prob(self.value)
