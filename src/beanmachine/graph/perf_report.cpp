@@ -55,7 +55,7 @@ class JSON {
 #ifdef _MSC_VER
     localtime_s(&lt, &t);
 #else
-    localtime_s(&t, &lt);
+    localtime_r(&t, &lt);
 #endif
     auto timestamp = std::put_time(&lt, "%Y-%m-%d %H:%M:%S");
     os << "\"" << timestamp << "\"";
