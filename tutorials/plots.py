@@ -10,24 +10,24 @@ from bokeh.plotting.figure import Figure
 
 
 def style(plot):
-    plot.outline_line_color = 'black'
+    plot.outline_line_color = "black"
     plot.grid.grid_line_alpha = 0.2
-    plot.grid.grid_line_color = 'grey'
+    plot.grid.grid_line_color = "grey"
     plot.grid.grid_line_width = 0.2
 
 
 def bar_plot(
     plot_source: ColumnDataSource,
-    orientation: str = 'vertical',
+    orientation: str = "vertical",
     figure_kwargs: dict = dict(),
     plot_kwargs: dict = dict(),
     tooltips: Union[None, List[Tuple[str, str]]] = None,
 ) -> Figure:
-    x = plot_source.data['x']
-    y = plot_source.data['y']
-    tick_labels = plot_source.data['tick_labels']
+    x = plot_source.data["x"]
+    y = plot_source.data["y"]
+    tick_labels = plot_source.data["tick_labels"]
     padding = 0.2
-    if orientation == 'vertical':
+    if orientation == "vertical":
         y_range_start = 1 - padding
         y_range_end = (1 + padding) * y.max()
         log_bounds = [y_range_start, y_range_end]
@@ -36,10 +36,10 @@ def bar_plot(
         no_log_bounds = [minimum, maximum]
         range_ = (
             log_bounds
-            if figure_kwargs.get('y_axis_type', None) is not None
+            if figure_kwargs.get("y_axis_type", None) is not None
             else no_log_bounds
         )
-    elif orientation == 'horizontal':
+    elif orientation == "horizontal":
         x_range_start = 1 - padding
         x_range_end = (1 + padding) * x.max()
         log_bounds = [x_range_start, x_range_end]
@@ -48,29 +48,29 @@ def bar_plot(
         no_log_bounds = [minimum, maximum]
         range_ = (
             log_bounds
-            if figure_kwargs.get('x_axis_type', None) is not None
+            if figure_kwargs.get("x_axis_type", None) is not None
             else no_log_bounds
         )
 
     # Define default plot and figure keyword arguments.
     fig_kwargs = {
-        'plot_width': 700,
-        'plot_height': 500,
-        'y_range' if orientation == 'vertical' else 'x_range': range_
+        "plot_width": 700,
+        "plot_height": 500,
+        "y_range" if orientation == "vertical" else "x_range": range_,
     }
     if figure_kwargs:
         fig_kwargs.update(figure_kwargs)
     plt_kwargs = {
-        'fill_color': 'steelblue',
-        'fill_alpha': 0.7,
-        'line_color': 'white',
-        'line_width': 1,
-        'line_alpha': 0.7,
-        'hover_fill_color': 'orange',
-        'hover_fill_alpha': 1,
-        'hover_line_color': 'black',
-        'hover_line_width': 2,
-        'hover_line_alpha': 1,
+        "fill_color": "steelblue",
+        "fill_alpha": 0.7,
+        "line_color": "white",
+        "line_width": 1,
+        "line_alpha": 0.7,
+        "hover_fill_color": "orange",
+        "hover_fill_alpha": 1,
+        "hover_line_color": "black",
+        "hover_line_width": 2,
+        "hover_line_alpha": 1,
     }
     if plot_kwargs:
         plt_kwargs.update(plot_kwargs)
@@ -80,10 +80,10 @@ def bar_plot(
 
     # Bind data to the plot.
     glyph = plot.quad(
-        left='left',
-        top='top',
-        right='right',
-        bottom='bottom',
+        left="left",
+        top="top",
+        right="right",
+        bottom="bottom",
         source=plot_source,
         **plt_kwargs,
     )
@@ -94,11 +94,11 @@ def bar_plot(
     # Style the plot.
     style(plot)
     plot.xaxis.major_label_orientation = np.pi / 4
-    if orientation == 'vertical':
+    if orientation == "vertical":
         plot.xaxis.ticker = FixedTicker(ticks=list(range(len(tick_labels))))
         plot.xaxis.major_label_overrides = dict(zip(range(len(x)), tick_labels))
         plot.xaxis.minor_tick_line_color = None
-    if orientation == 'horizontal':
+    if orientation == "horizontal":
         plot.yaxis.ticker = FixedTicker(ticks=list(range(len(tick_labels))))
         plot.yaxis.major_label_overrides = dict(zip(range(len(y)), tick_labels))
         plot.yaxis.minor_tick_line_color = None
@@ -114,23 +114,23 @@ def scatter_plot(
 ) -> Figure:
     # Define default plot and figure keyword arguments.
     fig_kwargs = {
-        'plot_width': 700,
-        'plot_height': 500,
+        "plot_width": 700,
+        "plot_height": 500,
     }
     if figure_kwargs:
         fig_kwargs.update(figure_kwargs)
     plt_kwargs = {
-        'size': 10,
-        'fill_color': 'steelblue',
-        'fill_alpha': 0.7,
-        'line_color': 'white',
-        'line_width': 1,
-        'line_alpha': 0.7,
-        'hover_fill_color': 'orange',
-        'hover_fill_alpha': 1,
-        'hover_line_color': 'black',
-        'hover_line_width': 2,
-        'hover_line_alpha': 1,
+        "size": 10,
+        "fill_color": "steelblue",
+        "fill_alpha": 0.7,
+        "line_color": "white",
+        "line_width": 1,
+        "line_alpha": 0.7,
+        "hover_fill_color": "orange",
+        "hover_fill_alpha": 1,
+        "hover_line_color": "black",
+        "hover_line_width": 2,
+        "hover_line_alpha": 1,
     }
     if plot_kwargs:
         plt_kwargs.update(plot_kwargs)
@@ -139,8 +139,8 @@ def scatter_plot(
     plot = figure(**fig_kwargs)
 
     glyph = plot.circle(
-        x='x',
-        y='y',
+        x="x",
+        y="y",
         source=plot_source,
         **plt_kwargs,
     )
@@ -163,8 +163,8 @@ def line_plot(
 ) -> Figure:
     # Define default plot and figure keyword arguments.
     fig_kwargs = {
-        'plot_width': 700,
-        'plot_height': 500,
+        "plot_width": 700,
+        "plot_height": 500,
     }
     if figure_kwargs:
         fig_kwargs.update(figure_kwargs)
@@ -172,9 +172,9 @@ def line_plot(
     plot = figure(**fig_kwargs)
 
     for i, plot_source in enumerate(plot_sources):
-        locals()[f'glyph_{i}'] = plot.line(
-            x='x',
-            y='y',
+        locals()[f"glyph_{i}"] = plot.line(
+            x="x",
+            y="y",
             source=plot_source,
             color=colors[i],
             legend_label=labels[i],
@@ -182,7 +182,7 @@ def line_plot(
         if tooltips:
             plot.add_tools(
                 HoverTool(
-                    renderers=[locals()[f'glyph_{i}']],
+                    renderers=[locals()[f"glyph_{i}"]],
                     tooltips=tooltips[i],
                 )
             )
