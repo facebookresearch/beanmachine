@@ -17,12 +17,14 @@ The subset currently is limited to:
 - Univariate distributions,
 - Simple uses of tensors, for example, tensor addition and multiplication,
 - Limited control flow is supported,
-- Inference algorith - currently, only Newtonian Monte Carlo (NMC), is supported,
+- Inference algorithms - currently only Newtonian Monte Carlo (NMC) is supported,
 - Only one chain of samples can be generated at a time.
 
-To use Beanstalk to run an inference model, intsead of using a standard Bean Machine inference algorithm using a command such as `bm.SingleSiteNewtonianMonteCarlo().infer`, simply include the compiler using `from beanmachine.ppl.inference.bmg_inference import BMGInference` and use `BMGInference().infer`.
+To use Beanstalk to run an inference model, instead of using a standard Bean Machine inference algorithm using a command such as `bm.SingleSiteNewtonianMonteCarlo().infer()`, simply include the compiler using `from beanmachine.ppl.inference.bmg_inference import BMGInference` and use `BMGInference().infer()`.
 
-The `BMGInference()` object provides three utility methods that can be used to inspect the intermediate results of the compiler, namely:
+The `BMGInference()` object provides a collection of utility methods that can be used to inspect the intermediate results of the compiler, namely:
+- `BMGInference().infer(queries, observations, num_samples, num_chains)` - Returns a dictionary of samples for the queried variables,
+- `BMGInference().to_graphviz(queries, observations)` - Returns a graphviz graph representing the model,
 - `BMGInference().to_dot(queries, observations)` - Returns a DOT representation of the probabilistic graph of the model,
 - `BMGInference().to_cpp(queries, observations)` - Returns a C++ program that builds a version of this graph, and
 - `BMGInference().to_python(queries, observations)` - Returns a Python program that builds a version of the graph.
