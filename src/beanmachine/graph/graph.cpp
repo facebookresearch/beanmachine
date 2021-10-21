@@ -323,10 +323,10 @@ void Graph::eval_and_grad(
     double& grad2) {
   // TODO: used for testing only, should integrate it with
   // whatever code is actually being used for eval and grad.
-  if (src_idx >= static_cast<int>(nodes.size())) {
+  if (src_idx >= static_cast<uint>(nodes.size())) {
     throw std::out_of_range("src_idx " + std::to_string(src_idx));
   }
-  if (tgt_idx >= static_cast<int>(nodes.size()) or tgt_idx <= src_idx) {
+  if (tgt_idx >= static_cast<uint>(nodes.size()) or tgt_idx <= src_idx) {
     throw std::out_of_range("tgt_idx " + std::to_string(tgt_idx));
   }
   // initialize the gradients of the source node to get the computation started
@@ -553,7 +553,7 @@ std::vector<Node*> Graph::convert_parent_ids(
   // an array of Node* pointers
   std::vector<Node*> parent_nodes;
   for (uint parent_id : parent_ids) {
-    if (parent_id >= static_cast<int>(nodes.size())) {
+    if (parent_id >= static_cast<uint>(nodes.size())) {
       throw std::out_of_range(
           "parent node_id " + std::to_string(parent_id) + "must be less than " +
           std::to_string(nodes.size()));
@@ -590,7 +590,7 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
 }
 
 void Graph::check_node_id(uint node_id) {
-  if (node_id >= static_cast<int>(nodes.size())) {
+  if (node_id >= static_cast<uint>(nodes.size())) {
     throw std::out_of_range(
         "node_id (" + std::to_string(node_id) + ") must be less than " +
         std::to_string(nodes.size()));
