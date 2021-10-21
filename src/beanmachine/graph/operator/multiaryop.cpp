@@ -26,7 +26,7 @@ void Add::eval(std::mt19937& /* gen */) {
       parent0.type == graph::AtomicType::NEG_REAL) {
     value._double = parent0._double;
 
-    for (uint i = 1; int(i) < in_nodes.size(); i++) {
+    for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
       const auto& parenti = in_nodes[i]->value;
       value._double += parenti._double;
     }
@@ -58,7 +58,7 @@ void Multiply::eval(std::mt19937& /* gen */) {
       parent0.type == graph::AtomicType::PROBABILITY) {
     value._double = parent0._double;
 
-    for (uint i = 1; int(i) < in_nodes.size(); i++) {
+    for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
       const auto& parenti = in_nodes[i]->value;
       value._double *= parenti._double;
     }
@@ -88,7 +88,7 @@ void LogSumExp::eval(std::mt19937& /* gen */) {
       parent0.type == graph::AtomicType::NEG_REAL or
       parent0.type == graph::AtomicType::POS_REAL) {
     double max_val = parent0._double;
-    for (uint i = 1; int(i) < in_nodes.size(); i++) {
+    for (uint i = 1; i < static_cast<uint>(in_nodes.size()); i++) {
       const auto& parenti = in_nodes[i]->value;
       if (parenti._double > max_val) {
         max_val = parenti._double;
@@ -193,7 +193,7 @@ ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
   }
 
   graph::ValueType type0 = in_nodes[2]->value.type;
-  for (uint i = 3; int(i) < in_nodes.size(); i++) {
+  for (uint i = 3; i < static_cast<uint>(in_nodes.size()); i++) {
     graph::ValueType type = in_nodes[i]->value.type;
     if (type.variable_type != graph::VariableType::SCALAR) {
       throw std::invalid_argument(
@@ -210,8 +210,8 @@ ToMatrix::ToMatrix(const std::vector<graph::Node*>& in_nodes)
 
 void ToMatrix::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() >= 3);
-  int rows = int(in_nodes[0]->value._natural);
-  int cols = int(in_nodes[1]->value._natural);
+  int rows = static_cast<int>(in_nodes[0]->value._natural);
+  int cols = static_cast<int>(in_nodes[1]->value._natural);
 
   const graph::ValueType& parent_type = in_nodes[2]->value.type;
 

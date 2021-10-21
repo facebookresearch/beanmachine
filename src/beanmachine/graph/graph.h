@@ -13,7 +13,9 @@
 #include "beanmachine/graph/profiler.h"
 
 #define NATURAL_TYPE unsigned long long int
-#define uint unsigned int // std::ptrdiff_t
+#ifdef _MSC_VER
+#define uint unsigned int
+#endif
 
 namespace Eigen {
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
@@ -599,7 +601,7 @@ struct Graph {
   :returns: The posterior samples.
   */
   std::vector<std::vector<NodeValue>>&
-  infer(uint num_samples, InferenceType algorithm, unsigned int seed = 5123401);
+  infer(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   /*
   Draw Monte Carlo samples from the posterior distribution using multiple
   chains.
@@ -616,7 +618,7 @@ struct Graph {
   std::vector<std::vector<std::vector<NodeValue>>>& infer(
       uint num_samples,
       InferenceType algorithm,
-      unsigned int seed,
+      uint seed,
       uint n_chains,
       InferConfig infer_config = InferConfig());
   /*
@@ -627,7 +629,7 @@ struct Graph {
   :returns: The posterior means.
   */
   std::vector<double>&
-  infer_mean(uint num_samples, InferenceType algorithm, unsigned int seed = 5123401);
+  infer_mean(uint num_samples, InferenceType algorithm, uint seed = 5123401);
   /*
   Make point estimates of the posterior means from multiple MCMC chains.
 
@@ -643,7 +645,7 @@ struct Graph {
   std::vector<std::vector<double>>& infer_mean(
       uint num_samples,
       InferenceType algorithm,
-      unsigned int seed,
+      uint seed,
       uint n_chains,
       InferConfig infer_config = InferConfig());
   /*
@@ -664,12 +666,12 @@ struct Graph {
   std::vector<std::vector<double>>& variational(
       uint num_iters,
       uint steps_per_iter,
-      unsigned int seed = 5123401,
+      uint seed = 5123401,
       uint elbo_samples = 0);
   std::vector<double>& get_elbo() {
     return elbo_vals;
   }
-  static std::set<unsigned int> compute_support();
+  static std::set<uint> compute_support();
 
   /*
   Computes the _affected nodes_ of a root node.
@@ -734,7 +736,7 @@ struct Graph {
   void eval_and_grad(
       uint tgt_idx,
       uint src_idx,
-      unsigned int seed,
+      uint seed,
       NodeValue& value,
       double& grad1,
       double& grad2);
@@ -744,7 +746,7 @@ struct Graph {
   :param grad1: Output value of first gradient.
   :param seed: Random number generator seed.
   */
-  void eval_and_grad(std::vector<DoubleMatrix*>& grad1, unsigned int seed = 5123412);
+  void eval_and_grad(std::vector<DoubleMatrix*>& grad1, uint seed = 5123412);
 
   /*
   Compute the backward mode gradients for all nodes in the support
@@ -819,12 +821,12 @@ struct Graph {
   void _infer(
       uint num_samples,
       InferenceType algorithm,
-      unsigned int seed,
+      uint seed,
       InferConfig infer_config);
   void _infer_parallel(
       uint num_samples,
       InferenceType algorithm,
-      unsigned int seed,
+      uint seed,
       uint n_chains,
       InferConfig infer_config);
 
@@ -845,9 +847,9 @@ struct Graph {
   std::vector<std::vector<double>> variational_params;
   std::vector<double> elbo_vals;
   void collect_sample();
-  void rejection(uint num_samples, unsigned int seed, InferConfig infer_config);
-  void gibbs(uint num_samples, unsigned int seed, InferConfig infer_config);
-  void nmc(uint num_samples, unsigned int seed, InferConfig infer_config);
+  void rejection(uint num_samples, uint seed, InferConfig infer_config);
+  void gibbs(uint num_samples, uint seed, InferConfig infer_config);
+  void nmc(uint num_samples, uint seed, InferConfig infer_config);
   void cavi(
       uint num_iters,
       uint steps_per_iter,
@@ -875,7 +877,7 @@ struct Graph {
   void _produce_performance_report(
       uint num_samples,
       InferenceType algorithm,
-      unsigned int seed);
+      uint seed);
   void pd_begin(ProfilerEvent kind) {
     if (_collect_performance_data) {
       profiler_data.begin(kind);

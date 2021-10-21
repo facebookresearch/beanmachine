@@ -34,7 +34,7 @@ Dirichlet::Dirichlet(
 }
 
 Eigen::MatrixXd Dirichlet::_matrix_sampler(std::mt19937& gen) const {
-  int n_rows = int(in_nodes[0]->value._matrix.rows());
+  int n_rows = static_cast<int>(in_nodes[0]->value._matrix.rows());
   Eigen::MatrixXd sample(n_rows, 1);
 
   Eigen::MatrixXd param = in_nodes[0]->value._matrix;

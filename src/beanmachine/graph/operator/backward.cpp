@@ -264,8 +264,8 @@ void ColumnIndex::backward() {
 }
 
 void ToMatrix::backward() {
-  int rows = int(in_nodes[0]->value._natural);
-  int cols = int(in_nodes[1]->value._natural);
+  int rows = static_cast<int>(in_nodes[0]->value._natural);
+  int cols = static_cast<int>(in_nodes[1]->value._natural);
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
       auto node = in_nodes[2 + j * rows + i];

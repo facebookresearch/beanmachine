@@ -4,13 +4,13 @@
 namespace beanmachine {
 namespace graph {
 
-void Graph::rejection(uint num_samples, unsigned int seed, InferConfig infer_config) {
+void Graph::rejection(uint num_samples, uint seed, InferConfig infer_config) {
   std::mt19937 gen(seed);
   std::vector<Node*> ordered_supp;
   if (infer_config.keep_log_prob) {
-    std::set<unsigned int> supp = compute_support();
+    std::set<uint> supp = compute_support();
     for (uint node_id : supp) {
-      ordered_supp.push_back(nodes[unsigned int(node_id)].get());
+      ordered_supp.push_back(nodes[static_cast<uint>(node_id)].get());
     }
   }
   for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {

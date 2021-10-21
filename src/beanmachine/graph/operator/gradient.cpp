@@ -313,7 +313,7 @@ void Index::compute_gradients() {
 
 void ColumnIndex::compute_gradients() {
   assert(in_nodes.size() == 2);
-  int rows = int(in_nodes[0]->Grad1.rows());
+  int rows = static_cast<int>(in_nodes[0]->Grad1.rows());
   Grad1.resize(rows, 1);
   Grad2.resize(rows, 1);
   Grad1 = in_nodes[0]->Grad1.col(in_nodes[1]->value._natural);
@@ -321,8 +321,8 @@ void ColumnIndex::compute_gradients() {
 }
 
 void ToMatrix::compute_gradients() {
-  int rows = int(in_nodes[0]->value._natural);
-  int cols = int(in_nodes[1]->value._natural);
+  int rows = static_cast<int>(in_nodes[0]->value._natural);
+  int cols = static_cast<int>(in_nodes[1]->value._natural);
   Grad1.resize(rows, cols);
   Grad2.resize(rows, cols);
   for (int j = 0; j < cols; j++) {

@@ -8,7 +8,7 @@ enum class InitType { RANDOM, ZERO, PRIOR };
 class GlobalState {
  public:
   explicit GlobalState(Graph& g);
-  void initialize_values(InitType init_type, unsigned int seed);
+  void initialize_values(InitType init_type, uint seed);
   void backup_unconstrained_values();
   void backup_unconstrained_grads();
   void revert_unconstrained_values();

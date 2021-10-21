@@ -23,7 +23,7 @@
 namespace beanmachine {
 namespace graph {
 
-NMC::NMC(Graph* graph, unsigned int seed) : MH(graph, seed, new NMCStepper(this)) {}
+NMC::NMC(Graph* graph, uint seed) : MH(graph, seed, new NMCStepper(this)) {}
 // Ok to allocate and not delete NMCStepper because MH takes ownership
 // of its stepper.
 
@@ -42,7 +42,7 @@ std::string NMC::is_not_supported(Node* node) {
   }
 }
 
-void Graph::nmc(uint num_samples, unsigned int seed, InferConfig infer_config) {
+void Graph::nmc(uint num_samples, uint seed, InferConfig infer_config) {
   NMC(this, seed).infer(num_samples, infer_config);
 }
 

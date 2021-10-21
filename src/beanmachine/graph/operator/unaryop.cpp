@@ -90,8 +90,8 @@ void ToRealMatrix::eval(std::mt19937& /* gen */) {
   }
 
   const graph::AtomicType element_type = parent_type.atomic_type;
-  const int rows = int(parent_type.rows);
-  const int cols = int(parent_type.cols);
+  const int rows = static_cast<int>(parent_type.rows);
+  const int cols = static_cast<int>(parent_type.cols);
 
   if (element_type == graph::AtomicType::BOOLEAN) {
     Eigen::MatrixXd result(rows, cols);
@@ -201,8 +201,8 @@ void ToPosRealMatrix::eval(std::mt19937& /* gen */) {
   }
 
   const graph::AtomicType element_type = parent_type.atomic_type;
-  const int rows = int(parent_type.rows);
-  const int cols = int(parent_type.cols);
+  const int rows = static_cast<int>(parent_type.rows);
+  const int cols = static_cast<int>(parent_type.cols);
 
   if (element_type == graph::AtomicType::BOOLEAN) {
     Eigen::MatrixXd result(rows, cols);

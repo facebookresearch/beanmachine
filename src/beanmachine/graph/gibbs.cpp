@@ -11,7 +11,7 @@
 namespace beanmachine {
 namespace graph {
 
-void Graph::gibbs(uint num_samples, unsigned int seed, InferConfig infer_config) {
+void Graph::gibbs(uint num_samples, uint seed, InferConfig infer_config) {
   std::mt19937 gen(seed);
   std::set<uint> supp = compute_support();
   // eval each node so that we have a starting value and verify that these
@@ -79,7 +79,7 @@ void Graph::gibbs(uint num_samples, unsigned int seed, InferConfig infer_config)
   // convert the smart pointers in nodes to dumb pointers in node_ptrs
   // for faster access
   std::vector<Node*> node_ptrs;
-  for (uint node_id = 0; int(node_id) < nodes.size(); node_id++) {
+  for (uint node_id = 0; node_id < static_cast<uint>(nodes.size()); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
   }
   assert(node_ptrs.size() > 0); // keep linter happy

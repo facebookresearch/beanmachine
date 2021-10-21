@@ -92,7 +92,7 @@ double StudentT::log_prob(const NodeValue& value) const {
     result -= ((n + 1) / 2) * std::log(n * s * s + (x - l) * (x - l));
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    int size = int(value._matrix.size());
+    int size = static_cast<int>(value._matrix.size());
     result = result * size - ((n + 1) / 2) * NS2PXML2.log().sum();
   } else {
     throw std::runtime_error(
@@ -261,7 +261,7 @@ void StudentT::backward_param_iid(const graph::NodeValue& value) const {
   double l = in_nodes[1]->value._double;
   double s = in_nodes[2]->value._double;
   Eigen::MatrixXd NSsqPXMLsq = NS2PXML2;
-  int size = int(value._matrix.size());
+  int size = static_cast<int>(value._matrix.size());
   if (in_nodes[0]->needs_gradient()) {
     double jacob = size *
         (0.5 * util::polygamma(0, (n + 1) / 2) -

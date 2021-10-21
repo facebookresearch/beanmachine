@@ -45,7 +45,7 @@ double Beta::log_prob(const graph::NodeValue& value) const {
 
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   assert(value.type.rows * value.type.cols > 1);
-  const uint size = static_cast<unsigned int>(value._matrix.size());
+  const uint size = static_cast<uint>(value._matrix.size());
   for (uint i = 0; i < size; i++) {
     update_logprob(*(value._matrix.data() + i));
   }
@@ -140,7 +140,7 @@ void Beta::compute_jacobian_hessian(
     *jacobian.data() += std::log(*(value._matrix.data() + i));
     *(jacobian.data() + 1) += std::log(1 - *(value._matrix.data() + i));
   }
-  hessian *= double(size);
+  hessian *= static_cast<double>(size);
 }
 
 void Beta::backward_value(
@@ -202,7 +202,7 @@ void Beta::backward_param_iid(const graph::NodeValue& value) const {
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
   double digamma_a_p_b = util::polygamma(0, param_a + param_b);
-  int size = int(value._matrix.size());
+  int size = static_cast<int>(value._matrix.size());
   if (in_nodes[0]->needs_gradient()) {
     in_nodes[0]->back_grad1._double += value._matrix.array().log().sum() +
         size * (digamma_a_p_b - util::polygamma(0, param_a));

@@ -292,7 +292,7 @@ PYBIND11_MODULE(graph, module) {
       .def("query", &Graph::query, "query a node", py::arg("node_id"))
       .def(
           "infer_mean",
-          (std::vector<double> & (Graph::*)(uint, InferenceType, unsigned int)) &
+          (std::vector<double> & (Graph::*)(uint, InferenceType, uint)) &
               Graph::infer_mean,
           "infer the posterior mean of the queried nodes",
           py::arg("num_samples"),
@@ -301,7 +301,7 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "infer_mean",
           (std::vector<std::vector<double>> &
-           (Graph::*)(uint, InferenceType, unsigned int, uint, InferConfig)) &
+           (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
               Graph::infer_mean,
           "infer the posterior mean of the queried nodes using multiple chains",
           py::arg("num_samples"),
@@ -312,7 +312,7 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "infer",
           (std::vector<std::vector<NodeValue>> &
-           (Graph::*)(uint, InferenceType, unsigned int)) &
+           (Graph::*)(uint, InferenceType, uint)) &
               Graph::infer,
           "infer the empirical distribution of the queried nodes",
           py::arg("num_samples"),
@@ -321,7 +321,7 @@ PYBIND11_MODULE(graph, module) {
       .def(
           "infer",
           (std::vector<std::vector<std::vector<NodeValue>>> &
-           (Graph::*)(uint, InferenceType, unsigned int, uint, InferConfig)) &
+           (Graph::*)(uint, InferenceType, uint, uint, InferConfig)) &
               Graph::infer,
           "infer the empirical distribution of the queried nodes using multiple chains",
           py::arg("num_samples"),

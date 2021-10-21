@@ -459,6 +459,3 @@ class StochasticVariationalInferTest(unittest.TestCase):
         )
         l2_error = (opt_params[w()] - W).norm()
         self.assertLess(l2_error, 0.5)
-
-if __name__ == "__main__":
-    unittest.main()

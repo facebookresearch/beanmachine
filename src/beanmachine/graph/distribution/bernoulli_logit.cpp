@@ -57,8 +57,8 @@ double BernoulliLogit::log_prob(const NodeValue& value) const {
     return value._bool ? -util::log1pexp(-l) : -util::log1pexp(l);
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    int size = int(value._bmatrix.size());
-    int n_positive = int(value._bmatrix.count());
+    int size = static_cast<int>(value._bmatrix.size());
+    int n_positive = static_cast<int>(value._bmatrix.count());
     return -util::log1pexp(-l) * n_positive -
         util::log1pexp(l) * (size - n_positive);
   } else {
@@ -127,8 +127,8 @@ void BernoulliLogit::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
     double l = in_nodes[0]->value._double;
-    int size = int(value._bmatrix.size());
-    int n_positive = int(value._bmatrix.count());
+    int size = static_cast<int>(value._bmatrix.size());
+    int n_positive = static_cast<int>(value._bmatrix.count());
     in_nodes[0]->back_grad1._double +=
         (1 / (1 + std::exp(l)) * n_positive -
          1 / (1 + std::exp(-l)) * (size - n_positive));

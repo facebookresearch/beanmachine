@@ -39,6 +39,3 @@ class ToplevelSmokeTest(unittest.TestCase):
             [bar()], {foo(0): tensor(0.0)}, 100, 1, num_adaptive_samples=100
         )
         bm.Diagnostics(samples)
-
-if __name__ == "__main__":
-    unittest.main()
