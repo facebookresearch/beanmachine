@@ -355,40 +355,6 @@ class SingleAssignment:
 
         return rewritten
 
-    def _transform_call(self) -> Callable[[ast.Assign], ListEdit]:
-        def _do_it(a: ast.Assign) -> ListEdit:
-            c = a.value
-            assert isinstance(c, ast.Call)
-            assignment, args_new = self._splice_non_identifier(c.args)
-            return ListEdit(
-                [
-                    assignment,
-                    ast.Assign(
-                        targets=a.targets,
-                        value=ast.Call(func=c.func, args=args_new, keywords=c.keywords),
-                    ),
-                ]
-            )
-
-        return _do_it
-
-    def _transform_call_keyword(self) -> Callable[[ast.Assign], ListEdit]:
-        def _do_it(a: ast.Assign) -> ListEdit:
-            c = a.value
-            assert isinstance(c, ast.Call)
-            assignment, keywords_new = self._splice_non_identifier_keyword(c.keywords)
-            return ListEdit(
-                [
-                    assignment,
-                    ast.Assign(
-                        targets=a.targets,
-                        value=ast.Call(func=c.func, args=c.args, keywords=keywords_new),
-                    ),
-                ]
-            )
-
-        return _do_it
-
     def _transform_list(
         self, ast_op: Callable[[ast.Assign], type] = lambda a: ast.List
     ) -> Callable[[ast.Assign], ListEdit]:
