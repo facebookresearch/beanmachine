@@ -66,7 +66,7 @@ class distributionHalfNormalTest(unittest.TestCase):
             queries=queries,
             observations=observations,
             num_samples=num_samples,
-            # num_chains=num_chains, # TODO[Walid]: Include once enabled
+            num_chains=1,  # TODO[Walid]: 1 should be replaced by num_chains
         )
 
         self.assertTrue(

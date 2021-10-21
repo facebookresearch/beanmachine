@@ -3336,3 +3336,148 @@ def f(x):
         ]
 
         self.check_rewrites(terms)
+
+    def test_augmented_assignment(self) -> None:
+        """Test rewrites involving += and other augmented assignments."""
+        source = """
+def f(x):
+    x += 123
+    x *= 456
+    x.y.z /= 2
+"""
+
+        expected = """
+def f(x):
+    a1 = 123
+    x += a1
+    a2 = 456
+    x *= a2
+    a3 = x.y
+    a4 = a3.z
+    a5 = 2
+    a4 /= a5
+    a3.z = a4
+        """
+        self.check_rewrite(source, expected)
+
+        source = """
+def f(x):
+    a.b[c.d] -= 1
+    e.f[:] -= 2
+    g.h[:i.j] -= 2
+    k.m[n.o:] -= 3
+    p.q[r.s:t.u] -= 4
+"""
+
+        expected = """
+def f(x):
+    a1 = a.b
+    a6 = c.d
+    a11 = a1[a6]
+    a16 = 1
+    a11 -= a16
+    a1[a6] = a11
+    a2 = e.f
+    a7 = a2[:]
+    a12 = 2
+    a7 -= a12
+    a2[:] = a7
+    a3 = g.h
+    a8 = i.j
+    a13 = a3[:a8]
+    a17 = 2
+    a13 -= a17
+    a3[:a8] = a13
+    a4 = k.m
+    a9 = n.o
+    a14 = a4[a9:]
+    a18 = 3
+    a14 -= a18
+    a4[a9:] = a14
+    a5 = p.q
+    a10 = r.s
+    a15 = t.u
+    a19 = a5[a10:a15]
+    a20 = 4
+    a19 -= a20
+    a5[a10:a15] = a19
+       """
+        self.check_rewrite(source, expected)
+
+        source = """
+def f(x):
+    a.b[::] -= 1
+    c.d[e.f::] -= 2
+    g.h[:i.j:] -= 3
+    k.m[::n.o] -= 4
+"""
+
+        expected = """
+def f(x):
+    a1 = a.b
+    a5 = a1[:]
+    a9 = 1
+    a5 -= a9
+    a1[:] = a5
+    a2 = c.d
+    a6 = e.f
+    a10 = a2[a6:]
+    a13 = 2
+    a10 -= a13
+    a2[a6:] = a10
+    a3 = g.h
+    a7 = i.j
+    a11 = a3[:a7]
+    a14 = 3
+    a11 -= a14
+    a3[:a7] = a11
+    a4 = k.m
+    a8 = n.o
+    a12 = a4[::a8]
+    a15 = 4
+    a12 -= a15
+    a4[::a8] = a12
+       """
+        self.check_rewrite(source, expected)
+
+        source = """
+def f(x):
+    a.b[c.d:e.f:] -= 1
+    g.h[i.j::k.m] -= 2
+    n.o[:p.q:r.s] -= 3
+    t.u[v.w:x.y:z.zz] -= 4
+"""
+
+        expected = """
+def f(x):
+    a1 = a.b
+    a5 = c.d
+    a9 = e.f
+    a13 = a1[a5:a9]
+    a17 = 1
+    a13 -= a17
+    a1[a5:a9] = a13
+    a2 = g.h
+    a6 = i.j
+    a10 = k.m
+    a14 = a2[a6::a10]
+    a18 = 2
+    a14 -= a18
+    a2[a6::a10] = a14
+    a3 = n.o
+    a7 = p.q
+    a11 = r.s
+    a15 = a3[:a7:a11]
+    a19 = 3
+    a15 -= a19
+    a3[:a7:a11] = a15
+    a4 = t.u
+    a8 = v.w
+    a12 = x.y
+    a16 = z.zz
+    a20 = a4[a8:a12:a16]
+    a21 = 4
+    a20 -= a21
+    a4[a8:a12:a16] = a20
+       """
+        self.check_rewrite(source, expected)

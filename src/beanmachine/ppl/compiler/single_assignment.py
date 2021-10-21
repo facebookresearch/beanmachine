@@ -11,6 +11,16 @@
 # * All "if" statements have an identifier as their condition.
 # * There are no statements that are just a single expression.
 #
+# * All simple assignments are of the form:
+#   * id = id
+#   * id = simple_expression  # TODO: List the simple expressions.
+#   * id[id] = id
+#   * id[id:id] = id     # lower and upper may be missing
+#   * id[id:id:id] = id  # lower, upper and step may be missing
+#   * id.attr = id
+#   * [id] = id  # TODO: What about tuples?
+#   * [*id] = id
+# * All augmented assignments (+=, *= and so on) have just ids on both sides.
 # * All unary operators (+, -, ~, not) have an identifier as their operand.
 # * All binary operators (+, -, *, /, //, %, **, <<, >>, |, ^, &, @) have an identifier
 #   as both operands.
@@ -48,6 +58,7 @@ from typing import Any, Callable, List, Tuple
 
 from beanmachine.ppl.compiler.ast_patterns import (
     assign,
+    aug_assign,
     ast_boolop,
     ast_compare,
     ast_dict,
@@ -343,40 +354,6 @@ class SingleAssignment:
         )
 
         return rewritten
-
-    def _transform_call(self) -> Callable[[ast.Assign], ListEdit]:
-        def _do_it(a: ast.Assign) -> ListEdit:
-            c = a.value
-            assert isinstance(c, ast.Call)
-            assignment, args_new = self._splice_non_identifier(c.args)
-            return ListEdit(
-                [
-                    assignment,
-                    ast.Assign(
-                        targets=a.targets,
-                        value=ast.Call(func=c.func, args=args_new, keywords=c.keywords),
-                    ),
-                ]
-            )
-
-        return _do_it
-
-    def _transform_call_keyword(self) -> Callable[[ast.Assign], ListEdit]:
-        def _do_it(a: ast.Assign) -> ListEdit:
-            c = a.value
-            assert isinstance(c, ast.Call)
-            assignment, keywords_new = self._splice_non_identifier_keyword(c.keywords)
-            return ListEdit(
-                [
-                    assignment,
-                    ast.Assign(
-                        targets=a.targets,
-                        value=ast.Call(func=c.func, args=c.args, keywords=keywords_new),
-                    ),
-                ]
-            )
-
-        return _do_it
 
     def _transform_list(
         self, ast_op: Callable[[ast.Assign], type] = lambda a: ast.List
@@ -675,6 +652,114 @@ class SingleAssignment:
     # Start of a series of rules that will define handle_assign
     #
 
+    def _handle_aug_assign_right(self) -> Rule:
+        # This rule eliminates all augmented assignments whose right side
+        # is not an identifier but whose left side is. That is, we rewrite:
+        # id += complex  -->   t = complex ; id += t
+
+        return PatternRule(
+            aug_assign(target=name(), value=_not_identifier),
+            self._transform_with_name(
+                "a",
+                lambda source_term: source_term.value,
+                lambda source_term, new_name: ast.AugAssign(
+                    target=source_term.target,
+                    op=source_term.op,
+                    value=new_name,
+                ),
+            ),
+            "handle_aug_assign_right",
+        )
+
+    def _handle_aug_assign_left(self) -> Rule:
+        # This rule eliminates all augmented assignments whose left side
+        # is not an identifier AND cannot be simplified further.  For example:
+        #
+        # x.y += any
+        #
+        # is rewritten to
+        #
+        # t = x.y
+        # t += any
+        # x.y = t
+        #
+        # When combined with _handle_aug_assign_right and the rules for simplifying
+        # the left side, we can reduce all augmented assignments to having ids on
+        # both sides.
+        #
+        # The simplified left hand sides that we wish to rewrite are:
+        # x[a] += any
+        # x[a:b] += any    # a or b can be missing
+        # x[a:b:c] += any  # a or b or c can be missing
+        # x.y += any
+
+        def _do_it(r: ast.AugAssign) -> ListEdit:
+            id = self._unique_id("a")
+            return ListEdit(
+                [
+                    # t = x.y
+                    ast.Assign(
+                        targets=[ast.Name(id=id, ctx=ast.Store())], value=r.target
+                    ),
+                    # t += any
+                    ast.AugAssign(
+                        target=ast.Name(id=id, ctx=ast.Store()), op=r.op, value=r.value
+                    ),
+                    # x.y = t
+                    ast.Assign(
+                        targets=[r.target], value=ast.Name(id=id, ctx=ast.Load())
+                    ),
+                ]
+            )
+
+        dot = attribute(value=name())
+        sub1 = subscript(value=name(), slice=index(value=name()))
+        sub2 = subscript(
+            value=name(),
+            slice=slice_pattern(
+                lower=_name_or_none, upper=_name_or_none, step=_name_or_none
+            ),
+        )
+
+        return PatternRule(
+            aug_assign(target=match_any(dot, sub1, sub2)),
+            _do_it,
+            "_handle_aug_assign_left",
+        )
+
+    def _make_right_assignment_rule(
+        self,
+        right_original: Pattern,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        right_new: Callable[[ast.AST, ast.AST], ast.AST],
+        rule_name: str,
+        name_prefix: str = "a",
+    ) -> Rule:
+        # This helper method produces rules that handle rewrites on the right
+        # side of an assignment. Suppose for instance we are trying to rewrite
+        # "x = -complex" ==> "temp = complex ; x = -temp".
+        #
+        # * target_original is the pattern to match on the right side of the
+        #   assignment, "-complex".
+        # * extract_expr is a lambda which takes the right side and extracts the
+        #   portion to be assigned to the temporary: the function "-complex" ==> "complex"
+        # * right_new is a lambda which takes the right side and the temporary, and returns
+        #   the right side of the new assignment: the function
+        #   ("-complex", "temp") ==> "-temp"
+        # * rule_name is the name of the rule, for debugging purposes.
+        return PatternRule(
+            assign(value=right_original),
+            self._transform_with_name(
+                name_prefix,
+                lambda source_term: extract_expr(source_term.value),
+                lambda source_term, new_name: ast.Assign(
+                    targets=source_term.targets,
+                    value=right_new(source_term.value, new_name),
+                ),
+            ),
+            rule_name,
+        )
+
     def _handle_assign_unaryop(self) -> Rule:
         # This rule eliminates all assignments where the right hand side
         # is a unary operator whose operand is not an identifier.
@@ -686,16 +771,11 @@ class SingleAssignment:
         #
         # t = complex
         # x = -t
-
-        return PatternRule(
-            assign(value=unaryop(operand=_not_identifier, op=_unops)),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.operand,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.UnaryOp(operand=new_name, op=source_term.value.op),
-                ),
+        return self._make_right_assignment_rule(
+            unaryop(operand=_not_identifier, op=_unops),
+            lambda original_right: original_right.operand,
+            lambda original_right, new_name: ast.UnaryOp(
+                operand=new_name, op=original_right.op
             ),
             "handle_assign_unaryop",
         )
@@ -722,30 +802,17 @@ class SingleAssignment:
         # t = complex
         # x = dict(**complex)
 
-        return PatternRule(
-            assign(
-                value=call(
-                    func=name(id="dict"),
-                    args=[],
-                    keywords=[keyword(value=_not_identifier)],
-                )
+        return self._make_right_assignment_rule(
+            call(
+                func=name(id="dict"), args=[], keywords=[keyword(value=_not_identifier)]
             ),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.keywords[0].value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Call(
-                        func=source_term.value.func,  # Name(id="dict", ctx=Load()),
-                        args=source_term.value.args,  # [],
-                        keywords=[
-                            ast.keyword(
-                                arg=source_term.value.keywords[0].arg,  # "name",
-                                value=new_name,
-                            )
-                        ],
-                    ),
-                ),
+            lambda original_right: original_right.keywords[0].value,
+            lambda original_right, new_name: ast.Call(
+                func=original_right.func,
+                args=original_right.args,
+                keywords=[
+                    ast.keyword(arg=original_right.keywords[0].arg, value=new_name)
+                ],
             ),
             "handle_assign_dict",
         )
@@ -772,19 +839,13 @@ class SingleAssignment:
         #
         # t = complex
         # x = t[anything]
-        return PatternRule(
-            assign(value=subscript(value=_not_identifier)),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Subscript(
-                        value=new_name,
-                        slice=source_term.value.slice,
-                        ctx=source_term.value.ctx,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            subscript(value=_not_identifier),
+            lambda original_right: original_right.value,
+            lambda original_right, new_name: ast.Subscript(
+                value=new_name,
+                slice=original_right.slice,
+                ctx=original_right.ctx,
             ),
             "handle_assign_subscript_slice_index_1",
         )
@@ -800,108 +861,74 @@ class SingleAssignment:
         # t = complex
         # x = c[t]
         #
-        return PatternRule(
-            assign(value=subscript(value=name(), slice=index(value=_not_identifier))),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.slice.value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Subscript(
-                        value=source_term.value.value,
-                        slice=ast.Index(value=new_name),
-                        ctx=source_term.value.ctx,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            subscript(value=name(), slice=index(value=_not_identifier)),
+            lambda original_right: original_right.slice.value,
+            lambda original_right, new_name: ast.Subscript(
+                value=original_right.value,
+                slice=ast.Index(value=new_name),
+                ctx=original_right.ctx,
             ),
             "handle_assign_subscript_slice_index_2",
         )
 
     def _handle_assign_subscript_slice_lower(self) -> Rule:
         """Rewrites like e = a[b.c:] → x = b.c; e = a[x:]."""
-        return PatternRule(
-            assign(
-                value=subscript(
-                    value=name(), slice=slice_pattern(lower=_neither_name_nor_none)
-                )
-            ),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.slice.lower,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Subscript(
-                        value=source_term.value.value,
-                        slice=ast.Slice(
-                            lower=new_name,
-                            upper=source_term.value.slice.upper,
-                            step=source_term.value.slice.step,
-                        ),
-                        ctx=ast.Store(),
-                    ),
+        return self._make_right_assignment_rule(
+            subscript(value=name(), slice=slice_pattern(lower=_neither_name_nor_none)),
+            lambda original_right: original_right.slice.lower,
+            lambda original_right, new_name: ast.Subscript(
+                value=original_right.value,
+                slice=ast.Slice(
+                    lower=new_name,
+                    upper=original_right.slice.upper,
+                    step=original_right.slice.step,
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_assign_subscript_slice_lower",
         )
 
     def _handle_assign_subscript_slice_upper(self) -> Rule:
         """Rewrites like e = a[:b.c] → x = b.c; e = a[:x]."""
-        return PatternRule(
-            assign(
-                value=subscript(
-                    value=name(),
-                    slice=slice_pattern(
-                        lower=_name_or_none, upper=_neither_name_nor_none
-                    ),
-                )
+        return self._make_right_assignment_rule(
+            subscript(
+                value=name(),
+                slice=slice_pattern(lower=_name_or_none, upper=_neither_name_nor_none),
             ),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.slice.upper,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Subscript(
-                        value=source_term.value.value,
-                        slice=ast.Slice(
-                            lower=source_term.value.slice.lower,
-                            upper=new_name,
-                            step=source_term.value.slice.step,
-                        ),
-                        ctx=ast.Store(),
-                    ),
+            lambda original_right: original_right.slice.upper,
+            lambda original_right, new_name: ast.Subscript(
+                value=original_right.value,
+                slice=ast.Slice(
+                    lower=original_right.slice.lower,
+                    upper=new_name,
+                    step=original_right.slice.step,
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_assign_subscript_slice_upper",
         )
 
     def _handle_assign_subscript_slice_step(self) -> Rule:
         """Rewrites like e = a[::b.c] → x = b.c; e = a[::x]."""
-        return PatternRule(
-            assign(
-                value=subscript(
-                    value=name(),
-                    slice=slice_pattern(
-                        lower=_name_or_none,
-                        upper=_name_or_none,
-                        step=_neither_name_nor_none,
-                    ),
-                )
-            ),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.slice.step,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Subscript(
-                        value=source_term.value.value,
-                        slice=ast.Slice(
-                            lower=source_term.value.slice.lower,
-                            upper=source_term.value.slice.upper,
-                            step=new_name,
-                        ),
-                        ctx=ast.Store(),
-                    ),
+        return self._make_right_assignment_rule(
+            subscript(
+                value=name(),
+                slice=slice_pattern(
+                    lower=_name_or_none,
+                    upper=_name_or_none,
+                    step=_neither_name_nor_none,
                 ),
+            ),
+            lambda original_right: original_right.slice.step,
+            lambda original_right, new_name: ast.Subscript(
+                value=original_right.value,
+                slice=ast.Slice(
+                    lower=original_right.slice.lower,
+                    upper=original_right.slice.upper,
+                    step=new_name,
+                ),
+                ctx=ast.Store(),
             ),
             "_handle_assign_subscript_slice_step",
         )
@@ -917,19 +944,11 @@ class SingleAssignment:
         # t = complex
         # x = t + anything
         #
-        return PatternRule(
-            assign(value=binop(left=_not_identifier, op=_binops)),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.left,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.BinOp(
-                        left=new_name,
-                        op=source_term.value.op,
-                        right=source_term.value.right,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            binop(left=_not_identifier, op=_binops),
+            lambda original_right: original_right.left,
+            lambda original_right, new_name: ast.BinOp(
+                left=new_name, op=original_right.op, right=original_right.right
             ),
             "handle_assign_binop_left",
         )
@@ -956,32 +975,20 @@ class SingleAssignment:
         #
         # t = complex
         # x = dict(**t, anything)
-
-        return PatternRule(
-            assign(
-                value=call(
-                    func=name(id="dict"),
-                    args=[],
-                    keywords=[keyword(value=_not_identifier), anyPattern],
-                )
+        return self._make_right_assignment_rule(
+            call(
+                func=name(id="dict"),
+                args=[],
+                keywords=[keyword(value=_not_identifier), anyPattern],
             ),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.keywords[0].value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Call(
-                        func=source_term.value.func,  # Name(id="dict", ctx=Load()),
-                        args=source_term.value.args,  # [],
-                        keywords=[
-                            ast.keyword(
-                                arg=source_term.value.keywords[0].arg,  # "name",
-                                value=new_name,
-                            )
-                        ]
-                        + source_term.value.keywords[1:],
-                    ),
-                ),
+            lambda original_right: original_right.keywords[0].value,
+            lambda original_right, new_name: ast.Call(
+                func=original_right.func,  # Name(id="dict", ctx=Load()),
+                args=original_right.args,  # [],
+                keywords=[
+                    ast.keyword(arg=original_right.keywords[0].arg, value=new_name)
+                ]
+                + original_right.keywords[1:],
             ),
             "handle_assign_binary_dict_left",
         )
@@ -1008,31 +1015,18 @@ class SingleAssignment:
         #
         # t = complex
         # x = dict(left, **t)
-        return PatternRule(
-            assign(
-                value=call(
-                    func=name(id="dict"),
-                    args=[],
-                    keywords=[keyword(value=name()), keyword(value=_not_identifier)],
-                )
+        return self._make_right_assignment_rule(
+            call(
+                func=name(id="dict"),
+                args=[],
+                keywords=[keyword(value=name()), keyword(value=_not_identifier)],
             ),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.keywords[1].value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Call(
-                        func=source_term.value.func,  # Name(id="dict", ctx=Load()),
-                        args=source_term.value.args,  # [],
-                        keywords=source_term.value.keywords[:1]
-                        + [
-                            ast.keyword(
-                                arg=source_term.value.keywords[1].arg,  # "name",
-                                value=new_name,
-                            )
-                        ],
-                    ),
-                ),
+            lambda original_right: original_right.keywords[1].value,
+            lambda original_right, new_name: ast.Call(
+                func=original_right.func,  # Name(id="dict", ctx=Load()),
+                args=original_right.args,  # [],
+                keywords=original_right.keywords[:1]
+                + [ast.keyword(arg=original_right.keywords[1].arg, value=new_name)],
             ),
             "handle_assign_binary_dict_right",
         )
@@ -1048,19 +1042,11 @@ class SingleAssignment:
         # t = complex
         # x = id + t
         #
-        return PatternRule(
-            assign(value=binop(right=_not_identifier, op=_binops)),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.right,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.BinOp(
-                        left=source_term.value.left,
-                        op=source_term.value.op,
-                        right=new_name,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            binop(right=_not_identifier, op=_binops),
+            lambda original_right: original_right.right,
+            lambda original_right, new_name: ast.BinOp(
+                left=original_right.left, op=original_right.op, right=new_name
             ),
             "handle_assign_binop_right",
         )
@@ -1075,19 +1061,13 @@ class SingleAssignment:
         #
         # t = complex
         # x = t(args)
-        return PatternRule(
-            assign(value=call(func=_not_identifier)),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.func,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Call(
-                        func=new_name,
-                        args=source_term.value.args,
-                        keywords=source_term.value.keywords,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            call(func=_not_identifier),
+            lambda original_right: original_right.func,
+            lambda original_right, new_name: ast.Call(
+                func=new_name,
+                args=original_right.args,
+                keywords=original_right.keywords,
             ),
             "handle_assign_call_function_expression",
         )
@@ -1102,21 +1082,16 @@ class SingleAssignment:
         #
         # t = complex
         # x = f(*t)
-        return PatternRule(
-            assign(value=call(func=name(), args=[starred(value=_not_identifier)])),
-            self._transform_with_name(
-                "r",
-                lambda source_term: source_term.value.args[0].value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Call(
-                        func=source_term.value.func,
-                        args=[ast.Starred(new_name, source_term.value.args[0].ctx)],
-                        keywords=source_term.value.keywords,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            call(func=name(), args=[starred(value=_not_identifier)]),
+            lambda original_right: original_right.args[0].value,
+            lambda original_right, new_name: ast.Call(
+                func=original_right.func,
+                args=[ast.Starred(new_name, original_right.args[0].ctx)],
+                keywords=original_right.keywords,
             ),
             "handle_assign_call_single_star_arg",
+            "r",
         )
 
     def _handle_assign_call_single_double_star_arg(self) -> Rule:
@@ -1135,27 +1110,20 @@ class SingleAssignment:
         #       if there is only a single argument of the form above there
         #       is no need for the further checking and the short-cut
         #       transformation is therefore expected to be sound.
-        return PatternRule(
-            assign(
-                value=call(
-                    func=name(),
-                    args=[starred(value=name())],
-                    keywords=[keyword(arg=None, value=_not_identifier)],
-                )
+        return self._make_right_assignment_rule(
+            call(
+                func=name(),
+                args=[starred(value=name())],
+                keywords=[keyword(arg=None, value=_not_identifier)],
             ),
-            self._transform_with_name(
-                "r",
-                lambda source_term: source_term.value.keywords[0].value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Call(
-                        func=source_term.value.func,
-                        args=source_term.value.args,
-                        keywords=[ast.keyword(arg=None, value=new_name)],
-                    ),
-                ),
+            lambda original_right: original_right.keywords[0].value,
+            lambda original_right, new_name: ast.Call(
+                func=original_right.func,
+                args=original_right.args,
+                keywords=[ast.keyword(arg=None, value=new_name)],
             ),
             "handle_assign_call_single_double_star_arg",
+            "r",
         )
 
     def _handle_assign_call_two_star_args(self) -> Rule:
@@ -1355,19 +1323,11 @@ class SingleAssignment:
         # t = complex
         # x = t.z
         #
-        return PatternRule(
-            assign(value=attribute(value=_not_identifier)),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Attribute(
-                        value=new_name,
-                        attr=source_term.value.attr,
-                        ctx=source_term.value.ctx,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            attribute(value=_not_identifier),
+            lambda original_right: original_right.value,
+            lambda original_right, new_name: ast.Attribute(
+                value=new_name, attr=original_right.attr, ctx=original_right.ctx
             ),
             "handle_assign_attribute",
         )
@@ -1686,6 +1646,8 @@ class SingleAssignment:
     def _handle_assign(self) -> Rule:
         return first(
             [
+                self._handle_aug_assign_right(),
+                self._handle_aug_assign_left(),
                 self._handle_assign_unaryop(),
                 self._handle_assign_subscript_slice_all(),
                 self._handle_assign_possibly_blocking_right_value(),
@@ -1754,18 +1716,12 @@ class SingleAssignment:
         # x = t and y
         #
         # And similarly for "or".
-        return PatternRule(
-            assign(value=ast_boolop(values=[_not_identifier, anyPattern])),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.values[0],
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.BoolOp(
-                        op=source_term.value.op,
-                        values=[new_name, source_term.value.values[1]],
-                    ),
-                ),
+
+        return self._make_right_assignment_rule(
+            ast_boolop(values=[_not_identifier, anyPattern]),
+            lambda original_right: original_right.values[0],
+            lambda original_right, new_name: ast.BoolOp(
+                op=original_right.op, values=[new_name, original_right.values[1]]
             ),
             "handle_assign_boolop_linearize",
         )
@@ -1898,19 +1854,13 @@ class SingleAssignment:
         #
         # t = complex
         # x = t OP anything ...
-        return PatternRule(
-            assign(value=ast_compare(left=_not_identifier)),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.left,
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Compare(
-                        left=new_name,
-                        ops=source_term.value.ops,
-                        comparators=source_term.value.comparators,
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            ast_compare(left=_not_identifier),
+            lambda original_right: original_right.left,
+            lambda original_right, new_name: ast.Compare(
+                left=new_name,
+                ops=original_right.ops,
+                comparators=original_right.comparators,
             ),
             "handle_assign_compare_lefthandside",
         )
@@ -1928,23 +1878,13 @@ class SingleAssignment:
         # t = complex
         # x = id OP t ...
         #
-        return PatternRule(
-            assign(
-                value=ast_compare(
-                    left=name(), comparators=HeadTail(_not_identifier, anyPattern)
-                )
-            ),
-            self._transform_with_name(
-                "a",
-                lambda source_term: source_term.value.comparators[0],
-                lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=ast.Compare(
-                        left=source_term.value.left,
-                        ops=source_term.value.ops,
-                        comparators=[new_name] + source_term.value.comparators[1:],
-                    ),
-                ),
+        return self._make_right_assignment_rule(
+            ast_compare(left=name(), comparators=HeadTail(_not_identifier, anyPattern)),
+            lambda original_right: original_right.comparators[0],
+            lambda original_right, new_name: ast.Compare(
+                left=original_right.left,
+                ops=original_right.ops,
+                comparators=[new_name] + original_right.comparators[1:],
             ),
             "handle_assign_compare_righthandside",
         )
@@ -2004,175 +1944,184 @@ class SingleAssignment:
             ]
         )
 
-    def _handle_left_value_attributeref(self) -> Rule:
-        """Rewrites like a.b.c = z → x = a.b; x.c = z"""
+    def _make_left_assignment_rule(
+        self,
+        target_original: Pattern,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        target_new: Callable[[ast.AST, ast.AST], ast.AST],
+        rule_name: str,
+    ) -> Rule:
+        # This helper method produces rules that handle rewrites on the left
+        # side of an assignment. Suppose for instance we are trying to rewrite
+        # "complex.attrib = id" ==> "temp = complex ; temp.attrib = id".
+        #
+        # * target_original is the pattern to match on the left side of the
+        #   assignment, "complex.attrib".
+        # * extract_expr is a lambda which takes the left side and extracts the
+        #   portion to be assigned to the temporary: the function "complex.attrib" ==> "complex"
+        # * target_new is a lambda which takes the left side and the temporary, and returns
+        #   the left side of the new assignment: the function
+        #   ("complex.attrib", "temp") ==> "temp.attrib"
+        # * rule_name is the name of the rule, for debugging purposes.
+        name_prefix = "x"
         return PatternRule(
-            assign(targets=[attribute(value=_not_identifier)], value=name()),
+            assign(targets=[target_original], value=name()),
             self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].value,
+                name_prefix,
+                lambda source_term: extract_expr(source_term.targets[0]),
                 lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Attribute(
-                            value=new_name,
-                            attr=source_term.targets[0].attr,
-                            ctx=ast.Store(),
-                        )
-                    ],
+                    targets=[target_new(source_term.targets[0], new_name)],
                     value=source_term.value,
                 ),
             ),
+            rule_name,
+        )
+
+    def _make_left_aug_assignment_rule(
+        self,
+        target_original: Pattern,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        target_new: Callable[[ast.AST, ast.AST], ast.AST],
+        rule_name: str,
+    ) -> Rule:
+        # This helper does the same as _make_left_assignment_rule, except:
+        # * it works for augmented assignments, not normal assignments
+        # * it does not require that the right side be an identifier
+        #   (Non-identifier right sides are rewritten later.)
+        name_prefix = "a"
+        return PatternRule(
+            aug_assign(target=target_original),
+            self._transform_with_name(
+                name_prefix,
+                lambda source_term: extract_expr(source_term.target),
+                lambda source_term, new_name: ast.AugAssign(
+                    target=target_new(source_term.target, new_name),
+                    op=source_term.op,
+                    value=source_term.value,
+                ),
+            ),
+            rule_name,
+        )
+
+    def _make_left_any_assignment_rule(
+        self,
+        target_original: Pattern,
+        extract_expr: Callable[[ast.AST], ast.expr],
+        target_new: Callable[[ast.AST, ast.AST], ast.AST],
+        rule_name: str,
+    ) -> Rule:
+        # This helper does the same as _make_left_assignment_rule, but for
+        # both regular and augmented assignments.
+        return first(
+            [
+                self._make_left_assignment_rule(
+                    target_original, extract_expr, target_new, rule_name
+                ),
+                self._make_left_aug_assignment_rule(
+                    target_original, extract_expr, target_new, rule_name
+                ),
+            ]
+        )
+
+    def _handle_left_value_attributeref(self) -> Rule:
+        """Rewrites like complex.attrib = id → temp = complex; temp.attrib = id"""
+        return self._make_left_any_assignment_rule(
+            attribute(value=_not_identifier),  # complex.attrib
+            lambda original_left: original_left.value,  # complex.attrib ==> complex
+            lambda original_left, new_name: ast.Attribute(
+                value=new_name,
+                attr=original_left.attr,
+                ctx=ast.Store(),
+            ),  # (complex.attrib, temp) ==> temp.attrib
             "handle_left_value_attributeref",
         )
 
     def _handle_left_value_subscript_value(self) -> Rule:
         """Rewrites like a.b[c] = z → x = a.b; x[c] = z"""
-        return PatternRule(
-            assign(targets=[subscript(value=_not_identifier)], value=name()),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=new_name,
-                            slice=source_term.targets[0].slice,
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
-                ),
+        return self._make_left_any_assignment_rule(
+            subscript(value=_not_identifier),
+            lambda original_left: original_left.value,
+            lambda original_left, new_name: ast.Subscript(
+                value=new_name,
+                slice=original_left.slice,
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_value",
         )
 
     def _handle_left_value_subscript_slice_index(self) -> Rule:
         """Rewrites like a[b.c] = z → x = b.c; a[x] = z"""
-        return PatternRule(
-            assign(
-                targets=[subscript(value=name(), slice=index(value=_not_identifier))],
-                value=name(),
-            ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.value,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Index(
-                                value=new_name,
-                                ctx=ast.Load(),
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+        return self._make_left_any_assignment_rule(
+            subscript(value=name(), slice=index(value=_not_identifier)),
+            lambda original_left: original_left.slice.value,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Index(
+                    value=new_name,
+                    ctx=ast.Load(),
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_index",
         )
 
     def _handle_left_value_subscript_slice_lower(self) -> Rule:
         """Rewrites like a[b.c:] = z → x = b.c; a[x:] = z."""
-        return PatternRule(
-            assign(
-                targets=[
-                    subscript(
-                        value=name(), slice=slice_pattern(lower=_neither_name_nor_none)
-                    )
-                ],
-                value=name(),
-            ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.lower,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Slice(
-                                lower=new_name,
-                                upper=source_term.targets[0].slice.upper,
-                                step=source_term.targets[0].slice.step,
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+        return self._make_left_any_assignment_rule(
+            subscript(value=name(), slice=slice_pattern(lower=_neither_name_nor_none)),
+            lambda original_left: original_left.slice.lower,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Slice(
+                    lower=new_name,
+                    upper=original_left.slice.upper,
+                    step=original_left.slice.step,
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_lower",
         )
 
     def _handle_left_value_subscript_slice_upper(self) -> Rule:
         """Rewrites like a[:b.c] = z → x = b.c; a[:x] = z."""
-        return PatternRule(
-            assign(
-                targets=[
-                    subscript(
-                        value=name(),
-                        slice=slice_pattern(
-                            lower=_name_or_none, upper=_neither_name_nor_none
-                        ),
-                    )
-                ],
+        return self._make_left_any_assignment_rule(
+            subscript(
                 value=name(),
+                slice=slice_pattern(lower=_name_or_none, upper=_neither_name_nor_none),
             ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.upper,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Slice(
-                                lower=source_term.targets[0].slice.lower,
-                                upper=new_name,
-                                step=source_term.targets[0].slice.step,
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+            lambda original_left: original_left.slice.upper,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Slice(
+                    lower=original_left.slice.lower,
+                    upper=new_name,
+                    step=original_left.slice.step,
                 ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_upper",
         )
 
     def _handle_left_value_subscript_slice_step(self) -> Rule:
         """Rewrites like a[:c:d.e] = z → x = c.d; a[b:c:x] = z."""
-        return PatternRule(
-            assign(
-                targets=[
-                    subscript(
-                        value=name(),
-                        slice=slice_pattern(
-                            lower=_name_or_none,
-                            upper=_name_or_none,
-                            step=_neither_name_nor_none,
-                        ),
-                    )
-                ],
+        return self._make_left_any_assignment_rule(
+            subscript(
                 value=name(),
-            ),
-            self._transform_with_name(
-                "x",
-                lambda source_term: source_term.targets[0].slice.step,
-                lambda source_term, new_name: ast.Assign(
-                    targets=[
-                        ast.Subscript(
-                            value=source_term.targets[0].value,
-                            slice=ast.Slice(
-                                lower=source_term.targets[0].slice.lower,
-                                upper=source_term.targets[0].slice.upper,
-                                step=new_name,
-                            ),
-                            ctx=ast.Store(),
-                        )
-                    ],
-                    value=source_term.value,
+                slice=slice_pattern(
+                    lower=_name_or_none,
+                    upper=_name_or_none,
+                    step=_neither_name_nor_none,
                 ),
+            ),
+            lambda original_left: original_left.slice.step,
+            lambda original_left, new_name: ast.Subscript(
+                value=original_left.value,
+                slice=ast.Slice(
+                    lower=original_left.slice.lower,
+                    upper=original_left.slice.upper,
+                    step=new_name,
+                ),
+                ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_step",
         )

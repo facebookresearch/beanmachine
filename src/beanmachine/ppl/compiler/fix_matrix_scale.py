@@ -18,6 +18,9 @@ class MatrixScaleFixer(ProblemFixerBase):
         ProblemFixerBase.__init__(self, bmg, typer)
 
     def _needs_fixing(self, n: bn.BMGNode) -> bool:
+        # See note in fix_unsupported.py for why this is temporarily disabled.
+        return False
+        """
         # A matrix multiplication is fixable (to matrix_scale) if it is
         # a binary multiplication with non-singlton result type
         # and the type of one argument is matrix and the other is scalar
@@ -34,7 +37,7 @@ class MatrixScaleFixer(ProblemFixerBase):
         # If both are matrices, then there is nothing to do
         if all(not (t.is_singleton()) for t in input_types):
             return False  # Both are matrices
-        return True
+        return True"""
 
     def _get_replacement(self, n: bn.BMGNode) -> Optional[bn.BMGNode]:
         # Double check we can proceed, and that exactly one is scalar

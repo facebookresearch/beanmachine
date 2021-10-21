@@ -1,19 +1,33 @@
+from __future__ import annotations
+
 import dataclasses
 from typing import Set
 
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from torch.distributions.utils import lazy_property
 
 
 @dataclasses.dataclass
 class Variable:
-    transformed_value: torch.Tensor
-    transform: dist.Transform
+    value: torch.Tensor
+    distribution: dist.Distribution
     parents: Set[RVIdentifier] = dataclasses.field(default_factory=set)
     children: Set[RVIdentifier] = dataclasses.field(default_factory=set)
 
-    def copy(self):
-        return dataclasses.replace(
-            self, parents=self.parents.copy(), children=self.children.copy()
-        )
+    @lazy_property
+    def log_prob(self) -> torch.Tensor:
+        try:
+            return self.distribution.log_prob(self.value)
+        except (RuntimeError, ValueError):
+            dtype = (
+                self.value.dtype
+                if torch.is_floating_point(self.value)
+                else torch.float32
+            )
+            return torch.tensor(float("-inf"), device=self.value.device, dtype=dtype)
+
+    def replace(self, **changes) -> Variable:
+        """Return a new Variable object with fields replaced by the changes"""
+        return dataclasses.replace(self, **changes)

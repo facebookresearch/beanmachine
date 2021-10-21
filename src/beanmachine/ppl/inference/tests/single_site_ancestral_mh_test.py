@@ -1,93 +1,68 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import unittest
-
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
+    SingleSiteAncestralMetropolisHastings,
+)
 
 
-class SingleSiteAncestralMetropolisHastingsTest(unittest.TestCase):
-    class SampleModel(object):
-        @bm.random_variable
-        def foo(self):
-            return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
+class SampleModel:
+    @bm.random_variable
+    def foo(self):
+        return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
 
-        @bm.random_variable
-        def bar(self):
-            return dist.Normal(self.foo(), torch.tensor(1.0))
+    @bm.random_variable
+    def bar(self):
+        return dist.Normal(self.foo(), torch.tensor(1.0))
 
-    class ReproducibleModel(object):
-        @bm.random_variable
-        def K_minus_one(self):
-            return dist.Poisson(rate=2.0)
 
-        @bm.functional
-        def K(self):
-            return self.K_minus_one() + 1
+class ReproducibleModel:
+    @bm.random_variable
+    def K_minus_one(self):
+        return dist.Poisson(rate=2.0)
 
-        @bm.random_variable
-        def mu(self):
-            return dist.Normal(0, 1)
+    @bm.functional
+    def K(self):
+        return self.K_minus_one() + 1
 
-    def test_single_site_ancestral_mh(self):
-        model = self.SampleModel()
-        mh = bm.SingleSiteAncestralMetropolisHastings()
-        foo_key = model.foo()
-        bar_key = model.bar()
-        mh.queries_ = [model.foo()]
-        mh.observations_ = {model.bar(): torch.tensor(0.0)}
-        mh._infer(10)
-        # using _infer instead of infer, as world_ would be reset at the end
-        # infer
-        world_vars = mh.world_.variables_.vars()
-        self.assertEqual(foo_key in world_vars, True)
-        self.assertEqual(bar_key in world_vars, True)
-        self.assertEqual(foo_key in world_vars[bar_key].parent, True)
-        self.assertEqual(bar_key in world_vars[foo_key].children, True)
+    @bm.random_variable
+    def mu(self):
+        return dist.Normal(0, 1)
 
-    def test_single_site_ancestral_mh_reproducible_results(self):
-        model = self.ReproducibleModel()
-        mh = bm.SingleSiteAncestralMetropolisHastings()
 
-        queries = [model.mu()]
-        observations = {}
+def test_single_site_ancestral_mh():
+    model = SampleModel()
+    mh = SingleSiteAncestralMetropolisHastings()
+    foo_key = model.foo()
+    bar_key = model.bar()
+    sampler = mh.sampler(
+        [model.foo()], {model.bar(): torch.tensor(0.0)}, num_samples=10
+    )
+    for world in sampler:
+        assert foo_key in world
+        assert bar_key in world
+        assert foo_key in world.get_variable(bar_key).parents
+        assert bar_key in world.get_variable(foo_key).children
 
-        torch.manual_seed(42)
-        samples = mh.infer(queries, observations, num_samples=5, num_chains=1)
-        run_1 = samples.get_variable(model.mu()).clone()
 
-        torch.manual_seed(42)
-        samples = mh.infer(queries, observations, num_samples=5, num_chains=1)
-        run_2 = samples.get_variable(model.mu()).clone()
-        self.assertTrue(run_1.allclose(run_2))
+def test_single_site_ancestral_mh_reproducible_results():
+    model = ReproducibleModel()
+    mh = SingleSiteAncestralMetropolisHastings()
 
-        torch.manual_seed(43)
-        samples = mh.infer(queries, observations, num_samples=5, num_chains=1)
-        run_3 = samples.get_variable(model.mu()).clone()
-        self.assertFalse(run_1.allclose(run_3))
+    queries = [model.mu()]
+    observations = {}
 
-    def test_initialize_from_prior(self):
-        mh = bm.SingleSiteAncestralMetropolisHastings()
-        model = self.SampleModel()
-        for _ in range(10):
-            mh.reset()
-            mh.queries_ = [model.foo()]
-            node = mh.world_.get_node_in_world(mh.queries_[0])
-            self.assertIsNone(node)
-            mh.initialize_world(initialize_from_prior=False)
-            val = mh.world_.get_node_in_world(mh.queries_[0]).value
-            self.assertAlmostEqual(val.item(), 0.0, delta=1e-4)
+    torch.manual_seed(42)
+    samples = mh.infer(queries, observations, num_samples=5, num_chains=1)
+    run_1 = samples.get_variable(model.mu()).clone()
 
-        torch.manual_seed(2)
-        samples_from_prior = []
-        for _ in range(10000):
-            mh.reset()
-            mh.queries_ = [model.foo()]
-            node = mh.world_.get_node_in_world(mh.queries_[0])
-            self.assertIsNone(node)
-            mh.initialize_world(initialize_from_prior=True)
-            val = mh.world_.get_node_in_world(mh.queries_[0]).value
-            samples_from_prior.append(val.item())
+    torch.manual_seed(42)
+    samples = mh.infer(queries, observations, num_samples=5, num_chains=1)
+    run_2 = samples.get_variable(model.mu()).clone()
+    assert run_1.allclose(run_2)
 
-        self.assertNotEqual(samples_from_prior[0], samples_from_prior[1])
-        self.assertAlmostEqual(sum(samples_from_prior) / 10000.0, 0.0, delta=1e-2)
+    torch.manual_seed(43)
+    samples = mh.infer(queries, observations, num_samples=5, num_chains=1)
+    run_3 = samples.get_variable(model.mu()).clone()
+    assert not run_1.allclose(run_3)

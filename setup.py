@@ -10,7 +10,7 @@ from setuptools import find_packages, setup
 
 
 REQUIRED_MAJOR = 3
-REQUIRED_MINOR = 6
+REQUIRED_MINOR = 7
 
 
 TEST_REQUIRES = ["pytest", "pytest-cov"]
@@ -114,6 +114,7 @@ setup(
         "arviz>=0.11.0",
         "flowtorch>=0.3",
         "parameterized>=0.8.1",
+        "graphviz>=0.11.1",
     ],
     packages=find_packages("src/"),
     package_dir={"": "src"},

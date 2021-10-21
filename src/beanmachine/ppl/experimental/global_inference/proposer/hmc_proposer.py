@@ -9,6 +9,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.hmc_utils import (
     DualAverageAdapter,
     MassMatrixAdapter,
     WindowScheme,
+    RealSpaceTransform,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
@@ -36,6 +37,7 @@ class HMCProposer(BaseProposer):
     def __init__(
         self,
         initial_world: SimpleWorld,
+        num_adaptive_samples: int,
         trajectory_length: float,
         initial_step_size: float = 1.0,
         adapt_step_size: bool = True,
@@ -43,31 +45,34 @@ class HMCProposer(BaseProposer):
         target_accept_prob: float = 0.8,
     ):
         self.world = initial_world
+        self._to_unconstrained = RealSpaceTransform(initial_world)
+        self._positions = self._to_unconstrained(
+            {node: initial_world[node] for node in initial_world.latent_nodes}
+        )
         # cache pe and pe_grad to prevent re-computation
-        self._pe, self._pe_grad = self._potential_grads(initial_world)
+        self._pe, self._pe_grad = self._potential_grads(self._positions)
         # initialize parameters
         self.trajectory_length = trajectory_length
         # initialize adapters
         self.adapt_step_size = adapt_step_size
-        self._window_scheme: Optional[WindowScheme] = None
         self.adapt_mass_matrix = adapt_mass_matrix
         # we need mass matrix adapter to sample momentums
         self._mass_matrix_adapter = MassMatrixAdapter()
         if self.adapt_step_size:
             self.step_size = self._find_reasonable_step_size(
-                initial_step_size, self.world, self._pe, self._pe_grad
+                initial_step_size, self._positions, self._pe, self._pe_grad
             )
             self._step_size_adapter = DualAverageAdapter(
                 self.step_size, target_accept_prob
             )
         else:
             self.step_size = initial_step_size
-        # alpha will store the accept prob and will be used to adapt step size
-        self._alpha = None
-
-    def init_adaptation(self, num_adaptive_samples: int) -> None:
         if self.adapt_mass_matrix:
             self._window_scheme = WindowScheme(num_adaptive_samples)
+        else:
+            self._window_scheme = None
+        # alpha will store the accept prob and will be used to adapt step size
+        self._alpha = None
 
     @property
     def _initialize_momentums(self) -> Callable:
@@ -91,20 +96,24 @@ class HMCProposer(BaseProposer):
             grads[node] = mass_inv[node] * r
         return grads
 
-    def _potential_energy(self, world: SimpleWorld) -> torch.Tensor:
+    def _potential_energy(self, positions: RVDict) -> torch.Tensor:
         """Returns the potential energy PE = - L(world) (the joint log likelihood of the
         current values)"""
-        return -world.log_prob()
+        constrained_vals = self._to_unconstrained.inv(positions)
+        log_joint = self.world.replace(constrained_vals).log_prob()
+        log_joint -= self._to_unconstrained.log_abs_det_jacobian(
+            constrained_vals, positions
+        )
+        return -log_joint
 
-    def _potential_grads(self, world: SimpleWorld) -> Tuple[torch.Tensor, RVDict]:
+    def _potential_grads(self, positions: RVDict) -> Tuple[torch.Tensor, RVDict]:
         """Returns potential energy as well as a dictionary of its gradient with
         respect to the value at each site."""
-        nodes = list(world.latent_nodes)
-        values = [world.get_transformed(node) for node in nodes]
+        nodes, values = zip(*positions.items())
         for value in values:
             value.requires_grad = True
 
-        pe = self._potential_energy(world)
+        pe = self._potential_energy(positions)
         grads = torch.autograd.grad(pe, values)
         grads = dict(zip(nodes, grads))
 
@@ -114,7 +123,7 @@ class HMCProposer(BaseProposer):
 
     def _hamiltonian(
         self,
-        world: SimpleWorld,
+        positions: RVDict,
         momentums: RVDict,
         mass_inv: RVDict,
         pe: Optional[torch.Tensor] = None,
@@ -124,68 +133,63 @@ class HMCProposer(BaseProposer):
         kinetic energy"""
         ke = self._kinetic_energy(momentums, mass_inv)
         if pe is None:
-            pe = self._potential_energy(world)
+            pe = self._potential_energy(positions)
         return pe + ke
 
     def _leapfrog_step(
         self,
-        world: SimpleWorld,
+        positions: RVDict,
         momentums: RVDict,
         step_size: float,
         mass_inv: RVDict,
         pe_grad: Optional[RVDict] = None,
-    ) -> Tuple[SimpleWorld, RVDict, torch.Tensor, RVDict]:
+    ) -> Tuple[RVDict, RVDict, torch.Tensor, RVDict]:
         """Performs a single leapfrog integration (alson known as the velocity Verlet
         method) as described in equation 2.28-2.30 in [1]. If the values of potential
         grads of the current world is provided, then we only needs to compute the
         gradient once per step."""
         if pe_grad is None:
-            _, pe_grad = self._potential_grads(world)
+            _, pe_grad = self._potential_grads(positions)
 
         new_momentums = {}
         for node, r in momentums.items():
             new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
         ke_grad = self._kinetic_grads(new_momentums, mass_inv)
 
-        new_world = world.copy()
-        for node in world.latent_nodes:
-            # this should override the value of all the latent nodes in new_world
-            # but does not change observations and transforms
-            z = world.get_transformed(node)
-            new_world.set_transformed(
-                node, z + step_size * ke_grad[node].reshape(z.shape)
-            )
+        new_positions = {}
+        for node, z in positions.items():
+            new_positions[node] = z + step_size * ke_grad[node].reshape(z.shape)
 
-        pe, pe_grad = self._potential_grads(new_world)
+        pe, pe_grad = self._potential_grads(new_positions)
         for node, r in new_momentums.items():
             new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
 
-        return new_world, new_momentums, pe, pe_grad
+        return new_positions, new_momentums, pe, pe_grad
 
     def _leapfrog_updates(
         self,
-        world: SimpleWorld,
+        positions: RVDict,
         momentums: RVDict,
         trajectory_length: float,
         step_size: float,
         mass_inv: RVDict,
         pe_grad: Optional[RVDict] = None,
-    ) -> Tuple[SimpleWorld, RVDict, torch.Tensor, RVDict]:
+    ) -> Tuple[RVDict, RVDict, torch.Tensor, RVDict]:
         """Run multiple iterations of leapfrog integration until the length of the
         trajectory is greater than the specified trajectory_length."""
         # we should run at least 1 step
         num_steps = max(math.ceil(trajectory_length / step_size), 1)
         for _ in range(num_steps):
-            world, momentums, pe, pe_grad = self._leapfrog_step(
-                world, momentums, step_size, mass_inv, pe_grad
+            positions, momentums, pe, pe_grad = self._leapfrog_step(
+                positions, momentums, step_size, mass_inv, pe_grad
             )
         # pyre-fixme[61]: `pe` may not be initialized here.
-        return world, momentums, pe, cast(RVDict, pe_grad)
+        return positions, momentums, pe, cast(RVDict, pe_grad)
 
     def _find_reasonable_step_size(
         self,
         initial_step_size: float,
-        world: SimpleWorld,
+        positions: RVDict,
         pe: torch.Tensor,
         pe_grad: RVDict,
     ) -> float:
@@ -195,14 +199,16 @@ class HMCProposer(BaseProposer):
         # the target is log(0.5) in the paper but is log(0.8) on Stan:
         # https://github.com/stan-dev/stan/pull/356
         target = math.log(0.8)
-        momentums = self._initialize_momentums(world)
+        momentums = self._initialize_momentums(positions)
         energy = self._hamiltonian(
-            world, momentums, self._mass_inv, pe
-        )  # -log p(world, momentums)
-        new_world, new_momentums, new_pe, _ = self._leapfrog_step(
-            world, momentums, step_size, self._mass_inv, pe_grad
+            positions, momentums, self._mass_inv, pe
+        )  # -log p(positions, momentums)
+        new_positions, new_momentums, new_pe, _ = self._leapfrog_step(
+            positions, momentums, step_size, self._mass_inv, pe_grad
         )
-        new_energy = self._hamiltonian(new_world, new_momentums, self._mass_inv, new_pe)
+        new_energy = self._hamiltonian(
+            new_positions, new_momentums, self._mass_inv, new_pe
+        )
         # NaN will evaluate to False and set direction to -1
         new_direction = direction = 1 if energy - new_energy > target else -1
         step_size_scale = 2 ** direction
@@ -210,28 +216,31 @@ class HMCProposer(BaseProposer):
             step_size *= step_size_scale
             # not covered in the paper, but both Stan and Pyro re-sample the momentum
             # after each update
-            momentums = self._initialize_momentums(world)
-            energy = self._hamiltonian(world, momentums, self._mass_inv, pe)
-            new_world, new_momentums, new_pe, _ = self._leapfrog_step(
-                world, momentums, step_size, self._mass_inv, pe_grad
+            momentums = self._initialize_momentums(positions)
+            energy = self._hamiltonian(positions, momentums, self._mass_inv, pe)
+            new_positions, new_momentums, new_pe, _ = self._leapfrog_step(
+                positions, momentums, step_size, self._mass_inv, pe_grad
             )
             new_energy = self._hamiltonian(
-                new_world, new_momentums, self._mass_inv, new_pe
+                new_positions, new_momentums, self._mass_inv, new_pe
             )
             new_direction = 1 if energy - new_energy > target else -1
         return step_size
 
-    def propose(self, world: Optional[SimpleWorld] = None) -> SimpleWorld:
-        if world is not None and world is not self.world:
-            # re-compute cached values in case world was modified by other sources
-            self._pe, self._pe_grad = self._potential_grads(self.world)
+    def propose(self, world: SimpleWorld) -> SimpleWorld:
+        if world is not self.world:
+            # re-compute cached values since world was modified by other sources
             self.world = world
-        momentums = self._initialize_momentums(self.world)
+            self._positions = self._to_unconstrained(
+                {node: world[node] for node in world.latent_nodes}
+            )
+            self._pe, self._pe_grad = self._potential_grads(self._positions)
+        momentums = self._initialize_momentums(self._positions)
         current_energy = self._hamiltonian(
-            self.world, momentums, self._mass_inv, self._pe
+            self._positions, momentums, self._mass_inv, self._pe
         )
-        world, momentums, pe, pe_grad = self._leapfrog_updates(
-            self.world,
+        positions, momentums, pe, pe_grad = self._leapfrog_updates(
+            self._positions,
             momentums,
             self.trajectory_length,
             self.step_size,
@@ -239,14 +248,16 @@ class HMCProposer(BaseProposer):
             self._pe_grad,
         )
         new_energy = torch.nan_to_num(
-            self._hamiltonian(self.world, momentums, self._mass_inv, pe), float("inf")
+            self._hamiltonian(positions, momentums, self._mass_inv, pe),
+            float("inf"),
         )
         delta_energy = new_energy - current_energy
         self._alpha = torch.clamp(torch.exp(-delta_energy), max=1.0)
         # accept/reject new world
         if torch.bernoulli(self._alpha):
-            self.world, self._pe, self._pe_grad = world, pe, pe_grad
-
+            self.world = self.world.replace(self._to_unconstrained.inv(positions))
+            # update cache
+            self._positions, self._pe, self._pe_grad = positions, pe, pe_grad
         return self.world
 
     def do_adaptation(self) -> None:
@@ -260,14 +271,17 @@ class HMCProposer(BaseProposer):
             window_scheme = self._window_scheme
             assert window_scheme is not None
             if window_scheme.is_in_window:
-                self._mass_matrix_adapter.step(self.world)
+                self._mass_matrix_adapter.step(self._positions)
                 if window_scheme.is_end_window:
                     # update mass matrix at the end of a window
                     self._mass_matrix_adapter.finalize()
 
                     if self.adapt_step_size:
                         self.step_size = self._find_reasonable_step_size(
-                            self.step_size, self.world, self._pe, self._pe_grad
+                            self.step_size,
+                            self._positions,
+                            self._pe,
+                            self._pe_grad,
                         )
                         self._step_size_adapter = DualAverageAdapter(self.step_size)
             window_scheme.step()

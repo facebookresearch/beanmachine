@@ -5,7 +5,7 @@ from typing import Dict, List, Set
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.profiler as prof
 import torch
-from beanmachine.graph import Graph  # pyre-ignore
+from beanmachine.graph import Graph
 from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.bmg_node_types import (
     dist_type,
@@ -27,13 +27,13 @@ def _reshape(t: torch.Tensor):
 
 
 class GeneratedGraph:
-    graph: Graph  # pyre-ignore
+    graph: Graph
     bmg: BMGraphBuilder
     node_to_graph_id: Dict[bn.BMGNode, int]
     query_to_query_id: Dict[bn.Query, int]
 
     def __init__(self, bmg: BMGraphBuilder) -> None:
-        self.graph = Graph()  # pyre-ignore
+        self.graph = Graph()
         self.bmg = bmg
         self.node_to_graph_id = {}
         self.query_to_query_id = {}

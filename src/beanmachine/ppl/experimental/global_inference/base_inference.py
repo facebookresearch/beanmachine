@@ -1,3 +1,4 @@
+import copy
 from abc import ABCMeta, abstractmethod
 from typing import List, Optional
 
@@ -10,13 +11,17 @@ from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
     SimpleWorld,
 )
+from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
+    InitializeFn,
+    init_to_uniform,
+)
 from beanmachine.ppl.inference.abstract_infer import (
     VerboseLevel,
     _verify_queries_and_observations,
 )
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from tqdm.auto import trange
+from tqdm.auto import tqdm
 
 
 class BaseInference(metaclass=ABCMeta):
@@ -24,9 +29,9 @@ class BaseInference(metaclass=ABCMeta):
     def _initialize_world(
         queries: List[RVIdentifier],
         observations: RVDict,
-        initialize_from_prior: bool,
+        initialize_fn: InitializeFn = init_to_uniform,
     ) -> SimpleWorld:
-        world = SimpleWorld(observations, initialize_from_prior)
+        world = SimpleWorld(observations, initialize_fn)
         # recursively add parent nodes to the graph
         for node in queries:
             world.call(node)
@@ -35,7 +40,9 @@ class BaseInference(metaclass=ABCMeta):
         return world
 
     @abstractmethod
-    def get_proposer(self, world: SimpleWorld) -> BaseProposer:
+    def get_proposers(
+        self, world: SimpleWorld, num_adaptive_sample: int
+    ) -> List[BaseProposer]:
         raise NotImplementedError
 
     def infer(
@@ -46,7 +53,7 @@ class BaseInference(metaclass=ABCMeta):
         num_chains: int = 1,
         num_adaptive_samples: int = 0,
         verbose: VerboseLevel = VerboseLevel.LOAD_BAR,
-        initialize_from_prior: bool = False,
+        initialize_fn: InitializeFn = init_to_uniform,
     ) -> MonteCarloSamples:
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
@@ -58,16 +65,15 @@ class BaseInference(metaclass=ABCMeta):
                 observations,
                 num_samples,
                 num_adaptive_samples,
-                initialize_from_prior,
+                initialize_fn,
             )
             samples = {query: [] for query in queries}
             # Main inference loop
-            for _ in trange(
-                num_samples + num_adaptive_samples,
+            for world in tqdm(
+                sampler,
                 desc="Samples collected",
                 disable=verbose == VerboseLevel.OFF,
             ):
-                world = next(sampler)
                 # Extract samples
                 for query in queries:
                     samples[query].append(world.call(query))
@@ -82,7 +88,7 @@ class BaseInference(metaclass=ABCMeta):
         observations: RVDict,
         num_samples: Optional[int] = None,
         num_adaptive_samples: int = 0,
-        initialize_from_prior: bool = False,
+        initialize_fn: InitializeFn = init_to_uniform,
     ) -> Sampler:
         """Returns a generator that returns a new world (represents a new state of the
         graph) each time it is iterated. If num_samples is not provided, this method
@@ -90,7 +96,9 @@ class BaseInference(metaclass=ABCMeta):
         _verify_queries_and_observations(
             queries, observations, observations_must_be_rv=True
         )
-        world = self._initialize_world(queries, observations, initialize_from_prior)
-        proposer = self.get_proposer(world)
-        sampler = Sampler(proposer, num_samples, num_adaptive_samples)
+        world = self._initialize_world(queries, observations, initialize_fn)
+        # start inference with a copy of self to ensure that multi-chain or multi
+        # inference runs all start with the same pristine state
+        kernel = copy.deepcopy(self)
+        sampler = Sampler(kernel, world, num_samples, num_adaptive_samples)
         return sampler

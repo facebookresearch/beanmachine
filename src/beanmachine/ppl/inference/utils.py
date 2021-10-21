@@ -44,7 +44,7 @@ def safe_log_prob_sum(distrib, value: torch.Tensor) -> torch.Tensor:
             raise e
 
 
-def merge_dicts(dicts: List[RVDict], dim: int = 0) -> RVDict:
+def merge_dicts(dicts: List[RVDict], dim: int = 0, stack_not_cat=True) -> RVDict:
     """
     A helper function that merge multiple dicts of samples into a single dictionary,
     stacking across a new dimension
@@ -54,4 +54,7 @@ def merge_dicts(dicts: List[RVDict], dim: int = 0) -> RVDict:
         if not rv_keys.issubset(d.keys()):
             raise ValueError(f"{rv_keys - d.keys()} are missing in dict {idx}")
 
-    return {rv: torch.stack([d[rv] for d in dicts], dim=dim) for rv in rv_keys}
+    if stack_not_cat:
+        return {rv: torch.stack([d[rv] for d in dicts], dim=dim) for rv in rv_keys}
+    else:
+        return {rv: torch.cat([d[rv] for d in dicts], dim=dim) for rv in rv_keys}

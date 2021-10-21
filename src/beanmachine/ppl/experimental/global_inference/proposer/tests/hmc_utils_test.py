@@ -10,6 +10,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.hmc_utils import (
     MassMatrixAdapter,
     WelfordCovariance,
     WindowScheme,
+    RealSpaceTransform,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 
@@ -87,18 +88,19 @@ def test_mass_matrix_adapter():
     model = SampleModel()
     world = SimpleWorld()
     world.call(model.bar())
+    positions = RealSpaceTransform(world)(dict(world))
     mass_matrix_adapter = MassMatrixAdapter()
-    momentums = mass_matrix_adapter.initialize_momentums(world)
-    for node in world.latent_nodes:
+    momentums = mass_matrix_adapter.initialize_momentums(positions)
+    for node, z in positions.items():
         assert node in momentums
         assert isinstance(momentums[node], torch.Tensor)
-        assert len(momentums[node]) == world.get_transformed(node).numel()
+        assert len(momentums[node]) == z.numel()
         # after seeing the nodes for the first time, the adapter should've initialized
         # the mass matrix and the distribution to generate momentum
         assert node in mass_matrix_adapter.mass_inv
         assert node in mass_matrix_adapter.momentum_dists
     mass_inv_old = mass_matrix_adapter.mass_inv.copy()
-    mass_matrix_adapter.step(world)
+    mass_matrix_adapter.step(positions)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")

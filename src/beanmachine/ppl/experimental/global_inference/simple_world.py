@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict, Iterator, Mapping, Optional, Set, List
+from typing import Dict, Iterator, List, Mapping, Optional, Set
 
 import torch
-import torch.distributions as dist
+from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
+    InitializeFn,
+    init_from_prior,
+)
 from beanmachine.ppl.experimental.global_inference.variable import Variable
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world.base_world import BaseWorld
-from beanmachine.ppl.world.utils import get_default_transforms
 
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
@@ -24,25 +26,53 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     def __init__(
         self,
         observations: Optional[RVDict] = None,
-        initialize_from_prior: bool = False,
+        initialize_fn: InitializeFn = init_from_prior,
     ):
         self.observations: RVDict = observations or {}
-        self.initialize_from_prior: bool = initialize_from_prior
+        self._initialize_fn: InitializeFn = initialize_fn
         self._variables: Dict[RVIdentifier, Variable] = {}
 
         self._call_stack: List[_TempVar] = []
 
     def __getitem__(self, node: RVIdentifier) -> torch.Tensor:
-        node_var = self._variables[node]
-        return node_var.transform.inv(node_var.transformed_value)
+        return self._variables[node].value
 
-    def get_transformed(self, node: RVIdentifier) -> torch.Tensor:
-        """Return the value of the node in the unconstrained space"""
-        return self._variables[node].transformed_value
+    def get_variable(self, node: RVIdentifier) -> Variable:
+        """Return a Variable object that contains the metadata of the current node
+        in the world."""
+        return self._variables[node]
 
-    def set_transformed(self, node: RVIdentifier, value: torch.Tensor) -> None:
-        """Set the value of the node in the unconstrained space"""
-        self._variables[node].transformed_value = value
+    def replace(self, values: RVDict) -> SimpleWorld:
+        """Return a new world where values specified in the dictionary are replaced.
+        This method will update the internal graph structure."""
+        assert not any(node in self.observations for node in values)
+        new_world = self.copy()
+        for node, value in values.items():
+            new_world._variables[node] = new_world._variables[node].replace(
+                value=value.clone()
+            )
+        # changing the value of a node can change the dependencies of its children nodes
+        nodes_to_update = set().union(
+            *(self._variables[node].children for node in values)
+        )
+        for node in nodes_to_update:
+            new_world._call_stack.append(_TempVar(node))
+            # Invoke node conditioned on the provided values
+            with new_world:
+                distribution = node.function(*node.arguments)
+            tmp_var = new_world._call_stack.pop()
+            # Update children's dependencies
+            old_node_var = new_world._variables[node]
+            new_world._variables[node] = old_node_var.replace(
+                parents=tmp_var.parents, distribution=distribution
+            )
+            dropped_parents = old_node_var.parents - tmp_var.parents
+            for parent in dropped_parents:
+                parent_var = new_world._variables[parent]
+                new_world._variables[parent] = parent_var.replace(
+                    children=parent_var.children - {node}
+                )
+        return new_world
 
     def __iter__(self) -> Iterator[RVIdentifier]:
         return iter(self._variables)
@@ -57,10 +87,8 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
     def copy(self) -> SimpleWorld:
         """Returns a shallow copy of the current world"""
-        world_copy = SimpleWorld(self.observations.copy(), self.initialize_from_prior)
-        world_copy._variables = {
-            node: var.copy() for node, var in self._variables.items()
-        }
+        world_copy = SimpleWorld(self.observations.copy(), self._initialize_fn)
+        world_copy._variables = self._variables.copy()
         return world_copy
 
     def initialize_value(self, node: RVIdentifier) -> None:
@@ -71,20 +99,13 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         temp_var = self._call_stack.pop()
 
         if node in self.observations:
-            transformed_value = self.observations[node]
-            transform = dist.identity_transform
+            node_val = self.observations[node]
         else:
-            sample_val = distribution.sample()
-            transform = get_default_transforms(distribution)
-            if self.initialize_from_prior or distribution.has_enumerate_support:
-                transformed_value = transform(sample_val)
-            else:
-                # initialize to Uniform(-2, 2) in unconstrained space
-                transformed_value = torch.rand_like(sample_val) * 4 - 2
+            node_val = self._initialize_fn(distribution)
 
         self._variables[node] = Variable(
-            transformed_value=transformed_value,
-            transform=transform,
+            value=node_val,
+            distribution=distribution,
             parents=temp_var.parents,
         )
 
@@ -100,26 +121,20 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             tmp_child_var.parents.add(node)
             node_var.children.add(tmp_child_var.node)
 
-        return node_var.transform.inv(node_var.transformed_value)
+        return node_var.value
 
     def log_prob(self) -> torch.Tensor:
         """Returns the joint log prob of all of the nodes in the current world"""
         log_prob = torch.tensor(0.0)
-        with self:
-            for node, node_var in self._variables.items():
-                distribution = node.function(*node.arguments)
-                y = node_var.transformed_value
-                x = node_var.transform.inv(y)
-                log_prob += torch.sum(
-                    distribution.log_prob(x)
-                    - node_var.transform.log_abs_det_jacobian(x, y)
-                )
+        for node_var in self._variables.values():
+            log_prob += torch.sum(node_var.log_prob)
         return log_prob
 
     def enumerate_node(self, node: RVIdentifier) -> torch.Tensor:
         """Returns a tensor enumerating the support of the node"""
-        with self:
-            distribution = node.function(*node.arguments)
-            if not distribution.has_enumerate_support:
-                raise ValueError(str(node) + " is not enumerable")
-            return distribution.enumerate_support()
+        distribution = self._variables[node].distribution
+        # pyre-ignore[16]
+        if not distribution.has_enumerate_support:
+            raise ValueError(str(node) + " is not enumerable")
+        # pyre-ignore[16]
+        return distribution.enumerate_support()

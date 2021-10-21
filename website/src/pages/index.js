@@ -20,7 +20,7 @@ const features = [
     title: <>Declarative modeling</>,
     description: (
       <>
-        Clean, intuitive syntax that lets you focus on the model and leave
+        Clear, intuitive syntax that lets you focus on the model and leave
         performance to the framework.
       </>
     ),

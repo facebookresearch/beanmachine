@@ -111,8 +111,8 @@ class InferenceCompilationTest(unittest.TestCase):
         ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.75)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.75)
 
     def test_gmm_random_rvidentifier_embeddings(self):
         model = self.GMM(K=2)
@@ -128,8 +128,8 @@ class InferenceCompilationTest(unittest.TestCase):
         ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.75)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.75)
 
     def test_gmm_2d(self):
         model = self.GMM(K=2, d=2)
@@ -145,8 +145,8 @@ class InferenceCompilationTest(unittest.TestCase):
         ic_samples = ic.infer(queries, observations, num_samples=100, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.75)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.75)
 
     def test_raises_on_matrix_distributions(self):
         rv = bm.random_variable(lambda: Flat((2, 2)))
@@ -223,8 +223,8 @@ class InferenceCompilationTest(unittest.TestCase):
         ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.75)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.75)
 
     def test_multiple_component_2d_gmm_density_estimator(self):
         model = self.GMM(K=2, d=2)
@@ -240,5 +240,5 @@ class InferenceCompilationTest(unittest.TestCase):
         ic_samples = ic.infer(queries, observations, num_samples=50, num_chains=1)
 
         posterior_means_mu = bm.Diagnostics(ic_samples).summary()["avg"]
-        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.5)
-        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.5)
+        self.assertAlmostEqual(posterior_means_mu.min(), -1, delta=0.75)
+        self.assertAlmostEqual(posterior_means_mu.max(), 1, delta=0.75)
