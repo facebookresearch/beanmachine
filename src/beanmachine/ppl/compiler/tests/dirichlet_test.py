@@ -199,7 +199,10 @@ digraph "graph" {
   N4 -> N5;
 }"""
         observed = to_dot(
-            bmg, node_types=True, label_edges=False, after_transform=True,
+            bmg,
+            node_types=True,
+            label_edges=False,
+            after_transform=True,
         )
         self.assertEqual(expected.strip(), observed.strip())
 

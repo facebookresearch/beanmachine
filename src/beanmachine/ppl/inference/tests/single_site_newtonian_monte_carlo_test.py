@@ -223,7 +223,8 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
 
         self.assertTrue(beta_key in var_dict)
         self.assertEqual(
-            var_dict[beta_key].transform, BetaDimensionTransform(),
+            var_dict[beta_key].transform,
+            BetaDimensionTransform(),
         )
 
         # test that resulting shapes of proposed values are correct
@@ -364,6 +365,7 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
         proposer = nw.find_best_single_site_proposer(beta_key)
         proposed_value = proposer.propose(beta_key, nw.world_)[0]
         self.assertIsInstance(
-            proposer.proposers_[beta_key], SingleSiteSimplexNewtonianMonteCarloProposer,
+            proposer.proposers_[beta_key],
+            SingleSiteSimplexNewtonianMonteCarloProposer,
         )
         self.assertEqual(proposed_value.shape, torch.Size([3]))

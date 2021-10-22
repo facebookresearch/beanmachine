@@ -106,7 +106,8 @@ class AbstractSingleSiteSingleStepProposer(
         if requires_reshape:
             old_value = old_value.reshape(-1)
         positive_log_update = safe_log_prob_sum(
-            proposal_distribution, old_value.to(proposal_distribution.sample().device),
+            proposal_distribution,
+            old_value.to(proposal_distribution.sample().device),
         ).to(old_value.device)
 
         if requires_transform:

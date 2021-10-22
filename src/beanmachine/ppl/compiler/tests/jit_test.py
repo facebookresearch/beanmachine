@@ -513,7 +513,8 @@ digraph "graph" {
         with self.assertRaises(ValueError) as ex:
             bmg.accumulate_graph(queries, observations)
         self.assertEqual(
-            str(ex.exception), "Functional calls must not have named arguments.",
+            str(ex.exception),
+            "Functional calls must not have named arguments.",
         )
 
     def test_rv_identity(self) -> None:

@@ -63,7 +63,9 @@ k = 4  # true number of clusters
 gmm = GaussianMixtureModel(K=4)
 
 ground_truth = {
-    **{gmm.alpha(k): torch.ones(k) * 1.0 / k,},
+    **{
+        gmm.alpha(k): torch.ones(k) * 1.0 / k,
+    },
     **{gmm.mu(i): tensor(i % 2).float() for i in range(k)},
     **{gmm.sigma(i): tensor(0.1) for i in range(k)},
     **{gmm.component(i): tensor(i % k).float() for i in range(n)},
@@ -103,7 +105,10 @@ class tutorialGMMwith2DimensionsAnd4Components(unittest.TestCase):
 
         mh = bm.CompositionalInference()
         mh.infer(
-            queries, observations, num_samples=num_samples, num_chains=1,
+            queries,
+            observations,
+            num_samples=num_samples,
+            num_chains=1,
         )
 
         self.assertTrue(True, msg="We just want to check this point is reached")

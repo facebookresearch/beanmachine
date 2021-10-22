@@ -40,11 +40,14 @@ class SingleSiteUniformProposer(SingleSiteAncestralProposer):
         that was used or needs to be used to find the proposal distribution
         """
         node_distribution = node_var.distribution
-        if is_constraint_eq(
-            # pyre-fixme
-            node_distribution.support,
-            dist.constraints.boolean,
-        ) and isinstance(node_distribution, dist.Bernoulli):
+        if (
+            is_constraint_eq(
+                # pyre-fixme
+                node_distribution.support,
+                dist.constraints.boolean,
+            )
+            and isinstance(node_distribution, dist.Bernoulli)
+        ):
             return (
                 ProposalDistribution(
                     proposal_distribution=dist.Bernoulli(

@@ -248,7 +248,8 @@ class HMCProposer(BaseProposer):
             self._pe_grad,
         )
         new_energy = torch.nan_to_num(
-            self._hamiltonian(positions, momentums, self._mass_inv, pe), float("inf"),
+            self._hamiltonian(positions, momentums, self._mass_inv, pe),
+            float("inf"),
         )
         delta_energy = new_energy - current_energy
         self._alpha = torch.clamp(torch.exp(-delta_energy), max=1.0)
@@ -277,7 +278,10 @@ class HMCProposer(BaseProposer):
 
                     if self.adapt_step_size:
                         self.step_size = self._find_reasonable_step_size(
-                            self.step_size, self._positions, self._pe, self._pe_grad,
+                            self.step_size,
+                            self._positions,
+                            self._pe,
+                            self._pe_grad,
                         )
                         self._step_size_adapter = DualAverageAdapter(self.step_size)
             window_scheme.step()

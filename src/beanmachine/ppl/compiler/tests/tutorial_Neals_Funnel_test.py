@@ -124,7 +124,9 @@ class tutorialNealsFunnelTest(unittest.TestCase):
 
         self.assertTrue(True, msg="We just want to check this point is reached")
 
-    def test_tutorial_Neals_Funnel_to_dot_cpp_python(self,) -> None:
+    def test_tutorial_Neals_Funnel_to_dot_cpp_python(
+        self,
+    ) -> None:
         self.maxDiff = None
         observed = BMGInference().to_dot(queries, observations)
         expected = """

@@ -278,7 +278,10 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
             for chain in range(num_chains):
                 AbstractMCInference.set_seed_for_chain(random_seed, chain)
                 rv_dicts = self._infer(
-                    num_samples, num_adaptive_samples, verbose, initialize_from_prior,
+                    num_samples,
+                    num_adaptive_samples,
+                    verbose,
+                    initialize_from_prior,
                 )
                 chain_queries.append(rv_dicts)
         monte_carlo_samples = MonteCarloSamples(chain_queries, num_adaptive_samples)

@@ -88,7 +88,11 @@ _handle_call: PatternRule = PatternRule(
         a.targets,
         _make_bmg_call(
             "handle_function",
-            [a.value.func, a.value.args[0].value, a.value.keywords[0].value,],
+            [
+                a.value.func,
+                a.value.args[0].value,
+                a.value.keywords[0].value,
+            ],
         ),
     ),
 )
@@ -247,7 +251,10 @@ _replace_with_empty_list = always_replace([])
 
 _remove_all_decorators: Rule = _descend_until(
     PatternRule(function_def(decorator_list=nonEmptyList)),
-    _specific_child("decorator_list", _replace_with_empty_list,),
+    _specific_child(
+        "decorator_list",
+        _replace_with_empty_list,
+    ),
 )
 
 

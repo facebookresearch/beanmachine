@@ -88,11 +88,18 @@ def test_parse_formula_patsy(data, formula, fixed_effects, random_effects):
 
 
 @pytest.mark.parametrize(
-    "formula, outcome", [("np.sqrt(y) ~ x + (1|a)", "y",)],
+    "formula, outcome",
+    [
+        (
+            "np.sqrt(y) ~ x + (1|a)",
+            "y",
+        )
+    ],
 )
 def test_outcome_inconsistency_exception(data, formula, outcome):
     mean_config = RegressionConfig(outcome=outcome, formula=formula)
     with pytest.raises(ValueError, match="Inconsistent outcome variable"):
         HME(
-            data=data, model_config=ModelConfig(mean_regression=mean_config),
+            data=data,
+            model_config=ModelConfig(mean_regression=mean_config),
         )

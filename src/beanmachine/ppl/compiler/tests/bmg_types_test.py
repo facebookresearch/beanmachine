@@ -173,7 +173,11 @@ class BMGTypesTest(unittest.TestCase):
         bmg.add_sample(bern)
         bmg.add_query(mult)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="0.5:P"];

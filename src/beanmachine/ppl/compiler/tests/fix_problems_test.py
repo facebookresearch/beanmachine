@@ -36,7 +36,11 @@ class FixProblemsTest(unittest.TestCase):
         bmg.add_sample(bern)
         bmg.add_query(mult)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="0.5:P"];
@@ -66,7 +70,11 @@ digraph "graph" {
         self.assertEqual(expected.strip(), observed.strip())
 
         fix_problems(bmg)
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="1.0:OH"];
@@ -137,7 +145,11 @@ digraph "graph" {
         bmg.add_sample(norm)
         bmg.add_sample(bino)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N0[label="0.5:P"];
@@ -164,7 +176,11 @@ digraph "graph" {
         self.assertEqual(expected.strip(), observed.strip())
 
         fix_problems(bmg)
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="1.0:OH"];
@@ -273,7 +289,11 @@ The sigma of a Normal is required to be a positive real but is a negative real.
         bino = bmg.add_binomial(mult, half)
         bmg.add_sample(bino)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -305,7 +325,11 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -367,7 +391,11 @@ digraph "graph" {
         expected = ""
         self.assertEqual(observed.strip(), expected.strip())
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -426,7 +454,11 @@ digraph "graph" {
         norm = bmg.add_normal(q, one)
         bmg.add_sample(norm)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -453,7 +485,11 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
         expected = """
 digraph "graph" {
   N00[label="1.0:OH"];
@@ -539,7 +575,11 @@ The unsupported node is the operand of a Sample.
         chi2 = bmg.add_chi2(hcs)
         bmg.add_sample(chi2)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -561,7 +601,11 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -614,7 +658,11 @@ digraph "graph" {
         bino = bmg.add_binomial(powr, half)
         bmg.add_sample(bino)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -646,7 +694,11 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -707,7 +759,11 @@ digraph "graph" {
         bern = bmg.add_bernoulli(complement)
         bmg.add_sample(bern)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -736,7 +792,11 @@ digraph "graph" {
 
         self.assertEqual("", str(error_report).strip())
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -787,7 +847,11 @@ digraph "graph" {
         beta2 = bmg.add_beta(neglogprob, two)
         bmg.add_sample(beta2)
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -813,7 +877,11 @@ digraph "graph" {
         error_report = fix_problems(bmg)
         self.assertEqual("", str(error_report).strip())
 
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {
@@ -906,7 +974,11 @@ A Binomial distribution is observed to have value 5.25 but only produces samples
 
         error_report = fix_problems(bmg)
         self.assertEqual(str(error_report).strip(), "")
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         # The observations have been converted to the correct types:
         expected = """
@@ -963,7 +1035,11 @@ digraph "graph" {
 
         error_report = fix_problems(bmg)
         self.assertEqual(str(error_report).strip(), "")
-        observed = to_dot(bmg, node_types=True, edge_requirements=True,)
+        observed = to_dot(
+            bmg,
+            node_types=True,
+            edge_requirements=True,
+        )
 
         expected = """
 digraph "graph" {

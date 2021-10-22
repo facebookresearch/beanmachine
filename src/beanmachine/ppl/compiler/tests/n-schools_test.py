@@ -173,7 +173,9 @@ def evaluate_posterior_predictive(samples: xr.Dataset, test: xr.Dataset) -> np.n
         + samples.beta_type.values[:, test.attrs["type_idx"]]
     )  # size = (iterations, n_test)
     loglike = norm.logpdf(
-        test.Y.values[np.newaxis, :], loc=y_hat, scale=test.sigma.values[np.newaxis, :],
+        test.Y.values[np.newaxis, :],
+        loc=y_hat,
+        scale=test.sigma.values[np.newaxis, :],
     )  # size = (iterations, n_test)
     return loglike.sum(axis=1)  # size = (iterations,)
 

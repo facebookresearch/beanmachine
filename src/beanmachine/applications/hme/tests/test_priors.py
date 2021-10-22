@@ -35,7 +35,8 @@ class RealizedLinearModel(AbstractLinearModel):
 
 
 @pytest.mark.parametrize(
-    "label", ["unknown"],
+    "label",
+    ["unknown"],
 )
 def test_paramtype_exception(label):
     with pytest.raises(
@@ -45,7 +46,8 @@ def test_paramtype_exception(label):
 
 
 @pytest.mark.parametrize(
-    "label", ["unknown"],
+    "label",
+    ["unknown"],
 )
 def test_distribution_exception(label):
     with pytest.raises(
@@ -144,7 +146,10 @@ def test_parse_fe_prior_config(prior_config, expected_dot):
 
 
 def test_default_priors():
-    model = RealizedLinearModel(data=None, model_config=ModelConfig(),)
+    model = RealizedLinearModel(
+        data=None,
+        model_config=ModelConfig(),
+    )
     model._set_priors()
     model._set_default_priors()
     expected = {"fixed_effects": 8, "prob_h": 4, "prob_sign": 4}
@@ -195,7 +200,8 @@ def test_customize_priors(priors_desc, expected):
     model = RealizedLinearModel(
         data=None,
         model_config=ModelConfig(
-            mean_regression=RegressionConfig(formula="y~1"), priors=priors_desc,
+            mean_regression=RegressionConfig(formula="y~1"),
+            priors=priors_desc,
         ),
     )
     model.build_graph()
@@ -290,7 +296,8 @@ def test_initialize_fixed_effect_nodes(priors_desc, expected_dot):
     model = RealizedLinearModel(
         data=None,
         model_config=ModelConfig(
-            mean_regression=RegressionConfig(formula="y~x1+x2"), priors=priors_desc,
+            mean_regression=RegressionConfig(formula="y~x1+x2"),
+            priors=priors_desc,
         ),
     )
     model.build_graph()
@@ -471,7 +478,8 @@ def test_initialize_AR_structured_priors():
     model = RealizedLinearModel(
         data=None,
         model_config=ModelConfig(
-            mean_regression=RegressionConfig(formula="y~1+(1|age)"), priors=priors_desc,
+            mean_regression=RegressionConfig(formula="y~1+(1|age)"),
+            priors=priors_desc,
         ),
     )
     model.build_graph()
@@ -573,7 +581,8 @@ def test_initialize_RW_structured_priors():
     model = RealizedLinearModel(
         data=None,
         model_config=ModelConfig(
-            mean_regression=RegressionConfig(formula="y~1+(1|age)"), priors=priors_desc,
+            mean_regression=RegressionConfig(formula="y~1+(1|age)"),
+            priors=priors_desc,
         ),
     )
     model.build_graph()

@@ -115,7 +115,8 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
                     break
             else:
                 fixed_effects_params[fe] = self.g.add_operator(
-                    bmgraph.OperatorType.SAMPLE, [self.default_priors["fixed_effects"]],
+                    bmgraph.OperatorType.SAMPLE,
+                    [self.default_priors["fixed_effects"]],
                 )
 
         return fixed_effects_params
@@ -194,7 +195,10 @@ class AbstractLinearModel(AbstractModel, metaclass=ABCMeta):
 
         if not self.random_effects:
             return self.zero
-        (re_dist, re_value,) = params
+        (
+            re_dist,
+            re_value,
+        ) = params
         re_list = []
         for re in self.random_effects:
             key = tuple(row[x] for x in re) if isinstance(re, tuple) else row[re]

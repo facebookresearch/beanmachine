@@ -79,5 +79,6 @@ digraph "graph" {
         )
 
         self.assertGreaterEqual(
-            scipy.stats.ks_2samp(original_samples, transformed_samples).pvalue, 0.05,
+            scipy.stats.ks_2samp(original_samples, transformed_samples).pvalue,
+            0.05,
         )

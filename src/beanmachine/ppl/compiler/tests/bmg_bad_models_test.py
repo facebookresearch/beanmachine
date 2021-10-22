@@ -81,7 +81,8 @@ class BMGBadModelsTest(unittest.TestCase):
         with self.assertRaises(TypeError) as ex:
             BMGInference().infer([norm(flip())], {}, 10)
         self.assertEqual(
-            str(ex.exception), "The arguments to a query must not be random variables.",
+            str(ex.exception),
+            "The arguments to a query must not be random variables.",
         )
 
         # You can't make inferences on rv-of-rv
@@ -106,7 +107,8 @@ class BMGBadModelsTest(unittest.TestCase):
         with self.assertRaises(TypeError) as ex:
             BMGInference().infer([bad_functional()], {}, 10)
         self.assertEqual(
-            str(ex.exception), "A functional must return a tensor.",
+            str(ex.exception),
+            "A functional must return a tensor.",
         )
 
         # TODO: Verify we handle correctly the case where a queried value is
