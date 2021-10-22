@@ -214,7 +214,7 @@ void Node::forward_gradient_scalarops(
     T2& hessian,
     double& d_grad1,
     double& d_grad2) const {
-  uint in_degree = in_nodes.size();
+  uint in_degree = static_cast<uint>(in_nodes.size());
   assert(jacobian.cols() == in_degree);
   assert(hessian.cols() == in_degree and hessian.rows() == in_degree);
 
@@ -323,10 +323,10 @@ void Graph::eval_and_grad(
     double& grad2) {
   // TODO: used for testing only, should integrate it with
   // whatever code is actually being used for eval and grad.
-  if (src_idx >= nodes.size()) {
+  if (src_idx >= static_cast<uint>(nodes.size())) {
     throw std::out_of_range("src_idx " + std::to_string(src_idx));
   }
-  if (tgt_idx >= nodes.size() or tgt_idx <= src_idx) {
+  if (tgt_idx >= static_cast<uint>(nodes.size()) or tgt_idx <= src_idx) {
     throw std::out_of_range("tgt_idx " + std::to_string(tgt_idx));
   }
   // initialize the gradients of the source node to get the computation started
@@ -553,7 +553,7 @@ std::vector<Node*> Graph::convert_parent_ids(
   // an array of Node* pointers
   std::vector<Node*> parent_nodes;
   for (uint parent_id : parent_ids) {
-    if (parent_id >= nodes.size()) {
+    if (parent_id >= static_cast<uint>(nodes.size())) {
       throw std::out_of_range(
           "parent node_id " + std::to_string(parent_id) + "must be less than " +
           std::to_string(nodes.size()));
@@ -584,13 +584,13 @@ uint Graph::add_node(std::unique_ptr<Node> node, std::vector<uint> parents) {
   }
   node->det_anc.insert(node->det_anc.end(), det_set.begin(), det_set.end());
   node->sto_anc.insert(node->sto_anc.end(), sto_set.begin(), sto_set.end());
-  uint index = node->index = nodes.size();
+  uint index = node->index = static_cast<uint>(nodes.size());
   nodes.push_back(std::move(node));
   return index;
 }
 
 void Graph::check_node_id(uint node_id) {
-  if (node_id >= nodes.size()) {
+  if (node_id >= static_cast<uint>(nodes.size())) {
     throw std::out_of_range(
         "node_id (" + std::to_string(node_id) + ") must be less than " +
         std::to_string(nodes.size()));
@@ -725,8 +725,8 @@ uint Graph::add_constant_col_simplex_matrix(Eigen::MatrixXd& value) {
       ValueType(
           VariableType::COL_SIMPLEX_MATRIX,
           AtomicType::PROBABILITY,
-          value.rows(),
-          value.cols()),
+          static_cast<uint>(value.rows()),
+          static_cast<uint>(value.cols())),
       value));
 }
 
@@ -944,10 +944,10 @@ uint Graph::query(uint node_id) {
   // very short.
   auto it = std::find(queries.begin(), queries.end(), node_id);
   if (it != queries.end()) {
-    return it - queries.begin();
+    return static_cast<uint>(it - queries.begin());
   }
   queries.push_back(node_id);
-  return queries.size() - 1; // the index is 0-based
+  return static_cast<uint>(queries.size() - 1); // the index is 0-based
 }
 
 void Graph::collect_log_prob(double log_prob) {
@@ -1088,7 +1088,7 @@ void Graph::_infer_parallel(
     } else {
       graph_copies.push_back(this);
     }
-    seedvec.push_back(seed + 13 * i);
+    seedvec.push_back(seed + 13 * static_cast<uint>(i));
   }
   assert(graph_copies.size() == n_chains);
   assert(seedvec.size() == n_chains);
@@ -1185,7 +1185,7 @@ std::vector<uint> Graph::get_parent_ids(
 Graph::Graph(const Graph& other) {
   // This copy constructor does not copy the inference results (if available)
   // from the source graph.
-  for (uint i = 0; i < other.nodes.size(); i++) {
+  for (uint i = 0; i < static_cast<uint>(other.nodes.size()); i++) {
     Node* node = other.nodes[i].get();
     std::vector<uint> parent_ids = get_parent_ids(node->in_nodes);
     switch (node->node_type) {

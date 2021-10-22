@@ -59,8 +59,8 @@ void Categorical::log_prob_iid(
     Eigen::MatrixXd& log_probs) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   log_probs = Eigen::MatrixXd(value._nmatrix.rows(), value._nmatrix.cols());
-  uint rows = value._nmatrix.rows();
-  uint cols = value._nmatrix.cols();
+  uint rows = static_cast<uint>(value._nmatrix.rows());
+  uint cols = static_cast<uint>(value._nmatrix.cols());
   for (uint r = 0; r < rows; r += 1) {
     for (uint c = 0; c < cols; c += 1) {
       log_probs(r, c) = log_prob(graph::NodeValue(value._nmatrix(r, c)));

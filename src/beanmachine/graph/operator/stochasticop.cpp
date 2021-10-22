@@ -158,7 +158,7 @@ Sample::Sample(const std::vector<graph::Node*>& in_nodes)
 
 IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
     : StochasticOperator(graph::OperatorType::IID_SAMPLE) {
-  uint in_degree = in_nodes.size();
+  uint in_degree = static_cast<uint>(in_nodes.size());
   if (in_degree != 2 and in_degree != 3) {
     throw std::invalid_argument("operator IID_SAMPLE requires 2 or 3 parents");
   }
@@ -207,8 +207,8 @@ IIdSample::IIdSample(const std::vector<graph::Node*>& in_nodes)
       vtype = graph::ValueType(
           graph::VariableType::BROADCAST_MATRIX,
           dist->sample_type.atomic_type,
-          in_nodes[1]->value._natural,
-          in_degree == 2 ? 1 : in_nodes[2]->value._natural);
+          static_cast<uint>(in_nodes[1]->value._natural),
+          in_degree == 2 ? 1 : static_cast<uint>(in_nodes[2]->value._natural));
       break;
     case graph::VariableType::BROADCAST_MATRIX:
     case graph::VariableType::COL_SIMPLEX_MATRIX:

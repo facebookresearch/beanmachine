@@ -43,7 +43,7 @@ void NMCDirichletGammaSingleSiteSteppingMethod::step(Node* tgt_node) {
   auto dirichlet_distribution_node = sto_tgt_node->in_nodes[0];
   auto param_node = dirichlet_distribution_node->in_nodes[0];
 
-  uint K = tgt_node->value._matrix.size();
+  uint K = static_cast<uint>(tgt_node->value._matrix.size());
   for (uint k = 0; k < K; k++) {
     double param_a_k = param_node->value._matrix.coeff(k);
     double x_sum = sto_tgt_node->unconstrained_value._matrix.sum();
