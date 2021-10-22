@@ -183,7 +183,7 @@ void Index::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
   const graph::NodeValue& matrix = in_nodes[0]->value;
   graph::natural_t matrix_index = in_nodes[1]->value._natural;
-  if (matrix_index >= static_cast<long>(matrix.type.rows)) {
+  if (matrix_index >= static_cast<unsigned long>(matrix.type.rows)) {
     throw std::runtime_error(
         "invalid index for INDEX operator at node_id " + std::to_string(index));
   }
@@ -230,7 +230,7 @@ void ColumnIndex::eval(std::mt19937& /* gen */) {
   assert(in_nodes.size() == 2);
   const graph::NodeValue& matrix = in_nodes[0]->value;
   graph::natural_t matrix_index = in_nodes[1]->value._natural;
-  if (matrix_index >= static_cast<long>(matrix.type.cols)) {
+  if (matrix_index >= static_cast<unsigned long>(matrix.type.cols)) {
     throw std::runtime_error(
         "invalid index for COLUMN_INDEX at node_id " + std::to_string(index));
   }
