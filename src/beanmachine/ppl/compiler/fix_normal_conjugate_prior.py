@@ -103,10 +103,7 @@ class NormalNormalConjugateFixer(ProblemFixerBase):
         return self._bmg.add_constant(transformed_mu)
 
     def _transform_std(
-        self,
-        std: bn.ConstantNode,
-        sigma: bn.ConstantNode,
-        obs: List[bn.Observation],
+        self, std: bn.ConstantNode, sigma: bn.ConstantNode, obs: List[bn.Observation],
     ) -> bn.BMGNode:
         precision_prior = 1 / pow(std.value, 2)
         precision_data = len(obs) / pow(sigma.value, 2)

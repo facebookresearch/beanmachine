@@ -189,9 +189,7 @@ class SingleSiteHamiltonianMonteCarloProposer(SingleSiteAncestralProposer):
         if not self.mass_matrix_initialized:
             self.mass_matrix_initialized = True
             self.sample_mean = torch.zeros(
-                len(sample_vector),
-                dtype=sample.dtype,
-                device=sample.device,
+                len(sample_vector), dtype=sample.dtype, device=sample.device,
             )
             self.co_moment = torch.zeros(
                 len(sample_vector),

@@ -663,9 +663,7 @@ class SingleAssignment:
                 "a",
                 lambda source_term: source_term.value,
                 lambda source_term, new_name: ast.AugAssign(
-                    target=source_term.target,
-                    op=source_term.op,
-                    value=new_name,
+                    target=source_term.target, op=source_term.op, value=new_name,
                 ),
             ),
             "handle_aug_assign_right",
@@ -843,9 +841,7 @@ class SingleAssignment:
             subscript(value=_not_identifier),
             lambda original_right: original_right.value,
             lambda original_right, new_name: ast.Subscript(
-                value=new_name,
-                slice=original_right.slice,
-                ctx=original_right.ctx,
+                value=new_name, slice=original_right.slice, ctx=original_right.ctx,
             ),
             "handle_assign_subscript_slice_index_1",
         )
@@ -2029,9 +2025,7 @@ class SingleAssignment:
             attribute(value=_not_identifier),  # complex.attrib
             lambda original_left: original_left.value,  # complex.attrib ==> complex
             lambda original_left, new_name: ast.Attribute(
-                value=new_name,
-                attr=original_left.attr,
-                ctx=ast.Store(),
+                value=new_name, attr=original_left.attr, ctx=ast.Store(),
             ),  # (complex.attrib, temp) ==> temp.attrib
             "handle_left_value_attributeref",
         )
@@ -2042,9 +2036,7 @@ class SingleAssignment:
             subscript(value=_not_identifier),
             lambda original_left: original_left.value,
             lambda original_left, new_name: ast.Subscript(
-                value=new_name,
-                slice=original_left.slice,
-                ctx=ast.Store(),
+                value=new_name, slice=original_left.slice, ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_value",
         )
@@ -2056,10 +2048,7 @@ class SingleAssignment:
             lambda original_left: original_left.slice.value,
             lambda original_left, new_name: ast.Subscript(
                 value=original_left.value,
-                slice=ast.Index(
-                    value=new_name,
-                    ctx=ast.Load(),
-                ),
+                slice=ast.Index(value=new_name, ctx=ast.Load(),),
                 ctx=ast.Store(),
             ),
             "_handle_left_value_subscript_slice_index",
@@ -2141,8 +2130,7 @@ class SingleAssignment:
                 "x",
                 lambda source_term: source_term.value,
                 lambda source_term, new_name: ast.Assign(
-                    targets=[source_term.targets[0].elts[0].value],
-                    value=new_name,
+                    targets=[source_term.targets[0].elts[0].value], value=new_name,
                 ),
                 # pyre-fixme[6]: Expected `(AST, AST) -> List[_ast.expr]` for 4th
                 #  param but got `(source_term: Any, new_name: Any) ->
@@ -2161,8 +2149,7 @@ class SingleAssignment:
         # of evaluation within the pattern.
         return PatternRule(
             assign(
-                targets=[ast_luple(elts=[ast_luple(elts=[anyPattern])])],
-                value=name(),
+                targets=[ast_luple(elts=[ast_luple(elts=[anyPattern])])], value=name(),
             ),
             self._transform_with_name(
                 "x",
@@ -2266,8 +2253,7 @@ class SingleAssignment:
                 "a",
                 lambda source_term: source_term.value,
                 lambda source_term, new_name: ast.Assign(
-                    targets=source_term.targets,
-                    value=new_name,
+                    targets=source_term.targets, value=new_name,
                 ),
             ),
             "_handle_assign_possibly_blocking_right_value",

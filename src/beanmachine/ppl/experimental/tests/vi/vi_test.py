@@ -75,10 +75,7 @@ class BayesianRobustLinearRegression:
 
     @bm.random_variable
     def beta(self):
-        return dist.Independent(
-            dist.StudentT(df=4.0 * torch.ones(self.d + 1)),
-            1,
-        )
+        return dist.Independent(dist.StudentT(df=4.0 * torch.ones(self.d + 1)), 1,)
 
     @bm.random_variable
     def X(self):
@@ -91,10 +88,7 @@ class BayesianRobustLinearRegression:
         if b.dim() == 1:
             b = b.unsqueeze(0)
         mu = X_with_ones.mm(b.T)
-        return dist.Independent(
-            dist.StudentT(df=4.0, loc=mu, scale=1),
-            1,
-        )
+        return dist.Independent(dist.StudentT(df=4.0, loc=mu, scale=1), 1,)
 
 
 class NormalNormal:
@@ -190,43 +184,33 @@ class MeanFieldVariationalInferTest(unittest.TestCase):
         vi_dicts = MeanFieldVariationalInference().infer(
             queries=[brlr.beta()],
             num_iter=50,
-            observations={
-                brlr.X(): brlr.X_train,
-                brlr.y(): brlr.y_train,
-            },
+            observations={brlr.X(): brlr.X_train, brlr.y(): brlr.y_train,},
             lr=1e-2,
         )
         beta_samples = vi_dicts(brlr.beta()).sample((100,))
         for i in range(beta_samples.shape[1]):
             self.assertLess(
-                torch.norm(beta_samples[:, i].mean() - brlr.beta_truth[i]),
-                0.5,
+                torch.norm(beta_samples[:, i].mean() - brlr.beta_truth[i]), 0.5,
             )
 
     def test_constrained_positive_reals(self):
         exp = dist.Exponential(torch.tensor([1.0]))
         positive_rv = bm.random_variable(lambda: exp)
         vi_dicts = MeanFieldVariationalInference().infer(
-            queries=[positive_rv()],
-            observations={},
+            queries=[positive_rv()], observations={},
         )
         self.assertAlmostEqual(
-            vi_dicts(positive_rv()).sample((100,)).mean().item(),
-            exp.mean,
-            delta=0.2,
+            vi_dicts(positive_rv()).sample((100,)).mean().item(), exp.mean, delta=0.2,
         )
 
     def test_constrained_interval(self):
         beta = dist.Beta(torch.tensor([1.0]), torch.tensor([1.0]))
         interval_rv = bm.random_variable(lambda: beta)
         vi_dicts = MeanFieldVariationalInference().infer(
-            queries=[interval_rv()],
-            observations={},
+            queries=[interval_rv()], observations={},
         )
         self.assertAlmostEqual(
-            vi_dicts(interval_rv()).sample((100,)).mean().item(),
-            beta.mean,
-            delta=0.2,
+            vi_dicts(interval_rv()).sample((100,)).mean().item(), beta.mean, delta=0.2,
         )
 
 
@@ -287,12 +271,7 @@ class StochasticVariationalInferTest(unittest.TestCase):
 
         # 100 steps, each 1 iteration
         opt_params = None
-        optimizer = BMMultiOptimizer(
-            BMOptim(
-                torch.optim.Adam,
-                {"lr": 1e0},
-            )
-        )
+        optimizer = BMMultiOptimizer(BMOptim(torch.optim.Adam, {"lr": 1e0},))
         for _ in range(100):
             _, opt_params, optimizer = VariationalInference().step(
                 {model.mu(): q_mu()},
@@ -331,12 +310,7 @@ class StochasticVariationalInferTest(unittest.TestCase):
 
         # 100 steps, each 1 iteration
         opt_params = None
-        optimizer = BMMultiOptimizer(
-            BMOptim(
-                torch.optim.Adam,
-                {"lr": 1e0},
-            )
-        )
+        optimizer = BMMultiOptimizer(BMOptim(torch.optim.Adam, {"lr": 1e0},))
         for _ in range(100):
             _, opt_params, optimizer = VariationalInference().step(
                 {model.mu(): q_mu()},
@@ -392,14 +366,8 @@ class StochasticVariationalInferTest(unittest.TestCase):
             return dist.Normal(params[0], params[1].exp())
 
         opt_params = VariationalInference().infer(
-            {
-                mu(): q_mu(),
-                alpha(): q_alpha(),
-            },
-            observations={
-                x(1): torch.tensor(9.0),
-                x(2): torch.tensor(10.0),
-            },
+            {mu(): q_mu(), alpha(): q_alpha(),},
+            observations={x(1): torch.tensor(9.0), x(2): torch.tensor(10.0),},
             num_iter=100,
             lr=1e0,
         )
@@ -450,12 +418,7 @@ class StochasticVariationalInferTest(unittest.TestCase):
             return dist.Bernoulli(p)
 
         opt_params = VariationalInference().infer(
-            {y(): q_y()},
-            observations={
-                x(): X.float(),
-            },
-            num_iter=1000,
-            lr=1e-2,
+            {y(): q_y()}, observations={x(): X.float(),}, num_iter=1000, lr=1e-2,
         )
         l2_error = (opt_params[w()] - W).norm()
         self.assertLess(l2_error, 0.5)

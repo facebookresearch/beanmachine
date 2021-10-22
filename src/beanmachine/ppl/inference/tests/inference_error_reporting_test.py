@@ -95,8 +95,7 @@ class InferenceErrorReportingTest(unittest.TestCase):
         with self.assertRaises(TypeError) as ex:
             mh.infer([g(f())], {}, 10)
         self.assertEqual(
-            str(ex.exception),
-            "The arguments to a query must not be random variables.",
+            str(ex.exception), "The arguments to a query must not be random variables.",
         )
 
         # You can't make inferences on rv-of-rv

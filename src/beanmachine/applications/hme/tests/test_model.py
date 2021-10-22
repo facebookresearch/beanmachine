@@ -65,11 +65,7 @@ def test_model_infer(
     expected_param_value,
 ):
     model = HME(
-        data,
-        ModelConfig(
-            mean_regression=mean_config,
-            mean_mixture=mixture_config,
-        ),
+        data, ModelConfig(mean_regression=mean_config, mean_mixture=mixture_config,),
     )
     post_samples, post_diagnostics = model.infer(
         InferConfig(n_iter=2000, n_warmup=10000, seed=0)
@@ -98,29 +94,17 @@ def test_model_infer(
                 link="identity",
             ),
             MixtureConfig(use_null_mixture=False),
-            pd.DataFrame(
-                {
-                    "group": ["a"] * 2 + ["b"] * 2,
-                    "team": ["x", "y"] * 2,
-                }
-            ),
+            pd.DataFrame({"group": ["a"] * 2 + ["b"] * 2, "team": ["x", "y"] * 2,}),
             tensor([0.1] * 2 + [0.4] * 2, dtype=torch.float32),
         ),
     ],
 )
 def test_model_predict(data, mean_config, mixture_config, new_data, expected_pred_mean):
     model = HME(
-        data,
-        ModelConfig(
-            mean_regression=mean_config,
-            mean_mixture=mixture_config,
-        ),
+        data, ModelConfig(mean_regression=mean_config, mean_mixture=mixture_config,),
     )
     post_samples, post_diagnostics = model.infer(
         InferConfig(n_iter=10000, n_warmup=1000, seed=0)
     )
-    actual = tensor(
-        model.predict(new_data).mean(axis=1),
-        dtype=torch.float32,
-    )
+    actual = tensor(model.predict(new_data).mean(axis=1), dtype=torch.float32,)
     assert torch.allclose(actual, expected_pred_mean, atol=0.01)

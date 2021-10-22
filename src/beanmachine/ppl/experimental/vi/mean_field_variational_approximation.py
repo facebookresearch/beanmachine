@@ -71,10 +71,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
             }
 
             def _base_dist(**kwargs):
-                return dist.Independent(
-                    base_dist(**kwargs),
-                    1,
-                )
+                return dist.Independent(base_dist(**kwargs), 1,)
 
             self.base_dist = _base_dist
 
@@ -95,10 +92,7 @@ class MeanFieldVariationalApproximation(dist.distribution.Distribution):
             self.recompute_transformed_distribution(), self.flow
         )
         self._flow_params = self.new_dist.bijector.params
-        self.optim = torch.optim.Adam(
-            self.parameters(),
-            lr=lr,
-        )
+        self.optim = torch.optim.Adam(self.parameters(), lr=lr,)
 
         # unwrap nested independents before setting transform
         support = target_dist.support  # pyre-ignore[16]

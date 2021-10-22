@@ -104,9 +104,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             node_val = self._initialize_fn(distribution)
 
         self._variables[node] = Variable(
-            value=node_val,
-            distribution=distribution,
-            parents=temp_var.parents,
+            value=node_val, distribution=distribution, parents=temp_var.parents,
         )
 
     def update_graph(self, node: RVIdentifier) -> torch.Tensor:

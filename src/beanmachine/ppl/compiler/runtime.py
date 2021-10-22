@@ -458,10 +458,7 @@ class BMGRuntime:
             concentration0 = self._bmg.add_constant(concentration0)
         return self._bmg.add_beta(concentration1, concentration0)
 
-    def handle_poisson(
-        self,
-        rate: Any,
-    ) -> bn.PoissonNode:
+    def handle_poisson(self, rate: Any,) -> bn.PoissonNode:
         if not isinstance(rate, BMGNode):
             rate = self._bmg.add_constant(rate)
         return self._bmg.add_poisson(rate)
@@ -1448,9 +1445,7 @@ class BMGRuntime:
         setattr(operand, name, value)
 
     def accumulate_graph(
-        self,
-        queries: List[RVIdentifier],
-        observations: Dict[RVIdentifier, Any],
+        self, queries: List[RVIdentifier], observations: Dict[RVIdentifier, Any],
     ) -> BMGraphBuilder:
         _verify_queries_and_observations(queries, observations, True)
         self._bmg._pd = self._pd

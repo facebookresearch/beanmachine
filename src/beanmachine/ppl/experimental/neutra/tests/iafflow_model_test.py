@@ -96,13 +96,7 @@ class IAFTest(unittest.TestCase):
             in_layer, out_layer, nn.ELU(), hidden_layer, n_block, seed_num
         )
         model = InverseAutoregressiveFlow(
-            based_distribution,
-            network_architecture,
-            2,
-            in_layer,
-            foo_key,
-            world,
-            True,
+            based_distribution, network_architecture, 2, in_layer, foo_key, world, True,
         )
 
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)

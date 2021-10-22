@@ -31,19 +31,13 @@ def eval_bar(evaluator, tree):
 
     # create model description for the expression left of the bar
     expr_node = ParseNode(
-        type="~",
-        token=None,
-        args=[expr_node],
-        origin=expr_node.origin,
+        type="~", token=None, args=[expr_node], origin=expr_node.origin,
     )
     expr_md = ModelDesc.from_formula(expr_node)
 
     # create model description for grouping factor right of the bar
     factor_node = ParseNode(
-        type="~",
-        token=None,
-        args=[factor_node],
-        origin=factor_node.origin,
+        type="~", token=None, args=[factor_node], origin=factor_node.origin,
     )
     factor_md = ModelDesc.from_formula(factor_node)
     factor_md.rhs_termlist.remove(INTERCEPT)

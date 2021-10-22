@@ -241,8 +241,7 @@ class CompositionalInferenceTest(unittest.TestCase):
             if block.type == BlockType.SEQUENTIAL:
                 first_nodes.append(block.first_node)
                 self.assertEqual(
-                    block.block,
-                    [foo_0_key.wrapper, bar_0_key.wrapper],
+                    block.block, [foo_0_key.wrapper, bar_0_key.wrapper],
                 )
             if block.type == BlockType.SINGLENODE:
                 self.assertEqual(block.block, [])
@@ -438,8 +437,7 @@ class CompositionalInferenceTest(unittest.TestCase):
 
         self.assertTrue(beta_key in var_dict)
         self.assertEqual(
-            var_dict[beta_key].transform,
-            BetaDimensionTransform(),
+            var_dict[beta_key].transform, BetaDimensionTransform(),
         )
 
         self.assertTrue(discrete_key in var_dict)

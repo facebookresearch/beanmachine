@@ -7,9 +7,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    SimpleWorld,
-)
+from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 
 
 class SingleSiteAncestralMetropolisHastings(BaseInference):

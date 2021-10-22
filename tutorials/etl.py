@@ -53,8 +53,7 @@ class Load:
         if not self.data_dir.exists():
             self.data_dir.mkdir()
         self.transformed_data.to_csv(
-            str(self.data_dir.joinpath(self.filename)),
-            index=False,
+            str(self.data_dir.joinpath(self.filename)), index=False,
         )
         return self._load()
 

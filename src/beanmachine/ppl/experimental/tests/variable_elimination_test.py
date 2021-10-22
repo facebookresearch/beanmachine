@@ -61,10 +61,7 @@ def test_bm_neuralpp_factor_conversion():
             # output
             # neuralpp factor on same variables, probability tensor, indicating log space storage
             PyTorchTableFactor(
-                (
-                    IntegerVariable("A", 2),
-                    IntegerVariable("B", 3),
-                ),
+                (IntegerVariable("A", 2), IntegerVariable("B", 3),),
                 torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5, 0.6]).reshape(2, 3),
                 log_space=True,
             ),
@@ -76,9 +73,7 @@ def test_bm_neuralpp_factor_conversion():
             # output
             # neuralpp factor on same variables, probability tensor, indicating log space storage
             PyTorchTableFactor(
-                (IntegerVariable("A", 2),),
-                torch.tensor([0.1, 0.9]),
-                log_space=True,
+                (IntegerVariable("A", 2),), torch.tensor([0.1, 0.9]), log_space=True,
             ),
         ),
     ]

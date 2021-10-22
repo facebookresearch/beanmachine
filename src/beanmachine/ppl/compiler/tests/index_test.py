@@ -71,8 +71,7 @@ class IndexTest(unittest.TestCase):
         self.maxDiff = None
 
         observed = BMGInference().to_dot(
-            [pos_real(), real(), neg_real(), prob(), natural()],
-            {},
+            [pos_real(), real(), neg_real(), prob(), natural()], {},
         )
         expected = """
 digraph "graph" {

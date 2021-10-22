@@ -118,9 +118,7 @@ class SingleSiteIAFConjugateTest(unittest.TestCase, AbstractConjugateTests):
             [],
         )
         self.normal_normal_conjugate_run(
-            iaf,
-            num_samples=200,
-            num_adaptive_samples=100,
+            iaf, num_samples=200, num_adaptive_samples=100,
         )
 
     @unittest.skip("Known to fail. Investigating in T77865889.")

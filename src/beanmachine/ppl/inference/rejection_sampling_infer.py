@@ -46,11 +46,7 @@ class RejectionSampling(AbstractMCInference, metaclass=ABCMeta):
                 self.queries_sample[query] = query_val
             else:
                 self.queries_sample[query] = torch.cat(
-                    [
-                        self.queries_sample[query],
-                        query_val,
-                    ],
-                    dim=0,
+                    [self.queries_sample[query], query_val,], dim=0,
                 )
         self.num_accepted_samples += 1
         self.attempts_per_sample = 0

@@ -68,11 +68,7 @@ if "CONDA_PREFIX" in os.environ:
 
 if sys.platform.startswith("linux"):
     INCLUDE_DIRS.extend(
-        [
-            "/usr/include",
-            "/usr/include/eigen3",
-            "/usr/include/x86_64-linux-gnu",
-        ]
+        ["/usr/include", "/usr/include/eigen3", "/usr/include/x86_64-linux-gnu",]
     )
 
 setup(

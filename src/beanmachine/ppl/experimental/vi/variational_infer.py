@@ -122,10 +122,7 @@ class MeanFieldVariationalInference(AbstractInference, metaclass=ABCMeta):
                     # samples x_{s,i} ~ q_t(x_s) i.e.
                     # ELBO ~= E_s log p(x_s, x_\s) / q(x_s)
                     #      ~= (1/N) \sum_i^N log p(x_{s,i}, x_\s) / q(x_{s,i})
-                    loss -= v_approx.elbo(
-                        _target_log_prob,
-                        num_elbo_mc_samples,
-                    )
+                    loss -= v_approx.elbo(_target_log_prob, num_elbo_mc_samples,)
 
                 if not torch.isnan(loss) and not torch.isinf(loss):
                     for rvid in latent_rvids:
@@ -210,18 +207,11 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
                 self.queries_ = list(model_to_guide_ids.keys())
                 self.observations_ = observations
                 self.initialize_world(
-                    False,
-                    model_to_guide_ids=model_to_guide_ids,
-                    params=params,
+                    False, model_to_guide_ids=model_to_guide_ids, params=params,
                 )
 
                 # optimizer = torch.optim.Adam(self.world_.params_.values(), lr=lr)
-                optimizer = BMMultiOptimizer(
-                    BMOptim(
-                        torch.optim.Adam,
-                        {"lr": lr},
-                    )
-                )
+                optimizer = BMMultiOptimizer(BMOptim(torch.optim.Adam, {"lr": lr},))
 
             for it in (
                 tqdm(iterable=range(num_iter), desc="Training iterations")
@@ -279,9 +269,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
 
         # sample world x ~ q_t
         self.initialize_world(
-            False,
-            model_to_guide_ids=model_to_guide_ids,
-            params=params,
+            False, model_to_guide_ids=model_to_guide_ids, params=params,
         )
 
         # TODO: add new `self.world_.params_` not already in optimizer
@@ -314,8 +302,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
                 # binary cross entropy, analytical ELBO
                 # TODO: more general enumeration
                 loss += nn.BCELoss()(
-                    v_approx.distribution.probs,
-                    node_var.distribution.probs,
+                    v_approx.distribution.probs, node_var.distribution.probs,
                 )
 
                 # TODO: downstream observation likelihoods p(obs | rvid)

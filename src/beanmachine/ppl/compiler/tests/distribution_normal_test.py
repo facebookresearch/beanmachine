@@ -74,9 +74,7 @@ class distributionNormalTest(unittest.TestCase):
             msg="Got wrong number of samples back from BMG inference",
         )
 
-    def test_distribution_normal_to_dot_cpp_python(
-        self,
-    ) -> None:
+    def test_distribution_normal_to_dot_cpp_python(self,) -> None:
         self.maxDiff = None
         observed = BMGInference().to_dot(queries, observations)
         expected = """

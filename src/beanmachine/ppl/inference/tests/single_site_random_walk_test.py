@@ -175,6 +175,10 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
     @unittest.skipIf(
         platform.system() == "Windows", reason="os.fork is not available on Windows"
     )
+    @unittest.skipIf(
+        torch.__version__.startswith("1.10."),
+        reason="torch.multiprocessing and our code do not currently work together for torch 1.10.*",
+    )
     def test_single_site_random_walk_parallel_full_support(self):
         model = self.RealSupportModel()
         mh = bm.SingleSiteRandomWalk()

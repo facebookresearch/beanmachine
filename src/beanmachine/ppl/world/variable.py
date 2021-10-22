@@ -125,9 +125,7 @@ class Variable:
         :returns: copy of self.
         """
         return dataclasses.replace(
-            self,
-            parent=self.parent.copy(),
-            children=self.children.copy(),
+            self, parent=self.parent.copy(), children=self.children.copy(),
         )
 
     def update_value(self, value: Tensor) -> None:

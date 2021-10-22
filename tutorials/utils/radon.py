@@ -195,11 +195,7 @@ def log_plot_comparison(data: pd.Series, nbins: int = 40):
     )
     density_tooltips = HoverTool(
         renderers=[density_glyph],
-        tooltips=[
-            ("Density", ""),
-            ("Count", "@y"),
-            (f"{data.name.title()}", "@x"),
-        ],
+        tooltips=[("Density", ""), ("Count", "@y"), (f"{data.name.title()}", "@x"),],
     )
     plot.add_tools(density_tooltips)
     histogram_source = ColumnDataSource(
@@ -256,11 +252,7 @@ def log_plot_comparison(data: pd.Series, nbins: int = 40):
     )
     log_density_tooltips = HoverTool(
         renderers=[log_density_glyph],
-        tooltips=[
-            ("Density", ""),
-            ("Count", "@y"),
-            (f"log({data.name})", "@x"),
-        ],
+        tooltips=[("Density", ""), ("Count", "@y"), (f"log({data.name})", "@x"),],
     )
     log_plot.add_tools(log_density_tooltips)
     log_histogram_source = ColumnDataSource(
@@ -356,47 +348,27 @@ def floor_plot(df):
     )
     radon_floor_tooltips = HoverTool(
         renderers=[radon_floor_glyph],
-        tooltips=[
-            ("County", "@county"),
-            ("log(radon)", "@y{0.000}"),
-        ],
+        tooltips=[("County", "@county"), ("log(radon)", "@y{0.000}"),],
     )
     radon_floor_plot.add_tools(radon_floor_tooltips)
     x = [-0.25, 0.25]
     y = [basement_floor_kde.support[np.argmax(basement_floor_kde.density)]] * 2
     radon_floor_plot.line(
-        y=y,
-        x=x,
-        line_color="steelblue",
-        line_dash="dashed",
-        line_width=4.0,
-        alpha=0.5,
+        y=y, x=x, line_color="steelblue", line_dash="dashed", line_width=4.0, alpha=0.5,
     )
     x = 0.25 * (basement_floor_kde.density / basement_floor_kde.density.max())
     radon_floor_plot.line(
-        y=basement_floor_kde.support,
-        x=x,
-        line_color="steelblue",
-        alpha=0.7,
+        y=basement_floor_kde.support, x=x, line_color="steelblue", alpha=0.7,
     )
     radon_floor_plot.line(
-        y=basement_floor_kde.support,
-        x=-x,
-        line_color="steelblue",
-        alpha=0.7,
+        y=basement_floor_kde.support, x=-x, line_color="steelblue", alpha=0.7,
     )
     x = 0.25 * (ground_floor_kde.density / ground_floor_kde.density.max())
     radon_floor_plot.line(
-        y=ground_floor_kde.support,
-        x=1 + x,
-        line_color="orange",
-        alpha=0.7,
+        y=ground_floor_kde.support, x=1 + x, line_color="orange", alpha=0.7,
     )
     radon_floor_plot.line(
-        y=ground_floor_kde.support,
-        x=1 - x,
-        line_color="orange",
-        alpha=0.7,
+        y=ground_floor_kde.support, x=1 - x, line_color="orange", alpha=0.7,
     )
     radon_floor_plot.line(
         y=[ground_floor_kde.support[np.argmax(ground_floor_kde.density)]] * 2,
@@ -437,10 +409,7 @@ def sample_of_priors():
         x_axis_type="log",
     )
     normal_plot = figure(
-        plot_width=500,
-        plot_height=500,
-        title="Normal priors",
-        x_range=[-10, 10],
+        plot_width=500, plot_height=500, title="Normal priors", x_range=[-10, 10],
     )
     colors = ["steelblue", "magenta", "black", "orange", "brown"]
 
@@ -580,10 +549,7 @@ def uranium(summary_df: DataFrame, df: DataFrame) -> Figure:
     )
     tooltips = HoverTool(
         renderers=[markers],
-        tooltips=[
-            ("County", "@county"),
-            ("Estimated α", "@y{0.000}"),
-        ],
+        tooltips=[("County", "@county"), ("Estimated α", "@y{0.000}"),],
     )
     plot.add_tools(tooltips)
     whiskers = Whisker(

@@ -94,13 +94,7 @@ class VariableTest(unittest.TestCase):
         self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
 
         var.update_fields(
-            val,
-            None,
-            TransformData(
-                TransformType.CUSTOM,
-                [transform],
-            ),
-            None,
+            val, None, TransformData(TransformType.CUSTOM, [transform],), None,
         )
         self.assertAlmostEqual(
             expected_unconstrained_sample.item(),
@@ -150,13 +144,7 @@ class VariableTest(unittest.TestCase):
         self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
 
         var.update_fields(
-            val,
-            None,
-            TransformData(
-                TransformType.CUSTOM,
-                [transform],
-            ),
-            None,
+            val, None, TransformData(TransformType.CUSTOM, [transform],), None,
         )
         self.assertAlmostEqual(
             expected_unconstrained_sample.item(),
@@ -206,10 +194,7 @@ class VariableTest(unittest.TestCase):
         self.assertAlmostEqual(expected_log_prob.item(), log_prob.item(), delta=0.01)
 
         var.update_fields(
-            val,
-            None,
-            TransformData(TransformType.CUSTOM, [transform]),
-            None,
+            val, None, TransformData(TransformType.CUSTOM, [transform]), None,
         )
         self.assertAlmostEqual(
             expected_unconstrained_sample.item(),

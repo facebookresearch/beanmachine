@@ -133,9 +133,7 @@ class tutorialRobustLinearRegresionTest(unittest.TestCase):
 
         self.assertTrue(True, msg="We just want to check this point is reached")
 
-    def test_tutorial_Robust_Linear_Regression_to_dot_cpp_python(
-        self,
-    ) -> None:
+    def test_tutorial_Robust_Linear_Regression_to_dot_cpp_python(self,) -> None:
         self.maxDiff = None
         ## Intermediate forms too large w devectorization
         # observed = BMGInference().to_dot(queries, observations)

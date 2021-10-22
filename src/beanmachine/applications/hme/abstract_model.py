@@ -345,9 +345,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         # relevant error messages will be raised by bmgraph if any
         return self.g.add_distribution(
-            prior_dist.dist_type,
-            prior_dist.sample_type.atomic_type,
-            param_list,
+            prior_dist.dist_type, prior_dist.sample_type.atomic_type, param_list,
         )
 
     def _generate_const_node(
@@ -376,9 +374,7 @@ class AbstractModel(object, metaclass=ABCMeta):
             )
 
     def _parse_re_prior_config(
-        self,
-        re_prior_config: PriorConfig,
-        re_key: str,
+        self, re_prior_config: PriorConfig, re_key: str,
     ) -> Tuple[int, Dict[str, int]]:  # (dist: int, param: dict)
         """Generates a BMGraph distribution node for the given random effect as well as hyper-prior samples of parameters within.
 
@@ -434,9 +430,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         return (
             self.g.add_distribution(
-                prior_dist.dist_type,
-                prior_dist.sample_type.atomic_type,
-                param_list,
+                prior_dist.dist_type, prior_dist.sample_type.atomic_type, param_list,
             ),
             hyper_param_queries,
         )
@@ -482,8 +476,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         # sigma ~ N+(0, 1)
         sigma = self.g.add_operator(
-            bmgraph.OperatorType.SAMPLE,
-            [self.halfnormal_prior],
+            bmgraph.OperatorType.SAMPLE, [self.halfnormal_prior],
         )
 
         # rho_prime ~ Beta(0.5, 0.5)
@@ -527,12 +520,7 @@ class AbstractModel(object, metaclass=ABCMeta):
                 self.g.add_constant(1.0),
                 self.g.add_operator(
                     bmgraph.OperatorType.NEGATE,
-                    [
-                        self.g.add_operator(
-                            bmgraph.OperatorType.MULTIPLY,
-                            [rho, rho],
-                        )
-                    ],
+                    [self.g.add_operator(bmgraph.OperatorType.MULTIPLY, [rho, rho],)],
                 ),
             ],
         )
@@ -555,8 +543,7 @@ class AbstractModel(object, metaclass=ABCMeta):
             [
                 self.zero,
                 self.g.add_operator(
-                    bmgraph.OperatorType.MULTIPLY,
-                    [one_minus_rho2_sqrt_inv, sigma],
+                    bmgraph.OperatorType.MULTIPLY, [one_minus_rho2_sqrt_inv, sigma],
                 ),
             ],
         )
@@ -600,8 +587,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         # sigma ~ N+(0, 1)
         sigma = self.g.add_operator(
-            bmgraph.OperatorType.SAMPLE,
-            [self.halfnormal_prior],
+            bmgraph.OperatorType.SAMPLE, [self.halfnormal_prior],
         )
 
         hyper_param_queries = {"sigma": sigma}
@@ -611,9 +597,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         # alpha_0 ~ Flat()
         initial_cat_prior = self.g.add_distribution(
-            bmgraph.DistributionType.FLAT,
-            bmgraph.AtomicType.REAL,
-            [],
+            bmgraph.DistributionType.FLAT, bmgraph.AtomicType.REAL, [],
         )
 
         cat_samples[category_order[0]] = self.g.add_operator(
@@ -625,10 +609,7 @@ class AbstractModel(object, metaclass=ABCMeta):
             next_cat_prior = self.g.add_distribution(
                 bmgraph.DistributionType.NORMAL,
                 bmgraph.AtomicType.REAL,
-                [
-                    cat_samples[category_order[idx - 1]],
-                    sigma,
-                ],
+                [cat_samples[category_order[idx - 1]], sigma,],
             )
             cat_samples[category_order[idx]] = self.g.add_operator(
                 bmgraph.OperatorType.SAMPLE, [next_cat_prior]
@@ -636,8 +617,7 @@ class AbstractModel(object, metaclass=ABCMeta):
 
         # alpha_{J-1} ~ N(-sum_{j=0}^{J-2} alpha_{j}, 0.01 * J)
         cat_samples_sum_except_last = self.g.add_operator(
-            bmgraph.OperatorType.ADD,
-            list(cat_samples.values()),
+            bmgraph.OperatorType.ADD, list(cat_samples.values()),
         )
 
         SUM_TO_ZERO_TOLERANCE = 0.01
@@ -646,8 +626,7 @@ class AbstractModel(object, metaclass=ABCMeta):
             bmgraph.AtomicType.REAL,
             [
                 self.g.add_operator(
-                    bmgraph.OperatorType.NEGATE,
-                    [cat_samples_sum_except_last],
+                    bmgraph.OperatorType.NEGATE, [cat_samples_sum_except_last],
                 ),
                 self.g.add_constant_pos_real(SUM_TO_ZERO_TOLERANCE * J),
             ],

@@ -309,12 +309,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_beta_binomial_moments()
         self._compare_run(
-            moments,
-            mh,
-            num_chains,
-            num_samples,
-            random_seed,
-            num_adaptive_samples,
+            moments, mh, num_chains, num_samples, random_seed, num_adaptive_samples,
         )
 
     def gamma_gamma_conjugate_run(
@@ -335,12 +330,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_gamma_gamma_moments()
         self._compare_run(
-            moments,
-            mh,
-            num_chains,
-            num_samples,
-            random_seed,
-            num_adaptive_samples,
+            moments, mh, num_chains, num_samples, random_seed, num_adaptive_samples,
         )
 
     def gamma_normal_conjugate_run(
@@ -361,12 +351,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_gamma_normal_moments()
         self._compare_run(
-            moments,
-            mh,
-            num_chains,
-            num_samples,
-            random_seed,
-            num_adaptive_samples,
+            moments, mh, num_chains, num_samples, random_seed, num_adaptive_samples,
         )
 
     def normal_normal_conjugate_run(
@@ -387,12 +372,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_normal_normal_moments()
         self._compare_run(
-            moments,
-            mh,
-            num_chains,
-            num_samples,
-            random_seed,
-            num_adaptive_samples,
+            moments, mh, num_chains, num_samples, random_seed, num_adaptive_samples,
         )
 
     def dirichlet_categorical_conjugate_run(
@@ -413,12 +393,7 @@ class AbstractConjugateTests(metaclass=ABCMeta):
         """
         moments = self.compute_dirichlet_categorical_moments()
         self._compare_run(
-            moments,
-            mh,
-            num_chains,
-            num_samples,
-            random_seed,
-            num_adaptive_samples,
+            moments, mh, num_chains, num_samples, random_seed, num_adaptive_samples,
         )
 
     @abstractmethod

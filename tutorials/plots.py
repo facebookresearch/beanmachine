@@ -170,12 +170,7 @@ def scatter_plot(
     # Create the plot.
     plot = figure(**fig_kwargs)
 
-    glyph = scatter_plot.circle(
-        x="x",
-        y="y",
-        source=plot_source,
-        **plt_kwargs,
-    )
+    glyph = scatter_plot.circle(x="x", y="y", source=plot_source, **plt_kwargs,)
     if tooltips is not None:
         tips = HoverTool(renderers=[glyph], tooltips=tooltips)
         plot.add_tools(tips)
@@ -218,18 +213,11 @@ def line_plot(
 
     for i, plot_source in enumerate(plot_sources):
         locals()[f"glyph_{i}"] = plot.line(
-            x="x",
-            y="y",
-            source=plot_source,
-            color=colors[i],
-            legend_label=labels[i],
+            x="x", y="y", source=plot_source, color=colors[i], legend_label=labels[i],
         )
         if tooltips:
             plot.add_tools(
-                HoverTool(
-                    renderers=[locals()[f"glyph_{i}"]],
-                    tooltips=tooltips[i],
-                )
+                HoverTool(renderers=[locals()[f"glyph_{i}"]], tooltips=tooltips[i],)
             )
 
     # Style the plot.

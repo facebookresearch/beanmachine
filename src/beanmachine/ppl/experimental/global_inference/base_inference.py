@@ -61,18 +61,12 @@ class BaseInference(metaclass=ABCMeta):
         chain_results = []
         for _ in range(num_chains):
             sampler = self.sampler(
-                queries,
-                observations,
-                num_samples,
-                num_adaptive_samples,
-                initialize_fn,
+                queries, observations, num_samples, num_adaptive_samples, initialize_fn,
             )
             samples = {query: [] for query in queries}
             # Main inference loop
             for world in tqdm(
-                sampler,
-                desc="Samples collected",
-                disable=verbose == VerboseLevel.OFF,
+                sampler, desc="Samples collected", disable=verbose == VerboseLevel.OFF,
             ):
                 # Extract samples
                 for query in queries:
