@@ -6,4 +6,4 @@ COPY . /project
 WORKDIR /project
 RUN sudo pip install --use-feature=in-tree-build .
 
-ENTRYPOINT ["python"]
+CMD ["python"]
