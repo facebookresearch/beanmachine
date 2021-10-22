@@ -3481,3 +3481,41 @@ def f(x):
     a4[a8:a12:a16] = a20
        """
         self.check_rewrite(source, expected)
+
+    def test_rewrite_super(self) -> None:
+        # A call to super() with no arguments is very special in Python; it is a syntactic
+        # sugar for a call to super(__class__, self), where self is the leftmost parameter
+        # and __class__ is a magical outer variable automatically initialized to the
+        # declaring class.  We will handle "super()" calls specially later; we must
+        # not rewrite them.  They must stay just an ordinary call to "super()"
+        # rather than being reduced to the standard form
+        #
+        # a = []
+        # b = super(*a)
+        #
+        source = """
+class D(B):
+    def f(self):
+        super(D, self).g()
+        super().h()
+"""
+
+        expected = """
+class D(B):
+
+    def f(self):
+        a12 = [D]
+        a13 = [self]
+        r11 = a12 + a13
+        a5 = super(*r11)
+        a3 = a5.g
+        r7 = []
+        r9 = {}
+        u1 = a3(*r7, **r9)
+        a6 = super()
+        a4 = a6.h
+        r8 = []
+        r10 = {}
+        u2 = a4(*r8, **r10)
+        """
+        self.check_rewrite(source, expected)
