@@ -69,7 +69,7 @@ class BetaPriorFixer(ProblemFixerBase):
         pass
 
 
-class BetaBernoulliConjguateFixer(BetaPriorFixer):
+class BetaBernoulliConjugateFixer(BetaPriorFixer):
     """This fixer transforms graphs with Bernoulli likelihood and Beta prior.
     Since this is a conjugate pair, we analytically update the prior
     parameters Beta(alpha, beta) using observations to get the posterior
@@ -157,7 +157,7 @@ class BetaBernoulliConjguateFixer(BetaPriorFixer):
         return n
 
 
-class BetaBinomialConjguateFixer(BetaPriorFixer):
+class BetaBinomialConjugateFixer(BetaPriorFixer):
     """This fixer transforms graphs with Binomial likelihood and Beta prior.
     Since this is a conjugate pair, we analytically update the prior
     parameters Beta(alpha, beta) using observations to get the posterior

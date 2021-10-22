@@ -7,8 +7,8 @@ from beanmachine.ppl.compiler.bm_graph_builder import BMGraphBuilder
 from beanmachine.ppl.compiler.error_report import ErrorReport
 from beanmachine.ppl.compiler.fix_additions import AdditionFixer
 from beanmachine.ppl.compiler.fix_beta_conjugate_prior import (
-    BetaBernoulliConjguateFixer,
-    BetaBinomialConjguateFixer,
+    BetaBernoulliConjugateFixer,
+    BetaBinomialConjugateFixer,
 )
 from beanmachine.ppl.compiler.fix_bool_arithmetic import BoolArithmeticFixer
 from beanmachine.ppl.compiler.fix_bool_comparisons import BoolComparisonFixer
@@ -54,16 +54,16 @@ _standard_fixer_types: List[Type] = [
     MultiaryAdditionFixer,
     LogSumExpFixer,
     MultiaryMultiplicationFixer,
-    BetaBernoulliConjguateFixer,
-    BetaBinomialConjguateFixer,
+    BetaBernoulliConjugateFixer,
+    BetaBinomialConjugateFixer,
     NormalNormalConjugateFixer,
     RequirementsFixer,
     ObservationsFixer,
 ]
 
 default_skip_optimizations: Set[str] = {
-    "BetaBernoulliConjguateFixer",
-    "BetaBinomialConjguateFixer",
+    "BetaBernoulliConjugateFixer",
+    "BetaBinomialConjugateFixer",
     "NormalNormalConjugateFixer",
 }
 
