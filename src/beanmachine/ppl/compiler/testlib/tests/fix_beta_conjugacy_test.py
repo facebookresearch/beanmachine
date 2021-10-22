@@ -13,7 +13,6 @@ from beanmachine.ppl.compiler.testlib.conjugate_models import (
     BetaBernoulliScaleHyperParameters,
 )
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from parameterized import parameterized, parameterized_class
 
 
 _alpha = 2.0

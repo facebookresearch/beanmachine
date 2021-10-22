@@ -2,7 +2,6 @@
 """End-to-end compiler test for Bayesian Meta-Analysis model"""
 
 import platform
-import sys
 import unittest
 
 import beanmachine.ppl as bm
