@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import platform
 import unittest
 
 import beanmachine.ppl as bm
@@ -171,6 +172,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         """
         self.assertIn(False, [0 == pred for pred in predictions])
 
+    @unittest.skipIf(
+        platform.system() == "Windows", reason="os.fork is not available on Windows"
+    )
     def test_single_site_random_walk_parallel_full_support(self):
         model = self.RealSupportModel()
         mh = bm.SingleSiteRandomWalk()

@@ -73,7 +73,7 @@ class TestNMC(unittest.TestCase):
             g.observe(treatment_mean, treatment_mean_value)
         g.query(overall_mean)
         g.query(overall_std)
-        means = g.infer_mean(1000, graph.InferenceType.NMC)
+        means = g.infer_mean(3000, graph.InferenceType.NMC)
         for idx, (mean, std) in enumerate(EXPECTED):
             self.assertTrue(
                 abs(means[idx] - mean) < std * 0.5,

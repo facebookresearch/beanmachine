@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import logging
+import platform
 import random
 from abc import ABCMeta, abstractmethod
 from enum import Enum
@@ -243,6 +244,11 @@ class AbstractMCInference(AbstractInference, metaclass=ABCMeta):
         self.queries_ = queries
         self.observations_ = observations
         if num_chains > 1 and run_in_parallel:
+            if platform.system() == "Windows":
+                raise RuntimeError(
+                    "Running inference in parallel is not currently support on Windows"
+                )
+
             ctx = mp.get_context("fork")
             manager = ctx.Manager()
             q = manager.Queue()
