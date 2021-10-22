@@ -1,9 +1,9 @@
-FROM circleci/python:3.7
+FROM pytorch/pytorch:1.9.0-cuda11.1-cudnn8-runtime
 
-RUN sudo apt-get update && sudo apt-get install libboost-dev libeigen3-dev
+RUN apt-get update && apt-get install -y libboost-dev libeigen3-dev
 COPY . /project
 
 WORKDIR /project
-RUN sudo pip install --use-feature=in-tree-build .
+RUN pip install --use-feature=in-tree-build .
 
 CMD ["python"]
