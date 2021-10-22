@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """End-to-end compiler test for Bayesian Meta-Analysis model"""
 
+import platform
 import sys
 import unittest
 
@@ -93,8 +94,8 @@ def result(experiment):
 
 class BMATest(unittest.TestCase):
     @unittest.skipIf(
-        sys.platform.startswith("darwin"),
-        reason="Numerical behavior seems to be different on MacOS",
+        platform.system() in ["Darwin", "Windows"],
+        reason="Numerical behavior seems to be different on MacOS/Windows",
     )
     def test_bma_inference(self) -> None:
         queries = [true_value(), bias_size(0), bias_size(1), bias_size(2)]
