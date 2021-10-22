@@ -1182,12 +1182,6 @@ std::vector<uint> Graph::get_parent_ids(
   return parent_ids;
 }
 
-std::vector<std::unique_ptr<Node>> Graph::nodes{};
-
-std::set<uint> Graph::observed{};
-
-std::vector<uint> Graph::queries{};
-
 Graph::Graph(const Graph& other) {
   // This copy constructor does not copy the inference results (if available)
   // from the source graph.

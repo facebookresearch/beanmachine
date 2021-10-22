@@ -671,7 +671,7 @@ struct Graph {
   std::vector<double>& get_elbo() {
     return elbo_vals;
   }
-  static std::set<uint> compute_support();
+  std::set<uint> compute_support();
 
   /*
   Computes the _affected nodes_ of a root node.
@@ -831,12 +831,12 @@ struct Graph {
       InferConfig infer_config);
 
   uint thread_index;
-  static std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
-  static std::set<uint> observed; // set of observed nodes
+  std::vector<std::unique_ptr<Node>> nodes; // all nodes in topological order
+  std::set<uint> observed; // set of observed nodes
   // we store redundant information in queries and queried. The latter is a
   // cache of the queried nodes while the former gives the order of nodes
   // queried
-  static std::vector<uint> queries; // list of queried node ids
+  std::vector<uint> queries; // list of queried node ids
   std::vector<std::vector<NodeValue>> samples;
   std::vector<std::vector<std::vector<NodeValue>>> samples_allchains;
   std::vector<double> means;
