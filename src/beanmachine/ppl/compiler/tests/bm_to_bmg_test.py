@@ -2,7 +2,9 @@
 """Tests for bm_to_bmg.py"""
 import unittest
 
+import astor
 import beanmachine.ppl as bm
+from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_ast
 from beanmachine.ppl.inference import BMGInference
 from torch.distributions import Normal
 
@@ -60,11 +62,30 @@ class CompilerTest(unittest.TestCase):
             # This exception is expected.
             self.assertEqual("super(): __class__ cell not found", str(e))
 
+        d = DerivedModel()
         try:
-            d = DerivedModel()
             BMGInference().to_dot([d.foo()], {})
         except RuntimeError as e:
             # This exception is wrong.
             self.assertEqual("super(): __class__ cell not found", str(e))
 
-        # TODO: Fix the bug.
+        # What code do we actually generate for this method? We can call
+        # into this internal method to get the transformed code:
+
+        bmgast, _ = _bm_function_to_bmg_ast(d.foo, "foo_helper")
+        observed = astor.to_source(bmgast)
+        expected = """
+def foo_helper(bmg):
+
+    def foo(self):
+        a5 = super()
+        a3 = bmg.handle_dot_get(a5, 'foo')
+        r6 = []
+        r7 = {}
+        a2 = bmg.handle_function(a3, r6, r7)
+        a4 = 2.0
+        r1 = bmg.handle_multiplication(a2, a4)
+        return r1
+    return foo
+"""
+        self.assertEqual(observed.strip(), expected.strip())
