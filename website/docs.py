@@ -96,7 +96,6 @@ def _documentable_modules(module_hierarchy: Mapping[str, Any] = _module_hierarch
     return results
 
 
-@lru_cache(maxsize=1)
 def _documentable_entities(documentable_modules: Mapping[types.ModuleType, Sequence[Tuple[str, Any]]] = _documentable_modules()) -> Tuple[Sequence[str], Dict[str, Any]]:
     """
     Returns a list of (str, entity) pairs for entities that are documentable
