@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 addopts = "-ra --import-mode=importlib --ignore-glob=tutorials/*.py"
 filterwarnings = [
     # By default, all warnings are treated as errors
-    #"error",
+    "error",
     # patsy is a statsmodels dependency which currently triggers a DeprecationWarning
     "default::DeprecationWarning:patsy.constraint",
     # pytorch warns about vmap usage since it's experimental
