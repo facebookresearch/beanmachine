@@ -7,10 +7,19 @@
  * @format
  */
 
+var apiSidebar = require('./api.sidebar.js')
+
 module.exports = {
-  someSidebar: {
-    Documentation: ['toc', 'overview/introduction/introduction',
-    'overview/quick_start/quick_start', 'overview/modeling/modeling',
-    'overview/inference/inference', 'overview/analysis/analysis', 'overview/beanstalk/beanstalk', 'contributing']
+  usersSidebar: {
+    Documentation: [
+      'users/toc',
+      'users/overview/introduction/introduction',
+      'users/overview/quick_start/quick_start',
+      'users/overview/modeling/modeling',
+      'users/overview/inference/inference',
+      'users/overview/analysis/analysis',
+      'users/overview/beanstalk/beanstalk',
+      'users/contributing']
   },
+  apiSidebar: apiSidebar,
 };

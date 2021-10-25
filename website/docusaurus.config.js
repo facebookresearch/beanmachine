@@ -7,8 +7,8 @@
  * @format
  */
 
-const remarkMath = require('remark-math');
-const rehypeKatex = require('rehype-katex');
+const math = require('remark-math');
+const katex = require('rehype-katex');
 const {fbContent} = require('internaldocs-fb-helpers');
 
 module.exports = {
@@ -18,6 +18,8 @@ module.exports = {
   url: 'https://home.fburl.com/ppl', // Change to path for release.
   baseUrl: '/', // for devserver preview use '/~brianjo/beanmachine/'
   favicon: 'img/favicon.ico',
+  onBrokenLinks: 'throw',
+  onBrokenMarkdownLinks: 'warn',
   organizationName: 'facebook', // Usually your GitHub org/user name.
   projectName: 'beanmachine', // Usually your repo name.
   themeConfig: {
@@ -29,9 +31,15 @@ module.exports = {
       },
       items: [
         {
-          to: 'docs/toc',
-          // activeBasePath: '../',
-          label: 'Docs',
+          to: 'users',
+          activeBasePath: 'users',
+          label: 'Users',
+          position: 'left',
+        },
+        {
+          to: 'api',
+          activeBasePath: 'api',
+          label: 'API',
           position: 'left',
         },
         // {href: '/api/index.html', label: 'API', position: 'left'},
@@ -127,26 +135,17 @@ module.exports = {
       require.resolve('docusaurus-plugin-internaldocs-fb/docusaurus-preset'),
       {
         docs: {
-          // It is recommended to set document id as docs home page (`docs/` path).
-          path: '../docs/',
-          homePageId: '/docs/toc',
           sidebarPath: require.resolve('./sidebars.js'),
+          routeBasePath: '/',
           // Please change this to your repo.
           editUrl: fbContent({
             internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/',
             external: 'https://github.com/facebook/docusaurus/edit/master/website/'
           }),
-          remarkPlugins: [remarkMath],
-          rehypePlugins: [rehypeKatex],
+          remarkPlugins: [math],
+          rehypePlugins: [katex],
         },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          editUrl: fbContent({
-            internal: 'https://www.internalfb.com/intern/diffusion/FBS/browse/master/fbcode/beanmachine/website/blog/',
-            external: 'https://github.com/facebook/docusaurus/edit/master/website/blog/'
-          })
-        },
+        blog: false,
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },

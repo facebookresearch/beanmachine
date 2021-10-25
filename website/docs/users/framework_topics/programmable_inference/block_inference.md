@@ -2,7 +2,7 @@
 
 Single-site inference in Bean Machine is a powerful abstraction that allows the inference engine to separately sample values for random variables in your model.
 
-While single-site inference is efficient for many types of models, it may not be suitable for models with highly correlated random variables. To understand this better, let's walk through an example. Let's say we have two random variables $X$, $Y$ whose values are $x$ and $y$, and we'd like to move these values to $x'$ and $y'$. Using [single-site Metropolis-Hastings](framework_topics/inference/ancestral_metropolis_hastings.md), we will move from $(x, y)$ to $(x', y')$ with one of these series of updates:
+While single-site inference is efficient for many types of models, it may not be suitable for models with highly correlated random variables. To understand this better, let's walk through an example. Let's say we have two random variables $X$, $Y$ whose values are $x$ and $y$, and we'd like to move these values to $x'$ and $y'$. Using [single-site Metropolis-Hastings](users/framework_topics/inference/ancestral_metropolis_hastings.md), we will move from $(x, y)$ to $(x', y')$ with one of these series of updates:
 
 1. $(x, y) \to (x', y) \to (x', y')$
 2. $(x, y) \to (x, y') \to (x', y')$

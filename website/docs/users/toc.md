@@ -2,6 +2,7 @@
 id: toc
 title: Table of Contents
 sidebar_label: TOC
+slug: /users
 ---
 * [Landing page](landing_page/landing_page.md)
 * [Bean Machine advantages](landing_page/bean_machine_advantages.md)
