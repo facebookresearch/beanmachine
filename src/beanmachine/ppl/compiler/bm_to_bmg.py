@@ -362,15 +362,14 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
 
     helper_name = f.__name__ + "_helper"
     a, source = _bm_function_to_bmg_ast(f, helper_name)
-    filename = "BMGJIT"
+    filename = "<BMGJIT>"
 
     try:
         c = compile(a, filename, "exec")
     except Exception as ex:
         raise LiftedCompilationError(source, a, ex) from ex
 
-    mods = sys.modules.copy()
-    if f.__module__ not in mods:
+    if f.__module__ not in sys.modules:
         msg = (
             f"module {f.__module__} for function {f.__name__} not "
             + f"found in sys.modules.\n{str(sys.modules.keys())}"
