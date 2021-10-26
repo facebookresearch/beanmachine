@@ -217,7 +217,7 @@ class JITTest(unittest.TestCase):
         bmgast, _ = _bm_function_to_bmg_ast(f, "f_helper")
         observed = astor.to_source(bmgast)
         expected = """
-def f_helper(bmg):
+def f_helper(bmg, __class__):
 
     def f(x):
         a2 = bmg.handle_dot_get(math, 'exp')
@@ -231,7 +231,7 @@ def f_helper(bmg):
         bmgast, _ = _bm_function_to_bmg_ast(norm, "norm_helper")
         observed = astor.to_source(bmgast)
         expected = """
-def norm_helper(bmg):
+def norm_helper(bmg, __class__):
 
     def norm(n):
         global counter
