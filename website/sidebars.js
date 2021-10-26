@@ -9,16 +9,16 @@
 
 module.exports = {
   someSidebar: {
-    Overview: [
+    Introduction: [
       'overview/introduction/introduction',
+      'overview/installation/installation',
       'overview/quick_start/quick_start',
       'overview/modeling/modeling',
       'overview/inference/inference',
       'overview/analysis/analysis',
     ],
     Tutorials: ['overview/tutorials/tutorials'],
-    Packages: ['overview/packages/packages'],
-    Framework: [
+    Design: [
       'framework_topics/inference/inference', // Throwing this at top, even though it's embedded below, because I believe it belongs up here (??)
       {
         // This whole section needs to be edited (heavily) and probably organized formally, rather than auto-generated
@@ -28,7 +28,9 @@ module.exports = {
     ],
     API: [], // #TODO: Brian Johnson will populate this!
     Advanced: ['overview/bmg/bmg', 'overview/beanstalk/beanstalk'],
+    Packages: ['overview/packages/packages'],
     Contributing: ['contributing'],
+    Facebook: ['overview/facebook/facebook'],
     'Sitemap (formerly TOC)': ['toc'], // Once everyone is used to this being here, we'll remove the "(formerly TOC)" part
   },
 };
