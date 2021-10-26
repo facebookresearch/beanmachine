@@ -19,9 +19,9 @@ _alpha = 2.0
 _beta = 2.0
 
 test_models = [
-    (BetaBernoulliBasicModel, "BetaBernoulliConjguateFixer"),
-    (BetaBernoulliOpsModel, "BetaBernoulliConjguateFixer"),
-    (BetaBernoulliScaleHyperParameters, "BetaBernoulliConjguateFixer"),
+    (BetaBernoulliBasicModel, "BetaBernoulliConjugateFixer"),
+    (BetaBernoulliOpsModel, "BetaBernoulliConjugateFixer"),
+    (BetaBernoulliScaleHyperParameters, "BetaBernoulliConjugateFixer"),
 ]
 
 

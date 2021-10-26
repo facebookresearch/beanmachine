@@ -61,8 +61,8 @@ class BinaryVsMultiaryAdditionPerformanceTest(unittest.TestCase):
         random.seed(seed)
 
         skip_optimizations = {
-            "BetaBernoulliConjguateFixer",
-            "BetaBinomialConjguateFixer",
+            "BetaBernoulliConjugateFixer",
+            "BetaBinomialConjugateFixer",
             "NormalNormalConjugateFixer",
         }
         report_w_optimization = get_report(skip_optimizations)
@@ -129,8 +129,8 @@ infer:(1) -- ms
 
         skip_optimizations = {
             "MultiaryAdditionFixer",
-            "BetaBernoulliConjguateFixer",
-            "BetaBinomialConjguateFixer",
+            "BetaBernoulliConjugateFixer",
+            "BetaBinomialConjugateFixer",
             "NormalNormalConjugateFixer",
         }
         report_wo_optimization = get_report(skip_optimizations)
