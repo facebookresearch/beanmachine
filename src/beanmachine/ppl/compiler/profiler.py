@@ -44,15 +44,23 @@ class ProfileReport:
     def _to_string(self, indent: str) -> str:
         s = ""
         attributed = 0
-        # TODO: Sort by total time of children
+        # TODO: Sort by total time of children - WARNING: Important not to sort by
+        #       runtime, as this leaks timing non-determinsm into report structure.
         # TODO: compute unattributed via property
         for key, value in self.children.items():
             s += f"{indent}{key}:({value.calls}) {value.total_time // 1000000} ms\n"
             s += value._to_string(indent + "  ")
             attributed += value.total_time
-        if len(self.children) > 0 and self.total_time > 0:
+        # Commenting the "anded" part out to limit leakage of timing non-determinsim
+        # TODO: There are two shortcomings to the current solution. First, it prints
+        # a somewhat confusing final "unattributed" label that (currently) represents
+        # the total time. Second, even in other positions, it is not ideal to print
+        # only the absolute value of the unattributed time, as the reader is likely
+        # to assume a direction for the mismatch. A better way to do this would be
+        # change the sanitizing printer to fix this.
+        if len(self.children) > 0:  # and self.total_time > 0:
             unattributed = self.total_time - attributed
-            s += f"{indent}unattributed: {unattributed // 1000000} ms\n"
+            s += f"{indent}unattributed: {abs(unattributed // 1000000)} ms\n"
         return s
 
     def __str__(self) -> str:

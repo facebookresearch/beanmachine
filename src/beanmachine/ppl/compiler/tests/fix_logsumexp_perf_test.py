@@ -98,6 +98,7 @@ bmg_profiler_report: nmc_infer:(1) -- ms
     collect_sample:(1000) -- ms
     unattributed: -- ms
   unattributed: -- ms
+unattributed: -- ms
 
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
@@ -120,6 +121,7 @@ infer:(1) -- ms
   transpose_samples:(1) -- ms
   build_mcsamples:(1) -- ms
   unattributed: -- ms
+unattributed: -- ms
 """
 
         self.assertEqual(
@@ -166,6 +168,7 @@ bmg_profiler_report: nmc_infer:(1) -- ms
     collect_sample:(1000) -- ms
     unattributed: -- ms
   unattributed: -- ms
+unattributed: -- ms
 
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
@@ -187,6 +190,7 @@ infer:(1) -- ms
   transpose_samples:(1) -- ms
   build_mcsamples:(1) -- ms
   unattributed: -- ms
+unattributed: -- ms
 """
 
         self.assertEqual(
