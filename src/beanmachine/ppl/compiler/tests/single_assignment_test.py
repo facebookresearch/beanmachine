@@ -3519,3 +3519,17 @@ class D(B):
         u2 = a4(*r8, **r10)
         """
         self.check_rewrite(source, expected)
+
+    def test_matrix_multiply_single_assignment(self) -> None:
+        source = """
+def f(x):
+    return x @ (y * z)
+"""
+
+        expected = """
+def f(x):
+    a2 = y * z
+    r1 = x @ a2
+    return r1
+"""
+        self.check_rewrite(source, expected)
