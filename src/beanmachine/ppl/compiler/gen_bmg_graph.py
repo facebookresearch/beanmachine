@@ -61,8 +61,6 @@ class GeneratedGraph:
         graph_id = self.graph.add_operator(operator_type(node), self._inputs(node))
         self.node_to_graph_id[node] = graph_id
 
-    # pyre-fixme[30]: Pyre gave up inferring some types - function `_add_constant`
-    #  was too complex.
     def _add_constant(self, node: bn.ConstantNode) -> None:  # noqa
         t = type(node)
         v = node.value
