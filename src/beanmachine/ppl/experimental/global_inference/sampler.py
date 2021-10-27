@@ -45,7 +45,7 @@ class Sampler(Generator[SimpleWorld, Optional[SimpleWorld], None]):
             raise StopIteration
 
         proposers = self.kernel.get_proposers(
-            world, self._num_adaptive_sample_remaining
+            world, world.latent_nodes, self._num_adaptive_sample_remaining
         )
         random.shuffle(proposers)
 

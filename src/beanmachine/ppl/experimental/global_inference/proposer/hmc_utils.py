@@ -1,6 +1,6 @@
 import math
 import warnings
-from typing import Union, cast, Dict
+from typing import Union, cast, Dict, Set
 
 import torch
 import torch.distributions as dist
@@ -227,9 +227,9 @@ class RealSpaceTransform(DictTransform):
     """Transofrm a dictionary of Tensor values from constrained space to unconstrained
     (real) space."""
 
-    def __init__(self, world: SimpleWorld):
+    def __init__(self, world: SimpleWorld, target_rvs: Set[RVIdentifier]):
         transforms = {}
-        for node in world.latent_nodes:
+        for node in target_rvs:
             transforms[node] = get_default_transforms(
                 world.get_variable(node).distribution
             )

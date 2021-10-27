@@ -25,7 +25,7 @@ def bar():
 def nuts():
     world = SimpleWorld(observations={bar(): torch.tensor(0.8)})
     world.call(bar())
-    nuts_proposer = NUTSProposer(world, 10)
+    nuts_proposer = NUTSProposer(world, world.latent_nodes, 10)
     return nuts_proposer
 
 

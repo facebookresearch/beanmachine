@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 
 from beanmachine.ppl.experimental.global_inference.base_inference import BaseInference
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
@@ -11,6 +11,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer import
     NUTSProposer,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 class GlobalHamiltonianMonteCarlo(BaseInference):
@@ -30,11 +31,15 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         self._proposer = None
 
     def get_proposers(
-        self, world: SimpleWorld, num_adaptive_sample: int
+        self,
+        world: SimpleWorld,
+        target_rvs: Set[RVIdentifier],
+        num_adaptive_sample: int,
     ) -> List[BaseProposer]:
         if self._proposer is None:
             self._proposer = HMCProposer(
                 world,
+                target_rvs,
                 num_adaptive_sample,
                 self.trajectory_length,
                 self.initial_step_size,
@@ -66,11 +71,15 @@ class GlobalNoUTurnSampler(BaseInference):
         self._proposer = None
 
     def get_proposers(
-        self, world: SimpleWorld, num_adaptive_sample: int
+        self,
+        world: SimpleWorld,
+        target_rvs: Set[RVIdentifier],
+        num_adaptive_sample: int,
     ) -> List[BaseProposer]:
         if self._proposer is None:
             self._proposer = NUTSProposer(
                 world,
+                target_rvs,
                 num_adaptive_sample,
                 self.max_tree_depth,
                 self.max_delta_energy,
