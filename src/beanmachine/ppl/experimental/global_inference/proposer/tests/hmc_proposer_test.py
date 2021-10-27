@@ -27,7 +27,7 @@ def world():
 
 @pytest.fixture
 def hmc(world):
-    hmc_proposer = HMCProposer(world, 10, trajectory_length=1.0)
+    hmc_proposer = HMCProposer(world, world.latent_nodes, 10, trajectory_length=1.0)
     return hmc_proposer
 
 

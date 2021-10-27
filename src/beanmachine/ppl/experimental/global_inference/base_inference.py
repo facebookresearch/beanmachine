@@ -1,6 +1,6 @@
 import copy
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Set
 
 import torch
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
@@ -41,7 +41,10 @@ class BaseInference(metaclass=ABCMeta):
 
     @abstractmethod
     def get_proposers(
-        self, world: SimpleWorld, num_adaptive_sample: int
+        self,
+        world: SimpleWorld,
+        target_rvs: Set[RVIdentifier],
+        num_adaptive_sample: int,
     ) -> List[BaseProposer]:
         raise NotImplementedError
 

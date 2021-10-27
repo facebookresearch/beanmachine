@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Set
 
 import torch
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
@@ -8,6 +8,7 @@ from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
     SimpleWorld,
 )
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 class _TreeNode(NamedTuple):
@@ -57,6 +58,7 @@ class NUTSProposer(HMCProposer):
     def __init__(
         self,
         initial_world: SimpleWorld,
+        target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
         max_tree_depth: int = 10,
         max_delta_energy: float = 1000.0,
@@ -69,6 +71,7 @@ class NUTSProposer(HMCProposer):
         # note that trajectory_length is not used in NUTS
         super().__init__(
             initial_world,
+            target_rvs,
             num_adaptive_sample,
             trajectory_length=0.0,
             initial_step_size=initial_step_size,
@@ -247,7 +250,7 @@ class NUTSProposer(HMCProposer):
             # re-compute cached values since world was modified by other sources
             self.world = world
             self._positions = self._to_unconstrained(
-                {node: world[node] for node in world.latent_nodes}
+                {node: world[node] for node in self._target_rvs}
             )
             self._pe, self._pe_grad = self._potential_grads(self._positions)
 
