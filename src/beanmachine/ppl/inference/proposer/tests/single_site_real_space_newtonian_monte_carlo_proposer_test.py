@@ -3,6 +3,7 @@ import unittest
 
 import beanmachine.ppl as bm
 import torch
+import torch.autograd
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
@@ -245,15 +246,14 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             1 / (1 + (-1 * (theta_0_value + theta_1_value * x_1_value)).exp())
         ).log()
 
-        score.backward(create_graph=True)
-        expected_first_gradient = theta_0_value.grad.clone()
+        expected_first_gradient = torch.autograd.grad(
+            score, theta_0_value, create_graph=True
+        )[0]
+        expected_second_gradient = torch.autograd.grad(
+            expected_first_gradient, theta_0_value
+        )[0]
 
-        expected_first_gradient.index_select(0, tensor([0])).backward(create_graph=True)
-        expected_second_gradient = (
-            theta_0_value.grad - expected_first_gradient
-        ).unsqueeze(0)
-
-        expected_covar = expected_second_gradient.unsqueeze(0).inverse() * -1
+        expected_covar = expected_second_gradient.reshape(1, 1).inverse() * -1
         expected_scale_tril = torch.linalg.cholesky(expected_covar)
         self.assertAlmostEqual(
             expected_scale_tril.item(), scale_tril.item(), delta=0.001
@@ -302,21 +302,19 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             1 / (1 + (-1 * (proposal_value + theta_1_value * x_1_value)).exp())
         ).log()
 
-        score.backward(create_graph=True)
-        expected_first_gradient = proposal_value.grad.clone()
-
-        expected_first_gradient.index_select(0, tensor([0])).backward(create_graph=True)
-        expected_second_gradient = (
-            proposal_value.grad - expected_first_gradient
-        ).unsqueeze(0)
-        expected_scale_tril = torch.linalg.cholesky(
-            (expected_second_gradient.unsqueeze(0)).inverse() * -1
-        )
+        expected_first_gradient = torch.autograd.grad(
+            score, proposal_value, create_graph=True
+        )[0]
+        expected_second_gradient = torch.autograd.grad(
+            expected_first_gradient, proposal_value
+        )[0]
+        expected_covar = expected_second_gradient.reshape(1, 1).inverse() * -1
+        expected_scale_tril = torch.linalg.cholesky(expected_covar)
         self.assertAlmostEqual(
             expected_scale_tril.item(), scale_tril.item(), delta=0.001
         )
         expected_first_gradient = expected_first_gradient.unsqueeze(0)
-        expected_covar = expected_second_gradient.unsqueeze(0).inverse() * -1
+
         expected_mean = (
             proposal_value.unsqueeze(0)
             + expected_first_gradient.unsqueeze(0).mm(expected_covar)
