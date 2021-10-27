@@ -1,0 +1,41 @@
+name: Lint
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install linters
+      run: |
+        python -m pip install --upgrade pip
+        pip install black==20.8b1 usort flake8
+
+    - name: Print out package info to help with debug
+      run: pip list
+
+    - name: Lint with flake8
+      run: flake8 .
+
+    - name: Lint with usort
+      run: usort check .
+
+    - name: Lint with black
+      run: black --check .
