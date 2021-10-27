@@ -119,6 +119,7 @@ commands:
     steps:
       - run:
           name: "Run unit tests"
+          no_output_timeout: 1h
           command: pytest --cov=. --cov-report term-missing
 
   user_unit_tests:
