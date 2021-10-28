@@ -1,7 +1,7 @@
 ---
 id: bmg
-title: Bean Machine Graph (BMG)
-sidebar_label: 'BMG'
+title: The Bean Machine Graph (BMG) C++ Runtime
+sidebar_label: 'C++ Runtime'
 ---
 
 <!-- @import "../../header.md" -->
