@@ -79,7 +79,12 @@ class BaseInference(metaclass=ABCMeta):
             ):
                 # Extract samples
                 for query in queries:
-                    samples[query].append(world.call(query))
+                    raw_val = world.call(query)
+                    if not isinstance(raw_val, torch.Tensor):
+                        raise TypeError(
+                            "The value returned by a queried function must be a tensor."
+                        )
+                    samples[query].append(raw_val)
 
             samples = {node: torch.stack(val) for node, val in samples.items()}
             chain_results.append(samples)
