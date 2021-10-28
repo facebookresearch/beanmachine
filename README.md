@@ -31,6 +31,13 @@ cd beanmachine
 CC=clang CXX=clang++ pip install .
 ```
 
+Using `docker`:
+
+```bash
+docker build -t beanmachine .
+docker run -it beanmachine:latest bash
+```
+
 Further, if you would like to run the builtin unit tests:
 
 ```bash
