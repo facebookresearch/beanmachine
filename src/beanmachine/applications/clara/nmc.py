@@ -58,7 +58,7 @@ class State:
             items.extend([idx] * num)
         cls.items = tensor(items)
         cls.labels = labels
-        cls.labelers = tensor(labelers)
+        cls.labelers = torch.LongTensor(labelers)
         cls.true_label_proposer = Categorical(
             torch.ones(cls.num_categories) / cls.num_categories
         )
