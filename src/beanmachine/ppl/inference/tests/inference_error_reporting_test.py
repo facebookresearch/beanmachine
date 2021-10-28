@@ -38,10 +38,10 @@ class ErrorDist(torch.distributions.Distribution):
         super().__init__()
 
     def sample(self):
+        self.counter += 1
         if self.counter == 20:
             # throw error
-            torch.cholesky(torch.zeros(3, 3))
-        self.counter += 1
+            torch.linalg.cholesky(torch.zeros(3, 3))
         return torch.randn(1)
 
     def log_prob(self, *args):
@@ -133,8 +133,15 @@ def test_inference_error_reporting():
     )
 
 
-def test_early_return_on_error():
-    warnings.simplefilter("ignore")
-    mh = bm.SingleSiteAncestralMetropolisHastings()
-    samples = mh.infer([bad()], {}, 40, num_chains=1)
-    assert samples[bad()].shape == (1, 9, 1)
+def test_handle_cholesky_error():
+    mh = SingleSiteAncestralMetropolisHastings()
+    with warnings.catch_warnings(record=True) as w:
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
+        # Trigger a warning
+        samples = mh.infer([bad()], {}, 20, num_chains=1)
+        # Verify that the warning is triggered
+        assert len(w) == 1
+        assert "Proposal rejected" in str(w[-1])
+    # Verify that the inference finishes with the right number of samples
+    assert samples[bad()].shape == (1, 20, 1)
