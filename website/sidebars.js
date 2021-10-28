@@ -15,9 +15,8 @@ module.exports = {
       'overview/modeling/modeling',
       'overview/inference/inference',
       'overview/analysis/analysis',
+      'overview/installation/installation',
     ],
-    Tutorials: ['overview/tutorials/tutorials'],
-    Packages: ['overview/packages/packages'],
     Framework: [
       'framework_topics/inference/inference', // Throwing this at top, even though it's embedded below, because I believe it belongs up here (??)
       {
@@ -26,9 +25,12 @@ module.exports = {
         dirName: 'framework_topics', // '.' means the current docs folder
       },
     ],
-    API: [], // #TODO: Brian Johnson will populate this!
     Advanced: ['overview/bmg/bmg', 'overview/beanstalk/beanstalk'],
+    Tutorials: ['overview/tutorials/tutorials'],
+    API: ['overview/api/api'], // #TODO: Brian Johnson will populate this!
+    Packages: ['overview/packages/packages'],
     Contributing: ['contributing'],
+    FacebookIntern: ['overview/facebook/facebook'],
     'Sitemap (formerly TOC)': ['toc'], // Once everyone is used to this being here, we'll remove the "(formerly TOC)" part
   },
 };

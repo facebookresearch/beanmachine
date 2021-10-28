@@ -132,7 +132,6 @@ _not_in_allowed_functions: Pattern = negate(
     match_any(*[name(id=t.__name__) for t in allowed_functions])
 )
 
-# TODO: Add MatMult to this list
 _binops: Pattern = match_any(
     ast.Add,
     ast.BitAnd,
@@ -141,6 +140,7 @@ _binops: Pattern = match_any(
     ast.Div,
     ast.FloorDiv,
     ast.LShift,
+    ast.MatMult,
     ast.Mod,
     ast.Mult,
     ast.Pow,

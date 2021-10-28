@@ -55,7 +55,7 @@ def test_get_proposers():
     model = SampleModel()
     world.call(model.bar())
     nuts = bm.GlobalNoUTurnSampler()
-    proposers = nuts.get_proposers(world, 10)
+    proposers = nuts.get_proposers(world, world.latent_nodes, 10)
     assert all(isinstance(proposer, BaseProposer) for proposer in proposers)
 
 
