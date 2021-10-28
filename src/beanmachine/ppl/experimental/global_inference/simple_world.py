@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict, Iterator, List, Mapping, Optional, Set
+from typing import Dict, Iterator, List, Mapping, Optional, Set, Tuple
 
 import torch
+import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
     InitializeFn,
     init_from_prior,
@@ -56,17 +57,14 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             *(self._variables[node].children for node in values)
         )
         for node in nodes_to_update:
-            new_world._call_stack.append(_TempVar(node))
             # Invoke node conditioned on the provided values
-            with new_world:
-                distribution = node.function(*node.arguments)
-            tmp_var = new_world._call_stack.pop()
+            new_distribution, new_parents = new_world._run_node(node)
             # Update children's dependencies
             old_node_var = new_world._variables[node]
             new_world._variables[node] = old_node_var.replace(
-                parents=tmp_var.parents, distribution=distribution
+                parents=new_parents, distribution=new_distribution
             )
-            dropped_parents = old_node_var.parents - tmp_var.parents
+            dropped_parents = old_node_var.parents - new_parents
             for parent in dropped_parents:
                 parent_var = new_world._variables[parent]
                 new_world._variables[parent] = parent_var.replace(
@@ -93,10 +91,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
     def initialize_value(self, node: RVIdentifier) -> None:
         # recursively calls into parent nodes
-        self._call_stack.append(_TempVar(node))
-        with self:
-            distribution = node.function(*node.arguments)
-        temp_var = self._call_stack.pop()
+        distribution, parents = self._run_node(node)
 
         if node in self.observations:
             node_val = self.observations[node]
@@ -106,7 +101,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         self._variables[node] = Variable(
             value=node_val,
             distribution=distribution,
-            parents=temp_var.parents,
+            parents=parents,
         )
 
     def update_graph(self, node: RVIdentifier) -> torch.Tensor:
@@ -138,3 +133,16 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
             raise ValueError(str(node) + " is not enumerable")
         # pyre-ignore[16]
         return distribution.enumerate_support()
+
+    def _run_node(
+        self, node: RVIdentifier
+    ) -> Tuple[dist.Distribution, Set[RVIdentifier]]:
+        """Invoke a random variable function conditioned on the current world. Return
+        its distribution and a set of parent nodes"""
+        self._call_stack.append(_TempVar(node))
+        with self:
+            distribution = node.function(*node.arguments)
+        temp_var = self._call_stack.pop()
+        if not isinstance(distribution, dist.Distribution):
+            raise TypeError("A random_variable is required to return a distribution.")
+        return distribution, temp_var.parents
