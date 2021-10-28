@@ -83,7 +83,23 @@ function Home() {
                 styles.getStarted,
               )}
               to={useBaseUrl('docs/overview/introduction/introduction')}>
+              Introduction
+            </Link>
+            <Link
+              className={clsx(
+                'button button--outline button--secondary button--lg',
+                styles.getStarted,
+              )}
+              to={useBaseUrl('docs/overview/quick_start/quick_start')}>
               Get Started
+            </Link>
+            <Link
+              className={clsx(
+                'button button--outline button--secondary button--lg',
+                styles.getStarted,
+              )}
+              to={useBaseUrl('docs/overview/tutorials/tutorials')}>
+              Tutorials
             </Link>
           </div>
         </div>

@@ -1,7 +1,7 @@
 ---
 id: beanstalk
 title: The Beanstalk Compiler
-sidebar_label: 'Beanstalk'
+sidebar_label: 'Compiler'
 ---
 
 <!-- @import "../../header.md" -->

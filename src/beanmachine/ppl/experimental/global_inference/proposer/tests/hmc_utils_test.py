@@ -88,7 +88,7 @@ def test_mass_matrix_adapter():
     model = SampleModel()
     world = SimpleWorld()
     world.call(model.bar())
-    positions = RealSpaceTransform(world)(dict(world))
+    positions = RealSpaceTransform(world, world.latent_nodes)(dict(world))
     mass_matrix_adapter = MassMatrixAdapter()
     momentums = mass_matrix_adapter.initialize_momentums(positions)
     for node, z in positions.items():

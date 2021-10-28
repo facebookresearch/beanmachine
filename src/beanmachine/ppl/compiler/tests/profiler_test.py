@@ -43,7 +43,9 @@ A:(1) 700 ms
     C:(2) 200 ms
     unattributed: 300 ms
   unattributed: 200 ms
-D:(1) 100 ms"""
+D:(1) 100 ms
+unattributed: 800 ms
+"""
         self.assertEqual(expected.strip(), str(report).strip())
 
         self.assertEqual(700000000, report.A.total_time)
