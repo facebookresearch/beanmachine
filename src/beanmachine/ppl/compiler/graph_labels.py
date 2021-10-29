@@ -76,7 +76,7 @@ _node_labels = {
     bn.LogSumExpTorchNode: "LogSumExp",
     bn.LogSumExpVectorNode: "LogSumExp",
     bn.LShiftNode: "<<",
-    bn.MatrixMultiplicationNode: "*",
+    bn.MatrixMultiplicationNode: "@",
     bn.MatrixScaleNode: "MatrixScale",
     bn.ModNode: "%",
     bn.MultiplicationNode: "*",
