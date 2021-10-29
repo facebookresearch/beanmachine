@@ -1,3 +1,5 @@
+name: Documentation
+
 on: [push]
 
 jobs:
@@ -35,16 +37,16 @@ jobs:
     - name: Check env
       run: echo `which spinx-build`
     - name: Build the docset
-      run: | 
+      run: |
         cd ./sphinx
         pip install -r requirements.txt
-        make html 
+        make html
         cd ..
     - name: Get output time
-      run: echo "The time was ${{ steps.build.outputs.time }}"      
+      run: echo "The time was ${{ steps.build.outputs.time }}"
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
           ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: website/build # The folder the action should deploy. 
+          FOLDER: website/build # The folder the action should deploy.
