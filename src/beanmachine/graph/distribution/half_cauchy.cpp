@@ -1,4 +1,5 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <random>
 #include <string>
@@ -59,7 +60,7 @@ double HalfCauchy::log_prob(const NodeValue& value) const {
     result = std::log1p(std::pow(value._double / s, 2));
   } else if (
       value.type.variable_type == graph::VariableType::BROADCAST_MATRIX) {
-    size = value._matrix.size();
+    size = static_cast<int>(value._matrix.size());
     result = (value._matrix.array() / s).pow(2).log1p().sum();
   } else {
     throw std::runtime_error(
@@ -170,7 +171,7 @@ void HalfCauchy::backward_param(const graph::NodeValue& value, double adjunct)
 void HalfCauchy::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   if (in_nodes[0]->needs_gradient()) {
-    int size = value._matrix.size();
+    int size = static_cast<int>(value._matrix.size());
     double s = in_nodes[0]->value._double;
     Eigen::MatrixXd s2_p_x2 =
         s * s + value._matrix.array() * value._matrix.array();

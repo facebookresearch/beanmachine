@@ -22,7 +22,7 @@ def phi(x: Any) -> Any:
 
 
 supported_bool_types = {bool, np.bool_}
-supported_float_types = {np.float128, np.float16, np.float32, np.float64, float}
+supported_float_types = {np.longdouble, np.float16, np.float32, np.float64, float}
 supported_int_types = {np.int16, np.int32, np.int64, np.int8, np.longlong}
 supported_int_types |= {np.uint16, np.uint32, np.uint64, np.uint8, np.ulonglong, int}
 

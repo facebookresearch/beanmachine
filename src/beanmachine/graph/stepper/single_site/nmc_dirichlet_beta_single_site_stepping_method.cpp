@@ -36,7 +36,7 @@ NMCDirichletBetaSingleSiteSteppingMethod::get_step_profiler_event() {
 std::unique_ptr<proposer::Proposer>
 NMCDirichletBetaSingleSiteSteppingMethod::get_proposal_distribution(
     Node* tgt_node) {
-  assert(tgt_node->value._matrix.size() == 2);
+  assert(static_cast<uint>(tgt_node->value._matrix.size()) == 2);
 
   auto sto_tgt_node = static_cast<oper::StochasticOperator*>(tgt_node);
   double x = sto_tgt_node->value._matrix.coeff(0);

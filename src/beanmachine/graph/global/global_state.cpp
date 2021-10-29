@@ -54,7 +54,7 @@ GlobalState::GlobalState(Graph& g) : graph(g) {
     if (unconstrained_value.type.variable_type == VariableType::SCALAR) {
       flat_size++;
     } else {
-      flat_size += unconstrained_value._matrix.size();
+      flat_size += static_cast<int>(unconstrained_value._matrix.size());
     }
   }
 }
@@ -90,7 +90,8 @@ void GlobalState::initialize_values(InitType init_type, uint seed) {
 }
 
 void GlobalState::backup_unconstrained_values() {
-  for (uint sto_node_id = 0; sto_node_id < stochastic_nodes.size();
+  for (uint sto_node_id = 0;
+       sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
     auto stochastic_node =
         static_cast<oper::StochasticOperator*>(stochastic_nodes[sto_node_id]);
@@ -100,7 +101,8 @@ void GlobalState::backup_unconstrained_values() {
 }
 
 void GlobalState::backup_unconstrained_grads() {
-  for (uint sto_node_id = 0; sto_node_id < stochastic_nodes.size();
+  for (uint sto_node_id = 0;
+       sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
     stochastic_unconstrained_grads_backup[sto_node_id] =
         stochastic_nodes[sto_node_id]->back_grad1;
@@ -108,7 +110,8 @@ void GlobalState::backup_unconstrained_grads() {
 }
 
 void GlobalState::revert_unconstrained_values() {
-  for (uint sto_node_id = 0; sto_node_id < stochastic_nodes.size();
+  for (uint sto_node_id = 0;
+       sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
     auto stochastic_node =
         static_cast<oper::StochasticOperator*>(stochastic_nodes[sto_node_id]);
@@ -119,7 +122,8 @@ void GlobalState::revert_unconstrained_values() {
 }
 
 void GlobalState::revert_unconstrained_grads() {
-  for (uint sto_node_id = 0; sto_node_id < stochastic_nodes.size();
+  for (uint sto_node_id = 0;
+       sto_node_id < static_cast<uint>(stochastic_nodes.size());
        sto_node_id++) {
     stochastic_nodes[sto_node_id]->back_grad1 =
         stochastic_unconstrained_grads_backup[sto_node_id];
@@ -152,7 +156,7 @@ void GlobalState::get_flattened_unconstrained_values(
       Eigen::VectorXd vector(Eigen::Map<Eigen::VectorXd>(
           value->_matrix.data(), value->_matrix.size()));
       flattened_values.segment(i, vector.size()) = vector;
-      i += value->_matrix.size();
+      i += static_cast<int>(value->_matrix.size());
     }
   }
 }
@@ -174,7 +178,7 @@ void GlobalState::set_flattened_unconstrained_values(
       i++;
     } else {
       value->_matrix = flattened_values.segment(i, value->_matrix.size());
-      i += value->_matrix.size();
+      i += static_cast<int>(value->_matrix.size());
     }
 
     // sync value with unconstrained_value
@@ -196,7 +200,7 @@ void GlobalState::get_flattened_unconstrained_grads(
       Eigen::VectorXd vector(Eigen::Map<Eigen::VectorXd>(
           node->back_grad1._matrix.data(), node->back_grad1._matrix.size()));
       flattened_grad.segment(i, vector.size()) = vector;
-      i += node->back_grad1._matrix.size();
+      i += static_cast<int>(node->back_grad1._matrix.size());
     }
   }
 }

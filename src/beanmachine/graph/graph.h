@@ -13,6 +13,9 @@
 #include "beanmachine/graph/profiler.h"
 
 #define NATURAL_TYPE unsigned long long int
+#ifdef _MSC_VER
+#define uint unsigned int
+#endif
 
 namespace Eigen {
 typedef Matrix<bool, Dynamic, Dynamic> MatrixXb;
@@ -147,22 +150,22 @@ class NodeValue {
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::REAL,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _matrix(value) {}
   explicit NodeValue(Eigen::MatrixXb& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::BOOLEAN,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _bmatrix(value) {}
   explicit NodeValue(Eigen::MatrixXn& value)
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             AtomicType::NATURAL,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _nmatrix(value) {}
 
   NodeValue(AtomicType type, bool value) : type(type), _bool(value) {
@@ -175,8 +178,8 @@ class NodeValue {
       : type(ValueType(
             VariableType::BROADCAST_MATRIX,
             type,
-            value.rows(),
-            value.cols())),
+            static_cast<int>(value.rows()),
+            static_cast<int>(value.cols()))),
         _matrix(value) {
     assert(
         type == AtomicType::REAL or type == AtomicType::POS_REAL or
@@ -846,7 +849,7 @@ struct Graph {
   void collect_sample();
   void rejection(uint num_samples, uint seed, InferConfig infer_config);
   void gibbs(uint num_samples, uint seed, InferConfig infer_config);
-  void nmc(uint num_samples, uint gen, InferConfig infer_config);
+  void nmc(uint num_samples, uint seed, InferConfig infer_config);
   void cavi(
       uint num_iters,
       uint steps_per_iter,
@@ -860,7 +863,7 @@ struct Graph {
 
   // TODO: Review what members of this class can be made static.
 
-  double _full_log_prob(std::vector<Node*>& ordered_supp);
+  static double _full_log_prob(std::vector<Node*>& ordered_supp);
   void collect_log_prob(double log_prob);
   std::vector<double> log_prob_vals;
   std::vector<std::vector<double>> log_prob_allchains;

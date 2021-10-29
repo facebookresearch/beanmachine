@@ -17,9 +17,7 @@ if TYPE_CHECKING:
         BaseInference,
     )
 
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    SimpleWorld,
-)
+from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 
 
 class Sampler(Generator[SimpleWorld, Optional[SimpleWorld], None]):

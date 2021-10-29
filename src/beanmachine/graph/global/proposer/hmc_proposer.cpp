@@ -69,7 +69,7 @@ double HmcProposer::propose(GlobalState& state, std::mt19937& gen) {
   }
   double initial_K = compute_kinetic_energy(momentum);
 
-  int num_steps = ceil(path_length / step_size);
+  int num_steps = static_cast<int>(ceil(path_length / step_size));
 
   // momentum half-step
   Eigen::VectorXd grad_U = compute_potential_gradient(state);

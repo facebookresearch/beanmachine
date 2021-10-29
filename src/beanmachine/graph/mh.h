@@ -93,7 +93,7 @@ class MH {
 
   // Constructs MH algorithm based on stepper.
   // Takes ownership of stepper instance.
-  MH(Graph* graph, uint seed, Stepper* stepper);
+  MH(Graph* graph, unsigned int seed, Stepper* stepper);
 
   const std::vector<Node*>& unobserved_stochastic_support() {
     return unobserved_sto_supp;
