@@ -6,6 +6,7 @@
  *
  * @format
  */
+const {fbInternalOnly} = require('internaldocs-fb-helpers');
 
 module.exports = {
   someSidebar: {
@@ -30,7 +31,7 @@ module.exports = {
     API: ['overview/api/api'], // #TODO: Brian Johnson will populate this!
     Packages: ['overview/packages/packages'],
     Contributing: ['contributing'],
-    FacebookIntern: ['overview/facebook/facebook'],
+    ...fbInternalOnly({FacebookIntern: ['overview/facebook/facebook']}),
     'Sitemap (formerly TOC)': ['toc'], // Once everyone is used to this being here, we'll remove the "(formerly TOC)" part
   },
 };
