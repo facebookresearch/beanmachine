@@ -33,6 +33,31 @@ void Complement::eval(std::mt19937& /* gen */) {
   }
 }
 
+ToInt::ToInt(const std::vector<graph::Node*>& in_nodes)
+    : UnaryOperator(graph::OperatorType::TO_INT, in_nodes) {
+  value = graph::NodeValue(graph::AtomicType::NATURAL);
+}
+
+void ToInt::eval(std::mt19937& /* gen */) {
+  assert(in_nodes.size() == 1);
+  const graph::NodeValue& parent = in_nodes[0]->value;
+  if (parent.type == graph::AtomicType::BOOLEAN) {
+    value._double = parent._bool ? 1 : 0;
+  } else if (
+      parent.type == graph::AtomicType::REAL or
+      parent.type == graph::AtomicType::POS_REAL or
+      parent.type == graph::AtomicType::NEG_REAL or
+      parent.type == graph::AtomicType::PROBABILITY) {
+    value._natural = (int)round(parent._double);
+  } else if (parent.type == graph::AtomicType::NATURAL) {
+    value._natural = parent._natural;
+  } else {
+    throw std::runtime_error(
+        "invalid parent type " + parent.type.to_string() +
+        " for TO_INT operator at node_id " + std::to_string(index));
+  }
+}
+
 ToReal::ToReal(const std::vector<graph::Node*>& in_nodes)
     : UnaryOperator(graph::OperatorType::TO_REAL, in_nodes) {
   value = graph::NodeValue(graph::AtomicType::REAL);

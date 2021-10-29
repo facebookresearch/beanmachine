@@ -54,6 +54,23 @@ class Complement : public UnaryOperator {
   static bool is_registered;
 };
 
+class ToInt : public UnaryOperator {
+ public:
+  explicit ToInt(const std::vector<graph::Node*>& in_nodes);
+  ~ToInt() override {}
+
+  void eval(std::mt19937& gen) override;
+  void compute_gradients() override;
+
+  static std::unique_ptr<Operator> new_op(
+      const std::vector<graph::Node*>& in_nodes) {
+    return std::make_unique<ToInt>(in_nodes);
+  }
+
+ private:
+  static bool is_registered;
+};
+
 class ToReal : public UnaryOperator {
  public:
   explicit ToReal(const std::vector<graph::Node*>& in_nodes);

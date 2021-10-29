@@ -48,6 +48,7 @@ _known_requirements: Dict[type, List[bt.Requirement]] = {
     bn.LogisticNode: [bt.Real],
     bn.Log1mexpNode: [bt.NegativeReal],
     bn.PhiNode: [bt.Real],
+    bn.ToIntNode: [bt.upper_bound(bt.Real)],
     bn.ToNegativeRealNode: [bt.Real],
     bn.ToRealNode: [bt.upper_bound(bt.Real)],
     bn.ToPositiveRealNode: [bt.upper_bound(bt.PositiveReal)],
