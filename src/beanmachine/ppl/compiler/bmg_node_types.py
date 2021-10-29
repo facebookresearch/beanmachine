@@ -79,6 +79,7 @@ _operator_types = {
     bn.PhiNode: OperatorType.PHI,
     bn.PowerNode: OperatorType.POW,
     bn.SampleNode: OperatorType.SAMPLE,
+    bn.ToIntNode: OperatorType.TO_INT,
     bn.ToMatrixNode: OperatorType.TO_MATRIX,
     bn.ToNegativeRealNode: OperatorType.TO_NEG_REAL,
     bn.ToRealMatrixNode: OperatorType.TO_REAL_MATRIX,

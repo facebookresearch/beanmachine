@@ -7,6 +7,7 @@ from beanmachine.ppl.compiler.bmg_nodes import (
     ExpNode,
     Observation,
     SampleNode,
+    ToIntNode,
     ToPositiveRealNode,
     ToProbabilityNode,
     ToRealNode,
@@ -22,6 +23,7 @@ def _is_conversion(n: BMGNode) -> bool:
         isinstance(n, ToPositiveRealNode)
         or isinstance(n, ToProbabilityNode)
         or isinstance(n, ToRealNode)
+        or isinstance(n, ToIntNode)
     )
 
 

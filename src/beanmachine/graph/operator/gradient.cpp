@@ -22,6 +22,12 @@ void Complement::compute_gradients() {
   grad2 = -1 * in_nodes[0]->grad2;
 }
 
+void ToInt::compute_gradients() {
+  assert(in_nodes.size() == 1);
+  grad1 = in_nodes[0]->grad1;
+  grad2 = in_nodes[0]->grad2;
+}
+
 void ToReal::compute_gradients() {
   assert(in_nodes.size() == 1);
   grad1 = in_nodes[0]->grad1;

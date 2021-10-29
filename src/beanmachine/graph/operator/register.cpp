@@ -47,6 +47,9 @@ bool Complement::is_registered = OperatorFactory::register_op(
     graph::OperatorType::COMPLEMENT,
     &(Complement::new_op));
 
+bool ToInt::is_registered =
+    OperatorFactory::register_op(graph::OperatorType::TO_INT, &(ToInt::new_op));
+
 bool ToReal::is_registered = OperatorFactory::register_op(
     graph::OperatorType::TO_REAL,
     &(ToReal::new_op));

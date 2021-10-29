@@ -125,6 +125,8 @@ class DOT {
       case OperatorType::SAMPLE:
       case OperatorType::IID_SAMPLE:
         return "~";
+      case OperatorType::TO_INT:
+        return "ToInt";
       case OperatorType::TO_REAL:
       case OperatorType::TO_REAL_MATRIX:
         return "ToReal";
