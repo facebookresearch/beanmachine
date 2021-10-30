@@ -67,12 +67,15 @@ collapsed: {'false' if mod_name in module_hierarchy.keys() else 'true'},\
         return sidebar_items
 
     # Convert class hierarchy into API sidebar
+    # DEBUG: Comment out API sidebar until fixed duplicates issue!
+    """
     with open(
         os.path.join(beanmachine.__path__[0], "../../website/api.sidebar.js"), "w"
     ) as file:
         print("module.exports = [\n'api/overview',", file=file)
         print(",".join(dfs(module_hierarchy)), file=file)
         print("];", file=file)
+    """
 
     # Generate markdown files for documentable entities
     name_entity_mapping = sparse_name_entity_mapping.copy()

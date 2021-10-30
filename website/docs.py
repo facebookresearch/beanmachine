@@ -26,6 +26,48 @@ include_modules = [
     "beanmachine.ppl.diagnostics.common_plots",
     "beanmachine.ppl.diagnostics.common_statistics",
     "beanmachine.ppl.diagnostics.diagnostics",
+    "beanmachine.ppl.experimental",
+    "beanmachine.ppl.experimental.global_inference",
+    "beanmachine.ppl.experimental.global_inference.base_inference",
+    "beanmachine.ppl.experimental.global_inference.hmc_inference",
+    "beanmachine.ppl.experimental.global_inference.sampler",
+    "beanmachine.ppl.experimental.global_inference.simple_world",
+    "beanmachine.ppl.experimental.inference_compilation",
+    "beanmachine.ppl.experimental.inference_compilation.utils",
+    "beanmachine.ppl.experimental.neutra",
+    "beanmachine.ppl.experimental.neutra.iafflow",
+    "beanmachine.ppl.experimental.neutra.iaflayer",
+    "beanmachine.ppl.experimental.neutra.maskedautoencoder",
+    "beanmachine.ppl.experimental.neutra.maskedlinear",
+    "beanmachine.ppl.experimental.neutra.train",
+    "beanmachine.ppl.experimental.vi",
+    "beanmachine.ppl.experimental.vi.mean_field_variational_approximation",
+    "beanmachine.ppl.experimental.vi.variational_infer",
+    "beanmachine.ppl.inference",
+    "beanmachine.ppl.inference.abstract_infer",
+    "beanmachine.ppl.inference.monte_carlo_samples",
+    "beanmachine.ppl.inference.utils",
+    "beanmachine.ppl.model",
+    "beanmachine.ppl.model.rv_identifier",
+    "beanmachine.ppl.model.statistical_model",
+    "beanmachine.ppl.model.utils",
+    "beanmachine.ppl.utils",
+    "beanmachine.ppl.utils.dotbuilder",
+    "beanmachine.ppl.utils.equivalence",
+    "beanmachine.ppl.utils.graph",
+    "beanmachine.ppl.utils.item_counter",
+    "beanmachine.ppl.utils.memoize",
+    "beanmachine.ppl.utils.tensorops",
+    "beanmachine.ppl.utils.treeprinter",
+    "beanmachine.ppl.utils.unique_name",
+    "beanmachine.ppl.world",
+    "beanmachine.ppl.world.base_world",
+    "beanmachine.ppl.world.diff",
+    "beanmachine.ppl.world.diff_stack",
+    "beanmachine.ppl.world.utils",
+    "beanmachine.ppl.world.variable",
+    "beanmachine.ppl.world.world",
+    "beanmachine.ppl.world.world_vars",
 ]
 
 
@@ -167,6 +209,8 @@ id: {item['id']}
 sidebar_label: {item['sidebar_label']}
 slug: {item['slug']}
 ---"""
+
+
 
     markdown = header
     return item["filename"], markdown
