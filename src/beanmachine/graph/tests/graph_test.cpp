@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 #include <array>
+#include <stdexcept>
 #include <tuple>
 
 #include <gtest/gtest.h>
@@ -333,6 +334,7 @@ TEST(testgraph, full_log_prob) {
   g.observe(prob, 0.6);
   EXPECT_NEAR(g.full_log_prob(), -1.3344, 1e-3);
 }
+
 TEST(testgraph, bad_observations) {
   // Tests which demonstrate that we give errors for bad observations.
   Eigen::MatrixXb bool_matrix(1, 2);
@@ -421,4 +423,26 @@ TEST(testgraph, bad_observations) {
   EXPECT_THROW(g.observe(o_iid_real, bool_matrix), std::invalid_argument);
   EXPECT_THROW(g.observe(o_iid_real, nat_matrix), std::invalid_argument);
   EXPECT_THROW(g.observe(o_iid_real, real_matrix), std::invalid_argument);
+}
+
+TEST(testgraph, infer_runtime_error) {
+  graph::Graph g;
+  auto two = g.add_constant((graph::natural_t)2);
+  Eigen::MatrixXd real_matrix(1, 1);
+  real_matrix << 1.0;
+  auto matrix = g.add_constant_real_matrix(real_matrix);
+  // index out of bounds during runtime
+  auto indexed_matrix =
+      g.add_operator(graph::OperatorType::INDEX, {matrix, two});
+  g.query(indexed_matrix);
+
+  int num_samples = 10;
+  int seed = 19;
+  // test with one chain
+  EXPECT_THROW(
+      g.infer(num_samples, graph::InferenceType::NMC), std::runtime_error);
+  // test with threads from multiple chains
+  EXPECT_THROW(
+      g.infer(num_samples, graph::InferenceType::NMC, seed, 2),
+      std::runtime_error);
 }
