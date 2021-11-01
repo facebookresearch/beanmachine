@@ -5,7 +5,7 @@ sidebar_label: 'Introduction'
 ---
 <!-- @import "../../header.md" -->
 
-Bean Machine is a probabilistic programming language (PPL) that makes developing and deploying generative probabilistic models intuitive and efficient.
+Bean Machine is a probabilistic programming language that makes developing and deploying generative probabilistic models intuitive and efficient.
 
 ## Why generative models?
 
@@ -60,7 +60,7 @@ Our generative model specifies a probability distribution over each of these wor
 
 ## Where does Bean Machine fit in?
 
-In the coming pages, we'll introduce you to Bean Machine syntax, and show how it can be used to learn about problems like this one. Traditionally, lots of painstaking, hand-crafted work has gone into modeling generative scenarios. Bean Machine aims to handle all of the manual work involved in fitting data to your model, leaving you to focus on the exciting part: the problem itself! Keep on reading to find out how.
+In the rest of this Overview we'll introduce you to Bean Machine's syntax, and show how it can be used to learn about problems like this one. Traditionally, lots of painstaking, hand-crafted work has gone into modeling generative scenarios. Bean Machine aims to handle all of the manual work involved in fitting data to your model, leaving you to focus on the exciting part: the problem itself! Keep on reading to find out how.
 
 ## Target audience
 
