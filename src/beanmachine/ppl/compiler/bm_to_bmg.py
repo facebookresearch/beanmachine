@@ -10,6 +10,7 @@ from typing import Any, Callable, List, Tuple
 import astor
 from beanmachine.ppl.compiler.ast_patterns import (
     arguments,
+    ast_if,
     assign,
     ast_assert,
     ast_domain,
@@ -38,6 +39,7 @@ from beanmachine.ppl.compiler.rules import (
     TryOnce as once,
     always_replace,
     remove_from_list,
+    ListEdit,
 )
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.compiler.single_assignment import single_assignment
@@ -192,67 +194,98 @@ _handle_index = PatternRule(
     ),
 )
 
-_math_to_bmg: Rule = _top_down(
-    once(
-        first(
-            [
-                _handle_dot,
-                _handle_call,
-                # Unary operators: ~ not + -
-                _handle_unary(ast.Invert, "handle_invert"),
-                _handle_unary(ast.Not, "handle_not"),
-                _handle_unary(ast.UAdd, "handle_uadd"),
-                _handle_unary(ast.USub, "handle_negate"),
-                _handle_binary(ast.Add, "handle_addition"),
-                # Binary operators & | / // << % * ** >> - @
-                # "and" and "or" are already eliminated by the single
-                # assignment rewriter.
-                _handle_binary(ast.BitAnd, "handle_bitand"),
-                _handle_binary(ast.BitOr, "handle_bitor"),
-                _handle_binary(ast.BitXor, "handle_bitxor"),
-                _handle_binary(ast.Div, "handle_division"),
-                _handle_binary(ast.FloorDiv, "handle_floordiv"),
-                _handle_binary(ast.LShift, "handle_lshift"),
-                _handle_binary(ast.MatMult, "handle_matrix_multiplication"),
-                _handle_binary(ast.Mod, "handle_mod"),
-                _handle_binary(ast.Mult, "handle_multiplication"),
-                _handle_binary(ast.Pow, "handle_power"),
-                _handle_binary(ast.RShift, "handle_rshift"),
-                _handle_binary(ast.Sub, "handle_subtraction"),
-                # []
-                _handle_index,
-                # Comparison operators: == != > >= < <=
-                # is, is not, in, not in
-                _handle_comparison(binary_compare(ast.Eq), "handle_equal"),
-                _handle_comparison(binary_compare(ast.NotEq), "handle_not_equal"),
-                _handle_comparison(binary_compare(ast.Gt), "handle_greater_than"),
-                _handle_comparison(
-                    binary_compare(ast.GtE), "handle_greater_than_equal"
-                ),
-                _handle_comparison(binary_compare(ast.Lt), "handle_less_than"),
-                _handle_comparison(binary_compare(ast.LtE), "handle_less_than_equal"),
-                _handle_comparison(binary_compare(ast.Is), "handle_is"),
-                _handle_comparison(binary_compare(ast.IsNot), "handle_is_not"),
-                _handle_comparison(binary_compare(ast.In), "handle_in"),
-                _handle_comparison(binary_compare(ast.NotIn), "handle_not_in"),
-                # Augmented assignments
-                _handle_aug_assign(ast.Add, "handle_iadd"),
-                _handle_aug_assign(ast.Sub, "handle_isub"),
-                _handle_aug_assign(ast.Mult, "handle_imul"),
-                _handle_aug_assign(ast.Div, "handle_idiv"),
-                _handle_aug_assign(ast.FloorDiv, "handle_ifloordiv"),
-                _handle_aug_assign(ast.Mod, "handle_imod"),
-                _handle_aug_assign(ast.Pow, "handle_ipow"),
-                _handle_aug_assign(ast.MatMult, "handle_imatmul"),
-                _handle_aug_assign(ast.LShift, "handle_ilshift"),
-                _handle_aug_assign(ast.RShift, "handle_irshift"),
-                _handle_aug_assign(ast.BitAnd, "handle_iand"),
-                _handle_aug_assign(ast.BitXor, "handle_ixor"),
-                _handle_aug_assign(ast.BitOr, "handle_ior"),
-            ]
-        )
-    )
+_assignments_to_bmg: Rule = first(
+    [
+        _handle_dot,
+        _handle_call,
+        # Unary operators: ~ not + -
+        _handle_unary(ast.Invert, "handle_invert"),
+        _handle_unary(ast.Not, "handle_not"),
+        _handle_unary(ast.UAdd, "handle_uadd"),
+        _handle_unary(ast.USub, "handle_negate"),
+        _handle_binary(ast.Add, "handle_addition"),
+        # Binary operators & | / // << % * ** >> - @
+        # "and" and "or" are already eliminated by the single
+        # assignment rewriter.
+        _handle_binary(ast.BitAnd, "handle_bitand"),
+        _handle_binary(ast.BitOr, "handle_bitor"),
+        _handle_binary(ast.BitXor, "handle_bitxor"),
+        _handle_binary(ast.Div, "handle_division"),
+        _handle_binary(ast.FloorDiv, "handle_floordiv"),
+        _handle_binary(ast.LShift, "handle_lshift"),
+        _handle_binary(ast.MatMult, "handle_matrix_multiplication"),
+        _handle_binary(ast.Mod, "handle_mod"),
+        _handle_binary(ast.Mult, "handle_multiplication"),
+        _handle_binary(ast.Pow, "handle_power"),
+        _handle_binary(ast.RShift, "handle_rshift"),
+        _handle_binary(ast.Sub, "handle_subtraction"),
+        # []
+        _handle_index,
+        # Comparison operators: == != > >= < <=
+        # is, is not, in, not in
+        _handle_comparison(binary_compare(ast.Eq), "handle_equal"),
+        _handle_comparison(binary_compare(ast.NotEq), "handle_not_equal"),
+        _handle_comparison(binary_compare(ast.Gt), "handle_greater_than"),
+        _handle_comparison(binary_compare(ast.GtE), "handle_greater_than_equal"),
+        _handle_comparison(binary_compare(ast.Lt), "handle_less_than"),
+        _handle_comparison(binary_compare(ast.LtE), "handle_less_than_equal"),
+        _handle_comparison(binary_compare(ast.Is), "handle_is"),
+        _handle_comparison(binary_compare(ast.IsNot), "handle_is_not"),
+        _handle_comparison(binary_compare(ast.In), "handle_in"),
+        _handle_comparison(binary_compare(ast.NotIn), "handle_not_in"),
+        # Augmented assignments
+        _handle_aug_assign(ast.Add, "handle_iadd"),
+        _handle_aug_assign(ast.Sub, "handle_isub"),
+        _handle_aug_assign(ast.Mult, "handle_imul"),
+        _handle_aug_assign(ast.Div, "handle_idiv"),
+        _handle_aug_assign(ast.FloorDiv, "handle_ifloordiv"),
+        _handle_aug_assign(ast.Mod, "handle_imod"),
+        _handle_aug_assign(ast.Pow, "handle_ipow"),
+        _handle_aug_assign(ast.MatMult, "handle_imatmul"),
+        _handle_aug_assign(ast.LShift, "handle_ilshift"),
+        _handle_aug_assign(ast.RShift, "handle_irshift"),
+        _handle_aug_assign(ast.BitAnd, "handle_iand"),
+        _handle_aug_assign(ast.BitXor, "handle_ixor"),
+        _handle_aug_assign(ast.BitOr, "handle_ior"),
+    ]
 )
+
+# Rewrite
+#
+# if ID:
+#    consequence
+# else:
+#    alternative
+#
+# to
+#
+# bmg.handle_if(ID)
+# if ID:
+#    ...
+#
+# Note that handle_if must not be an operand of the top-down combinator
+# because we would just enter an infinite loop of adding the handler
+# before the if-statement.
+
+_handle_if = PatternRule(
+    ast_if(test=name()),
+    lambda a: ListEdit(
+        [
+            ast.Expr(_make_bmg_call("handle_if", [a.test])),
+            a,
+        ]
+    ),
+)
+
+# Note that we are NOT attempting to iterate to a fixpoint here; we do a transformation
+# on every statement once.
+_statements_to_bmg: Rule = all_of(
+    [
+        _top_down(once(_assignments_to_bmg)),
+        _bottom_up(once(_handle_if)),
+    ]
+)
+
 
 _no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
 
@@ -277,7 +310,7 @@ def _bm_ast_to_bmg_ast(a: ast.AST) -> ast.AST:
     sa = single_assignment(no_asserts)
     assert isinstance(sa, ast.Module)
     # Now we're in single assignment form.
-    rewrites = [_math_to_bmg, _remove_all_decorators]
+    rewrites = [_statements_to_bmg, _remove_all_decorators]
     bmg = all_of(rewrites)(sa).expect_success()
     assert isinstance(bmg, ast.Module)
     return bmg

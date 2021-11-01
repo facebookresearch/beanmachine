@@ -56,6 +56,7 @@ def y_helper(bmg, __class__):
         r7 = {}
         a3 = bmg.handle_function(x, r4, r7)
         a5 = bmg.handle_less_than(a1, a3)
+        bmg.handle_if(a5)
         if a5:
             a6 = 2.0
             z = bmg.handle_less_than(a3, a6)

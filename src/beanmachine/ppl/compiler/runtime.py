@@ -993,6 +993,15 @@ class BMGRuntime:
         )
 
     #
+    # Control flow
+    #
+
+    def handle_if(self, test: Any) -> None:
+        if isinstance(test, BMGNode):
+            # TODO: Better error
+            raise ValueError("Stochastic control flows are not yet implemented.")
+
+    #
     # Function calls
     #
 
