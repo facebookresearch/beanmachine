@@ -26,7 +26,7 @@ DEV_REQUIRES = TEST_REQUIRES + [
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 
 if platform.system() == "Windows":
-    CPP_COMPILE_ARGS = ["/WX"]
+    CPP_COMPILE_ARGS = ["/std:c++14", "/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
 else:
     CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
