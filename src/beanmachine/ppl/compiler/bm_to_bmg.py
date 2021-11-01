@@ -204,8 +204,7 @@ _math_to_bmg: Rule = _top_down(
                 _handle_unary(ast.UAdd, "handle_uadd"),
                 _handle_unary(ast.USub, "handle_negate"),
                 _handle_binary(ast.Add, "handle_addition"),
-                # Binary operators & | / // << % * ** >> -
-                # TODO: @ (matrix multiplication)
+                # Binary operators & | / // << % * ** >> - @
                 # "and" and "or" are already eliminated by the single
                 # assignment rewriter.
                 _handle_binary(ast.BitAnd, "handle_bitand"),
@@ -214,6 +213,7 @@ _math_to_bmg: Rule = _top_down(
                 _handle_binary(ast.Div, "handle_division"),
                 _handle_binary(ast.FloorDiv, "handle_floordiv"),
                 _handle_binary(ast.LShift, "handle_lshift"),
+                _handle_binary(ast.MatMult, "handle_matrix_multiplication"),
                 _handle_binary(ast.Mod, "handle_mod"),
                 _handle_binary(ast.Mult, "handle_multiplication"),
                 _handle_binary(ast.Pow, "handle_power"),

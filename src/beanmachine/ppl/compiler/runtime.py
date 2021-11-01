@@ -131,6 +131,7 @@ known_tensor_instance_functions = [
     "log",
     "logical_not",
     "logsumexp",
+    "matmul",
     "mm",
     "mul",
     "neg",
@@ -292,6 +293,7 @@ class BMGRuntime:
             torch.Tensor.logical_not: self.handle_not,  # pyre-ignore
             torch.Tensor.log: self.handle_log,
             torch.Tensor.logsumexp: self.handle_logsumexp,
+            torch.Tensor.matmul: self.handle_matrix_multiplication,
             torch.Tensor.mm: self.handle_matrix_multiplication,  # pyre-ignore
             torch.Tensor.mul: self.handle_multiplication,
             torch.Tensor.neg: self.handle_negate,
@@ -307,6 +309,7 @@ class BMGRuntime:
             torch.log: self.handle_log,
             torch.logsumexp: self.handle_logsumexp,
             torch.logical_not: self.handle_not,
+            torch.matmul: self.handle_matrix_multiplication,
             torch.mm: self.handle_matrix_multiplication,
             torch.mul: self.handle_multiplication,
             torch.neg: self.handle_negate,
@@ -580,6 +583,8 @@ class BMGRuntime:
         return self._bmg.add_multiplication(input, other)
 
     def handle_matrix_multiplication(self, input: Any, mat2: Any) -> Any:
+        # TODO: We probably need to make a distinction between torch.mm and
+        # torch.matmul because they have different broadcasting behaviors.
         if (not isinstance(input, BMGNode)) and (not isinstance(mat2, BMGNode)):
             return torch.mm(input, mat2)
         if not isinstance(input, BMGNode):
