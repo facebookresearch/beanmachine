@@ -11,6 +11,7 @@ import astor
 from beanmachine.ppl.compiler.ast_patterns import (
     arguments,
     ast_if,
+    ast_for,
     assign,
     ast_assert,
     ast_domain,
@@ -277,12 +278,29 @@ _handle_if = PatternRule(
     ),
 )
 
+_handle_for = PatternRule(
+    ast_for(iter=name()),
+    lambda a: ListEdit(
+        [
+            ast.Expr(_make_bmg_call("handle_for", [a.iter])),
+            a,
+        ]
+    ),
+)
+
+_control_flow_to_bmg: Rule = first(
+    [
+        _handle_for,
+        _handle_if,
+    ]
+)
+
 # Note that we are NOT attempting to iterate to a fixpoint here; we do a transformation
 # on every statement once.
 _statements_to_bmg: Rule = all_of(
     [
         _top_down(once(_assignments_to_bmg)),
-        _bottom_up(once(_handle_if)),
+        _bottom_up(once(_control_flow_to_bmg)),
     ]
 )
 

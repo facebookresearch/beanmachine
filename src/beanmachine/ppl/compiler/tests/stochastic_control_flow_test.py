@@ -6,7 +6,7 @@ from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, Normal
+from torch.distributions import Bernoulli, Beta, Normal, Dirichlet
 
 
 # Random variable that takes an argument
@@ -47,6 +47,33 @@ def if_statement():
         return flips(0)
     else:
         return flips(1)
+
+
+@bm.random_variable
+def dirichlet():
+    return Dirichlet(tensor([1.0, 1.0, 1.0]))
+
+
+@bm.functional
+def for_statement():
+    # Stochastic control flows using "for" statements are not yet implemented
+    # TODO: If we know the shape of a graph node then we could implement:
+    #
+    # for x in stochastic_vector():
+    #    ...
+    #
+    # as
+    #
+    # for i in range(vector_length):
+    #   x = stochastic_vector()[i]
+    #   ...
+    #
+    # and similarly for 2-d matrix tensors; we could iterate the columns.
+    #
+    s = 0.0
+    for x in dirichlet():
+        s += x
+    return s
 
 
 # Try out a stochastic control flow where we choose
@@ -394,6 +421,13 @@ digraph "graph" {
 
         queries = [if_statement()]
         observations = {}
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [for_statement()]
         with self.assertRaises(ValueError) as ex:
             BMGRuntime().accumulate_graph(queries, observations)
         # TODO: Better error message
