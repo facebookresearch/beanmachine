@@ -5,7 +5,7 @@ import unittest
 import beanmachine.ppl as bm
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli
+from torch.distributions import Bernoulli, Dirichlet
 
 
 @bm.functional
@@ -130,3 +130,17 @@ tensor([[[ 1.5000, -2.5000]],
         f3 = samples[flip3()]
         f4 = samples[flip4()]
         self.assertEqual(str(f3), str(f4))
+
+    class SampleModel:
+        @bm.random_variable
+        def a(self):
+            return Dirichlet(tensor([0.5, 0.5]))
+
+        @bm.functional
+        def b(self):
+            return self.a()[2]  ## The index 2 is intentionally out of bounds
+
+    def test_infer_interface_runtime_error(self) -> None:
+        model = self.SampleModel()
+        with self.assertRaisesRegex(RuntimeError, "Error during BMG inference.*"):
+            BMGInference().infer([model.a(), model.b()], {}, 10, 4)
