@@ -1,31 +1,11 @@
-from typing import List, Set
-
-from beanmachine.ppl.experimental.global_inference.base_inference import BaseInference
-from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
-    BaseProposer,
-)
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    SimpleWorld,
+from beanmachine.ppl.experimental.global_inference.single_site_inference import (
+    SingleSiteInference,
 )
-from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
-class SingleSiteAncestralMetropolisHastings(BaseInference):
+class SingleSiteAncestralMetropolisHastings(SingleSiteInference):
     def __init__(self):
-        self._proposers = {}
-
-    def get_proposers(
-        self,
-        world: SimpleWorld,
-        target_rvs: Set[RVIdentifier],
-        num_adaptive_sample: int,
-    ) -> List[BaseProposer]:
-        proposers = []
-        for node in target_rvs:
-            if node not in self._proposers:
-                self._proposers[node] = SingleSiteAncestralProposer(node)
-            proposers.append(self._proposers[node])
-        return proposers
+        super().__init__(SingleSiteAncestralProposer)
