@@ -1,10 +1,10 @@
 """Data ETL for the NBA item response tutorial."""
 import numpy as np
 import pandas as pd
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource # usort: skip
 
-import etl
 import plots
+import etl # usort: skip
 
 
 class ExtractNBATutorialData(etl.Extract):
