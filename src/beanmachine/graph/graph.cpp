@@ -1094,16 +1094,22 @@ void Graph::_infer_parallel(
   assert(seedvec.size() == n_chains);
   // start threads
   std::vector<std::thread> threads;
+  std::exception_ptr e = nullptr;
   for (uint i = 0; i < n_chains; i++) {
-    std::thread infer_thread(
-        &Graph::_infer,
-        // @lint-ignore CLANGTIDY
-        graph_copies[i],
-        num_samples,
-        algorithm,
-        // @lint-ignore CLANGTIDY
-        seedvec[i],
-        infer_config);
+    std::thread infer_thread([&e,
+                              &graph_copies,
+                              i,
+                              num_samples,
+                              algorithm,
+                              &seedvec,
+                              infer_config]() {
+      try {
+        graph_copies[i]->_infer(
+            num_samples, algorithm, seedvec[i], infer_config);
+      } catch (...) {
+        e = std::current_exception();
+      }
+    });
     threads.push_back(std::move(infer_thread));
   }
   assert(threads.size() == n_chains);
@@ -1117,6 +1123,9 @@ void Graph::_infer_parallel(
   graph_copies.clear();
   threads.clear();
   master_graph = nullptr;
+  if (e != nullptr) {
+    std::rethrow_exception(e);
+  }
 }
 
 std::vector<double>&
