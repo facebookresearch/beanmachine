@@ -20,7 +20,6 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
   projectName: 'beanmachine', // Usually your repo name.
-  plugins: ['@docusaurus/plugin-google-analytics'],
 
   themeConfig: {
     navbar: {
