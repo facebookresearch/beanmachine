@@ -6,8 +6,8 @@ import pytest
 import torch
 import torch.distributions as dist
 
-if os.environ.get("CIRCLECI") is not None:
-    pytest.skip("neuralpp unavailable in CircleCI", allow_module_level=True)
+if os.environ.get("SANDCASTLE") is None:
+    pytest.skip("neuralpp unavailable outside of Facebook", allow_module_level=True)
 else:
     from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
     from beanmachine.ppl.experimental.variable_elimination.variable_elimination import (

@@ -56,8 +56,8 @@ double Binomial::log_prob(const graph::NodeValue& value) const {
     if ((value._nmatrix.array() > n).any()) {
       return -std::numeric_limits<double>::infinity();
     }
-    int size = value._nmatrix.size();
-    double sum_k = value._nmatrix.sum();
+    int size = static_cast<int>(value._nmatrix.size());
+    double sum_k = static_cast<double>(value._nmatrix.sum());
 
     // we will try not to evaluate log(p) or log(1-p) unless needed
     if ((value._nmatrix.array() > 0).any()) {
@@ -142,8 +142,8 @@ void Binomial::backward_param_iid(const graph::NodeValue& value) const {
   if (in_nodes[1]->needs_gradient()) {
     double n = (double)in_nodes[0]->value._natural;
     double p = in_nodes[1]->value._double;
-    int size = value._nmatrix.size();
-    double sum_k = value._nmatrix.sum();
+    int size = static_cast<int>(value._nmatrix.size());
+    double sum_k = static_cast<double>(value._nmatrix.sum());
     double grad = sum_k / p - (size * n - sum_k) / (1 - p);
     in_nodes[1]->back_grad1._double += grad;
   }

@@ -51,13 +51,18 @@ class JSON {
 
   void date(system_clock::time_point v) {
     auto t = system_clock::to_time_t(v);
-    auto lt = localtime(&t);
-    auto timestamp = std::put_time(lt, "%Y-%m-%d %H:%M:%S");
+    struct tm lt;
+#ifdef _MSC_VER
+    localtime_s(&lt, &t);
+#else
+    localtime_r(&t, &lt);
+#endif
+    auto timestamp = std::put_time(&lt, "%Y-%m-%d %H:%M:%S");
     os << "\"" << timestamp << "\"";
   }
 
   void ticks(high_resolution_clock::time_point v) {
-    number(v.time_since_epoch().count());
+    number(static_cast<long>(v.time_since_epoch().count()));
   }
 
   void number(long v) {
@@ -188,9 +193,9 @@ void Graph::_produce_performance_report(
   uint op_count = 0;
   uint add_count = 0;
 
-  for (uint node_id = 0; node_id < nodes.size(); node_id++) {
+  for (uint node_id = 0; node_id < static_cast<uint>(nodes.size()); node_id++) {
     Node* node = nodes[node_id].get();
-    edge_count += node->in_nodes.size();
+    edge_count += static_cast<uint>(node->in_nodes.size());
     switch (node->node_type) {
       case NodeType::FACTOR:
         factor_count += 1;
@@ -217,16 +222,16 @@ void Graph::_produce_performance_report(
   js.start_object();
   js.text("title", "Bean Machine Graph performance report");
   js.date("generated_at", system_clock::now());
-  js.number("num_samples", num_samples);
-  js.number("algorithm", (uint)algorithm);
+  js.number("num_samples", static_cast<long>(num_samples));
+  js.number("algorithm", static_cast<uint>(algorithm));
   js.number("seed", seed);
-  js.number("node_count", nodes.size());
-  js.number("edge_count", edge_count);
-  js.number("factor_count", factor_count);
-  js.number("dist_count", dist_count);
-  js.number("const_count", const_count);
-  js.number("op_count", op_count);
-  js.number("add_count", add_count);
+  js.number("node_count", static_cast<long>(nodes.size()));
+  js.number("edge_count", static_cast<long>(edge_count));
+  js.number("factor_count", static_cast<long>(factor_count));
+  js.number("dist_count", static_cast<long>(dist_count));
+  js.number("const_count", static_cast<long>(const_count));
+  js.number("op_count", static_cast<long>(op_count));
+  js.number("add_count", static_cast<long>(add_count));
 
   js.member("profiler_data");
   js.start_array();

@@ -457,7 +457,7 @@ digraph "graph" {
 }"""
         self.assertTrue(expected, observed)
 
-        means = g.infer_mean(1000, graph.InferenceType.NMC)
+        means = g.infer_mean(3000, graph.InferenceType.NMC)
         for idx, (mean, std) in enumerate(EXPECTED):
             self.assertTrue(
                 abs(means[idx] - mean) < std * 0.5,

@@ -18,7 +18,7 @@ void Graph::cavi(
   std::vector<Node*> node_ptrs;
   // store all the sampled values for each node
   std::vector<std::vector<NodeValue>> var_samples;
-  for (uint node_id = 0; node_id < nodes.size(); node_id++) {
+  for (uint node_id = 0; node_id < static_cast<uint>(nodes.size()); node_id++) {
     node_ptrs.push_back(nodes[node_id].get());
     var_samples.push_back(std::vector<NodeValue>());
   }

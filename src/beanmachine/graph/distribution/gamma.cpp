@@ -171,7 +171,7 @@ void Gamma::backward_param_iid(const graph::NodeValue& value) const {
   assert(value.type.variable_type == graph::VariableType::BROADCAST_MATRIX);
   double param_a = in_nodes[0]->value._double;
   double param_b = in_nodes[1]->value._double;
-  int size = value._matrix.size();
+  int size = static_cast<int>(value._matrix.size());
   if (in_nodes[0]->needs_gradient()) {
     double digamma_a = util::polygamma(0, param_a); // digamma(a)
     in_nodes[0]->back_grad1._double += size * (std::log(param_b) - digamma_a) +

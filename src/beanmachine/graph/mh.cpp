@@ -45,7 +45,8 @@ void MH::initialize() {
 }
 
 void MH::collect_node_ptrs() {
-  for (uint node_id = 0; node_id < graph->nodes.size(); node_id++) {
+  for (uint node_id = 0; node_id < static_cast<uint>(graph->nodes.size());
+       node_id++) {
     node_ptrs.push_back(graph->nodes[node_id].get());
   }
 }
@@ -62,7 +63,7 @@ void MH::compute_support() {
       unobserved_supp.push_back(node);
       if (node->is_stochastic()) {
         uint index_of_next_unobserved_sto_supp_node =
-            unobserved_sto_supp.size();
+            static_cast<uint>(unobserved_sto_supp.size());
         unobserved_sto_supp.push_back(node);
         uint node_id = node->index;
         unobserved_sto_support_index_by_node_id[node_id] =
@@ -119,7 +120,8 @@ void MH::compute_affected_nodes() {
     det_affected_nodes.push_back(det_nodes);
     sto_affected_nodes.push_back(sto_nodes);
     if (graph->_collect_performance_data) {
-      graph->profiler_data.det_supp_count[node->index] = det_nodes.size();
+      graph->profiler_data.det_supp_count[static_cast<uint>(node->index)] =
+          static_cast<int>(det_nodes.size());
     }
   }
 }

@@ -132,7 +132,6 @@ _not_in_allowed_functions: Pattern = negate(
     match_any(*[name(id=t.__name__) for t in allowed_functions])
 )
 
-# TODO: Add MatMult to this list
 _binops: Pattern = match_any(
     ast.Add,
     ast.BitAnd,
@@ -141,6 +140,7 @@ _binops: Pattern = match_any(
     ast.Div,
     ast.FloorDiv,
     ast.LShift,
+    ast.MatMult,
     ast.Mod,
     ast.Mult,
     ast.Pow,
@@ -354,40 +354,6 @@ class SingleAssignment:
         )
 
         return rewritten
-
-    def _transform_call(self) -> Callable[[ast.Assign], ListEdit]:
-        def _do_it(a: ast.Assign) -> ListEdit:
-            c = a.value
-            assert isinstance(c, ast.Call)
-            assignment, args_new = self._splice_non_identifier(c.args)
-            return ListEdit(
-                [
-                    assignment,
-                    ast.Assign(
-                        targets=a.targets,
-                        value=ast.Call(func=c.func, args=args_new, keywords=c.keywords),
-                    ),
-                ]
-            )
-
-        return _do_it
-
-    def _transform_call_keyword(self) -> Callable[[ast.Assign], ListEdit]:
-        def _do_it(a: ast.Assign) -> ListEdit:
-            c = a.value
-            assert isinstance(c, ast.Call)
-            assignment, keywords_new = self._splice_non_identifier_keyword(c.keywords)
-            return ListEdit(
-                [
-                    assignment,
-                    ast.Assign(
-                        targets=a.targets,
-                        value=ast.Call(func=c.func, args=c.args, keywords=keywords_new),
-                    ),
-                ]
-            )
-
-        return _do_it
 
     def _transform_list(
         self, ast_op: Callable[[ast.Assign], type] = lambda a: ast.List

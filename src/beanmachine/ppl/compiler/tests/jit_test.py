@@ -25,8 +25,6 @@ class C:
         return
 
 
-# TODO: support aliases on bm.random_variable
-
 counter = 0
 
 # Random variable that takes an argument
@@ -181,6 +179,30 @@ def flip_with_nested_function():
     return Bernoulli(0.5)
 
 
+# Verify that aliased decorator is allowed:
+
+myrv = bm.random_variable
+
+
+@myrv
+def aliased_rv():
+    return Bernoulli(0.5)
+
+
+# Verify that random variable constructed without explicit decorator is allowed:
+
+
+def some_function():
+    return Bernoulli(0.5)
+
+
+undecorated_rv = myrv(some_function)
+
+
+# TODO: What if some_function is a lambda instead of a function definition?
+# TODO: What if the function has outer variables?
+
+
 class JITTest(unittest.TestCase):
     def test_function_transformation_1(self) -> None:
         """Unit tests for JIT functions"""
@@ -195,7 +217,7 @@ class JITTest(unittest.TestCase):
         bmgast, _ = _bm_function_to_bmg_ast(f, "f_helper")
         observed = astor.to_source(bmgast)
         expected = """
-def f_helper(bmg):
+def f_helper(bmg, __class__):
 
     def f(x):
         a2 = bmg.handle_dot_get(math, 'exp')
@@ -209,7 +231,7 @@ def f_helper(bmg):
         bmgast, _ = _bm_function_to_bmg_ast(norm, "norm_helper")
         observed = astor.to_source(bmgast)
         expected = """
-def norm_helper(bmg):
+def norm_helper(bmg, __class__):
 
     def norm(n):
         global counter
@@ -575,3 +597,43 @@ digraph "graph" {
 
         bmg = BMGRuntime()
         bmg.accumulate_graph([flip_with_comprehension()], {})
+
+    def test_aliased_rv(self) -> None:
+        self.maxDiff = None
+        rt = BMGRuntime()
+        queries = [aliased_rv()]
+        observations = {}
+        bmg = rt.accumulate_graph(queries, observations)
+        observed = to_dot(bmg)
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1[label=probability];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=operator];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_undecorated_rv(self) -> None:
+        self.maxDiff = None
+        rt = BMGRuntime()
+        queries = [undecorated_rv()]
+        observations = {}
+        bmg = rt.accumulate_graph(queries, observations)
+        observed = to_dot(bmg)
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1[label=probability];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=operator];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())

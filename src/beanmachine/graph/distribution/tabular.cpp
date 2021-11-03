@@ -39,7 +39,7 @@ Tabular::Tabular(
         " dims got " + std::to_string(matrix.cols()));
   }
   // go through each of the parents other than the matrix and verify its type
-  for (uint paridx = 1; paridx < in_nodes.size(); paridx++) {
+  for (uint paridx = 1; paridx < static_cast<uint>(in_nodes.size()); paridx++) {
     const graph::Node* parent = in_nodes[paridx];
     if (parent->value.type != graph::AtomicType::BOOLEAN) {
       throw std::invalid_argument(
@@ -52,7 +52,8 @@ double Tabular::get_probability() const {
   uint col_id = 0;
   uint row_id = 1;
   // map parents value to an index, starting from the last parent
-  for (uint i = in_nodes.size() - 1, j = 0; i > 0; i--, j++) {
+  for (uint i = static_cast<uint>(in_nodes.size()) - 1, j = 0; i > 0;
+       i--, j++) {
     const auto& parenti = in_nodes[i]->value;
     if (parenti.type != graph::AtomicType::BOOLEAN) {
       throw std::runtime_error(

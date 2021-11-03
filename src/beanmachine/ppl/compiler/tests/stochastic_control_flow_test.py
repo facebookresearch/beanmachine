@@ -40,6 +40,15 @@ def spike_and_slab(n):
         return Normal(0, 1)
 
 
+@bm.functional
+def if_statement():
+    # Stochastic control flows using "if" statements are not yet implemented
+    if flip():
+        return flips(0)
+    else:
+        return flips(1)
+
+
 # Try out a stochastic control flow where we choose
 # a mean from one of two distributions depending on
 # a coin flip.
@@ -379,6 +388,17 @@ digraph "graph" {
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_stochastic_control_flow_5(self) -> None:
+        self.maxDiff = None
+
+        queries = [if_statement()]
+        observations = {}
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
 
 
 # TODO: Test that shows what happens when multiple graph node

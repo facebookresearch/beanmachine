@@ -182,9 +182,16 @@ class BMGInference:
             # specified in pybindings.cpp (and not passing the local one in). In the current
             # code we are explicitly passing in the same default value used in that file (5123401).
             # We really need a way to defer to the value defined in pybindings.py here.
-            raw = g.infer(
-                num_samples, inference_type, 5123401, num_chains, default_config
-            )
+            try:
+                raw = g.infer(
+                    num_samples, inference_type, 5123401, num_chains, default_config
+                )
+            except RuntimeError as e:
+                raise RuntimeError(
+                    "Error during BMG inference\n"
+                    + "Note: the runtime error from BMG may not be interpretable.\n"
+                ) from e
+
             self._finish(prof.graph_infer)
             if produce_report:
                 self._begin(prof.deserialize_perf_report)

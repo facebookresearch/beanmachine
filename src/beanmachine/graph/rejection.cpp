@@ -10,7 +10,7 @@ void Graph::rejection(uint num_samples, uint seed, InferConfig infer_config) {
   if (infer_config.keep_log_prob) {
     std::set<uint> supp = compute_support();
     for (uint node_id : supp) {
-      ordered_supp.push_back(nodes[node_id].get());
+      ordered_supp.push_back(nodes[static_cast<uint>(node_id)].get());
     }
   }
   for (uint snum = 0; snum < num_samples + infer_config.num_warmup; snum++) {

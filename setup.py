@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
 import os
+import platform
 import re
 import sys
 from glob import glob
@@ -23,7 +24,11 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "usort",
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
-CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
+
+if platform.system() == "Windows":
+    CPP_COMPILE_ARGS = ["/std:c++14", "/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
+else:
+    CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
 
 # Check for python version
@@ -56,14 +61,17 @@ INCLUDE_DIRS = [os.path.join(current_dir, "src")]
 
 # check if we're installing in a conda environment
 if "CONDA_PREFIX" in os.environ:
-    conda_include_dir = os.path.join(os.environ["CONDA_PREFIX"], "include")
+    conda_inc = "Library/include" if platform.system() == "Windows" else "include"
+    conda_include_dir = os.path.join(os.environ["CONDA_PREFIX"], conda_inc)
     INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "eigen3")])
+    INCLUDE_DIRS.extend([conda_include_dir, os.path.join(conda_include_dir, "boost")])
 
 if sys.platform.startswith("linux"):
     INCLUDE_DIRS.extend(
         [
             "/usr/include",
             "/usr/include/eigen3",
+            "/usr/include/boost169/",
             "/usr/include/x86_64-linux-gnu",
         ]
     )
@@ -116,7 +124,7 @@ setup(
         "parameterized>=0.8.1",
         "graphviz>=0.11.1",
     ],
-    packages=find_packages("src/"),
+    packages=find_packages("src"),
     package_dir={"": "src"},
     ext_modules=[
         Pybind11Extension(

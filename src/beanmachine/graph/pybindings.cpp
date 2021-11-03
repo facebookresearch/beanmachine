@@ -49,6 +49,7 @@ PYBIND11_MODULE(graph, module) {
 
   py::enum_<OperatorType>(module, "OperatorType")
       .value("SAMPLE", OperatorType::SAMPLE)
+      .value("TO_INT", OperatorType::TO_INT)
       .value("TO_REAL", OperatorType::TO_REAL)
       .value("TO_POS_REAL", OperatorType::TO_POS_REAL)
       .value("COMPLEMENT", OperatorType::COMPLEMENT)

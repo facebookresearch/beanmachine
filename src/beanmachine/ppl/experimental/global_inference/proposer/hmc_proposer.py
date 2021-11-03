@@ -1,5 +1,5 @@
 import math
-from typing import Callable, Optional, Tuple, cast
+from typing import Callable, Optional, Tuple, cast, Set
 
 import torch
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
@@ -15,6 +15,7 @@ from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
     SimpleWorld,
 )
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
 class HMCProposer(BaseProposer):
@@ -37,6 +38,7 @@ class HMCProposer(BaseProposer):
     def __init__(
         self,
         initial_world: SimpleWorld,
+        target_rvs: Set[RVIdentifier],
         num_adaptive_samples: int,
         trajectory_length: float,
         initial_step_size: float = 1.0,
@@ -45,9 +47,10 @@ class HMCProposer(BaseProposer):
         target_accept_prob: float = 0.8,
     ):
         self.world = initial_world
-        self._to_unconstrained = RealSpaceTransform(initial_world)
+        self._target_rvs = target_rvs
+        self._to_unconstrained = RealSpaceTransform(initial_world, target_rvs)
         self._positions = self._to_unconstrained(
-            {node: initial_world[node] for node in initial_world.latent_nodes}
+            {node: initial_world[node] for node in self._target_rvs}
         )
         # cache pe and pe_grad to prevent re-computation
         self._pe, self._pe_grad = self._potential_grads(self._positions)
@@ -232,7 +235,7 @@ class HMCProposer(BaseProposer):
             # re-compute cached values since world was modified by other sources
             self.world = world
             self._positions = self._to_unconstrained(
-                {node: world[node] for node in world.latent_nodes}
+                {node: world[node] for node in self._target_rvs}
             )
             self._pe, self._pe_grad = self._potential_grads(self._positions)
         momentums = self._initialize_momentums(self._positions)

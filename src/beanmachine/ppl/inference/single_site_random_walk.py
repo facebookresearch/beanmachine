@@ -11,7 +11,7 @@ from beanmachine.ppl.world.world import TransformType
 
 class SingleSiteRandomWalk(AbstractMHInference):
     """
-    Implementation for SingleSiteNewtonianMonteCarlo
+    Implementation for SingleSiteRandomWalk
     """
 
     def __init__(

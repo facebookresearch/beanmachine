@@ -61,8 +61,8 @@ class BinaryVsMultiaryMultiplicationPerformanceTest(unittest.TestCase):
         random.seed(seed)
 
         skip_optimizations = {
-            "BetaBernoulliConjguateFixer",
-            "BetaBinomialConjguateFixer",
+            "BetaBernoulliConjugateFixer",
+            "BetaBinomialConjugateFixer",
             "NormalNormalConjugateFixer",
         }
         report_w_optimization = get_report(skip_optimizations)
@@ -98,6 +98,7 @@ bmg_profiler_report: nmc_infer:(1) -- ms
     collect_sample:(1000) -- ms
     unattributed: -- ms
   unattributed: -- ms
+unattributed: -- ms
 
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
@@ -120,6 +121,7 @@ infer:(1) -- ms
   transpose_samples:(1) -- ms
   build_mcsamples:(1) -- ms
   unattributed: -- ms
+unattributed: -- ms
 """
 
         self.assertEqual(
@@ -129,8 +131,8 @@ infer:(1) -- ms
 
         skip_optimizations = {
             "MultiaryMultiplicationFixer",
-            "BetaBernoulliConjguateFixer",
-            "BetaBinomialConjguateFixer",
+            "BetaBernoulliConjugateFixer",
+            "BetaBinomialConjugateFixer",
             "NormalNormalConjugateFixer",
         }
         report_wo_optimization = get_report(skip_optimizations)
@@ -167,6 +169,7 @@ bmg_profiler_report: nmc_infer:(1) -- ms
     collect_sample:(1000) -- ms
     unattributed: -- ms
   unattributed: -- ms
+unattributed: -- ms
 
 profiler_report: accumulate:(1) -- ms
 infer:(1) -- ms
@@ -188,6 +191,7 @@ infer:(1) -- ms
   transpose_samples:(1) -- ms
   build_mcsamples:(1) -- ms
   unattributed: -- ms
+unattributed: -- ms
 """
 
         self.assertEqual(
