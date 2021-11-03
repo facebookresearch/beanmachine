@@ -4,6 +4,7 @@ from typing import Dict, List
 import arviz as az
 import numpy as np
 import pandas as pd
+import plots
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from bokeh.models import Arrow, Band, HoverTool, VeeHead, Whisker
@@ -11,8 +12,6 @@ from bokeh.models.sources import ColumnDataSource
 from bokeh.plotting import figure
 from bokeh.plotting.figure import Figure
 from scipy.stats import beta, pareto, uniform
-
-import plots
 
 
 COLORS = ["#2a2eec", "#fa7c17", "#328c06", "#c10c90"]
