@@ -3,8 +3,8 @@ slug: toc
 title: Sitemap
 sidebar_label: Sitemap
 ---
-* [Landing page](landing_page/landing_page.md) [DOES NOT GO TO LANDING PAGE]
-* [Bean Machine advantages](landing_page/bean_machine_advantages.md) [WHERE DOES THIS GO?]
+* [Landing page](landing_page/landing_page.md)
+* [Bean Machine advantages](landing_page/bean_machine_advantages.md)
 
 **Overview**
 
