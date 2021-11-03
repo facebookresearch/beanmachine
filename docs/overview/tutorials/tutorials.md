@@ -1,5 +1,5 @@
 ---
-slug: tutorials
+slug: '/tutorials'
 title: 'Jupyter Notebooks'
 sidebar_label: 'Jupyter Notebooks'
 ---
