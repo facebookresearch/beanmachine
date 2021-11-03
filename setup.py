@@ -71,6 +71,7 @@ if sys.platform.startswith("linux"):
         [
             "/usr/include",
             "/usr/include/eigen3",
+            "/usr/include/boost169/",
             "/usr/include/x86_64-linux-gnu",
         ]
     )
