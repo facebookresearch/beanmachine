@@ -49,6 +49,15 @@ def if_statement():
         return flips(1)
 
 
+@bm.functional
+def while_statement():
+    # A while statement is logically just a fancy "if"; since we do not support
+    # stochastic "if" yet, neither do we support stochastic "while".
+    while flip():
+        return flips(0)
+    return flips(1)
+
+
 @bm.random_variable
 def dirichlet():
     return Dirichlet(tensor([1.0, 1.0, 1.0]))
@@ -74,6 +83,27 @@ def for_statement():
     for x in dirichlet():
         s += x
     return s
+
+
+@bm.functional
+def list_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor([x + 1.0 for x in dirichlet()])
+
+
+@bm.functional
+def set_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor(len({x > 0.5 for x in dirichlet()}))
+
+
+@bm.functional
+def dict_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor(len({x: x > 0.5 for x in dirichlet()}))
 
 
 # Try out a stochastic control flow where we choose
@@ -433,6 +463,36 @@ digraph "graph" {
         # TODO: Better error message
         expected = "Stochastic control flows are not yet implemented."
         self.assertEqual(expected, str(ex.exception))
+
+        queries = [while_statement()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [dict_comprehension()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [list_comprehension()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [set_comprehension()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        # TODO: Test sequence comprehensions
 
 
 # TODO: Test that shows what happens when multiple graph node
