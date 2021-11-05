@@ -106,6 +106,13 @@ def dict_comprehension():
     return tensor(len({x: x > 0.5 for x in dirichlet()}))
 
 
+@bm.functional
+def seq_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor(x * 2.0 for x in dirichlet())
+
+
 # Try out a stochastic control flow where we choose
 # a mean from one of two distributions depending on
 # a coin flip.
@@ -485,14 +492,19 @@ digraph "graph" {
         expected = "Stochastic control flows are not yet implemented."
         self.assertEqual(expected, str(ex.exception))
 
-        queries = [set_comprehension()]
+        queries = [seq_comprehension()]
         with self.assertRaises(ValueError) as ex:
             BMGRuntime().accumulate_graph(queries, observations)
         # TODO: Better error message
         expected = "Stochastic control flows are not yet implemented."
         self.assertEqual(expected, str(ex.exception))
 
-        # TODO: Test sequence comprehensions
+        queries = [set_comprehension()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
 
 
 # TODO: Test that shows what happens when multiple graph node

@@ -63,6 +63,7 @@ from beanmachine.ppl.compiler.ast_patterns import (
     ast_compare,
     ast_dict,
     ast_dictComp,
+    ast_generator,
     ast_domain,
     ast_for,
     ast_if,
@@ -1456,6 +1457,8 @@ class SingleAssignment:
         #          r.append(c)
         #    return r
         # y=p()
+        #
+        # Note that this rewrites both list comprehensions and generator expressions.
         _empty_ast_arguments = ast.arguments(
             posonlyargs=[],
             args=[],
@@ -1466,7 +1469,7 @@ class SingleAssignment:
             defaults=[],
         )
         return PatternRule(
-            assign(value=ast_listComp()),
+            assign(value=match_any(ast_generator(), ast_listComp())),
             lambda term: ListEdit(
                 self.fresh_names(
                     ["p", "r"],
