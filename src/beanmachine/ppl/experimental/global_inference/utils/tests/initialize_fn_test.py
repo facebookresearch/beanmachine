@@ -18,6 +18,7 @@ from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
         dist.Dirichlet(torch.tensor([0.5, 0.5])),
         dist.Categorical(logits=torch.randn(5, 10)),
         dist.Bernoulli(0.5).expand((3, 5, 7)),
+        dist.Poisson(rate=2.0),
     ],
 )
 def test_initialize_validness(init_fn, distribution):
