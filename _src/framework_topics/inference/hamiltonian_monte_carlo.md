@@ -88,8 +88,8 @@ The global variant`GlobalHamiltonianMonteCarlo` comes with a few more options fo
 
 ```py
 hmc = bm.GlobalHamiltonianMonteCarlo(
-	trajectory_length=1.0,
-	initial_step_size=1.0
+    trajectory_length=1.0,
+    initial_step_size=1.0,
     adapt_step_size=True,
     adapt_mass_matrix=True,
     target_accept_prob=0.8,
@@ -122,7 +122,8 @@ nuts = bm.GlobalNoUTurnSampler(
     adapt_step_size = True,
     adapt_mass_matrix = True,
     multinomial_sampling = True,
-    target_accept_prob = 0.8)
+    target_accept_prob = 0.8,
+)
 
 nuts.infer(queries, observations, num_samples, num_chains, num_adaptive_samples=1000);
 ```
