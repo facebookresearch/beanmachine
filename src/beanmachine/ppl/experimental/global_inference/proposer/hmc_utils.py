@@ -215,7 +215,7 @@ class DictTransform:
         """Computes the sum of log det jacobian `log |dy/dx|` on the pairs of Tensors"""
         jacobian = torch.tensor(0.0)
         for node in untransformed_vals:
-            jacobian += (
+            jacobian = jacobian + (
                 self.transforms[node]
                 .log_abs_det_jacobian(untransformed_vals[node], transformed_vals[node])
                 .sum()

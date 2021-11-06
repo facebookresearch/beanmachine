@@ -18,6 +18,37 @@ from beanmachine.ppl.experimental.global_inference.simple_world import (
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
+def _potential_energy(
+    positions: RVDict, world: SimpleWorld, to_unconstrained: RealSpaceTransform
+) -> torch.Tensor:
+    """Returns the potential energy PE = - L(world) (the joint log likelihood of the
+    current values)"""
+    constrained_vals = to_unconstrained.inv(positions)
+    log_joint = world.replace(constrained_vals).log_prob()
+    log_joint = log_joint - to_unconstrained.log_abs_det_jacobian(
+        constrained_vals, positions
+    )
+    return -log_joint
+
+
+def _potential_grads(
+    positions: RVDict, world: SimpleWorld, to_unconstrained: RealSpaceTransform
+) -> Tuple[torch.Tensor, RVDict]:
+    """Returns potential energy as well as a dictionary of its gradient with
+    respect to the value at each site."""
+    nodes, values = zip(*positions.items())
+    for value in values:
+        value.requires_grad = True
+
+    pe = _potential_energy(positions, world, to_unconstrained)
+    grads = torch.autograd.grad(pe, values)
+    grads = dict(zip(nodes, grads))
+
+    for value in values:
+        value.requires_grad = False
+    return pe.detach(), grads
+
+
 class HMCProposer(BaseProposer):
     """
     The basic Hamiltonian Monte Carlo (HMC) algorithm as described in [1] plus a
@@ -45,6 +76,7 @@ class HMCProposer(BaseProposer):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         self.world = initial_world
         self._target_rvs = target_rvs
@@ -52,8 +84,21 @@ class HMCProposer(BaseProposer):
         self._positions = self._to_unconstrained(
             {node: initial_world[node] for node in self._target_rvs}
         )
+        if nnc_compile:
+            from beanmachine.ppl.experimental.global_inference.proposer.nnc_utils import (
+                nnc_jit,
+            )
+
+            # import nnc_jit and register the necessary types
+            self.nnc_jit = nnc_jit
+            self._potential_grads = nnc_jit(_potential_grads, skip_specialization=True)
+        else:
+            self._potential_grads = _potential_grads
+
         # cache pe and pe_grad to prevent re-computation
-        self._pe, self._pe_grad = self._potential_grads(self._positions)
+        self._pe, self._pe_grad = self._potential_grads(
+            self._positions, self.world, self._to_unconstrained
+        )
         # initialize parameters
         self.trajectory_length = trajectory_length
         # initialize adapters
@@ -99,31 +144,6 @@ class HMCProposer(BaseProposer):
             grads[node] = mass_inv[node] * r
         return grads
 
-    def _potential_energy(self, positions: RVDict) -> torch.Tensor:
-        """Returns the potential energy PE = - L(world) (the joint log likelihood of the
-        current values)"""
-        constrained_vals = self._to_unconstrained.inv(positions)
-        log_joint = self.world.replace(constrained_vals).log_prob()
-        log_joint -= self._to_unconstrained.log_abs_det_jacobian(
-            constrained_vals, positions
-        )
-        return -log_joint
-
-    def _potential_grads(self, positions: RVDict) -> Tuple[torch.Tensor, RVDict]:
-        """Returns potential energy as well as a dictionary of its gradient with
-        respect to the value at each site."""
-        nodes, values = zip(*positions.items())
-        for value in values:
-            value.requires_grad = True
-
-        pe = self._potential_energy(positions)
-        grads = torch.autograd.grad(pe, values)
-        grads = dict(zip(nodes, grads))
-
-        for value in values:
-            value.requires_grad = False
-        return pe.detach(), grads
-
     def _hamiltonian(
         self,
         positions: RVDict,
@@ -136,7 +156,7 @@ class HMCProposer(BaseProposer):
         kinetic energy"""
         ke = self._kinetic_energy(momentums, mass_inv)
         if pe is None:
-            pe = self._potential_energy(positions)
+            pe = _potential_energy(positions, self.world, self._to_unconstrained)
         return pe + ke
 
     def _leapfrog_step(
@@ -152,7 +172,9 @@ class HMCProposer(BaseProposer):
         grads of the current world is provided, then we only needs to compute the
         gradient once per step."""
         if pe_grad is None:
-            _, pe_grad = self._potential_grads(positions)
+            _, pe_grad = self._potential_grads(
+                positions, self.world, self._to_unconstrained
+            )
 
         new_momentums = {}
         for node, r in momentums.items():
@@ -163,7 +185,9 @@ class HMCProposer(BaseProposer):
         for node, z in positions.items():
             new_positions[node] = z + step_size * ke_grad[node].reshape(z.shape)
 
-        pe, pe_grad = self._potential_grads(new_positions)
+        pe, pe_grad = self._potential_grads(
+            new_positions, self.world, self._to_unconstrained
+        )
         for node, r in new_momentums.items():
             new_momentums[node] = r - step_size * pe_grad[node].flatten() / 2
 
@@ -237,7 +261,13 @@ class HMCProposer(BaseProposer):
             self._positions = self._to_unconstrained(
                 {node: world[node] for node in self._target_rvs}
             )
-            self._pe, self._pe_grad = self._potential_grads(self._positions)
+            if hasattr(self, "_nnc_jit"):
+                self._potential_grads = self.nnc_jit(
+                    _potential_grads, skip_specialization=True
+                )
+            self._pe, self._pe_grad = self._potential_grads(
+                self._positions, self.world, self._to_unconstrained
+            )
         momentums = self._initialize_momentums(self._positions)
         current_energy = self._hamiltonian(
             self._positions, momentums, self._mass_inv, self._pe

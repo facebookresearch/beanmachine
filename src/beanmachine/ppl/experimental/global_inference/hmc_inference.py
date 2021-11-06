@@ -22,12 +22,14 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
         adapt_step_size: bool = True,
         adapt_mass_matrix: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         self.trajectory_length = trajectory_length
         self.initial_step_size = initial_step_size
         self.adapt_step_size = adapt_step_size
         self.adapt_mass_matrix = adapt_mass_matrix
         self.target_accept_prob = target_accept_prob
+        self.nnc_compile = nnc_compile
         self._proposer = None
 
     def get_proposers(
@@ -46,6 +48,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
                 self.adapt_step_size,
                 self.adapt_mass_matrix,
                 self.target_accept_prob,
+                self.nnc_compile,
             )
         return [self._proposer]
 
@@ -60,6 +63,7 @@ class GlobalNoUTurnSampler(BaseInference):
         adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         self.max_tree_depth = max_tree_depth
         self.max_delta_energy = max_delta_energy
@@ -68,6 +72,7 @@ class GlobalNoUTurnSampler(BaseInference):
         self.adapt_mass_matrix = adapt_mass_matrix
         self.multinomial_sampling = multinomial_sampling
         self.target_accept_prob = target_accept_prob
+        self.nnc_compile = nnc_compile
         self._proposer = None
 
     def get_proposers(
@@ -88,5 +93,6 @@ class GlobalNoUTurnSampler(BaseInference):
                 self.adapt_mass_matrix,
                 self.multinomial_sampling,
                 self.target_accept_prob,
+                self.nnc_compile,
             )
         return [self._proposer]

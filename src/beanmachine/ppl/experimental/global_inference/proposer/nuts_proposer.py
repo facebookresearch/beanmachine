@@ -3,6 +3,7 @@ from typing import NamedTuple, Set
 import torch
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
     HMCProposer,
+    _potential_grads,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import (
     RVDict,
@@ -67,6 +68,7 @@ class NUTSProposer(HMCProposer):
         adapt_mass_matrix: bool = True,
         multinomial_sampling: bool = True,
         target_accept_prob: float = 0.8,
+        nnc_compile: bool = False,
     ):
         # note that trajectory_length is not used in NUTS
         super().__init__(
@@ -78,6 +80,7 @@ class NUTSProposer(HMCProposer):
             adapt_step_size=adapt_step_size,
             adapt_mass_matrix=adapt_mass_matrix,
             target_accept_prob=target_accept_prob,
+            nnc_compile=nnc_compile,
         )
         self._max_tree_depth = max_tree_depth
         self._max_delta_energy = max_delta_energy
@@ -252,7 +255,13 @@ class NUTSProposer(HMCProposer):
             self._positions = self._to_unconstrained(
                 {node: world[node] for node in self._target_rvs}
             )
-            self._pe, self._pe_grad = self._potential_grads(self._positions)
+            if hasattr(self, "_nnc_jit"):
+                self._potential_grads = self.nnc_jit(
+                    _potential_grads, skip_specialization=True
+                )
+            self._pe, self._pe_grad = self._potential_grads(
+                self._positions, self.world, self._to_unconstrained
+            )
 
         momentums = self._initialize_momentums(self._positions)
         current_energy = self._hamiltonian(
