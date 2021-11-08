@@ -6,7 +6,7 @@ from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.runtime import BMGRuntime
 from beanmachine.ppl.inference import BMGInference
 from torch import tensor
-from torch.distributions import Bernoulli, Beta, Normal
+from torch.distributions import Bernoulli, Beta, Normal, Dirichlet
 
 
 # Random variable that takes an argument
@@ -47,6 +47,70 @@ def if_statement():
         return flips(0)
     else:
         return flips(1)
+
+
+@bm.functional
+def while_statement():
+    # A while statement is logically just a fancy "if"; since we do not support
+    # stochastic "if" yet, neither do we support stochastic "while".
+    while flip():
+        return flips(0)
+    return flips(1)
+
+
+@bm.random_variable
+def dirichlet():
+    return Dirichlet(tensor([1.0, 1.0, 1.0]))
+
+
+@bm.functional
+def for_statement():
+    # Stochastic control flows using "for" statements are not yet implemented
+    # TODO: If we know the shape of a graph node then we could implement:
+    #
+    # for x in stochastic_vector():
+    #    ...
+    #
+    # as
+    #
+    # for i in range(vector_length):
+    #   x = stochastic_vector()[i]
+    #   ...
+    #
+    # and similarly for 2-d matrix tensors; we could iterate the columns.
+    #
+    s = 0.0
+    for x in dirichlet():
+        s += x
+    return s
+
+
+@bm.functional
+def list_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor([x + 1.0 for x in dirichlet()])
+
+
+@bm.functional
+def set_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor(len({x > 0.5 for x in dirichlet()}))
+
+
+@bm.functional
+def dict_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor(len({x: x > 0.5 for x in dirichlet()}))
+
+
+@bm.functional
+def seq_comprehension():
+    # Comprehensions are just a special kind of "for".
+    # We don't support them.
+    return tensor(x * 2.0 for x in dirichlet())
 
 
 # Try out a stochastic control flow where we choose
@@ -394,6 +458,48 @@ digraph "graph" {
 
         queries = [if_statement()]
         observations = {}
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [for_statement()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [while_statement()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [dict_comprehension()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [list_comprehension()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [seq_comprehension()]
+        with self.assertRaises(ValueError) as ex:
+            BMGRuntime().accumulate_graph(queries, observations)
+        # TODO: Better error message
+        expected = "Stochastic control flows are not yet implemented."
+        self.assertEqual(expected, str(ex.exception))
+
+        queries = [set_comprehension()]
         with self.assertRaises(ValueError) as ex:
             BMGRuntime().accumulate_graph(queries, observations)
         # TODO: Better error message

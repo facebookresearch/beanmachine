@@ -228,6 +228,10 @@ def ast_while(
     )
 
 
+def ast_generator(elt: Pattern = _any, generators: Pattern = _any) -> Pattern:
+    return type_and_attributes(ast.GeneratorExp, {"elt": elt, "generators": generators})
+
+
 def ast_listComp(elt: Pattern = _any, generators: Pattern = _any) -> Pattern:
     return type_and_attributes(ast.ListComp, {"elt": elt, "generators": generators})
 

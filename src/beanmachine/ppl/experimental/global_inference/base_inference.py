@@ -74,6 +74,7 @@ class BaseInference(metaclass=ABCMeta):
             # Main inference loop
             for world in tqdm(
                 sampler,
+                total=num_samples + num_adaptive_samples,
                 desc="Samples collected",
                 disable=verbose == VerboseLevel.OFF,
             ):
