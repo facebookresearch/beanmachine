@@ -30,7 +30,7 @@ class BetaDimensionTransform(Transform):
         """
         Abstract method to compute inverse transformation.
         """
-        return y.transpose(-1, 0)[0]
+        return y[..., 0] / y.sum(dim=-1)
 
     def forward_shape(self, shape):
         return shape + (2,)
