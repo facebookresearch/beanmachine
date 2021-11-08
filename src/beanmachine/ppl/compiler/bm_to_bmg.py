@@ -27,10 +27,11 @@ from beanmachine.ppl.compiler.ast_patterns import (
     name,
     starred,
     subscript,
+    slice_pattern,
     unaryop,
 )
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
-from beanmachine.ppl.compiler.patterns import nonEmptyList
+from beanmachine.ppl.compiler.patterns import nonEmptyList, match_any
 from beanmachine.ppl.compiler.rules import (
     AllOf as all_of,
     FirstMatch as first,
@@ -58,6 +59,7 @@ _specific_child = ast_domain.specific_child
 _eliminate_assertion = PatternRule(ast_assert(), lambda a: remove_from_list)
 
 _eliminate_all_assertions: Rule = _top_down(once(_eliminate_assertion))
+_name_or_none = match_any(name(), None)
 
 
 def _parse_expr(source: str) -> ast.expr:
@@ -188,10 +190,73 @@ def _handle_comparison(p: Pattern, s: str) -> PatternRule:
     )
 
 
+# a = b[c] --> a = bmg.handle_index(b, c)
+# TODO: What to do about a = b[c:d] and a = b[c:d:e] ?
 _handle_index = PatternRule(
     assign(value=subscript(slice=index())),
     lambda a: ast.Assign(
         a.targets, _make_bmg_call("handle_index", [a.value.value, a.value.slice.value])
+    ),
+)
+
+_ast_none = ast.Constant(value=None, kind=None)
+
+# a[b] = e --> bmg.handle_subscript_assign(a, b, None, None, e)
+_handle_subscript_assign_index = PatternRule(
+    assign(
+        targets=[
+            subscript(
+                value=name(),
+                slice=index(value=name()),
+            )
+        ],
+        value=name(),
+    ),
+    lambda a: ast.Expr(
+        _make_bmg_call(
+            "handle_subscript_assign",
+            [
+                a.targets[0].value,
+                a.targets[0].slice.value,
+                _ast_none,
+                _ast_none,
+                a.value,
+            ],
+        ),
+    ),
+)
+
+
+def _or_none(a):
+    return _ast_none if a is None else a
+
+
+# a[b:c:d] = e --> bmg.handle_subscript_assign(a, b, c, d, e)
+_handle_subscript_assign_slice = PatternRule(
+    assign(
+        targets=[
+            subscript(
+                value=name(),
+                slice=slice_pattern(
+                    lower=_name_or_none,
+                    upper=_name_or_none,
+                    step=_name_or_none,
+                ),
+            )
+        ],
+        value=name(),
+    ),
+    lambda a: ast.Expr(
+        _make_bmg_call(
+            "handle_subscript_assign",
+            [
+                a.targets[0].value,
+                _or_none(a.targets[0].slice.lower),
+                _or_none(a.targets[0].slice.upper),
+                _or_none(a.targets[0].slice.step),
+                a.value,
+            ],
+        ),
     ),
 )
 
@@ -248,6 +313,9 @@ _assignments_to_bmg: Rule = first(
         _handle_aug_assign(ast.BitAnd, "handle_iand"),
         _handle_aug_assign(ast.BitXor, "handle_ixor"),
         _handle_aug_assign(ast.BitOr, "handle_ior"),
+        # Indexed assignments
+        _handle_subscript_assign_index,
+        _handle_subscript_assign_slice,
     ]
 )
 

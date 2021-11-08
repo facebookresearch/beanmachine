@@ -1464,6 +1464,47 @@ class BMGRuntime:
             )
         setattr(operand, name, value)
 
+    def handle_subscript_assign(
+        self, target: Any, index: Any, stop: Any, step: Any, value: Any
+    ) -> None:
+        # If we have "target[index:stop:step] = value" (any of index, stop or step
+        # can be missing or None) then:
+        # * Target must not be a graph node; there are no mutable graph nodes.
+        # * Index, stop and step must not be a graph node; we do not have the ability
+        #   to compile stochastic mutations of other tensors.
+        # * If target is a tensor then value must not be a graph node. We cannot
+        #   mutate an existing tensor with a stochastic value.
+
+        if isinstance(target, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a stochastic value is not supported in Bean Machine Graph."
+            )
+        if isinstance(index, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a collection or tensor with a stochastic index is not "
+                + "supported in Bean Machine Graph."
+            )
+        if isinstance(stop, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a collection or tensor with a stochastic upper index is not "
+                + "supported in Bean Machine Graph."
+            )
+        if isinstance(step, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a collection or tensor with a stochastic step is not "
+                + "supported in Bean Machine Graph."
+            )
+        if isinstance(value, BMGNode) and isinstance(target, torch.Tensor):
+            raise ValueError(
+                "Mutating a tensor with a stochastic value is not "
+                + "supported in Bean Machine Graph."
+            )
+        target[index] = value
+
     def accumulate_graph(
         self,
         queries: List[RVIdentifier],
