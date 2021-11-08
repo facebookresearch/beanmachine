@@ -709,6 +709,61 @@ TEST(testoperator, pow) {
   EXPECT_EQ(grad.size(), 3);
   EXPECT_NEAR(grad[0]->_double, -0.1989, 1e-3);
   EXPECT_NEAR(grad[1]->_double, 0.0306, 1e-3);
+
+  // test x ^ y where x is negative and y is a constant
+  // Verified in PyTorch using the following code:
+  //
+  // x = tensor(-0.5, requires_grad=True)
+  // y = tensor(2.0, requires_grad=True)
+  // f = Normal(x ** y, tensor(1.0)).log_prob(tensor(0.0))
+  // f1x = grad(f, x, create_graph=True)
+  // f2x = grad(f1x, x)
+  // f1x -> 0.25 and f2x -> -1.5
+  Graph g1;
+  uint one = g1.add_constant_pos_real(1.0);
+  y = g1.add_constant(2.0);
+  uint flat_dist =
+      g1.add_distribution(DistributionType::FLAT, AtomicType::REAL, {});
+  x = g1.add_operator(OperatorType::SAMPLE, {flat_dist});
+  uint mean = g1.add_operator(OperatorType::POW, std::vector<uint>{x, y});
+  uint normal_dist = g1.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{mean, one});
+  uint z = g1.add_operator(OperatorType::SAMPLE, {normal_dist});
+  g1.observe(z, 0.0);
+  g1.observe(x, -0.5);
+  grad1 = 0;
+  grad2 = 0;
+  g1.gradient_log_prob(x, grad1, grad2);
+  EXPECT_NEAR(grad1, 0.25, 1e-3);
+  EXPECT_NEAR(grad2, -1.5, 1e-3);
+
+  // test x ^ y where x is negative and y is not a constant
+  // Verified in PyTorch using the following code:
+  //
+  // x = tensor(-0.5, requires_grad=True)
+  // y = 2 * x
+  // f = Normal(x ** y, tensor(1.0)).log_prob(tensor(0.0))
+  // f1x = grad(f, x, create_graph=True)
+  // f2x = grad(f1x, x)
+  // f1x -> nan and f2x -> nan
+  Graph g2;
+  one = g2.add_constant_pos_real(1.0);
+  uint two = g2.add_constant(2.0);
+  y = g1.add_constant(2.0);
+  flat_dist = g2.add_distribution(DistributionType::FLAT, AtomicType::REAL, {});
+  x = g2.add_operator(OperatorType::SAMPLE, {flat_dist});
+  y = g2.add_operator(OperatorType::MULTIPLY, {x, two});
+  mean = g2.add_operator(OperatorType::POW, std::vector<uint>{x, y});
+  normal_dist = g2.add_distribution(
+      DistributionType::NORMAL, AtomicType::REAL, std::vector<uint>{mean, one});
+  z = g2.add_operator(OperatorType::SAMPLE, {normal_dist});
+  g2.observe(z, 0.0);
+  g2.observe(x, -0.5);
+  grad1 = 0;
+  grad2 = 0;
+  g2.gradient_log_prob(x, grad1, grad2);
+  EXPECT_TRUE(std::isnan(grad1));
+  EXPECT_TRUE(std::isnan(grad2));
 }
 
 TEST(testoperator, iid_sample) {

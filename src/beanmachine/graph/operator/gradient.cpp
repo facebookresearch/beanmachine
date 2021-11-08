@@ -159,6 +159,14 @@ void Pow::compute_gradients() {
   // We wish to compute the first and second derivatives of x ** y.
   // Note that the derivatives here are with respect to some implicit
   // variable (say, z), of which x and y are functions x(z) and y(z) of.
+  //
+  // If y is a constant and does not depend on z, then the computation
+  // is straightforward and uses the power rule and product rule
+  // (x(z) ** y)' = y * (x ** (y - 1)) * x'
+  // (x(z) ** y)'' = y * (y - 1) * (x ** (y - 2)) * (x' ** 2) +
+  //                 y * (x ** (y - 1)) * x''
+  //
+  // However, for y(z) that does depend on z,
   // x(z) ** y(z) is not a function we have a ready-made derivative formula for.
   // However we can get a more convenient form:
   // x ** y = exp(log (x ** y)) = exp(y log x)
@@ -198,18 +206,36 @@ void Pow::compute_gradients() {
   double y1 = in_nodes[1]->grad1;
   double x2 = in_nodes[0]->grad2;
   double y2 = in_nodes[1]->grad2;
-  double logx = std::log(x);
-  double m = y1 * logx;
-  double n = x1 * y / x;
-  double g1 = m + n;
-  double f1 = g1 * f;
-  double c = x1 * y1 / x;
-  double m1 = y2 * logx + c;
-  double n1 = x2 * y / x + c - x1 * x1 * y / (x * x);
-  double g2 = m1 + n1;
-  double f2 = g2 * f + g1 * f1;
-  grad1 = f1;
-  grad2 = f2;
+
+  // check if the exponent is a constant (has no parents)
+  bool constant_exponent = in_nodes[1]->in_nodes.size() == 0;
+  if (constant_exponent) {
+    // (x^c)' = c * x^(c-1) * x'
+    // (x^c)'' = c * (c-1) * x^(c-2) * x'^2 + c * x^(c-1) * x''
+    grad1 = y * std::pow(x, y - 1) * x1;
+    grad2 = y * (y - 1) * std::pow(x, y - 2) * x1 * x1 +
+        y * std::pow(x, y - 1) * x2;
+  } else {
+    if (x <= 0) {
+      // if x <= 0, then the gradient should be NaN
+      grad1 = std::nan("");
+      grad2 = std::nan("");
+    } else {
+      // use computation described above
+      double logx = std::log(x);
+      double m = y1 * logx;
+      double n = x1 * y / x;
+      double g1 = m + n;
+      double f1 = g1 * f;
+      double c = x1 * y1 / x;
+      double m1 = y2 * logx + c;
+      double n1 = x2 * y / x + c - x1 * x1 * y / (x * x);
+      double g2 = m1 + n1;
+      double f2 = g2 * f + g1 * f1;
+      grad1 = f1;
+      grad2 = f2;
+    }
+  }
 }
 
 void Add::compute_gradients() {
