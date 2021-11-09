@@ -21,15 +21,9 @@ class BetaDimensionTransform(Transform):
         return isinstance(other, BetaDimensionTransform)
 
     def _call(self, x):
-        """
-        Abstract method to compute forward transformation.
-        """
         return torch.cat((x.unsqueeze(-1), (1 - x).unsqueeze(-1)), -1)
 
     def _inverse(self, y):
-        """
-        Abstract method to compute inverse transformation.
-        """
         return y[..., 0] / y.sum(dim=-1)
 
     def forward_shape(self, shape):
@@ -39,9 +33,6 @@ class BetaDimensionTransform(Transform):
         return shape[:-1]
 
     def log_abs_det_jacobian(self, x, y):
-        """
-        Computes the log det jacobian `log |dy/dx|` given input and output.
-        """
         return torch.zeros_like(x)
 
 
