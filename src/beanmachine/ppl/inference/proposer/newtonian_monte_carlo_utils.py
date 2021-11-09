@@ -92,21 +92,18 @@ def compute_hessian(first_gradient: Tensor, node_val: Tensor) -> Tuple[bool, Ten
     return True, hessian
 
 
-def symmetric_inverse(
-    neg_hessian: Tensor, max_zval: float = 1e8
-) -> Tuple[Tensor, Tensor]:
+def soft_abs_inverse(neg_hessian: Tensor, alpha: float = 1e6) -> Tuple[Tensor, Tensor]:
     """
     Compute inverse of a symmetric matrix and returns inverse, eigen values
     and eigen vectors.
 
     :param neg_hessian: the value that we'd like to compute the inverse of
-    :param max_zval: negative hessian eigen values will be set to max_zval and
-    later inversed as we'd like to compute negative hessian inverse eigenvalues.
+    :param alpha: the hardness parameter alpha for the SoftAbs map, see
+    (https://arxiv.org/pdf/1212.4693.pdf)
     :returns: eigen value and eigen vector of the negative hessian inverse
     """
     eig_vals, eig_vecs = torch.linalg.eigh(neg_hessian)
-    eig_vals[eig_vals <= 0] = max_zval
-    inverse_eig_vals = eig_vals.reciprocal()
+    inverse_eig_vals = torch.tanh(alpha * eig_vals) / eig_vals
     return eig_vecs, inverse_eig_vals
 
 
@@ -126,8 +123,6 @@ def compute_eigvals_eigvecs(
     is_valid_first_grad_and_hessian = is_valid(first_gradient) or is_valid(hessian)
     if not is_valid_first_grad_and_hessian:
         return False, tensor(0.0), tensor(0.0), tensor(0.0)
-    # to avoid problems with inverse, here we add a small value - 1e-7 to
-    # the diagonals
     neg_hessian = -1 * hessian.detach()
-    eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
+    eig_vecs, eig_vals = soft_abs_inverse(neg_hessian)
     return True, first_gradient, eig_vecs, eig_vals

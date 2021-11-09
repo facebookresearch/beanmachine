@@ -97,6 +97,26 @@ class SingleSiteNewtonianMonteCarloTest(unittest.TestCase):
                 dist.Beta(tensor([1.0, 2.0, 3.0]), tensor([1.0, 2.0, 3.0])), 1
             )
 
+    class SampleStudentTModel(object):
+        @bm.random_variable
+        def x(self):
+            return dist.StudentT(df=2.0)
+
+    def test_single_site_newtonian_monte_carlo_student_t(self):
+        model = self.SampleStudentTModel()
+        samples = (
+            bm.SingleSiteNewtonianMonteCarlo()
+            .infer(
+                queries=[model.x()],
+                observations={},
+                num_samples=1_000,
+                num_chains=1,
+            )
+            .get_chain(0)[model.x()]
+        )
+
+        self.assertTrue((samples.abs() > 2.0).any())
+
     def test_single_site_newtonian_monte_carlo(self):
         model = self.SampleNormalModel()
         nw = bm.SingleSiteNewtonianMonteCarlo()
