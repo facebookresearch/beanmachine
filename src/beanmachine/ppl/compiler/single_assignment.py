@@ -761,6 +761,41 @@ class SingleAssignment:
             rule_name,
         )
 
+    def _handle_assign_lambda(self) -> Rule:
+        # This rule eliminates all assignments where the right hand side
+        # is a lambda.
+        #
+        # It rewrites:
+        #
+        # x = lambda args: body
+        #
+        # to:
+        #
+        # def t(args):
+        #    return body
+        # x = t
+
+        def do_it(source_term):
+            id = self._unique_id("a")
+            return ListEdit(
+                [
+                    ast.FunctionDef(
+                        name=id,
+                        args=source_term.value.args,
+                        body=[ast.Return(value=source_term.value.body)],
+                        decorator_list=[],
+                        returns=None,
+                        type_comment=None,
+                    ),
+                    ast.Assign(
+                        targets=source_term.targets,
+                        value=ast.Name(id=id, ctx=ast.Load()),
+                    ),
+                ]
+            )
+
+        return PatternRule(assign(value=ast.Lambda), do_it, "handle_assign_lambda")
+
     def _handle_assign_unaryop(self) -> Rule:
         # This rule eliminates all assignments where the right hand side
         # is a unary operator whose operand is not an identifier.
@@ -1682,6 +1717,8 @@ class SingleAssignment:
                 self._handle_assign_binary_dict_left(),
                 self._handle_assign_binary_dict_right(),
                 self._handle_left_value_all(),
+                # Rule to eliminate lambdas
+                self._handle_assign_lambda(),
             ]
         )
 

@@ -7,7 +7,7 @@ import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     is_scalar,
     is_valid,
-    symmetric_inverse,
+    soft_abs_inverse,
     zero_grad,
 )
 from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
@@ -166,7 +166,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposer(SingleSiteAncestralProposer
                 "Error: Cholesky decomposition failed. "
                 + "Falls back to Eigen decomposition."
             )
-            eig_vecs, eig_vals = symmetric_inverse(neg_hessian)
+            eig_vecs, eig_vals = soft_abs_inverse(neg_hessian)
             # pyre-fixme
             distance = (
                 eig_vecs

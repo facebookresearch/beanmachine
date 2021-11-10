@@ -6,7 +6,8 @@ import astor
 import beanmachine.ppl as bm
 from beanmachine.ppl.compiler.bm_to_bmg import _bm_function_to_bmg_ast
 from beanmachine.ppl.inference import BMGInference
-from torch.distributions import Normal
+from torch import tensor
+from torch.distributions import Normal, Dirichlet, Bernoulli
 
 
 class BaseModel:
@@ -31,6 +32,74 @@ class DerivedModel(BaseModel):
 
     def bar(self):
         return 4.0
+
+
+@bm.random_variable
+def legal_subscript_mutations():
+    t = tensor([0.0, 0.0])
+    t[0] = 0.0
+    t[1] = 1.0
+    t[0:] = 2.0
+    t[:1] = 3.0
+    t[0:1] = 4.0
+    t[0::] = 5.0
+    t[:1:] = 6.0
+    t[::1] = 7.0
+    t[0:1:] = 8.0
+    t[0::1] = 9.0
+    t[:1:1] = 10.0
+    t[0:1:1] = 11.0
+    return Dirichlet(t)
+
+
+@bm.random_variable
+def normal():
+    return Normal(0.0, 1.0)
+
+
+@bm.random_variable
+def flip():
+    return Bernoulli(0.5)
+
+
+@bm.functional
+def illegal_subscript_mutation_1():
+    # Mutate a tensor with a stochastic value:
+    t = tensor([0.0, 0.0])
+    t[0] = normal()
+    return t
+
+
+@bm.functional
+def illegal_subscript_mutation_2():
+    # Mutate a stochastic tensor
+    t = legal_subscript_mutations()
+    t[0] = 0.0
+    return t
+
+
+@bm.functional
+def illegal_subscript_mutation_3():
+    # Mutate a tensor with a stochastic index
+    t = tensor([0.0, 0.0])
+    t[flip()] = 1.0
+    return t
+
+
+@bm.functional
+def illegal_subscript_mutation_4():
+    # Mutate a tensor with a stochastic upper
+    t = tensor([0.0, 0.0])
+    t[0 : flip()] = 1.0
+    return t
+
+
+@bm.functional
+def illegal_subscript_mutation_5():
+    # Mutate a tensor with a stochastic step
+    t = tensor([0.0, 0.0])
+    t[0 : 1 : flip() + 1] = 1.0
+    return t
 
 
 class CompilerTest(unittest.TestCase):
@@ -142,3 +211,61 @@ def foo_helper(bmg, __class__):
     return foo
 """
         self.assertEqual(observed.strip(), expected.strip())
+
+    def test_subscript_mutations(self) -> None:
+        self.maxDiff = None
+
+        observed = BMGInference().to_dot([legal_subscript_mutations()], {})
+        expected = """
+digraph "graph" {
+  N0[label="[11.0,10.0]"];
+  N1[label=Dirichlet];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N3;
+}"""
+        self.assertEqual(observed.strip(), expected.strip())
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([illegal_subscript_mutation_1()], {})
+        # TODO: Better error message
+        expected = (
+            "Mutating a tensor with a stochastic value "
+            + "is not supported in Bean Machine Graph."
+        )
+        self.assertEqual(expected, str(ex.exception))
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([illegal_subscript_mutation_2()], {})
+        # TODO: Better error message
+        expected = "Mutating a stochastic value is not supported in Bean Machine Graph."
+        self.assertEqual(expected, str(ex.exception))
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([illegal_subscript_mutation_3()], {})
+        # TODO: Better error message
+        expected = (
+            "Mutating a collection or tensor with a stochastic index "
+            + "is not supported in Bean Machine Graph."
+        )
+        self.assertEqual(expected, str(ex.exception))
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([illegal_subscript_mutation_4()], {})
+        # TODO: Better error message
+        expected = (
+            "Mutating a collection or tensor with a stochastic upper index "
+            + "is not supported in Bean Machine Graph."
+        )
+        self.assertEqual(expected, str(ex.exception))
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([illegal_subscript_mutation_5()], {})
+        # TODO: Better error message
+        expected = (
+            "Mutating a collection or tensor with a stochastic step "
+            + "is not supported in Bean Machine Graph."
+        )
+        self.assertEqual(expected, str(ex.exception))

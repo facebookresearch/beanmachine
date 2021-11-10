@@ -3533,3 +3533,22 @@ def f(x):
     return r1
 """
         self.check_rewrite(source, expected)
+
+    def test_lambda_elimination(self) -> None:
+        source = """
+def f(x):
+    return lambda y: x * y + 2
+"""
+
+        expected = """
+def f(x):
+
+    def a2(y):
+        a4 = x * y
+        a5 = 2
+        r3 = a4 + a5
+        return r3
+    r1 = a2
+    return r1
+"""
+        self.check_rewrite(source, expected)
