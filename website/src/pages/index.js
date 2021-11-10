@@ -82,7 +82,7 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/overview/introduction/introduction')}>
+              to={useBaseUrl('docs/introduction')}>
               Introduction
             </Link>
             <Link
@@ -90,7 +90,7 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/overview/quick_start/quick_start')}>
+              to={useBaseUrl('docs/quickstart')}>
               Get Started
             </Link>
             <Link
@@ -98,7 +98,7 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted,
               )}
-              to={useBaseUrl('docs/overview/tutorials/tutorials')}>
+              to={useBaseUrl('docs/tutorials')}>
               Tutorials
             </Link>
           </div>

@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "^2.0.0-alpha.58",
+    "@docusaurus/plugin-google-analytics": "^2.0.0-beta.9",
     "@docusaurus/preset-classic": "^2.0.0-alpha.58",
     "clsx": "^1.1.1",
     "internaldocs-fb-helpers": "^1.7.0",
