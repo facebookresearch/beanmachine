@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """Test performance of multiary multiplication optimization """
+import platform
 import random
 import re
 import unittest
@@ -55,6 +56,9 @@ class BinaryVsMultiaryMultiplicationPerformanceTest(unittest.TestCase):
         report returned by BMGInference.
         We initialize the seed to ensure the test is deterministic.
         """
+        if platform.system() == "Windows":
+            self.skipTest("Disabling *_perf_test.py until flakiness is resolved")
+
         self.maxDiff = None
         seed = 0
         torch.manual_seed(seed)
