@@ -637,3 +637,44 @@ digraph "graph" {
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_nested_rv(self) -> None:
+        self.maxDiff = None
+
+        # Verify that a random variable that is nested in a normal function
+        # works.
+
+        @bm.random_variable
+        def nested_flip():
+            return Bernoulli(0.5)
+
+        observed = to_dot(BMGRuntime().accumulate_graph([nested_flip()], {}))
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=Query];
+  N0 -> N1[label=probability];
+  N1 -> N2[label=operand];
+  N2 -> N3[label=operator];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # TODO: Nested random variables closed over an outer variable are
+        # not handled correctly and crash during graph accumulation.
+        # Fix this bug.
+
+        prob = 0.25
+
+        @bm.random_variable
+        def closure_flip():
+            return Bernoulli(prob)
+
+        with self.assertRaises(NameError) as ex:
+            observed = to_dot(BMGRuntime().accumulate_graph([closure_flip()], {}))
+        self.assertEqual("name 'prob' is not defined", str(ex.exception))
+
+        # TODO: random variable function nested in another random variable
+        # TODO: random variable as lambda
