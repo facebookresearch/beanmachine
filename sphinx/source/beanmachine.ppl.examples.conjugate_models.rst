@@ -13,7 +13,6 @@ Subpackages
    beanmachine.ppl.examples.conjugate_models.gamma_gamma
    beanmachine.ppl.examples.conjugate_models.gamma_normal
    beanmachine.ppl.examples.conjugate_models.normal_normal
-   beanmachine.ppl.experimental
 
 Module contents
 ---------------

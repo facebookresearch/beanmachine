@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    beanmachine.applications.clara
+   beanmachine.applications.hme
 
 Module contents
 ---------------

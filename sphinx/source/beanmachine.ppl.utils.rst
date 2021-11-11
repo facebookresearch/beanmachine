@@ -16,7 +16,6 @@ Subpackages
    beanmachine.ppl.utils.tensorops
    beanmachine.ppl.utils.treeprinter
    beanmachine.ppl.utils.unique_name
-   beanmachine.ppl.world
 
 Module contents
 ---------------

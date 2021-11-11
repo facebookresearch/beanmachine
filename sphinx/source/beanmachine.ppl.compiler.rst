@@ -50,6 +50,7 @@ Subpackages
    beanmachine.ppl.compiler.sizer
    beanmachine.ppl.compiler.support
    beanmachine.ppl.compiler.testlib
+   beanmachine.ppl.compiler.typer_base
 
 Module contents
 ---------------

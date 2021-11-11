@@ -9,7 +9,6 @@ Subpackages
 
    beanmachine.applications.clara.nmc
    beanmachine.applications.clara.nmc_df
-   beanmachine.applications.hme
 
 Module contents
 ---------------

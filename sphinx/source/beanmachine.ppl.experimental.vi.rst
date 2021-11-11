@@ -10,7 +10,6 @@ Subpackages
    beanmachine.ppl.experimental.vi.mean_field_variational_approximation
    beanmachine.ppl.experimental.vi.optim
    beanmachine.ppl.experimental.vi.variational_infer
-   beanmachine.ppl.inference
 
 Module contents
 ---------------

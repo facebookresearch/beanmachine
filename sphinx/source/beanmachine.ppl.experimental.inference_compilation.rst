@@ -9,7 +9,6 @@ Subpackages
 
    beanmachine.ppl.experimental.inference_compilation.ic_infer
    beanmachine.ppl.experimental.inference_compilation.utils
-   beanmachine.ppl.experimental.neutra
 
 Module contents
 ---------------

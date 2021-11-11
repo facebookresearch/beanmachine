@@ -10,7 +10,6 @@ Subpackages
    beanmachine.ppl.model.rv_identifier
    beanmachine.ppl.model.statistical_model
    beanmachine.ppl.model.utils
-   beanmachine.ppl.testlib
 
 Module contents
 ---------------

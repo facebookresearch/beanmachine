@@ -14,7 +14,6 @@ Subpackages
    beanmachine.ppl.experimental.neutra.maskedautoencoder
    beanmachine.ppl.experimental.neutra.maskedlinear
    beanmachine.ppl.experimental.neutra.train
-   beanmachine.ppl.experimental.variable_elimination
 
 Module contents
 ---------------

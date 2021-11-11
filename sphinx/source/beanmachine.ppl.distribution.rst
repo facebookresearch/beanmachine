@@ -9,7 +9,6 @@ Subpackages
 
    beanmachine.ppl.distribution.flat
    beanmachine.ppl.distribution.unit
-   beanmachine.ppl.examples
 
 Module contents
 ---------------

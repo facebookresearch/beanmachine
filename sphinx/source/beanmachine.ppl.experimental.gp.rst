@@ -10,7 +10,6 @@ Subpackages
    beanmachine.ppl.experimental.gp.kernels
    beanmachine.ppl.experimental.gp.likelihoods
    beanmachine.ppl.experimental.gp.models
-   beanmachine.ppl.experimental.inference_compilation
 
 Module contents
 ---------------

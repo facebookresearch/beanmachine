@@ -9,7 +9,6 @@ Subpackages
 
    beanmachine.ppl.testlib.abstract_conjugate
    beanmachine.ppl.testlib.hypothesis_testing
-   beanmachine.ppl.utils
 
 Module contents
 ---------------

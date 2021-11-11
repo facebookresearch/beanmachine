@@ -14,8 +14,6 @@ Subpackages
    beanmachine.applications.hme.null_mixture_model
    beanmachine.applications.hme.patsy_mixed
    beanmachine.applications.hme.priors
-   beanmachine.graph
-   beanmachine.ppl
 
 Module contents
 ---------------
