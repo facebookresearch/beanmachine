@@ -143,7 +143,6 @@ Module contents
 def make_rst() -> None:
     # 1. Load and validate configuration file
     config = toml.load("../../website/documentation.toml")
-    # print(config)
 
     # Validate module name to document
     assert (
@@ -204,17 +203,16 @@ def make_rst() -> None:
 
     def dfs(node):
         for h, v in node.items():
-            modules.append(h)  # .replace('_', '\_')
+            modules.append(h)
             dfs(v)
 
     dfs(hierarchy)
 
     # Generate index.rst
     modules = "\n   ".join(modules)
+    modules = [m for m in modules if modules.count(".") < 3]
     index_rst = f""".. BeanMachine documentation master file, created by
-   sphinx-quickstart on Thu Jun 10 14:00:41 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+   Stefan's Autogen tool.
 
 Welcome to BeanMachine's documentation!
 =======================================
@@ -238,14 +236,12 @@ Indices and tables
 
     def dfs(node):
         for h, v in node.items():
-            mod_name = h  # .replace('_', '\_')
-            sub_mod_names = [m for m in v.keys()]  # .replace('_', '\_')
+            mod_name = h
+            sub_mod_names = [m for m in v.keys()]
 
             with open(h + ".rst", "w") as file:
                 rst = save_rst(mod_name, sub_mod_names)
                 print(rst, file=file)
-
-            # print('mod', mod_name, 'submods', sub_mod_names)
 
             dfs(v)
 
