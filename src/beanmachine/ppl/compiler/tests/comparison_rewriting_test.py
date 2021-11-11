@@ -45,7 +45,7 @@ class ComparisonRewritingTest(unittest.TestCase):
 
         self.assertTrue(y.is_random_variable)
 
-        bmgast, _ = _bm_function_to_bmg_ast(y().function, "y_helper")
+        bmgast = _bm_function_to_bmg_ast(y().function, "y_helper")
         observed = astor.to_source(bmgast)
         expected = """
 def y_helper(bmg):

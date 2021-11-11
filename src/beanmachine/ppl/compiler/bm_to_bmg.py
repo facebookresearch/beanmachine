@@ -5,7 +5,7 @@ import ast
 import inspect
 import sys
 import types
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Optional
 
 import astor
 from beanmachine.ppl.compiler.ast_patterns import (
@@ -390,7 +390,25 @@ _remove_all_decorators: Rule = _descend_until(
 _supported_code_containers = {types.MethodType, types.FunctionType}
 
 
-def _bm_ast_to_bmg_ast(a: ast.AST) -> ast.AST:
+def _bm_ast_to_bmg_ast(a: ast.Module) -> ast.Module:
+    """This function takes any AST module, say:
+
+        def f():
+            return norm() + 1.0
+
+    and transforms it to a form where every operation becomes a call
+    into the BMG runtime:
+
+        def f():
+            t1 = []
+            t2 = bmg.handle_function(norm, t1)
+            t3 = 1.0
+            t4 = bmg.handle_add(t2, t3)
+            return t4
+
+    It returns the AST of the transformed code as a module.
+    """
+
     no_asserts = _eliminate_all_assertions(a).expect_success()
     assert isinstance(no_asserts, ast.Module)
     sa = single_assignment(no_asserts)
@@ -413,24 +431,95 @@ def _unindent(lines):
     return [(line[num_spaces:] if line.startswith(spaces) else line) for line in lines]
 
 
-def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str]:
-    """This function takes a function such as
+def _get_lines_ast(f: Callable) -> Tuple[str, ast.Module]:
+    """Takes a function object, returns the code containing
+    its definition as both text and a module."""
+    lines, _ = inspect.getsourcelines(f)
+    # The code may be indented because it is a local function or class member;
+    # either way, we cannot parse an indented function. Unindent it.
+    source = "".join(_unindent(lines))
+    module = ast.parse(source)
+    return source, module
 
-        @random_variable
-        def coin():
-            return Beta(1, 2)
 
-    and transforms it to
+def _transform_function(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str]:
+    """Takes a function such as
 
-        def coin_helper(bmg, outer_variables):
-            def coin():
-                t1 = 1
-                t2 = 2
-                t3 = [t1, t2]
-                t4 = bmg.handle_function(Beta, t3)
-                return t4
-            return coin"""
+        def f():
+            return norm() + 1.0
 
+    and transforms it to a form where every operation becomes a call
+    into the BMG runtime:
+
+        def f():
+            t1 = []
+            t2 = bmg.handle_function(norm, t1)
+            t3 = 1.0
+            t4 = bmg.handle_add(t2, t3)
+            return t4
+
+    It returns:
+    * a list of statement ASTs of the transformed function, or None if the
+      transformation failed
+    * the name of an identifier which refers to the transformed function
+    * the source code of the original function
+    """
+
+    # TODO: return None if we are unable to get the source
+    source, original_ast = _get_lines_ast(f)
+    assert len(original_ast.body) == 1
+
+    # We only know how to handle functions whose source code is a function
+    # definition, not a lambda.
+    # TODO: Handle lambdas also.
+    if not isinstance(original_ast.body[0], ast.FunctionDef):
+        return None, "", ""
+
+    transformed_ast: ast.Module = _bm_ast_to_bmg_ast(original_ast)
+    assert len(transformed_ast.body) == 1
+    funcdef = transformed_ast.body[0]
+    assert isinstance(funcdef, ast.FunctionDef)
+    return transformed_ast.body, funcdef.name, source
+
+
+def _create_enclosing_helper(
+    f: Callable,
+    transformed_body: List[ast.stmt],
+    name: str,
+    helper_name: str,
+) -> ast.AST:
+    """Takes:
+
+    * the original function being transformed
+    * the AST of the transformed body
+    * the name of an identifier referring to the function in the transformed code
+    * the name of a helper method
+
+    Returns the AST of a helper method which closes the transformed body over:
+
+    * the BMG runtime that accumulates the operations
+    * the free variables of the original function"""
+
+    # For example, if we are given the transformed method
+    #
+    # def f():
+    #     t1 = []
+    #     t2 = bmg.handle_function(norm, t1)
+    #     t3 = 1.0
+    #     t4 = bmg.handle_add(t2, t3)
+    #     return t4
+    #
+    # Then we generate:
+    #
+    # def f_helper(bmg):
+    #     def f():
+    #         t1 = []
+    #         t2 = bmg.handle_function(norm, t1)
+    #         t3 = 1.0
+    #         t4 = bmg.handle_add(t2, t3)
+    #         return t4
+    #     return f
+    #
     # Suppose we've been asked to transform a function which is closed over some outer
     # variables; how does that work?  For example:
     #
@@ -512,24 +601,6 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
 
     assert type(f) in _supported_code_containers
 
-    # TODO: f.__class__ must be 'function' or 'method'
-    # TODO: Verify that we can get the source, handle it appropriately if we cannot.
-    # TODO: Verify that function is not closed over any local variables
-    lines, line_num = inspect.getsourcelines(f)
-    # The function may be indented because it is a local function or class member;
-    # either way, we cannot parse an indented function. Unindent it.
-    source = "".join(_unindent(lines))
-    a: ast.Module = ast.parse(source)
-    assert len(a.body) == 1
-    assert isinstance(a.body[0], ast.FunctionDef), f"{str(type(a.body[0]))}\n{source}"
-    # TODO: Add support for classes, generators, lambdas, and so on.
-
-    bmg = _bm_ast_to_bmg_ast(a)
-    assert isinstance(bmg, ast.Module)
-    assert len(bmg.body) == 1
-    bmg_f = bmg.body[0]
-    assert isinstance(bmg_f, ast.FunctionDef)
-    name = bmg_f.name
     helper_parameters = [ast.arg(arg="bmg", annotation=None)]
     if hasattr(f, "__code__"):
         code = f.__code__  # pyre-ignore
@@ -547,8 +618,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
         defaults=[],
     )
 
-    helper_body = [
-        bmg.body[0],
+    helper_body = transformed_body + [
         ast.Return(value=ast.Name(id=name, ctx=ast.Load())),
     ]
 
@@ -560,28 +630,40 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
         returns=None,
     )
 
-    helper = ast.Module(body=[helper_func], type_ignores=[])
-    ast.fix_missing_locations(helper)
+    helper_ast = ast.Module(body=[helper_func], type_ignores=[])
+    ast.fix_missing_locations(helper_ast)
 
-    return helper, source
+    return helper_ast
 
 
 def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
-    # We only know how to compile certain kinds of code containers.
+
+    """Takes a function object and -- if possible -- returns a function of the same
+    signature which calls the BMGRuntime object on each operation that was in the
+    original function. If not possible, it returns the original function and we
+    hope that it did not do anything involving a stochastic quantity.
+    """
+
+    # We only know how to transform certain kinds of code containers.
     # If we don't have one of those, just return the function unmodified
     # and hope for the best.
 
     if type(f) not in _supported_code_containers:
         return f
 
-    helper_name = f.__name__ + "_helper"
-    a, source = _bm_function_to_bmg_ast(f, helper_name)
+    transformed_body, name, original_source = _transform_function(f)
+    if transformed_body is None:
+        return f
+
+    helper_name = name + "_helper"
+    helper_ast = _create_enclosing_helper(f, transformed_body, name, helper_name)
+
     filename = "<BMGJIT>"
 
     try:
-        c = compile(a, filename, "exec")
+        c = compile(helper_ast, filename, "exec")
     except Exception as ex:
-        raise LiftedCompilationError(source, a, ex) from ex
+        raise LiftedCompilationError(original_source, helper_ast, ex) from ex
 
     if f.__module__ not in sys.modules:
         msg = (
@@ -592,8 +674,7 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
 
     g = sys.modules[f.__module__].__dict__
     exec(c, g)  # noqa
-    # For debugging purposes we'll stick some helpful information into
-    # the function object.
+
     arguments = [bmg]
     if hasattr(f, "__closure__"):
         closure = f.__closure__  # pyre-ignore
@@ -602,8 +683,21 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
                 arguments.append(cell.cell_contents)
 
     transformed = g[helper_name](*arguments)
+
+    # For debugging purposes we'll stick some helpful information into
+    # the function object.
+
     transformed.graph_builder = bmg
     transformed.original = f
-    transformed.transformed_ast = a
-    transformed.transformed_source = astor.to_source(a)
+    transformed.original_source = original_source
+    transformed.transformed_ast = helper_ast
+    transformed.transformed_source = astor.to_source(helper_ast)
     return transformed
+
+
+def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
+    # TODO: This method is only here for testing purposes.  Get rid of it.
+    transformed_body, name, _ = _transform_function(f)
+    return _create_enclosing_helper(
+        f, transformed_body, name, helper_name  # pyre-ignore
+    )
