@@ -217,7 +217,7 @@ class JITTest(unittest.TestCase):
         bmgast, _ = _bm_function_to_bmg_ast(f, "f_helper")
         observed = astor.to_source(bmgast)
         expected = """
-def f_helper(bmg, __class__):
+def f_helper(bmg):
 
     def f(x):
         a2 = bmg.handle_dot_get(math, 'exp')
@@ -228,10 +228,10 @@ def f_helper(bmg, __class__):
     return f"""
         self.assertEqual(observed.strip(), expected.strip())
 
-        bmgast, _ = _bm_function_to_bmg_ast(norm, "norm_helper")
+        bmgast, _ = _bm_function_to_bmg_ast(norm().function, "norm_helper")
         observed = astor.to_source(bmgast)
         expected = """
-def norm_helper(bmg, __class__):
+def norm_helper(bmg):
 
     def norm(n):
         global counter
@@ -641,12 +641,14 @@ digraph "graph" {
     def test_nested_rv(self) -> None:
         self.maxDiff = None
 
-        # Verify that a random variable that is nested in a normal function
-        # works.
+        # A random variable that is nested inside another function and closed over
+        # an outer local variable works:
+
+        prob = 0.5
 
         @bm.random_variable
         def nested_flip():
-            return Bernoulli(0.5)
+            return Bernoulli(prob)
 
         observed = to_dot(BMGRuntime().accumulate_graph([nested_flip()], {}))
         expected = """
@@ -661,20 +663,6 @@ digraph "graph" {
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
-
-        # TODO: Nested random variables closed over an outer variable are
-        # not handled correctly and crash during graph accumulation.
-        # Fix this bug.
-
-        prob = 0.25
-
-        @bm.random_variable
-        def closure_flip():
-            return Bernoulli(prob)
-
-        with self.assertRaises(NameError) as ex:
-            observed = to_dot(BMGRuntime().accumulate_graph([closure_flip()], {}))
-        self.assertEqual("name 'prob' is not defined", str(ex.exception))
 
         # TODO: random variable function nested in another random variable
         # TODO: random variable as lambda

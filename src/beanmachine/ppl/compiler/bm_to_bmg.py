@@ -5,7 +5,7 @@ import ast
 import inspect
 import sys
 import types
-from typing import Any, Callable, List, Tuple
+from typing import Callable, List, Tuple
 
 import astor
 from beanmachine.ppl.compiler.ast_patterns import (
@@ -422,7 +422,7 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
 
     and transforms it to
 
-        def coin_helper(bmg, __class__):
+        def coin_helper(bmg, outer_variables):
             def coin():
                 t1 = 1
                 t2 = 2
@@ -431,9 +431,82 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
                 return t4
             return coin"""
 
-    # See comment in _bm_function_to_bmg_function for why we
-    # generate a __class__ formal parameter.
-
+    # Suppose we've been asked to transform a function which is closed over some outer
+    # variables; how does that work?  For example:
+    #
+    # def x(offset):
+    #   def y():
+    #     return flip() + offset
+    #   return y
+    #
+    # f = x(1)
+    #
+    # @functional def some_functional():
+    #   return some_rv(f())  # some_rv(1) or some_rv(2)
+    #
+    # The *functional* never calls x; by the time we call y(), x(1) is long gone,
+    # so we cannot rely on the body of x being transformed.  Somehow we must transform
+    # y to:
+    #
+    # def y():
+    #    t1 = bmg.handle_function(flip, [])
+    #    t2 = bmg.handle_add(t1, offset)
+    #    return t2
+    #
+    # where offset needs to be 1.
+    #
+    # Python implements closures by storing the names of the outer variables in a tuple
+    # at y.__code__.co_freevars, and the cells (references to *variables*) in a tuple
+    # at y.__closure__. You might think that we could simply generate the function above
+    # and the set co_freevars and __closure__ on the new function object to the appropriate
+    #  values, but unfortunately these are both read-only attributes of function objects.
+    #
+    # Instead what we'll do is generate:
+    #
+    # def y_helper(bmg, offset):
+    #   def y():
+    #     t1 = bmg.handle_function(flip, [])
+    #     t2 = bmg.handle_add(t1, offset)
+    #     return t2
+    #   return y
+    #
+    # and then call y_helper with the appropriate values. That is, generate a new set of
+    # identical outer variables with the same values.
+    #
+    # How can this go wrong?
+    #
+    # Closures are closed over *variables*, not *values*, and this is observable when
+    # an inner function uses the *nonlocal* statement:
+    #
+    # def new_counter():
+    #   counter = 0
+    #   def inc():
+    #     nonlocal counter
+    #     counter += 1
+    #     print(counter)
+    #   def dec():
+    #     nonlocal counter
+    #     counter += 1
+    #     print(counter)
+    #   return inc, dec
+    # i, d = new_counter()
+    # i() # 1
+    # i() # 2
+    # d() # 1
+    #
+    # In this example the nonlocal statement causes "counter" to be an alias for the
+    # outer variable.
+    #
+    # If we were asked to compile functions i or d, we would pass in the *current* value
+    # of counter, but we would not create an alias to the *existing* counter variable that
+    # i and d are closed over.
+    #
+    # For now, we're going to have to live with this.  It should be rare for a model
+    # to have a callee that does this.
+    #
+    # TODO: Consider detecting jitted functions which use the nonlocal statement, and
+    # producing an error or warning.
+    #
     # TODO: rename bmg outer variable to something less likely
     # to be shadowed by an inner variable.
 
@@ -457,11 +530,16 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
     bmg_f = bmg.body[0]
     assert isinstance(bmg_f, ast.FunctionDef)
     name = bmg_f.name
-    helper_arg = ast.arg(arg="bmg", annotation=None)
-    class_arg = ast.arg(arg="__class__", annotation=None)
+    helper_parameters = [ast.arg(arg="bmg", annotation=None)]
+    if hasattr(f, "__code__"):
+        code = f.__code__  # pyre-ignore
+        if hasattr(code, "co_freevars"):
+            for outer in code.co_freevars:
+                helper_parameters.append(ast.arg(arg=outer, annotation=None))
+
     helper_args = ast.arguments(
         posonlyargs=[],
-        args=[helper_arg, class_arg],
+        args=helper_parameters,
         vararg=None,
         kwonlyargs=[],
         kw_defaults=[],
@@ -488,22 +566,6 @@ def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> Tuple[ast.AST, str
     return helper, source
 
 
-def _original_class(f: Callable) -> Any:
-    # See comments in _bm_function_to_bmg_function below for
-    # why we're doing this.
-
-    if not hasattr(f, "__code__"):
-        return None
-    code = f.__code__  # pyre-ignore
-    if not hasattr(code, "co_freevars"):
-        return None
-    fvs = code.co_freevars
-    if fvs != ("__class__",):
-        return None
-    # f is closed over an outer variable __class__. Obtain its value.
-    return f.__closure__[0].cell_contents  # pyre-ignore
-
-
 def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
     # We only know how to compile certain kinds of code containers.
     # If we don't have one of those, just return the function unmodified
@@ -511,46 +573,6 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
 
     if type(f) not in _supported_code_containers:
         return f
-
-    # TODO: if f is a nested function or lambda then we should obtain
-    # its closure and ensure the new function is bound to that closure
-    # class.
-    #
-    # However we will consider one special case.  Suppose we have
-    # a method of a class which contains a call to super() or usage of
-    # the magic local __class__:
-    #
-    # class D(B):
-    #    @rv def f(self):
-    #      super().whatever()
-    #      ...
-    #
-    # Python automatically replaces "super()" with "super(__class__, self)",
-    # where __class__ is a magical local variable that contains a reference to
-    # the class that declared method f.  How is this magic local represented in
-    # Python?
-    #
-    # Python pretends that we actually had written:
-    #
-    # def method_constructor(__class__):
-    #   @rv def f(self):
-    #     super(__class__, self).whatever()
-    #     ...
-    #
-    # and then D.f is initialized to method_constructor(D).  That is, any method
-    # which contains a call to super() or a usage of __class__ is actually treated
-    # as though it were closed over an outer variable named __class__.
-    #
-    # How can we know if we're in this situation? As noted above, we need to solve
-    # the more general problem of what to do if f is an inner function, but for
-    # now, we'll just solve the specific problem of f is a method that is closed
-    # over a magical local called __class__:
-
-    oc = _original_class(f)
-
-    # We then do the same as Python does: we create an outer function which defines
-    # a formal parameter __class__, and we'll pass in the original value of __class__
-    # below.
 
     helper_name = f.__name__ + "_helper"
     a, source = _bm_function_to_bmg_ast(f, helper_name)
@@ -572,7 +594,14 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
     exec(c, g)  # noqa
     # For debugging purposes we'll stick some helpful information into
     # the function object.
-    transformed = g[helper_name](bmg, oc)
+    arguments = [bmg]
+    if hasattr(f, "__closure__"):
+        closure = f.__closure__  # pyre-ignore
+        if closure is not None:
+            for cell in f.__closure__:
+                arguments.append(cell.cell_contents)
+
+    transformed = g[helper_name](*arguments)
     transformed.graph_builder = bmg
     transformed.original = f
     transformed.transformed_ast = a
