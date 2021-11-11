@@ -193,7 +193,7 @@ digraph "graph" {
         # D.foo, which has an outer variable __class__. Verify that we
         # correctly recreate that outer variable in the rewritten function:
 
-        bmgast, _ = _bm_function_to_bmg_ast(rv.function, "foo_helper")
+        bmgast = _bm_function_to_bmg_ast(rv.function, "foo_helper")
         observed = astor.to_source(bmgast)
         expected = """
 def foo_helper(bmg, __class__):
