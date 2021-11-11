@@ -1,24 +1,15 @@
-experimental.inference\_compilation package
-===========================================================
+beanmachine.ppl.experimental.inference_compilation
+==================================================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.experimental.inference\_compilation.ic\_infer module
---------------------------------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.experimental.inference_compilation.ic_infer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.inference\_compilation.utils module
-----------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.inference_compilation.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.experimental.inference_compilation.ic_infer
+   beanmachine.ppl.experimental.inference_compilation.utils
+   beanmachine.ppl.experimental.neutra
 
 Module contents
 ---------------
@@ -27,3 +18,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

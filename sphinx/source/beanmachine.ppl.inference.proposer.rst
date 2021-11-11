@@ -1,112 +1,35 @@
-inference.proposer package
-==========================================
+beanmachine.ppl.inference.proposer
+==================================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.inference.proposer.abstract\_single\_site\_proposer module
---------------------------------------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.inference.proposer.abstract_single_site_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.abstract\_single\_site\_single\_step\_proposer module
-----------------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.newtonian\_monte\_carlo\_utils module
-------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.normal\_eig module
------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.normal_eig
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_ancestral\_proposer module
----------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_ancestral_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_half\_space\_newtonian\_monte\_carlo\_proposer module
-------------------------------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_hamiltonian\_monte\_carlo\_proposer module
--------------------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_newtonian\_monte\_carlo\_proposer module
------------------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_no\_u\_turn\_sampler\_proposer module
---------------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_random\_walk\_proposer module
-------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_random_walk_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_real\_space\_newtonian\_monte\_carlo\_proposer module
-------------------------------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_simplex\_newtonian\_monte\_carlo\_proposer module
---------------------------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.inference.proposer.single\_site\_uniform\_proposer module
--------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.inference.proposer.single_site_uniform_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.inference.proposer.abstract_single_site_proposer
+   beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer
+   beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils
+   beanmachine.ppl.inference.proposer.normal_eig
+   beanmachine.ppl.inference.proposer.single_site_ancestral_proposer
+   beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer
+   beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer
+   beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer
+   beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer
+   beanmachine.ppl.inference.proposer.single_site_random_walk_proposer
+   beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer
+   beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer
+   beanmachine.ppl.inference.proposer.single_site_uniform_proposer
+   beanmachine.ppl.inference.rejection_sampling_infer
+   beanmachine.ppl.inference.sampler
+   beanmachine.ppl.inference.single_site_ancestral_mh
+   beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo
+   beanmachine.ppl.inference.single_site_newtonian_monte_carlo
+   beanmachine.ppl.inference.single_site_no_u_turn_sampler
+   beanmachine.ppl.inference.single_site_random_walk
+   beanmachine.ppl.inference.single_site_uniform_mh
+   beanmachine.ppl.inference.utils
+   beanmachine.ppl.model
 
 Module contents
 ---------------
@@ -115,3 +38,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

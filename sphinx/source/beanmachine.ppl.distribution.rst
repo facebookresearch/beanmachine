@@ -1,16 +1,15 @@
-distribution
-====================================
+beanmachine.ppl.distribution
+============================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.distribution.flat module
-----------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.distribution.flat
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.distribution.flat
+   beanmachine.ppl.distribution.unit
+   beanmachine.ppl.examples
 
 Module contents
 ---------------
@@ -19,3 +18,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

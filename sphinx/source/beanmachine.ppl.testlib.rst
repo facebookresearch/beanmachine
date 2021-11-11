@@ -1,24 +1,15 @@
-testlib
-===============================
+beanmachine.ppl.testlib
+=======================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.testlib.abstract\_conjugate module
---------------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.testlib.abstract_conjugate
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.testlib.hypothesis\_testing module
---------------------------------------------------
-
-.. automodule:: beanmachine.ppl.testlib.hypothesis_testing
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.testlib.abstract_conjugate
+   beanmachine.ppl.testlib.hypothesis_testing
+   beanmachine.ppl.utils
 
 Module contents
 ---------------
@@ -27,3 +18,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

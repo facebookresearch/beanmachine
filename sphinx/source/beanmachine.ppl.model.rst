@@ -1,32 +1,16 @@
-model
-=============================
+beanmachine.ppl.model
+=====================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.model.rv\_identifier module
--------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.model.rv_identifier
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.model.statistical\_model module
------------------------------------------------
-
-.. automodule:: beanmachine.ppl.model.statistical_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.model.utils module
-----------------------------------
-
-.. automodule:: beanmachine.ppl.model.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.model.rv_identifier
+   beanmachine.ppl.model.statistical_model
+   beanmachine.ppl.model.utils
+   beanmachine.ppl.testlib
 
 Module contents
 ---------------
@@ -35,3 +19,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

@@ -1,5 +1,5 @@
 beanmachine
-===================
+===========
 
 Subpackages
 -----------
@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 4
 
    beanmachine.applications
-   beanmachine.ppl
 
 Module contents
 ---------------
@@ -17,3 +16,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

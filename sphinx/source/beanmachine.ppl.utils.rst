@@ -1,72 +1,22 @@
-utils
-=============================
+beanmachine.ppl.utils
+=====================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.utils.dotbuilder module
----------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.utils.dotbuilder
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.utils.equivalence module
-----------------------------------------
-
-.. automodule:: beanmachine.ppl.utils.equivalence
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.utils.graph module
-----------------------------------
-
-.. automodule:: beanmachine.ppl.utils.graph
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.utils.item\_counter module
-------------------------------------------
-
-.. automodule:: beanmachine.ppl.utils.item_counter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.utils.memoize module
-------------------------------------
-
-.. automodule:: beanmachine.ppl.utils.memoize
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.utils.tensorops module
---------------------------------------
-
-.. automodule:: beanmachine.ppl.utils.tensorops
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.utils.treeprinter module
-----------------------------------------
-
-.. automodule:: beanmachine.ppl.utils.treeprinter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.utils.unique\_name module
------------------------------------------
-
-.. automodule:: beanmachine.ppl.utils.unique_name
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.utils.dotbuilder
+   beanmachine.ppl.utils.equivalence
+   beanmachine.ppl.utils.graph
+   beanmachine.ppl.utils.item_counter
+   beanmachine.ppl.utils.memoize
+   beanmachine.ppl.utils.set_of_tensors
+   beanmachine.ppl.utils.tensorops
+   beanmachine.ppl.utils.treeprinter
+   beanmachine.ppl.utils.unique_name
+   beanmachine.ppl.world
 
 Module contents
 ---------------
@@ -75,3 +25,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

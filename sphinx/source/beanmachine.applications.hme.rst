@@ -1,43 +1,27 @@
-applications.hme package
-====================================
+beanmachine.applications.hme
+============================
 
+Subpackages
+-----------
 
-beanmachine.applications.hme.configs module
--------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.applications.hme.configs
+   beanmachine.applications.hme.abstract_linear_model
+   beanmachine.applications.hme.abstract_model
+   beanmachine.applications.hme.configs
+   beanmachine.applications.hme.interface
+   beanmachine.applications.hme.null_mixture_model
+   beanmachine.applications.hme.patsy_mixed
+   beanmachine.applications.hme.priors
+   beanmachine.graph
+   beanmachine.ppl
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.applications.hme
    :members:
    :undoc-members:
    :show-inheritance:
 
-beanmachine.applications.hme.abstract\_model module
----------------------------------------------------
-
-.. automodule:: beanmachine.applications.hme.abstract_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.applications.hme.abstract\_linear\_model module
------------------------------------------------------------
-
-.. automodule:: beanmachine.applications.hme.abstract_linear_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.applications.hme.null\_mixture\_model module
---------------------------------------------------------
-
-.. automodule:: beanmachine.applications.hme.null_mixture_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.applications.hme.interface module
----------------------------------------------
-
-.. automodule:: beanmachine.applications.hme.interface
-   :members:
-   :undoc-members:
-   :show-inheritance:

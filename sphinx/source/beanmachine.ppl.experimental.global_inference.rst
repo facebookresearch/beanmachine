@@ -1,5 +1,5 @@
-experimental.global\_inference package
-======================================================
+beanmachine.ppl.experimental.global_inference
+=============================================
 
 Subpackages
 -----------
@@ -7,42 +7,10 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   beanmachine.ppl.experimental.global_inference.base_inference
+   beanmachine.ppl.experimental.global_inference.compositional_infer
+   beanmachine.ppl.experimental.global_inference.hmc_inference
    beanmachine.ppl.experimental.global_inference.proposer
-
-Submodules
-----------
-
-beanmachine.ppl.experimental.global\_inference.base\_inference module
----------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.global_inference.base_inference
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.global\_inference.hmc\_inference module
---------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.global_inference.hmc_inference
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.global\_inference.sampler module
--------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.global_inference.sampler
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.global\_inference.simple\_world module
--------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.global_inference.simple_world
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Module contents
 ---------------
@@ -51,3 +19,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

@@ -19,16 +19,16 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "black==20.8b1",
     "flake8",
     "flake8-bugbear",
-    "sphinx",
+    "sphinx==4.2.0",
     "sphinx-autodoc-typehints",
     "usort",
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 
 if platform.system() == "Windows":
-    CPP_COMPILE_ARGS = ["/std:c++14", "/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
+    CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
 else:
-    CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
+    CPP_COMPILE_ARGS = ["-Werror"]
 
 
 # Check for python version

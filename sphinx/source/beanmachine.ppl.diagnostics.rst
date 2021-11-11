@@ -1,32 +1,16 @@
-diagnostics
-===================================
+beanmachine.ppl.diagnostics
+===========================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.diagnostics.common\_plots module
-------------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.diagnostics.common_plots
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.diagnostics.common\_statistics module
------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.diagnostics.common_statistics
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.diagnostics.diagnostics module
-----------------------------------------------
-
-.. automodule:: beanmachine.ppl.diagnostics.diagnostics
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.diagnostics.common_plots
+   beanmachine.ppl.diagnostics.common_statistics
+   beanmachine.ppl.diagnostics.diagnostics
+   beanmachine.ppl.distribution
 
 Module contents
 ---------------
@@ -35,3 +19,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

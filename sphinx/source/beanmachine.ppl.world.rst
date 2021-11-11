@@ -1,64 +1,20 @@
-world
-=============================
+beanmachine.ppl.world
+=====================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.world.base\_world module
-----------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.world.base_world
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.world.diff module
----------------------------------
-
-.. automodule:: beanmachine.ppl.world.diff
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.world.diff\_stack module
-----------------------------------------
-
-.. automodule:: beanmachine.ppl.world.diff_stack
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.world.utils module
-----------------------------------
-
-.. automodule:: beanmachine.ppl.world.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.world.variable module
--------------------------------------
-
-.. automodule:: beanmachine.ppl.world.variable
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.world.world module
-----------------------------------
-
-.. automodule:: beanmachine.ppl.world.world
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.world.world\_vars module
-----------------------------------------
-
-.. automodule:: beanmachine.ppl.world.world_vars
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.world.base_world
+   beanmachine.ppl.world.diff
+   beanmachine.ppl.world.diff_stack
+   beanmachine.ppl.world.marginal_table
+   beanmachine.ppl.world.utils
+   beanmachine.ppl.world.variable
+   beanmachine.ppl.world.world
+   beanmachine.ppl.world.world_vars
 
 Module contents
 ---------------
@@ -67,3 +23,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

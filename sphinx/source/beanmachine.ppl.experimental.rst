@@ -1,5 +1,5 @@
-experimental package
-====================================
+beanmachine.ppl.experimental
+============================
 
 Subpackages
 -----------
@@ -8,11 +8,6 @@ Subpackages
    :maxdepth: 4
 
    beanmachine.ppl.experimental.abc
-   beanmachine.ppl.experimental.global_inference
-   beanmachine.ppl.experimental.gp
-   beanmachine.ppl.experimental.inference_compilation
-   beanmachine.ppl.experimental.neutra
-   beanmachine.ppl.experimental.vi
 
 Module contents
 ---------------
@@ -21,3 +16,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

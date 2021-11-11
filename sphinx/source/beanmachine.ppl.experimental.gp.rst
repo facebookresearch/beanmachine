@@ -1,32 +1,16 @@
-experimental.gp package
-=======================================
+beanmachine.ppl.experimental.gp
+===============================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.experimental.gp.kernels module
-----------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.experimental.gp.kernels
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.gp.likelihoods module
---------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.gp.likelihoods
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.gp.models module
----------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.gp.models
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.experimental.gp.kernels
+   beanmachine.ppl.experimental.gp.likelihoods
+   beanmachine.ppl.experimental.gp.models
+   beanmachine.ppl.experimental.inference_compilation
 
 Module contents
 ---------------
@@ -35,3 +19,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

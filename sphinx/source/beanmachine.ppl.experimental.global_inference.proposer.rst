@@ -1,40 +1,25 @@
-experimental.global\_inference.proposer package
-===============================================================
+beanmachine.ppl.experimental.global_inference.proposer
+======================================================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.experimental.global\_inference.proposer.base\_proposer module
------------------------------------------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.experimental.global_inference.proposer.base_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.global\_inference.proposer.hmc\_proposer module
-----------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.global\_inference.proposer.hmc\_utils module
--------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.global_inference.proposer.hmc_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.global\_inference.proposer.nuts\_proposer module
------------------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.experimental.global_inference.proposer.base_proposer
+   beanmachine.ppl.experimental.global_inference.proposer.base_single_site_proposer
+   beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer
+   beanmachine.ppl.experimental.global_inference.proposer.hmc_utils
+   beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer
+   beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer
+   beanmachine.ppl.experimental.global_inference.proposer.single_site_uniform_proposer
+   beanmachine.ppl.experimental.global_inference.sampler
+   beanmachine.ppl.experimental.global_inference.simple_world
+   beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh
+   beanmachine.ppl.experimental.global_inference.single_site_inference
+   beanmachine.ppl.experimental.global_inference.single_site_uniform_mh
+   beanmachine.ppl.experimental.global_inference.utils
 
 Module contents
 ---------------
@@ -43,3 +28,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

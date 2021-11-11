@@ -1,32 +1,16 @@
-experimental.abc package
-========================================
+beanmachine.ppl.experimental.abc
+================================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.experimental.abc.abc\_infer module
---------------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.experimental.abc.abc_infer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.abc.abc\_smc\_infer module
--------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.abc.abc_smc_infer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.abc.adaptive\_abc\_smc\_infer module
------------------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.abc.adaptive_abc_smc_infer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.experimental.abc.abc_infer
+   beanmachine.ppl.experimental.abc.abc_smc_infer
+   beanmachine.ppl.experimental.abc.adaptive_abc_smc_infer
+   beanmachine.ppl.experimental.global_inference
 
 Module contents
 ---------------
@@ -35,3 +19,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

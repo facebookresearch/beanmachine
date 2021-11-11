@@ -1,5 +1,5 @@
 beanmachine.ppl.examples
-================================
+========================
 
 Subpackages
 -----------
@@ -16,3 +16,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+
