@@ -183,11 +183,17 @@ digraph "graph" {
         #   it will not rewrite super() to x = [] / super(*x).
         # * the bm_to_bmg rewriter does not rewrite calls to super
         #   into bmg.handle_function.
-        # * we generate an outer variable __class__ which is initialized
-        #   to the same value as the original function's outer variable
-        #   __class__, if it has one, None otherwise.
+        # * if the original function has an outer variable __class__ then
+        #   we generate a new outer variable with the same name and value.
 
-        bmgast, _ = _bm_function_to_bmg_ast(d.foo, "foo_helper")
+        # Obtain the random variable for d.foo()
+        rv = d.foo()
+
+        # The random variable has a reference to the original *undecorated*
+        # D.foo, which has an outer variable __class__. Verify that we
+        # correctly recreate that outer variable in the rewritten function:
+
+        bmgast, _ = _bm_function_to_bmg_ast(rv.function, "foo_helper")
         observed = astor.to_source(bmgast)
         expected = """
 def foo_helper(bmg, __class__):
