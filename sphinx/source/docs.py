@@ -209,7 +209,7 @@ def make_rst() -> None:
     dfs(hierarchy)
 
     # Generate index.rst
-    modules = [m for m in modules if modules.count(".") < 3]
+    modules = [m for m in modules if m.count(".") < 3]
     modules = "\n   ".join(modules)
     index_rst = f""".. BeanMachine documentation master file, created by
    Stefan's Autogen tool.
