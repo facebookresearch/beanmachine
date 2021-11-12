@@ -1,9 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
-from unittest.mock import patch
 
 import beanmachine.ppl as bm
-import torch
 import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
@@ -54,36 +52,6 @@ class CompositionalInferenceTest(unittest.TestCase):
         @bm.random_variable
         def foobar(self, i):
             return dist.Normal(self.foo(i) + self.bar(i), tensor(1.0))
-
-    class ChangingSupportSameShapeModel(object):
-        # the support of `component` is changing, but (because we indexed alpha
-        # by k) all random_variables have the same shape
-        @bm.random_variable
-        def K(self):
-            return dist.Poisson(rate=2.0)
-
-        @bm.random_variable
-        def alpha(self, k):
-            return dist.Dirichlet(torch.ones(k))
-
-        @bm.random_variable
-        def component(self, i):
-            alpha = self.alpha(self.K().int().item() + 1)
-            return dist.Categorical(alpha)
-
-    class ChangingShapeModel(object):
-        # here since we did not index alpha, its shape in each world is changing
-        @bm.random_variable
-        def K(self):
-            return dist.Poisson(rate=2.0)
-
-        @bm.random_variable
-        def alpha(self):
-            return dist.Dirichlet(torch.ones(self.K().int().item() + 1))
-
-        @bm.random_variable
-        def component(self, i):
-            return dist.Categorical(self.alpha())
 
     class SampleTransformModel(object):
         @bm.random_variable
@@ -290,41 +258,6 @@ class CompositionalInferenceTest(unittest.TestCase):
             children_log_updates.item(),
             delta=0.001,
         )
-
-    def test_block_inference_on_functions(self):
-        @bm.random_variable
-        def foo():
-            return dist.Normal(0, 1)
-
-        ci = bm.CompositionalInference()
-        ci.add_sequential_proposer([foo])
-
-        with patch.object(
-            ci, "block_propose_change", wraps=ci.block_propose_change
-        ) as mock:
-            ci.infer([foo()], {}, num_samples=2)
-            mock.assert_called()
-
-    def test_block_inference_changing_support(self):
-        torch.manual_seed(41)
-        model = self.ChangingSupportSameShapeModel()
-        queries = [model.K()] + [model.component(j) for j in range(10)]
-        mh = bm.CompositionalInference()
-        mh.add_sequential_proposer([model.K, model.component])
-        with patch.object(
-            mh, "block_propose_change", wraps=mh.block_propose_change
-        ) as block_propose_spy:
-            mh.infer(queries, {}, num_samples=10, num_chains=1)
-            block_propose_spy.assert_called()
-
-    def test_block_inference_changing_shape(self):
-        model = self.ChangingShapeModel()
-        queries = [model.K()] + [model.component(j) for j in range(10)]
-        mh = bm.CompositionalInference()
-
-        # TODO: we should never raise RuntimeError, blocked by T67717820
-        with self.assertRaises((ValueError, RuntimeError)):
-            mh.infer(queries, {}, num_samples=10, num_chains=1)
 
     def test_single_site_compositional_inference_transform_default(self):
         model = self.SampleTransformModel()

@@ -14,6 +14,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestra
 )
 from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
+    GlobalAncestralMetropolisHastings,
 )
 
 
@@ -29,6 +30,38 @@ class SampleModel:
     @bm.random_variable
     def baz(self):
         return dist.Normal(self.bar(0) + self.bar(1), 1.0)
+
+
+class ChangingSupportSameShapeModel:
+    # the support of `component` is changing, but (because we indexed alpha
+    # by k) all random_variables have the same shape
+    @bm.random_variable
+    def K(self):
+        return dist.Poisson(rate=2.0)
+
+    @bm.random_variable
+    def alpha(self, k):
+        return dist.Dirichlet(torch.ones(k))
+
+    @bm.random_variable
+    def component(self, i):
+        alpha = self.alpha(self.K().int().item() + 1)
+        return dist.Categorical(alpha)
+
+
+class ChangingShapeModel:
+    # here since we did not index alpha, its shape in each world is changing
+    @bm.random_variable
+    def K(self):
+        return dist.Poisson(rate=2.0)
+
+    @bm.random_variable
+    def alpha(self):
+        return dist.Dirichlet(torch.ones(self.K().int().item() + 1))
+
+    @bm.random_variable
+    def component(self, i):
+        return dist.Categorical(self.alpha())
 
 
 def test_inference_config():
@@ -99,3 +132,42 @@ def test_nested_compositional_inference():
 
         # the ancestral_mh instance shouldn't been invoked at all
         mock.assert_not_called()
+
+
+def test_block_inference_changing_support():
+    model = ChangingSupportSameShapeModel()
+    queries = [model.K()] + [model.component(j) for j in range(3)]
+    compositional = CompositionalInference(
+        {(model.K, model.component): GlobalAncestralMetropolisHastings()}
+    )
+    sampler = compositional.sampler(queries, {}, num_samples=10, num_adaptive_samples=5)
+    old_world = next(sampler)
+    for world in sampler:  # this should run without failing
+        # since it's actually possible to sample two identical values, we need
+        # to check for tensor identity
+        if world[model.K()] is not old_world[model.K()]:
+            # if one of the node in a block is updated, the rest of the nodes should
+            # also been updated
+            for i in range(3):
+                assert world[model.component(i)] is not old_world[model.component(i)]
+        else:
+            # just as a sanity check to show that the tensor identity check is doing
+            # what we expected
+            assert world[model.component(0)] is old_world[model.component(0)]
+        old_world = world
+
+    samples = compositional.infer(queries, {}, num_samples=10, num_chains=1).get_chain()
+    # make sure that we're not getting stuck in a particular value of K
+    assert torch.any(samples[model.K()] != samples[model.K()][0])
+
+
+def test_block_inference_changing_shape():
+    model = ChangingShapeModel()
+    queries = [model.K()] + [model.component(j) for j in range(3)]
+    compositional = CompositionalInference()
+
+    # should run without error
+    samples = compositional.infer(queries, {}, num_samples=5, num_chains=1).get_chain()
+    # however, K is going to be stuck at its initial value because changing it will
+    # invalidate alpha
+    assert torch.all(samples[model.K()] == samples[model.K()][0])

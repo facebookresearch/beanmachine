@@ -1,4 +1,4 @@
-from typing import NamedTuple, Set
+from typing import NamedTuple, Set, Tuple
 
 import torch
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
@@ -245,7 +245,7 @@ class NUTSProposer(HMCProposer):
             turned_or_diverged=turned_or_diverged,
         )
 
-    def propose(self, world: SimpleWorld) -> SimpleWorld:
+    def propose(self, world: SimpleWorld) -> Tuple[SimpleWorld, torch.Tensor]:
         if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world
@@ -303,4 +303,4 @@ class NUTSProposer(HMCProposer):
             )
 
         self._alpha = tree.sum_accept_prob / tree.num_proposals
-        return self.world
+        return self.world, torch.zeros_like(self._alpha)

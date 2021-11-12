@@ -11,6 +11,8 @@ from typing import (
     TYPE_CHECKING,
 )
 
+import torch
+
 
 if TYPE_CHECKING:
     from beanmachine.ppl.experimental.global_inference.base_inference import (
@@ -50,7 +52,9 @@ class Sampler(Generator[SimpleWorld, Optional[SimpleWorld], None]):
 
         for proposer in proposers:
             try:
-                world = proposer.propose(world)
+                new_world, accept_log_prob = proposer.propose(world)
+                if torch.rand_like(accept_log_prob).log() < accept_log_prob:
+                    world = new_world
             except RuntimeError as e:
                 if "singular U" in str(e) or "input is not positive-definite" in str(e):
                     # since it's normal to run into cholesky error during GP, instead of
