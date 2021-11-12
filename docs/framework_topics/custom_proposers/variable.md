@@ -9,16 +9,16 @@ A crucial part of Bean Machine inference is its ability track the state of infer
 
 #### Variable
 
-The `Variable` represents the instantiation of each random variable in a model. Each `RVIdentifier` has a corresponding `Variable`. It has the following attributes:
+The `Variable` class represents random variables in a model. Each `RVIdentifier` has a corresponding `Variable` and has the following attributes:
 
-* `distribution: Distribution` - the prior distribution denoted in the modeled
-* `value: Tensor` - the value of the Variable at the current state of inference
+* `distribution: Distribution` - the distribution of the variable according to the model in this particular `World`
+* `value: Tensor` - the value of the variable at the current state of inference
 * `parent: Set[Optional[RVIdentifier]]` - the set of random variables called within the function declaration of the random variable
 * `children: Set[Optional[RVIdentifier]]` - the set of random variables which call this variable in their function declaration
 * `log_prob: Tensor` - the log probability of the value with the prior distribution
 * `proposal_distribution: ProposalDistribution` - the proposal distribution used during inference
 * `is_discrete: bool` - an indicator of whether it is a discrete variable as opposed to a continuous variable
-* `transform: Transform` - a Transform to be applied in order to reshape the state space, see Transform documentation
+* `transform: Transform` - a Transform to be applied in order to reshape the state space; see [Transform](../programmable_inference/transforms.md) documentation
 * `transformed_value: Tensor` - the value of the variable in the transformed space. This value will be the same as `value` when no transforms are specified.
 * `jacobian: Tensor` - the log Jacobian determinant of the transforms
 
@@ -27,7 +27,8 @@ When writing custom proposers, the two most relevant functions within the `Varia
 transform_value(self, value: Tensor) -> Tensor
 inverse_transform_value(self, transformed_value: Tensor) -> Tensor
 ```
-Because Bean Machine expects the proposal to be a value in its original space, it may be helpful to use the `variable.transformed_value` throughout inference before converting back to the original space using `inverse_transform_value`.
+
+If a custom proposer needs to operate on the transformed space of values, then it will typically use `variable.transformed_value` as the starting point in the transformed space for computing a new proposed value. The new proposed value is then in the transformed space, but because custom proposer's `propose` method must return a value in the *original* space, one must obtain the latter using `Variable.inverse_transform_value`. Naturally, if the custom proposer does not need a transformed space, then it can simply use `variable.value` and return the proposed new value without any need to transform it back to the original space.
 
 #### World
 
