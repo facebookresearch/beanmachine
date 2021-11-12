@@ -1,12 +1,12 @@
 import math
 from abc import abstractmethod
 
-import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
     BaseProposer,
 )
 from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
@@ -35,7 +35,10 @@ class BaseSingleSiteMHProposer(BaseProposer):
         # log g(x'|x)
         forward_log_prob = forward_dist.log_prob(proposed_value).sum()
         # log g(x|x')
-        backward_log_prob = backward_dist.log_prob(old_value).sum()
+        # because proposed_value is sampled from forward_dist, it is guaranteed to be
+        # within the valid range. However, there's no guarantee that the old value
+        # is in the support of backward_dist
+        backward_log_prob = safe_log_prob_sum(backward_dist, old_value)
 
         # log [(P(x', y) * g(x|x')) / (P(x, y) * g(x'|x))]
         accept_log_prob = (
@@ -44,9 +47,7 @@ class BaseSingleSiteMHProposer(BaseProposer):
         # model size adjustment log (n/n')
         accept_log_prob += math.log(len(world)) - math.log(len(new_world))
 
-        if torch.rand_like(accept_log_prob).log() < accept_log_prob:
-            world = new_world
-        return world
+        return new_world, accept_log_prob
 
     @abstractmethod
     def get_proposal_distribution(self, world: SimpleWorld) -> dist.Distribution:
