@@ -4,9 +4,7 @@ from beanmachine.ppl.model.statistical_model import (
     StatisticalModel,
     functional,
     param,
-    query,
     random_variable,
-    sample,
 )
 from beanmachine.ppl.model.utils import get_beanmachine_logger
 
