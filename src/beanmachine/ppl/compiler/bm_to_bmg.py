@@ -433,13 +433,83 @@ def _unindent(lines):
 
 def _get_lines_ast(f: Callable) -> Tuple[str, ast.Module]:
     """Takes a function object, returns the code containing
-    its definition as both text and a module."""
+    its definition as both text and a module. Note that if the
+    function is a lambda then we return all the lines containing
+    the lambda, not just the lambda."""
     lines, _ = inspect.getsourcelines(f)
     # The code may be indented because it is a local function or class member;
     # either way, we cannot parse an indented function. Unindent it.
     source = "".join(_unindent(lines))
     module = ast.parse(source)
     return source, module
+
+
+def _transform_lambda(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str]:
+
+    """Takes a lambda such as
+
+    lambda n: norm() + 1.0
+
+    and transforms it to a form where every operation becomes a call
+    into the BMG runtime:
+
+        def t1(n):
+            t2 = [n]
+            t3 = bmg.handle_function(norm, t2)
+            t4 = 1.0
+            t5 = bmg.handle_add(t3, t4)
+            return t5
+        _lambda = t1
+
+    It returns:
+    * the body of the transformed function, or None if the transformation failed
+    * the name of an identifier which refers to the transformed function (_lambda in
+      this example)
+    * the source code of the original lambda"""
+
+    # See http://xion.io/post/code/python-get-lambda-code.html and its comments
+    # for an extended discussion of how broken python is when you need the
+    # source code for a lambda.
+    #
+    # Summary: getsourceslines does exactly what it says on the tin: gives you
+    # the source code **lines** associated with a function. If for example we
+    # have the line "x = y(lambda: 2, lambda: 3)" and we wish to know the source
+    # code of the first lambda, calling getsourcelines returns that string,
+    # containing the entire line.
+    #
+    # How can we then tell which lambda is the one we want? There is no reliable way to
+    # do so! The __code__ object of the function only contains the line number, not the
+    # column offset.
+    #
+    # The vast majority of the time there will be a single lambda on the line, so we'll
+    # implement for that scenario.
+    #
+    # TODO: Consider producing a warning or error if we cannot determine which lambda
+    # is intended.
+
+    # TODO: return None if we are unable to get the source
+    source, module = _get_lines_ast(f)
+    all_lambdas = [
+        astnode for astnode in ast.walk(module) if isinstance(astnode, ast.Lambda)
+    ]
+    if len(all_lambdas) != 1:
+        return None, "", ""
+
+    name = "_lambda"
+    # Give the rewriter "_lambda = lambda: whatever", and it will rewrite that statement
+    # into a function definition and assignment.
+    assignment = ast.Module(
+        body=[
+            ast.Assign(
+                targets=[ast.Name(id=name, ctx=ast.Store())], value=all_lambdas[0]
+            ),
+        ]
+    )
+
+    bmg = _bm_ast_to_bmg_ast(assignment)
+    assert isinstance(bmg, ast.Module)
+    assert len(bmg.body) == 2
+    return bmg.body, name, source
 
 
 def _transform_function(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str]:
@@ -465,16 +535,15 @@ def _transform_function(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str
     * the source code of the original function
     """
 
+    # We need special handling for lambdas.
+    if f.__name__ == "<lambda>":
+        return _transform_lambda(f)
+
     # TODO: return None if we are unable to get the source
     source, original_ast = _get_lines_ast(f)
     assert len(original_ast.body) == 1
-
-    # We only know how to handle functions whose source code is a function
-    # definition, not a lambda.
-    # TODO: Handle lambdas also.
     if not isinstance(original_ast.body[0], ast.FunctionDef):
         return None, "", ""
-
     transformed_ast: ast.Module = _bm_ast_to_bmg_ast(original_ast)
     assert len(transformed_ast.body) == 1
     funcdef = transformed_ast.body[0]

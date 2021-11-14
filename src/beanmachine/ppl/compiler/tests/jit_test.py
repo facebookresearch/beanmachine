@@ -664,5 +664,40 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
+        # Check that we can close over an outer variable with a lambda also.
+        mean = 0.0
+        sigma = 1.0
+        shift = 2.0
+        # Lambda random variable:
+        lambda_norm = bm.random_variable(lambda: Normal(mean, sigma))
+        # Lambda that is not a functional, not declared inside a functional, but called
+        # from inside a functional:
+        lambda_mult = lambda x, y: x * y  # noqa
+        # Lambda functional:
+        lambda_sum = bm.functional(lambda: lambda_mult(lambda_norm() + shift, 4.0))
+        observed = to_dot(BMGRuntime().accumulate_graph([lambda_sum()], {}))
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=2.0];
+  N5[label="+"];
+  N6[label=4.0];
+  N7[label="*"];
+  N8[label=Query];
+  N0 -> N2[label=mu];
+  N1 -> N2[label=sigma];
+  N2 -> N3[label=operand];
+  N3 -> N5[label=left];
+  N4 -> N5[label=right];
+  N5 -> N7[label=left];
+  N6 -> N7[label=right];
+  N7 -> N8[label=operator];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # TODO: lambda nested inside random variable
         # TODO: random variable function nested in another random variable
-        # TODO: random variable as lambda
