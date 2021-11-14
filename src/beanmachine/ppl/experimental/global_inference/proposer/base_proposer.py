@@ -10,7 +10,7 @@ class BaseProposer(metaclass=ABCMeta):
     def propose(self, world: SimpleWorld) -> Tuple[SimpleWorld, torch.Tensor]:
         raise NotImplementedError
 
-    def do_adaptation(self) -> None:
+    def do_adaptation(self, world, accept_log_prob, *args, **kwargs) -> None:
         ...
 
     def finish_adaptation(self) -> None:

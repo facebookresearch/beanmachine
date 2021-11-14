@@ -66,7 +66,7 @@ class Sampler(Generator[SimpleWorld, Optional[SimpleWorld], None]):
                     raise e
 
             if self._num_adaptive_sample_remaining > 0:
-                proposer.do_adaptation()
+                proposer.do_adaptation(world, accept_log_prob)
                 if self._num_samples_remaining == 1:
                     # we just reach the end of adaptation period
                     proposer.finish_adaptation()

@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import warnings
 from functools import wraps
 
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
