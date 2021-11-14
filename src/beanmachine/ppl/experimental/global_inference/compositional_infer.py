@@ -1,6 +1,6 @@
 import inspect
 from collections import defaultdict
-from typing import Dict, Tuple, Callable, Union, List, Set, Optional
+from typing import Dict, Tuple, Callable, Union, List, Set, Optional, TYPE_CHECKING
 
 from beanmachine.ppl.experimental.global_inference.base_inference import BaseInference
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
@@ -15,15 +15,31 @@ from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh impo
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 
+if TYPE_CHECKING:
+    from enum import Enum
+
+    class EllipsisClass(Enum):
+        Ellipsis = "..."
+
+        def __iter__(self):
+            pass
+
+    Ellipsis = EllipsisClass.Ellipsis
+else:
+    EllipsisClass = type(Ellipsis)
+
+
 class CompositionalInference(BaseInference):
     def __init__(
         self,
         inference_dict: Optional[
-            Dict[Union[Callable, Tuple[Callable, ...]], BaseInference]
+            Dict[Union[Callable, Tuple[Callable, ...], EllipsisClass], BaseInference]
         ] = None,
     ):
         self.config = {}
+        default_ = SingleSiteAncestralMetropolisHastings()
         if inference_dict is not None:
+            default_ = inference_dict.pop(Ellipsis, default_)
             for rv_families, inference in inference_dict.items():
                 if isinstance(rv_families, Callable):
                     rv_families = (rv_families,)
@@ -35,7 +51,7 @@ class CompositionalInference(BaseInference):
                 )
                 self.config[config_key] = inference
 
-        self._default_inference = SingleSiteAncestralMetropolisHastings()
+        self._default_inference = default_
         # create a set for the RV families that are being covered in the config; this is
         # useful in get_proposers to determine which RV needs to be handle by the
         # default inference method
