@@ -263,7 +263,7 @@ class HMCProposer(BaseProposer):
             self._positions, self._pe, self._pe_grad = positions, pe, pe_grad
         return self.world, torch.zeros_like(self._alpha)
 
-    def do_adaptation(self) -> None:
+    def do_adaptation(self, *args, **kwargs) -> None:
         if self._alpha is None:
             return
 
