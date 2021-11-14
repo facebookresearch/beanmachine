@@ -9,7 +9,6 @@ from typing import Callable, List, Tuple, Optional
 
 import astor
 from beanmachine.ppl.compiler.ast_patterns import (
-    arguments,
     ast_if,
     ast_for,
     assign,
@@ -20,7 +19,6 @@ from beanmachine.ppl.compiler.ast_patterns import (
     binary_compare,
     binop,
     call,
-    function_def,
     index,
     keyword,
     load,
@@ -31,7 +29,7 @@ from beanmachine.ppl.compiler.ast_patterns import (
     unaryop,
 )
 from beanmachine.ppl.compiler.internal_error import LiftedCompilationError
-from beanmachine.ppl.compiler.patterns import nonEmptyList, match_any
+from beanmachine.ppl.compiler.patterns import match_any
 from beanmachine.ppl.compiler.rules import (
     AllOf as all_of,
     FirstMatch as first,
@@ -39,7 +37,6 @@ from beanmachine.ppl.compiler.rules import (
     PatternRule,
     Rule,
     TryOnce as once,
-    always_replace,
     remove_from_list,
     ListEdit,
 )
@@ -373,19 +370,6 @@ _statements_to_bmg: Rule = all_of(
 )
 
 
-_no_params: PatternRule = PatternRule(function_def(args=arguments(args=[])))
-
-_replace_with_empty_list = always_replace([])
-
-_remove_all_decorators: Rule = _descend_until(
-    PatternRule(function_def(decorator_list=nonEmptyList)),
-    _specific_child(
-        "decorator_list",
-        _replace_with_empty_list,
-    ),
-)
-
-
 # TODO: Add classes, lambdas, and so on
 _supported_code_containers = {types.MethodType, types.FunctionType}
 
@@ -414,7 +398,7 @@ def _bm_ast_to_bmg_ast(a: ast.Module) -> ast.Module:
     sa = single_assignment(no_asserts)
     assert isinstance(sa, ast.Module)
     # Now we're in single assignment form.
-    rewrites = [_statements_to_bmg, _remove_all_decorators]
+    rewrites = [_statements_to_bmg]
     bmg = all_of(rewrites)(sa).expect_success()
     assert isinstance(bmg, ast.Module)
     return bmg
@@ -515,6 +499,7 @@ def _transform_lambda(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str]:
 def _transform_function(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str]:
     """Takes a function such as
 
+        @functional
         def f():
             return norm() + 1.0
 
@@ -527,12 +512,17 @@ def _transform_function(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str
             t3 = 1.0
             t4 = bmg.handle_add(t2, t3)
             return t4
+        t5 = [f]
+        f = bmg.handle_function(functional, t5)
 
     It returns:
     * a list of statement ASTs of the transformed function, or None if the
       transformation failed
     * the name of an identifier which refers to the transformed function
     * the source code of the original function
+
+    Notice that if the original function is decorated with the @decorator syntax
+    then the transformed function is decorated by calling the decorator directly.
     """
 
     # We need special handling for lambdas.
@@ -545,7 +535,7 @@ def _transform_function(f: Callable) -> Tuple[Optional[List[ast.stmt]], str, str
     if not isinstance(original_ast.body[0], ast.FunctionDef):
         return None, "", ""
     transformed_ast: ast.Module = _bm_ast_to_bmg_ast(original_ast)
-    assert len(transformed_ast.body) == 1
+    assert len(transformed_ast.body) >= 1
     funcdef = transformed_ast.body[0]
     assert isinstance(funcdef, ast.FunctionDef)
     return transformed_ast.body, funcdef.name, source

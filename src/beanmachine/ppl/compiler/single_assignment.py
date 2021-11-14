@@ -40,14 +40,14 @@
 #   * dict(**id, **id) is allowed.
 #   * TODO: There are similar exceptions for set and list; say what they are.
 # * There are no dictionary, list or set comprehensions; they are rewritten as loops.
+# * There are no lambda expressions; they are all rewritten as function definitions
+# * There are no decorators; they are all rewritten as function calls
 # TODO: say something about assert, delete, pass, import, break, continue, try, with.
 # TODO: say something about global / nonlocal
 # TODO: say something about yield
 # TODO: say something about classes
 # TODO: say something about nested functions
-# TODO: say something about decorators
 # TODO: say something about type annotations
-# TODO: say something about lambdas
 # TODO: say something about async
 # TODO: say something about conditional expressions
 # TODO: say something about formatted strings
@@ -88,6 +88,7 @@ from beanmachine.ppl.compiler.ast_patterns import (
     starred,
     subscript,
     unaryop,
+    function_def,
 )
 from beanmachine.ppl.compiler.beanstalk_common import allowed_functions
 from beanmachine.ppl.compiler.patterns import (
@@ -99,6 +100,7 @@ from beanmachine.ppl.compiler.patterns import (
     anyPattern,
     negate,
     twoPlusList,
+    nonEmptyList,
 )
 from beanmachine.ppl.compiler.rules import (
     FirstMatch as first,
@@ -120,6 +122,7 @@ _list_all_identifiers: PatternBase = ListAll(name())
 _not_identifier_keyword: Pattern = keyword(value=_not_identifier)
 _not_identifier_keywords: PatternBase = ListAny(_not_identifier_keyword)
 _not_none = negate(None)
+
 
 # TODO: The identifier "dict" should be made global unique in target name space
 _keyword_with_dict = keyword(arg=None, value=call(func=name(id="dict"), args=[]))
@@ -173,6 +176,7 @@ class SingleAssignment:
                 self._handle_return(),
                 self._handle_for(),
                 self._handle_assign(),
+                self._eliminate_decorator(),
             ]
         )
         self._rules = many(_some_top_down(self._rule))
@@ -795,6 +799,50 @@ class SingleAssignment:
             )
 
         return PatternRule(assign(value=ast.Lambda), do_it, "handle_assign_lambda")
+
+    def _eliminate_decorator(self) -> Rule:
+        # This rule eliminates a single decorator from a function def:
+        #
+        # @x
+        # @y
+        # def z():
+        #   body
+        #
+        # is rewritten to
+        #
+        # @y
+        # def z():
+        #   body
+        # z = x(z)
+        #
+        # By repeatedly applying this rule we can eliminate all decorators.
+        def do_it(source_term):
+            return ListEdit(
+                [
+                    ast.FunctionDef(
+                        name=source_term.name,
+                        args=source_term.args,
+                        body=source_term.body,
+                        # Pop off the outermost decorator...
+                        decorator_list=source_term.decorator_list[1:],
+                        returns=source_term.returns,
+                        type_comment=None,
+                    ),
+                    # ... and make it into a function call
+                    ast.Assign(
+                        targets=[ast.Name(id=source_term.name, ctx=ast.Store())],
+                        value=ast.Call(
+                            func=source_term.decorator_list[0],
+                            args=[ast.Name(id=source_term.name, ctx=ast.Load())],
+                            keywords=[],
+                        ),
+                    ),
+                ]
+            )
+
+        return PatternRule(
+            function_def(decorator_list=nonEmptyList), do_it, "eliminate_decorator"
+        )
 
     def _handle_assign_unaryop(self) -> Rule:
         # This rule eliminates all assignments where the right hand side
