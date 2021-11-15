@@ -12,9 +12,15 @@ from beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer import
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
+from beanmachine.ppl.experimental.global_inference.proposer.single_site_uniform_proposer import (
+    SingleSiteUniformProposer,
+)
 from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
     GlobalAncestralMetropolisHastings,
+)
+from beanmachine.ppl.experimental.global_inference.single_site_uniform_mh import (
+    SingleSiteUniformMetropolisHastings,
 )
 
 
@@ -91,6 +97,21 @@ def test_inference_config():
     assert proposers[0]._target_rvs == {model.foo(0), model.foo(1)}
     assert isinstance(proposers[1], SingleSiteAncestralProposer)
     assert isinstance(proposers[2], SingleSiteAncestralProposer)
+    assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
+
+    # test overriding default kwarg
+    uniform = SingleSiteUniformMetropolisHastings()
+    nuts = bm.GlobalNoUTurnSampler()
+    compositional = CompositionalInference({model.foo: nuts, ...: uniform})
+    compositional.infer(queries, observations, num_chains=1, num_samples=2)
+    world = compositional._initialize_world(queries, observations)
+    with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
+        proposers = compositional.get_proposers(
+            world, target_rvs=world.latent_nodes, num_adaptive_sample=0
+        )
+    assert isinstance(proposers[0], NUTSProposer)
+    assert isinstance(proposers[1], SingleSiteUniformProposer)
+    assert isinstance(proposers[2], SingleSiteUniformProposer)
     assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
 
 
