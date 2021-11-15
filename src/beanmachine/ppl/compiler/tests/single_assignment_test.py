@@ -3552,3 +3552,28 @@ def f(x):
     return r1
 """
         self.check_rewrite(source, expected)
+
+    def test_decorator_elimination(self) -> None:
+        source = """
+@x
+@y(z)
+def f():
+    pass
+"""
+
+        expected = """
+def f():
+    pass
+
+
+r3 = [z]
+r6 = {}
+a1 = y(*r3, **r6)
+r4 = [f]
+r7 = {}
+f = a1(*r4, **r7)
+r2 = [f]
+r5 = {}
+f = x(*r2, **r5)
+"""
+        self.check_rewrite(source, expected)

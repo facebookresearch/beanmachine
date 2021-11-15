@@ -199,21 +199,25 @@ digraph "graph" {
 def foo_helper(bmg, __class__):
 
     def foo(self):
-        a4 = super()
-        a1 = bmg.handle_dot_get(a4, 'foo')
-        r6 = []
-        r8 = {}
-        f = bmg.handle_function(a1, r6, r8)
-        a11 = [DerivedModel]
-        a12 = [self]
-        r10 = bmg.handle_addition(a11, a12)
-        a5 = super(*r10)
-        a2 = bmg.handle_dot_get(a5, 'bar')
+        a5 = super()
+        a1 = bmg.handle_dot_get(a5, 'foo')
         r7 = []
-        r9 = {}
-        b = bmg.handle_function(a2, r7, r9)
+        r10 = {}
+        f = bmg.handle_function(a1, r7, r10)
+        a14 = [DerivedModel]
+        a15 = [self]
+        r13 = bmg.handle_addition(a14, a15)
+        a6 = super(*r13)
+        a2 = bmg.handle_dot_get(a6, 'bar')
+        r8 = []
+        r11 = {}
+        b = bmg.handle_function(a2, r8, r11)
         r3 = bmg.handle_multiplication(f, b)
         return r3
+    a4 = bmg.handle_dot_get(bm, 'functional')
+    r9 = [foo]
+    r12 = {}
+    foo = bmg.handle_function(a4, r9, r12)
     return foo
 """
         self.assertEqual(observed.strip(), expected.strip())

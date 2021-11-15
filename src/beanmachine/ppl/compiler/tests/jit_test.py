@@ -214,6 +214,7 @@ class JITTest(unittest.TestCase):
 
         self.assertTrue(norm.is_random_variable)
 
+        # TODO: Stop using _bm_function_to_bmg_ast for testing.
         bmgast = _bm_function_to_bmg_ast(f, "f_helper")
         observed = astor.to_source(bmgast)
         expected = """
@@ -237,14 +238,18 @@ def norm_helper(bmg):
         global counter
         a1 = 1
         counter = bmg.handle_addition(counter, a1)
-        r3 = []
-        a6 = 0.0
-        a5 = dict(loc=a6)
-        a8 = 1.0
-        a7 = dict(scale=a8)
-        r4 = dict(**a5, **a7)
-        r2 = bmg.handle_function(Normal, r3, r4)
+        r4 = []
+        a9 = 0.0
+        a8 = dict(loc=a9)
+        a11 = 1.0
+        a10 = dict(scale=a11)
+        r7 = dict(**a8, **a10)
+        r2 = bmg.handle_function(Normal, r4, r7)
         return r2
+    a3 = bmg.handle_dot_get(bm, 'random_variable')
+    r5 = [norm]
+    r6 = {}
+    norm = bmg.handle_function(a3, r5, r6)
     return norm
 """
         self.assertEqual(observed.strip(), expected.strip())
