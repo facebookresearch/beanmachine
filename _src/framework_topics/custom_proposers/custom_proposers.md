@@ -1,6 +1,6 @@
 ## Custom Proposers
 
-Bean Machine is flexible and easily allows users to supply custom Metropolis Hastings proposers for specific random variables. This enables users to easily incorporate domain knowledge to inference.
+Bean Machine is flexible and easily allows users to supply custom Metropolis-Hastings proposers for specific random variables. This enables users to easily incorporate domain knowledge in inference.
 
 For each iteration of sampling of variable $X$ with value $x$ using the Metropolis Hastings algorithm, we first sample a new value $x'$ for $X$ using proposal distribution $g$. We then update the world to reflect this change, and use the Metropolis Hastings ratio of
 $$\text{min}\big[1, \frac{p(x')g(x \mid x')}{p(x)g(x' \mid x)}\big]$$
@@ -22,12 +22,12 @@ def post_process(
 * world: graphical data structure representing variable dependencies and values in the model *before* the proposal is made
 
 The return value of `propose` is a tuple with three values
-* $x'$, the new proposed value for the node
+* $x'$, the new proposed value for the node (if a variable has an associated [transform](../programmable_inference/transforms.md), this returned value must be in the variable's original space -- use `Variable.inverse_transform_value` to transform values in the transformed space back to the original space)
 * $\log[g(x' \mid x)]$, the log probability of proposing this value
-* a dictionary of the auxiliary variables used in propose that are needed by `post_process`
+* a dictionary of auxiliary variables used in `propose` that are useful in `post_process` (this will typically be intermediary computations used by both functions, so they do not need to be recomputed by `post_process`)
 
 #### Post Process
-`post_process` take three parameters: the node, the world, and the auxiliary variables dictionary.
+`post_process` takes three parameters: the node, the world, and the auxiliary variables dictionary.
 * node: (same as `propose`) $X$, the random variable to propose a new value for
 * world: (same as `propose`, but *updated with the proposed* value for node) graphical data structure representing variable dependencies and values in the model
 * auxiliary variables: the same dictionary returned by `propose`
@@ -43,7 +43,7 @@ The `node` is of type `RVIdentifier`, which includes only the function and its p
 ```py
 world.get_node_in_world_raise_error(node, False)
 ```
-This returns the associated `Variable` (see Variable API documentation for more details).
+This returns the associated [`Variable`](variable.md) (see Variable API documentation for more details).
 
 <!--
     It is odd and surprising that world.get_node_in_world_raise_error(node, False) returns a Variable, not a node, in spite of its name.
@@ -53,7 +53,7 @@ This returns the associated `Variable` (see Variable API documentation for more 
 ### Sample Custom Proposer
 
 <!--
-It might make sense to replace this example.
+It might make sense to replace this example by a more classic Metropolis-Hastings example).
 It is a bit more complicated than needed, using a Laplace distribution that is not one of the standard ones.
 It involves inverting this distribution but does not actually show the details of doing so.
 Also, the proposal distribution doesn't depend on the current value of the variable, which is a non-typical situation for proposal distributions.
@@ -113,8 +113,17 @@ Therefore the value $\log[g(x' \mid x)]$ returned by `propose` is independent of
 Likewise, the value $\log[g(x \mid x')]$ returned by `post_process` does not use the new value $x'$.
 
 Because the proposal distribution is the same in both `propose` and `post_process` (since it only depends on the children variable which are not modified),
-an important optimization in this sampler could be to add `proposal_distribution` in the auxiliary variables
-returned by `propose` and reuse it in `post_process`.
+an important optimization in this sampler could be to add the value of `proposal_distribution` in the dictionary of auxiliary variables returned by `propose` (under a suitable key such as `'proposal_distribution'`) and simply reuse it in `post_process`:
+
+```py
+# last line of 'propose'
+return new_value, log_prob, {'proposal_distribution': proposal_distribution}
+```
+
+```py
+# first line of 'post_process'
+proposal_distribution = aux_variables['proposal_distribution']
+```
 
 Also note that in `post_process` we must evaluate the proposal distribution on $x$, which is no longer available from `event_node.value`
 because now the world has been updated with the new value $x'$.
