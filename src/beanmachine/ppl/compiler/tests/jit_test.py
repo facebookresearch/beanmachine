@@ -704,5 +704,78 @@ digraph "graph" {
 """
         self.assertEqual(expected.strip(), observed.strip())
 
-        # TODO: lambda nested inside random variable
-        # TODO: random variable function nested in another random variable
+        # What if we have a nested function inside a random variable?
+
+        @bm.random_variable
+        def norm1():
+            return Normal(0.0, 1.0)
+
+        @bm.random_variable
+        def norm2():
+            def mult(x, y):
+                return x * y
+
+            return Normal(mult(norm1(), 2.0), 3.0)
+
+        observed = to_dot(BMGRuntime().accumulate_graph([norm2()], {}))
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=2.0];
+  N5[label="*"];
+  N6[label=3.0];
+  N7[label=Normal];
+  N8[label=Sample];
+  N9[label=Query];
+  N0 -> N2[label=mu];
+  N1 -> N2[label=sigma];
+  N2 -> N3[label=operand];
+  N3 -> N5[label=left];
+  N4 -> N5[label=right];
+  N5 -> N7[label=mu];
+  N6 -> N7[label=sigma];
+  N7 -> N8[label=operand];
+  N8 -> N9[label=operator];
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # What if we have a random variable nested inside another?
+
+        @bm.random_variable
+        def norm3():
+            @bm.random_variable
+            def norm4():
+                return Normal(0.0, 1.0)
+
+            return Normal(norm4() * 5.0, 6.0)
+
+        observed = to_dot(BMGRuntime().accumulate_graph([norm3()], {}))
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=5.0];
+  N5[label="*"];
+  N6[label=6.0];
+  N7[label=Normal];
+  N8[label=Sample];
+  N9[label=Query];
+  N0 -> N2[label=mu];
+  N1 -> N2[label=sigma];
+  N2 -> N3[label=operand];
+  N3 -> N5[label=left];
+  N4 -> N5[label=right];
+  N5 -> N7[label=mu];
+  N6 -> N7[label=sigma];
+  N7 -> N8[label=operand];
+  N8 -> N9[label=operator];
+}
+
+"""
+        self.assertEqual(expected.strip(), observed.strip())

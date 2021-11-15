@@ -1234,6 +1234,25 @@ class BMGRuntime:
         # and a constant.
 
         # It is not already compiled; if we have source code, compile it.
+        #
+        # NOTE: Suppose we have a call to a function which is nested inside
+        # a function that has already been compiled. Illustrative example:
+        #
+        # @rv def norm():
+        #   def my_sum(x, y):
+        #     return x + y
+        #   return Normal(my_sum(mean(), offset()), 1.0)
+        #
+        # When we compile norm() we will *also* compile my_sum. When we then
+        # call my_sum, we do *not* want to compile it *again*.  It is already
+        # in the form "bmg.add_addition(x, y)" and so on; we do not want to
+        # compile that program.
+        #
+        # Fortunately we do not need to even check because the generated code
+        # has no source code! The inspect module does not believe that the code
+        # generated from the AST has any source code, so _has_source_code returns
+        # false, and we call the compiled function exactly as we should.
+
         if _has_source_code(function):
             return self._function_to_bmg_function(function)(*arguments, **kwargs)
         # It is not compiled and we have no source code to compile.
@@ -1353,7 +1372,13 @@ class BMGRuntime:
                 raise RecursionError()
             self.in_flight.add(key)
             try:
-                rewritten_function = self._function_to_bmg_function(rv.function)
+                # Under what circumstances does a random variable NOT have source code?
+                # When it is nested inside another rv that has already been compiled!
+                # See the note in _handle_ordinary_call for details.
+                if _has_source_code(rv.function):
+                    rewritten_function = self._function_to_bmg_function(rv.function)
+                else:
+                    rewritten_function = rv.function
 
                 # Here we deal with an issue caused by how Python produces the source
                 # code of a function.
