@@ -2,6 +2,7 @@
 id: quick_start
 title: "Quick Start"
 sidebar_label: "Quick Start"
+slug: '/quickstart'
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 

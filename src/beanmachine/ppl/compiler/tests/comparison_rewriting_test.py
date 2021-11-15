@@ -45,33 +45,37 @@ class ComparisonRewritingTest(unittest.TestCase):
 
         self.assertTrue(y.is_random_variable)
 
-        bmgast, _ = _bm_function_to_bmg_ast(y, "y_helper")
+        bmgast = _bm_function_to_bmg_ast(y().function, "y_helper")
         observed = astor.to_source(bmgast)
         expected = """
-def y_helper(bmg, __class__):
+def y_helper(bmg):
 
     def y():
         a1 = 0.0
-        r4 = []
-        r7 = {}
-        a3 = bmg.handle_function(x, r4, r7)
-        a5 = bmg.handle_less_than(a1, a3)
-        bmg.handle_if(a5)
-        if a5:
-            a6 = 2.0
-            z = bmg.handle_less_than(a3, a6)
+        r6 = []
+        r10 = {}
+        a4 = bmg.handle_function(x, r6, r10)
+        a7 = bmg.handle_less_than(a1, a4)
+        bmg.handle_if(a7)
+        if a7:
+            a8 = 2.0
+            z = bmg.handle_less_than(a4, a8)
         else:
-            z = a5
-        a13 = 3.0
-        a10 = [a13]
-        a14 = [z]
-        a9 = bmg.handle_addition(a10, a14)
-        a15 = 4.0
-        a11 = [a15]
-        r8 = bmg.handle_addition(a9, a11)
-        r12 = {}
-        r2 = bmg.handle_function(StudentT, r8, r12)
+            z = a7
+        a16 = 3.0
+        a13 = [a16]
+        a17 = [z]
+        a12 = bmg.handle_addition(a13, a17)
+        a18 = 4.0
+        a14 = [a18]
+        r11 = bmg.handle_addition(a12, a14)
+        r15 = {}
+        r2 = bmg.handle_function(StudentT, r11, r15)
         return r2
+    a3 = bmg.handle_dot_get(bm, 'random_variable')
+    r5 = [y]
+    r9 = {}
+    y = bmg.handle_function(a3, r5, r9)
     return y
 """
         self.assertEqual(observed.strip(), expected.strip())

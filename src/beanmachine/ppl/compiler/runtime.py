@@ -1353,7 +1353,49 @@ class BMGRuntime:
                 raise RecursionError()
             self.in_flight.add(key)
             try:
-                value = self._function_to_bmg_function(rv.function)(*rv.arguments)
+                rewritten_function = self._function_to_bmg_function(rv.function)
+
+                # Here we deal with an issue caused by how Python produces the source
+                # code of a function.
+                #
+                # We started with a function that produced a random variable when
+                # called, and then we made a transformation based on the *source code*
+                # of that original function. The *source code* of that original function
+                # might OR might not have been decorated with a random_variable or
+                # functional decorator.  For example, if we have:
+                #
+                # @random_variable
+                # def foo():
+                #   return Normal(0., 1.)
+                #
+                # and we have a query on foo() then that is the exact code that
+                # we rewrite, and therefore the rewritten function that comes back
+                # is *also* run through the random_variable decorator. But if instead
+                # we have
+                #
+                # def foo():
+                #   return Normal(0., 1.)
+                #
+                # bar = random_variable(foo)
+                #
+                # and a query on bar(), then when we ask Python for the source code of
+                # bar, it hands us back the *undecorated* source code for foo, and
+                # therefore the rewriter produces an undecorated rewritten function.
+                #
+                # How can we tell which situation we're in?  Well, if we're in the first
+                # situation then when we call the rewritten function, we'll get back a
+                # RVID, and if we're in the second situation, we will not.
+
+                value = rewritten_function(*rv.arguments)
+                if isinstance(value, RVIdentifier):
+                    # We have a rewritten function with a decorator already applied.
+                    # Therefore the rewritten form of the *undecorated* function is
+                    # stored in the rv.  Call *that* function with the given arguments.
+                    value = value.function(*rv.arguments)
+
+                # We now have the value returned by the undecorated random variable
+                # regardless of whether the source code was decorated or not.
+
                 # If we are calling a random_variable then we must have gotten
                 # back a distribution. This is the first time we have called this
                 # rv with these arguments -- because we had a cache miss -- and
@@ -1463,6 +1505,47 @@ class BMGRuntime:
                 + "supported in Bean Machine Graph."
             )
         setattr(operand, name, value)
+
+    def handle_subscript_assign(
+        self, target: Any, index: Any, stop: Any, step: Any, value: Any
+    ) -> None:
+        # If we have "target[index:stop:step] = value" (any of index, stop or step
+        # can be missing or None) then:
+        # * Target must not be a graph node; there are no mutable graph nodes.
+        # * Index, stop and step must not be a graph node; we do not have the ability
+        #   to compile stochastic mutations of other tensors.
+        # * If target is a tensor then value must not be a graph node. We cannot
+        #   mutate an existing tensor with a stochastic value.
+
+        if isinstance(target, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a stochastic value is not supported in Bean Machine Graph."
+            )
+        if isinstance(index, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a collection or tensor with a stochastic index is not "
+                + "supported in Bean Machine Graph."
+            )
+        if isinstance(stop, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a collection or tensor with a stochastic upper index is not "
+                + "supported in Bean Machine Graph."
+            )
+        if isinstance(step, BMGNode):
+            # TODO: Better error
+            raise ValueError(
+                "Mutating a collection or tensor with a stochastic step is not "
+                + "supported in Bean Machine Graph."
+            )
+        if isinstance(value, BMGNode) and isinstance(target, torch.Tensor):
+            raise ValueError(
+                "Mutating a tensor with a stochastic value is not "
+                + "supported in Bean Machine Graph."
+            )
+        target[index] = value
 
     def accumulate_graph(
         self,

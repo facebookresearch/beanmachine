@@ -170,7 +170,7 @@ def scatter_plot(
     # Create the plot.
     plot = figure(**fig_kwargs)
 
-    glyph = scatter_plot.circle(
+    glyph = plot.circle(
         x="x",
         y="y",
         source=plot_source,

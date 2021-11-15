@@ -230,7 +230,7 @@ class HMCProposer(BaseProposer):
             new_direction = 1 if energy - new_energy > target else -1
         return step_size
 
-    def propose(self, world: SimpleWorld) -> SimpleWorld:
+    def propose(self, world: SimpleWorld) -> Tuple[SimpleWorld, torch.Tensor]:
         if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world
@@ -261,9 +261,9 @@ class HMCProposer(BaseProposer):
             self.world = self.world.replace(self._to_unconstrained.inv(positions))
             # update cache
             self._positions, self._pe, self._pe_grad = positions, pe, pe_grad
-        return self.world
+        return self.world, torch.zeros_like(self._alpha)
 
-    def do_adaptation(self) -> None:
+    def do_adaptation(self, *args, **kwargs) -> None:
         if self._alpha is None:
             return
 

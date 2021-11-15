@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import platform
 import unittest
 
 import beanmachine.ppl as bm
@@ -10,6 +9,9 @@ from beanmachine.ppl.examples.conjugate_models import (
     CategoricalDirichletModel,
     GammaNormalModel,
     NormalNormalModel,
+)
+from beanmachine.ppl.experimental.global_inference.single_site_random_walk import (
+    SingleSiteRandomWalk,
 )
 
 
@@ -82,34 +84,6 @@ class IntegerSupportDist(dist.Distribution):
 
 
 class SingleSiteRandomWalkTest(unittest.TestCase):
-    class SampleModel(object):
-        @bm.random_variable
-        def foo(self):
-            return dist.Normal(torch.tensor(0.0), torch.tensor(1.0))
-
-        @bm.random_variable
-        def bar(self):
-            return dist.Normal(self.foo(), torch.tensor(1.0))
-
-    def setUp(self) -> None:
-        torch.manual_seed(17)
-
-    def test_single_site_random_walk_mechanics(self):
-        model = self.SampleModel()
-        mh = bm.SingleSiteRandomWalk()
-        foo_key = model.foo()
-        bar_key = model.bar()
-        mh.queries_ = [foo_key]
-        mh.observations_ = {model.bar(): torch.tensor(0.0)}
-        mh._infer(10)
-        # using _infer instead of infer, as world_ would be reset at the end
-        # infer
-        world_vars = mh.world_.variables_.vars()
-        self.assertIn(foo_key, world_vars)
-        self.assertIn(bar_key, world_vars)
-        self.assertIn(foo_key, world_vars[bar_key].parent)
-        self.assertIn(bar_key, world_vars[foo_key].children)
-
     """
     These tests test for the control flow which branches
     based on node_distribution.support
@@ -157,7 +131,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
     def test_single_site_random_walk_full_support(self):
         model = self.RealSupportModel()
-        mh = bm.SingleSiteRandomWalk()
+        mh = SingleSiteRandomWalk()
         p_key = model.p()
         queries = [p_key]
         observations = {model.q(): torch.tensor(1.0)}
@@ -172,26 +146,9 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         """
         self.assertIn(False, [0 == pred for pred in predictions])
 
-    @unittest.skipIf(
-        platform.system() == "Windows", reason="os.fork is not available on Windows"
-    )
-    @unittest.skipIf(
-        torch.__version__.startswith("1.10."),
-        reason="torch.multiprocessing and our code do not currently work together for torch 1.10.*",
-    )
-    def test_single_site_random_walk_parallel_full_support(self):
-        model = self.RealSupportModel()
-        mh = bm.SingleSiteRandomWalk()
-        p_key = model.p()
-        queries = [p_key]
-        observations = {model.q(): torch.tensor(1.0)}
-        predictions = mh.infer(queries, observations, 100, run_in_parallel=True)
-        predictions = predictions.get_chain()[p_key]
-        self.assertIn(False, [0 == pred for pred in predictions])
-
     def test_single_site_random_walk_half_support(self):
         model = self.HalfRealSupportModel()
-        mh = bm.SingleSiteRandomWalk()
+        mh = SingleSiteRandomWalk()
         p_key = model.p()
         queries = [p_key]
         observations = {model.q(): torch.tensor(100.0)}
@@ -215,7 +172,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         # Test for a single item of evidence
         def inner_fnc(evidence: float):
             model = self.IntervalRealSupportModel()
-            mh = bm.SingleSiteRandomWalk()
+            mh = SingleSiteRandomWalk()
             p_key = model.p()
             queries = [p_key]
             observations = {model.q(): evidence.detach().clone()}
@@ -249,7 +206,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = NormalNormalModel(
             mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
         )
-        mh = bm.SingleSiteRandomWalk(step_size=4)
+        mh = SingleSiteRandomWalk(step_size=4)
         p_key = model.normal_p()
         queries = [p_key]
         observations = {model.normal(): torch.tensor(100.0)}
@@ -265,7 +222,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = NormalNormalModel(
             mu=torch.zeros(1), std=torch.ones(1), sigma=torch.ones(1)
         )
-        mh = bm.SingleSiteRandomWalk(step_size=10)
+        mh = SingleSiteRandomWalk(step_size=10)
         p_key = model.normal_p()
         queries = [p_key]
         observations = {model.normal(): torch.tensor(100.0)}
@@ -277,7 +234,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = NormalNormalModel(
             mu=torch.zeros(2), std=torch.ones(2), sigma=torch.ones(2)
         )
-        mh = bm.SingleSiteRandomWalk(step_size=10)
+        mh = SingleSiteRandomWalk(step_size=10)
         p_key = model.normal_p()
         queries = [p_key]
         observations = {model.normal(): torch.tensor([100.0, -100.0])}
@@ -290,7 +247,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = GammaNormalModel(
             shape=torch.ones(1), rate=torch.ones(1), mu=torch.ones(1)
         )
-        mh = bm.SingleSiteRandomWalk(step_size=4.0)
+        mh = SingleSiteRandomWalk(step_size=4.0)
         p_key = model.gamma()
         queries = [p_key]
         observations = {model.normal(): torch.tensor([100.0])}
@@ -309,7 +266,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
         model = BetaBinomialModel(
             alpha=torch.ones(1) * 2.0, beta=torch.ones(1), n=torch.ones(1) * 10.0
         )
-        mh = bm.SingleSiteRandomWalk(step_size=0.3)
+        mh = SingleSiteRandomWalk(step_size=0.3)
         p_key = model.theta()
         queries = [p_key]
         observations = {model.x(): torch.tensor([10.0])}
@@ -327,7 +284,7 @@ class SingleSiteRandomWalkTest(unittest.TestCase):
 
     def test_single_site_random_walk_simplex_support_rate(self):
         model = CategoricalDirichletModel(alpha=torch.tensor([1.0, 10.0]))
-        mh = bm.SingleSiteRandomWalk(step_size=1.0)
+        mh = SingleSiteRandomWalk(step_size=1.0)
         p_key = model.dirichlet()
         queries = [p_key]
         observations = {model.categorical(): torch.tensor([1.0, 1.0, 1.0])}

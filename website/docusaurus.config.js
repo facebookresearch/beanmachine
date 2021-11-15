@@ -20,6 +20,7 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
   projectName: 'beanmachine', // Usually your repo name.
+
   themeConfig: {
     navbar: {
       title: 'Bean Machine',
@@ -29,11 +30,13 @@ module.exports = {
       },
       items: [
         {
-          to: 'docs/toc',
+          to: 'docs/introduction',
           // activeBasePath: '../',
           label: 'Docs',
           position: 'left',
         },
+        {to: '/docs/tutorials', label: 'Tutorials', position: 'left'},
+        {to: 'docs/overview/api/api', label: 'API', position: 'left'},
         // {href: '/api/index.html', label: 'API', position: 'left'},
         // {to: 'blog', label: 'Blog', position: 'left'},
         // Please keep GitHub link to the right for consistency.
@@ -43,6 +46,11 @@ module.exports = {
           position: 'right',
         },
       ],
+    },
+    googleAnalytics: {
+      trackingID: 'UA-44373548-47',
+      // Optional fields.
+      anonymizeIP: true, // Should IPs be anonymized?
     },
     footer: {
       style: 'dark',
@@ -129,7 +137,7 @@ module.exports = {
         docs: {
           // It is recommended to set document id as docs home page (`docs/` path).
           path: '../docs/',
-          homePageId: '/docs/toc',
+          // homePageId: '/docs/toc',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl: fbContent({

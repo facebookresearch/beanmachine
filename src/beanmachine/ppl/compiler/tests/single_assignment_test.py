@@ -3533,3 +3533,47 @@ def f(x):
     return r1
 """
         self.check_rewrite(source, expected)
+
+    def test_lambda_elimination(self) -> None:
+        source = """
+def f(x):
+    return lambda y: x * y + 2
+"""
+
+        expected = """
+def f(x):
+
+    def a2(y):
+        a4 = x * y
+        a5 = 2
+        r3 = a4 + a5
+        return r3
+    r1 = a2
+    return r1
+"""
+        self.check_rewrite(source, expected)
+
+    def test_decorator_elimination(self) -> None:
+        source = """
+@x
+@y(z)
+def f():
+    pass
+"""
+
+        expected = """
+def f():
+    pass
+
+
+r3 = [z]
+r6 = {}
+a1 = y(*r3, **r6)
+r4 = [f]
+r7 = {}
+f = a1(*r4, **r7)
+r2 = [f]
+r5 = {}
+f = x(*r2, **r5)
+"""
+        self.check_rewrite(source, expected)

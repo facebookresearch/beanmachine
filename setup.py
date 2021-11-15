@@ -122,7 +122,7 @@ setup(
         "arviz>=0.11.0",
         "flowtorch>=0.3",
         "parameterized>=0.8.1",
-        "graphviz>=0.11.1",
+        "graphviz==0.17",
     ],
     packages=find_packages("src"),
     package_dir={"": "src"},
