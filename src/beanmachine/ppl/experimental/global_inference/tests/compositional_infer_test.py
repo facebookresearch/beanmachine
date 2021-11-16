@@ -177,10 +177,6 @@ def test_block_inference_changing_support():
             assert world[model.component(0)] is old_world[model.component(0)]
         old_world = world
 
-    samples = compositional.infer(queries, {}, num_samples=10, num_chains=1).get_chain()
-    # make sure that we're not getting stuck in a particular value of K
-    assert torch.any(samples[model.K()] != samples[model.K()][0])
-
 
 def test_block_inference_changing_shape():
     model = ChangingShapeModel()
