@@ -49,7 +49,7 @@ import inspect
 import math
 import operator
 from types import MethodType
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 import beanmachine.ppl.compiler.bmg_nodes as bn
 import beanmachine.ppl.compiler.profiler as prof
@@ -702,7 +702,68 @@ class BMGRuntime:
             other = self._bmg.add_constant(other)
         return self._bmg.add_rshift(input, other)
 
+    def _is_stochastic_tuple(self, t: Any):
+        # A stochastic tuple is any tuple where any element is either a graph node
+        # or a stochastic tuple.
+        if not isinstance(t, tuple):
+            return False
+        for item in t:
+            if isinstance(item, BMGNode):
+                return True
+            if self._is_stochastic_tuple(item):
+                return True
+        return False
+
+    def _handle_tuple_index(self, left: Any, right: Tuple[Any]) -> Any:
+        # We either have a tensor on the left and a stochastic tuple on the
+        # right, or a graph node on the left and a tuple, stochastic or not,
+        # on the right.  Either way, we decompose it into multiple index
+        # operations.  The rules we're using are:
+        #
+        # * Indexing with an empty tuple is an identity
+        # * Indexing with a single-element tuple just uses the element (see below!)
+        # * If the tuple has multiple elements, break it up into a head element and
+        #   a tail tuple.  Index with the head, and then index that with the tail.
+        #
+        # TODO: Unfortunately, the second rule does not match the actual behavior of
+        # pytorch.  Suppose we have:
+        #
+        # t = tensor([[10, 20], [30, 40]])
+        #
+        # What is t[(1, 1)] ?
+        #
+        # By our proposed transformation this becomes t[1][(1,)] by the third rule, and then
+        # t[1][1] by the second rule. This is correct, so what's the problem?  The problem is,
+        # what is t[((1, 1),)]?
+        #
+        # By our second rule, t[((1, 1),)] becomes t[(1, 1)]; now we are in the
+        # same case as before and end up with tensor(40). But that's not what torch
+        # produces if you run this code! It produces tensor([[30, 40], [30, 40]]).
+        #
+        # We will come back to this point later and consider how to better represent
+        # this kind of indexing operation in the graph; for now we'll just implement
+        # the simplified approximation:
+
+        # some_tensor[()] is an identity.
+        if len(right) == 0:
+            assert isinstance(left, BMGNode)
+            return left
+
+        # some_tensor[(x,)] is the same as some_tensor[x]
+        if len(right) == 1:
+            return self.handle_index(left, right[0])
+
+        # some_tensor[(head, ...tail...)] is the same as some_tensor[head][...tail...]
+        h = self.handle_index(left, right[0])
+        return self.handle_index(h, right[1:])
+
     def handle_index(self, left: Any, right: Any) -> Any:
+        if isinstance(left, BMGNode) and isinstance(right, tuple):
+            return self._handle_tuple_index(left, right)
+        if isinstance(left, torch.Tensor) and self._is_stochastic_tuple(right):
+            return self._handle_tuple_index(left, right)
+        # TODO: What if we have a non-tensor indexed with a stochastic value?
+        # A list, for example?
         if (not isinstance(left, BMGNode)) and (not isinstance(right, BMGNode)):
             return left[right]
         if not isinstance(left, BMGNode):
