@@ -5,7 +5,7 @@ import ast
 import inspect
 import sys
 import types
-from typing import Callable, List, Tuple, Optional
+from typing import Callable, List, Tuple, Optional, Dict, Any
 
 import astor
 from beanmachine.ppl.compiler.ast_patterns import (
@@ -695,7 +695,37 @@ def _create_enclosing_helper(
     return helper_ast
 
 
-def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
+def _get_globals(f: Callable) -> Dict:
+    """Given a function, returns the global variable dictionary of the
+    module containing the function."""
+
+    if f.__module__ not in sys.modules:
+        msg = (
+            f"module {f.__module__} for function {f.__name__} not "
+            + f"found in sys.modules.\n{str(sys.modules.keys())}"
+        )
+        raise Exception(msg)
+    return sys.modules[f.__module__].__dict__
+
+
+def _get_helper_arguments(
+    original_function: Callable, runtime: BMGRuntime
+) -> List[Any]:
+    # The helper function takes the runtime as its first argument and
+    # then all the outer variables of the original function.
+
+    arguments = [runtime]
+    if hasattr(original_function, "__closure__"):
+        closure = original_function.__closure__  # pyre-ignore
+        if closure is not None:
+            for cell in closure:
+                arguments.append(cell.cell_contents)
+    return arguments
+
+
+def _bm_function_to_bmg_function(
+    original_function: Callable, runtime: BMGRuntime
+) -> Callable:
 
     """Takes a function object and -- if possible -- returns a function of the same
     signature which calls the BMGRuntime object on each operation that was in the
@@ -707,51 +737,72 @@ def _bm_function_to_bmg_function(f: Callable, bmg: BMGRuntime) -> Callable:
     # If we don't have one of those, just return the function unmodified
     # and hope for the best.
 
-    if type(f) not in _supported_code_containers:
-        return f
+    if type(original_function) not in _supported_code_containers:
+        return original_function
 
-    transformed_body, name, original_source = _transform_function(f)
+    # First obtain the transformed function itself; the resulting AST will not
+    # yet be closed over either the runtime or any outer variables of the
+    # original function.
+
+    transformed_body, name, original_source = _transform_function(original_function)
     if transformed_body is None:
-        return f
+        return original_function
+
+    # Now create a helper function wrapping the transformed function; this
+    # wrapper creates a closure.
 
     helper_name = name + "_helper"
-    helper_ast = _create_enclosing_helper(f, transformed_body, name, helper_name)
+    helper_ast = _create_enclosing_helper(
+        original_function, transformed_body, name, helper_name
+    )
 
+    # We now have an AST containing a function, foo_helper, which when called
+    # will return the rewritten function. We need to call this helper somehow.
+    # First thing to do is to compile it.
+    #
+    # Python requires a "filename" to compile code; we'll make up a fake one.
     filename = "<BMGJIT>"
-
     try:
-        c = compile(helper_ast, filename, "exec")
+        compiled_helper = compile(helper_ast, filename, "exec")
     except Exception as ex:
+        # If something went wrong during compilation, we probably have a
+        # bug in the AST rewriting step. Report the error here.
         raise LiftedCompilationError(original_source, helper_ast, ex) from ex
 
-    if f.__module__ not in sys.modules:
-        msg = (
-            f"module {f.__module__} for function {f.__name__} not "
-            + f"found in sys.modules.\n{str(sys.modules.keys())}"
-        )
-        raise Exception(msg)
+    # The AST is now compiled into bytecode but has not yet been executed.
+    # That bytecode, when executed, will define a module containing the
+    # helper function.
 
-    g = sys.modules[f.__module__].__dict__
-    exec(c, g)  # noqa
+    # What happens if the new code accesses a global variable defined in the
+    # *original* code's module?  We need to tell Python that the new module
+    # and the old module have the same global variables.
+    #
+    # We need the dictionary mapping from global variables to their values.
 
-    arguments = [bmg]
-    if hasattr(f, "__closure__"):
-        closure = f.__closure__  # pyre-ignore
-        if closure is not None:
-            for cell in f.__closure__:
-                arguments.append(cell.cell_contents)
+    original_globals = _get_globals(original_function)
 
-    transformed = g[helper_name](*arguments)
+    # All right, we have the bytecode of the helper function, and we have
+    # the global state of the original function. When we execute the bytecode
+    # we've just compiled, that will add the helper method to the global variable
+    # dictionary.
+
+    exec(compiled_helper, original_globals)  # noqa
+
+    # The helper function is now in the global variables. Obtain it and call it.
+
+    helper_function = original_globals[helper_name]
+    arguments = _get_helper_arguments(original_function, runtime)
+    transformed_function = helper_function(*arguments)
 
     # For debugging purposes we'll stick some helpful information into
     # the function object.
 
-    transformed.graph_builder = bmg
-    transformed.original = f
-    transformed.original_source = original_source
-    transformed.transformed_ast = helper_ast
-    transformed.transformed_source = astor.to_source(helper_ast)
-    return transformed
+    transformed_function.runtime = runtime
+    transformed_function.original_function = original_function
+    transformed_function.original_source = original_source
+    transformed_function.transformed_ast = helper_ast
+    transformed_function.transformed_source = astor.to_source(helper_ast)
+    return transformed_function
 
 
 def _bm_function_to_bmg_ast(f: Callable, helper_name: str) -> ast.AST:
