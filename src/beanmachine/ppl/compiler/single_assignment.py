@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Tools to transform Bean Machine programs to Bean Machine Graph"""
 
+# TODO: This module is badly named; it really should be "python simplifier" or some
+# such thing. Transformation into a single-assignment-like form is only part of
+# what it does.
+
 # This code transforms Python programs into a much simpler subset of Python with
 # the same semantics. Some invariants of the simpler language:
 #
@@ -25,6 +29,7 @@
 # * All binary operators (+, -, *, /, //, %, **, <<, >>, |, ^, &, @) have an identifier
 #   as both operands.
 # * There are no "and" or "or" operators
+# * There are no "b if a else c" expressions.
 # * All comparison operators (<, >, <=, >=, ==, !=, is, is not, in, not in)
 #   are binary operators where both operands are identifiers.
 # * All indexing operators (a[b]) have identifiers as both collection and index.
@@ -42,11 +47,19 @@
 # * There are no dictionary, list or set comprehensions; they are rewritten as loops.
 # * There are no lambda expressions; they are all rewritten as function definitions
 # * There are no decorators; they are all rewritten as function calls
-# TODO: say something about assert, delete, pass, import, break, continue, try, with.
+# * pass statements are preserved
+# * import statements are preserved
+# * break and continue statements are preserved
+# TODO: assert statements are removed in bm_to_bmg; move that functionality here.
+# TODO: We can reduce "del" statements to one of three forms: "del x", "del x.y", "del x[y]"
+# where x and y are identifiers.
+# TODO: Figure out how to desugar try: body except expr as bar: body else: body finally: body
+# to simplify the expr.
+# TODO: Figure out how to desugar with expr as target : block
+# to simplify the expr and target. Note there can be multiple exprs.
 # TODO: say something about global / nonlocal
 # TODO: say something about yield
 # TODO: say something about classes
-# TODO: say something about nested functions
 # TODO: say something about type annotations
 # TODO: say something about async
 # TODO: say something about conditional expressions
@@ -799,6 +812,48 @@ class SingleAssignment:
             )
 
         return PatternRule(assign(value=ast.Lambda), do_it, "handle_assign_lambda")
+
+    def _handle_assign_ifexp(self) -> Rule:
+        # This rule eliminates all assignments where the right hand side
+        # is an if-expression:
+        #
+        # x = a if b else c
+        #
+        # becomes
+        #
+        # if b:
+        #   t = a
+        # else:
+        #   t = c
+        # x = t
+
+        def do_it(source_term):
+            id = self._unique_id("a")
+            return ListEdit(
+                [
+                    ast.If(
+                        test=source_term.value.test,
+                        body=[
+                            ast.Assign(
+                                targets=[ast.Name(id=id, ctx=ast.Store())],
+                                value=source_term.value.body,
+                            )
+                        ],
+                        orelse=[
+                            ast.Assign(
+                                targets=[ast.Name(id=id, ctx=ast.Store())],
+                                value=source_term.value.orelse,
+                            )
+                        ],
+                    ),
+                    ast.Assign(
+                        targets=source_term.targets,
+                        value=ast.Name(id=id, ctx=ast.Load()),
+                    ),
+                ]
+            )
+
+        return PatternRule(assign(value=ast.IfExp), do_it, "handle_assign_ifexp")
 
     def _eliminate_decorator(self) -> Rule:
         # This rule eliminates a single decorator from a function def:
@@ -1744,6 +1799,7 @@ class SingleAssignment:
                 self._handle_assign_tuple(),
                 self._handle_assign_dictionary_keys(),
                 self._handle_assign_dictionary_values(),
+                self._handle_assign_ifexp(),
                 # Acceptable rules for handling function calls
                 self._handle_assign_call_function_expression(),
                 #  Rules for regular arguments
