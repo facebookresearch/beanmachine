@@ -3577,3 +3577,21 @@ r5 = {}
 f = x(*r2, **r5)
 """
         self.check_rewrite(source, expected)
+
+    def test_ifexp_elimination(self) -> None:
+        source = """
+x = a + b * c if d + e * f else g + h * i
+"""
+
+        expected = """
+a3 = e * f
+r2 = d + a3
+if r2:
+    a4 = b * c
+    a1 = a + a4
+else:
+    a5 = h * i
+    a1 = g + a5
+x = a1
+"""
+        self.check_rewrite(source, expected)
