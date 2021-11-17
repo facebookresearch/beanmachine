@@ -66,6 +66,34 @@ def column_index():
     return t[flip()][flip()]
 
 
+@bm.functional
+def tuple_index_0():
+    # Normal tensor, normal tuple index
+    t = tensor([[2.0, 3.0], [4.0, 5.0]])
+    return flip() * t[(1, 1)]
+
+
+@bm.functional
+def tuple_index_1():
+    # Normal tensor, stochastic tuple index
+    t = tensor([[2.0, 3.0], [4.0, 5.0]])
+    return t[flip(), flip()]
+
+
+@bm.functional
+def tuple_index_2():
+    # Stochastic tensor, normal tuple index
+    t = tensor([[normal(), hc()], [hc(), normal()]])
+    return t[1, 1]
+
+
+@bm.functional
+def tuple_index_3():
+    # Stochastic tensor, stochastic tuple index
+    t = tensor([[normal(), hc()], [hc(), normal()]])
+    return t[flip(), flip()]
+
+
 class IndexTest(unittest.TestCase):
     def test_index_constant_vector_stochastic_index(self) -> None:
         self.maxDiff = None
@@ -186,6 +214,132 @@ digraph "graph" {
         self.maxDiff = None
 
         observed = BMGInference().to_dot([column_index()], {})
+        expected = """
+digraph "graph" {
+  N00[label=0.0];
+  N01[label=1.0];
+  N02[label=Normal];
+  N03[label=Sample];
+  N04[label=0.0];
+  N05[label=HalfCauchy];
+  N06[label=Sample];
+  N07[label=0.5];
+  N08[label=Bernoulli];
+  N09[label=Sample];
+  N10[label=2];
+  N11[label=ToReal];
+  N12[label=ToMatrix];
+  N13[label=1];
+  N14[label=0];
+  N15[label=if];
+  N16[label=ColumnIndex];
+  N17[label=index];
+  N18[label=Query];
+  N00 -> N02;
+  N01 -> N02;
+  N02 -> N03;
+  N03 -> N12;
+  N03 -> N12;
+  N04 -> N05;
+  N05 -> N06;
+  N06 -> N11;
+  N07 -> N08;
+  N08 -> N09;
+  N09 -> N15;
+  N10 -> N12;
+  N10 -> N12;
+  N11 -> N12;
+  N11 -> N12;
+  N12 -> N16;
+  N13 -> N15;
+  N14 -> N15;
+  N15 -> N16;
+  N15 -> N17;
+  N16 -> N17;
+  N17 -> N18;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+    def test_tuple_index(self) -> None:
+        self.maxDiff = None
+
+        # Normal tensor, normal tuple index, so there should be no stochastic
+        # index operation in the graph:
+        observed = BMGInference().to_dot([tuple_index_0()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label=5];
+  N4[label=0];
+  N5[label=if];
+  N6[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N5;
+  N3 -> N5;
+  N4 -> N5;
+  N5 -> N6;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # Normal tensor, stochastic tuple index:
+        observed = BMGInference().to_dot([tuple_index_1()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.5];
+  N1[label=Bernoulli];
+  N2[label=Sample];
+  N3[label="[[2.0,3.0],\\\\n[4.0,5.0]]"];
+  N4[label=1];
+  N5[label=0];
+  N6[label=if];
+  N7[label=ColumnIndex];
+  N8[label=index];
+  N9[label=Query];
+  N0 -> N1;
+  N1 -> N2;
+  N2 -> N6;
+  N3 -> N7;
+  N4 -> N6;
+  N5 -> N6;
+  N6 -> N7;
+  N6 -> N8;
+  N7 -> N8;
+  N8 -> N9;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # Stochastic tensor, normal tuple index. Note that in this case
+        # we optimize away the stochastic tensor entirely since the
+        # index is a constant.
+        observed = BMGInference().to_dot([tuple_index_2()], {})
+        expected = """
+digraph "graph" {
+  N0[label=0.0];
+  N1[label=1.0];
+  N2[label=Normal];
+  N3[label=Sample];
+  N4[label=0.0];
+  N5[label=HalfCauchy];
+  N6[label=Sample];
+  N7[label=Query];
+  N0 -> N2;
+  N1 -> N2;
+  N2 -> N3;
+  N3 -> N7;
+  N4 -> N5;
+  N5 -> N6;
+}
+"""
+        self.assertEqual(expected.strip(), observed.strip())
+
+        # Stochastic tensor, stochastic tuple index.
+        observed = BMGInference().to_dot([tuple_index_3()], {})
         expected = """
 digraph "graph" {
   N00[label=0.0];
