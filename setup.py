@@ -22,6 +22,7 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "sphinx==4.2.0",
     "sphinx-autodoc-typehints",
     "sphinx_rtd_theme",
+    "toml>=0.10.2",
     "usort",
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
@@ -29,7 +30,7 @@ TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
 else:
-    CPP_COMPILE_ARGS = ["-Werror"]
+    CPP_COMPILE_ARGS = ["-std=c++14", "-Werror"]
 
 
 # Check for python version
@@ -118,7 +119,7 @@ setup(
         "astor>=0.7.1",
         "black>=19.3b0",
         "gpytorch>=1.3.0",
-        "botorch>=0.3.3",
+        "botorch>=0.5.1",
         "xarray>=0.16.0",
         "arviz>=0.11.0",
         "flowtorch>=0.3",
