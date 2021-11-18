@@ -18,6 +18,8 @@ The tutorials currently working with Beanstalk are:
 - Gaussian mixture model
 - Neal's funnel
 
+For the above three models, the Beanstalk-compiled version of NMC inference reduces runtime to generate samples of size 10K for the posterior distribution by anywhere between 80x and 250x depending on the model.
+
 ### Model restrictions
 
 Models compiled with Beanstalk have many restrictions. In the current release:
