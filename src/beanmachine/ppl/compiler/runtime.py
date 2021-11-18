@@ -772,6 +772,16 @@ class BMGRuntime:
             right = self._bmg.add_constant(right)
         return self._bmg.add_index(left, right)
 
+    def handle_slice(self, left: Any, lower: Any, upper: Any, step: Any) -> Any:
+        if (
+            isinstance(left, BMGNode)
+            or isinstance(lower, BMGNode)
+            or isinstance(upper, BMGNode)
+            or isinstance(step, BMGNode)
+        ):
+            raise ValueError("Stochastic slices are not yet implemented.")
+        return left[lower:upper:step]
+
     def handle_invert(self, input: Any) -> Any:
         if not isinstance(input, BMGNode):
             return ~input

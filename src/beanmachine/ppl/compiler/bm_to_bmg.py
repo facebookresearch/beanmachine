@@ -188,7 +188,6 @@ def _handle_comparison(p: Pattern, s: str) -> PatternRule:
 
 
 # a = b[c] --> a = bmg.handle_index(b, c)
-# TODO: What to do about a = b[c:d] and a = b[c:d:e] ?
 _handle_index = PatternRule(
     assign(value=subscript(slice=index())),
     lambda a: ast.Assign(
@@ -197,6 +196,35 @@ _handle_index = PatternRule(
 )
 
 _ast_none = ast.Constant(value=None, kind=None)
+
+
+def _or_none(a):
+    return _ast_none if a is None else a
+
+
+# a = b[c:d:e] --> a = bmg.handle_slice(b, c, d, e)
+_handle_slice = PatternRule(
+    assign(
+        value=subscript(
+            value=name(),
+            slice=slice_pattern(
+                lower=_name_or_none, upper=_name_or_none, step=_name_or_none
+            ),
+        )
+    ),
+    lambda a: ast.Assign(
+        a.targets,
+        _make_bmg_call(
+            "handle_slice",
+            [
+                a.value.value,
+                _or_none(a.value.slice.lower),
+                _or_none(a.value.slice.upper),
+                _or_none(a.value.slice.step),
+            ],
+        ),
+    ),
+)
 
 # a[b] = e --> bmg.handle_subscript_assign(a, b, None, None, e)
 _handle_subscript_assign_index = PatternRule(
@@ -222,10 +250,6 @@ _handle_subscript_assign_index = PatternRule(
         ),
     ),
 )
-
-
-def _or_none(a):
-    return _ast_none if a is None else a
 
 
 # a[b:c:d] = e --> bmg.handle_subscript_assign(a, b, c, d, e)
@@ -284,6 +308,7 @@ _assignments_to_bmg: Rule = first(
         _handle_binary(ast.Sub, "handle_subtraction"),
         # []
         _handle_index,
+        _handle_slice,
         # Comparison operators: == != > >= < <=
         # is, is not, in, not in
         _handle_comparison(binary_compare(ast.Eq), "handle_equal"),

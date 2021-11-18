@@ -94,6 +94,28 @@ def tuple_index_3():
     return t[flip(), flip()]
 
 
+@bm.functional
+def negative_constant_index():
+    # Python allows an index to be negative; it means to start counting from
+    # the other end. BMG does not. Verify that we give an error message.
+    # TODO: Consider allowing this if the index is a constant; we can do
+    # a transformation to t[1] here.
+    t = tensor([hc(), normal()])
+    return t[-1]
+
+
+@bm.functional
+def unsupported_slice_1():
+    t = tensor([hc(), normal()])
+    return t[1::]
+
+
+@bm.functional
+def unsupported_slice_2():
+    t = tensor([1.0, 2.0])
+    return t[flip() : :]
+
+
 class IndexTest(unittest.TestCase):
     def test_index_constant_vector_stochastic_index(self) -> None:
         self.maxDiff = None
@@ -386,3 +408,30 @@ digraph "graph" {
 }
 """
         self.assertEqual(expected.strip(), observed.strip())
+
+    def test_negative_index(self) -> None:
+        self.maxDiff = None
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([negative_constant_index()], {})
+        self.assertEqual(
+            "The right of a index is required to be a natural but is a negative real.",
+            str(ex.exception),
+        )
+
+    def test_unsupported_slice(self) -> None:
+        self.maxDiff = None
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([unsupported_slice_1()], {})
+        self.assertEqual(
+            "Stochastic slices are not yet implemented.",
+            str(ex.exception),
+        )
+
+        with self.assertRaises(ValueError) as ex:
+            BMGInference().to_dot([unsupported_slice_2()], {})
+        self.assertEqual(
+            "Stochastic slices are not yet implemented.",
+            str(ex.exception),
+        )
