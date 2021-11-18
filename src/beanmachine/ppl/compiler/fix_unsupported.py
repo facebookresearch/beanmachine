@@ -133,6 +133,10 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             return self._replace_index_one_column(node)
         return self._replace_index_multi_column(node)
 
+    def _replace_item(self, node: bn.ItemNode) -> Optional[bn.BMGNode]:
+        # "item()" is an identity for our purposes. We just remove it.
+        return node.inputs[0]
+
     def _replace_lse(self, node: bn.LogSumExpTorchNode) -> Optional[bn.BMGNode]:
         # We only support compiling models where dim=0 and keepDims=False.
         if not bn.is_zero(node.inputs[1]) or not bn.is_zero(node.inputs[2]):
@@ -293,6 +297,8 @@ class UnsupportedNodeFixer(ProblemFixerBase):
             return self._replace_division(n)
         if isinstance(n, bn.IndexNode):
             return self._replace_index(n)
+        if isinstance(n, bn.ItemNode):
+            return self._replace_item(n)
         if isinstance(n, bn.LogSumExpTorchNode):
             return self._replace_lse(n)
         if isinstance(n, bn.SwitchNode):

@@ -67,6 +67,7 @@ _node_labels = {
     bn.InvertNode: "Invert",
     bn.IsNode: "Is",
     bn.IsNotNode: "IsNot",
+    bn.ItemNode: "Item",
     bn.LessThanEqualNode: "<=",
     bn.LessThanNode: "<",
     bn.Log1mexpNode: "Log1mexp",
