@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.compiler.runtime &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.compiler.single_assignment" href="beanmachine.ppl.compiler.single_assignment.html" />
+    <link rel="prev" title="beanmachine.ppl.compiler.rules" href="beanmachine.ppl.compiler.rules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.compiler.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.ast_patterns.html">beanmachine.ppl.compiler.ast_patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.ast_tools.html">beanmachine.ppl.compiler.ast_tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.beanstalk_common.html">beanmachine.ppl.compiler.beanstalk_common</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html">beanmachine.ppl.compiler.bm_graph_builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bm_to_bmg.html">beanmachine.ppl.compiler.bm_to_bmg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_node_types.html">beanmachine.ppl.compiler.bmg_node_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html">beanmachine.ppl.compiler.bmg_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_requirements.html">beanmachine.ppl.compiler.bmg_requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_types.html">beanmachine.ppl.compiler.bmg_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.error_report.html">beanmachine.ppl.compiler.error_report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_additions.html">beanmachine.ppl.compiler.fix_additions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_beta_conjugate_prior.html">beanmachine.ppl.compiler.fix_beta_conjugate_prior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_bool_arithmetic.html">beanmachine.ppl.compiler.fix_bool_arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_bool_comparisons.html">beanmachine.ppl.compiler.fix_bool_comparisons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_logsumexp.html">beanmachine.ppl.compiler.fix_logsumexp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_matrix_scale.html">beanmachine.ppl.compiler.fix_matrix_scale</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_multiary_ops.html">beanmachine.ppl.compiler.fix_multiary_ops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_normal_conjugate_prior.html">beanmachine.ppl.compiler.fix_normal_conjugate_prior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_observations.html">beanmachine.ppl.compiler.fix_observations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_observe_true.html">beanmachine.ppl.compiler.fix_observe_true</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_problem.html">beanmachine.ppl.compiler.fix_problem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_problems.html">beanmachine.ppl.compiler.fix_problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_requirements.html">beanmachine.ppl.compiler.fix_requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_unsupported.html">beanmachine.ppl.compiler.fix_unsupported</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_vectorized_models.html">beanmachine.ppl.compiler.fix_vectorized_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_cpp.html">beanmachine.ppl.compiler.gen_bmg_cpp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_graph.html">beanmachine.ppl.compiler.gen_bmg_graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_python.html">beanmachine.ppl.compiler.gen_bmg_python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_builder.html">beanmachine.ppl.compiler.gen_builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_dot.html">beanmachine.ppl.compiler.gen_dot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.graph_labels.html">beanmachine.ppl.compiler.graph_labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.hint.html">beanmachine.ppl.compiler.hint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.internal_error.html">beanmachine.ppl.compiler.internal_error</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.lattice_typer.html">beanmachine.ppl.compiler.lattice_typer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.patterns.html">beanmachine.ppl.compiler.patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.performance_report.html">beanmachine.ppl.compiler.performance_report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.profiler.html">beanmachine.ppl.compiler.profiler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.rules.html">beanmachine.ppl.compiler.rules</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.compiler.runtime</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.ppl.compiler.runtime">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.single_assignment.html">beanmachine.ppl.compiler.single_assignment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.sizer.html">beanmachine.ppl.compiler.sizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.support.html">beanmachine.ppl.compiler.support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.testlib.html">beanmachine.ppl.compiler.testlib</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.typer_base.html">beanmachine.ppl.compiler.typer_base</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.compiler.html#module-beanmachine.ppl.compiler">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a> &raquo;</li>
+      <li>beanmachine.ppl.compiler.runtime</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.compiler.runtime.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-compiler-runtime">
+<h1>beanmachine.ppl.compiler.runtime<a class="headerlink" href="#beanmachine-ppl-compiler-runtime" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.compiler.runtime">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.compiler.runtime" title="Permalink to this headline"></a></h2>
+<p>A builder for the BeanMachine Graph language</p>
+<p>The Beanstalk compiler has, at a high level, five phases.</p>
+<ul>
+<li><p>First, it transforms a Python model into a semantically
+equivalent program “single assignment” (SA) form that uses
+only a small subset of Python features.</p></li>
+<li><p>Second, it transforms that program into a “lifted” form.
+Portions of the program which do not involve samples are
+executed normally, but any computation that involves a
+stochastic node in any way is instead turned into a graph node.</p>
+<p>Jargon note:</p>
+<p>Every graph of a model will have some nodes that represent
+random samples and some which do not. For instance,
+we might have a simple coin flip model with three
+nodes: a sample, a distribution, and a constant probability:</p>
+<dl class="simple">
+<dt>def flip():</dt><dd><p>return Bernoulli(0.5)</p>
+</dd>
+</dl>
+<p>sample –&gt; Bernoulli –&gt; 0.5</p>
+<p>We’ll refer to the nodes which somehow involve a sample,
+either directly or indirectly, as “stochastic” nodes.</p>
+</li>
+<li><p>Third, we actually execute the lifted program and
+accumulate the graph.</p></li>
+<li><p>Fourth, the accumulated graph tracks the type information
+of the original Python program. We mutate the accumulated
+graph into a form where it obeys the rules of the BMG
+type system.</p></li>
+<li><p>Fifth, we either create actual BMG nodes in memory via
+native code interop, or we emit a program in Python or
+C++ which does so.</p></li>
+</ul>
+<p>This module implements the graph builder that is called during
+execution of the lifted program; it implements phases
+three, four and five.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.runtime.</span></span><span class="sig-name descname"><span class="pre">BMGRuntime</span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.accumulate_graph">
+<span class="sig-name descname"><span class="pre">accumulate_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html#beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder" title="beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder"><span class="pre">beanmachine.ppl.compiler.bm_graph_builder.BMGraphBuilder</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.accumulate_graph" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.function_map">
+<span class="sig-name descname"><span class="pre">function_map</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.function_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_addition">
+<span class="sig-name descname"><span class="pre">handle_addition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_addition" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bernoulli">
+<span class="sig-name descname"><span class="pre">handle_bernoulli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BernoulliNode" title="beanmachine.ppl.compiler.bmg_nodes.BernoulliNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BernoulliNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bernoulli" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_beta">
+<span class="sig-name descname"><span class="pre">handle_beta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concentration1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">concentration0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BetaNode" title="beanmachine.ppl.compiler.bmg_nodes.BetaNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BetaNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_beta" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_binomial">
+<span class="sig-name descname"><span class="pre">handle_binomial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_count</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BinomialNode" title="beanmachine.ppl.compiler.bmg_nodes.BinomialNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BinomialNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_binomial" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bitand">
+<span class="sig-name descname"><span class="pre">handle_bitand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bitand" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bitor">
+<span class="sig-name descname"><span class="pre">handle_bitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bitor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bitxor">
+<span class="sig-name descname"><span class="pre">handle_bitxor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_bitxor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_categorical">
+<span class="sig-name descname"><span class="pre">handle_categorical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.CategoricalNode" title="beanmachine.ppl.compiler.bmg_nodes.CategoricalNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.CategoricalNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_categorical" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_chi2">
+<span class="sig-name descname"><span class="pre">handle_chi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.Chi2Node" title="beanmachine.ppl.compiler.bmg_nodes.Chi2Node"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.Chi2Node</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_chi2" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_dirichlet">
+<span class="sig-name descname"><span class="pre">handle_dirichlet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concentration</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.DirichletNode" title="beanmachine.ppl.compiler.bmg_nodes.DirichletNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.DirichletNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_dirichlet" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_division">
+<span class="sig-name descname"><span class="pre">handle_division</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_division" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_dot_get">
+<span class="sig-name descname"><span class="pre">handle_dot_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_dot_get" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_dot_set">
+<span class="sig-name descname"><span class="pre">handle_dot_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_dot_set" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_equal">
+<span class="sig-name descname"><span class="pre">handle_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_equal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_exp">
+<span class="sig-name descname"><span class="pre">handle_exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_exp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_expm1">
+<span class="sig-name descname"><span class="pre">handle_expm1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_expm1" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_floordiv">
+<span class="sig-name descname"><span class="pre">handle_floordiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_floordiv" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_for">
+<span class="sig-name descname"><span class="pre">handle_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_for" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_function">
+<span class="sig-name descname"><span class="pre">handle_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arguments</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_function" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_gamma">
+<span class="sig-name descname"><span class="pre">handle_gamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concentration</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.GammaNode" title="beanmachine.ppl.compiler.bmg_nodes.GammaNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.GammaNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_gamma" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_greater_than">
+<span class="sig-name descname"><span class="pre">handle_greater_than</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_greater_than" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_greater_than_equal">
+<span class="sig-name descname"><span class="pre">handle_greater_than_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_greater_than_equal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_halfcauchy">
+<span class="sig-name descname"><span class="pre">handle_halfcauchy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.HalfCauchyNode" title="beanmachine.ppl.compiler.bmg_nodes.HalfCauchyNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.HalfCauchyNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_halfcauchy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_halfnormal">
+<span class="sig-name descname"><span class="pre">handle_halfnormal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.HalfNormalNode" title="beanmachine.ppl.compiler.bmg_nodes.HalfNormalNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.HalfNormalNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_halfnormal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_iadd">
+<span class="sig-name descname"><span class="pre">handle_iadd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_iadd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_iand">
+<span class="sig-name descname"><span class="pre">handle_iand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_iand" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_idiv">
+<span class="sig-name descname"><span class="pre">handle_idiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_idiv" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_if">
+<span class="sig-name descname"><span class="pre">handle_if</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_if" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ifloordiv">
+<span class="sig-name descname"><span class="pre">handle_ifloordiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ifloordiv" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ilshift">
+<span class="sig-name descname"><span class="pre">handle_ilshift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ilshift" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_imatmul">
+<span class="sig-name descname"><span class="pre">handle_imatmul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_imatmul" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_imod">
+<span class="sig-name descname"><span class="pre">handle_imod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_imod" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_imul">
+<span class="sig-name descname"><span class="pre">handle_imul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_imul" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_in">
+<span class="sig-name descname"><span class="pre">handle_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_in" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_index">
+<span class="sig-name descname"><span class="pre">handle_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_index" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_invert">
+<span class="sig-name descname"><span class="pre">handle_invert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_invert" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ior">
+<span class="sig-name descname"><span class="pre">handle_ior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ior" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ipow">
+<span class="sig-name descname"><span class="pre">handle_ipow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ipow" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_irshift">
+<span class="sig-name descname"><span class="pre">handle_irshift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_irshift" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_is">
+<span class="sig-name descname"><span class="pre">handle_is</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_is" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_is_not">
+<span class="sig-name descname"><span class="pre">handle_is_not</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_is_not" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_isub">
+<span class="sig-name descname"><span class="pre">handle_isub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_isub" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_item">
+<span class="sig-name descname"><span class="pre">handle_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_item" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ixor">
+<span class="sig-name descname"><span class="pre">handle_ixor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_ixor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_less_than">
+<span class="sig-name descname"><span class="pre">handle_less_than</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_less_than" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_less_than_equal">
+<span class="sig-name descname"><span class="pre">handle_less_than_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_less_than_equal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_log">
+<span class="sig-name descname"><span class="pre">handle_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_log1mexp">
+<span class="sig-name descname"><span class="pre">handle_log1mexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_log1mexp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_logistic">
+<span class="sig-name descname"><span class="pre">handle_logistic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_logistic" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_logsumexp">
+<span class="sig-name descname"><span class="pre">handle_logsumexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_logsumexp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_lshift">
+<span class="sig-name descname"><span class="pre">handle_lshift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_lshift" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_matrix_multiplication">
+<span class="sig-name descname"><span class="pre">handle_matrix_multiplication</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_matrix_multiplication" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_mod">
+<span class="sig-name descname"><span class="pre">handle_mod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_mod" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_multiplication">
+<span class="sig-name descname"><span class="pre">handle_multiplication</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_multiplication" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_negate">
+<span class="sig-name descname"><span class="pre">handle_negate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_negate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_normal">
+<span class="sig-name descname"><span class="pre">handle_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.NormalNode" title="beanmachine.ppl.compiler.bmg_nodes.NormalNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.NormalNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_normal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_not">
+<span class="sig-name descname"><span class="pre">handle_not</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_not" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_not_equal">
+<span class="sig-name descname"><span class="pre">handle_not_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_not_equal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_not_in">
+<span class="sig-name descname"><span class="pre">handle_not_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_not_in" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_phi">
+<span class="sig-name descname"><span class="pre">handle_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_phi" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_poisson">
+<span class="sig-name descname"><span class="pre">handle_poisson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.PoissonNode" title="beanmachine.ppl.compiler.bmg_nodes.PoissonNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.PoissonNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_poisson" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_power">
+<span class="sig-name descname"><span class="pre">handle_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_power" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_rshift">
+<span class="sig-name descname"><span class="pre">handle_rshift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_rshift" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_sample">
+<span class="sig-name descname"><span class="pre">handle_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.SampleNode" title="beanmachine.ppl.compiler.bmg_nodes.SampleNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.SampleNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_sample" title="Permalink to this definition"></a></dt>
+<dd><p>As we execute the lifted program, this method is called every
+time a model function decorated with &#64;bm.random_variable returns; we verify that the
+returned value is a distribution that we know how to accumulate into the
+graph, and add a sample node to the graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_studentt">
+<span class="sig-name descname"><span class="pre">handle_studentt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.StudentTNode" title="beanmachine.ppl.compiler.bmg_nodes.StudentTNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.StudentTNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_studentt" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_subscript_assign">
+<span class="sig-name descname"><span class="pre">handle_subscript_assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_subscript_assign" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_subtraction">
+<span class="sig-name descname"><span class="pre">handle_subtraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_subtraction" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_to_int">
+<span class="sig-name descname"><span class="pre">handle_to_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_to_int" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_to_real">
+<span class="sig-name descname"><span class="pre">handle_to_real</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operand</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_to_real" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_uadd">
+<span class="sig-name descname"><span class="pre">handle_uadd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_uadd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.handle_uniform">
+<span class="sig-name descname"><span class="pre">handle_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.UniformNode" title="beanmachine.ppl.compiler.bmg_nodes.UniformNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.UniformNode</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.handle_uniform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.in_flight">
+<span class="sig-name descname"><span class="pre">in_flight</span></span><em class="property"><span class="pre">:</span> <span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.utils.memoize.html#beanmachine.ppl.utils.memoize.MemoizationKey" title="beanmachine.ppl.utils.memoize.MemoizationKey"><span class="pre">beanmachine.ppl.utils.memoize.MemoizationKey</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.in_flight" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.lifted_map">
+<span class="sig-name descname"><span class="pre">lifted_map</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.lifted_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.BMGRuntime.rv_map">
+<span class="sig-name descname"><span class="pre">rv_map</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.utils.memoize.html#beanmachine.ppl.utils.memoize.MemoizationKey" title="beanmachine.ppl.utils.memoize.MemoizationKey"><span class="pre">beanmachine.ppl.utils.memoize.MemoizationKey</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.BMGRuntime.rv_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.KnownFunction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.runtime.</span></span><span class="sig-name descname"><span class="pre">KnownFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">receiver</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.KnownFunction" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.KnownFunction.function">
+<span class="sig-name descname"><span class="pre">function</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.KnownFunction.function" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.KnownFunction.receiver">
+<span class="sig-name descname"><span class="pre">receiver</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html#beanmachine.ppl.compiler.bmg_nodes.BMGNode" title="beanmachine.ppl.compiler.bmg_nodes.BMGNode"><span class="pre">beanmachine.ppl.compiler.bmg_nodes.BMGNode</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.KnownFunction.receiver" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.runtime.only_ordinary_arguments">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.runtime.</span></span><span class="sig-name descname"><span class="pre">only_ordinary_arguments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.runtime.only_ordinary_arguments" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.compiler.rules.html" class="btn btn-neutral float-left" title="beanmachine.ppl.compiler.rules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.compiler.single_assignment.html" class="btn btn-neutral float-right" title="beanmachine.ppl.compiler.single_assignment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

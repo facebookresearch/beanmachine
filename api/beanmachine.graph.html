@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.graph &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl" href="beanmachine.ppl.html" />
+    <link rel="prev" title="beanmachine.applications.hme.priors" href="beanmachine.applications.hme.priors.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">beanmachine.graph</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.graph">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+      <li>beanmachine.graph</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.graph.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-graph">
+<h1>beanmachine.graph<a class="headerlink" href="#beanmachine-graph" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.graph">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.graph" title="Permalink to this headline"></a></h2>
+<p>module for python bindings to the graph API</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">AtomicType</span></span><a class="headerlink" href="#beanmachine.graph.AtomicType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>BOOLEAN</p>
+<p>PROBABILITY</p>
+<p>REAL</p>
+<p>POS_REAL</p>
+<p>NATURAL</p>
+<p>NEG_REAL</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.BOOLEAN">
+<span class="sig-name descname"><span class="pre">BOOLEAN</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;AtomicType.BOOLEAN:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.AtomicType.BOOLEAN" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.NATURAL">
+<span class="sig-name descname"><span class="pre">NATURAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;AtomicType.NATURAL:</span> <span class="pre">5&gt;</span></em><a class="headerlink" href="#beanmachine.graph.AtomicType.NATURAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.NEG_REAL">
+<span class="sig-name descname"><span class="pre">NEG_REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;AtomicType.NEG_REAL:</span> <span class="pre">6&gt;</span></em><a class="headerlink" href="#beanmachine.graph.AtomicType.NEG_REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.POS_REAL">
+<span class="sig-name descname"><span class="pre">POS_REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#beanmachine.graph.AtomicType.POS_REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.PROBABILITY">
+<span class="sig-name descname"><span class="pre">PROBABILITY</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;AtomicType.PROBABILITY:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#beanmachine.graph.AtomicType.PROBABILITY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.REAL">
+<span class="sig-name descname"><span class="pre">REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;AtomicType.REAL:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#beanmachine.graph.AtomicType.REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.AtomicType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.AtomicType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.AtomicType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">DistributionType</span></span><a class="headerlink" href="#beanmachine.graph.DistributionType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>TABULAR</p>
+<p>BERNOULLI</p>
+<p>BERNOULLI_NOISY_OR</p>
+<p>BETA</p>
+<p>BINOMIAL</p>
+<p>FLAT</p>
+<p>NORMAL</p>
+<p>HALF_NORMAL</p>
+<p>HALF_CAUCHY</p>
+<p>STUDENT_T</p>
+<p>BERNOULLI_LOGIT</p>
+<p>GAMMA</p>
+<p>BIMIXTURE</p>
+<p>DIRICHLET</p>
+<p>CATEGORICAL</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.BERNOULLI">
+<span class="sig-name descname"><span class="pre">BERNOULLI</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.BERNOULLI:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.BERNOULLI" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.BERNOULLI_LOGIT">
+<span class="sig-name descname"><span class="pre">BERNOULLI_LOGIT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.BERNOULLI_LOGIT:</span> <span class="pre">12&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.BERNOULLI_LOGIT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.BERNOULLI_NOISY_OR">
+<span class="sig-name descname"><span class="pre">BERNOULLI_NOISY_OR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.BERNOULLI_NOISY_OR:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.BERNOULLI_NOISY_OR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.BETA">
+<span class="sig-name descname"><span class="pre">BETA</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.BETA:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.BETA" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.BIMIXTURE">
+<span class="sig-name descname"><span class="pre">BIMIXTURE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.BIMIXTURE:</span> <span class="pre">14&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.BIMIXTURE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.BINOMIAL">
+<span class="sig-name descname"><span class="pre">BINOMIAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.BINOMIAL:</span> <span class="pre">5&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.BINOMIAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.CATEGORICAL">
+<span class="sig-name descname"><span class="pre">CATEGORICAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.CATEGORICAL:</span> <span class="pre">15&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.CATEGORICAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.DIRICHLET">
+<span class="sig-name descname"><span class="pre">DIRICHLET</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.DIRICHLET:</span> <span class="pre">6&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.DIRICHLET" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.FLAT">
+<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.FLAT:</span> <span class="pre">7&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.FLAT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.GAMMA">
+<span class="sig-name descname"><span class="pre">GAMMA</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.GAMMA:</span> <span class="pre">13&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.GAMMA" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.HALF_CAUCHY">
+<span class="sig-name descname"><span class="pre">HALF_CAUCHY</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.HALF_CAUCHY:</span> <span class="pre">10&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.HALF_CAUCHY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.HALF_NORMAL">
+<span class="sig-name descname"><span class="pre">HALF_NORMAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.HALF_NORMAL:</span> <span class="pre">9&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.HALF_NORMAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.NORMAL">
+<span class="sig-name descname"><span class="pre">NORMAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.NORMAL:</span> <span class="pre">8&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.NORMAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.STUDENT_T">
+<span class="sig-name descname"><span class="pre">STUDENT_T</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.STUDENT_T:</span> <span class="pre">11&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.STUDENT_T" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.TABULAR">
+<span class="sig-name descname"><span class="pre">TABULAR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;DistributionType.TABULAR:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.DistributionType.TABULAR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.DistributionType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.DistributionType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.DistributionType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.FactorType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">FactorType</span></span><a class="headerlink" href="#beanmachine.graph.FactorType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>EXP_PRODUCT</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.FactorType.EXP_PRODUCT">
+<span class="sig-name descname"><span class="pre">EXP_PRODUCT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;FactorType.EXP_PRODUCT:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.FactorType.EXP_PRODUCT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.FactorType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.FactorType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.FactorType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.FactorType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">Graph</span></span><a class="headerlink" href="#beanmachine.graph.Graph" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant">
+<span class="sig-name descname"><span class="pre">add_constant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant" title="Permalink to this definition"></a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>add_constant(self: beanmachine.graph.Graph, value: bool) -&gt; int</p></li>
+</ol>
+<p>add a Node with a constant boolean value</p>
+<ol class="arabic simple" start="2">
+<li><p>add_constant(self: beanmachine.graph.Graph, value: float) -&gt; int</p></li>
+</ol>
+<p>add a Node with a constant real value</p>
+<ol class="arabic simple" start="3">
+<li><p>add_constant(self: beanmachine.graph.Graph, value: int) -&gt; int</p></li>
+</ol>
+<p>add a Node with a constant natural (integers &gt;= 0) value</p>
+<ol class="arabic simple" start="4">
+<li><p>add_constant(self: beanmachine.graph.Graph, value: beanmachine.graph.NodeValue) -&gt; int</p></li>
+</ol>
+<p>add a Node with a constant value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_bool">
+<span class="sig-name descname"><span class="pre">add_constant_bool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_bool" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant boolean value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_bool_matrix">
+<span class="sig-name descname"><span class="pre">add_constant_bool_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">[</span></span><span class="pre">m</span><span class="p"><span class="pre">,</span> </span><span class="pre">n</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_bool_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant Boolean-valued matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_col_simplex_matrix">
+<span class="sig-name descname"><span class="pre">add_constant_col_simplex_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="p"><span class="pre">[</span></span><span class="pre">m</span><span class="p"><span class="pre">,</span> </span><span class="pre">n</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_col_simplex_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant matrix with each column a simplex</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_natural">
+<span class="sig-name descname"><span class="pre">add_constant_natural</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_natural" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant natural (integers &gt;= 0) value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_natural_matrix">
+<span class="sig-name descname"><span class="pre">add_constant_natural_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.uint64</span><span class="p"><span class="pre">[</span></span><span class="pre">m</span><span class="p"><span class="pre">,</span> </span><span class="pre">n</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_natural_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant natural-valued matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_neg_matrix">
+<span class="sig-name descname"><span class="pre">add_constant_neg_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="p"><span class="pre">[</span></span><span class="pre">m</span><span class="p"><span class="pre">,</span> </span><span class="pre">n</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_neg_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant element-wise negative valued matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_neg_real">
+<span class="sig-name descname"><span class="pre">add_constant_neg_real</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_neg_real" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant negative real (&lt;=0) value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_pos_matrix">
+<span class="sig-name descname"><span class="pre">add_constant_pos_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="p"><span class="pre">[</span></span><span class="pre">m</span><span class="p"><span class="pre">,</span> </span><span class="pre">n</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_pos_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant element-wise positive valued matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_pos_real">
+<span class="sig-name descname"><span class="pre">add_constant_pos_real</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_pos_real" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant positive real (&gt;=0) value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_probability">
+<span class="sig-name descname"><span class="pre">add_constant_probability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_probability" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant probability value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_probability_matrix">
+<span class="sig-name descname"><span class="pre">add_constant_probability_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="p"><span class="pre">[</span></span><span class="pre">m</span><span class="p"><span class="pre">,</span> </span><span class="pre">n</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_probability_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant probability-valued matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_real">
+<span class="sig-name descname"><span class="pre">add_constant_real</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_real" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant real value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_constant_real_matrix">
+<span class="sig-name descname"><span class="pre">add_constant_real_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.float64</span><span class="p"><span class="pre">[</span></span><span class="pre">m</span><span class="p"><span class="pre">,</span> </span><span class="pre">n</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_constant_real_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>add a Node with a constant real-valued matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_distribution">
+<span class="sig-name descname"><span class="pre">add_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.graph.Graph.add_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>add_distribution(self: beanmachine.graph.Graph, dist_type: beanmachine.graph.DistributionType, sample_type: beanmachine.graph.AtomicType, parents: List[int]) -&gt; int</p></li>
+</ol>
+<p>add a probability distribution Node</p>
+<ol class="arabic simple" start="2">
+<li><p>add_distribution(self: beanmachine.graph.Graph, dist_type: beanmachine.graph.DistributionType, sample_type: beanmachine.graph.ValueType, parents: List[int]) -&gt; int</p></li>
+</ol>
+<p>add a probability distribution Node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_factor">
+<span class="sig-name descname"><span class="pre">add_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fac_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.FactorType" title="beanmachine.graph.FactorType"><span class="pre">beanmachine.graph.FactorType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_factor" title="Permalink to this definition"></a></dt>
+<dd><p>add a factor Node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.add_operator">
+<span class="sig-name descname"><span class="pre">add_operator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.OperatorType" title="beanmachine.graph.OperatorType"><span class="pre">beanmachine.graph.OperatorType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.add_operator" title="Permalink to this definition"></a></dt>
+<dd><p>add an operator Node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.collect_performance_data">
+<span class="sig-name descname"><span class="pre">collect_performance_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.collect_performance_data" title="Permalink to this definition"></a></dt>
+<dd><p>collect performance data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.customize_transformation">
+<span class="sig-name descname"><span class="pre">customize_transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.TransformType" title="beanmachine.graph.TransformType"><span class="pre">beanmachine.graph.TransformType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_ids</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.customize_transformation" title="Permalink to this definition"></a></dt>
+<dd><p>customize transformation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.get_elbo">
+<span class="sig-name descname"><span class="pre">get_elbo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.get_elbo" title="Permalink to this definition"></a></dt>
+<dd><p>get the evidence lower bound (ELBO) of the last variational call</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.get_log_prob">
+<span class="sig-name descname"><span class="pre">get_log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.get_log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>get the log probabilities of all chains</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.infer">
+<span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.graph.Graph.infer" title="Permalink to this definition"></a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>infer(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401) -&gt; List[List[beanmachine.graph.NodeValue]]</p></li>
+</ol>
+<p>infer the empirical distribution of the queried nodes</p>
+<ol class="arabic simple" start="2">
+<li><p>infer(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401, n_chains: int = 4, infer_config: beanmachine.graph.InferConfig = &lt;beanmachine.graph.InferConfig object at 0x7fbdbee2a5f0&gt;) -&gt; List[List[List[beanmachine.graph.NodeValue]]]</p></li>
+</ol>
+<p>infer the empirical distribution of the queried nodes using multiple chains</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.infer_mean">
+<span class="sig-name descname"><span class="pre">infer_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.graph.Graph.infer_mean" title="Permalink to this definition"></a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>infer_mean(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401) -&gt; List[float]</p></li>
+</ol>
+<p>infer the posterior mean of the queried nodes</p>
+<ol class="arabic simple" start="2">
+<li><p>infer_mean(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401, n_chains: int = 4, infer_config: beanmachine.graph.InferConfig = &lt;beanmachine.graph.InferConfig object at 0x7fbdbee2a3f0&gt;) -&gt; List[List[float]]</p></li>
+</ol>
+<p>infer the posterior mean of the queried nodes using multiple chains</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.observe">
+<span class="sig-name descname"><span class="pre">observe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.graph.Graph.observe" title="Permalink to this definition"></a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>observe(self: beanmachine.graph.Graph, node_id: int, val: bool) -&gt; None</p></li>
+</ol>
+<p>observe a node</p>
+<ol class="arabic simple" start="2">
+<li><p>observe(self: beanmachine.graph.Graph, node_id: int, val: float) -&gt; None</p></li>
+</ol>
+<p>observe a node</p>
+<ol class="arabic simple" start="3">
+<li><p>observe(self: beanmachine.graph.Graph, node_id: int, val: int) -&gt; None</p></li>
+</ol>
+<p>observe a node</p>
+<ol class="arabic simple" start="4">
+<li><p>observe(self: beanmachine.graph.Graph, node_id: int, val: numpy.ndarray[numpy.float64[m, n]]) -&gt; None</p></li>
+</ol>
+<p>observe a node</p>
+<ol class="arabic simple" start="5">
+<li><p>observe(self: beanmachine.graph.Graph, node_id: int, val: numpy.ndarray[bool[m, n]]) -&gt; None</p></li>
+</ol>
+<p>observe a node</p>
+<ol class="arabic simple" start="6">
+<li><p>observe(self: beanmachine.graph.Graph, node_id: int, val: numpy.ndarray[numpy.uint64[m, n]]) -&gt; None</p></li>
+</ol>
+<p>observe a node</p>
+<ol class="arabic simple" start="7">
+<li><p>observe(self: beanmachine.graph.Graph, node_id: int, val: beanmachine.graph.NodeValue) -&gt; None</p></li>
+</ol>
+<p>observe a node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.performance_report">
+<span class="sig-name descname"><span class="pre">performance_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.performance_report" title="Permalink to this definition"></a></dt>
+<dd><p>performance report</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.query" title="Permalink to this definition"></a></dt>
+<dd><p>query a node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.remove_observations">
+<span class="sig-name descname"><span class="pre">remove_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.remove_observations" title="Permalink to this definition"></a></dt>
+<dd><p>remove all observations from the graph</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.to_dot">
+<span class="sig-name descname"><span class="pre">to_dot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.to_dot" title="Permalink to this definition"></a></dt>
+<dd><p>DOT representation of the graph</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.to_string">
+<span class="sig-name descname"><span class="pre">to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.to_string" title="Permalink to this definition"></a></dt>
+<dd><p>string representation of the graph</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.Graph.variational">
+<span class="sig-name descname"><span class="pre">variational</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_iters</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps_per_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5123401</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elbo_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.graph.Graph.variational" title="Permalink to this definition"></a></dt>
+<dd><p>infer the empirical distribution of the queried nodes</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.HMC">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">HMC</span></span><a class="headerlink" href="#beanmachine.graph.HMC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.HMC.infer">
+<span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self:</span> <span class="pre">beanmachine.graph.HMC</span></em>, <em class="sig-param"><span class="pre">num_samples:</span> <span class="pre">int</span></em>, <em class="sig-param"><span class="pre">seed:</span> <span class="pre">int</span></em>, <em class="sig-param"><span class="pre">num_warmup_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></em>, <em class="sig-param"><span class="pre">save_warmup:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">init_type:</span> <span class="pre">beanmachine.graph.InitType</span> <span class="pre">=</span> <span class="pre">&lt;InitType.RANDOM:</span> <span class="pre">0&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.graph.NodeValue" title="beanmachine.graph.NodeValue"><span class="pre">beanmachine.graph.NodeValue</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.graph.HMC.infer" title="Permalink to this definition"></a></dt>
+<dd><p>infer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.InferConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">InferConfig</span></span><a class="headerlink" href="#beanmachine.graph.InferConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InferConfig.keep_log_prob">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">keep_log_prob</span></span><a class="headerlink" href="#beanmachine.graph.InferConfig.keep_log_prob" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InferConfig.keep_warmup">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">keep_warmup</span></span><a class="headerlink" href="#beanmachine.graph.InferConfig.keep_warmup" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InferConfig.num_warmup">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">num_warmup</span></span><a class="headerlink" href="#beanmachine.graph.InferConfig.num_warmup" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InferConfig.path_length">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">path_length</span></span><a class="headerlink" href="#beanmachine.graph.InferConfig.path_length" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InferConfig.step_size">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">step_size</span></span><a class="headerlink" href="#beanmachine.graph.InferConfig.step_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.InferenceType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">InferenceType</span></span><a class="headerlink" href="#beanmachine.graph.InferenceType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>REJECTION</p>
+<p>GIBBS</p>
+<p>NMC</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.InferenceType.GIBBS">
+<span class="sig-name descname"><span class="pre">GIBBS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;InferenceType.GIBBS:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#beanmachine.graph.InferenceType.GIBBS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.InferenceType.NMC">
+<span class="sig-name descname"><span class="pre">NMC</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;InferenceType.NMC:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#beanmachine.graph.InferenceType.NMC" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.InferenceType.REJECTION">
+<span class="sig-name descname"><span class="pre">REJECTION</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;InferenceType.REJECTION:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.InferenceType.REJECTION" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InferenceType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.InferenceType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InferenceType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.InferenceType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.InitType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">InitType</span></span><a class="headerlink" href="#beanmachine.graph.InitType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>PRIOR</p>
+<p>RANDOM</p>
+<p>ZERO</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.InitType.PRIOR">
+<span class="sig-name descname"><span class="pre">PRIOR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;InitType.PRIOR:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#beanmachine.graph.InitType.PRIOR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.InitType.RANDOM">
+<span class="sig-name descname"><span class="pre">RANDOM</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;InitType.RANDOM:</span> <span class="pre">0&gt;</span></em><a class="headerlink" href="#beanmachine.graph.InitType.RANDOM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.InitType.ZERO">
+<span class="sig-name descname"><span class="pre">ZERO</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;InitType.ZERO:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.InitType.ZERO" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InitType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.InitType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.InitType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.InitType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.NUTS">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">NUTS</span></span><a class="headerlink" href="#beanmachine.graph.NUTS" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.NUTS.infer">
+<span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self:</span> <span class="pre">beanmachine.graph.NUTS</span></em>, <em class="sig-param"><span class="pre">num_samples:</span> <span class="pre">int</span></em>, <em class="sig-param"><span class="pre">seed:</span> <span class="pre">int</span></em>, <em class="sig-param"><span class="pre">num_warmup_samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></em>, <em class="sig-param"><span class="pre">save_warmup:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">init_type:</span> <span class="pre">beanmachine.graph.InitType</span> <span class="pre">=</span> <span class="pre">&lt;InitType.RANDOM:</span> <span class="pre">0&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.graph.NodeValue" title="beanmachine.graph.NodeValue"><span class="pre">beanmachine.graph.NodeValue</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.graph.NUTS.infer" title="Permalink to this definition"></a></dt>
+<dd><p>infer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.Node">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><a class="headerlink" href="#beanmachine.graph.Node" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">NodeType</span></span><a class="headerlink" href="#beanmachine.graph.NodeType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>CONSTANT</p>
+<p>DISTRIBUTION</p>
+<p>OPERATOR</p>
+<p>FACTOR</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeType.CONSTANT">
+<span class="sig-name descname"><span class="pre">CONSTANT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;NodeType.CONSTANT:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.NodeType.CONSTANT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeType.DISTRIBUTION">
+<span class="sig-name descname"><span class="pre">DISTRIBUTION</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;NodeType.DISTRIBUTION:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#beanmachine.graph.NodeType.DISTRIBUTION" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeType.FACTOR">
+<span class="sig-name descname"><span class="pre">FACTOR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;NodeType.FACTOR:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#beanmachine.graph.NodeType.FACTOR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeType.OPERATOR">
+<span class="sig-name descname"><span class="pre">OPERATOR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;NodeType.OPERATOR:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#beanmachine.graph.NodeType.OPERATOR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.NodeType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.NodeType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.NodeValue">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">NodeValue</span></span><a class="headerlink" href="#beanmachine.graph.NodeValue" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">OperatorType</span></span><a class="headerlink" href="#beanmachine.graph.OperatorType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>SAMPLE</p>
+<p>TO_INT</p>
+<p>TO_REAL</p>
+<p>TO_POS_REAL</p>
+<p>COMPLEMENT</p>
+<p>NEGATE</p>
+<p>EXP</p>
+<p>EXPM1</p>
+<p>MULTIPLY</p>
+<p>ADD</p>
+<p>PHI</p>
+<p>LOGISTIC</p>
+<p>LOG1PEXP</p>
+<p>LOG1MEXP</p>
+<p>LOGSUMEXP</p>
+<p>IF_THEN_ELSE</p>
+<p>LOG</p>
+<p>POW</p>
+<p>MATRIX_MULTIPLY</p>
+<p>MATRIX_SCALE</p>
+<p>TO_PROBABILITY</p>
+<p>INDEX</p>
+<p>BROADCAST_ADD</p>
+<p>TO_MATRIX</p>
+<p>LOGSUMEXP_VECTOR</p>
+<p>COLUMN_INDEX</p>
+<p>TO_REAL_MATRIX</p>
+<p>TO_POS_REAL_MATRIX</p>
+<p>TO_NEG_REAL</p>
+<p>CHOICE</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.ADD">
+<span class="sig-name descname"><span class="pre">ADD</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.ADD:</span> <span class="pre">10&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.ADD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.BROADCAST_ADD">
+<span class="sig-name descname"><span class="pre">BROADCAST_ADD</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.BROADCAST_ADD:</span> <span class="pre">26&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.BROADCAST_ADD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.CHOICE">
+<span class="sig-name descname"><span class="pre">CHOICE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.CHOICE:</span> <span class="pre">30&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.CHOICE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.COLUMN_INDEX">
+<span class="sig-name descname"><span class="pre">COLUMN_INDEX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.COLUMN_INDEX:</span> <span class="pre">24&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.COLUMN_INDEX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.COMPLEMENT">
+<span class="sig-name descname"><span class="pre">COMPLEMENT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.COMPLEMENT:</span> <span class="pre">5&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.COMPLEMENT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.EXP">
+<span class="sig-name descname"><span class="pre">EXP</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.EXP:</span> <span class="pre">7&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.EXP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.EXPM1">
+<span class="sig-name descname"><span class="pre">EXPM1</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.EXPM1:</span> <span class="pre">8&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.EXPM1" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.IF_THEN_ELSE">
+<span class="sig-name descname"><span class="pre">IF_THEN_ELSE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.IF_THEN_ELSE:</span> <span class="pre">13&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.IF_THEN_ELSE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.INDEX">
+<span class="sig-name descname"><span class="pre">INDEX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.INDEX:</span> <span class="pre">23&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.INDEX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.LOG">
+<span class="sig-name descname"><span class="pre">LOG</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.LOG:</span> <span class="pre">17&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.LOG" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.LOG1MEXP">
+<span class="sig-name descname"><span class="pre">LOG1MEXP</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.LOG1MEXP:</span> <span class="pre">19&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.LOG1MEXP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.LOG1PEXP">
+<span class="sig-name descname"><span class="pre">LOG1PEXP</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.LOG1PEXP:</span> <span class="pre">14&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.LOG1PEXP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.LOGISTIC">
+<span class="sig-name descname"><span class="pre">LOGISTIC</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.LOGISTIC:</span> <span class="pre">12&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.LOGISTIC" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.LOGSUMEXP">
+<span class="sig-name descname"><span class="pre">LOGSUMEXP</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.LOGSUMEXP:</span> <span class="pre">15&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.LOGSUMEXP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.LOGSUMEXP_VECTOR">
+<span class="sig-name descname"><span class="pre">LOGSUMEXP_VECTOR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.LOGSUMEXP_VECTOR:</span> <span class="pre">16&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.LOGSUMEXP_VECTOR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.MATRIX_MULTIPLY">
+<span class="sig-name descname"><span class="pre">MATRIX_MULTIPLY</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.MATRIX_MULTIPLY:</span> <span class="pre">20&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.MATRIX_MULTIPLY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.MATRIX_SCALE">
+<span class="sig-name descname"><span class="pre">MATRIX_SCALE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.MATRIX_SCALE:</span> <span class="pre">21&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.MATRIX_SCALE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.MULTIPLY">
+<span class="sig-name descname"><span class="pre">MULTIPLY</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.MULTIPLY:</span> <span class="pre">9&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.MULTIPLY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.NEGATE">
+<span class="sig-name descname"><span class="pre">NEGATE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.NEGATE:</span> <span class="pre">6&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.NEGATE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.PHI">
+<span class="sig-name descname"><span class="pre">PHI</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.PHI:</span> <span class="pre">11&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.PHI" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.POW">
+<span class="sig-name descname"><span class="pre">POW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.POW:</span> <span class="pre">18&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.POW" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.SAMPLE">
+<span class="sig-name descname"><span class="pre">SAMPLE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.SAMPLE:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.SAMPLE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_INT">
+<span class="sig-name descname"><span class="pre">TO_INT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_INT:</span> <span class="pre">31&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_INT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_MATRIX">
+<span class="sig-name descname"><span class="pre">TO_MATRIX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_MATRIX:</span> <span class="pre">25&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_MATRIX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_NEG_REAL">
+<span class="sig-name descname"><span class="pre">TO_NEG_REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_NEG_REAL:</span> <span class="pre">29&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_NEG_REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_POS_REAL">
+<span class="sig-name descname"><span class="pre">TO_POS_REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_POS_REAL:</span> <span class="pre">4&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_POS_REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_POS_REAL_MATRIX">
+<span class="sig-name descname"><span class="pre">TO_POS_REAL_MATRIX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_POS_REAL_MATRIX:</span> <span class="pre">28&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_POS_REAL_MATRIX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_PROBABILITY">
+<span class="sig-name descname"><span class="pre">TO_PROBABILITY</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_PROBABILITY:</span> <span class="pre">22&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_PROBABILITY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_REAL">
+<span class="sig-name descname"><span class="pre">TO_REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_REAL:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.TO_REAL_MATRIX">
+<span class="sig-name descname"><span class="pre">TO_REAL_MATRIX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;OperatorType.TO_REAL_MATRIX:</span> <span class="pre">27&gt;</span></em><a class="headerlink" href="#beanmachine.graph.OperatorType.TO_REAL_MATRIX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.OperatorType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.OperatorType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.OperatorType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.TransformType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">TransformType</span></span><a class="headerlink" href="#beanmachine.graph.TransformType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>NONE</p>
+<p>LOG</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.TransformType.LOG">
+<span class="sig-name descname"><span class="pre">LOG</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;TransformType.LOG:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.TransformType.LOG" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.TransformType.NONE">
+<span class="sig-name descname"><span class="pre">NONE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;TransformType.NONE:</span> <span class="pre">0&gt;</span></em><a class="headerlink" href="#beanmachine.graph.TransformType.NONE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.TransformType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.TransformType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.TransformType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.TransformType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.ValueType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">ValueType</span></span><a class="headerlink" href="#beanmachine.graph.ValueType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.graph.ValueType.to_string">
+<span class="sig-name descname"><span class="pre">to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.graph.ValueType" title="beanmachine.graph.ValueType"><span class="pre">beanmachine.graph.ValueType</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.graph.ValueType.to_string" title="Permalink to this definition"></a></dt>
+<dd><p>string representation of the type</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.graph.VariableType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.graph.</span></span><span class="sig-name descname"><span class="pre">VariableType</span></span><a class="headerlink" href="#beanmachine.graph.VariableType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Members:</p>
+<p>SCALAR</p>
+<p>BROADCAST_MATRIX</p>
+<p>COL_SIMPLEX_MATRIX</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.VariableType.BROADCAST_MATRIX">
+<span class="sig-name descname"><span class="pre">BROADCAST_MATRIX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;VariableType.BROADCAST_MATRIX:</span> <span class="pre">2&gt;</span></em><a class="headerlink" href="#beanmachine.graph.VariableType.BROADCAST_MATRIX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.VariableType.COL_SIMPLEX_MATRIX">
+<span class="sig-name descname"><span class="pre">COL_SIMPLEX_MATRIX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;VariableType.COL_SIMPLEX_MATRIX:</span> <span class="pre">3&gt;</span></em><a class="headerlink" href="#beanmachine.graph.VariableType.COL_SIMPLEX_MATRIX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.graph.VariableType.SCALAR">
+<span class="sig-name descname"><span class="pre">SCALAR</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;VariableType.SCALAR:</span> <span class="pre">1&gt;</span></em><a class="headerlink" href="#beanmachine.graph.VariableType.SCALAR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.VariableType.name">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#beanmachine.graph.VariableType.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.graph.VariableType.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#beanmachine.graph.VariableType.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.applications.hme.priors.html" class="btn btn-neutral float-left" title="beanmachine.applications.hme.priors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.html" class="btn btn-neutral float-right" title="beanmachine.ppl" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

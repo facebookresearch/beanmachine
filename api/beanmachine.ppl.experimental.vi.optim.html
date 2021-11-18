@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.experimental.vi.optim &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.experimental.vi.variational_infer" href="beanmachine.ppl.experimental.vi.variational_infer.html" />
+    <link rel="prev" title="beanmachine.ppl.experimental.vi.mean_field_variational_approximation" href="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.experimental.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">beanmachine.ppl.experimental.abc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">beanmachine.ppl.experimental.global_inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">beanmachine.ppl.experimental.gp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">beanmachine.ppl.experimental.inference_compilation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">beanmachine.ppl.experimental.neutra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.variable_elimination.html">beanmachine.ppl.experimental.variable_elimination</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">beanmachine.ppl.experimental.vi</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html#module-beanmachine.ppl.experimental.vi">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.html#module-beanmachine.ppl.experimental">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.vi.html">beanmachine.ppl.experimental.vi</a> &raquo;</li>
+      <li>beanmachine.ppl.experimental.vi.optim</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.experimental.vi.optim.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-experimental-vi-optim">
+<h1>beanmachine.ppl.experimental.vi.optim<a class="headerlink" href="#beanmachine-ppl-experimental-vi-optim" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.experimental.vi.optim">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental.vi.optim" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.BMMultiOptimizer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.vi.optim.</span></span><span class="sig-name descname"><span class="pre">BMMultiOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.experimental.vi.optim.BMOptim" title="beanmachine.ppl.experimental.vi.optim.BMOptim"><span class="pre">beanmachine.ppl.experimental.vi.optim.BMOptim</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.BMMultiOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.vi.optim.MultiOptimizer" title="beanmachine.ppl.experimental.vi.optim.MultiOptimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.vi.optim.MultiOptimizer</span></code></a></p>
+<p>Facade to wrap <a class="reference internal" href="#beanmachine.ppl.experimental.vi.optim.BMOptim" title="beanmachine.ppl.experimental.vi.optim.BMOptim"><code class="xref py py-class docutils literal notranslate"><span class="pre">BMOptim</span></code></a> objects in a <a class="reference internal" href="#beanmachine.ppl.experimental.vi.optim.MultiOptimizer" title="beanmachine.ppl.experimental.vi.optim.MultiOptimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiOptimizer</span></code></a>
+interface.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.BMMultiOptimizer.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.parameter.Parameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.BMMultiOptimizer.step" title="Permalink to this definition"></a></dt>
+<dd><p>Performs an in-place optimization step on parameters given a
+differentiable <code class="docutils literal notranslate"><span class="pre">loss</span></code> tensor.
+Note that this detaches the updated tensors.
+:param torch.Tensor loss: A differentiable tensor to be minimized.</p>
+<blockquote>
+<div><p>Some optimizers require this to be differentiable multiple times.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>dict</em>) – A dictionary mapping param name to unconstrained
+value as stored in the param store.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.BMOptim">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.vi.optim.</span></span><span class="sig-name descname"><span class="pre">BMOptim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optim_constructor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.optim.optimizer.Optimizer</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.optim.optimizer.Optimizer</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.BMOptim" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A wrapper for torch.optim.Optimizer objects that helps with managing dynamically generated parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>optim_constructor</strong> – a torch.optim.Optimizer</p></li>
+<li><p><strong>optim_args</strong> – a dictionary of learning arguments for the optimizer or a callable that returns
+such dictionaries</p></li>
+<li><p><strong>clip_args</strong> – a dictionary of clip_norm and/or clip_value args or a callable that returns
+such dictionaries</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.BMOptim.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.BMOptim.get_state" title="Permalink to this definition"></a></dt>
+<dd><p>Get state associated with all the optimizers in the form of a dictionary with
+key-value pairs (parameter name, optim state dicts)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.BMOptim.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.BMOptim.load" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – file name to load from</p>
+</dd>
+</dl>
+<p>Load optimizer state from disk</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.BMOptim.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.BMOptim.save" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – file name to save to</p>
+</dd>
+</dl>
+<p>Save optimizer state to disk</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.BMOptim.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.BMOptim.set_state" title="Permalink to this definition"></a></dt>
+<dd><p>Set the state associated with all the optimizers using the state obtained
+from a previous call to get_state()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.MultiOptimizer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.vi.optim.</span></span><span class="sig-name descname"><span class="pre">MultiOptimizer</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.MultiOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class of optimizers that make use of higher-order derivatives.
+Higher-order optimizers generally use <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.autograd.grad()</span></code> rather
+than <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.Tensor.backward()</span></code>, and therefore require a different
+interface from usual optimizers. In this interface, the <a class="reference internal" href="#beanmachine.ppl.experimental.vi.optim.MultiOptimizer.step" title="beanmachine.ppl.experimental.vi.optim.MultiOptimizer.step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">step()</span></code></a>
+method inputs a <code class="docutils literal notranslate"><span class="pre">loss</span></code> tensor to be differentiated, and backpropagation
+is triggered one or more times inside the optimizer. Derived classes must
+implement <a class="reference internal" href="#beanmachine.ppl.experimental.vi.optim.MultiOptimizer.step" title="beanmachine.ppl.experimental.vi.optim.MultiOptimizer.step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">step()</span></code></a> to compute derivatives and update parameters
+in-place.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.MultiOptimizer.get_step">
+<span class="sig-name descname"><span class="pre">get_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.MultiOptimizer.get_step" title="Permalink to this definition"></a></dt>
+<dd><p>Computes an optimization step of parameters given a differentiable
+<code class="docutils literal notranslate"><span class="pre">loss</span></code> tensor, returning the updated values.
+Note that this preserves derivatives on the updated tensors.
+:param torch.Tensor loss: A differentiable tensor to be minimized.</p>
+<blockquote>
+<div><p>Some optimizers require this to be differentiable multiple times.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>dict</em>) – A dictionary mapping param name to unconstrained
+value as stored in the param store.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary mapping param name to updated unconstrained
+value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.MultiOptimizer.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.MultiOptimizer.step" title="Permalink to this definition"></a></dt>
+<dd><p>Performs an in-place optimization step on parameters given a
+differentiable <code class="docutils literal notranslate"><span class="pre">loss</span></code> tensor.
+Note that this detaches the updated tensors.
+:param torch.Tensor loss: A differentiable tensor to be minimized.</p>
+<blockquote>
+<div><p>Some optimizers require this to be differentiable multiple times.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params</strong> (<em>dict</em>) – A dictionary mapping param name to unconstrained
+value as stored in the param store.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.module_from_param_with_module_name">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.vi.optim.</span></span><span class="sig-name descname"><span class="pre">module_from_param_with_module_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.module_from_param_with_module_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.normalize_param_name">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.vi.optim.</span></span><span class="sig-name descname"><span class="pre">normalize_param_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.normalize_param_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.vi.optim.user_param_name">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.vi.optim.</span></span><span class="sig-name descname"><span class="pre">user_param_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.vi.optim.user_param_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.experimental.vi.mean_field_variational_approximation.html" class="btn btn-neutral float-left" title="beanmachine.ppl.experimental.vi.mean_field_variational_approximation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.experimental.vi.variational_infer.html" class="btn btn-neutral float-right" title="beanmachine.ppl.experimental.vi.variational_infer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

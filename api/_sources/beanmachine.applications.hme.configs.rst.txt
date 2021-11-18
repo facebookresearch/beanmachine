@@ -1,0 +1,11 @@
+beanmachine.applications.hme.configs
+====================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.applications.hme.configs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

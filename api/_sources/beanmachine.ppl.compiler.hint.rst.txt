@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.hint
+=============================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.hint
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

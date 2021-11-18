@@ -1,0 +1,11 @@
+beanmachine.applications.hme.patsy_mixed
+========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.applications.hme.patsy_mixed
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

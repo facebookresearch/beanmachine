@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.applications.hme.priors &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.graph" href="beanmachine.graph.html" />
+    <link rel="prev" title="beanmachine.applications.hme.patsy_mixed" href="beanmachine.applications.hme.patsy_mixed.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.applications.hme.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.abstract_linear_model.html">beanmachine.applications.hme.abstract_linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.abstract_model.html">beanmachine.applications.hme.abstract_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.configs.html">beanmachine.applications.hme.configs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.interface.html">beanmachine.applications.hme.interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.null_mixture_model.html">beanmachine.applications.hme.null_mixture_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.patsy_mixed.html">beanmachine.applications.hme.patsy_mixed</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.applications.hme.priors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.applications.hme.priors">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.applications.hme.html#module-beanmachine.applications.hme">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.applications.html">beanmachine.applications</a> &raquo;</li>
+          <li><a href="beanmachine.applications.hme.html">beanmachine.applications.hme</a> &raquo;</li>
+      <li>beanmachine.applications.hme.priors</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.applications.hme.priors.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-applications-hme-priors">
+<h1>beanmachine.applications.hme.priors<a class="headerlink" href="#beanmachine-applications-hme-priors" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.applications.hme.priors">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.applications.hme.priors" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.priors.</span></span><span class="sig-name descname"><span class="pre">Distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.BETA">
+<span class="sig-name descname"><span class="pre">BETA</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('beta',</span> <span class="pre">&lt;DistributionType.BETA:</span> <span class="pre">4&gt;,</span> <span class="pre">&lt;ParamType.PROB:</span> <span class="pre">('prob',</span> <span class="pre">&lt;AtomicType.PROBABILITY:</span> <span class="pre">2&gt;)&gt;,</span> <span class="pre">['alpha',</span> <span class="pre">'beta'],</span> <span class="pre">{'alpha':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;,</span> <span class="pre">'beta':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.BETA" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.BINOMIAL">
+<span class="sig-name descname"><span class="pre">BINOMIAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('binomial',</span> <span class="pre">&lt;DistributionType.BINOMIAL:</span> <span class="pre">5&gt;,</span> <span class="pre">&lt;ParamType.NATURAL:</span> <span class="pre">('natural',</span> <span class="pre">&lt;AtomicType.NATURAL:</span> <span class="pre">5&gt;)&gt;,</span> <span class="pre">['total_count',</span> <span class="pre">'prob'],</span> <span class="pre">{'total_count':</span> <span class="pre">&lt;ParamType.NATURAL:</span> <span class="pre">('natural',</span> <span class="pre">&lt;AtomicType.NATURAL:</span> <span class="pre">5&gt;)&gt;,</span> <span class="pre">'prob':</span> <span class="pre">&lt;ParamType.PROB:</span> <span class="pre">('prob',</span> <span class="pre">&lt;AtomicType.PROBABILITY:</span> <span class="pre">2&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.BINOMIAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.CATEGORICAL">
+<span class="sig-name descname"><span class="pre">CATEGORICAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('categorical',</span> <span class="pre">&lt;DistributionType.CATEGORICAL:</span> <span class="pre">15&gt;,</span> <span class="pre">&lt;ParamType.NATURAL:</span> <span class="pre">('natural',</span> <span class="pre">&lt;AtomicType.NATURAL:</span> <span class="pre">5&gt;)&gt;,</span> <span class="pre">['p_vec'],</span> <span class="pre">{'p_vec':</span> <span class="pre">&lt;ParamType.COL_SIMPLEX_MATRIX:</span> <span class="pre">('simplex',</span> <span class="pre">&lt;AtomicType.NATURAL:</span> <span class="pre">5&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.CATEGORICAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.FLAT">
+<span class="sig-name descname"><span class="pre">FLAT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('flat',</span> <span class="pre">&lt;DistributionType.FLAT:</span> <span class="pre">7&gt;,</span> <span class="pre">&lt;ParamType.REAL:</span> <span class="pre">('real',</span> <span class="pre">&lt;AtomicType.REAL:</span> <span class="pre">3&gt;)&gt;,</span> <span class="pre">[],</span> <span class="pre">{})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.FLAT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.GAMMA">
+<span class="sig-name descname"><span class="pre">GAMMA</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('gamma',</span> <span class="pre">&lt;DistributionType.GAMMA:</span> <span class="pre">13&gt;,</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;,</span> <span class="pre">['alpha',</span> <span class="pre">'beta'],</span> <span class="pre">{'alpha':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;,</span> <span class="pre">'beta':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.GAMMA" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.HALF_CAUCHY">
+<span class="sig-name descname"><span class="pre">HALF_CAUCHY</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('half_cauchy',</span> <span class="pre">&lt;DistributionType.HALF_CAUCHY:</span> <span class="pre">10&gt;,</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;,</span> <span class="pre">['scale'],</span> <span class="pre">{'scale':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.HALF_CAUCHY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.HALF_NORMAL">
+<span class="sig-name descname"><span class="pre">HALF_NORMAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('half_normal',</span> <span class="pre">&lt;DistributionType.HALF_NORMAL:</span> <span class="pre">9&gt;,</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;,</span> <span class="pre">['scale'],</span> <span class="pre">{'scale':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.HALF_NORMAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.NORMAL">
+<span class="sig-name descname"><span class="pre">NORMAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('normal',</span> <span class="pre">&lt;DistributionType.NORMAL:</span> <span class="pre">8&gt;,</span> <span class="pre">&lt;ParamType.REAL:</span> <span class="pre">('real',</span> <span class="pre">&lt;AtomicType.REAL:</span> <span class="pre">3&gt;)&gt;,</span> <span class="pre">['mean',</span> <span class="pre">'scale'],</span> <span class="pre">{'mean':</span> <span class="pre">&lt;ParamType.REAL:</span> <span class="pre">('real',</span> <span class="pre">&lt;AtomicType.REAL:</span> <span class="pre">3&gt;)&gt;,</span> <span class="pre">'scale':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.NORMAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.STUDENT_T">
+<span class="sig-name descname"><span class="pre">STUDENT_T</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('t',</span> <span class="pre">&lt;DistributionType.STUDENT_T:</span> <span class="pre">11&gt;,</span> <span class="pre">&lt;ParamType.REAL:</span> <span class="pre">('real',</span> <span class="pre">&lt;AtomicType.REAL:</span> <span class="pre">3&gt;)&gt;,</span> <span class="pre">['dof',</span> <span class="pre">'mean',</span> <span class="pre">'scale'],</span> <span class="pre">{'dof':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;,</span> <span class="pre">'mean':</span> <span class="pre">&lt;ParamType.REAL:</span> <span class="pre">('real',</span> <span class="pre">&lt;AtomicType.REAL:</span> <span class="pre">3&gt;)&gt;,</span> <span class="pre">'scale':</span> <span class="pre">&lt;ParamType.POS_REAL:</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)&gt;})</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.STUDENT_T" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.Distribution.match_str">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">match_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.priors.Distribution.match_str" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.ParamType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.priors.</span></span><span class="sig-name descname"><span class="pre">ParamType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.priors.ParamType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.ParamType.COL_SIMPLEX_MATRIX">
+<span class="sig-name descname"><span class="pre">COL_SIMPLEX_MATRIX</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('simplex',</span> <span class="pre">&lt;AtomicType.NATURAL:</span> <span class="pre">5&gt;)</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.ParamType.COL_SIMPLEX_MATRIX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.ParamType.NATURAL">
+<span class="sig-name descname"><span class="pre">NATURAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('natural',</span> <span class="pre">&lt;AtomicType.NATURAL:</span> <span class="pre">5&gt;)</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.ParamType.NATURAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.ParamType.POS_REAL">
+<span class="sig-name descname"><span class="pre">POS_REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('pos_real',</span> <span class="pre">&lt;AtomicType.POS_REAL:</span> <span class="pre">4&gt;)</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.ParamType.POS_REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.ParamType.PROB">
+<span class="sig-name descname"><span class="pre">PROB</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('prob',</span> <span class="pre">&lt;AtomicType.PROBABILITY:</span> <span class="pre">2&gt;)</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.ParamType.PROB" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.ParamType.REAL">
+<span class="sig-name descname"><span class="pre">REAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">('real',</span> <span class="pre">&lt;AtomicType.REAL:</span> <span class="pre">3&gt;)</span></em><a class="headerlink" href="#beanmachine.applications.hme.priors.ParamType.REAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.priors.ParamType.match_str">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">match_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.priors.ParamType.match_str" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.applications.hme.patsy_mixed.html" class="btn btn-neutral float-left" title="beanmachine.applications.hme.patsy_mixed" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.graph.html" class="btn btn-neutral float-right" title="beanmachine.graph" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

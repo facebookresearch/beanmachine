@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.rejection_sampling_infer
+==================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.rejection_sampling_infer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

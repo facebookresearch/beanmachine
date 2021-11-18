@@ -1,0 +1,11 @@
+beanmachine.ppl.examples.conjugate_models.gamma_normal
+======================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.examples.conjugate_models.gamma_normal
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.experimental.gp.kernels &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.experimental.gp.likelihoods" href="beanmachine.ppl.experimental.gp.likelihoods.html" />
+    <link rel="prev" title="beanmachine.ppl.experimental.gp" href="beanmachine.ppl.experimental.gp.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.experimental.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">beanmachine.ppl.experimental.abc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">beanmachine.ppl.experimental.global_inference</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">beanmachine.ppl.experimental.gp</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#module-beanmachine.ppl.experimental.gp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">beanmachine.ppl.experimental.inference_compilation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">beanmachine.ppl.experimental.neutra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.variable_elimination.html">beanmachine.ppl.experimental.variable_elimination</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">beanmachine.ppl.experimental.vi</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.html#module-beanmachine.ppl.experimental">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.gp.html">beanmachine.ppl.experimental.gp</a> &raquo;</li>
+      <li>beanmachine.ppl.experimental.gp.kernels</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.experimental.gp.kernels.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-experimental-gp-kernels">
+<h1>beanmachine.ppl.experimental.gp.kernels<a class="headerlink" href="#beanmachine-ppl-experimental-gp-kernels" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.experimental.gp.kernels">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental.gp.kernels" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.AdditiveKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">AdditiveKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.AdditiveKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.kernel.AdditiveKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.AdditiveKernel` with <a href="#id1"><span class="problematic" id="id2">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.AdditiveKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.AdditiveKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.AdditiveStructureKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">AdditiveStructureKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.AdditiveStructureKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.additive_structure_kernel.AdditiveStructureKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.AdditiveStructureKernel` with <a href="#id3"><span class="problematic" id="id4">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.AdditiveStructureKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.AdditiveStructureKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ArcKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">ArcKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ArcKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.arc_kernel.ArcKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.ArcKernel` with <a href="#id5"><span class="problematic" id="id6">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ArcKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ArcKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.CosineKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">CosineKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.CosineKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.cosine_kernel.CosineKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.CosineKernel` with <a href="#id7"><span class="problematic" id="id8">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.CosineKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.CosineKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.CylindricalKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">CylindricalKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.CylindricalKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.cylindrical_kernel.CylindricalKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.CylindricalKernel` with <a href="#id9"><span class="problematic" id="id10">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.CylindricalKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.CylindricalKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.DistributionalInputKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">DistributionalInputKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.DistributionalInputKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.distributional_input_kernel.DistributionalInputKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.DistributionalInputKernel` with <a href="#id11"><span class="problematic" id="id12">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.DistributionalInputKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.DistributionalInputKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.GaussianSymmetrizedKLKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">GaussianSymmetrizedKLKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.GaussianSymmetrizedKLKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.gaussian_symmetrized_kl_kernel.GaussianSymmetrizedKLKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.GaussianSymmetrizedKLKernel` with <a href="#id13"><span class="problematic" id="id14">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.GaussianSymmetrizedKLKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.GaussianSymmetrizedKLKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.GridInterpolationKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">GridInterpolationKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.GridInterpolationKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.grid_interpolation_kernel.GridInterpolationKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.GridInterpolationKernel` with <a href="#id15"><span class="problematic" id="id16">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.GridInterpolationKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.GridInterpolationKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.GridKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">GridKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.GridKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.grid_kernel.GridKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.GridKernel` with <a href="#id17"><span class="problematic" id="id18">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.GridKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.GridKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.IndexKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">IndexKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.IndexKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.index_kernel.IndexKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.IndexKernel` with <a href="#id19"><span class="problematic" id="id20">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.IndexKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.IndexKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.InducingPointKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">InducingPointKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.InducingPointKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.inducing_point_kernel.InducingPointKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.InducingPointKernel` with <a href="#id21"><span class="problematic" id="id22">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.InducingPointKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.InducingPointKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.Kernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">Kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.Kernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.kernel.Kernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.Kernel` with <a href="#id23"><span class="problematic" id="id24">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.Kernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.Kernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">KernelMixin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Wrapper for Gpytorch kernels that lifts parameter attributes
+to Bean Machine <cite>random_variable`s. This class can be freely composed
+with any GPytorch kernel. Any kernel with custom
+parameters (not defined in GPytorch) that will be inferred
+should extend this class and
+`~gpytorch.kernels.Kernel</cite> and define parameters as properties
+that sample from the prior and a <cite>forward()</cite> method for
+computing the covariance matrix:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@random_variable</span>
+<span class="k">def</span> <span class="nf">prior</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">dist</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">ScaleKernel</span><span class="p">(</span><span class="n">outputscale_prior</span><span class="o">=</span><span class="n">prior</span><span class="p">)</span>
+<span class="n">x</span><span class="o">.</span><span class="n">lengthscale</span>  <span class="c1"># returns an invocation of the prior function</span>
+               <span class="c1"># (used during inference)</span>
+</pre></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.alpha">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">alpha</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.alpha" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.angular_weights">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">angular_weights</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.angular_weights" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.beta">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">beta</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.beta" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.lengthscale">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">lengthscale</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.lengthscale" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.mixture_means">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mixture_means</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.mixture_means" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.mixture_scales">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mixture_scales</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.mixture_scales" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.mixture_weights">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mixture_weights</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.mixture_weights" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.offset">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">offset</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.offset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.outputscale">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">outputscale</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.outputscale" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.period_length">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">period_length</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.period_length" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.train" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the module in training mode.</p>
+<p>This has any effect only on certain modules. See documentations of
+particular modules for details of their behaviors in training/evaluation
+mode, if they are affected, e.g. <code class="xref py py-class docutils literal notranslate"><span class="pre">Dropout</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BatchNorm</span></code>,
+etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mode</strong> (<em>bool</em>) – whether to set training mode (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or evaluation
+mode (<code class="docutils literal notranslate"><span class="pre">False</span></code>). Default: <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>self</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Module</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.var">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">var</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.var" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.KernelMixin.variance">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">variance</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin.variance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.LCMKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">LCMKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.LCMKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.lcm_kernel.LCMKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.LCMKernel` with <a href="#id25"><span class="problematic" id="id26">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.LCMKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.LCMKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.LinearKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">LinearKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.LinearKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.linear_kernel.LinearKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.LinearKernel` with <a href="#id27"><span class="problematic" id="id28">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.LinearKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.LinearKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.MaternKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">MaternKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.MaternKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.matern_kernel.MaternKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.MaternKernel` with <a href="#id29"><span class="problematic" id="id30">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.MaternKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.MaternKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.MultiDeviceKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">MultiDeviceKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.MultiDeviceKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.multi_device_kernel.MultiDeviceKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.MultiDeviceKernel` with <a href="#id31"><span class="problematic" id="id32">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.MultiDeviceKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.MultiDeviceKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.MultitaskKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">MultitaskKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.MultitaskKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.multitask_kernel.MultitaskKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.MultitaskKernel` with <a href="#id33"><span class="problematic" id="id34">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.MultitaskKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.MultitaskKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.NewtonGirardAdditiveKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">NewtonGirardAdditiveKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.NewtonGirardAdditiveKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.newton_girard_additive_kernel.NewtonGirardAdditiveKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.NewtonGirardAdditiveKernel` with <a href="#id35"><span class="problematic" id="id36">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.NewtonGirardAdditiveKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.NewtonGirardAdditiveKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PeriodicKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">PeriodicKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PeriodicKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.periodic_kernel.PeriodicKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.PeriodicKernel` with <a href="#id37"><span class="problematic" id="id38">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PeriodicKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PeriodicKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PiecewisePolynomialKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">PiecewisePolynomialKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PiecewisePolynomialKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.piecewise_polynomial_kernel.PiecewisePolynomialKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.PiecewisePolynomialKernel` with <a href="#id39"><span class="problematic" id="id40">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PiecewisePolynomialKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PiecewisePolynomialKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PolynomialKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">PolynomialKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PolynomialKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.polynomial_kernel.PolynomialKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.PolynomialKernel` with <a href="#id41"><span class="problematic" id="id42">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PolynomialKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PolynomialKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PolynomialKernelGrad">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">PolynomialKernelGrad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PolynomialKernelGrad" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.polynomial_kernel_grad.PolynomialKernelGrad</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.PolynomialKernelGrad` with <a href="#id43"><span class="problematic" id="id44">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.PolynomialKernelGrad.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.PolynomialKernelGrad.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ProductKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">ProductKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ProductKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.kernel.ProductKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.ProductKernel` with <a href="#id45"><span class="problematic" id="id46">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ProductKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ProductKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ProductStructureKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">ProductStructureKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ProductStructureKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.product_structure_kernel.ProductStructureKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.ProductStructureKernel` with <a href="#id47"><span class="problematic" id="id48">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ProductStructureKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ProductStructureKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RBFKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">RBFKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RBFKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.rbf_kernel.RBFKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.RBFKernel` with <a href="#id49"><span class="problematic" id="id50">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RBFKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RBFKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RBFKernelGrad">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">RBFKernelGrad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RBFKernelGrad" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.rbf_kernel_grad.RBFKernelGrad</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.RBFKernelGrad` with <a href="#id51"><span class="problematic" id="id52">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RBFKernelGrad.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RBFKernelGrad.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RFFKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">RFFKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RFFKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.rff_kernel.RFFKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.RFFKernel` with <a href="#id53"><span class="problematic" id="id54">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RFFKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RFFKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RQKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">RQKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RQKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.rq_kernel.RQKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.RQKernel` with <a href="#id55"><span class="problematic" id="id56">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.RQKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.RQKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ScaleKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">ScaleKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ScaleKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.scale_kernel.ScaleKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.ScaleKernel` with <a href="#id57"><span class="problematic" id="id58">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.ScaleKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.ScaleKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.SpectralDeltaKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">SpectralDeltaKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.SpectralDeltaKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.spectral_delta_kernel.SpectralDeltaKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.SpectralDeltaKernel` with <a href="#id59"><span class="problematic" id="id60">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.SpectralDeltaKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.SpectralDeltaKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.SpectralMixtureKernel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">SpectralMixtureKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.SpectralMixtureKernel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.KernelMixin" title="beanmachine.ppl.experimental.gp.kernels.KernelMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.KernelMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.kernels.spectral_mixture_kernel.SpectralMixtureKernel</span></code></p>
+<p>Wraps <cite>beanmachine.ppl.experimental.gp.kernels</cite>.SpectralMixtureKernel` with <a href="#id61"><span class="problematic" id="id62">`</span></a>beanmachine.ppl.experimental.kernels.KernelMixin.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.SpectralMixtureKernel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.SpectralMixtureKernel.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.kernels.bm_kernel">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.kernels.</span></span><span class="sig-name descname"><span class="pre">bm_kernel</span></span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.kernels.bm_kernel" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#beanmachine.ppl.experimental.gp.kernels.SpectralMixtureKernel" title="beanmachine.ppl.experimental.gp.kernels.SpectralMixtureKernel"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.kernels.SpectralMixtureKernel</span></code></a></p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.experimental.gp.html" class="btn btn-neutral float-left" title="beanmachine.ppl.experimental.gp" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.experimental.gp.likelihoods.html" class="btn btn-neutral float-right" title="beanmachine.ppl.experimental.gp.likelihoods" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

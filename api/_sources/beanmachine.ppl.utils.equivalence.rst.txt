@@ -1,0 +1,11 @@
+beanmachine.ppl.utils.equivalence
+=================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.utils.equivalence
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

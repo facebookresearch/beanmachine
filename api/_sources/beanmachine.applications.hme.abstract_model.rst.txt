@@ -1,0 +1,11 @@
+beanmachine.applications.hme.abstract_model
+===========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.applications.hme.abstract_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

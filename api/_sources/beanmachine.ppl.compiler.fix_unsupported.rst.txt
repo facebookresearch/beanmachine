@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.fix_unsupported
+========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.fix_unsupported
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

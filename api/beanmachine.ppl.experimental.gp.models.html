@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.experimental.gp.models &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.experimental.inference_compilation" href="beanmachine.ppl.experimental.inference_compilation.html" />
+    <link rel="prev" title="beanmachine.ppl.experimental.gp.likelihoods" href="beanmachine.ppl.experimental.gp.likelihoods.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.experimental.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">beanmachine.ppl.experimental.abc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">beanmachine.ppl.experimental.global_inference</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">beanmachine.ppl.experimental.gp</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html#module-beanmachine.ppl.experimental.gp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">beanmachine.ppl.experimental.inference_compilation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">beanmachine.ppl.experimental.neutra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.variable_elimination.html">beanmachine.ppl.experimental.variable_elimination</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">beanmachine.ppl.experimental.vi</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.html#module-beanmachine.ppl.experimental">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.gp.html">beanmachine.ppl.experimental.gp</a> &raquo;</li>
+      <li>beanmachine.ppl.experimental.gp.models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.experimental.gp.models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-experimental-gp-models">
+<h1>beanmachine.ppl.experimental.gp.models<a class="headerlink" href="#beanmachine-ppl-experimental-gp-models" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.experimental.gp.models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental.gp.models" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.models.BoTorchGP">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.models.</span></span><span class="sig-name descname"><span class="pre">BoTorchGP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.models.BoTorchGP" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.experimental.gp.models.SimpleGP" title="beanmachine.ppl.experimental.gp.models.SimpleGP"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.gp.models.SimpleGP</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">botorch.models.gpytorch.GPyTorchModel</span></code></p>
+<p>Experimental module that is compatible with BoTorch.</p>
+<blockquote>
+<div><p>samples = nuts.infer(queries, obs, num_samples).get_chain(0)
+gp.eval()
+gp.bm_load_samples({kernel.lengthscale=samples[lengthscale_prior()]})</p>
+<p>from botorch.acquisition.objective import IdentityMCObjective
+acqf = get_acquisition_function(“qEI”, gp, IdentityMCObjective(), x_train)
+new_point = acqf(new_input).mean()</p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.models.BoTorchGP.posterior">
+<span class="sig-name descname"><span class="pre">posterior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.models.BoTorchGP.posterior" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the posterior conditioned on new data. Used in BoTorch.
+See <cite>~botorch.models.model.Model.posterior</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> – a <cite>torch.Tensor</cite> containing test data of shape <cite>(batch, data_dim)</cite>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><cite>~botorch.posteriors.gpytorch.GPytorchPosterior</cite> MultivariateNormal</p>
+</dd>
+</dl>
+<p>distribution.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.models.SimpleGP">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.gp.models.</span></span><span class="sig-name descname"><span class="pre">SimpleGP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">likelihood</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.models.SimpleGP" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gpytorch.models.exact_gp.ExactGP</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">botorch.models.gpytorch.GPyTorchModel</span></code></p>
+<p>GPytorch model that supports Bean Machine sampling and broadcasting semantics.
+In train mode, BM priors may be specified over GP parameters. In eval mode,
+this objects acts as a Gpytorch model and generates predictions using Gpytorch’s
+prediction strategies.  For an example, see the [tutorial](link:TODO)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.models.SimpleGP.bm_load_samples">
+<span class="sig-name descname"><span class="pre">bm_load_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rv_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.models.SimpleGP.bm_load_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Loads tensors from a dict keyed on module name and valued by tensor
+whose shape is (num_samples, sample_shape). See <cite>~gpytorch.Module.initialize</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rv_dict</strong> – Python dict keyed on module name and valued by tensor</p>
+</dd>
+</dl>
+<p>whose shape is (num_samples, sample_shape)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.models.SimpleGP.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.models.SimpleGP.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Default forward definining a GP prior. Should be overridden by child class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.gp.models.SimpleGP.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.gp.models.SimpleGP.train" title="Permalink to this definition"></a></dt>
+<dd><p>In train mode, calling this module returns a BM random variable of
+the GP prior. In eval mode, the module’s methods default to the
+function signature of the parent class <cite>~gpytorch.models.ExactGP</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.experimental.gp.likelihoods.html" class="btn btn-neutral float-left" title="beanmachine.ppl.experimental.gp.likelihoods" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.experimental.inference_compilation.html" class="btn btn-neutral float-right" title="beanmachine.ppl.experimental.inference_compilation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

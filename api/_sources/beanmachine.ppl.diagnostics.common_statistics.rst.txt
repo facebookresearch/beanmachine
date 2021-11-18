@@ -1,0 +1,11 @@
+beanmachine.ppl.diagnostics.common_statistics
+=============================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.diagnostics.common_statistics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

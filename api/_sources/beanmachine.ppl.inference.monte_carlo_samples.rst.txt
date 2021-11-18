@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.monte_carlo_samples
+=============================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.monte_carlo_samples
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

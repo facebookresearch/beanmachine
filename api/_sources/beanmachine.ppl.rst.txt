@@ -1,5 +1,5 @@
 beanmachine.ppl
-=======================
+===============
 
 Subpackages
 -----------
@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    beanmachine.ppl.compiler
+   beanmachine.ppl.conftest
    beanmachine.ppl.diagnostics
    beanmachine.ppl.distribution
    beanmachine.ppl.examples
@@ -25,3 +26,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

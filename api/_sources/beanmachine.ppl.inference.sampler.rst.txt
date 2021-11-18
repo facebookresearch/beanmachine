@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.sampler
+=================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.sampler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

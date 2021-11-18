@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.global_inference.proposer.hmc_utils
+================================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.global_inference.proposer.hmc_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

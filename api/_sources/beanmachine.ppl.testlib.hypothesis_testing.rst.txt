@@ -1,0 +1,11 @@
+beanmachine.ppl.testlib.hypothesis_testing
+==========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.testlib.hypothesis_testing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

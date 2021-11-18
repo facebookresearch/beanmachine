@@ -1,0 +1,11 @@
+beanmachine.ppl.examples.conjugate_models.beta_bernoulli
+========================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.examples.conjugate_models.beta_bernoulli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

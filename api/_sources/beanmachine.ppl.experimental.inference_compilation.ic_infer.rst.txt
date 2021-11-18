@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.inference_compilation.ic_infer
+===========================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.inference_compilation.ic_infer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

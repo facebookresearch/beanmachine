@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.neutra.iafmcmc_infer
+=================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.neutra.iafmcmc_infer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

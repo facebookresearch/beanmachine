@@ -5,11 +5,11 @@ sidebar_label: 'Notebooks'
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine. If you are just getting started with Bean Machine, we recommend you work through one or two of the most basic tutorials, then consider if you might be better served by a [Package](http://localhost:3000/docs/overview/packages/packages) first, before customizing a more advanced tutorial.
+These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine. If you are just getting started with Bean Machine, we recommend you work through one or two of the most basic tutorials, then consider if you might be better served by a [Package](/docs/overview/packages/packages) first, before customizing a more advanced tutorial.
 
 ### Beanstalk compiler
 
-Additionally, consider if you can structure your statistical model in such a way that it can perform at much faster speeds, by compilation into C++. See our [Beanstalk](http://localhost:3000/docs/overview/beanstalk/beanstalk) compiler details for more information on what types of models are supported by our Bean Machine compiler.
+Additionally, consider if you can structure your statistical model in such a way that it can perform at much faster speeds, by compilation into C++. See our [Beanstalk](/docs/overview/beanstalk/beanstalk) compiler details for more information on what types of models are supported by our Bean Machine compiler.
 
 
 ## Tutorials
@@ -26,7 +26,7 @@ This tutorial demonstrates modeling and running inference on a simple coin-flipp
 
 ### Linear Regression
 
-Open in GitHub **•** [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Robust_Linear_Regression.ipynb)
+Open in GitHub **•** Run in Google Colab
 
 This tutorial demonstrates modeling and running inference on a simple univariate linear regression model in Bean Machine. This should offer an accessible introduction to models that use PyTorch tensors and Newtonian Monte Carlo inference in Bean Machine. It will also teach you effective practices for prediction on new datasets with Bean Machine.
 

@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.fix_logsumexp
+======================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.fix_logsumexp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

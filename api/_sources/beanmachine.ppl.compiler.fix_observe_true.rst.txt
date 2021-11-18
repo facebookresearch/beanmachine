@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.fix_observe_true
+=========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.fix_observe_true
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

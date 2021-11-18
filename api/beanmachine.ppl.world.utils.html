@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.world.utils &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.world.variable" href="beanmachine.ppl.world.variable.html" />
+    <link rel="prev" title="beanmachine.ppl.world.marginal_table" href="beanmachine.ppl.world.marginal_table.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.world.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.base_world.html">beanmachine.ppl.world.base_world</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.diff.html">beanmachine.ppl.world.diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.diff_stack.html">beanmachine.ppl.world.diff_stack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.marginal_table.html">beanmachine.ppl.world.marginal_table</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.world.utils</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.ppl.world.utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.variable.html">beanmachine.ppl.world.variable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.world.html">beanmachine.ppl.world.world</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.world_vars.html">beanmachine.ppl.world.world_vars</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.html#module-beanmachine.ppl.world">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.world.html">beanmachine.ppl.world</a> &raquo;</li>
+      <li>beanmachine.ppl.world.utils</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.world.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-world-utils">
+<h1>beanmachine.ppl.world.utils<a class="headerlink" href="#beanmachine-ppl-world-utils" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.world.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.world.utils" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">BetaDimensionTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.transforms.Transform</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.bijective">
+<span class="sig-name descname"><span class="pre">bijective</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.bijective" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.codomain">
+<span class="sig-name descname"><span class="pre">codomain</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.distributions.constraints.Constraint</span></em><em class="property"> <span class="pre">=</span> <span class="pre">IndependentConstraint(Real(),</span> <span class="pre">1)</span></em><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.codomain" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.domain">
+<span class="sig-name descname"><span class="pre">domain</span></span><em class="property"><span class="pre">:</span> <span class="pre">torch.distributions.constraints.Constraint</span></em><em class="property"> <span class="pre">=</span> <span class="pre">Real()</span></em><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.domain" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.forward_shape">
+<span class="sig-name descname"><span class="pre">forward_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.forward_shape" title="Permalink to this definition"></a></dt>
+<dd><p>Infers the shape of the forward computation, given the input shape.
+Defaults to preserving shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.inverse_shape">
+<span class="sig-name descname"><span class="pre">inverse_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.inverse_shape" title="Permalink to this definition"></a></dt>
+<dd><p>Infers the shapes of the inverse computation, given the output shape.
+Defaults to preserving shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.BetaDimensionTransform.log_abs_det_jacobian">
+<span class="sig-name descname"><span class="pre">log_abs_det_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.BetaDimensionTransform.log_abs_det_jacobian" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the log det jacobian <cite>log |dy/dx|</cite> given input and output.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.get_default_transforms">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">get_default_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.distributions.transforms.Transform</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.utils.get_default_transforms" title="Permalink to this definition"></a></dt>
+<dd><p>Get transforms of a distribution to transform it from constrained space
+into unconstrained space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>distribution</strong> – the distribution to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a Transform that need to be applied to the distribution</p>
+</dd>
+</dl>
+<p>to transform it from constrained space into unconstrained space</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.initialize_value">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">initialize_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize_from_prior</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.utils.initialize_value" title="Permalink to this definition"></a></dt>
+<dd><p>Initialized the Variable value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>initialize_from_prior</strong> – if true, returns sample from prior</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value to the set the Variable value to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.utils.is_constraint_eq">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">is_constraint_eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraint</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_constraints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.utils.is_constraint_eq" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.utils.</span></span><span class="sig-name descname"><span class="pre">is_constraint_eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraint</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_constraints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.distributions.constraints.Constraint</span><span class="p"><span class="pre">,</span> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>This provides an equality check that works for different constraints
+specified in <code class="xref py py-mod docutils literal notranslate"><span class="pre">torch.distributions.constraints</span></code>. If <cite>constraint</cite> is
+<cite>constraints.Independent</cite>, then the <cite>base_constraint</cite> is checked. If
+<cite>check_constraints</cite> is a single <cite>Constraint</cite> type or instance this
+returns a <cite>True</cite> if the given <cite>constraint</cite> matches <cite>check_constraints</cite>.
+Otherwise, if <cite>check_constraints</cite> is an iterable, this returns a <cite>bool</cite>
+list that represents an element-wise check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraint</strong> – A constraint class or instance.</p></li>
+<li><p><strong>check_constraints</strong> – A constraint class or instance or an iterable
+containing constraint classes or instances to check against.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>bool (or a list of bool) values indicating if the given constraint
+equals the constraint in <cite>check_constraints</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.world.marginal_table.html" class="btn btn-neutral float-left" title="beanmachine.ppl.world.marginal_table" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.world.variable.html" class="btn btn-neutral float-right" title="beanmachine.ppl.world.variable" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

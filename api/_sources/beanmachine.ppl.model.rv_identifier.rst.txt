@@ -1,0 +1,11 @@
+beanmachine.ppl.model.rv_identifier
+===================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.model.rv_identifier
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

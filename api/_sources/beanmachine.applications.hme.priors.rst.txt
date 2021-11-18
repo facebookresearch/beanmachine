@@ -1,0 +1,11 @@
+beanmachine.applications.hme.priors
+===================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.applications.hme.priors
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.neutra.iaflayer
+============================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.neutra.iaflayer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.compiler.rules &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.compiler.runtime" href="beanmachine.ppl.compiler.runtime.html" />
+    <link rel="prev" title="beanmachine.ppl.compiler.profiler" href="beanmachine.ppl.compiler.profiler.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.compiler.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.ast_patterns.html">beanmachine.ppl.compiler.ast_patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.ast_tools.html">beanmachine.ppl.compiler.ast_tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.beanstalk_common.html">beanmachine.ppl.compiler.beanstalk_common</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html">beanmachine.ppl.compiler.bm_graph_builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bm_to_bmg.html">beanmachine.ppl.compiler.bm_to_bmg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_node_types.html">beanmachine.ppl.compiler.bmg_node_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html">beanmachine.ppl.compiler.bmg_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_requirements.html">beanmachine.ppl.compiler.bmg_requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_types.html">beanmachine.ppl.compiler.bmg_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.error_report.html">beanmachine.ppl.compiler.error_report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_additions.html">beanmachine.ppl.compiler.fix_additions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_beta_conjugate_prior.html">beanmachine.ppl.compiler.fix_beta_conjugate_prior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_bool_arithmetic.html">beanmachine.ppl.compiler.fix_bool_arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_bool_comparisons.html">beanmachine.ppl.compiler.fix_bool_comparisons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_logsumexp.html">beanmachine.ppl.compiler.fix_logsumexp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_matrix_scale.html">beanmachine.ppl.compiler.fix_matrix_scale</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_multiary_ops.html">beanmachine.ppl.compiler.fix_multiary_ops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_normal_conjugate_prior.html">beanmachine.ppl.compiler.fix_normal_conjugate_prior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_observations.html">beanmachine.ppl.compiler.fix_observations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_observe_true.html">beanmachine.ppl.compiler.fix_observe_true</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_problem.html">beanmachine.ppl.compiler.fix_problem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_problems.html">beanmachine.ppl.compiler.fix_problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_requirements.html">beanmachine.ppl.compiler.fix_requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_unsupported.html">beanmachine.ppl.compiler.fix_unsupported</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_vectorized_models.html">beanmachine.ppl.compiler.fix_vectorized_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_cpp.html">beanmachine.ppl.compiler.gen_bmg_cpp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_graph.html">beanmachine.ppl.compiler.gen_bmg_graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_python.html">beanmachine.ppl.compiler.gen_bmg_python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_builder.html">beanmachine.ppl.compiler.gen_builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_dot.html">beanmachine.ppl.compiler.gen_dot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.graph_labels.html">beanmachine.ppl.compiler.graph_labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.hint.html">beanmachine.ppl.compiler.hint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.internal_error.html">beanmachine.ppl.compiler.internal_error</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.lattice_typer.html">beanmachine.ppl.compiler.lattice_typer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.patterns.html">beanmachine.ppl.compiler.patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.performance_report.html">beanmachine.ppl.compiler.performance_report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.profiler.html">beanmachine.ppl.compiler.profiler</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.compiler.rules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.ppl.compiler.rules">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.runtime.html">beanmachine.ppl.compiler.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.single_assignment.html">beanmachine.ppl.compiler.single_assignment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.sizer.html">beanmachine.ppl.compiler.sizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.support.html">beanmachine.ppl.compiler.support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.testlib.html">beanmachine.ppl.compiler.testlib</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.typer_base.html">beanmachine.ppl.compiler.typer_base</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.compiler.html#module-beanmachine.ppl.compiler">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a> &raquo;</li>
+      <li>beanmachine.ppl.compiler.rules</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.compiler.rules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-compiler-rules">
+<h1>beanmachine.ppl.compiler.rules<a class="headerlink" href="#beanmachine-ppl-compiler-rules" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.compiler.rules">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.compiler.rules" title="Permalink to this headline"></a></h2>
+<p>A rules engine for tree transformation</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllChildren">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">AllChildren</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_children</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'all_children'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllChildren" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to all children or list members.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllChildren.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllChildren.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllChildren.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllChildren.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllChildren.combined_rule">
+<span class="sig-name descname"><span class="pre">combined_rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllChildren.combined_rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllChildren.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllChildren.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListEditMembers">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">AllListEditMembers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'all_list_edit_members'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListEditMembers" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Rules which are intended to modify a parent list by adding or removing items
+return a ListEdit([…]) object, but in cases where a rule then recursese
+upon children – like top_down – we’ll potentially need to rewrite the elements
+in edit list. This combinator implements that.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListEditMembers.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListEditMembers.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListEditMembers.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListEditMembers.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListEditMembers.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.AllListMembers" title="beanmachine.ppl.compiler.rules.AllListMembers"><span class="pre">beanmachine.ppl.compiler.rules.AllListMembers</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListEditMembers.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListMembers">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">AllListMembers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'all_list_members'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListMembers" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to all members.  Succeeds if the rule succeeds for all members,
+and returns a list with the members replaced with the new values.
+Otherwise, fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListMembers.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListMembers.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListMembers.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListMembers.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllListMembers.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllListMembers.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllOf">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">AllOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rules</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'all_of'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllOf" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Takes a list of rules and composes together all of them.
+All must succeed, otherwise the rule fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllOf.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllOf.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllOf.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllOf.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllOf.rules">
+<span class="sig-name descname"><span class="pre">rules</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllOf.rules" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllTermChildren">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">AllTermChildren</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_children</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'all_children'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllTermChildren" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to all children.  Succeeds if the rule succeeds for all children,
+and returns a constructed object with the children replaced with the new values.
+Otherwise, fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllTermChildren.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllTermChildren.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllTermChildren.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllTermChildren.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllTermChildren.construct">
+<span class="sig-name descname"><span class="pre">construct</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllTermChildren.construct" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllTermChildren.get_children">
+<span class="sig-name descname"><span class="pre">get_children</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllTermChildren.get_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.AllTermChildren.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.AllTermChildren.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Check">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'check'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Check" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply the given rule; if it fails, fail. If it succeeds, the result
+is the original test value, not the transformed value.  This is useful
+for scenarios where we wish to know if a particular thing is true of
+a node before we apply an expensive rule to it.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Check.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Check.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Check.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Check.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Check.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Check.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Choose">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Choose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">consequence</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternative</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'choose'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Choose" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply the condition rule to the test.
+If it succeeds, apply the rule in the consequence to its output.
+If it fails, apply the rule in the alternative to the test.
+That is, Choose(a, b, c)(test) has the semantics of
+if a(test) then b(a(test)) else c(test)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Choose.alternative">
+<span class="sig-name descname"><span class="pre">alternative</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Choose.alternative" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Choose.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Choose.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Choose.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Choose.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Choose.condition">
+<span class="sig-name descname"><span class="pre">condition</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Choose.condition" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Choose.consequence">
+<span class="sig-name descname"><span class="pre">consequence</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Choose.consequence" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Compose">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Compose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">second</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'compose'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Compose" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply the first rule to the test.
+If it succeeds, apply the second rule to its output.
+That is, Compose(a, b)(test) has the semantics of
+if a(test) then b(a(test)) else fail</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Compose.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Compose.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Compose.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Compose.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Compose.first">
+<span class="sig-name descname"><span class="pre">first</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Compose.first" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Compose.second">
+<span class="sig-name descname"><span class="pre">second</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Compose.second" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Fail">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Fail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Fail" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Fail.expect_success">
+<span class="sig-name descname"><span class="pre">expect_success</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Fail.expect_success" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Fail.is_fail">
+<span class="sig-name descname"><span class="pre">is_fail</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Fail.is_fail" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Fail.is_success">
+<span class="sig-name descname"><span class="pre">is_success</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Fail.is_success" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Fail.test">
+<span class="sig-name descname"><span class="pre">test</span></span><em class="property"><span class="pre">:</span> <span class="pre">Any</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Fail.test" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.FirstMatch">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">FirstMatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rules</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'first_match'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.FirstMatch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply each rule to the test until one succeeds; if none succeed, then fail.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.FirstMatch.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.FirstMatch.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.FirstMatch.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.FirstMatch.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.FirstMatch.rules">
+<span class="sig-name descname"><span class="pre">rules</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.FirstMatch.rules" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.IgnoreException">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">IgnoreException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">rule:</span> <span class="pre">beanmachine.ppl.compiler.rules.Rule,</span> <span class="pre">expected:</span> <span class="pre">List[type]</span> <span class="pre">=</span> <span class="pre">[&lt;class</span> <span class="pre">'Exception'&gt;],</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'handle'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.IgnoreException" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply the given rule; if it throws an exception, the rule fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.IgnoreException.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.IgnoreException.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.IgnoreException.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.IgnoreException.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.IgnoreException.expected">
+<span class="sig-name descname"><span class="pre">expected</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.IgnoreException.expected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.IgnoreException.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.IgnoreException.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.ListEdit">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">ListEdit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.ListEdit" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Consider a rule which descends through an AST looking for a particular
+statement to replace. If the rule replaces a particular statement with
+another statement, we can express that with a straightforward rule that
+succeeds and produces the new statement. But how can we represent rules that
+either delete a statement (that is, replace it with nothing) or replace it
+with more than one statement?
+To express this concept, a rule should succeed and return a ListEdit([s1, s2…])
+where the list contains the replacements; if the list is empty then the
+element is deleted.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.ListEdit.edits">
+<span class="sig-name descname"><span class="pre">edits</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.ListEdit.edits" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneChild">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">OneChild</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_children</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'one_child'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneChild" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to all children until the first success.  Succeeds if it
+finds one success and returns a constructed object with the child replaced
+with the new value. Otherwise, fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneChild.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneChild.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneChild.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneChild.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneChild.construct">
+<span class="sig-name descname"><span class="pre">construct</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneChild.construct" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneChild.get_children">
+<span class="sig-name descname"><span class="pre">get_children</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneChild.get_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneChild.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneChild.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneListMember">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">OneListMember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'one_child'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneListMember" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to all members until the first success.  Succeeds if it
+finds one success and returns a list with the child replaced
+with the new value. Otherwise, fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneListMember.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneListMember.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneListMember.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneListMember.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OneListMember.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OneListMember.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OrElse">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">OrElse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">second</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'or_else'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OrElse" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply the first rule to the test.
+If it succeeds, use that result.
+If it fails, apply the second rule to the test and return that.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OrElse.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OrElse.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OrElse.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OrElse.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OrElse.first">
+<span class="sig-name descname"><span class="pre">first</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OrElse.first" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.OrElse.second">
+<span class="sig-name descname"><span class="pre">second</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.OrElse.second" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.PatternRule">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">PatternRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">pattern:</span> <span class="pre">Optional[Union[beanmachine.ppl.compiler.patterns.PatternBase,</span> <span class="pre">int,</span> <span class="pre">str,</span> <span class="pre">float,</span> <span class="pre">type,</span> <span class="pre">list]],</span> <span class="pre">projection:</span> <span class="pre">Callable[[Any],</span> <span class="pre">Any]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_identity&gt;,</span> <span class="pre">name:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'pattern'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.PatternRule" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>If the test value matches the pattern, then the test value is passed
+to the projection and the rule succeeds. Otherwise, the rule fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.PatternRule.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.PatternRule.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.PatternRule.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.PatternRule.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.PatternRule.pattern">
+<span class="sig-name descname"><span class="pre">pattern</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.compiler.patterns.html#beanmachine.ppl.compiler.patterns.PatternBase" title="beanmachine.ppl.compiler.patterns.PatternBase"><span class="pre">beanmachine.ppl.compiler.patterns.PatternBase</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.PatternRule.pattern" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.PatternRule.projection">
+<span class="sig-name descname"><span class="pre">projection</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.PatternRule.projection" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Recursive">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Recursive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule_maker</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'recursive'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Recursive" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Delay construction of a rule until we need it, so as to avoid recursion.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Recursive.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Recursive.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Recursive.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Recursive.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Recursive.rule_maker">
+<span class="sig-name descname"><span class="pre">rule_maker</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Recursive.rule_maker" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Rule">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Rule" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>A rule represents a partial function that transforms a value.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Rule.always_succeeds">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Rule.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Rule.apply">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Rule.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Rule.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Rule.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">RuleDomain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">get_children</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.all_children">
+<span class="sig-name descname"><span class="pre">all_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'all_children'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.all_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.bottom_up">
+<span class="sig-name descname"><span class="pre">bottom_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'bottom_up'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.bottom_up" title="Permalink to this definition"></a></dt>
+<dd><p>The bottom-up combinator applies a rule to all leaves, then to the rewritten
+parent, and so on up to the root.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.construct">
+<span class="sig-name descname"><span class="pre">construct</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.construct" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.descend_until">
+<span class="sig-name descname"><span class="pre">descend_until</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'descend_until'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.descend_until" title="Permalink to this definition"></a></dt>
+<dd><p>descend_until starts at the top of the tree and descends down it
+checking every node to see if “test” succeeds. If it does, it stops
+descending and runs “rule” on that node. It does this on every node
+that meets the test starting from the root.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.down_then_up">
+<span class="sig-name descname"><span class="pre">down_then_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre_rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'down_then_up'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.down_then_up" title="Permalink to this definition"></a></dt>
+<dd><p>The down-then-up combinator is a combination of the bottom-up and
+top-down combinators; it applies the ‘pre’ rule in a top-down traversal
+and then the ‘post’ rule on the way back up.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.get_children">
+<span class="sig-name descname"><span class="pre">get_children</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.get_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.one_child">
+<span class="sig-name descname"><span class="pre">one_child</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'one_child'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.one_child" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.some_bottom_up">
+<span class="sig-name descname"><span class="pre">some_bottom_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'some_bottom_up'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.some_bottom_up" title="Permalink to this definition"></a></dt>
+<dd><p>The some-bottom-up combinator is like bottom_up, in that it applies a
+rule to every node in the tree starting from the leaves. However, bottom_up
+requires that the rule succeed for all nodes in the tree; some_bottom_up
+applies the rule to as many nodes in the tree as possible, leaves alone
+nodes for which it fails, and fails only if the rule applied to no node.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.some_children">
+<span class="sig-name descname"><span class="pre">some_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'some_children'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.some_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.some_top_down">
+<span class="sig-name descname"><span class="pre">some_top_down</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'some_top_down'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.some_top_down" title="Permalink to this definition"></a></dt>
+<dd><p>The some-top-down combinator is like top_down, in that it applies a
+rule to every node in the tree starting from the top. However, top_down
+requires that the rule succeed for all nodes in the tree; some_top_down
+applies the rule to as many nodes in the tree as possible, leaves alone
+nodes for which it fails (aside from possibly rewriting the children),
+and fails only if the rule applied to no node.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.specific_child">
+<span class="sig-name descname"><span class="pre">specific_child</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'specific_child'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.specific_child" title="Permalink to this definition"></a></dt>
+<dd><p>Apply a rule to a specific child.  If it succeeds, replace the child
+with the new value; otherwise, fail. The child is required to exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleDomain.top_down">
+<span class="sig-name descname"><span class="pre">top_down</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'top_down'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleDomain.top_down" title="Permalink to this definition"></a></dt>
+<dd><p>The top-down combinator applies a rule to the root, then to the new root’s
+children, and so on down to the leaves. It succeeds iff the rule succeeds on
+every node.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleResult">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">RuleResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleResult" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleResult.expect_success">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">expect_success</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleResult.expect_success" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleResult.is_fail">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_fail</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleResult.is_fail" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleResult.is_success">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_success</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleResult.is_success" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.RuleResult.test">
+<span class="sig-name descname"><span class="pre">test</span></span><em class="property"><span class="pre">:</span> <span class="pre">Any</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.RuleResult.test" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeChildren">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">SomeChildren</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_children</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'some_children'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeChildren" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to all children.  Succeeds if the rule succeeds for one or
+more children, and returns a constructed object with the children replaced
+with the new values. Otherwise, fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeChildren.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeChildren.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeChildren.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeChildren.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeChildren.construct">
+<span class="sig-name descname"><span class="pre">construct</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeChildren.construct" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeChildren.get_children">
+<span class="sig-name descname"><span class="pre">get_children</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeChildren.get_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeChildren.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeChildren.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeListMembers">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">SomeListMembers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'some_list_members'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeListMembers" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to all members.  Succeeds if the rule succeeds for one or
+more members, and returns a list with the children replaced
+with the new values. Otherwise, fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeListMembers.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeListMembers.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeListMembers.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeListMembers.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeListMembers.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeListMembers.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeOf">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">SomeOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rules</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'some_of'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeOf" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Takes a list of rules and composes together as many of them as succeed.
+At least one must succeed, otherwise the rule fails.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeOf.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeOf.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeOf.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeOf.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SomeOf.rules">
+<span class="sig-name descname"><span class="pre">rules</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SomeOf.rules" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SpecificChild">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">SpecificChild</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_children</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'specific_child'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SpecificChild" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply a rule to a specific child.  If it succeeds, replace the child
+with the new value; otherwise, fail. The child is required to exist.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SpecificChild.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SpecificChild.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SpecificChild.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SpecificChild.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SpecificChild.child">
+<span class="sig-name descname"><span class="pre">child</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SpecificChild.child" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SpecificChild.construct">
+<span class="sig-name descname"><span class="pre">construct</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SpecificChild.construct" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SpecificChild.get_children">
+<span class="sig-name descname"><span class="pre">get_children</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SpecificChild.get_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.SpecificChild.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.SpecificChild.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Success">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Success</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Success" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Success.expect_success">
+<span class="sig-name descname"><span class="pre">expect_success</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Success.expect_success" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Success.is_fail">
+<span class="sig-name descname"><span class="pre">is_fail</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Success.is_fail" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Success.is_success">
+<span class="sig-name descname"><span class="pre">is_success</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Success.is_success" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Success.result">
+<span class="sig-name descname"><span class="pre">result</span></span><em class="property"><span class="pre">:</span> <span class="pre">Any</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Success.result" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Trace">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">Trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Trace" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>This combinator introduces a side effect to be executed every time the
+child rule is executed, and when it succeeds or fails. It is useful for
+debugging.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Trace.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Trace.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Trace.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Trace.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Trace.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="pre">:</span> <span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Trace.logger" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.Trace.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.Trace.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryMany">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">TryMany</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'try_many'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryMany" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Repeatedly apply a rule; the result is that of the last application
+that succeeded, or the original test if none succeeded.
+This rule always succeeds.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryMany.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryMany.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryMany.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryMany.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryMany.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryMany.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryOnce">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">TryOnce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'try_once'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryOnce" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></code></a></p>
+<p>Apply the rule to the test.
+If it succeeds, use that result.
+If it fails, use the test as the result and succeed.
+This rule always succeeds.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryOnce.always_succeeds">
+<span class="sig-name descname"><span class="pre">always_succeeds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryOnce.always_succeeds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryOnce.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.RuleResult" title="beanmachine.ppl.compiler.rules.RuleResult"><span class="pre">beanmachine.ppl.compiler.rules.RuleResult</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryOnce.apply" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.TryOnce.rule">
+<span class="sig-name descname"><span class="pre">rule</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.rules.TryOnce.rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.always_replace">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">always_replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'always_replace'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.always_replace" title="Permalink to this definition"></a></dt>
+<dd><p>always_replace(value) produces a rule that replaces anything with
+the given value. It always succeeds.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.at_least_once">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">at_least_once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.at_least_once" title="Permalink to this definition"></a></dt>
+<dd><p>Try a rule once; if it fails, fail. If it succeeds,
+try it again as many times as it keeps succeeding.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.either_or_both">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">either_or_both</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">second</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'either_or_both'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.either_or_both" title="Permalink to this definition"></a></dt>
+<dd><p>Do the first rule; if it succeeds, try doing the second rule, but do
+not worry if it fails. If the first rule fails, do the second rule. The
+net effect is, either first, or second, or first-then-second happens,
+or both fail.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.if_then">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">if_then</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">condition:</span> <span class="pre">beanmachine.ppl.compiler.rules.Rule</span></em>, <em class="sig-param"><span class="pre">consequence:</span> <span class="pre">beanmachine.ppl.compiler.rules.Rule</span></em>, <em class="sig-param"><span class="pre">alternative:</span> <span class="pre">beanmachine.ppl.compiler.rules.Rule</span> <span class="pre">=</span> <span class="pre">&lt;beanmachine.ppl.compiler.rules.PatternRule</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.if_then" title="Permalink to this definition"></a></dt>
+<dd><p>Apply the condition rule, then apply the original test to either the
+consequence or the alternative, depending on whether the condition succeeded
+or failed. Note that this is different than Choose. Choose applies the
+condition to the result of the condition, not to the original test.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.ignore_div_zero">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">ignore_div_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.ignore_div_zero" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.ignore_runtime_error">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">ignore_runtime_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.ignore_runtime_error" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.ignore_value_error">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">ignore_value_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.ignore_value_error" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.list_member_children">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">list_member_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.list_member_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.make_logger">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">make_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.make_logger" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.pattern_rules">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">pattern_rules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pairs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.compiler.patterns.html#beanmachine.ppl.compiler.patterns.PatternBase" title="beanmachine.ppl.compiler.patterns.PatternBase"><span class="pre">beanmachine.ppl.compiler.patterns.PatternBase</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'pattern_rules'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.pattern_rules" title="Permalink to this definition"></a></dt>
+<dd><p>Constructs a rule from a sequence of pairs of patterns and projections.
+Patterns are checked in order, and the first one that matches is used for the
+projection; if none match then the rule fails.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.rules.projection_rule">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.rules.</span></span><span class="sig-name descname"><span class="pre">projection_rule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projection</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'projection'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.rules.Rule" title="beanmachine.ppl.compiler.rules.Rule"><span class="pre">beanmachine.ppl.compiler.rules.Rule</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.rules.projection_rule" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.compiler.profiler.html" class="btn btn-neutral float-left" title="beanmachine.ppl.compiler.profiler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.compiler.runtime.html" class="btn btn-neutral float-right" title="beanmachine.ppl.compiler.runtime" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

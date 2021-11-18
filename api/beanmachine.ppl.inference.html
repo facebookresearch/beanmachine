@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>inference package &mdash; BeanMachine  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <title>beanmachine.ppl.inference &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="inference.proposer package" href="beanmachine.ppl.inference.proposer.html" />
-    <link rel="prev" title="experimental.vi package" href="beanmachine.ppl.experimental.vi.html" /> 
+    <link rel="next" title="beanmachine.ppl.inference.abstract_infer" href="beanmachine.ppl.inference.abstract_infer.html" />
+    <link rel="prev" title="beanmachine.ppl.experimental.vi.variational_infer" href="beanmachine.ppl.experimental.vi.variational_infer.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -36,45 +37,47 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">compiler</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">distribution</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.conjugate_models.html">examples.conjugate_models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="experimental.html">experimental</a></li>
-<li class="toctree-l1"><a class="reference internal" href="experimental.html#indices-and-tables">Indices and tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">inference package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.inference.abstract_infer">beanmachine.ppl.inference.abstract_infer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-abstract-mh-infer-module">beanmachine.ppl.inference.abstract_mh_infer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-bmg-inference-module">beanmachine.ppl.inference.bmg_inference module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-compositional-infer-module">beanmachine.ppl.inference.compositional_infer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.inference.monte_carlo_samples">beanmachine.ppl.inference.monte_carlo_samples module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-predictive-module">beanmachine.ppl.inference.predictive module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-rejection-sampling-infer-module">beanmachine.ppl.inference.rejection_sampling_infer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-sampler-module">beanmachine.ppl.inference.sampler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-single-site-ancestral-mh-module">beanmachine.ppl.inference.single_site_ancestral_mh module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-single-site-hamiltonian-monte-carlo-module">beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-single-site-newtonian-monte-carlo-module">beanmachine.ppl.inference.single_site_newtonian_monte_carlo module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-single-site-no-u-turn-sampler-module">beanmachine.ppl.inference.single_site_no_u_turn_sampler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-single-site-random-walk-module">beanmachine.ppl.inference.single_site_random_walk module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beanmachine-ppl-inference-single-site-uniform-mh-module">beanmachine.ppl.inference.single_site_uniform_mh module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.inference.utils">beanmachine.ppl.inference.utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">testlib</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">utils</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">beanmachine.ppl.inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.abstract_infer.html">beanmachine.ppl.inference.abstract_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html">beanmachine.ppl.inference.abstract_mh_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.bmg_inference.html">beanmachine.ppl.inference.bmg_inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.compositional_infer.html">beanmachine.ppl.inference.compositional_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html">beanmachine.ppl.inference.monte_carlo_samples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.predictive.html">beanmachine.ppl.inference.predictive</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.rejection_sampling_infer.html">beanmachine.ppl.inference.rejection_sampling_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.sampler.html">beanmachine.ppl.inference.sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_ancestral_mh.html">beanmachine.ppl.inference.single_site_ancestral_mh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo.html">beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_newtonian_monte_carlo.html">beanmachine.ppl.inference.single_site_newtonian_monte_carlo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_no_u_turn_sampler.html">beanmachine.ppl.inference.single_site_no_u_turn_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_random_walk.html">beanmachine.ppl.inference.single_site_random_walk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_uniform_mh.html">beanmachine.ppl.inference.single_site_uniform_mh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.utils.html">beanmachine.ppl.inference.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.inference">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
 </ul>
 
         </div>
@@ -93,7 +96,7 @@
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
           <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
-      <li>inference package</li>
+      <li>beanmachine.ppl.inference</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/beanmachine.ppl.inference.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -103,336 +106,494 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="inference-package">
-<h1>inference package<a class="headerlink" href="#inference-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+  <section id="beanmachine-ppl-inference">
+<h1>beanmachine.ppl.inference<a class="headerlink" href="#beanmachine-ppl-inference" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-abstract-single-site-proposer-module">beanmachine.ppl.inference.proposer.abstract_single_site_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-abstract-single-site-single-step-proposer-module">beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-newtonian-monte-carlo-utils-module">beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-normal-eig-module">beanmachine.ppl.inference.proposer.normal_eig module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-ancestral-proposer-module">beanmachine.ppl.inference.proposer.single_site_ancestral_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-half-space-newtonian-monte-carlo-proposer-module">beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-hamiltonian-monte-carlo-proposer-module">beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-newtonian-monte-carlo-proposer-module">beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-no-u-turn-sampler-proposer-module">beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-random-walk-proposer-module">beanmachine.ppl.inference.proposer.single_site_random_walk_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-real-space-newtonian-monte-carlo-proposer-module">beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-simplex-newtonian-monte-carlo-proposer-module">beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#beanmachine-ppl-inference-proposer-single-site-uniform-proposer-module">beanmachine.ppl.inference.proposer.single_site_uniform_proposer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-contents">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.abstract_infer.html">beanmachine.ppl.inference.abstract_infer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.abstract_infer.html#module-beanmachine.ppl.inference.abstract_infer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html">beanmachine.ppl.inference.abstract_mh_infer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#module-beanmachine.ppl.inference.abstract_mh_infer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.bmg_inference.html">beanmachine.ppl.inference.bmg_inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.bmg_inference.html#module-beanmachine.ppl.inference.bmg_inference">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.compositional_infer.html">beanmachine.ppl.inference.compositional_infer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.compositional_infer.html#module-beanmachine.ppl.inference.compositional_infer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html">beanmachine.ppl.inference.monte_carlo_samples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#module-beanmachine.ppl.inference.monte_carlo_samples">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.predictive.html">beanmachine.ppl.inference.predictive</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.predictive.html#module-beanmachine.ppl.inference.predictive">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.abstract_single_site_proposer.html">beanmachine.ppl.inference.proposer.abstract_single_site_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.abstract_single_site_proposer.html#module-beanmachine.ppl.inference.proposer.abstract_single_site_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer.html">beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer.html#module-beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils.html">beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils.html#module-beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.normal_eig.html">beanmachine.ppl.inference.proposer.normal_eig</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.normal_eig.html#module-beanmachine.ppl.inference.proposer.normal_eig">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.html">beanmachine.ppl.inference.proposer.single_site_ancestral_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_ancestral_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_ancestral_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer.html">beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer.html">beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer.html">beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer.html">beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.html">beanmachine.ppl.inference.proposer.single_site_random_walk_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_random_walk_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_random_walk_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer.html">beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer.html">beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_uniform_proposer.html">beanmachine.ppl.inference.proposer.single_site_uniform_proposer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.single_site_uniform_proposer.html#module-beanmachine.ppl.inference.proposer.single_site_uniform_proposer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-beanmachine.ppl.inference.proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.rejection_sampling_infer.html">beanmachine.ppl.inference.rejection_sampling_infer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.rejection_sampling_infer.html#module-beanmachine.ppl.inference.rejection_sampling_infer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.sampler.html">beanmachine.ppl.inference.sampler</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.sampler.html#module-beanmachine.ppl.inference.sampler">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.single_site_ancestral_mh.html">beanmachine.ppl.inference.single_site_ancestral_mh</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.single_site_ancestral_mh.html#module-beanmachine.ppl.inference.single_site_ancestral_mh">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo.html">beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo.html#module-beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.single_site_newtonian_monte_carlo.html">beanmachine.ppl.inference.single_site_newtonian_monte_carlo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.single_site_newtonian_monte_carlo.html#module-beanmachine.ppl.inference.single_site_newtonian_monte_carlo">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.single_site_no_u_turn_sampler.html">beanmachine.ppl.inference.single_site_no_u_turn_sampler</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.single_site_no_u_turn_sampler.html#module-beanmachine.ppl.inference.single_site_no_u_turn_sampler">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.single_site_random_walk.html">beanmachine.ppl.inference.single_site_random_walk</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.single_site_random_walk.html#module-beanmachine.ppl.inference.single_site_random_walk">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.single_site_uniform_mh.html">beanmachine.ppl.inference.single_site_uniform_mh</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.single_site_uniform_mh.html#module-beanmachine.ppl.inference.single_site_uniform_mh">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.utils.html">beanmachine.ppl.inference.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.utils.html#module-beanmachine.ppl.inference.utils">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-beanmachine.ppl.inference.abstract_infer">
-<span id="beanmachine-ppl-inference-abstract-infer-module"></span><h2>beanmachine.ppl.inference.abstract_infer module<a class="headerlink" href="#module-beanmachine.ppl.inference.abstract_infer" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="beanmachine.ppl.inference.abstract_infer.AbstractInference">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.abstract_infer.</code><code class="descname">AbstractInference</code><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.AbstractInference" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-beanmachine.ppl.inference">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.inference" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.BMGInference">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">BMGInference</span></span><a class="headerlink" href="#beanmachine.ppl.inference.BMGInference" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Abstract inference object that all inference algorithms inherit from.</p>
-<dl class="method">
-<dt id="beanmachine.ppl.inference.abstract_infer.AbstractInference.initialize_world">
-<code class="descname">initialize_world</code><span class="sig-paren">(</span><em>initialize_from_prior: bool = False, vi_dicts: Optional[Callable[[beanmachine.ppl.model.rv_identifier.RVIdentifier], beanmachine.ppl.experimental.vi.mean_field_variational_approximation.MeanFieldVariationalApproximation]] = None, model_to_guide_ids: Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, beanmachine.ppl.model.rv_identifier.RVIdentifier]] = None, params: Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.nn.parameter.Parameter]] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.AbstractInference.initialize_world" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes the world variables with queries and observation calls.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>initialize_from_prior</strong> – boolean to initialize samples from prior</li>
-<li><strong>vi_dicts</strong> – mapping from <a href="#id1"><span class="problematic" id="id2">`</span></a>RVIdentifier`s to their corresponding mean-field</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>approximation. Only used for <cite>MeanFieldVariationalInference</cite>.
-:param model_to_guide_ids: mapping between model <cite>RVIdentifier`s and their
-corresponding guide `RVIdentifier</cite>. Every <cite>random_variable</cite> in <cite>self.queries_</cite>
-must be present as a key. Only used for <cite>VariationalInference</cite>.
-:params: mapping from <cite>bm.param`s to their current values. Only used
-for `VariationalInference</cite>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.inference.abstract_infer.AbstractInference.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.AbstractInference.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets world, mode and observation</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="beanmachine.ppl.inference.abstract_infer.AbstractInference.set_seed">
-<em class="property">static </em><code class="descname">set_seed</code><span class="sig-paren">(</span><em>seed: int</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.AbstractInference.set_seed" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.BMGInference.infer">
+<span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries:</span> <span class="pre">List[beanmachine.ppl.model.rv_identifier.RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor],</span> <span class="pre">num_samples:</span> <span class="pre">int,</span> <span class="pre">num_chains:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4,</span> <span class="pre">inference_type:</span> <span class="pre">beanmachine.graph.InferenceType</span> <span class="pre">=</span> <span class="pre">&lt;InferenceType.NMC:</span> <span class="pre">3&gt;,</span> <span class="pre">skip_optimizations:</span> <span class="pre">Set[str]</span> <span class="pre">=</span> <span class="pre">{'BetaBernoulliConjugateFixer',</span> <span class="pre">'BetaBinomialConjugateFixer',</span> <span class="pre">'NormalNormalConjugateFixer'}</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.BMGInference.infer" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.BMGInference.to_cpp">
+<span class="sig-name descname"><span class="pre">to_cpp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.BMGInference.to_cpp" title="Permalink to this definition"></a></dt>
+<dd><p>Produce a string containing a C++ program fragment which
+produces the graph deduced from the model.</p>
 </dd></dl>
 
-<dl class="class">
-<dt id="beanmachine.ppl.inference.abstract_infer.AbstractMCInference">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.abstract_infer.</code><code class="descname">AbstractMCInference</code><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.AbstractMCInference" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.inference.abstract_infer.AbstractInference" title="beanmachine.ppl.inference.abstract_infer.AbstractInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_infer.AbstractInference</span></code></a></p>
-<p>Abstract inference object for Monte Carlo inference.</p>
-<dl class="method">
-<dt id="beanmachine.ppl.inference.abstract_infer.AbstractMCInference.infer">
-<code class="descname">infer</code><span class="sig-paren">(</span><em>queries: List[beanmachine.ppl.model.rv_identifier.RVIdentifier], observations: Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor], num_samples: int, num_chains: int = 4, run_in_parallel: bool = False, num_adaptive_samples: int = 0, verbose: beanmachine.ppl.inference.abstract_infer.VerboseLevel = &lt;VerboseLevel.LOAD_BAR: 1&gt;, initialize_from_prior: bool = False</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples<a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.AbstractMCInference.infer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run inference algorithms and reset the world/mode at the end.</p>
-<p>All tensors in <cite>queries</cite> and <cite>observations</cite> must be allocated on the
-same <cite>torch.device</cite>. Inference algorithms will attempt to allocate
-intermediate tensors on the same device.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>queries</strong> – random variables to query</li>
-<li><strong>observations</strong> – observed random variables with their values</li>
-<li><strong>verbose</strong> – Integer indicating how much output to print to stdio</li>
-<li><strong>initialize_from_prior</strong> – boolean to initialize samples from prior</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Params num_samples:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">number of samples excluding adaptation to collect.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name" colspan="2">Params num_chains:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body"><p class="first">number of chains to run</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Params num_adaptive_samples:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first">number of steps to allow proposer adaptation.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">view of data for chains and samples for query</p>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.BMGInference.to_dot">
+<span class="sig-name descname"><span class="pre">to_dot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after_transform</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_edges</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_optimizations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{'BetaBernoulliConjugateFixer',</span> <span class="pre">'BetaBinomialConjugateFixer',</span> <span class="pre">'NormalNormalConjugateFixer'}</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.BMGInference.to_dot" title="Permalink to this definition"></a></dt>
+<dd><p>Produce a string containing a program in the GraphViz DOT language
+representing the graph deduced from the model.</p>
 </dd></dl>
 
-<dl class="staticmethod">
-<dt id="beanmachine.ppl.inference.abstract_infer.AbstractMCInference.set_seed_for_chain">
-<em class="property">static </em><code class="descname">set_seed_for_chain</code><span class="sig-paren">(</span><em>random_seed: int</em>, <em>chain: int</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.AbstractMCInference.set_seed_for_chain" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.BMGInference.to_graph">
+<span class="sig-name descname"><span class="pre">to_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.graph.html#beanmachine.graph.Graph" title="beanmachine.graph.Graph"><span class="pre">beanmachine.graph.Graph</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.BMGInference.to_graph" title="Permalink to this definition"></a></dt>
+<dd><p>Produce a BMG graph and a map from queried RVIdentifiers to the corresponding
+indices of the inference results.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.BMGInference.to_graphviz">
+<span class="sig-name descname"><span class="pre">to_graphviz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after_transform</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_edges</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_optimizations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{'BetaBernoulliConjugateFixer',</span> <span class="pre">'BetaBinomialConjugateFixer',</span> <span class="pre">'NormalNormalConjugateFixer'}</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">graphviz.files.Source</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.BMGInference.to_graphviz" title="Permalink to this definition"></a></dt>
+<dd><p>Small wrapper to generate an actual graphviz object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.BMGInference.to_python">
+<span class="sig-name descname"><span class="pre">to_python</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.BMGInference.to_python" title="Permalink to this definition"></a></dt>
+<dd><p>Produce a string containing a Python program fragment which
+produces the graph deduced from the model.</p>
+</dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="beanmachine.ppl.inference.abstract_infer.VerboseLevel">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.abstract_infer.</code><code class="descname">VerboseLevel</code><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.VerboseLevel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
-<p>Enum class which is used to set how much output is printed during inference.
-LOAD_BAR enables tqdm for full inference loop.</p>
-<dl class="attribute">
-<dt id="beanmachine.ppl.inference.abstract_infer.VerboseLevel.LOAD_BAR">
-<code class="descname">LOAD_BAR</code><em class="property"> = 1</em><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.VerboseLevel.LOAD_BAR" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.inference.abstract_infer.VerboseLevel.OFF">
-<code class="descname">OFF</code><em class="property"> = 0</em><a class="headerlink" href="#beanmachine.ppl.inference.abstract_infer.VerboseLevel.OFF" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="beanmachine-ppl-inference-abstract-mh-infer-module">
-<h2>beanmachine.ppl.inference.abstract_mh_infer module<a class="headerlink" href="#beanmachine-ppl-inference-abstract-mh-infer-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-bmg-inference-module">
-<h2>beanmachine.ppl.inference.bmg_inference module<a class="headerlink" href="#beanmachine-ppl-inference-bmg-inference-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-compositional-infer-module">
-<h2>beanmachine.ppl.inference.compositional_infer module<a class="headerlink" href="#beanmachine-ppl-inference-compositional-infer-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-beanmachine.ppl.inference.monte_carlo_samples">
-<span id="beanmachine-ppl-inference-monte-carlo-samples-module"></span><h2>beanmachine.ppl.inference.monte_carlo_samples module<a class="headerlink" href="#module-beanmachine.ppl.inference.monte_carlo_samples" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.monte_carlo_samples.</code><code class="descname">MonteCarloSamples</code><span class="sig-paren">(</span><em>chain_results: Union[List[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], num_adaptive_samples: int = 0, stack_not_cat: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Mapping</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
-<p>Represents a view of the data representing the results of infer</p>
-<p>If no chain is specified, the data across all chains is accessible
-If a chain is specified, only the data from the chain will be accessible</p>
-<dl class="method">
-<dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>rv: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>default: Any = None</em>, <em>chain: Optional[int] = None</em>, <em>include_adapt_steps: bool = False</em>, <em>thinning: int = 1</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the value of the random variable if rv is in the dictionary, otherwise
-return the default value. This method is analogous to Python’s dict.get(). The
-chain and include_adapt_steps parameters serve the same purpose as in get_chain
-and get_variable.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_chain">
-<code class="descname">get_chain</code><span class="sig-paren">(</span><em>chain: int = 0</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples<a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_chain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a MonteCarloSamples with restricted view to a specified chain</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chain</strong> – specific chainto view.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">view of the data restricted to specified chain</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_num_samples">
-<code class="descname">get_num_samples</code><span class="sig-paren">(</span><em>include_adapt_steps: bool = False</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_num_samples" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of samples run during inference</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_variable">
-<code class="descname">get_variable</code><span class="sig-paren">(</span><em>rv: beanmachine.ppl.model.rv_identifier.RVIdentifier</em>, <em>include_adapt_steps: bool = False</em>, <em>thinning: int = 1</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.get_variable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Let C be the number of chains,
-S be the number of samples</p>
-<p>If include_adapt_steps, S’ = S.
-Else, S’ = S - num_adaptive_samples.</p>
-<dl class="docutils">
-<dt>if no chain specified:</dt>
-<dd>samples[var] returns a Tensor of (C, S’, (shape of Var))</dd>
-<dt>if a chain is specified:</dt>
-<dd>samples[var] returns a Tensor of (S’, (shape of Var))</dd>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.CompositionalInference">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">CompositionalInference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proposers</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.CompositionalInference" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Compositional inference</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.CompositionalInference.add_sequential_proposer">
+<span class="sig-name descname"><span class="pre">add_sequential_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.CompositionalInference.add_sequential_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Adds a sequential block to list of blocks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>block</strong> – list of random variables functions that are to be sampled</p>
+</dd>
 </dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>rv</strong> – random variable to see samples</li>
-<li><strong>include_adapt_steps</strong> – Indicates whether the beginning of the
-chain should be included with the healthy samples.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">samples drawn during inference for the specified variable</p>
-</td>
-</tr>
-</tbody>
-</table>
+<p>together sequentially.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.to_inference_data">
-<code class="descname">to_inference_data</code><span class="sig-paren">(</span><em>include_adapt_steps: bool = False</em><span class="sig-paren">)</span> &#x2192; arviz.data.inference_data.InferenceData<a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.to_inference_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an az.InferenceData from MonteCarloSamples.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.to_xarray">
-<code class="descname">to_xarray</code><span class="sig-paren">(</span><em>include_adapt_steps: bool = False</em><span class="sig-paren">)</span> &#x2192; xarray.core.dataset.Dataset<a class="headerlink" href="#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples.to_xarray" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an xarray.Dataset from MonteCarloSamples.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.CompositionalInference.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.CompositionalInference.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node given the proposer dicts passed in
+once instantiating the class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="beanmachine-ppl-inference-predictive-module">
-<h2>beanmachine.ppl.inference.predictive module<a class="headerlink" href="#beanmachine-ppl-inference-predictive-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-rejection-sampling-infer-module">
-<h2>beanmachine.ppl.inference.rejection_sampling_infer module<a class="headerlink" href="#beanmachine-ppl-inference-rejection-sampling-infer-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-sampler-module">
-<h2>beanmachine.ppl.inference.sampler module<a class="headerlink" href="#beanmachine-ppl-inference-sampler-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-single-site-ancestral-mh-module">
-<h2>beanmachine.ppl.inference.single_site_ancestral_mh module<a class="headerlink" href="#beanmachine-ppl-inference-single-site-ancestral-mh-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-single-site-hamiltonian-monte-carlo-module">
-<h2>beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo module<a class="headerlink" href="#beanmachine-ppl-inference-single-site-hamiltonian-monte-carlo-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-single-site-newtonian-monte-carlo-module">
-<h2>beanmachine.ppl.inference.single_site_newtonian_monte_carlo module<a class="headerlink" href="#beanmachine-ppl-inference-single-site-newtonian-monte-carlo-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-single-site-no-u-turn-sampler-module">
-<h2>beanmachine.ppl.inference.single_site_no_u_turn_sampler module<a class="headerlink" href="#beanmachine-ppl-inference-single-site-no-u-turn-sampler-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-single-site-random-walk-module">
-<h2>beanmachine.ppl.inference.single_site_random_walk module<a class="headerlink" href="#beanmachine-ppl-inference-single-site-random-walk-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beanmachine-ppl-inference-single-site-uniform-mh-module">
-<h2>beanmachine.ppl.inference.single_site_uniform_mh module<a class="headerlink" href="#beanmachine-ppl-inference-single-site-uniform-mh-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-beanmachine.ppl.inference.utils">
-<span id="beanmachine-ppl-inference-utils-module"></span><h2>beanmachine.ppl.inference.utils module<a class="headerlink" href="#module-beanmachine.ppl.inference.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="beanmachine.ppl.inference.utils.Block">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.utils.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>first_node: beanmachine.ppl.model.rv_identifier.RVIdentifier, type: beanmachine.ppl.inference.utils.BlockType, block: List[str]</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.utils.Block" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.GlobalHamiltonianMonteCarlo">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">GlobalHamiltonianMonteCarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory_length</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_mass_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_accept_prob</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.GlobalHamiltonianMonteCarlo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.experimental.global_inference.base_inference.html#beanmachine.ppl.experimental.global_inference.base_inference.BaseInference" title="beanmachine.ppl.experimental.global_inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.base_inference.BaseInference</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.GlobalHamiltonianMonteCarlo.get_proposers">
+<span class="sig-name descname"><span class="pre">get_proposers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.simple_world.html#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld" title="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld"><span class="pre">beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.html#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.GlobalHamiltonianMonteCarlo.get_proposers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.GlobalNoUTurnSampler">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">GlobalNoUTurnSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_tree_depth</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_delta_energy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapt_mass_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multinomial_sampling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_accept_prob</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.GlobalNoUTurnSampler" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.experimental.global_inference.base_inference.html#beanmachine.ppl.experimental.global_inference.base_inference.BaseInference" title="beanmachine.ppl.experimental.global_inference.base_inference.BaseInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.base_inference.BaseInference</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.GlobalNoUTurnSampler.get_proposers">
+<span class="sig-name descname"><span class="pre">get_proposers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.simple_world.html#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld" title="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld"><span class="pre">beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.html#beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer" title="beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.base_proposer.BaseProposer</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.GlobalNoUTurnSampler.get_proposers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.Predictive">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">Predictive</span></span><a class="headerlink" href="#beanmachine.ppl.inference.Predictive" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Block class, which contains: the RVIdentifier of the first_node, type of the
-Block and list of random variables in the block in strings.</p>
+<p>Class for the posterior predictive distribution.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.Predictive.empirical">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">empirical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.Predictive.empirical" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from the empirical (marginal) distribution of the queried variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queries</strong> – list of <a href="#id1"><span class="problematic" id="id2">``</span></a>random_variable``s to be sampled.</p></li>
+<li><p><strong>samples</strong> – <code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> of the distribution.</p></li>
+<li><p><strong>num_samples</strong> – Number of samples to sample (with replacement). Defaults to 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> object containing the sampled random variables.</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="class">
-<dt id="beanmachine.ppl.inference.utils.BlockType">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.inference.utils.</code><code class="descname">BlockType</code><a class="headerlink" href="#beanmachine.ppl.inference.utils.BlockType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
-<p>Enum for Block types: can be single node, or sequential block where nodes are
-sequentially re-sampled, or joint, where nodes are jointly re-sampled.</p>
-<dl class="attribute">
-<dt id="beanmachine.ppl.inference.utils.BlockType.JOINT">
-<code class="descname">JOINT</code><em class="property"> = 3</em><a class="headerlink" href="#beanmachine.ppl.inference.utils.BlockType.JOINT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.inference.utils.BlockType.SEQUENTIAL">
-<code class="descname">SEQUENTIAL</code><em class="property"> = 2</em><a class="headerlink" href="#beanmachine.ppl.inference.utils.BlockType.SEQUENTIAL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="beanmachine.ppl.inference.utils.BlockType.SINGLENODE">
-<code class="descname">SINGLENODE</code><em class="property"> = 1</em><a class="headerlink" href="#beanmachine.ppl.inference.utils.BlockType.SINGLENODE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.Predictive.simulate">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posterior</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.Predictive.simulate" title="Permalink to this definition"></a></dt>
+<dd><p>Generates predictives from a generative model.</p>
+<blockquote>
+<div><p>obs_queries = [likelihood(i) for i in range(10))]
+posterior = SinglesiteHamiltonianMonteCarlo(10, 0.1).infer(…)
+# generates one sample per world (same shape as <code class="docutils literal notranslate"><span class="pre">posterior</span></code> samples)
+predictives = simulate(obs_queries, posterior=posterior)</p>
+</div></blockquote>
+<p>To generate prior predictives,</p>
+<blockquote>
+<div><p>queries = [prior(), likelihood()]  # specify the full generative model
+# Monte carlo samples of shape (num_samples, sample_shape)
+predictives = simulate(queries, num_samples=1000)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> – list of <a href="#id3"><span class="problematic" id="id4">``</span></a>random_variable``s corresponding to the observations.</p></li>
+<li><p><strong>posterior</strong> – Optional <code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> of the latent variables.</p></li>
+<li><p><strong>num_samples</strong> – Number of prior predictive samples, defaults to 1. Should
+not be specified if <code class="docutils literal notranslate"><span class="pre">posterior</span></code> is specified.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> of the generated predictives.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="beanmachine.ppl.inference.utils.merge_dicts">
-<code class="descclassname">beanmachine.ppl.inference.utils.</code><code class="descname">merge_dicts</code><span class="sig-paren">(</span><em>dicts: List[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]], dim: int = 0, stack_not_cat=True</em><span class="sig-paren">)</span> &#x2192; Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.inference.utils.merge_dicts" title="Permalink to this definition">¶</a></dt>
-<dd><p>A helper function that merge multiple dicts of samples into a single dictionary,
-stacking across a new dimension</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.RejectionSampling">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">RejectionSampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_attempts_per_sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.RejectionSampling" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_infer.html#beanmachine.ppl.inference.abstract_infer.AbstractMCInference" title="beanmachine.ppl.inference.abstract_infer.AbstractMCInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_infer.AbstractMCInference</span></code></a></p>
+<p>Inference object for rejection sampling inference. ABC inference
+algorithms will inherit from this class, and override the single_inference_step method</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="beanmachine.ppl.inference.utils.safe_log_prob_sum">
-<code class="descclassname">beanmachine.ppl.inference.utils.</code><code class="descname">safe_log_prob_sum</code><span class="sig-paren">(</span><em>distrib</em>, <em>value: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#beanmachine.ppl.inference.utils.safe_log_prob_sum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes log_prob, converting out of support exceptions to -Infinity.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteAncestralMetropolisHastings</span></span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Implementation for SingleSiteAncestralMetropolisHastings</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteAncestralMetropolisHastings.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node which is
+SingleSiteAncestralMetropolisHastingsProposer for
+SingleSiteAncestralMetropolisHastings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
 </dd></dl>
 
-</div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteHamiltonianMonteCarlo">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteHamiltonianMonteCarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_length</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.variable.html#beanmachine.ppl.world.variable.TransformType" title="beanmachine.ppl.world.variable.TransformType"><span class="pre">beanmachine.ppl.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.DEFAULT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteHamiltonianMonteCarlo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Implementation for SingleSiteHamiltonianMonteCarlo</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteHamiltonianMonteCarlo.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteHamiltonianMonteCarlo.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node which is
+SingleSiteHamiltonianMonteCarloProposer for SingleSiteHamiltonianMonteCarlo</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteNewtonianMonteCarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.variable.html#beanmachine.ppl.world.variable.TransformType" title="beanmachine.ppl.world.variable.TransformType"><span class="pre">beanmachine.ppl.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_space_alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_space_beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Implementation for SingleSiteNewtonianMonteCarlo</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNewtonianMonteCarlo.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node which is
+SingleSiteNewtonianMonteCarloProposer for SingleSiteNewtonianMonteCarlo</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteNoUTurnSampler">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteNoUTurnSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_dense_mass_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.variable.html#beanmachine.ppl.world.variable.TransformType" title="beanmachine.ppl.world.variable.TransformType"><span class="pre">beanmachine.ppl.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.DEFAULT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNoUTurnSampler" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Implementation for SingleSiteNoUTurnSampler</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteNoUTurnSampler.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteNoUTurnSampler.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node which is
+SingleSiteHamiltonianMonteCarloProposer for SingleSiteHamiltonianMonteCarlo</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteRandomWalk">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteRandomWalk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.variable.html#beanmachine.ppl.world.variable.TransformType" title="beanmachine.ppl.world.variable.TransformType"><span class="pre">beanmachine.ppl.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteRandomWalk" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Implementation for SingleSiteRandomWalk</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteRandomWalk.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteRandomWalk.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node which is
+SingleSiteRandomWalkProposer for
+SingleSiteRandomWalk</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">SingleSiteUniformMetropolisHastings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.variable.html#beanmachine.ppl.world.variable.TransformType" title="beanmachine.ppl.world.variable.TransformType"><span class="pre">beanmachine.ppl.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Implementation for SingleSiteNewtonianMonteCarlo</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.SingleSiteUniformMetropolisHastings.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node which is
+SingleSiteUniformMetropolisHastingsProposer for
+SingleSiteUniformMetropolisHastings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.empirical">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">empirical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.empirical" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from the empirical (marginal) distribution of the queried variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queries</strong> – list of <a href="#id5"><span class="problematic" id="id6">``</span></a>random_variable``s to be sampled.</p></li>
+<li><p><strong>samples</strong> – <code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> of the distribution.</p></li>
+<li><p><strong>num_samples</strong> – Number of samples to sample (with replacement). Defaults to 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> object containing the sampled random variables.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.simulate">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.</span></span><span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posterior</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vectorized</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.simulate" title="Permalink to this definition"></a></dt>
+<dd><p>Generates predictives from a generative model.</p>
+<blockquote>
+<div><p>obs_queries = [likelihood(i) for i in range(10))]
+posterior = SinglesiteHamiltonianMonteCarlo(10, 0.1).infer(…)
+# generates one sample per world (same shape as <code class="docutils literal notranslate"><span class="pre">posterior</span></code> samples)
+predictives = simulate(obs_queries, posterior=posterior)</p>
+</div></blockquote>
+<p>To generate prior predictives,</p>
+<blockquote>
+<div><p>queries = [prior(), likelihood()]  # specify the full generative model
+# Monte carlo samples of shape (num_samples, sample_shape)
+predictives = simulate(queries, num_samples=1000)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> – list of <a href="#id7"><span class="problematic" id="id8">``</span></a>random_variable``s corresponding to the observations.</p></li>
+<li><p><strong>posterior</strong> – Optional <code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> of the latent variables.</p></li>
+<li><p><strong>num_samples</strong> – Number of prior predictive samples, defaults to 1. Should
+not be specified if <code class="docutils literal notranslate"><span class="pre">posterior</span></code> is specified.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">MonteCarloSamples</span></code> of the generated predictives.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="beanmachine.ppl.experimental.vi.html" class="btn btn-neutral float-left" title="experimental.vi package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="beanmachine.ppl.inference.proposer.html" class="btn btn-neutral float-right" title="inference.proposer package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="beanmachine.ppl.experimental.vi.variational_infer.html" class="btn btn-neutral float-left" title="beanmachine.ppl.experimental.vi.variational_infer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.inference.abstract_infer.html" class="btn btn-neutral float-right" title="beanmachine.ppl.inference.abstract_infer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

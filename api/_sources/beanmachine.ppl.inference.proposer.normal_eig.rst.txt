@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.proposer.normal_eig
+=============================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.proposer.normal_eig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

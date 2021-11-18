@@ -1,0 +1,20 @@
+beanmachine.ppl.experimental.variable_elimination
+=================================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.experimental.variable_elimination.util
+   beanmachine.ppl.experimental.variable_elimination.variable_elimination
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.variable_elimination
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

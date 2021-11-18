@@ -1,0 +1,11 @@
+beanmachine.ppl.world.diff_stack
+================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.world.diff_stack
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

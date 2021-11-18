@@ -1,0 +1,11 @@
+beanmachine.ppl.examples.conjugate_models.beta_binomial
+=======================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.examples.conjugate_models.beta_binomial
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

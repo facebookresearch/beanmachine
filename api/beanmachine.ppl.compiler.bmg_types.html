@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.compiler.bmg_types &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.compiler.error_report" href="beanmachine.ppl.compiler.error_report.html" />
+    <link rel="prev" title="beanmachine.ppl.compiler.bmg_requirements" href="beanmachine.ppl.compiler.bmg_requirements.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.compiler.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.ast_patterns.html">beanmachine.ppl.compiler.ast_patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.ast_tools.html">beanmachine.ppl.compiler.ast_tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.beanstalk_common.html">beanmachine.ppl.compiler.beanstalk_common</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bm_graph_builder.html">beanmachine.ppl.compiler.bm_graph_builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bm_to_bmg.html">beanmachine.ppl.compiler.bm_to_bmg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_node_types.html">beanmachine.ppl.compiler.bmg_node_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_nodes.html">beanmachine.ppl.compiler.bmg_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.bmg_requirements.html">beanmachine.ppl.compiler.bmg_requirements</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.compiler.bmg_types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.ppl.compiler.bmg_types">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.error_report.html">beanmachine.ppl.compiler.error_report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_additions.html">beanmachine.ppl.compiler.fix_additions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_beta_conjugate_prior.html">beanmachine.ppl.compiler.fix_beta_conjugate_prior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_bool_arithmetic.html">beanmachine.ppl.compiler.fix_bool_arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_bool_comparisons.html">beanmachine.ppl.compiler.fix_bool_comparisons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_logsumexp.html">beanmachine.ppl.compiler.fix_logsumexp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_matrix_scale.html">beanmachine.ppl.compiler.fix_matrix_scale</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_multiary_ops.html">beanmachine.ppl.compiler.fix_multiary_ops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_normal_conjugate_prior.html">beanmachine.ppl.compiler.fix_normal_conjugate_prior</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_observations.html">beanmachine.ppl.compiler.fix_observations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_observe_true.html">beanmachine.ppl.compiler.fix_observe_true</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_problem.html">beanmachine.ppl.compiler.fix_problem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_problems.html">beanmachine.ppl.compiler.fix_problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_requirements.html">beanmachine.ppl.compiler.fix_requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_unsupported.html">beanmachine.ppl.compiler.fix_unsupported</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.fix_vectorized_models.html">beanmachine.ppl.compiler.fix_vectorized_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_cpp.html">beanmachine.ppl.compiler.gen_bmg_cpp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_graph.html">beanmachine.ppl.compiler.gen_bmg_graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_bmg_python.html">beanmachine.ppl.compiler.gen_bmg_python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_builder.html">beanmachine.ppl.compiler.gen_builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.gen_dot.html">beanmachine.ppl.compiler.gen_dot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.graph_labels.html">beanmachine.ppl.compiler.graph_labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.hint.html">beanmachine.ppl.compiler.hint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.internal_error.html">beanmachine.ppl.compiler.internal_error</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.lattice_typer.html">beanmachine.ppl.compiler.lattice_typer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.patterns.html">beanmachine.ppl.compiler.patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.performance_report.html">beanmachine.ppl.compiler.performance_report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.profiler.html">beanmachine.ppl.compiler.profiler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.rules.html">beanmachine.ppl.compiler.rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.runtime.html">beanmachine.ppl.compiler.runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.single_assignment.html">beanmachine.ppl.compiler.single_assignment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.sizer.html">beanmachine.ppl.compiler.sizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.support.html">beanmachine.ppl.compiler.support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.testlib.html">beanmachine.ppl.compiler.testlib</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.compiler.typer_base.html">beanmachine.ppl.compiler.typer_base</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.compiler.html#module-beanmachine.ppl.compiler">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a> &raquo;</li>
+      <li>beanmachine.ppl.compiler.bmg_types</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.compiler.bmg_types.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-compiler-bmg-types">
+<h1>beanmachine.ppl.compiler.bmg_types<a class="headerlink" href="#beanmachine-ppl-compiler-bmg-types" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.compiler.bmg_types">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.compiler.bmg_types" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.AlwaysMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">AlwaysMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bound</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.AlwaysMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.AlwaysMatrix.bound">
+<span class="sig-name descname"><span class="pre">bound</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.AlwaysMatrix.bound" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.AnyRequirement">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">AnyRequirement</span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.AnyRequirement" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.AnyRequirement.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.AnyRequirement.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.AnyRequirement.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.AnyRequirement.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGElementType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">BMGElementType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">short_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGElementType.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGElementType.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGLatticeType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">BMGLatticeType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">short_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGLatticeType.is_singleton">
+<span class="sig-name descname"><span class="pre">is_singleton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType.is_singleton" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGLatticeType.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGLatticeType.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGMatrixType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">BMGMatrixType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGMatrixType.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGMatrixType.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGMatrixType.is_singleton">
+<span class="sig-name descname"><span class="pre">is_singleton</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType.is_singleton" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGMatrixType.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGMatrixType.with_dimensions">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BMGMatrixType.with_size">
+<span class="sig-name descname"><span class="pre">with_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Size</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType.with_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BaseRequirement">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">BaseRequirement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">short_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BaseRequirement.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BaseRequirement.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BooleanMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">BooleanMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BooleanMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType" title="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BooleanMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BooleanMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BooleanMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BooleanMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BooleanMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BooleanMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BooleanMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BooleanMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BooleanMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BooleanMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BooleanMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BooleanMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">BroadcastMatrixType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NaturalMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">NaturalMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NaturalMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType" title="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NaturalMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NaturalMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NaturalMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NaturalMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NaturalMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NaturalMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NaturalMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NaturalMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NaturalMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NaturalMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NaturalMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NaturalMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">NegativeRealMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType" title="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.NegativeRealMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.OneHotMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">OneHotMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.OneHotMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.OneHotMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.OneHotMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.OneHotMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.OneHotMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.OneHotMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.OneHotMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.OneHotMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.OneHotMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.OneHotMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.OneHotMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.OneHotMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.OneHotMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">PositiveRealMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType" title="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.PositiveRealMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">ProbabilityMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType" title="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ProbabilityMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.RealMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">RealMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.RealMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType" title="beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BroadcastMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.RealMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.RealMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.RealMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.RealMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.RealMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.RealMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.RealMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.RealMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.RealMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.RealMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.RealMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.RealMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.SimplexMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">SimplexMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.SimplexMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.SimplexMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.SimplexMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.SimplexMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.SimplexMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.SimplexMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.SimplexMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.SimplexMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.SimplexMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.SimplexMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.SimplexMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.SimplexMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.SimplexMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.Untypable">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">Untypable</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.Untypable" title="Permalink to this definition"></a></dt>
+<dd><p>When converting from an accumulated graph that uses Python types, we
+can express the rules concisely by defining a <em>type lattice</em>. A type
+lattice is a DAG which meets these conditions:</p>
+<ul class="simple">
+<li><p>Nodes are types</p></li>
+<li><p>Edges are directed from “larger” types to “smaller” types.
+(Note that there is no requirement for a total order.)</p></li>
+<li><p>There is a function called “supremum” which takes two types
+and returns the unique type that is the smallest type that
+is bigger than both arguments.</p></li>
+<li><p>There is a function called “infimum” which similarly is
+the unique largest type smaller than both arguments.
+(Right now we do not actually need this function in our
+type analysis so it is not implemented.)</p></li>
+</ul>
+<p>For matrix types with a single column and any number of rows r,
+and columns c, the type lattice is:</p>
+<blockquote>
+<div><blockquote>
+<div><p>T                      (Tensor unsupported by BMG)
+|</p>
+</div></blockquote>
+<p>MR[r,c]                  (Real matrix)
+|     |
+|      MR+[r,c]          (Positive real matrix)</p>
+</div></blockquote>
+<dl>
+<dt>MR-[r,c]   |     |           (Negative real matrix)</dt><dd><div class="line-block">
+<div class="line-block">
+<div class="line">|     |</div>
+</div>
+<div class="line">MN[r,c]    |           (Natural matrix)</div>
+<div class="line-block">
+<div class="line-block">
+<div class="line">|   MP[r,c]       (Probability matrix)</div>
+<div class="line">|   |    |</div>
+</div>
+<div class="line">MB[r,c]    |        (Boolean matrix)</div>
+<div class="line">|    |   S[r,c]     (Row-simplex matrix)</div>
+<div class="line">|    |   |</div>
+<div class="line">|  OH[r,c]          (One-hot matrix)</div>
+<div class="line">|    |</div>
+</div>
+</div>
+<dl>
+<dt>Z[r,c]    |              (All-zero matrix)</dt><dd><div class="line-block">
+<div class="line"><a href="#id1"><span class="problematic" id="id2">|</span></a></div>
+</div>
+<p>BOTTOM              (the bottom type)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>OH – one-hot – is not a type in the BMG type system; we use
+it only when analyzing the accumulated graph. The OH type is
+used to track the situation where a constant matrix can be
+converted to both a Boolean and a simplex matrix; if the
+rows are “one hot” – all false (or 0) except for one true
+(or 1) – then the matrix is convertable to both Boolean and
+simplex.</p>
+<p>Similarly, Z – the all-zero matrix – is not a type in the BMG
+type system. We use it to track cases where a matrix is convertible
+to both Boolean and negative real.</p>
+<p>Similarly, T (tensor) – the top type – is not found in the BMG
+type system. The top type is the type more general than all other
+types, and is used for situations such as attempting to resolve
+situations such as “what is the type that is more general than both
+a 1x2 matrix and a 2x2 matrix?” or to represent matrix types not
+supported in BMG such as 3-dimensional matrices.</p>
+<p>The BOTTOM type is the type that has no values; it is similarly
+used as a convenience when you need a type more specific than any
+other type; it is not in the BMG type system.</p>
+<p>Why is this useful?</p>
+<p>Our goal is to generate a graph that meets all the requirements of the BMG
+type system. In order to do so, we compute a <em>requirement object</em> for each
+<em>edge</em> in the graph.</p>
+<p>There are two kinds of requirements: “input must be exactly type X” and
+“input must be type X or smaller”.  The first kind of requirement we
+call an “exact requirement” and the latter is an “upper bound requirement”.</p>
+<p>(We do not at this time have any scenarios that need “lower bound
+requirements” but if we need them we can add them.)</p>
+<p>Once we know the requirements on the <em>incoming</em> edges to a node, we can
+check to see if the requirements are met by the nodes.
+* If they are, then we’re good.
+* If not then we can do a graph mutation which causes the requirements
+to be met.
+* If there is no such mutation then we can report an error.</p>
+<p>How do we compute the requirements for an edge? It depends on the kind
+of graph node that the edge is attached to. A Bernoulli node, for example,
+requires that its input be “exactly P”. A “to real” node requires
+that its input be “R or smaller”.</p>
+<p>Some nodes however introduce more complex requirements. The requirements
+of a multiplication node, for instance, are:</p>
+<ul class="simple">
+<li><p>the input types must be greater than or equal to P</p></li>
+<li><p>the input types must be exactly the same</p></li>
+</ul>
+<p>We do not have a requirement object for either “greater than or equal”, or
+for “this edge must be the same as that edge”. And we have one more
+factor to throw in: the output type of a multiplication is the same as its
+input types, so we wish to find the <em>smallest possible</em> restriction on the
+input types so that the multiplication’s type is minimized.</p>
+<p>(That is: if we have a multiplication of a natural by a probability, we do
+not wish to require that both be converted to reals, because then the
+multiplication node could not be used in a context where a positive real
+was required. We want the smallest type that works: positive real.)</p>
+<p>How are we going to do this?</p>
+<p>We generate the edge requirements for a multiplication as follows:</p>
+<p>The requirement on both input edges is that they be <em>exactly</em> equal
+to the <em>supremum</em> of the <em>infimum types</em> of the two inputs.</p>
+<p>The infimum type is the <em>smallest</em> type that each <em>node</em> in the graph
+could possibly be. We call this type the “infimum type” of the node
+because it is the infimum – the <em>greatest lower bound</em> – in the lattice.</p>
+<p>It might not be clear why that works. Let’s work through an example.</p>
+<p>Suppose we have a sample from a beta; it’s infimum type is Probability because
+that’s the only type a sample from a beta can be.  And suppose we have a sample
+from a binomial; it’s infimum type is Natural, again, because that’s the only
+type it can be.</p>
+<p>Now suppose we multiply them. What restrictions go on the left and right
+input edges of the multiplication?</p>
+<p>The supremum of Natural and Probability is PositiveReal, so we put an “exactly
+PositiveReal” restriction on the two edges. During the “fix problems” phase,
+we see that we have an edge from a multiplication to a sample of type Probability,
+but there is a requirement that it be a PositiveReal, so we insert a
+ToPositiveRealNode between the multiplication and the sample. And then similarly
+for the sample of type Natural.</p>
+<p>The result is that we have a multiplication node that meets its requirements;
+the input types are the same, and the output type is the smallest type it
+could possibly be: PositiveReal.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.UpperBound">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">UpperBound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bound</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.UpperBound" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.UpperBound.bound">
+<span class="sig-name descname"><span class="pre">bound</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.UpperBound.bound" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ZeroMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">ZeroMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ZeroMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ZeroMatrix.columns">
+<span class="sig-name descname"><span class="pre">columns</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ZeroMatrix.columns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ZeroMatrix.element_type">
+<span class="sig-name descname"><span class="pre">element_type</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGElementType" title="beanmachine.ppl.compiler.bmg_types.BMGElementType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGElementType</span></a></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ZeroMatrix.element_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ZeroMatrix.long_name">
+<span class="sig-name descname"><span class="pre">long_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ZeroMatrix.long_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ZeroMatrix.rows">
+<span class="sig-name descname"><span class="pre">rows</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ZeroMatrix.rows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ZeroMatrix.short_name">
+<span class="sig-name descname"><span class="pre">short_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ZeroMatrix.short_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.ZeroMatrix.with_dimensions">
+<span class="sig-name descname"><span class="pre">with_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.ZeroMatrix.with_dimensions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.always_matrix">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">always_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bound</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGMatrixType" title="beanmachine.ppl.compiler.bmg_types.BMGMatrixType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGMatrixType</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.always_matrix" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.is_atomic">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">is_atomic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.is_atomic" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.is_convertible_to">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">is_convertible_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.is_convertible_to" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.is_one">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">is_one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.is_one" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.is_zero">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">is_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.is_zero" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.lattice_to_bmg">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">lattice_to_bmg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.lattice_to_bmg" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.must_be_matrix">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">must_be_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.must_be_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Does the requirement indicate that the edge must be a matrix?</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.requirement_to_type">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">requirement_to_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.requirement_to_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.supremum">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">supremum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.supremum" title="Permalink to this definition"></a></dt>
+<dd><p>Takes any number of BMG types; returns the smallest type that is
+greater than or equal to all of them.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.type_of_value">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">type_of_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.type_of_value" title="Permalink to this definition"></a></dt>
+<dd><p>This computes the smallest BMG type that a given value fits into.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.compiler.bmg_types.upper_bound">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.compiler.bmg_types.</span></span><span class="sig-name descname"><span class="pre">upper_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bound</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BMGLatticeType" title="beanmachine.ppl.compiler.bmg_types.BMGLatticeType"><span class="pre">beanmachine.ppl.compiler.bmg_types.BMGLatticeType</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#beanmachine.ppl.compiler.bmg_types.BaseRequirement" title="beanmachine.ppl.compiler.bmg_types.BaseRequirement"><span class="pre">beanmachine.ppl.compiler.bmg_types.BaseRequirement</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.compiler.bmg_types.upper_bound" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.compiler.bmg_requirements.html" class="btn btn-neutral float-left" title="beanmachine.ppl.compiler.bmg_requirements" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.compiler.error_report.html" class="btn btn-neutral float-right" title="beanmachine.ppl.compiler.error_report" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

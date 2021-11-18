@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.single_assignment
+==========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.single_assignment
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.abstract_infer
+========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.abstract_infer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

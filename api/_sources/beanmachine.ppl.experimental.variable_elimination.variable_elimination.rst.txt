@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.variable_elimination.variable_elimination
+======================================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.variable_elimination.variable_elimination
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

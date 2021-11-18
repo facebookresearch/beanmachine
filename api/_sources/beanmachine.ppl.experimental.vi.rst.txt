@@ -1,24 +1,15 @@
-experimental.vi package
-=======================================
+beanmachine.ppl.experimental.vi
+===============================
 
-Submodules
-----------
+Subpackages
+-----------
 
-beanmachine.ppl.experimental.vi.mean\_field\_variational\_approximation module
-------------------------------------------------------------------------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: beanmachine.ppl.experimental.vi.mean_field_variational_approximation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-beanmachine.ppl.experimental.vi.variational\_infer module
----------------------------------------------------------
-
-.. automodule:: beanmachine.ppl.experimental.vi.variational_infer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   beanmachine.ppl.experimental.vi.mean_field_variational_approximation
+   beanmachine.ppl.experimental.vi.optim
+   beanmachine.ppl.experimental.vi.variational_infer
 
 Module contents
 ---------------
@@ -27,3 +18,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

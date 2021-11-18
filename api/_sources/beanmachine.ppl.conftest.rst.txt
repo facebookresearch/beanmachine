@@ -1,0 +1,11 @@
+beanmachine.ppl.conftest
+========================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.conftest
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

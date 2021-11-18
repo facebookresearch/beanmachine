@@ -1,0 +1,11 @@
+beanmachine.graph
+=================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

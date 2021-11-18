@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.bm_graph_builder
+=========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.bm_graph_builder
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

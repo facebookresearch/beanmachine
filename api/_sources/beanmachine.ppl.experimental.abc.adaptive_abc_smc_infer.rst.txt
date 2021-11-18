@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.abc.adaptive_abc_smc_infer
+=======================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.abc.adaptive_abc_smc_infer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

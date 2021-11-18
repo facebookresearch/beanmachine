@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.performance_report
+===========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.performance_report
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

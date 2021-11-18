@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.testlib.conjugate_models
+=================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.testlib.conjugate_models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

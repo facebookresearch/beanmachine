@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.bmg_inference
+=======================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.bmg_inference
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

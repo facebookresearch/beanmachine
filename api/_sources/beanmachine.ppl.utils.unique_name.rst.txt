@@ -1,0 +1,11 @@
+beanmachine.ppl.utils.unique_name
+=================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.utils.unique_name
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

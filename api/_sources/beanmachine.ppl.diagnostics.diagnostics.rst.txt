@@ -1,0 +1,11 @@
+beanmachine.ppl.diagnostics.diagnostics
+=======================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.diagnostics.diagnostics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

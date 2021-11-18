@@ -1,0 +1,11 @@
+beanmachine.ppl.diagnostics.common_plots
+========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.diagnostics.common_plots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

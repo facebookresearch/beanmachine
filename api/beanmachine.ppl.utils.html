@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utils &mdash; BeanMachine  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <title>beanmachine.ppl.utils &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="world" href="beanmachine.ppl.world.html" />
-    <link rel="prev" title="testlib" href="beanmachine.ppl.testlib.html" /> 
+    <link rel="next" title="beanmachine.ppl.utils.dotbuilder" href="beanmachine.ppl.utils.dotbuilder.html" />
+    <link rel="prev" title="beanmachine.ppl.testlib.hypothesis_testing" href="beanmachine.ppl.testlib.hypothesis_testing.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -36,34 +37,40 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">compiler</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">diagnostics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">distribution</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.conjugate_models.html">examples.conjugate_models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="experimental.html">experimental</a></li>
-<li class="toctree-l1"><a class="reference internal" href="experimental.html#indices-and-tables">Indices and tables</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">inference.proposer package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">inference package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">testlib</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.dotbuilder">beanmachine.ppl.utils.dotbuilder module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.equivalence">beanmachine.ppl.utils.equivalence module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.graph">beanmachine.ppl.utils.graph module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.item_counter">beanmachine.ppl.utils.item_counter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.memoize">beanmachine.ppl.utils.memoize module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.tensorops">beanmachine.ppl.utils.tensorops module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.treeprinter">beanmachine.ppl.utils.treeprinter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils.unique_name">beanmachine.ppl.utils.unique_name module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">beanmachine.ppl.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html">beanmachine.ppl.utils.dotbuilder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.equivalence.html">beanmachine.ppl.utils.equivalence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.graph.html">beanmachine.ppl.utils.graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.item_counter.html">beanmachine.ppl.utils.item_counter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.memoize.html">beanmachine.ppl.utils.memoize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.set_of_tensors.html">beanmachine.ppl.utils.set_of_tensors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.tensorops.html">beanmachine.ppl.utils.tensorops</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.treeprinter.html">beanmachine.ppl.utils.treeprinter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.utils.unique_name.html">beanmachine.ppl.utils.unique_name</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.utils">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">world</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
 </ul>
 
         </div>
@@ -82,7 +89,7 @@
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
           <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
-      <li>utils</li>
+      <li>beanmachine.ppl.utils</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/beanmachine.ppl.utils.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -92,65 +99,122 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="utils">
-<h1>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+  <section id="beanmachine-ppl-utils">
+<h1>beanmachine.ppl.utils<a class="headerlink" href="#beanmachine-ppl-utils" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html">beanmachine.ppl.utils.dotbuilder</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html#module-beanmachine.ppl.utils.dotbuilder">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.equivalence.html">beanmachine.ppl.utils.equivalence</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.equivalence.html#module-beanmachine.ppl.utils.equivalence">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.graph.html">beanmachine.ppl.utils.graph</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.graph.html#module-beanmachine.ppl.utils.graph">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.item_counter.html">beanmachine.ppl.utils.item_counter</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.item_counter.html#module-beanmachine.ppl.utils.item_counter">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.memoize.html">beanmachine.ppl.utils.memoize</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.memoize.html#module-beanmachine.ppl.utils.memoize">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.set_of_tensors.html">beanmachine.ppl.utils.set_of_tensors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.set_of_tensors.html#module-beanmachine.ppl.utils.set_of_tensors">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.tensorops.html">beanmachine.ppl.utils.tensorops</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.tensorops.html#module-beanmachine.ppl.utils.tensorops">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.treeprinter.html">beanmachine.ppl.utils.treeprinter</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.treeprinter.html#module-beanmachine.ppl.utils.treeprinter">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.unique_name.html">beanmachine.ppl.utils.unique_name</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.utils.unique_name.html#module-beanmachine.ppl.utils.unique_name">Module contents</a></li>
+</ul>
+</li>
+</ul>
 </div>
-<div class="section" id="module-beanmachine.ppl.utils.dotbuilder">
-<span id="beanmachine-ppl-utils-dotbuilder-module"></span><h2>beanmachine.ppl.utils.dotbuilder module<a class="headerlink" href="#module-beanmachine.ppl.utils.dotbuilder" title="Permalink to this headline">¶</a></h2>
-<p>A builder for the graphviz DOT language</p>
-<dl class="class">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotBuilder">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.dotbuilder.</code><code class="descname">DotBuilder</code><span class="sig-paren">(</span><em>name: str = 'graph'</em>, <em>is_subgraph: bool = False</em>, <em>is_cluster: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotBuilder" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-beanmachine.ppl.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.utils" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.utils.</span></span><span class="sig-name descname"><span class="pre">DotBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'graph'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_subgraph</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_cluster</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotBuilder.end_subgraph">
-<code class="descname">end_subgraph</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotBuilder.end_subgraph" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.end_subgraph">
+<span class="sig-name descname"><span class="pre">end_subgraph</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html#beanmachine.ppl.utils.dotbuilder.DotBuilder" title="beanmachine.ppl.utils.dotbuilder.DotBuilder"><span class="pre">beanmachine.ppl.utils.dotbuilder.DotBuilder</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.end_subgraph" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotBuilder.start_subgraph">
-<code class="descname">start_subgraph</code><span class="sig-paren">(</span><em>name: str</em>, <em>is_cluster: bool</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotBuilder.start_subgraph" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.is_cluster">
+<span class="sig-name descname"><span class="pre">is_cluster</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.is_cluster" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotBuilder.with_comment">
-<code class="descname">with_comment</code><span class="sig-paren">(</span><em>comment: str</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotBuilder.with_comment" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.is_subgraph">
+<span class="sig-name descname"><span class="pre">is_subgraph</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.is_subgraph" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotBuilder.with_edge">
-<code class="descname">with_edge</code><span class="sig-paren">(</span><em>frm: str</em>, <em>to: str</em>, <em>label: str = ''</em>, <em>color: str = ''</em>, <em>constrained: bool = True</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotBuilder.with_edge" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotBuilder.with_label">
-<code class="descname">with_label</code><span class="sig-paren">(</span><em>label: str</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotBuilder.with_label" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.start_subgraph">
+<span class="sig-name descname"><span class="pre">start_subgraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_cluster</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html#beanmachine.ppl.utils.dotbuilder.DotBuilder" title="beanmachine.ppl.utils.dotbuilder.DotBuilder"><span class="pre">beanmachine.ppl.utils.dotbuilder.DotBuilder</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.start_subgraph" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotBuilder.with_node">
-<code class="descname">with_node</code><span class="sig-paren">(</span><em>name: str</em>, <em>label: str</em>, <em>color: str = ''</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotBuilder.with_node" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.with_comment">
+<span class="sig-name descname"><span class="pre">with_comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html#beanmachine.ppl.utils.dotbuilder.DotBuilder" title="beanmachine.ppl.utils.dotbuilder.DotBuilder"><span class="pre">beanmachine.ppl.utils.dotbuilder.DotBuilder</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_comment" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.with_edge">
+<span class="sig-name descname"><span class="pre">with_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constrained</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html#beanmachine.ppl.utils.dotbuilder.DotBuilder" title="beanmachine.ppl.utils.dotbuilder.DotBuilder"><span class="pre">beanmachine.ppl.utils.dotbuilder.DotBuilder</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_edge" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.with_label">
+<span class="sig-name descname"><span class="pre">with_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html#beanmachine.ppl.utils.dotbuilder.DotBuilder" title="beanmachine.ppl.utils.dotbuilder.DotBuilder"><span class="pre">beanmachine.ppl.utils.dotbuilder.DotBuilder</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_label" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.DotBuilder.with_node">
+<span class="sig-name descname"><span class="pre">with_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.utils.dotbuilder.html#beanmachine.ppl.utils.dotbuilder.DotBuilder" title="beanmachine.ppl.utils.dotbuilder.DotBuilder"><span class="pre">beanmachine.ppl.utils.dotbuilder.DotBuilder</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_node" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotEdge">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.dotbuilder.</code><code class="descname">DotEdge</code><span class="sig-paren">(</span><em>frm: beanmachine.ppl.utils.dotbuilder.DotNode</em>, <em>to: beanmachine.ppl.utils.dotbuilder.DotNode</em>, <em>label: str</em>, <em>color: str</em>, <em>constrained: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotEdge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.make_namer">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.utils.</span></span><span class="sig-name descname"><span class="pre">make_namer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">namer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.utils.make_namer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
-<dl class="class">
-<dt id="beanmachine.ppl.utils.dotbuilder.DotNode">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.dotbuilder.</code><code class="descname">DotNode</code><span class="sig-paren">(</span><em>name: str</em>, <em>label: str</em>, <em>color: str</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.DotNode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.partition_by_kernel">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.utils.</span></span><span class="sig-name descname"><span class="pre">partition_by_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">beanmachine.ppl.utils.equivalence.T</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">beanmachine.ppl.utils.equivalence.T</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">beanmachine.ppl.utils.equivalence.K</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">beanmachine.ppl.utils.equivalence.T</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.utils.partition_by_kernel" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
-<dl class="function">
-<dt id="beanmachine.ppl.utils.dotbuilder.print_graph">
-<code class="descclassname">beanmachine.ppl.utils.dotbuilder.</code><code class="descname">print_graph</code><span class="sig-paren">(</span><em>roots: List[Any], get_children: Callable[[Any], List[Tuple[str, Any]]] = &lt;function _get_children&gt;, to_node_name: Optional[Callable[[Any], str]] = None, to_label: Callable[[Any], str] = &lt;function _to_string&gt;</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.print_graph" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.partition_by_relation">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.utils.</span></span><span class="sig-name descname"><span class="pre">partition_by_relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">beanmachine.ppl.utils.equivalence.T</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">beanmachine.ppl.utils.equivalence.T</span><span class="p"><span class="pre">,</span> </span><span class="pre">beanmachine.ppl.utils.equivalence.T</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">beanmachine.ppl.utils.equivalence.T</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.utils.partition_by_relation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.print_graph">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.utils.</span></span><span class="sig-name descname"><span class="pre">print_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">roots:</span> <span class="pre">List[Any],</span> <span class="pre">get_children:</span> <span class="pre">Callable[[Any],</span> <span class="pre">List[Tuple[str,</span> <span class="pre">Any]]]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_get_children&gt;,</span> <span class="pre">to_node_name:</span> <span class="pre">Optional[Callable[[Any],</span> <span class="pre">str]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">to_label:</span> <span class="pre">Callable[[Any],</span> <span class="pre">str]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_to_string&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.ppl.utils.print_graph" title="Permalink to this definition"></a></dt>
 <dd><p>This function converts an object representing a graph into a string
 in the DOT graph display language.</p>
 <p>The roots are a set of nodes in the graph; the final graph description will
@@ -165,304 +229,9 @@ Again if not supplied, a default that can handle dictionaries, lists and
 tuples is used.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="beanmachine.ppl.utils.dotbuilder.smart_quote">
-<code class="descclassname">beanmachine.ppl.utils.dotbuilder.</code><code class="descname">smart_quote</code><span class="sig-paren">(</span><em>s: str</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.utils.dotbuilder.smart_quote" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-beanmachine.ppl.utils.equivalence">
-<span id="beanmachine-ppl-utils-equivalence-module"></span><h2>beanmachine.ppl.utils.equivalence module<a class="headerlink" href="#module-beanmachine.ppl.utils.equivalence" title="Permalink to this headline">¶</a></h2>
-<p>Defines partition, a helper function to partition a set into
-equivalence classes by an equivalence relation.</p>
-<dl class="function">
-<dt id="beanmachine.ppl.utils.equivalence.partition_by_kernel">
-<code class="descclassname">beanmachine.ppl.utils.equivalence.</code><code class="descname">partition_by_kernel</code><span class="sig-paren">(</span><em>items: Iterable[T], kernel: Callable[[T], K]</em><span class="sig-paren">)</span> &#x2192; List[Set[T]]<a class="headerlink" href="#beanmachine.ppl.utils.equivalence.partition_by_kernel" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.equivalence.partition_by_relation">
-<code class="descclassname">beanmachine.ppl.utils.equivalence.</code><code class="descname">partition_by_relation</code><span class="sig-paren">(</span><em>items: Iterable[T], relation: Callable[[T, T], bool]</em><span class="sig-paren">)</span> &#x2192; List[Set[T]]<a class="headerlink" href="#beanmachine.ppl.utils.equivalence.partition_by_relation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-beanmachine.ppl.utils.graph">
-<span id="beanmachine-ppl-utils-graph-module"></span><h2>beanmachine.ppl.utils.graph module<a class="headerlink" href="#module-beanmachine.ppl.utils.graph" title="Permalink to this headline">¶</a></h2>
-<p>A mutable graph builder</p>
-<dl class="class">
-<dt id="beanmachine.ppl.utils.graph.Graph">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.graph.</code><code class="descname">Graph</code><span class="sig-paren">(</span><em>to_name: Optional[Callable[[T], str]] = None, to_label: Callable[[T], str] = &lt;class 'str'&gt;, to_kernel: Callable[[T], str] = &lt;class 'str'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.are_dags_isomorphic">
-<code class="descname">are_dags_isomorphic</code><span class="sig-paren">(</span><em>n1: T</em>, <em>n2: T</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.are_dags_isomorphic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determines if two nodes in a graph, which must both be roots of a DAG,
-are isomorphic. Node labels are given by the function, which must return the
-same string for two nodes iff the two nodes are value-equal for the purposes of
-isomorphism detection.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.global_without_node">
-<code class="descname">global_without_node</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Graph[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.global_without_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove a node no matter where it is</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.global_without_plate">
-<code class="descname">global_without_plate</code><span class="sig-paren">(</span><em>sub: beanmachine.ppl.utils.graph.Plate[~T][T]</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Graph[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.global_without_plate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove a plate no matter where it is, and all its plates,
-and all its nodes.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.incoming">
-<code class="descname">incoming</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.incoming" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.merge_isomorphic">
-<code class="descname">merge_isomorphic</code><span class="sig-paren">(</span><em>n1: T</em>, <em>n2: T</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.merge_isomorphic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merges two isomorphic nodes.
-Returns true if there was any merge made.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.merge_isomorphic_children">
-<code class="descname">merge_isomorphic_children</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.merge_isomorphic_children" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merges all the isomorphic children of a node.
-Returns true if there was any merge made.
-The surviving node is the one with the least name.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.merge_isomorphic_many">
-<code class="descname">merge_isomorphic_many</code><span class="sig-paren">(</span><em>nodes: List[T]</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.merge_isomorphic_many" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merges a collection of two or more isomorphic nodes into nodes[0]
-Returns true if there was any merge made.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.outgoing">
-<code class="descname">outgoing</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.outgoing" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.reachable">
-<code class="descname">reachable</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; List[T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.reachable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.to_dot">
-<code class="descname">to_dot</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.to_dot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a graph to a program in the DOT language.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.with_edge">
-<code class="descname">with_edge</code><span class="sig-paren">(</span><em>start: T</em>, <em>end: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Graph[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.with_edge" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.with_node">
-<code class="descname">with_node</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Graph[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.with_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a node to the top level</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.with_plate">
-<code class="descname">with_plate</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Plate[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.with_plate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a plate to the top level; returns the plate</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.without_edge">
-<code class="descname">without_edge</code><span class="sig-paren">(</span><em>start: T</em>, <em>end: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Graph[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.without_edge" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.without_node">
-<code class="descname">without_node</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Graph[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.without_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove a node from the top level</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Graph.without_plate">
-<code class="descname">without_plate</code><span class="sig-paren">(</span><em>sub: beanmachine.ppl.utils.graph.Plate[~T][T]</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Graph[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Graph.without_plate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes a plate from the top level, and all its plates, and
-all its nodes.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="beanmachine.ppl.utils.graph.Plate">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.graph.</code><code class="descname">Plate</code><span class="sig-paren">(</span><em>graph: beanmachine.ppl.utils.graph.Graph[~T][T], parent: Optional[beanmachine.ppl.utils.graph.Plate[~T][T]]</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.graph.Plate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Plate.with_edge">
-<code class="descname">with_edge</code><span class="sig-paren">(</span><em>start: T</em>, <em>end: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Plate[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Plate.with_edge" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Plate.with_node">
-<code class="descname">with_node</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Plate[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Plate.with_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds a new node to the plate, or, if the node is already in the
-graph, moves it to this plate. Edges are unaffected by moves.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Plate.with_plate">
-<code class="descname">with_plate</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Plate[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Plate.with_plate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a new Plate to this Plate; returns the new Plate</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Plate.without_node">
-<code class="descname">without_node</code><span class="sig-paren">(</span><em>node: T</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Plate[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Plate.without_node" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.graph.Plate.without_plate">
-<code class="descname">without_plate</code><span class="sig-paren">(</span><em>sub: beanmachine.ppl.utils.graph.Plate[~T][T]</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.graph.Plate[~T][T]<a class="headerlink" href="#beanmachine.ppl.utils.graph.Plate.without_plate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes a given Plate, and all its Plates, and all its nodes.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-beanmachine.ppl.utils.item_counter">
-<span id="beanmachine-ppl-utils-item-counter-module"></span><h2>beanmachine.ppl.utils.item_counter module<a class="headerlink" href="#module-beanmachine.ppl.utils.item_counter" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="beanmachine.ppl.utils.item_counter.ItemCounter">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.item_counter.</code><code class="descname">ItemCounter</code><a class="headerlink" href="#beanmachine.ppl.utils.item_counter.ItemCounter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="beanmachine.ppl.utils.item_counter.ItemCounter.add_item">
-<code class="descname">add_item</code><span class="sig-paren">(</span><em>item: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.utils.item_counter.ItemCounter.add_item" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.item_counter.ItemCounter.remove_item">
-<code class="descname">remove_item</code><span class="sig-paren">(</span><em>item: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#beanmachine.ppl.utils.item_counter.ItemCounter.remove_item" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-beanmachine.ppl.utils.memoize">
-<span id="beanmachine-ppl-utils-memoize-module"></span><h2>beanmachine.ppl.utils.memoize module<a class="headerlink" href="#module-beanmachine.ppl.utils.memoize" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="beanmachine.ppl.utils.memoize.MemoizationKey">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.memoize.</code><code class="descname">MemoizationKey</code><span class="sig-paren">(</span><em>wrapper: Callable</em>, <em>arguments: Tuple</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.memoize.MemoizationKey" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="beanmachine.ppl.utils.memoize.MemoizedClass">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.memoize.</code><code class="descname">MemoizedClass</code><a class="headerlink" href="#beanmachine.ppl.utils.memoize.MemoizedClass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></p>
-</dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.memoize.memoize">
-<code class="descclassname">beanmachine.ppl.utils.memoize.</code><code class="descname">memoize</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.memoize.memoize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to be used to memoize arbitrary functions.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.memoize.memoizer_report">
-<code class="descclassname">beanmachine.ppl.utils.memoize.</code><code class="descname">memoizer_report</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.memoize.memoizer_report" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.memoize.tensor_to_tuple">
-<code class="descclassname">beanmachine.ppl.utils.memoize.</code><code class="descname">tensor_to_tuple</code><span class="sig-paren">(</span><em>t: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; Any<a class="headerlink" href="#beanmachine.ppl.utils.memoize.tensor_to_tuple" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-beanmachine.ppl.utils.tensorops">
-<span id="beanmachine-ppl-utils-tensorops-module"></span><h2>beanmachine.ppl.utils.tensorops module<a class="headerlink" href="#module-beanmachine.ppl.utils.tensorops" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="beanmachine.ppl.utils.tensorops.gradients">
-<code class="descclassname">beanmachine.ppl.utils.tensorops.</code><code class="descname">gradients</code><span class="sig-paren">(</span><em>outputs: torch.Tensor</em>, <em>inputs: torch.Tensor</em>, <em>allow_unused: bool = True</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.utils.tensorops.gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the first and the second gradient of the output Tensor
-w.r.t. the input Tensor.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>output</strong> – A Tensor variable with a single element.</li>
-<li><strong>input</strong> – A 1-d tensor input variable that was used to compute the
-output. Note: the input must have requires_grad=True</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of Tensor variables – The first and the second gradient.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.tensorops.halfspace_gradients">
-<code class="descclassname">beanmachine.ppl.utils.tensorops.</code><code class="descname">halfspace_gradients</code><span class="sig-paren">(</span><em>outputs: torch.Tensor</em>, <em>inputs: torch.Tensor</em>, <em>allow_unused: bool = True</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.utils.tensorops.halfspace_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Compute the first and the second gradient of the output Tensor w.r.t. the input</dt>
-<dd>Tensor for half space.</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>output</strong> – A Tensor variable with a single element.</li>
-<li><strong>input</strong> – A 1-d tensor input variable that was used to compute the
-output. Note: the input must have requires_grad=True</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of Tensor variables – The first and the second gradient.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.tensorops.simplex_gradients">
-<code class="descclassname">beanmachine.ppl.utils.tensorops.</code><code class="descname">simplex_gradients</code><span class="sig-paren">(</span><em>outputs: torch.Tensor</em>, <em>inputs: torch.Tensor</em>, <em>allow_unused: bool = True</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor]<a class="headerlink" href="#beanmachine.ppl.utils.tensorops.simplex_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Compute the first and the second gradient of the output Tensor w.r.t. the input</dt>
-<dd>Tensor for simplex.</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>output</strong> – A Tensor variable with a single element.</li>
-<li><strong>input</strong> – A 1-d tensor input variable that was used to compute the
-output. Note: the input must have requires_grad=True</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of Tensor variables – The first and the second gradient.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="module-beanmachine.ppl.utils.treeprinter">
-<span id="beanmachine-ppl-utils-treeprinter-module"></span><h2>beanmachine.ppl.utils.treeprinter module<a class="headerlink" href="#module-beanmachine.ppl.utils.treeprinter" title="Permalink to this headline">¶</a></h2>
-<p>Defines print_tree, a helper function to render Python objects as trees.</p>
-<dl class="function">
-<dt id="beanmachine.ppl.utils.treeprinter.print_tree">
-<code class="descclassname">beanmachine.ppl.utils.treeprinter.</code><code class="descname">print_tree</code><span class="sig-paren">(</span><em>root: Any, get_children: Callable[[Any], List[Any]] = &lt;function _get_children&gt;, to_string: Callable[[Any], str] = &lt;function _to_string&gt;, unicode: bool = True</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.utils.treeprinter.print_tree" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.utils.print_tree">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.utils.</span></span><span class="sig-name descname"><span class="pre">print_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">root:</span> <span class="pre">Any,</span> <span class="pre">get_children:</span> <span class="pre">Callable[[Any],</span> <span class="pre">List[Any]]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_get_children&gt;,</span> <span class="pre">to_string:</span> <span class="pre">Callable[[Any],</span> <span class="pre">str]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_to_string&gt;,</span> <span class="pre">unicode:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#beanmachine.ppl.utils.print_tree" title="Permalink to this definition"></a></dt>
 <dd><p>Renders an arbitrary Python object as a tree. This is handy for debugging.</p>
 <p>If you have a specific tree structure imposed on an object, you can pass
 in your own get_children method; if omitted, a function that handles Python
@@ -473,119 +242,15 @@ a default function is used.</p>
 use straight ASCII characters, pass False for the unicode parameter.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-beanmachine.ppl.utils.unique_name">
-<span id="beanmachine-ppl-utils-unique-name-module"></span><h2>beanmachine.ppl.utils.unique_name module<a class="headerlink" href="#module-beanmachine.ppl.utils.unique_name" title="Permalink to this headline">¶</a></h2>
-<p>A helper class to give unique names to a set of objects.</p>
-<dl class="class">
-<dt id="beanmachine.ppl.utils.unique_name.UniqueNames">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.unique_name.</code><code class="descname">UniqueNames</code><span class="sig-paren">(</span><em>prefix: str = ''</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.unique_name.UniqueNames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="beanmachine.ppl.utils.unique_name.UniqueNames.name">
-<code class="descname">name</code><span class="sig-paren">(</span><em>o: Any</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.utils.unique_name.UniqueNames.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.unique_name.make_namer">
-<code class="descclassname">beanmachine.ppl.utils.unique_name.</code><code class="descname">make_namer</code><span class="sig-paren">(</span><em>namer: Optional[Callable[[Any], str]] = None, prefix: str = ''</em><span class="sig-paren">)</span> &#x2192; Callable[[Any], str]<a class="headerlink" href="#beanmachine.ppl.utils.unique_name.make_namer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-beanmachine.ppl.utils">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="beanmachine.ppl.utils.print_tree">
-<code class="descclassname">beanmachine.ppl.utils.</code><code class="descname">print_tree</code><span class="sig-paren">(</span><em>root: Any, get_children: Callable[[Any], List[Any]] = &lt;function _get_children&gt;, to_string: Callable[[Any], str] = &lt;function _to_string&gt;, unicode: bool = True</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.utils.print_tree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Renders an arbitrary Python object as a tree. This is handy for debugging.</p>
-<p>If you have a specific tree structure imposed on an object, you can pass
-in your own get_children method; if omitted, a function that handles Python
-dictionaries, tuples, named tuples and lists is the default.</p>
-<p>The text of each node is determined by the to_string argument; if omitted
-a default function is used.</p>
-<p>The tree produced uses the Unicode box-drawing characters by default; to
-use straight ASCII characters, pass False for the unicode parameter.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.partition_by_relation">
-<code class="descclassname">beanmachine.ppl.utils.</code><code class="descname">partition_by_relation</code><span class="sig-paren">(</span><em>items: Iterable[T], relation: Callable[[T, T], bool]</em><span class="sig-paren">)</span> &#x2192; List[Set[T]]<a class="headerlink" href="#beanmachine.ppl.utils.partition_by_relation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.partition_by_kernel">
-<code class="descclassname">beanmachine.ppl.utils.</code><code class="descname">partition_by_kernel</code><span class="sig-paren">(</span><em>items: Iterable[T], kernel: Callable[[T], K]</em><span class="sig-paren">)</span> &#x2192; List[Set[T]]<a class="headerlink" href="#beanmachine.ppl.utils.partition_by_kernel" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.print_graph">
-<code class="descclassname">beanmachine.ppl.utils.</code><code class="descname">print_graph</code><span class="sig-paren">(</span><em>roots: List[Any], get_children: Callable[[Any], List[Tuple[str, Any]]] = &lt;function _get_children&gt;, to_node_name: Optional[Callable[[Any], str]] = None, to_label: Callable[[Any], str] = &lt;function _to_string&gt;</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#beanmachine.ppl.utils.print_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function converts an object representing a graph into a string
-in the DOT graph display language.</p>
-<p>The roots are a set of nodes in the graph; the final graph description will
-contain the transitive closure of the children of all roots.</p>
-<p>get_children returns a list of (edge_label, node) pairs; if no argument
-is supplied then a default function that can handle lists, tuples and
-dictionaries is used.</p>
-<p>to_node_name returns a <em>unique</em> string used to identify the node in the
-graph.</p>
-<p>to_label gives a <em>not necessarily unique</em> label for a node in a graph.
-Again if not supplied, a default that can handle dictionaries, lists and
-tuples is used.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="beanmachine.ppl.utils.DotBuilder">
-<em class="property">class </em><code class="descclassname">beanmachine.ppl.utils.</code><code class="descname">DotBuilder</code><span class="sig-paren">(</span><em>name: str = 'graph'</em>, <em>is_subgraph: bool = False</em>, <em>is_cluster: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="beanmachine.ppl.utils.DotBuilder.end_subgraph">
-<code class="descname">end_subgraph</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.end_subgraph" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.DotBuilder.start_subgraph">
-<code class="descname">start_subgraph</code><span class="sig-paren">(</span><em>name: str</em>, <em>is_cluster: bool</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.start_subgraph" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.DotBuilder.with_comment">
-<code class="descname">with_comment</code><span class="sig-paren">(</span><em>comment: str</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_comment" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.DotBuilder.with_edge">
-<code class="descname">with_edge</code><span class="sig-paren">(</span><em>frm: str</em>, <em>to: str</em>, <em>label: str = ''</em>, <em>color: str = ''</em>, <em>constrained: bool = True</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_edge" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.DotBuilder.with_label">
-<code class="descname">with_label</code><span class="sig-paren">(</span><em>label: str</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_label" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="beanmachine.ppl.utils.DotBuilder.with_node">
-<code class="descname">with_node</code><span class="sig-paren">(</span><em>name: str</em>, <em>label: str</em>, <em>color: str = ''</em><span class="sig-paren">)</span> &#x2192; beanmachine.ppl.utils.dotbuilder.DotBuilder<a class="headerlink" href="#beanmachine.ppl.utils.DotBuilder.with_node" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="beanmachine.ppl.utils.make_namer">
-<code class="descclassname">beanmachine.ppl.utils.</code><code class="descname">make_namer</code><span class="sig-paren">(</span><em>namer: Optional[Callable[[Any], str]] = None, prefix: str = ''</em><span class="sig-paren">)</span> &#x2192; Callable[[Any], str]<a class="headerlink" href="#beanmachine.ppl.utils.make_namer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="beanmachine.ppl.testlib.html" class="btn btn-neutral float-left" title="testlib" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="beanmachine.ppl.world.html" class="btn btn-neutral float-right" title="world" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="beanmachine.ppl.testlib.hypothesis_testing.html" class="btn btn-neutral float-left" title="beanmachine.ppl.testlib.hypothesis_testing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.utils.dotbuilder.html" class="btn btn-neutral float-right" title="beanmachine.ppl.utils.dotbuilder" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.vi.optim
+=====================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.vi.optim
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

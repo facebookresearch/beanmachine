@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.gen_bmg_cpp
+====================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.gen_bmg_cpp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

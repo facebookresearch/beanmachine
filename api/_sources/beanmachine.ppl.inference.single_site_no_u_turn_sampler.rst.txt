@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.single_site_no_u_turn_sampler
+=======================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.single_site_no_u_turn_sampler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.fix_bool_comparisons
+=============================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.fix_bool_comparisons
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

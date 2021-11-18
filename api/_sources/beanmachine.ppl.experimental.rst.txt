@@ -1,5 +1,5 @@
-experimental package
-====================================
+beanmachine.ppl.experimental
+============================
 
 Subpackages
 -----------
@@ -12,6 +12,7 @@ Subpackages
    beanmachine.ppl.experimental.gp
    beanmachine.ppl.experimental.inference_compilation
    beanmachine.ppl.experimental.neutra
+   beanmachine.ppl.experimental.variable_elimination
    beanmachine.ppl.experimental.vi
 
 Module contents
@@ -21,3 +22,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+

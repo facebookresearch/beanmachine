@@ -6,33 +6,61 @@ sidebar_label: 'Compiler'
 
 <!-- @import "../../header.md" -->
 
-_This page is Work in Progress!_
+### What is Beanstalk?
 
-Beanstalk is an experimental, just-in-time (JIT) compiler for Bean Machine. While we expect to continue to develop this compiler in the near future, currently it handles only a subset of the Bean Machine language. For example, it supports the following tutorials:
-- Linear Regression,
-- Gaussian Mixture Model (1D, mixture of 2) - TODO: The currently included tutorial is more general than that,
-- Neal's funnel.
+Beanstalk is an experimental compiler under active development: it transforms models written in Bean Machine into an optimized [Bean Machine Graph (BMG) C++ Runtime](../bmg/bmg.md) model.
+It is designed specifically to handle "unvectorized" models where stochastic quantities are
+tensors which contain exactly one value; we can often obtain significant performance improvements
+over Bean Machine  when using BMG to run inference on such models.
 
-The subset currently is limited to:
-- Univariate distributions,
-- Simple uses of tensors, for example, tensor addition and multiplication,
-- Limited control flow is supported,
-- Inference algorithms - currently only Newtonian Monte Carlo (NMC) is supported,
-- Only one chain of samples can be generated at a time.
+The tutorials currently working with Beanstalk are:
+- Linear regression
+- Gaussian mixture model
+- Neal's funnel
 
-To use Beanstalk to run an inference model, instead of using a standard Bean Machine inference algorithm using a command such as `bm.SingleSiteNewtonianMonteCarlo().infer()`, simply include the compiler using `from beanmachine.ppl.inference.bmg_inference import BMGInference` and use `BMGInference().infer()`.
+For the above three models, the Beanstalk-compiled version of NMC inference reduces runtime to generate samples of size 10K for the posterior distribution by anywhere between 80x and 250x depending on the model.
 
-The `BMGInference()` object provides a collection of utility methods that can be used to inspect the intermediate results of the compiler, namely:
-- `BMGInference().infer(queries, observations, num_samples, num_chains)` - Returns a dictionary of samples for the queried variables,
-- `BMGInference().to_graphviz(queries, observations)` - Returns a graphviz graph representing the model,
-- `BMGInference().to_dot(queries, observations)` - Returns a DOT representation of the probabilistic graph of the model,
-- `BMGInference().to_cpp(queries, observations)` - Returns a C++ program that builds a version of this graph, and
-- `BMGInference().to_python(queries, observations)` - Returns a Python program that builds a version of the graph.
+### Model restrictions
 
-### Beanstalk uses the Bean Machine Graph (BMG) library
-With code generated that is powered by the Bean Machine Graph (BMG) library, which runs critical pieces of code in C++ rather than Python, to speed up the inference process significantly.
+Models compiled with Beanstalk have many restrictions. In the current release:
 
------------
+- With some exceptions, all tensor quantities manipulated by the model must be single-valued. There is
+  some limited support for one- and two-dimensional tensors.
+- `@random_variable` functions must return a univariate `Bernoulli`, `Beta`, `Binomial`, `Categorical`,
+  `Chi2`, `Dirichlet`, `Gamma`, `HalfCauchy`, `HalfNormal`, `Normal`, `StudentT` or `Uniform(0., 1.)`
+  distribution.
+- Tensor operators on stochastic values are limited to `add()`, `div()`, `exp()`, `expm1()`,
+  `item()`, `log()`, `logsumexp()`, `mul()`, `neg()`, `pow()`, `sigmoid()` and `sub()`.
+- Python operators on stochastic values in `@random_variable` or `@functional` functions are limited to
+  `+`, `-`, `*`, `/`, and `**` operators. Matrix multiplication and comparisons are not yet supported.
+- Support for the `[]` indexing operation is limited.
+- Support for "destructuring" assignments such as `x, y = z` where `z` is a stochastic quantity is limited.
+- All `@random_variable` and `@functional` functions in the model *and every function called by them*
+  must be "pure". That is, the value returned must be logically identical every time the function is
+  called with the same arguments, and the function must not modify any externally-observable state.
+- Models must not mutate existing tensors "in place"; always create new values rather than mutating
+  existing tensors.
+- Conditions of `while` statements, `if` statements, and `if` expressions must not be stochastic.
+
+### Getting started with Beanstalk
+
+To use Beanstalk to run Bean Machine Graph inference on a Bean Machine model, first import the inference engine. For example: `from beanmachine.ppl.inference.bmg_inference import BMGInference`.
+
+The `BMGInference()` object provides the following methods to inspect the compiler's analysis and produce code that generates a Bean Machine Graph model:
+
+- `BMGInference().infer(queries, observations, num_samples, num_chains)` - Compiles the model and executes
+  inference using Bean Machine Graph; returns a dictionary of samples for the queried variables. In the current
+  release only Newtonian Monte Carlo (NMC) is supported when running inference with `BMGInference`.
+
+- `BMGInference().to_cpp(queries, observations)` - Returns a C++ program fragment that constructs the equivalent
+BMG model.
+- `BMGInference().to_python(queries, observations)` - Returns a Python program that constructs the equivalent
+BMG model.
+- `BMGInference().to_graphviz(queries, observations)` - Returns a graphviz graph representing the model.
+- `BMGInference().to_dot(queries, observations)` - Returns the DOT source code of the graphviz graph.
+
+
+<FbInternalOnly>
 
 Facebook specific:
 
@@ -40,5 +68,4 @@ Facebook specific:
 
 BMG: https://fb.quip.com/TDA7AIjRmScW
 
-Ignore--saved for formatting tips:
-Let's quickly translate the model we discussed in the [Introduction](../introduction/introduction.md) into Bean Machine code! Although this will get you up-and-running, **it's important that you read through all of the pages in the Overview to have a complete understanding of Bean Machine**. Happy modeling!
+</FbInternalOnly>

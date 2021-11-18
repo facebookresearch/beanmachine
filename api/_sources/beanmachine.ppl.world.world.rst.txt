@@ -1,0 +1,11 @@
+beanmachine.ppl.world.world
+===========================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.world.world
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

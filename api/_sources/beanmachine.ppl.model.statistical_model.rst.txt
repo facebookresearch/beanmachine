@@ -1,0 +1,11 @@
+beanmachine.ppl.model.statistical_model
+=======================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.model.statistical_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

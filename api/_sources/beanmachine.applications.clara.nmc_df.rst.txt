@@ -1,0 +1,11 @@
+beanmachine.applications.clara.nmc_df
+=====================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.applications.clara.nmc_df
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

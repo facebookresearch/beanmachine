@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.gp.kernels
+=======================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.gp.kernels
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

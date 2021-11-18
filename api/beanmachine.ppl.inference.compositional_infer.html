@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.inference.compositional_infer &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.inference.monte_carlo_samples" href="beanmachine.ppl.inference.monte_carlo_samples.html" />
+    <link rel="prev" title="beanmachine.ppl.inference.bmg_inference" href="beanmachine.ppl.inference.bmg_inference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.abstract_infer.html">beanmachine.ppl.inference.abstract_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html">beanmachine.ppl.inference.abstract_mh_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.bmg_inference.html">beanmachine.ppl.inference.bmg_inference</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.inference.compositional_infer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.ppl.inference.compositional_infer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html">beanmachine.ppl.inference.monte_carlo_samples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.predictive.html">beanmachine.ppl.inference.predictive</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.rejection_sampling_infer.html">beanmachine.ppl.inference.rejection_sampling_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.sampler.html">beanmachine.ppl.inference.sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_ancestral_mh.html">beanmachine.ppl.inference.single_site_ancestral_mh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo.html">beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_newtonian_monte_carlo.html">beanmachine.ppl.inference.single_site_newtonian_monte_carlo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_no_u_turn_sampler.html">beanmachine.ppl.inference.single_site_no_u_turn_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_random_walk.html">beanmachine.ppl.inference.single_site_random_walk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_uniform_mh.html">beanmachine.ppl.inference.single_site_uniform_mh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.utils.html">beanmachine.ppl.inference.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a> &raquo;</li>
+      <li>beanmachine.ppl.inference.compositional_infer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.inference.compositional_infer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-inference-compositional-infer">
+<h1>beanmachine.ppl.inference.compositional_infer<a class="headerlink" href="#beanmachine-ppl-inference-compositional-infer" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.inference.compositional_infer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.inference.compositional_infer" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.compositional_infer.CompositionalInference">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.compositional_infer.</span></span><span class="sig-name descname"><span class="pre">CompositionalInference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proposers</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.compositional_infer.CompositionalInference" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.inference.abstract_mh_infer.html#beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference" title="beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.abstract_mh_infer.AbstractMHInference</span></code></a></p>
+<p>Compositional inference</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.compositional_infer.CompositionalInference.add_sequential_proposer">
+<span class="sig-name descname"><span class="pre">add_sequential_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.compositional_infer.CompositionalInference.add_sequential_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Adds a sequential block to list of blocks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>block</strong> – list of random variables functions that are to be sampled</p>
+</dd>
+</dl>
+<p>together sequentially.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.compositional_infer.CompositionalInference.find_best_single_site_proposer">
+<span class="sig-name descname"><span class="pre">find_best_single_site_proposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.compositional_infer.CompositionalInference.find_best_single_site_proposer" title="Permalink to this definition"></a></dt>
+<dd><p>Finds the best proposer for a node given the proposer dicts passed in
+once instantiating the class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>node</strong> – the node for which to return a proposer</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a proposer for the node</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.inference.bmg_inference.html" class="btn btn-neutral float-left" title="beanmachine.ppl.inference.bmg_inference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.inference.monte_carlo_samples.html" class="btn btn-neutral float-right" title="beanmachine.ppl.inference.monte_carlo_samples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.vi.mean_field_variational_approximation
+====================================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.vi.mean_field_variational_approximation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

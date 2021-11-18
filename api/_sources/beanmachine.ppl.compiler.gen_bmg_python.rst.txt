@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.gen_bmg_python
+=======================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.gen_bmg_python
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

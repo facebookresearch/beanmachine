@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.ast_patterns
+=====================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.ast_patterns
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

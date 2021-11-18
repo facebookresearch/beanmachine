@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.bmg_requirements
+=========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.bmg_requirements
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

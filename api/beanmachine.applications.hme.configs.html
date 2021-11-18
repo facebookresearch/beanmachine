@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.applications.hme.configs &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.applications.hme.interface" href="beanmachine.applications.hme.interface.html" />
+    <link rel="prev" title="beanmachine.applications.hme.abstract_model" href="beanmachine.applications.hme.abstract_model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.applications.hme.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.abstract_linear_model.html">beanmachine.applications.hme.abstract_linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.abstract_model.html">beanmachine.applications.hme.abstract_model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.applications.hme.configs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.applications.hme.configs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.interface.html">beanmachine.applications.hme.interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.null_mixture_model.html">beanmachine.applications.hme.null_mixture_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.patsy_mixed.html">beanmachine.applications.hme.patsy_mixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.applications.hme.priors.html">beanmachine.applications.hme.priors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.applications.hme.html#module-beanmachine.applications.hme">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.compiler.html">beanmachine.ppl.compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.utils.html">beanmachine.ppl.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.applications.html">beanmachine.applications</a> &raquo;</li>
+          <li><a href="beanmachine.applications.hme.html">beanmachine.applications.hme</a> &raquo;</li>
+      <li>beanmachine.applications.hme.configs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.applications.hme.configs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-applications-hme-configs">
+<h1>beanmachine.applications.hme.configs<a class="headerlink" href="#beanmachine-applications-hme-configs" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.applications.hme.configs">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.applications.hme.configs" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.configs.</span></span><span class="sig-name descname"><span class="pre">InferConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">n_iter:</span> <span class="pre">int</span></em>, <em class="sig-param"><span class="pre">n_warmup:</span> <span class="pre">int</span></em>, <em class="sig-param"><span class="pre">algorithm:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'NMC'</span></em>, <em class="sig-param"><span class="pre">n_chains:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">2</span></em>, <em class="sig-param"><span class="pre">queries:</span> <span class="pre">List[str]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">keep_warmup:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">keep_logprob:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">5123401</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A configuration class for MCMC posterior inference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_iter</strong> – total number of posterior inference iterations</p></li>
+<li><p><strong>n_warmup</strong> – number of posterior inference iterations to discard as burn-in or warm-up period</p></li>
+<li><p><strong>algorithm</strong> – MCMC posterior inference method, defaults to ‘NMC’</p></li>
+<li><p><strong>n_chains</strong> – number of independent Markov chains running in parallel, defaults to 2</p></li>
+<li><p><strong>queries</strong> – a set of model parameters to store posterior MCMC to be returned to user</p></li>
+<li><p><strong>keep_warmup</strong> – flag of whether to keep the first n_warmup posterior samples, defaults to False</p></li>
+<li><p><strong>keep_logprob</strong> – flag of whether to keep track of log-likelihood along MCMC inference, defaults to False</p></li>
+<li><p><strong>seed</strong> – an integer number that controls the pattern of randomness, defaults to 5123401</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.algorithm">
+<span class="sig-name descname"><span class="pre">algorithm</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">'NMC'</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.algorithm" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.keep_logprob">
+<span class="sig-name descname"><span class="pre">keep_logprob</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.keep_logprob" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.keep_warmup">
+<span class="sig-name descname"><span class="pre">keep_warmup</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.keep_warmup" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.n_chains">
+<span class="sig-name descname"><span class="pre">n_chains</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.n_chains" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.n_iter">
+<span class="sig-name descname"><span class="pre">n_iter</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.n_iter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.n_warmup">
+<span class="sig-name descname"><span class="pre">n_warmup</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.n_warmup" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.queries">
+<span class="sig-name descname"><span class="pre">queries</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.queries" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.InferConfig.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><em class="property"> <span class="pre">=</span> <span class="pre">5123401</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.InferConfig.seed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.MixtureConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.configs.</span></span><span class="sig-name descname"><span class="pre">MixtureConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">use_null_mixture:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">use_bimodal_alternative:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">use_asymmetric_modes:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">use_partial_asymmetric_modes:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">null_prob_regression:</span> <span class="pre">beanmachine.applications.hme.configs.RegressionConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">sign_prob_regression:</span> <span class="pre">beanmachine.applications.hme.configs.RegressionConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.configs.MixtureConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A configuration class for mixture components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>use_null_mixture</strong> – flag of whether the outcome is a mixture of null (0 effect) and alternative (non-zero effect), defaults to True</p></li>
+<li><p><strong>use_bimodal_alternative</strong> – flag of whether to consider H1 model as a mixture of positive (H1+) and negative (H1-) effects, defaults to False</p></li>
+<li><p><strong>use_asymmetric_modes</strong> – flag of whether H1+ and H1- are asymmetric around zero, defaults to False</p></li>
+<li><p><strong>use_partial_asymmetric_modes</strong> – flag of whether H1+ shares the same scale parameters of the random effects with H1-, defaults to False</p></li>
+<li><p><strong>null_prob_regression</strong> – model configurations for null mixture probability parameter (also known as movability)</p></li>
+<li><p><strong>sign_prob_regression</strong> – model configurations for bimodal sign probability parameter</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.MixtureConfig.null_prob_regression">
+<span class="sig-name descname"><span class="pre">null_prob_regression</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.applications.hme.configs.RegressionConfig" title="beanmachine.applications.hme.configs.RegressionConfig"><span class="pre">beanmachine.applications.hme.configs.RegressionConfig</span></a></em><a class="headerlink" href="#beanmachine.applications.hme.configs.MixtureConfig.null_prob_regression" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.MixtureConfig.sign_prob_regression">
+<span class="sig-name descname"><span class="pre">sign_prob_regression</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.applications.hme.configs.RegressionConfig" title="beanmachine.applications.hme.configs.RegressionConfig"><span class="pre">beanmachine.applications.hme.configs.RegressionConfig</span></a></em><a class="headerlink" href="#beanmachine.applications.hme.configs.MixtureConfig.sign_prob_regression" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.MixtureConfig.use_asymmetric_modes">
+<span class="sig-name descname"><span class="pre">use_asymmetric_modes</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.MixtureConfig.use_asymmetric_modes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.MixtureConfig.use_bimodal_alternative">
+<span class="sig-name descname"><span class="pre">use_bimodal_alternative</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.MixtureConfig.use_bimodal_alternative" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.MixtureConfig.use_null_mixture">
+<span class="sig-name descname"><span class="pre">use_null_mixture</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.MixtureConfig.use_null_mixture" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.MixtureConfig.use_partial_asymmetric_modes">
+<span class="sig-name descname"><span class="pre">use_partial_asymmetric_modes</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.MixtureConfig.use_partial_asymmetric_modes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.ModelConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.configs.</span></span><span class="sig-name descname"><span class="pre">ModelConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">mean_regression:</span> <span class="pre">beanmachine.applications.hme.configs.RegressionConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">mean_mixture:</span> <span class="pre">beanmachine.applications.hme.configs.MixtureConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em>, <em class="sig-param"><span class="pre">priors:</span> <span class="pre">Dict[str</span></em>, <em class="sig-param"><span class="pre">beanmachine.applications.hme.configs.PriorConfig]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.configs.ModelConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A configuration class for integrated models. E.g.,</p>
+<blockquote>
+<div><dl>
+<dt>ModelConfig(</dt><dd><dl class="simple">
+<dt>mean_regression = RegressionConfig(</dt><dd><p>distribution=”normal”,
+outcome=”y”,
+stderr=None,
+formula=”y ~ 1 + (1|x)”,
+link=”identity”,</p>
+</dd>
+</dl>
+<p>),
+mean_mixture = MixtureConfig(</p>
+<blockquote>
+<div><p>use_null_mixture=True,
+use_bimodal_alternative=True,
+use_asymmetric_modes=True,
+use_partial_asymmetric_modes=True,</p>
+</div></blockquote>
+<p>),
+priors = {</p>
+<blockquote>
+<div><p>“fe”: PriorConfig(‘normal’, {“mean”: 0.0, “scale”: 1.0}),
+}</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mean_regression</strong> – regression model configurations for fixed and random effects components</p></li>
+<li><p><strong>mean_mixture</strong> – configuration settings for mixture components</p></li>
+<li><p><strong>priors</strong> – a dictionary mapping model parameters to their prior distribution configurations</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.ModelConfig.mean_mixture">
+<span class="sig-name descname"><span class="pre">mean_mixture</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.applications.hme.configs.MixtureConfig" title="beanmachine.applications.hme.configs.MixtureConfig"><span class="pre">beanmachine.applications.hme.configs.MixtureConfig</span></a></em><a class="headerlink" href="#beanmachine.applications.hme.configs.ModelConfig.mean_mixture" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.ModelConfig.mean_regression">
+<span class="sig-name descname"><span class="pre">mean_regression</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#beanmachine.applications.hme.configs.RegressionConfig" title="beanmachine.applications.hme.configs.RegressionConfig"><span class="pre">beanmachine.applications.hme.configs.RegressionConfig</span></a></em><a class="headerlink" href="#beanmachine.applications.hme.configs.ModelConfig.mean_regression" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.ModelConfig.priors">
+<span class="sig-name descname"><span class="pre">priors</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.applications.hme.configs.PriorConfig" title="beanmachine.applications.hme.configs.PriorConfig"><span class="pre">beanmachine.applications.hme.configs.PriorConfig</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.ModelConfig.priors" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.PriorConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.configs.</span></span><span class="sig-name descname"><span class="pre">PriorConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">distribution:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'flat'</span></em>, <em class="sig-param"><span class="pre">parameters:</span> <span class="pre">Dict[str</span></em>, <em class="sig-param"><span class="pre">Union[float</span></em>, <em class="sig-param"><span class="pre">beanmachine.applications.hme.configs.PriorConfig]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.configs.PriorConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A configuration class for prior distributions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>distribution</strong> – prior distribution family, defaults to flat prior</p></li>
+<li><p><strong>parameters</strong> – parameter values of prior distribution family</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.PriorConfig.distribution">
+<span class="sig-name descname"><span class="pre">distribution</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">'flat'</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.PriorConfig.distribution" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.PriorConfig.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#beanmachine.applications.hme.configs.PriorConfig" title="beanmachine.applications.hme.configs.PriorConfig"><span class="pre">beanmachine.applications.hme.configs.PriorConfig</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.PriorConfig.parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.RegressionConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.configs.</span></span><span class="sig-name descname"><span class="pre">RegressionConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'normal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outcome</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stderr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'identity'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.configs.RegressionConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A configuration class for regression model specifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>distribution</strong> – distribution family of outcome variable conditional on mixed effects, defaults to ‘normal’</p></li>
+<li><p><strong>outcome</strong> – column name of outcome, defaults to ‘y’</p></li>
+<li><p><strong>stderr</strong> – column name of standard deviation of afore-mentioned distribution family, defaults to None</p></li>
+<li><p><strong>formula</strong> – statistical formula establishing the relationship between outcome and covariates, defaults to ‘1’</p></li>
+<li><p><strong>link</strong> – link function linking the systematic component (mixed effects) and outcome y, defaults to ‘identity’</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.RegressionConfig.distribution">
+<span class="sig-name descname"><span class="pre">distribution</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">'normal'</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.RegressionConfig.distribution" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.RegressionConfig.formula">
+<span class="sig-name descname"><span class="pre">formula</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">'1'</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.RegressionConfig.formula" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.RegressionConfig.link">
+<span class="sig-name descname"><span class="pre">link</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">'identity'</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.RegressionConfig.link" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.RegressionConfig.outcome">
+<span class="sig-name descname"><span class="pre">outcome</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">'y'</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.RegressionConfig.outcome" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.RegressionConfig.stderr">
+<span class="sig-name descname"><span class="pre">stderr</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.RegressionConfig.stderr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.StructuredPriorConfig">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.applications.hme.configs.</span></span><span class="sig-name descname"><span class="pre">StructuredPriorConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">specification:</span> <span class="pre">str</span></em>, <em class="sig-param"><span class="pre">category_order:</span> <span class="pre">List[str]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.applications.hme.configs.StructuredPriorConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A configuration class for structured prior distributions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>specification</strong> – type (e.g., AR, RW, etc) of the structured prior</p></li>
+<li><p><strong>category_order</strong> – list of categorical covariate levels, specifying its ordinal structure</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.StructuredPriorConfig.category_order">
+<span class="sig-name descname"><span class="pre">category_order</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.StructuredPriorConfig.category_order" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="beanmachine.applications.hme.configs.StructuredPriorConfig.specification">
+<span class="sig-name descname"><span class="pre">specification</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#beanmachine.applications.hme.configs.StructuredPriorConfig.specification" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.applications.hme.abstract_model.html" class="btn btn-neutral float-left" title="beanmachine.applications.hme.abstract_model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.applications.hme.interface.html" class="btn btn-neutral float-right" title="beanmachine.applications.hme.interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

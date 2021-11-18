@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.global_inference.proposer.single_site_uniform_proposer
+===================================================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.global_inference.proposer.single_site_uniform_proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

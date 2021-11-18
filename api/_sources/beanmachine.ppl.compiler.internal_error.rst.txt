@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.internal_error
+=======================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.internal_error
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,11 @@
+beanmachine.ppl.compiler.gen_dot
+================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.compiler.gen_dot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
