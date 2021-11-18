@@ -11,14 +11,18 @@ $ yarn
 ### Local Development
 
 ```
+$ export NODE_OPTIONS=--openssl-legacy-provider
 $ yarn start
 ```
 
 This command starts a local development server and open up a browser window. Most changes are reflected live without having to restart the server.
 
+The first line setting the environment variable is required to bypass a bug in OpenSSL on some platforms and is likely to be removed in future versions.
+
 ### Build
 
 ```
+$ export NODE_OPTIONS=--openssl-legacy-provider
 $ yarn build
 ```
 
