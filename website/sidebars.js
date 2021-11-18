@@ -28,7 +28,6 @@ module.exports = {
     ],
     Advanced: ['overview/bmg/bmg', 'overview/beanstalk/beanstalk'],
     Tutorials: ['overview/tutorials/tutorials'],
-    API: ['overview/api/api'], // #TODO: Brian Johnson will populate this!
     Packages: ['overview/packages/packages'],
     Contributing: ['contributing'],
     ...fbInternalOnly({FacebookIntern: ['overview/facebook/facebook']}),

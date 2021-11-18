@@ -35,9 +35,16 @@ module.exports = {
           label: 'Docs',
           position: 'left',
         },
-        {to: '/docs/tutorials', label: 'Tutorials', position: 'left'},
-        {to: 'docs/overview/api/api', label: 'API', position: 'left'},
-        // {href: '/api/index.html', label: 'API', position: 'left'},
+        {
+          to: '/docs/tutorials',
+          label: 'Tutorials',
+          position: 'left'
+        },
+        {
+          href: 'pathname:///api/index.html',
+          label: 'API',
+          position: 'left'
+        },
         // {to: 'blog', label: 'Blog', position: 'left'},
         // Please keep GitHub link to the right for consistency.
         {

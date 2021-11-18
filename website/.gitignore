@@ -21,3 +21,7 @@ yarn-error.log*
 
 # ESLint
 .eslintcache
+
+# Sphinx output
+/static/api/
+/static/doctrees/
