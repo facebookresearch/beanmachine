@@ -97,6 +97,7 @@ _product_of_inputs = {
     bn.GreaterThanEqualNode: torch.Tensor.ge,
     bn.GreaterThanNode: torch.Tensor.gt,
     bn.InvertNode: torch.Tensor.__invert__,  # pyre-ignore
+    bn.ItemNode: lambda x: x,  # item() is an identity
     bn.LessThanEqualNode: torch.Tensor.le,
     bn.LessThanNode: torch.Tensor.lt,
     bn.LogisticNode: torch.Tensor.sigmoid,
@@ -122,7 +123,6 @@ _product_of_inputs = {
 # LogSumExpTorchNode
 # Log1mexpNode
 # IndexNode
-# ItemNode
 # Log1mexpNode
 #
 # We will need to implement computation of the support
