@@ -1,6 +1,7 @@
 import math
 from abc import abstractmethod
 
+import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
     BaseProposer,
@@ -46,6 +47,13 @@ class BaseSingleSiteMHProposer(BaseProposer):
         )
         # model size adjustment log (n/n')
         accept_log_prob += math.log(len(world)) - math.log(len(new_world))
+
+        if torch.isnan(accept_log_prob):
+            accept_log_prob = torch.tensor(
+                float("-inf"),
+                device=accept_log_prob.device,
+                dtype=accept_log_prob.dtype,
+            )
 
         return new_world, accept_log_prob
 
