@@ -520,7 +520,7 @@ class Model2PredictiveChecks(SimulatedPredictiveChecks, PlotMixin):
             s_with_observations = {
                 key: data_vars.get(key)
                 for key, _ in self.samples_with_observations_xr.items()
-                if s_query_str in key.__dict__["wrapper"].__name__
+                if s_query_str in str(key)
             }
             s_with_observations = dict(
                 sorted(s_with_observations.items(), key=lambda item: item[0].arguments)
@@ -534,7 +534,7 @@ class Model2PredictiveChecks(SimulatedPredictiveChecks, PlotMixin):
             s_without_observations = {
                 key: data_vars.get(key)
                 for key, _ in self.samples_without_observations_xr.items()
-                if s_query_str in key.__dict__["wrapper"].__name__
+                if s_query_str in str(key)
             }
             s_without_observations = dict(
                 sorted(
@@ -604,7 +604,7 @@ class Model3PredictiveChecks(SimulatedPredictiveChecks, PlotMixin):
                     2,
                 )
                 for key, _ in self.samples_with_observations_xr.items()
-                if s_query_str in key.__dict__["wrapper"].__name__
+                if s_query_str in str(key)
             }
             s_with_observations = dict(
                 sorted(s_with_observations.items(), key=lambda item: item[0].arguments)
@@ -622,7 +622,7 @@ class Model3PredictiveChecks(SimulatedPredictiveChecks, PlotMixin):
                     2,
                 )
                 for key, _ in self.samples_without_observations_xr.items()
-                if s_query_str in key.__dict__["wrapper"].__name__
+                if s_query_str in str(key)
             }
             s_without_observations = dict(
                 sorted(
@@ -631,7 +631,7 @@ class Model3PredictiveChecks(SimulatedPredictiveChecks, PlotMixin):
             )
             self.s_without_observations = list(s_without_observations.values())
 
-    def _model(self, i: int, p: Tensor, s: Tensor) -> dist.Binomial:
+    def _model(self, i: int, p: Tensor, s: List[Tensor]) -> dist.Binomial:
         # Handle the case when both weights are zero.
         switch = s[i].clone()
         switch[(switch.sum(dim=1) == 0.0).nonzero()] = torch.tensor(
@@ -643,7 +643,7 @@ class Model3PredictiveChecks(SimulatedPredictiveChecks, PlotMixin):
 
     def _simulate_data(self, using: str = "prior", N: int = 1) -> List[Tensor]:
         p = torch.zeros((0,))
-        s = torch.zeros((self.n_records, 0))
+        s = [torch.zeros((self.n_records, 0))]
         if using == "prior":
             p = self.p_without_observations
             s = self.s_without_observations
@@ -682,14 +682,14 @@ def plot_diagnostics(
     # Prepare the data for the figure.
     samples_xr = samples.to_xarray()
     data = {
-        key.__dict__["wrapper"].__name__: value.values
+        str(key): value.values
         for key, value in samples_xr.data_vars.items()
     }
 
     if ordering is not None:
         diagnostics_data = {}
         for key in ordering:
-            key = key.__dict__["wrapper"].__name__
+            key = str(key)
             diagnostics_data[key] = data[key]
     else:
         diagnostics_data = data
