@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Set, Tuple
 import beanmachine.ppl.compiler.performance_report as pr
 import beanmachine.ppl.compiler.profiler as prof
 import graphviz
+import numpy
 import torch
 from beanmachine.graph import Graph, InferenceType, InferConfig
 from beanmachine.ppl.compiler.fix_problems import default_skip_optimizations
@@ -78,7 +79,13 @@ class BMGInference:
         #   RV1: tensor([[s01, s11, s21]])
         # }
 
-        transposed = [torch.tensor([x]) for x in zip(*raw)]
+        # transposed = [torch.tensor([x]) for x in zip(*raw)]
+        def one_more(x):
+            size = x.size()
+            return x.reshape([1] + list(size))
+
+        transposed = [one_more(torch.tensor(x)) for x in zip(*raw)]
+
         assert len(transposed) == bmg_query_count
         assert len(transposed[0]) == 1
         assert len(transposed[0][0]) == num_samples
