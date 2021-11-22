@@ -681,10 +681,7 @@ def plot_diagnostics(
     """
     # Prepare the data for the figure.
     samples_xr = samples.to_xarray()
-    data = {
-        str(key): value.values
-        for key, value in samples_xr.data_vars.items()
-    }
+    data = {str(key): value.values for key, value in samples_xr.data_vars.items()}
 
     if ordering is not None:
         diagnostics_data = {}
