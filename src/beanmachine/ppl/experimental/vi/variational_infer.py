@@ -314,6 +314,7 @@ class VariationalInference(AbstractInference, metaclass=ABCMeta):
                 # binary cross entropy, analytical ELBO
                 # TODO: more general enumeration
                 loss += nn.BCELoss()(
+                    # pyre-fixme[16]: `Distribution` has no attribute `probs`.
                     v_approx.distribution.probs,
                     node_var.distribution.probs,
                 )
