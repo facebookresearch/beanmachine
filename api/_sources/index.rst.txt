@@ -13,7 +13,6 @@ Welcome to BeanMachine's documentation!
    beanmachine.applications.hme
    beanmachine.graph
    beanmachine.ppl
-   beanmachine.ppl.compiler
    beanmachine.ppl.conftest
    beanmachine.ppl.diagnostics
    beanmachine.ppl.distribution
@@ -22,7 +21,6 @@ Welcome to BeanMachine's documentation!
    beanmachine.ppl.inference
    beanmachine.ppl.model
    beanmachine.ppl.testlib
-   beanmachine.ppl.utils
    beanmachine.ppl.world
 
 Indices and tables
