@@ -27,5 +27,9 @@ modules = [
 ]
 
 [filters.exclude]
+modules = [
+    '''beanmachine.ppl.(compiler|utils)(\.\w+)*''',
+]
+
 # If modules or functions isn't defined then will exclude none by default
 symbols = '''(\w+\.)+_.*'''
