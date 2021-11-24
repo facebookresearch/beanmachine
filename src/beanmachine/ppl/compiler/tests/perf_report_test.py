@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import platform
 import re
 import unittest
 
@@ -29,6 +30,9 @@ def tidy(s):
 
 class PerfReportTest(unittest.TestCase):
     def test_bmg_performance_report_1(self) -> None:
+        if platform.system() == "Windows":
+            self.skipTest("Disabling perf tests until flakiness is resolved")
+
         # How to obtain the performance report from BMGInference
 
         self.maxDiff = None
@@ -109,6 +113,9 @@ unattributed: -- ms
         self.assertEqual(tidy(expected).strip(), tidy(observed).strip())
 
     def test_bmg_performance_report_2(self) -> None:
+        if platform.system() == "Windows":
+            self.skipTest("Disabling perf tests until flakiness is resolved")
+
         # How to use the performance reporter calling BMG directly
         # rather than through BMGInference / BMGraphBuilder.
 
