@@ -3,6 +3,7 @@
 
 import importlib
 import inspect
+import os
 import pkgutil
 import re
 from collections import OrderedDict
@@ -137,10 +138,23 @@ Module contents
     return rst
 
 
-def make_rst() -> None:
-    # 1. Load and validate configuration file
-    config = toml.load("../../website/documentation.toml")
+def print_include_modules(
+    config_path: str = "../../website/documentation.toml",
+) -> None:
+    # Load and validate configuration file
+    import beanmachine
 
+    config_path = os.path.join(beanmachine.__path__[0], config_path)
+    config = toml.load(config_path)
+
+    # Enumerate documentable symbols keyed by module
+    modules_and_symbols = search_package(config)
+
+    for k in sorted(modules_and_symbols.keys()):
+        print(k)
+
+
+def search_package(config):
     # Validate module name to document
     assert (
         "settings" in config
@@ -151,7 +165,7 @@ def make_rst() -> None:
         )
     )
 
-    # 2. Construct regular expressions for includes and excludes
+    # Construct regular expressions for includes and excludes
     # Default include/exclude rules
     patterns = {
         "include": {"modules": re.compile(r".+"), "symbols": re.compile(r".+")},
@@ -167,14 +181,14 @@ def make_rst() -> None:
                     pattern = "|".join(pattern)
                 patterns[clude][rule] = re.compile(pattern)
 
-    # 3. Read in all modules and symbols
+    # Read in all modules and symbols
     search = config["settings"]["search"]
     search = [search] if type(search) is str else search
     modules_and_symbols = {}
     for modname in set(search):
         modules_and_symbols = {**modules_and_symbols, **walk_packages(modname)}
 
-    # 4. Apply filtering
+    # Apply filtering
     # TODO: Would be slightly faster if we applied module filtering inside walk_packages
     tmp = {}
     for x, y in modules_and_symbols.items():
@@ -192,9 +206,20 @@ def make_rst() -> None:
 
             tmp[x] = (y[0], new_y1)
 
-    modules_and_symbols = tmp
+    return tmp
 
-    # 6. Build hierarchy of modules and flatten
+
+def make_rst(config_path: str = "../../website/documentation.toml") -> None:
+    # Load and validate configuration file
+    import beanmachine
+
+    config_path = os.path.join(beanmachine.__path__[0], config_path)
+    config = toml.load(config_path)
+
+    # Enumerate documentable symbols keyed by module
+    modules_and_symbols = search_package(config)
+
+    # Build hierarchy of modules and flatten
     hierarchy = sparse_module_hierarchy(modules_and_symbols.keys())
     modules = []
 
@@ -243,3 +268,7 @@ Indices and tables
             dfs(v)
 
     dfs(hierarchy)
+
+
+if __name__ == "__main__":
+    print_include_modules()
