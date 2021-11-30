@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Dict, Iterator, List, Mapping, Optional, Set, Tuple
+from typing import Dict, Iterator, List, Mapping, Optional, Set, Tuple, Collection
 
 import torch
 import torch.distributions as dist
@@ -118,11 +118,16 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
         return node_var.value
 
-    def log_prob(self) -> torch.Tensor:
+    def log_prob(
+        self, nodes: Optional[Collection[RVIdentifier]] = None
+    ) -> torch.Tensor:
         """Returns the joint log prob of all of the nodes in the current world"""
+        if nodes is None:
+            nodes = self._variables.keys()
+
         log_prob = torch.tensor(0.0)
-        for node_var in self._variables.values():
-            log_prob += torch.sum(node_var.log_prob)
+        for node in set(nodes):
+            log_prob += torch.sum(self._variables[node].log_prob)
         return log_prob
 
     def enumerate_node(self, node: RVIdentifier) -> torch.Tensor:

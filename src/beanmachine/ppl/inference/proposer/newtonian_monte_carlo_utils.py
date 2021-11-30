@@ -1,6 +1,9 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Callable
 
 import torch
+import torch.distributions as dist
+from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
 from torch import Tensor, tensor
 from torch.autograd import grad
@@ -126,3 +129,22 @@ def compute_eigvals_eigvecs(
     neg_hessian = -1 * hessian.detach()
     eig_vecs, eig_vals = soft_abs_inverse(neg_hessian)
     return True, first_gradient, eig_vecs, eig_vals
+
+
+def hessian_of_log_prob(
+    world: SimpleWorld,
+    node: RVIdentifier,
+    transformed_node_val: torch.Tensor,
+    hessian_fn: Callable,
+    transform: dist.Transform = dist.identity_transform,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    y = transformed_node_val.clone()
+    y.requires_grad = True
+    x = transform.inv(y)
+    world_with_grad = world.replace({node: x})
+    children = world_with_grad.get_variable(node).children
+    score = (
+        world_with_grad.log_prob(children | {node})
+        - transform.log_abs_det_jacobian(x, y).sum()
+    )
+    return hessian_fn(score, y)

@@ -1,8 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import torch
+import torch.distributions as dist
 
 
-class NormalEig(object):
+class NormalEig(dist.Distribution):
     """
     A multivariate normal distribution where the covariance is specified
     through its eigen decomposition
@@ -20,7 +21,7 @@ class NormalEig(object):
         self.n = mean.shape[0]
         assert eig_vals.shape == (self.n,)
         assert eig_vecs.shape == (self.n, self.n)
-        self.mean = mean
+        self._mean = mean
         self.eig_vecs = eig_vecs
         self.sqrt_eig_vals = eig_vals.sqrt().unsqueeze(0)
         # square root  of the covariance matrix
@@ -34,14 +35,19 @@ class NormalEig(object):
             torch.ones(1, self.n).to(dtype=eig_vals.dtype),
         )
         self.singular_eig_decompositions = eig_vals, eig_vecs
+        event_shape = self._mean.shape[-1:]
+        batch_shape = torch.broadcast_shapes(
+            self.sqrt_covar.shape[:-2], self._mean.shape[:-1]
+        )
+        super().__init__(batch_shape, event_shape)
 
-    def sample(self):
+    def sample(self, sample_shape=torch.Size()):  # noqa
         with torch.no_grad():
             z = torch.normal(mean=0.0, std=1.0, size=(self.n, 1))
-            z = z.to(dtype=self.mean.dtype)
-            return self.mean + (self.sqrt_covar @ z).squeeze(1)
+            z = z.to(dtype=self._mean.dtype)
+            return self._mean + (self.sqrt_covar @ z).squeeze(1)
 
     def log_prob(self, value):
         assert value.shape == (self.n,)
-        z = ((value - self.mean).unsqueeze(0) @ self.eig_vecs) / self.sqrt_eig_vals
+        z = ((value - self._mean).unsqueeze(0) @ self.eig_vecs) / self.sqrt_eig_vals
         return self.base_dist.log_prob(z).sum() - self.log_sqrt_det
