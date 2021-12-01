@@ -31,5 +31,5 @@ Bean Machine Graph currently supports Newtonian Monte Carlo, Gibbs sampling for 
 
 ## Using Bean Machine Graph
 
-Due to the complexity of constructing the computation graph directly, users interested in Bean Machine Graph should use the [Beanstalk](../beanstalk/beanstalk) compiler, which enables users to write models using Bean Machine Python syntax and call the Bean Machine Graph inference engine as if it were another Bean Machine inference method.
-To learn more about the current state of inference in Bean Machine Graph and experiment with different models, see the [Beanstalk documentation](../beanstalk/beanstalk).
+Due to the complexity of constructing the computation graph directly, users interested in Bean Machine Graph should use the [Beanstalk](../beanstalk/beanstalk.md) compiler, which enables users to write models using Bean Machine Python syntax and call the Bean Machine Graph inference engine as if it were another Bean Machine inference method.
+To learn more about the current state of inference in Bean Machine Graph and experiment with different models, see the [Beanstalk documentation](../beanstalk/beanstalk.md).
