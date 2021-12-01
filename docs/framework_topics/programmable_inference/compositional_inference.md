@@ -1,4 +1,9 @@
-# Block and Compositional inference
+---
+id: compositional_inference
+title: 'Block and Compositional Inference'
+sidebar_label: 'Block and Compositional Inference'
+slug: '/compositional_inference'
+---
 
 Single-site inference is not always suitable for models with highly correlated variables because, given a global assignment (or a *state*) in the probability distribution, changing the value of only one variable leads to a new, highly unlikely state that will rarely generate a useful sample. In other words, we may end up at a region of the posterior distribution where individual updates proposing a new value for a single random variable and deciding to accept or reject the new value (based on the Metropolis Hasting rule) are not good enough to be accepted. In these examples, however, if we change the values of a group of random variables together, we may be able to successfully change to another likely state, exploring the posterior more efficiently. Block inference allows Bean Machine to overcome the limitations of single site because highly correlated variables are updated together, allowing for states with higher probabilities.
 

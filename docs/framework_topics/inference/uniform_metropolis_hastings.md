@@ -1,6 +1,11 @@
-**Single Site Uniform MH**
+---
+id: uniform_metropolis_hastings
+title: 'Single Site Uniform Metropolis-Hastings'
+sidebar_label: 'Single Site Uniform Metropolis-Hastings'
+slug: '/uniform_metropolis_hastings'
+---
 
-Single Site Uniform Metropolis Hastings is used to infer over variables that have discrete support, for example random variables with Bernoulli and Categorical distributions. The Single Site Uniform Sampler works very similarly to the Single-Site Ancestral Metropolis Hastings. In fact, the only difference arises in Step 1, i.e, in the way that this sampler proposes a new value. Steps 2-4 are the same.
+Single Site Uniform Metropolis-Hastings is used to infer over variables that have discrete support, for example random variables with Bernoulli and Categorical distributions. The Single Site Uniform Sampler works very similarly to the Single-Site Ancestral Metropolis Hastings. In fact, the only difference arises in Step 1, i.e, in the way that this sampler proposes a new value. Steps 2-4 are the same.
 
 In Single Site Uniform MH, for random variables with discrete support, instead of sampling from the prior, the proposer samples from a distribution which assigns equal probability across all values in support (hence the name, uniform). For any random variables with continuous support, this inference method resorts to Single Site Ancestral MH.
 

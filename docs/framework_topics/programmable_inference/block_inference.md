@@ -1,4 +1,9 @@
-# Block inference
+---
+id: block_inference
+title: 'Block inference'
+sidebar_label: 'Block inference'
+slug: '/block_inference'
+---
 
 Single-site inference in Bean Machine is a powerful abstraction that allows the inference engine to separately sample values for random variables in your model.
 

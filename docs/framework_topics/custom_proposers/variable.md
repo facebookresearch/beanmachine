@@ -1,4 +1,9 @@
-## Worlds and Variables
+---
+id: variable
+title: 'Worlds and Variables'
+sidebar_label: 'Worlds and Variables'
+slug: '/variable'
+---
 
 A crucial part of Bean Machine inference is its ability track the state of inference using `World`s. During inference, the `World` represents the state of the variables and their dependencies. The `World` is a graphical data structure where each node in the graph represents a `Variable` containing information about the variable's value, distribution, probability, etc. The edges between nodes represent the dependencies between variables. Each variable tracks its parent variables as well as its children variables.
 

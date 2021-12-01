@@ -1,4 +1,9 @@
-# Single-Site Random Walk Metropolis Hastings
+---
+id: random_walk
+title: 'Single-Site Random Walk Metropolis Hastings'
+sidebar_label: 'Single-Site Random Walk Metropolis Hastings'
+slug: '/random_walk'
+---
 
 Bean Machine offers a module for Random Walk Metropolis-Hastings (RWMH), a simple minimal MCMC inference method. The RWMH module is single-site by default, following the philosophy of most inference methods in Bean Machine, and accordingly block-inference patterns are well supported. RWMH precisely follows the standard Metropolos-Hastings algorithm of sampling a value from a proposal distribution, and then running accept-reject according to the computed ratio of the proposed value. This tutorial describes the proposal mechanism, describes adaptive RWMH, and documents the API for the RWMH module.
 

@@ -1,4 +1,9 @@
-# Single-site ancestral Metropolis-Hastings
+---
+id: ancestral_metropolis_hastings
+title: 'Single-site Ancestral Metropolis-Hastings'
+sidebar_label: 'Single-site Ancestral Metropolis-Hastings'
+slug: '/ancestral_metropolis_hastings'
+---
 
 Ancestral Metropolis-Hastings is one of the most fundamental Bayesian inference methods. In ancestral Metropolis-Hastings, values are sampled from the model's priors, and samples are accepted or rejected based on the sample's Metropolis acceptance probability. As such, ancestral Metropolis-Hastings is a very general inference method, making no strong assumptions about the structure of your model; however, this generality may lead it to be rather inefficient for many models.
 

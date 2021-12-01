@@ -1,6 +1,10 @@
+---
+id: inference
+title: 'Inference'
+sidebar_label: 'Inference'
+slug: '/inference'
+---
 <!-- @import "../../header.md" -->
-
-# Inference
 
 Posterior distributions can often only be estimated, as the solution such problems in general have no closed-form. Bean Machine's inference methods typically use sequential sampling techniques known as [Markov chain Monte Carlo (MCMC)](https://towardsdatascience.com/a-zero-math-introduction-to-markov-chain-monte-carlo-methods-dcba889e0c50) to generate samples representative of this distribution. These posterior samples are the main output of Bean Machine: with enough samples, they will reliably resemble the posterior distribution for the problem at hand.
 

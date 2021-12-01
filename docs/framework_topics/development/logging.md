@@ -1,4 +1,9 @@
-# Logging
+---
+id: logging
+title: 'Logging'
+sidebar_label: 'Logging'
+slug: '/logging'
+---
 
 Logging in Bean Machine is provided through the [logging](https://docs.python.org/3/howto/logging.html) module in Python. It is recommended that users get familiar with the basics (logger, handler, levels, etc.) of this module before reading further.
 
