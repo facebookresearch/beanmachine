@@ -117,18 +117,27 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.normal_eig.NormalEig">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.normal_eig.</span></span><span class="sig-name descname"><span class="pre">NormalEig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eig_vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eig_vecs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.normal_eig.NormalEig" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.distributions.distribution.Distribution</span></code></p>
 <p>A multivariate normal distribution where the covariance is specified
 through its eigen decomposition</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.normal_eig.NormalEig.log_prob">
 <span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.normal_eig.NormalEig.log_prob" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the log of the probability density/mass function evaluated at
+<cite>value</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>Tensor</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.normal_eig.NormalEig.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.normal_eig.NormalEig.sample" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.Size([])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.normal_eig.NormalEig.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a sample_shape shaped sample or sample_shape shaped batch of
+samples if the distribution parameters are batched.</p>
+</dd></dl>
 
 </dd></dl>
 

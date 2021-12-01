@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_simplex_space_nmc_proposer" href="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_simplex_space_nmc_proposer.html" />
+    <link rel="prev" title="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_half_space_nmc_proposer" href="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_half_space_nmc_proposer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.experimental.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.abc.html">beanmachine.ppl.experimental.abc</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html">beanmachine.ppl.experimental.global_inference</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.html#module-beanmachine.ppl.experimental.global_inference">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.gp.html">beanmachine.ppl.experimental.gp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.inference_compilation.html">beanmachine.ppl.experimental.inference_compilation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.neutra.html">beanmachine.ppl.experimental.neutra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.variable_elimination.html">beanmachine.ppl.experimental.variable_elimination</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.experimental.vi.html">beanmachine.ppl.experimental.vi</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.experimental.html#module-beanmachine.ppl.experimental">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.global_inference.html">beanmachine.ppl.experimental.global_inference</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.global_inference.proposer.html">beanmachine.ppl.experimental.global_inference.proposer</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.experimental.global_inference.proposer.nmc.html">beanmachine.ppl.experimental.global_inference.proposer.nmc</a> &raquo;</li>
+      <li>beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-experimental-global-inference-proposer-nmc-single-site-real-space-nmc-proposer">
+<h1>beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer<a class="headerlink" href="#beanmachine-ppl-experimental-global-inference-proposer-nmc-single-site-real-space-nmc-proposer" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.</span></span><span class="sig-name descname"><span class="pre">SingleSiteRealSpaceNMCProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer.html#beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer" title="beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer</span></code></a></p>
+<p>Single-Site Real Space Newtonian Monte Carlo Proposers</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer.compute_beta_priors_from_accepted_lr">
+<span class="sig-name descname"><span class="pre">compute_beta_priors_from_accepted_lr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_lr_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer.compute_beta_priors_from_accepted_lr" title="Permalink to this definition"></a></dt>
+<dd><p>Compute Alpha and Beta using Method of Moments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the alpha and beta of the Beta prior to learning rate.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer.do_adaptation">
+<span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.simple_world.html#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld" title="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld"><span class="pre">beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">accept_log_prob</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_accepted</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer.do_adaptation" title="Permalink to this definition"></a></dt>
+<dd><p>Do adaption based on the learning rates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we have already proposed a new value for.</p></li>
+<li><p><strong>node_var</strong> – the Variable object associated with node.</p></li>
+<li><p><strong>node_acceptance_results</strong> – the boolean values of acceptances for
+values collected so far within _infer().</p></li>
+<li><p><strong>is_accepted</strong> – bool representing whether the new value was accepted.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer.get_proposal_distribution">
+<span class="sig-name descname"><span class="pre">get_proposal_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.experimental.global_inference.simple_world.html#beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld" title="beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld"><span class="pre">beanmachine.ppl.experimental.global_inference.simple_world.SimpleWorld</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.distributions.distribution.Distribution</span></span></span><a class="headerlink" href="#beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_real_space_nmc_proposer.SingleSiteRealSpaceNMCProposer.get_proposal_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the proposal distribution of the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we’re proposing a new value for</p></li>
+<li><p><strong>node_var</strong> – the Variable of the node</p></li>
+<li><p><strong>world</strong> – the world in which we’re proposing a new value for node</p></li>
+</ul>
+</dd>
+</dl>
+<p>required to find a proposal distribution which in this case is the
+fraction of distance between the current value and NMC mean that we’re
+going to pick as our proposer mean.
+:returns: the tuple of proposal distribution of the node and arguments
+that was used or needs to be used to find the proposal distribution</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_half_space_nmc_proposer.html" class="btn btn-neutral float-left" title="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_half_space_nmc_proposer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_simplex_space_nmc_proposer.html" class="btn btn-neutral float-right" title="beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_simplex_space_nmc_proposer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -15,6 +15,7 @@ Subpackages
    beanmachine.ppl.experimental.global_inference.simple_world
    beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh
    beanmachine.ppl.experimental.global_inference.single_site_inference
+   beanmachine.ppl.experimental.global_inference.single_site_nmc
    beanmachine.ppl.experimental.global_inference.single_site_random_walk
    beanmachine.ppl.experimental.global_inference.single_site_uniform_mh
    beanmachine.ppl.experimental.global_inference.utils

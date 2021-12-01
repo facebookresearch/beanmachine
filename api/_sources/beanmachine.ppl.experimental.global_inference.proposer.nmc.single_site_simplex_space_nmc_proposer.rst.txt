@@ -1,0 +1,11 @@
+beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_simplex_space_nmc_proposer
+=================================================================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.experimental.global_inference.proposer.nmc.single_site_simplex_space_nmc_proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
