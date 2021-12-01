@@ -20,6 +20,7 @@ from beanmachine.ppl.inference.single_site_random_walk import SingleSiteRandomWa
 from beanmachine.ppl.inference.single_site_uniform_mh import (
     SingleSiteUniformMetropolisHastings,
 )
+from beanmachine.ppl.inference.utils import seed
 
 from .single_site_no_u_turn_sampler import SingleSiteNoUTurnSampler
 
@@ -38,5 +39,6 @@ __all__ = [
     "GlobalNoUTurnSampler",
     "Predictive",
     "empirical",
+    "seed",
     "simulate",
 ]
