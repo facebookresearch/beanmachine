@@ -8,8 +8,7 @@ import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
 )
-from beanmachine.ppl.world.variable import Variable
-from beanmachine.ppl.world.world import World
+from beanmachine.ppl.legacy.world import Variable, World
 from torch import tensor
 
 

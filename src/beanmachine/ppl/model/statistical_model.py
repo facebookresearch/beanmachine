@@ -1,8 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 from functools import wraps
 
+from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import World, get_world_context
+from beanmachine.ppl.world import get_world_context
 
 
 class StatisticalModel(object):

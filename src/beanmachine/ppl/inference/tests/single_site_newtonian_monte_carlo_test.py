@@ -15,7 +15,7 @@ from beanmachine.ppl.experimental.global_inference.single_site_nmc import (
 from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
 )
-from beanmachine.ppl.world import TransformType
+from beanmachine.ppl.legacy.world import TransformType
 from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
 from torch import tensor
 

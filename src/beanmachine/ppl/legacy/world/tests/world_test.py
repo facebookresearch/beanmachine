@@ -5,8 +5,8 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.legacy.world import Variable, World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import Variable, World
 from torch import tensor
 
 

@@ -4,8 +4,8 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.statistical_model import RVIdentifier
-from beanmachine.ppl.world import World
 
 
 class StatisticalModelTest(unittest.TestCase):

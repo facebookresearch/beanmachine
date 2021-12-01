@@ -2,8 +2,8 @@ from typing import List, Optional
 
 from beanmachine.ppl.experimental.neutra.iafmcmc_proposer import IAFMCMCProposer
 from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
+from beanmachine.ppl.legacy.world import TransformType
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world.world import TransformType
 
 
 class IAFMCMCinference(AbstractMHInference):

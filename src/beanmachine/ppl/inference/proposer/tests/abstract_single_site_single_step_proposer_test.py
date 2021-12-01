@@ -12,9 +12,13 @@ from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_propose
 from beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer import (
     SingleSiteHalfSpaceNewtonianMonteCarloProposer,
 )
+from beanmachine.ppl.legacy.world import (
+    ProposalDistribution,
+    Variable,
+    World,
+    TransformType,
+)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import ProposalDistribution, Variable, World
-from beanmachine.ppl.world.world import TransformType
 from torch import tensor
 
 

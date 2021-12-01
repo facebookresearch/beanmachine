@@ -6,10 +6,14 @@ import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
+from beanmachine.ppl.legacy.world import (
+    ProposalDistribution,
+    Variable,
+    World,
+    TransformType,
+)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.world.utils import is_constraint_eq
-from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor, tensor
 
 

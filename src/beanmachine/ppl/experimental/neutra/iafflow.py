@@ -27,8 +27,8 @@ from typing import List, Tuple
 import torch
 import torch.nn as nn
 from beanmachine.ppl.experimental.neutra.iaflayer import InverseAutoregressiveLayer
+from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import World
 from torch import Tensor
 
 

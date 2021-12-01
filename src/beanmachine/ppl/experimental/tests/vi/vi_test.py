@@ -16,7 +16,7 @@ from beanmachine.ppl.experimental.vi.variational_infer import (
     MeanFieldVariationalInference,
     VariationalInference,
 )
-from beanmachine.ppl.world import World
+from beanmachine.ppl.legacy.world import World
 from torch.distributions import constraints
 from torch.distributions.utils import _standard_normal
 
