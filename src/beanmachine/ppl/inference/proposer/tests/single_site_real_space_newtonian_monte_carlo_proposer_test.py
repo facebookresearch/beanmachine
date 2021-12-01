@@ -14,7 +14,7 @@ from torch import tensor
 
 
 class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
-    class SampleNormalModel(object):
+    class SampleNormalModel:
         @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(2.0), tensor(2.0))
@@ -23,7 +23,7 @@ class SingleSiteRealSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
-    class SampleLogisticRegressionModel(object):
+    class SampleLogisticRegressionModel:
         @bm.random_variable
         def theta_0(self):
             return dist.Normal(tensor(0.0), tensor(1.0))

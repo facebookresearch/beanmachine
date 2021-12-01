@@ -38,7 +38,7 @@ def gradients(
             allow_unused=allow_unused,
         )[0].reshape(-1)
     )(torch.eye(grad1.size(0)))
-    return grad1, hessians
+    return grad1.detach(), hessians.detach()
 
 
 def halfspace_gradients(

@@ -4,16 +4,15 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer import (
-    SingleSiteHalfSpaceNewtonianMonteCarloProposer,
+from beanmachine.ppl.experimental.global_inference.proposer.nmc import (
+    SingleSiteHalfSpaceNMCProposer,
 )
-from beanmachine.ppl.world.variable import Variable
-from beanmachine.ppl.world.world import World
+from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from torch import tensor
 
 
 class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
-    class SampleNormalModel(object):
+    class SampleNormalModel:
         @bm.random_variable
         def foo(self):
             return dist.Normal(tensor(2.0), tensor(2.0))
@@ -22,7 +21,7 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         def bar(self):
             return dist.Normal(self.foo(), torch.tensor(1.0))
 
-    class SampleLogisticRegressionModel(object):
+    class SampleLogisticRegressionModel:
         @bm.random_variable
         def theta_0(self):
             return dist.Normal(tensor(0.0), tensor(1.0))
@@ -41,7 +40,7 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
             probs = 1 / (1 + (y * -1).exp())
             return dist.Bernoulli(probs)
 
-    class SampleFallbackModel(object):
+    class SampleFallbackModel:
         @bm.random_variable
         def foo(self):
             return dist.Gamma(tensor(2.0), tensor(2.0))
@@ -53,20 +52,17 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
     def test_alpha_and_beta_for_gamma(self):
         alpha = tensor([2.0, 2.0, 2.0])
         beta = tensor([2.0, 2.0, 2.0])
-        distribution = dist.Gamma(alpha, beta)
-        val = distribution.sample()
-        val.requires_grad_(True)
-        node_var = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val).sum(),
-            transformed_value=val,
-            jacobian=tensor(0.0),
-        )
-        world_ = World()
-        nw_proposer = SingleSiteHalfSpaceNewtonianMonteCarloProposer()
+
+        @bm.random_variable
+        def gamma():
+            return dist.Gamma(alpha, beta)
+
+        world = SimpleWorld()
+        with world:
+            gamma()
+        nw_proposer = SingleSiteHalfSpaceNMCProposer(gamma())
         is_valid, predicted_alpha, predicted_beta = nw_proposer.compute_alpha_beta(
-            node_var, world_
+            world
         )
         self.assertEqual(is_valid, True)
         self.assertAlmostEqual(
