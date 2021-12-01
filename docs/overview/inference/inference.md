@@ -28,7 +28,7 @@ def infection_rate():
 def num_cases(day):
     # Base case for recursion
     if day == date(2021, 1, 1):
-        return dist.Poisson(1087980)
+        return dist.Poisson(num_infected)
     return dist.Poisson(
         infection_rate() *  num_cases(day - datetime.timedelta(days=1))
     )
