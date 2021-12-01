@@ -19,14 +19,14 @@ if TYPE_CHECKING:
         BaseInference,
     )
 
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 
 
-class Sampler(Generator[SimpleWorld, Optional[SimpleWorld], None]):
+class Sampler(Generator[World, Optional[World], None]):
     def __init__(
         self,
         kernel: BaseInference,
-        initial_world: SimpleWorld,
+        initial_world: World,
         num_samples: Optional[int] = None,
         num_adaptive_samples: int = 0,
     ):
@@ -38,7 +38,7 @@ class Sampler(Generator[SimpleWorld, Optional[SimpleWorld], None]):
         self._num_samples_remaining += num_adaptive_samples
         self._num_adaptive_sample_remaining = num_adaptive_samples
 
-    def send(self, world: Optional[SimpleWorld] = None) -> SimpleWorld:
+    def send(self, world: Optional[World] = None) -> World:
         if world is None:
             world = self.world
 

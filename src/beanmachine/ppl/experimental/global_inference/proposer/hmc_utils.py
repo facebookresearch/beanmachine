@@ -4,11 +4,8 @@ from typing import Union, cast, Dict, Set
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    RVDict,
-    SimpleWorld,
-)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import RVDict, World
 from beanmachine.ppl.world.utils import get_default_transforms
 
 
@@ -227,7 +224,7 @@ class RealSpaceTransform(DictTransform):
     """Transofrm a dictionary of Tensor values from constrained space to unconstrained
     (real) space."""
 
-    def __init__(self, world: SimpleWorld, target_rvs: Set[RVIdentifier]):
+    def __init__(self, world: World, target_rvs: Set[RVIdentifier]):
         transforms = {}
         for node in target_rvs:
             transforms[node] = get_default_transforms(

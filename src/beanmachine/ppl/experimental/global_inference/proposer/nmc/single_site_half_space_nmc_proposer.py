@@ -6,13 +6,13 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     is_valid,
     hessian_of_log_prob,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
+from beanmachine.ppl.world import World
 
 
 LOGGER = logging.getLogger("beanmachine")
@@ -28,7 +28,7 @@ class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
         self._proposal_distribution = None
 
     def compute_alpha_beta(
-        self, world: SimpleWorld
+        self, world: World
     ) -> Tuple[bool, torch.Tensor, torch.Tensor]:
         """
         Computes alpha and beta of the Gamma proposal given the node.
@@ -68,10 +68,7 @@ class SingleSiteHalfSpaceNMCProposer(SingleSiteAncestralProposer):
         predicted_beta = predicted_beta.reshape(node_val.shape)
         return True, predicted_alpha, predicted_beta
 
-    def get_proposal_distribution(
-        self,
-        world: SimpleWorld,
-    ) -> dist.Distribution:
+    def get_proposal_distribution(self, world: World) -> dist.Distribution:
         """
         Returns the proposal distribution of the node.
 

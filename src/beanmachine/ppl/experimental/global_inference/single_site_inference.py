@@ -11,10 +11,8 @@ from beanmachine.ppl.experimental.global_inference.proposer.base_single_site_pro
 from beanmachine.ppl.experimental.global_inference.proposer.sequential_proposer import (
     SequentialProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    SimpleWorld,
-)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import World
 
 
 class SingleSiteInference(BaseInference):
@@ -25,7 +23,7 @@ class SingleSiteInference(BaseInference):
 
     def get_proposers(
         self,
-        world: SimpleWorld,
+        world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:
@@ -42,7 +40,7 @@ class SingleSiteInference(BaseInference):
 class JointSingleSiteInference(SingleSiteInference):
     def get_proposers(
         self,
-        world: SimpleWorld,
+        world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:

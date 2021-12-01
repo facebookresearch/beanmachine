@@ -9,10 +9,10 @@ import torch.distributions as dist
 if os.environ.get("SANDCASTLE") is None:
     pytest.skip("neuralpp unavailable outside of Facebook", allow_module_level=True)
 else:
-    from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
     from beanmachine.ppl.experimental.variable_elimination.variable_elimination import (
         make_neuralpp_factor,
     )
+    from beanmachine.ppl.world import World
     from neuralpp.inference.graphical_model.representation.factor.pytorch_table_factor import (
         PyTorchTableFactor,
     )
@@ -39,7 +39,7 @@ class DiscreteModel:
 def test_prior_probs():
     # exponentially enumerate every node in the graph and retrieve its logpmf
     model = DiscreteModel()
-    world = SimpleWorld(observations={model.bar(): torch.tensor(0.0)})
+    world = World(observations={model.bar(): torch.tensor(0.0)})
     sups = []
     with world:
         model.bar()

@@ -6,14 +6,11 @@ from beanmachine.ppl.experimental.global_inference.base_inference import BaseInf
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
     BaseProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    SimpleWorld,
-)
 from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-
+from beanmachine.ppl.world import World
 
 if TYPE_CHECKING:
     from enum import Enum
@@ -59,7 +56,7 @@ class CompositionalInference(BaseInference):
 
     def get_proposers(
         self,
-        world: SimpleWorld,
+        world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:

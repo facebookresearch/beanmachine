@@ -7,10 +7,10 @@ from beanmachine import ppl as bm
 from beanmachine.ppl.experimental.global_inference.proposer.nmc import (
     SingleSiteSimplexSpaceNMCProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.experimental.global_inference.single_site_nmc import (
     SingleSiteNewtonianMonteCarlo,
 )
+from beanmachine.ppl.world import World
 from torch import tensor
 
 
@@ -22,7 +22,7 @@ class SingleSiteSimplexNewtonianMonteCarloProposerTest(unittest.TestCase):
         def a():
             return dist.Dirichlet(alpha)
 
-        world_ = SimpleWorld()
+        world_ = World()
         with world_:
             a()
         nw_proposer = SingleSiteSimplexSpaceNMCProposer(a())

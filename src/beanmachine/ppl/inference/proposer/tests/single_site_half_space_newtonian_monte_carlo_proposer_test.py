@@ -7,7 +7,7 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.nmc import (
     SingleSiteHalfSpaceNMCProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 from torch import tensor
 
 
@@ -57,7 +57,7 @@ class SingleSiteHalfSpaceNewtonianMonteCarloProposerTest(unittest.TestCase):
         def gamma():
             return dist.Gamma(alpha, beta)
 
-        world = SimpleWorld()
+        world = World()
         with world:
             gamma()
         nw_proposer = SingleSiteHalfSpaceNMCProposer(gamma())

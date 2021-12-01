@@ -10,8 +10,8 @@ from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import 
 from beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer import (
     NUTSProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import World
 
 
 class GlobalHamiltonianMonteCarlo(BaseInference):
@@ -32,7 +32,7 @@ class GlobalHamiltonianMonteCarlo(BaseInference):
 
     def get_proposers(
         self,
-        world: SimpleWorld,
+        world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:
@@ -72,7 +72,7 @@ class GlobalNoUTurnSampler(BaseInference):
 
     def get_proposers(
         self,
-        world: SimpleWorld,
+        world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:

@@ -8,7 +8,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer import
     _TreeArgs,
     _TreeNode,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 
 
 @bm.random_variable
@@ -23,7 +23,7 @@ def bar():
 
 @pytest.fixture
 def nuts():
-    world = SimpleWorld(observations={bar(): torch.tensor(0.8)})
+    world = World(observations={bar(): torch.tensor(0.8)})
     world.call(bar())
     nuts_proposer = NUTSProposer(world, world.latent_nodes, 10)
     return nuts_proposer

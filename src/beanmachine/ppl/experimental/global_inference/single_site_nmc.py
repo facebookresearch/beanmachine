@@ -14,10 +14,8 @@ from beanmachine.ppl.experimental.global_inference.proposer.nmc import (
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    SimpleWorld,
-)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import World
 from beanmachine.ppl.world.utils import (
     BetaDimensionTransform,
 )
@@ -38,7 +36,7 @@ class SingleSiteNewtonianMonteCarlo(BaseInference):
 
     def get_proposers(
         self,
-        world: SimpleWorld,
+        world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:

@@ -4,11 +4,8 @@ import torch
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
     HMCProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    RVDict,
-    SimpleWorld,
-)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import RVDict, World
 
 
 class _TreeNode(NamedTuple):
@@ -57,7 +54,7 @@ class NUTSProposer(HMCProposer):
 
     def __init__(
         self,
-        initial_world: SimpleWorld,
+        initial_world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
         max_tree_depth: int = 10,
@@ -245,7 +242,7 @@ class NUTSProposer(HMCProposer):
             turned_or_diverged=turned_or_diverged,
         )
 
-    def propose(self, world: SimpleWorld) -> Tuple[SimpleWorld, torch.Tensor]:
+    def propose(self, world: World) -> Tuple[World, torch.Tensor]:
         if world is not self.world:
             # re-compute cached values since world was modified by other sources
             self.world = world

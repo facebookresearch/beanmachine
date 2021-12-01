@@ -3,11 +3,11 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.base_single_site_proposer import (
     BaseSingleSiteMHProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 
 
 class SingleSiteUniformProposer(BaseSingleSiteMHProposer):
-    def get_proposal_distribution(self, world: SimpleWorld) -> dist.Distribution:
+    def get_proposal_distribution(self, world: World) -> dist.Distribution:
         """Propose a new value for self.node using the prior distribution."""
         node_dist = world.get_variable(self.node).distribution
         if isinstance(node_dist, dist.Bernoulli):

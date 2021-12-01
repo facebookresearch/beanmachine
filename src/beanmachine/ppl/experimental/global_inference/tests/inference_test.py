@@ -6,13 +6,10 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
     BaseProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
-from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
-    init_from_prior,
-)
+from beanmachine.ppl.world import World, init_from_prior
 
 
 class SampleModel:
@@ -51,7 +48,7 @@ def test_inference():
 
 
 def test_get_proposers():
-    world = SimpleWorld()
+    world = World()
     model = SampleModel()
     world.call(model.bar())
     nuts = bm.GlobalNoUTurnSampler()

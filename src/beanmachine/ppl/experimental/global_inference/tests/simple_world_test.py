@@ -2,7 +2,7 @@
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 
 
 class SampleModel:
@@ -60,7 +60,7 @@ class ChangeSupportModel:
 def test_basic_operations():
     model = SampleModel()
     observations = {model.bar(): torch.rand(())}
-    world = SimpleWorld(observations=observations)
+    world = World(observations=observations)
     assert world.observations == observations
     assert len(world.latent_nodes) == 0
     assert len(world) == 0
@@ -83,16 +83,16 @@ def test_basic_operations():
 
 def test_initialization():
     model = SampleModel()
-    with SimpleWorld():
+    with World():
         val1 = model.bar()
-    with SimpleWorld():
+    with World():
         val2 = model.bar()
     assert val1 != val2
 
 
 def test_log_prob():
     model = SampleModel()
-    world1 = SimpleWorld(observations={model.foo(): torch.tensor(0.0)})
+    world1 = World(observations={model.foo(): torch.tensor(0.0)})
     world1.call(model.bar())
     log_prob1 = world1.log_prob()
 
@@ -105,7 +105,7 @@ def test_log_prob():
 
 def test_enumerate():
     model = DiscreteModel()
-    world = SimpleWorld(observations={model.bar(): torch.tensor(0.0)})
+    world = World(observations={model.bar(): torch.tensor(0.0)})
     with world:
         model.bar()
     assert (torch.tensor([0.0, 1.0, 2.0]) == world.enumerate_node(model.foo())).all()
@@ -113,7 +113,7 @@ def test_enumerate():
 
 def test_change_parents():
     model = DynamicModel()
-    world = SimpleWorld(initialize_fn=lambda d: torch.zeros_like(d.sample()))
+    world = World(initialize_fn=lambda d: torch.zeros_like(d.sample()))
     with world:
         model.baz()
 
@@ -132,7 +132,7 @@ def test_change_parents():
 
 def test_distribution_and_log_prob_update():
     model = ChangeSupportModel()
-    with SimpleWorld(observations={model.baz(): torch.tensor(1.0)}) as world:
+    with World(observations={model.baz(): torch.tensor(1.0)}) as world:
         model.bar()
         model.baz()
 
