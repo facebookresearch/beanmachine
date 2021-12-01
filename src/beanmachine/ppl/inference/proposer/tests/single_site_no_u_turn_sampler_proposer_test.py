@@ -7,7 +7,7 @@ import torch.distributions as dist
 from beanmachine.ppl.inference.proposer.single_site_no_u_turn_sampler_proposer import (
     SingleSiteNoUTurnSamplerProposer,
 )
-from beanmachine.ppl.world import Variable, World
+from beanmachine.ppl.legacy.world import Variable, World
 from torch import tensor
 from torch.autograd import grad
 

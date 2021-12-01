@@ -4,8 +4,8 @@ from collections import namedtuple
 
 import torch
 import torch.distributions as dist
+from beanmachine.ppl.legacy.world.variable import TransformData, TransformType, Variable
 from beanmachine.ppl.world.utils import get_default_transforms, initialize_value
-from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
 from torch import tensor
 
 

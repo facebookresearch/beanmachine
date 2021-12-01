@@ -2,8 +2,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Optional, Tuple
 
+from beanmachine.ppl.legacy.world import TransformType, World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world.world import TransformType, World
 from torch import Tensor
 
 

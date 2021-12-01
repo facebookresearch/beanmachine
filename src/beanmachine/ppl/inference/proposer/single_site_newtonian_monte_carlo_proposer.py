@@ -15,10 +15,14 @@ from beanmachine.ppl.inference.proposer.single_site_real_space_newtonian_monte_c
 from beanmachine.ppl.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer import (
     SingleSiteSimplexNewtonianMonteCarloProposer,
 )
+from beanmachine.ppl.legacy.world import (
+    ProposalDistribution,
+    Variable,
+    World,
+    TransformType,
+)
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.world.utils import is_constraint_eq
-from beanmachine.ppl.world.variable import TransformType
 from torch import Tensor
 
 

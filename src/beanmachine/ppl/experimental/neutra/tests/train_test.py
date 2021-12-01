@@ -6,7 +6,7 @@ import torch.distributions as dist
 from beanmachine.ppl.distribution.flat import Flat
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
 from beanmachine.ppl.experimental.neutra.train import IAFMap
-from beanmachine.ppl.world import Variable, World
+from beanmachine.ppl.legacy.world import Variable, World
 from torch import nn, tensor
 
 

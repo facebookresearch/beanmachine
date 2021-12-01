@@ -15,9 +15,9 @@ from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import
 from torch import Tensor
 from torch.multiprocessing import Queue
 
+from ..legacy.world import World
 from ..model.rv_identifier import RVIdentifier
 from ..model.utils import LogLevel
-from ..world import World
 from .monte_carlo_samples import MonteCarloSamples
 
 

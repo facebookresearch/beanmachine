@@ -9,13 +9,13 @@ import torch.nn as nn
 from beanmachine.ppl.experimental.vi.mean_field_variational_approximation import (
     MeanFieldVariationalApproximation,
 )
+from beanmachine.ppl.legacy.world.diff import Diff
+from beanmachine.ppl.legacy.world.diff_stack import DiffStack
+from beanmachine.ppl.legacy.world.variable import TransformData, TransformType, Variable
+from beanmachine.ppl.legacy.world.world_vars import WorldVars
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.dotbuilder import print_graph
 from beanmachine.ppl.world.base_world import BaseWorld
-from beanmachine.ppl.world.diff import Diff
-from beanmachine.ppl.world.diff_stack import DiffStack
-from beanmachine.ppl.world.variable import TransformData, TransformType, Variable
-from beanmachine.ppl.world.world_vars import WorldVars
 from torch import Tensor
 from torch.distributions import Distribution
 

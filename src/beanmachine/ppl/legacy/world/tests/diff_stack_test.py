@@ -3,7 +3,7 @@ import unittest
 
 import beanmachine.ppl as bm
 import torch.distributions as dist
-from beanmachine.ppl.world import Diff, Variable, World
+from beanmachine.ppl.legacy.world import Diff, Variable, World
 from torch import tensor
 
 

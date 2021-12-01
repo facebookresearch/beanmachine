@@ -16,9 +16,8 @@ from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
 from beanmachine.ppl.inference.utils import Block, BlockType
+from beanmachine.ppl.legacy.world import TransformType, Variable, World
 from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
-from beanmachine.ppl.world.variable import TransformType, Variable
-from beanmachine.ppl.world.world import World
 from torch import tensor
 
 

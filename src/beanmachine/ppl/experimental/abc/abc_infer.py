@@ -5,7 +5,7 @@ from typing import Callable, Dict, Union
 
 import torch
 from beanmachine.ppl.inference.rejection_sampling_infer import RejectionSampling
-from beanmachine.ppl.world import World
+from beanmachine.ppl.legacy.world import World
 
 
 LOGGER = logging.getLogger("beanmachine")
