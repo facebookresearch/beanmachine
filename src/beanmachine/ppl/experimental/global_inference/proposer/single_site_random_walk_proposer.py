@@ -3,7 +3,7 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 from beanmachine.ppl.world.utils import is_constraint_eq
 
 
@@ -36,7 +36,7 @@ class SingleSiteRandomWalkProposer(SingleSiteAncestralProposer):
 
         self.step_size = new_step_size.item()
 
-    def get_proposal_distribution(self, world: SimpleWorld) -> dist.Distribution:
+    def get_proposal_distribution(self, world: World) -> dist.Distribution:
         """Propose a new value for self.node using the prior distribution."""
         node = world.get_variable(self.node)
         node_support = node.distribution.support  # pyre-ignore [16]

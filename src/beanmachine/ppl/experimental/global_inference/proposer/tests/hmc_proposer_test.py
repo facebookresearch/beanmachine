@@ -5,7 +5,7 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.hmc_proposer import (
     HMCProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 
 
 @bm.random_variable
@@ -20,7 +20,7 @@ def bar():
 
 @pytest.fixture
 def world():
-    w = SimpleWorld()
+    w = World()
     w.call(bar())
     return w
 

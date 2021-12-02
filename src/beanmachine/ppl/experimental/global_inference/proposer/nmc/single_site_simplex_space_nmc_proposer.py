@@ -6,13 +6,13 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     is_valid,
     hessian_of_log_prob,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
+from beanmachine.ppl.world import World
 
 
 LOGGER = logging.getLogger("beanmachine")
@@ -31,7 +31,7 @@ class SingleSiteSimplexSpaceNMCProposer(SingleSiteAncestralProposer):
         self._proposal_distribution = None
 
     def compute_alpha(
-        self, world: SimpleWorld, min_alpha_value: float = 1e-3
+        self, world: World, min_alpha_value: float = 1e-3
     ) -> Tuple[bool, torch.Tensor]:
         """
         Computes alpha of the Dirichlet proposal given the node.
@@ -68,10 +68,7 @@ class SingleSiteSimplexSpaceNMCProposer(SingleSiteAncestralProposer):
         )
         return True, predicted_alpha
 
-    def get_proposal_distribution(
-        self,
-        world: SimpleWorld,
-    ) -> dist.Distribution:
+    def get_proposal_distribution(self, world: World) -> dist.Distribution:
         """
         Returns the proposal distribution of the node.
 

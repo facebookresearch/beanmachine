@@ -1,6 +1,6 @@
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.variable import Variable
+from beanmachine.ppl.world.variable import Variable
 
 
 def test_log_prob():

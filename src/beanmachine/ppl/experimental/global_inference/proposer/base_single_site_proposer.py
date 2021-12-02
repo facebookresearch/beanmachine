@@ -6,16 +6,16 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
     BaseProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import World
 
 
 class BaseSingleSiteMHProposer(BaseProposer):
     def __init__(self, target_rv: RVIdentifier):
         self.node = target_rv
 
-    def propose(self, world: SimpleWorld):
+    def propose(self, world: World):
         """Propose a new value for self.node with Metropolis-Hasting algorithm
         https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm#Formal_derivation
         Classes that inherit this proposer should override `get_proposal_distribution`
@@ -58,7 +58,7 @@ class BaseSingleSiteMHProposer(BaseProposer):
         return new_world, accept_log_prob
 
     @abstractmethod
-    def get_proposal_distribution(self, world: SimpleWorld) -> dist.Distribution:
+    def get_proposal_distribution(self, world: World) -> dist.Distribution:
         """Return a probability distribution of moving self.node to a new value
         conditioned on its current value in world.
         """

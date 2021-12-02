@@ -7,20 +7,13 @@ from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import
     BaseProposer,
 )
 from beanmachine.ppl.experimental.global_inference.sampler import Sampler
-from beanmachine.ppl.experimental.global_inference.simple_world import (
-    RVDict,
-    SimpleWorld,
-)
-from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
-    InitializeFn,
-    init_to_uniform,
-)
 from beanmachine.ppl.inference.abstract_infer import (
     VerboseLevel,
     _verify_queries_and_observations,
 )
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import RVDict, World, InitializeFn, init_to_uniform
 from tqdm.auto import tqdm
 
 
@@ -30,8 +23,8 @@ class BaseInference(metaclass=ABCMeta):
         queries: List[RVIdentifier],
         observations: RVDict,
         initialize_fn: InitializeFn = init_to_uniform,
-    ) -> SimpleWorld:
-        world = SimpleWorld(observations, initialize_fn)
+    ) -> World:
+        world = World(observations, initialize_fn)
         # recursively add parent nodes to the graph
         for node in queries:
             world.call(node)
@@ -42,7 +35,7 @@ class BaseInference(metaclass=ABCMeta):
     @abstractmethod
     def get_proposers(
         self,
-        world: SimpleWorld,
+        world: World,
         target_rvs: Set[RVIdentifier],
         num_adaptive_sample: int,
     ) -> List[BaseProposer]:

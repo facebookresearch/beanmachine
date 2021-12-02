@@ -5,13 +5,13 @@ from typing import Dict, Iterator, List, Mapping, Optional, Set, Tuple, Collecti
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.utils.initialize_fn import (
+from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world.base_world import BaseWorld
+from beanmachine.ppl.world.initialize_fn import (
     InitializeFn,
     init_from_prior,
 )
-from beanmachine.ppl.experimental.global_inference.variable import Variable
-from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world.base_world import BaseWorld
+from beanmachine.ppl.world.variable import Variable
 
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
@@ -23,7 +23,7 @@ class _TempVar:
     parents: Set[RVIdentifier] = dataclasses.field(default_factory=set)
 
 
-class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
+class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     def __init__(
         self,
         observations: Optional[RVDict] = None,
@@ -43,7 +43,7 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         in the world."""
         return self._variables[node]
 
-    def replace(self, values: RVDict) -> SimpleWorld:
+    def replace(self, values: RVDict) -> World:
         """Return a new world where values specified in the dictionary are replaced.
         This method will update the internal graph structure."""
         assert not any(node in self.observations for node in values)
@@ -83,9 +83,9 @@ class SimpleWorld(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         """Return a KeysView of all latent nodes in the current world"""
         return self._variables.keys() - self.observations.keys()
 
-    def copy(self) -> SimpleWorld:
+    def copy(self) -> World:
         """Returns a shallow copy of the current world"""
-        world_copy = SimpleWorld(self.observations.copy(), self._initialize_fn)
+        world_copy = World(self.observations.copy(), self._initialize_fn)
         world_copy._variables = self._variables.copy()
         return world_copy
 

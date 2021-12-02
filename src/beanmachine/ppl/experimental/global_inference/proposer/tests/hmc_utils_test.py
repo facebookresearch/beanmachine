@@ -12,7 +12,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.hmc_utils import (
     WindowScheme,
     RealSpaceTransform,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
+from beanmachine.ppl.world import World
 
 
 class SampleModel:
@@ -86,7 +86,7 @@ def test_large_window_scheme(num_adaptive_samples):
 
 def test_mass_matrix_adapter():
     model = SampleModel()
-    world = SimpleWorld()
+    world = World()
     world.call(model.bar())
     positions = RealSpaceTransform(world, world.latent_nodes)(dict(world))
     mass_matrix_adapter = MassMatrixAdapter()

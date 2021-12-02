@@ -6,7 +6,6 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
     is_scalar,
     is_valid,
@@ -16,6 +15,7 @@ from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
 from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
+from beanmachine.ppl.world import World
 
 
 LOGGER = logging.getLogger("beanmachine")
@@ -44,7 +44,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         # cached proposal args
         self._proposal_args: Optional[_ProposalArgs] = None
 
-    def _sample_frac_dist(self, world: SimpleWorld) -> torch.Tensor:
+    def _sample_frac_dist(self, world: World) -> torch.Tensor:
         node_val_flatten = world[self.node].flatten()
         # If any of alpha or beta are scalar, we have to reshape them
         # random variable shape to allow for per-index learning rate.
@@ -55,7 +55,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         return beta_.sample()
 
     def _get_proposal_distribution_from_args(
-        self, world: SimpleWorld, frac_dist: torch.Tensor, args: _ProposalArgs
+        self, world: World, frac_dist: torch.Tensor, args: _ProposalArgs
     ) -> dist.Distribution:
         node_val = world[self.node]
         mean = (args.node_val_reshaped + args.distance * frac_dist).squeeze(0)
@@ -72,10 +72,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
         )
         return dist.TransformedDistribution(proposal_dist, reshape_transform)
 
-    def get_proposal_distribution(
-        self,
-        world: SimpleWorld,
-    ) -> dist.Distribution:
+    def get_proposal_distribution(self, world: World) -> dist.Distribution:
         """
         Returns the proposal distribution of the node.
 
@@ -203,7 +200,7 @@ class SingleSiteRealSpaceNMCProposer(SingleSiteAncestralProposer):
 
     def do_adaptation(
         self,
-        world: SimpleWorld,
+        world: World,
         accept_log_prob: torch.Tensor,
         is_accepted: bool = False,
         *args,

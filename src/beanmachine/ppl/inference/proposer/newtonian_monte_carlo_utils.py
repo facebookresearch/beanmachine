@@ -2,9 +2,9 @@ from typing import Optional, Tuple, Union, Callable
 
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.simple_world import SimpleWorld
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
+from beanmachine.ppl.world import World
 from torch import Tensor, tensor
 from torch.autograd import grad
 
@@ -132,7 +132,7 @@ def compute_eigvals_eigvecs(
 
 
 def hessian_of_log_prob(
-    world: SimpleWorld,
+    world: World,
     node: RVIdentifier,
     transformed_node_val: torch.Tensor,
     hessian_fn: Callable,
