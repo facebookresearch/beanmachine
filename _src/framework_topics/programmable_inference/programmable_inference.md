@@ -1,4 +1,9 @@
-# Programmable Inference
+---
+id: programmable_inference
+title: 'Programmable Inference'
+sidebar_label: 'Programmable Inference'
+slug: '/programmable_inference'
+---
 
 Bean Machine offers three inference techniques which aim to close the performance gap between general-purpose and model-specific handwritten inference:
 

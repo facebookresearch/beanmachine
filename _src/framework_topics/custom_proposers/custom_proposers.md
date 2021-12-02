@@ -1,4 +1,9 @@
-## Custom Proposers
+---
+id: custom_proposers
+title: 'Custom Proposers'
+sidebar_label: 'Custom Proposers'
+slug: '/custom_proposers'
+---
 
 Bean Machine is flexible and easily allows users to supply custom Metropolis-Hastings proposers for specific random variables. This enables users to easily incorporate domain knowledge in inference.
 

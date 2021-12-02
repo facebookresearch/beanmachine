@@ -1,4 +1,9 @@
-## Transforms
+---
+id: transforms
+title: 'Transforms'
+sidebar_label: 'Transforms'
+slug: '/transforms'
+---
 
 Bean Machine provides flexibility for users to specify transformations on a per-variable basis. This gives Bean Machine powerful functionality.
 

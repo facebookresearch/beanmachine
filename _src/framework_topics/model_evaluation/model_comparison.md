@@ -1,4 +1,9 @@
-# Model comparison
+---
+id: model_comparison
+title: 'Model Comparison'
+sidebar_label: 'Model Comparison'
+slug: '/model_comparison'
+---
 
 Let's suppose you have a problem for which you have several candidate models. How do you determine which is best? You can run several diagnostics on the posterior samples. However, more directly, you could assess performance on held-out test data!
 
