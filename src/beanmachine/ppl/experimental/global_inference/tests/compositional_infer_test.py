@@ -1,3 +1,4 @@
+from collections import Counter
 from unittest.mock import patch
 
 import beanmachine.ppl as bm
@@ -8,6 +9,9 @@ from beanmachine.ppl.experimental.global_inference.compositional_infer import (
 )
 from beanmachine.ppl.experimental.global_inference.proposer.nuts_proposer import (
     NUTSProposer,
+)
+from beanmachine.ppl.experimental.global_inference.proposer.sequential_proposer import (
+    SequentialProposer,
 )
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
@@ -115,7 +119,7 @@ def test_inference_config():
     assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
 
 
-def test_config_inference_with_tuple():
+def test_config_inference_with_tuple_of_rv():
     model = SampleModel()
     nuts = bm.GlobalNoUTurnSampler()
     compositional = CompositionalInference({(model.foo, model.baz): nuts})
@@ -128,6 +132,32 @@ def test_config_inference_with_tuple():
         mock.assert_called_once_with(
             world, {model.foo(0), model.foo(1), model.baz()}, 10
         )
+
+
+def test_config_inference_with_tuple_of_inference():
+    model = SampleModel()
+    compositional = CompositionalInference(
+        {
+            (model.foo, model.bar): (
+                SingleSiteAncestralMetropolisHastings(),
+                SingleSiteUniformMetropolisHastings(),
+            ),
+            model.baz: bm.GlobalNoUTurnSampler(),
+        }
+    )
+    # verify that inference can run without error
+    compositional.infer([model.baz()], {}, num_chains=1, num_samples=10)
+    # examine the proposer types
+    world = compositional._initialize_world([model.baz()], {})
+    proposers = compositional.get_proposers(
+        world, target_rvs=world.latent_nodes, num_adaptive_sample=10
+    )
+    assert len(proposers) == 2
+    sequential_proposer = proposers[int(isinstance(proposers[0], NUTSProposer))]
+    assert isinstance(sequential_proposer, SequentialProposer)
+    assert len(sequential_proposer.proposers) == 4
+    proposer_count = Counter(map(type, sequential_proposer.proposers))
+    assert proposer_count[SingleSiteAncestralProposer] == 2
 
 
 def test_nested_compositional_inference():
