@@ -24,6 +24,7 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "sphinx_rtd_theme",
     "toml>=0.10.2",
     "usort",
+    "bokeh",
 ]
 TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
 
