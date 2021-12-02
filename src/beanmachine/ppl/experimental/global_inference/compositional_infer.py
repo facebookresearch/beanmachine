@@ -6,6 +6,9 @@ from beanmachine.ppl.experimental.global_inference.base_inference import BaseInf
 from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import (
     BaseProposer,
 )
+from beanmachine.ppl.experimental.global_inference.proposer.sequential_proposer import (
+    SequentialProposer,
+)
 from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
@@ -30,7 +33,10 @@ class CompositionalInference(BaseInference):
     def __init__(
         self,
         inference_dict: Optional[
-            Dict[Union[Callable, Tuple[Callable, ...], EllipsisClass], BaseInference]
+            Dict[
+                Union[Callable, Tuple[Callable, ...], EllipsisClass],
+                Union[BaseInference, Tuple[BaseInference, ...]],
+            ]
         ] = None,
     ):
         self.config = {}
@@ -65,26 +71,44 @@ class CompositionalInference(BaseInference):
         for node in target_rvs:
             rv_family_to_node[node.wrapper].add(node)
 
-        proposers = []
-        for target_families, inference in self.config.items():
-            nodes = set().union(
-                *(rv_family_to_node.get(family, set()) for family in target_families)
-            )
-            if len(nodes) > 0:
-                proposers.extend(
-                    inference.get_proposers(world, nodes, num_adaptive_sample)
+        def _get_proposers_for_inference(
+            rv_families: Tuple[Callable, ...],
+            inferences: Union[BaseInference, Tuple[BaseInference, ...]],
+        ) -> List[BaseProposer]:
+            """Given a tuple of random variable families, this helper function collect
+            all nodes in world that belong to the families of random variables and
+            invoke the inference to spawn proposers for them."""
+            if isinstance(inferences, tuple):
+                # each inference method is responsible for updating a corresponding
+                # rv_family
+                assert len(inferences) == len(rv_families)
+                sub_proposers = []
+                for rv_family, inference in zip(rv_families, inferences):
+                    sub_proposers.extend(
+                        _get_proposers_for_inference((rv_family,), inference)
+                    )
+                if len(sub_proposers) > 0:
+                    return [SequentialProposer(sub_proposers)]
+            else:
+                # collect all nodes that belong to rv_families
+                nodes = set().union(
+                    *(rv_family_to_node.get(family, set()) for family in rv_families)
                 )
+                if len(nodes) > 0:
+                    return inferences.get_proposers(world, nodes, num_adaptive_sample)
+            return []
+
+        proposers = []
+        for target_families, inferences in self.config.items():
+            proposers.extend(_get_proposers_for_inference(target_families, inferences))
 
         # apply default proposers on nodes whose family are not covered by any of the
         # proposers listed in the config
         remaining_families = rv_family_to_node.keys() - self._covered_rv_families
-        remaining_nodes = set().union(
-            *(rv_family_to_node[family] for family in remaining_families)
-        )
-        if len(remaining_nodes) > 0:
-            proposers.extend(
-                self._default_inference.get_proposers(
-                    world, remaining_nodes, num_adaptive_sample
-                )
+        proposers.extend(
+            _get_proposers_for_inference(
+                tuple(remaining_families), self._default_inference
             )
+        )
+
         return proposers
