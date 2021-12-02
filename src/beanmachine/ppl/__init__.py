@@ -17,6 +17,7 @@ from .inference import (
     SingleSiteRandomWalk,
     SingleSiteUniformMetropolisHastings,
     empirical,
+    seed,
     simulate,
 )
 from .model import (
@@ -50,6 +51,7 @@ __all__ = [
     "empirical",
     "experimental",
     "functional",
+    "seed",
     "param",
     "r_hat",
     "random_variable",

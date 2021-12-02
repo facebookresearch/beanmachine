@@ -1,8 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates
+import random
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List
 
+import numpy.random
 import torch
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
@@ -58,3 +60,9 @@ def merge_dicts(dicts: List[RVDict], dim: int = 0, stack_not_cat=True) -> RVDict
         return {rv: torch.stack([d[rv] for d in dicts], dim=dim) for rv in rv_keys}
     else:
         return {rv: torch.cat([d[rv] for d in dicts], dim=dim) for rv in rv_keys}
+
+
+def seed(seed: int) -> None:
+    torch.manual_seed(seed)
+    random.seed(seed)
+    numpy.random.seed(seed)
