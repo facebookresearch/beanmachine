@@ -11,9 +11,9 @@ from beanmachine.ppl.inference.abstract_infer import VerboseLevel
 from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import (
     SingleSiteRandomWalkProposer,
 )
+from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
-from beanmachine.ppl.world import World
 from torch import Tensor
 from tqdm.auto import tqdm
 

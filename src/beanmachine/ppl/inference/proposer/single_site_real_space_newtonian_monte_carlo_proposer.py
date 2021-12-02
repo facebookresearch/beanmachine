@@ -14,9 +14,9 @@ from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
+from beanmachine.ppl.legacy.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
-from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor, tensor
 
 

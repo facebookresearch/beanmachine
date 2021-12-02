@@ -4,8 +4,8 @@ from typing import Dict, Tuple
 from beanmachine.ppl.inference.proposer.abstract_single_site_single_step_proposer import (
     AbstractSingleSiteSingleStepProposer,
 )
+from beanmachine.ppl.legacy.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import ProposalDistribution, Variable, World
 
 
 class SingleSiteAncestralProposer(AbstractSingleSiteSingleStepProposer):

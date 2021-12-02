@@ -2,8 +2,8 @@
 from collections import defaultdict
 from typing import Dict, Optional, Union
 
+from beanmachine.ppl.legacy.world.variable import Variable
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world.variable import Variable
 from torch import Tensor
 
 

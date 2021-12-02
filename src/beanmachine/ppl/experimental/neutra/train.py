@@ -26,8 +26,8 @@ import torch
 import torch.distributions as dist
 import torch.nn as nn
 from beanmachine.ppl.experimental.neutra.iafflow import InverseAutoregressiveFlow
+from beanmachine.ppl.legacy.world import World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world import World
 
 
 class IAFMap(nn.Module):

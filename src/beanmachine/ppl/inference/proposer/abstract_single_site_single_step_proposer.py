@@ -7,9 +7,9 @@ from beanmachine.ppl.inference.proposer.abstract_single_site_proposer import (
     AbstractSingleSiteProposer,
 )
 from beanmachine.ppl.inference.utils import safe_log_prob_sum
+from beanmachine.ppl.legacy.world import ProposalDistribution, Variable, World
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.model.utils import LogLevel
-from beanmachine.ppl.world import ProposalDistribution, Variable, World
 from torch import Tensor
 
 
