@@ -8,7 +8,7 @@ slug: '/introduction'
 
 Bean Machine is a probabilistic programming language that makes developing and deploying generative probabilistic models intuitive and efficient.
 
-## Why generative models?
+## Why Generative models?
 
 Bean Machine's generative modeling is concerned not only with providing useful predictions (as traditional ML techniques do), but also with estimating the uncertainty inherent in the problem at hand in the form of probability distributions. Estimating uncertainty helps ensure that predictions are reliable and robust.
 
@@ -18,7 +18,7 @@ Generative modeling with Bean Machine offers many benefits:
   2. **Expressivity.**  It's extremely easy to encode a rich model directly in source code. This allows one to match the structure of the model to the structure of the problem.
   3. **Interpretability.**  Because the model matches the domain, one can query intermediate variables within the model as conceptually meaningful properties. This can be used to interpret *why* a particular prediction was made, and can aid the model development process.
 
-## Generative probabilistic models
+## Generative Probabilistic Models
 
 A generative probabilistic model consists of **random variables** and **conditional probability distributions** (CPDs) that encode knowledge about some domain. For example, consider a simplified model for the spread of infectious diseases, where we wish to express the idea that the average number of new cases on a given day is proportional to the current number of infections, with the proportionality constant being the daily reproduction rate of the disease. In order to express this mathematically, it is common practice to rely on _elementary probability distributions_ (EPDs) with well known statistics, such as the _Poisson_ distribution here:
 
@@ -56,11 +56,11 @@ One way to understand the semantics of the inference task is to think of a gener
 
 Our generative model specifies a _joint_ probability distribution over each of these worlds, based on the _prior_ distribution we've chosen for `reproduction_rate` and the _likelihood_ of `num_new_cases` given some `reproduction_rate`. Now, the inference task is to restrict attention to only those worlds in which `num_new_cases = 238154`. We're interested in learning the resulting _posterior_ distribution over `reproduction_rate` assignments within these worlds that are compatible with our observation.
 
-## Where does Bean Machine fit in?
+## Where Does Bean Machine Fit In?
 
 In the rest of this Overview we'll introduce you to Bean Machine's syntax, and show you how it can be used to learn about problems like this one. Traditionally, lots of painstaking, hand-crafted work has gone into modeling generative scenarios. Bean Machine aims to handle all of the manual work involved in fitting data to your model, leaving you to focus on the exciting part: the problem itself! Keep on reading to find out how.
 
-## Target audience
+## Target Audience
 
 While we hope that the guides you'll find here are relevant to anyone with an ML background, there are excellent resources available if this is your first exposure to Bayesian analysis! We highly recommend the excellent YouTube series _[Statistical Rethinking](https://www.youtube.com/playlist?list=PLDcUM9US4XdNM4Edgs7weiyIguLSToZRI)_, which walks through Bayesian thinking and probabilistic modeling. For a more hands-on experience, you can check out the free, online tutorial _[Bayesian Methods for Hackers](https://camdavidsonpilon.github.io/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/#contents)_.
 

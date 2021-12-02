@@ -35,7 +35,7 @@ def num_cases(day):
 ```
 
 
-## Prior and posterior distributions
+## Prior and Posterior Distributions
 
 
 <!-- <img style="float: right;" src="../introduction/exponential_10.png" width='400px'> -->
@@ -46,7 +46,7 @@ Although this encodes our prior beliefs, inference will perform the important ta
 
 Throughout this guide, we'll see how observing many days worth of case data will cause inference to fit a posterior distribution that more closely represents the observed data compared to when only a few days of data is observed.
 
-## <a name="binding_data"></a>Binding data
+## <a name="binding_data"></a>Binding Data
 
 Inference requires us to bind data to the model in order to learn posterior distributions for your queried random variables. For this example model, we can bind a few days of data with a simple dictionary:
 
@@ -61,7 +61,7 @@ Recall that calls to random variable functions from ordinary functions (includin
 
 When you pass this dictionary at inference time, instead of sampling from these random variables, Bean Machine will instead consider these random variables to take on the constant values you've provided in this dictionary, and will try to find values for other random variables in your model that are consistent with the observations that you've provided.
 
-## Running inference
+## Running Inference
 
 We're finally ready to run inference! Let's take a look first, and then we'll explain what's happening.
 
@@ -78,7 +78,7 @@ Let's break this down. There is an inference method (in this example, that's the
 
 Inference methods are simply classes that extend from `AbstractInference`. These classes define the engine that will be used in order to fit posterior distributions to queried random variables given observations. In this particular example, we've chosen to use the specific inference method `CompositionalInference` to run inference for our disease modeling problem. In short, `CompositionalInference` is a powerful, flexible class for configuring inference in a variety of ways. By default, `CompositionalInference` will select an inference method for each random variable that is appropriate based on its support. For example, for differentiable random variables, this inference method will attempt to leverage gradient information when generating samples from the posterior; for discrete random variables, it will use a uniform sampler to get representative draws for each discrete value.
 
-A full discussion of the powerful `CompositionalInference` inference method, including extensive instructions on how to configure it, can be found in the [Compositional inference](../../framework_topics/programmable_inference/compositional_inference.md) guide. Bean Machine offers a variety of other inference methods as well, which can perform differently based on the particular model you're working with. You can learn more about these inference methods under the [Inference](../../framework_topics/inference/inference.md) framework topic.
+A full discussion of the powerful `CompositionalInference` inference method, including extensive instructions on how to configure it, can be found in the [Compositional Inference](../../framework_topics/programmable_inference/compositional_inference.md) guide. Bean Machine offers a variety of other inference methods as well, which can perform differently based on the particular model you're working with. You can learn more about these inference methods under the [Inference](../../framework_topics/inference/inference.md) framework topic.
 
 Regardless of inference method, `infer()` has a few important parameters:
 

@@ -12,59 +12,57 @@ sidebar_label: Sitemap
 * [Quick start](overview/quick_start/quick_start.md)
 * [Modeling](overview/modeling/modeling.md)
 * [Inference](overview/inference/inference.md)
-* [Post-inference](overview/analysis/analysis.md)
-* [Packages](overview/packages/packages.md)
-* [Tutorials](overview/tutorials/tutorials.md)
-* [Beanstalk](overview/beanstalk/beanstalk.md)
+* [Analysis](overview/analysis/analysis.md)
+* [Installation](overview/installation/installation.md)
 
 **Framework topics**
 
-* **Declarative syntax**
-  * Declarative philosophy
+* **Declarative Syntax**
+  * Declarative Philosophy
   * `@random_variable`
-  * Model composition and namespacing
+  * Model Composition and Namespacing
   * Worlds
 * **[Inference](framework_topics/inference/inference.md)**
-  * Inference methods
-    * [Ancestral Metropolis-Hastings](framework_topics/inference/ancestral_metropolis_hastings.md)
-    * [Uniform sampler](framework_topics/inference/uniform_metropolis_hastings.md)
+  * **Inference methods**
+    * [Uniform Metropolis-Hastings](framework_topics/inference/uniform_metropolis_hastings.md)
     * [Random Walk Metropolis-Hastings](framework_topics/inference/random_walk.md)
+    * [Ancestral Metropolis-Hastings](framework_topics/inference/ancestral_metropolis_hastings.md)
     * Metropolis-Adjusted Langevin Algorithm
     * [Hamiltonian Monte Carlo and NUTS](framework_topics/inference/hamiltonian_monte_carlo.md)
     * [Newtonian Monte Carlo](framework_topics/inference/newtonian_monte_carlo.md)
-* **Programmable inference**
-  * [Programmable inference](framework_topics/programmable_inference/programmable_inference.md)
-  * [Compositional inference](framework_topics/programmable_inference/compositional_inference.md)
-  * [Block inference](framework_topics/programmable_inference/block_inference.md)
-  * [Transformations](framework_topics/programmable_inference/transforms.md)
-  * [Warmup and adaptation](framework_topics/programmable_inference/adaptive_inference.md)
-* **Custom proposers**
-  * [Custom proposers](framework_topics/custom_proposers/custom_proposers.md)
-  * Mixture of proposers
-  * [Variable API](framework_topics/custom_proposers/variable.md)
-  * Diff and diffstack
+  * **[Programmable Inference](framework_topics/programmable_inference/programmable_inference.md)**
+    * [Transformations](framework_topics/programmable_inference/transforms.md)
+    * [Block Inference](framework_topics/programmable_inference/block_inference.md)
+    * [Compositional Inference](framework_topics/programmable_inference/compositional_inference.md)
+    * [Adaptation and Warmup](framework_topics/programmable_inference/adaptive_inference.md)
+  * **Custom Proposers**
+    * [Worlds and Variables API](framework_topics/custom_proposers/variable.md)
+    * [Proposers API](framework_topics/custom_proposers/custom_proposers.md)
+    * Mixture of proposers
+    * Diff and diffstack
 * **Model evaluation**
-  * [Diagnostics](framework_topics/model_evaluation/diagnostics.md)
-  * [Model comparison](framework_topics/model_evaluation/model_comparison.md)
-  * [Posterior predictive checks](framework_topics/model_evaluation/posterior_predictive_checks.md)
+  * [Diagnostics Module](framework_topics/model_evaluation/diagnostics.md)
+  * [Posterior Predictive Checks](framework_topics/model_evaluation/posterior_predictive_checks.md)
+  * [Model Comparison](framework_topics/model_evaluation/model_comparison.md)
   * Generating data <!-- simulate should go here! -->
   * Custom diagnostics <!-- optional for now -->
+* **Advanced topics**
+<!-- I don't think we'll plan to have any of these ready for a while. -->
+  * Gaussian processes
+  * [Bean Machine Graph C++ Runtime](overview/bmg/bmg.md)
+  * [Beanstalk Compiler](overview/beanstalk/beanstalk.md)
 * **Development**
   * Debugging tips
   * Modeling tips
   * [Logging](framework_topics/development/logging.md)
 
-**Advanced topics**
-<!-- I don't think we'll plan to have any of these ready for a while. -->
-
-* Gaussian processes
-* Bean Machine Graph
-* Beanstalk
 
 **API**
 <!-- Brian Johnson will link this in. See ../website/sidebars.js for where we think 'API' will go... -->
 
-**Tutorials**
+**[Packages](overview/packages/packages.md)**
+
+**[Tutorials](overview/tutorials/tutorials.md)**
 
 * [Coin flipping](https://www.internalfb.com/intern/anp/view/?id=277521)
 * [Linear regression](https://www.internalfb.com/intern/anp/view/?id=282519)

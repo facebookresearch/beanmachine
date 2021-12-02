@@ -30,7 +30,7 @@ For a full list of formatting syntax supported by Docusarus, you can visit this 
 
 Docusaurus 2 also supports MDX, a format that lets you seamlessly write JSX in your Markdown documents. You can find out more by visiting [MDX](https://mdxjs.com/), and you can see an example in this project [here](mdx.md).
 
-## Adding your page to the left navigation
+## Adding Your Page to the Left Navigation
 
 To add a new page to the left navigation, you can add it to the `sidebars.js` file in the `/website` folder in the project. Details for customizing this sidebar file can be found [here](https://v2.docusaurus.io/docs/docs-introduction/#sidebar-object).
 

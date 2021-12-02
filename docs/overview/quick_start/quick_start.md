@@ -121,9 +121,9 @@ plt.legend();
 
 This histogram represents our beliefs over the underlying reproduction rate, after observing the current day's worth of new cases. You'll note that it is balancing our prior beliefs with the rate that we would learn just from looking at the new data. It also captures the uncertainty inherent in our estimate!
 
-## We're not done yet!
+## We're Not Done Yet!
 
-This is the tip of the iceberg. The rest of this Overview will cover critical concepts from the above sections. Read on to learn how to make the most of Bean Machine's powerful modeling and inference systems!
+This is the tip of the iceberg. The rest of this **Overview** will cover critical concepts from the above sections. Read on to learn how to make the most of Bean Machine's powerful modeling and inference systems!
 
 <!-- ## Quick start Part 1
 

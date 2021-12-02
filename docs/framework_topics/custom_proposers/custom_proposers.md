@@ -1,9 +1,9 @@
 ---
-id: custom_proposers
 title: 'Custom Proposers'
-sidebar_label: 'Custom Proposers'
+sidebar_label: 'Proposers'
 slug: '/custom_proposers'
 ---
+## API
 
 Bean Machine is flexible and easily allows users to supply custom Metropolis-Hastings proposers for specific random variables. This enables users to easily incorporate domain knowledge in inference.
 
@@ -21,7 +21,7 @@ def post_process(
 ) -> Tensor:
 ```
 
-#### Propose
+### Propose
 `propose` takes two parameters: the node and the world.
 * node: $X$, the random variable to propose a new value for
 * world: graphical data structure representing variable dependencies and values in the model *before* the proposal is made
@@ -31,7 +31,7 @@ The return value of `propose` is a tuple with three values
 * $\log[g(x' \mid x)]$, the log probability of proposing this value
 * a dictionary of auxiliary variables used in `propose` that are useful in `post_process` (this will typically be intermediary computations used by both functions, so they do not need to be recomputed by `post_process`)
 
-#### Post Process
+### Post Process
 `post_process` takes three parameters: the node, the world, and the auxiliary variables dictionary.
 * node: (same as `propose`) $X$, the random variable to propose a new value for
 * world: (same as `propose`, but *updated with the proposed* value for node) graphical data structure representing variable dependencies and values in the model
@@ -55,7 +55,7 @@ This returns the associated [`Variable`](variable.md) (see Variable API document
     It might be good to rename it.
 -->
 
-### Sample Custom Proposer
+## Sample Custom Proposer
 
 <!--
 It might make sense to replace this example by a more classic Metropolis-Hastings example).
@@ -135,7 +135,7 @@ because now the world has been updated with the new value $x'$.
 However the old value is still available from `world.get_old_value(node)` (or `world.get_old_transformed_value(node)` if a transform is being used).
 
 
-### Gradient-based proposers
+## Gradient-Based Proposers
 
 The `World` class also provides support for gradient-based proposers (see World and Variable API documentation for more details). For all continuous variables, the gradient is tracked for `transformed_value`. Because of the locally-structured nature of Bean Machine models, the contribution of a variable to a world's likelihood is determined solely from the values of the variable itself and its child nodes (those nodes whose distributions are directly influenced by the value of the variable). The likelihood of the relevant parts of the world, also known as the score, can be computed using
 ```py

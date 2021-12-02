@@ -20,7 +20,7 @@ The tutorials currently working with Beanstalk are:
 
 For the above three models, the Beanstalk-compiled version of NMC inference reduces runtime to generate samples of size 10K for the posterior distribution by anywhere between 80x and 250x depending on the model.
 
-### Model restrictions
+### Model Restrictions
 
 Models compiled with Beanstalk have many restrictions. In the current release:
 
@@ -42,7 +42,7 @@ Models compiled with Beanstalk have many restrictions. In the current release:
   existing tensors.
 - Conditions of `while` statements, `if` statements, and `if` expressions must not be stochastic.
 
-### Getting started with Beanstalk
+### Getting Started With Beanstalk
 
 To use Beanstalk to run Bean Machine Graph inference on a Bean Machine model, first import the inference engine. For example: `from beanmachine.ppl.inference.bmg_inference import BMGInference`.
 

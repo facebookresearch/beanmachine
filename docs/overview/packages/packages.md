@@ -17,15 +17,13 @@ Hierarchical mixed effects (HME) models are frequently used in Bayesian Statisti
 
 We created the HME Python package to make our current products’ code bases easier to maintain, make future statistical/ML work more efficient, and most importantly to ensure our HME methodology can be easily reused. The HME package will make hierarchical mixed effects methods widely accessible to the broader open-source community using Bean Machine.
 
-### Fitting HME models with fixed+random effects and flexible priors
+### Fitting HME Models With Fixed+Random Effects and Flexible Priors
 This release is the first version of our HME Python package. The package is capable of fitting Bayesian hierarchical mixed effects models with:
 - any arbitrary fixed and random effects, and
 - it will allow users to flexibly specify priors as they wish.
 
-### Bean Machine Graph for faster performance
+### Bean Machine Graph For Faster Performance
 To fit hierarchical models, HME uses MCMC (Markov chain Monte Carlo) inference techniques powered by Bean Machine Graph (BMG), which runs critical pieces of code in C++ rather than Python, to speed up the inference process significantly.
-
-
 
 
 

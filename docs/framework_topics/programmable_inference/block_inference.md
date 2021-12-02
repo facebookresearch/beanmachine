@@ -1,7 +1,7 @@
 ---
 id: block_inference
-title: 'Block inference'
-sidebar_label: 'Block inference'
+title: 'Block Inference'
+sidebar_label: 'Block Inference'
 slug: '/block_inference'
 ---
 
@@ -76,7 +76,7 @@ This image shows all of the variables that are jointly updated when updating `x(
 <!-- ![HMM diagram](../../../website/static/img/block_inference_hmm_update.png) -->
 ![](/img/block_inference_hmm_update.png)
 
-## Single-site and block inference
+## Single-Site and Block Inference
 
 Please note that once we enable block inference in Bean Machine, the engine will perform both block and single site updates in each inference iteration, so a single random variable might be updated multiple times in the same inference iteration. We shuffle all blocks before running inference, in order to minimize the influence of any particular way that we process the blocks.
 
