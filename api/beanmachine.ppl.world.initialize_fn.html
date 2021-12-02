@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>beanmachine.ppl.world.base_world &mdash; BeanMachine  documentation</title>
+  <title>beanmachine.ppl.world.initialize_fn &mdash; BeanMachine  documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,8 +18,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="beanmachine.ppl.world.initialize_fn" href="beanmachine.ppl.world.initialize_fn.html" />
-    <link rel="prev" title="beanmachine.ppl.world" href="beanmachine.ppl.world.html" /> 
+    <link rel="next" title="beanmachine.ppl.world.utils" href="beanmachine.ppl.world.utils.html" />
+    <link rel="prev" title="beanmachine.ppl.world.base_world" href="beanmachine.ppl.world.base_world.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -56,11 +56,11 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.world.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.world.base_world</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.ppl.world.base_world">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.base_world.html">beanmachine.ppl.world.base_world</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">beanmachine.ppl.world.initialize_fn</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-beanmachine.ppl.world.initialize_fn">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.initialize_fn.html">beanmachine.ppl.world.initialize_fn</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.utils.html">beanmachine.ppl.world.utils</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.variable.html">beanmachine.ppl.world.variable</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.world.html">beanmachine.ppl.world.world</a></li>
@@ -88,9 +88,9 @@
           <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
           <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
           <li><a href="beanmachine.ppl.world.html">beanmachine.ppl.world</a> &raquo;</li>
-      <li>beanmachine.ppl.world.base_world</li>
+      <li>beanmachine.ppl.world.initialize_fn</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/beanmachine.ppl.world.base_world.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/beanmachine.ppl.world.initialize_fn.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -98,30 +98,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="beanmachine-ppl-world-base-world">
-<h1>beanmachine.ppl.world.base_world<a class="headerlink" href="#beanmachine-ppl-world-base-world" title="Permalink to this headline"></a></h1>
-<section id="module-beanmachine.ppl.world.base_world">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.world.base_world" title="Permalink to this headline"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.base_world.BaseWorld">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.base_world.</span></span><span class="sig-name descname"><span class="pre">BaseWorld</span></span><a class="headerlink" href="#beanmachine.ppl.world.base_world.BaseWorld" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.base_world.BaseWorld.call">
-<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">RVIdentifier</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.base_world.BaseWorld.call" title="Permalink to this definition"></a></dt>
-<dd><p>A helper function that invokes the random variable and return its value</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.base_world.BaseWorld.update_graph">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">update_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">RVIdentifier</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.base_world.BaseWorld.update_graph" title="Permalink to this definition"></a></dt>
+  <section id="beanmachine-ppl-world-initialize-fn">
+<h1>beanmachine.ppl.world.initialize_fn<a class="headerlink" href="#beanmachine-ppl-world-initialize-fn" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.world.initialize_fn">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.world.initialize_fn" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.initialize_fn.init_from_prior">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.initialize_fn.</span></span><span class="sig-name descname"><span class="pre">init_from_prior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.initialize_fn.init_from_prior" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
 <dl class="py function">
-<dt class="sig sig-object py" id="beanmachine.ppl.world.base_world.get_world_context">
-<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.base_world.</span></span><span class="sig-name descname"><span class="pre">get_world_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.base_world.get_world_context" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="beanmachine.ppl.world.initialize_fn.init_to_uniform">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.initialize_fn.</span></span><span class="sig-name descname"><span class="pre">init_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.initialize_fn.init_to_uniform" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -131,8 +119,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="beanmachine.ppl.world.html" class="btn btn-neutral float-left" title="beanmachine.ppl.world" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="beanmachine.ppl.world.initialize_fn.html" class="btn btn-neutral float-right" title="beanmachine.ppl.world.initialize_fn" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="beanmachine.ppl.world.base_world.html" class="btn btn-neutral float-left" title="beanmachine.ppl.world.base_world" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.world.utils.html" class="btn btn-neutral float-right" title="beanmachine.ppl.world.utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

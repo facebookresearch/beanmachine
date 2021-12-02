@@ -1,0 +1,11 @@
+beanmachine.ppl.world.initialize_fn
+===================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.world.initialize_fn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

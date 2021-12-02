@@ -8,7 +8,10 @@ Subpackages
    :maxdepth: 4
 
    beanmachine.ppl.world.base_world
+   beanmachine.ppl.world.initialize_fn
    beanmachine.ppl.world.utils
+   beanmachine.ppl.world.variable
+   beanmachine.ppl.world.world
 
 Module contents
 ---------------

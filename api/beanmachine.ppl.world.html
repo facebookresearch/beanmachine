@@ -57,7 +57,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">beanmachine.ppl.world</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.base_world.html">beanmachine.ppl.world.base_world</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.initialize_fn.html">beanmachine.ppl.world.initialize_fn</a></li>
 <li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.utils.html">beanmachine.ppl.world.utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.variable.html">beanmachine.ppl.world.variable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.world.world.html">beanmachine.ppl.world.world</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-beanmachine.ppl.world">Module contents</a></li>
@@ -101,8 +104,20 @@
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.base_world.html#module-beanmachine.ppl.world.base_world">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.initialize_fn.html">beanmachine.ppl.world.initialize_fn</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.initialize_fn.html#module-beanmachine.ppl.world.initialize_fn">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.utils.html">beanmachine.ppl.world.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.utils.html#module-beanmachine.ppl.world.utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.variable.html">beanmachine.ppl.world.variable</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.variable.html#module-beanmachine.ppl.world.variable">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.world.html">beanmachine.ppl.world.world</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.world.world.html#module-beanmachine.ppl.world.world">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -151,6 +166,63 @@ Defaults to preserving shape.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">World</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">observations:</span> <span class="pre">Optional[Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">initialize_fn:</span> <span class="pre">Callable[[torch.distributions.distribution.Distribution],</span> <span class="pre">torch.Tensor]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">init_from_prior&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.World" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.world.base_world.html#beanmachine.ppl.world.base_world.BaseWorld" title="beanmachine.ppl.world.base_world.BaseWorld"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.world.base_world.BaseWorld</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code>[<a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>]</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.copy" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a shallow copy of the current world</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.enumerate_node">
+<span class="sig-name descname"><span class="pre">enumerate_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.enumerate_node" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a tensor enumerating the support of the node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.get_variable">
+<span class="sig-name descname"><span class="pre">get_variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.world.variable.html#beanmachine.ppl.world.variable.Variable" title="beanmachine.ppl.world.variable.Variable"><span class="pre">beanmachine.ppl.world.variable.Variable</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.get_variable" title="Permalink to this definition"></a></dt>
+<dd><p>Return a Variable object that contains the metadata of the current node
+in the world.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.initialize_value">
+<span class="sig-name descname"><span class="pre">initialize_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.initialize_value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.latent_nodes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">latent_nodes</span></span><em class="property"><span class="pre">:</span> <span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#beanmachine.ppl.world.World.latent_nodes" title="Permalink to this definition"></a></dt>
+<dd><p>Return a KeysView of all latent nodes in the current world</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the joint log prob of all of the nodes in the current world</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.replace" title="Permalink to this definition"></a></dt>
+<dd><p>Return a new world where values specified in the dictionary are replaced.
+This method will update the internal graph structure.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.World.update_graph">
+<span class="sig-name descname"><span class="pre">update_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.World.update_graph" title="Permalink to this definition"></a></dt>
+<dd><p>This function adds a node to the graph and initialize its value if the node
+is not found in the graph already. It then returns the value of the node stored
+in world (in original space).</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.get_default_transforms">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">get_default_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.distributions.transforms.Transform</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.get_default_transforms" title="Permalink to this definition"></a></dt>
@@ -170,6 +242,16 @@ into unconstrained space.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="beanmachine.ppl.world.get_world_context">
 <span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">get_world_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.world.get_world_context" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.init_from_prior">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">init_from_prior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.init_from_prior" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="beanmachine.ppl.world.init_to_uniform">
+<span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.world.</span></span><span class="sig-name descname"><span class="pre">init_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.distributions.distribution.Distribution</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.world.init_to_uniform" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
