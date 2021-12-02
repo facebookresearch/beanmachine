@@ -1,4 +1,9 @@
-# Posterior predictive checks
+---
+id: posterior_predictive_checks
+title: 'Posterior Predictive Checks'
+sidebar_label: 'Posterior Predictive Checks'
+slug: '/posterior_predictive_checks'
+---
 
 Evaluating probabilistic models is a challenging effort and an open research problem.  A common way to evaluate how well your model fits the data is to do *posterior predictive checking* [^1], i.e. how well a model's predictions match the data.
 

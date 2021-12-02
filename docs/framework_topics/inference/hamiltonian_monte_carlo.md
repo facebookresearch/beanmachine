@@ -2,9 +2,8 @@
 id: hamiltonian_monte_carlo
 title: Hamiltonian Monte Carlo and Variations
 sidebar_label: 'Hamiltoniam Monte Carlo'
+slug: '/hamiltonian_monte_carlo'
 ---
-
-## Hamiltonian Monte Carlo
 
 Hamiltonian Monte Carlo (HMC) is a sampling algorithm for differentiable random variables which uses Hamiltonian dynamics. By randomly drawing a momentum for the kinetic energy and treating the true posterior as the potential energy, HMC is able to simulate trajectories which explore the space. Intuitively, this can be viewed as starting with a marble at a point inside a bowl, flicking the marble in a random direction, and then following the marble as it rolls around. The position of the marble represents the sample, the flick represents the momentum, and the shape of the bowl in combination with the force of gravity represents our true posterior.
 

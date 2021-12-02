@@ -1,4 +1,9 @@
-# Newtonian Monte Carlo
+---
+id: newtonian_monte_carlo
+title: 'Newtonian Monte Carlo'
+sidebar_label: 'Newtonian Monte Carlo'
+slug: '/newtonian_monte_carlo'
+---
 
 Newtonian Monte Carlo (NMC, Arora et al., 2020) is a second-order gradient-based Markov chain Monte Carlo (MCMC) algorithm that uses the first- and second-order gradients to propose a new value for a random variable.
 
