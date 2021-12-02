@@ -19,6 +19,7 @@ Welcome to BeanMachine's documentation!
    beanmachine.ppl.examples
    beanmachine.ppl.experimental
    beanmachine.ppl.inference
+   beanmachine.ppl.legacy
    beanmachine.ppl.model
    beanmachine.ppl.testlib
    beanmachine.ppl.world

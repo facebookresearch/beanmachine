@@ -1,0 +1,11 @@
+beanmachine.ppl.legacy.world.world
+==================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.legacy.world.world
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

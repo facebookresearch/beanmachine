@@ -1,0 +1,11 @@
+beanmachine.ppl.legacy.world.marginal_table
+===========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.legacy.world.marginal_table
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

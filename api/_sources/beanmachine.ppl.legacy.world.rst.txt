@@ -1,0 +1,24 @@
+beanmachine.ppl.legacy.world
+============================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.legacy.world.diff
+   beanmachine.ppl.legacy.world.diff_stack
+   beanmachine.ppl.legacy.world.marginal_table
+   beanmachine.ppl.legacy.world.variable
+   beanmachine.ppl.legacy.world.world
+   beanmachine.ppl.legacy.world.world_vars
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.legacy.world
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

@@ -1,0 +1,19 @@
+beanmachine.ppl.legacy
+======================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.legacy.world
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.legacy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

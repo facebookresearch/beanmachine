@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.html">beanmachine.ppl.legacy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
@@ -435,7 +436,7 @@
 </ol>
 <p>infer the empirical distribution of the queried nodes</p>
 <ol class="arabic simple" start="2">
-<li><p>infer(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401, n_chains: int = 4, infer_config: beanmachine.graph.InferConfig = &lt;beanmachine.graph.InferConfig object at 0x7f8a68a719b0&gt;) -&gt; List[List[List[beanmachine.graph.NodeValue]]]</p></li>
+<li><p>infer(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401, n_chains: int = 4, infer_config: beanmachine.graph.InferConfig = &lt;beanmachine.graph.InferConfig object at 0x7f75c1be58f0&gt;) -&gt; List[List[List[beanmachine.graph.NodeValue]]]</p></li>
 </ol>
 <p>infer the empirical distribution of the queried nodes using multiple chains</p>
 </dd></dl>
@@ -449,7 +450,7 @@
 </ol>
 <p>infer the posterior mean of the queried nodes</p>
 <ol class="arabic simple" start="2">
-<li><p>infer_mean(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401, n_chains: int = 4, infer_config: beanmachine.graph.InferConfig = &lt;beanmachine.graph.InferConfig object at 0x7f8a68a717b0&gt;) -&gt; List[List[float]]</p></li>
+<li><p>infer_mean(self: beanmachine.graph.Graph, num_samples: int, algorithm: beanmachine.graph.InferenceType = &lt;InferenceType.GIBBS: 2&gt;, seed: int = 5123401, n_chains: int = 4, infer_config: beanmachine.graph.InferConfig = &lt;beanmachine.graph.InferConfig object at 0x7f75c1be56f0&gt;) -&gt; List[List[float]]</p></li>
 </ol>
 <p>infer the posterior mean of the queried nodes using multiple chains</p>
 </dd></dl>
