@@ -15,18 +15,30 @@ REQUIRED_MINOR = 7
 
 
 TEST_REQUIRES = ["pytest", "pytest-cov"]
-DEV_REQUIRES = TEST_REQUIRES + [
-    "black==20.8b1",
-    "flake8",
-    "flake8-bugbear",
-    "sphinx==4.2.0",
-    "sphinx-autodoc-typehints",
-    "sphinx_rtd_theme",
-    "toml>=0.10.2",
-    "usort",
+TUTORIALS_REQUIRES = [
+    "jupyter",
+    "matplotlib",
+    "cma",
+    "torchvision",
+    "seaborn",
     "bokeh",
+    "ipywidgets",
 ]
-TUTORIALS_REQUIRES = ["jupyter", "matplotlib", "cma", "torchvision"]
+DEV_REQUIRES = (
+    TEST_REQUIRES
+    + TUTORIALS_REQUIRES
+    + [
+        "black==20.8b1",
+        "flake8",
+        "flake8-bugbear",
+        "sphinx==4.2.0",
+        "sphinx-autodoc-typehints",
+        "sphinx_rtd_theme",
+        "toml>=0.10.2",
+        "usort",
+        "nbval",
+    ]
+)
 
 if platform.system() == "Windows":
     CPP_COMPILE_ARGS = ["/WX", "/permissive-", "-DEIGEN_HAS_C99_MATH"]
