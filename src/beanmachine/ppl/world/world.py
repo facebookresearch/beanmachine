@@ -24,11 +24,36 @@ class _TempVar:
 
 
 class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
+    """
+    A World represents an instantiation of the graphical model and can be manipulated or evaluated.
+    In the contest of MCMC inference, a world represents a single Monte Carlo posterior sample.
+
+    A World can also be used as a context manager to run and sample random variables.
+
+        @bm.random_variable
+        def foo():
+          return Normal(0., 1.)
+
+        world = World()
+        with world:
+          x = foo()  # returns a sample, ie tensor.
+
+        with world:
+          y = foo()  # same world = same tensor
+
+        assert x == y
+    """
+
     def __init__(
         self,
         observations: Optional[RVDict] = None,
         initialize_fn: InitializeFn = init_from_prior,
     ):
+        """
+        Args:
+          observations (Optional): Optional observations, which fixes the random variables to observed values
+          initialize_fn (bool): Whether to initialize values from prior/
+        """
         self.observations: RVDict = observations or {}
         self._initialize_fn: InitializeFn = initialize_fn
         self._variables: Dict[RVIdentifier, Variable] = {}
@@ -36,16 +61,35 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         self._call_stack: List[_TempVar] = []
 
     def __getitem__(self, node: RVIdentifier) -> torch.Tensor:
+        """
+        Args:
+          node (RVIdentifier): RVIdentifier of Node.
+
+        Returns:
+          torch.Tensor: The sampled value.
+        """
         return self._variables[node].value
 
     def get_variable(self, node: RVIdentifier) -> Variable:
-        """Return a Variable object that contains the metadata of the current node
-        in the world."""
+        """
+        Args:
+          node (RVIdentifier): RVIdentifier of Node.
+
+        Returns:
+          Variable object that contains the metadata of the current node
+          in the world.
+        """
         return self._variables[node]
 
     def replace(self, values: RVDict) -> World:
-        """Return a new world where values specified in the dictionary are replaced.
-        This method will update the internal graph structure."""
+        """
+        Args:
+          node (RVDict): Dict of RVIdentifiers and their values to replace.
+
+        Returns:
+          A new world where values specified in the dictionary are replaced.
+          This method will update the internal graph structure.
+        """
         assert not any(node in self.observations for node in values)
         new_world = self.copy()
         for node, value in values.items():
@@ -80,11 +124,17 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
 
     @property
     def latent_nodes(self) -> Set[RVIdentifier]:
-        """Return a KeysView of all latent nodes in the current world"""
+        """
+        Returns:
+          A KeysView of all latent nodes in the current world.
+        """
         return self._variables.keys() - self.observations.keys()
 
     def copy(self) -> World:
-        """Returns a shallow copy of the current world"""
+        """
+        Returns:
+          Shallow copy of the current world.
+        """
         world_copy = World(self.observations.copy(), self._initialize_fn)
         world_copy._variables = self._variables.copy()
         return world_copy
@@ -105,9 +155,16 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         )
 
     def update_graph(self, node: RVIdentifier) -> torch.Tensor:
-        """This function adds a node to the graph and initialize its value if the node
-        is not found in the graph already. It then returns the value of the node stored
-        in world (in original space)."""
+        """
+        This function adds a node to the graph and initialize its value if the node
+        is not found in the graph already.
+
+        Args:
+          node (RVDict): Dict of RVIdentifiers and their values to replace.
+
+        Returns:
+          The value of the node stored in world (in original space).
+        """
         if node not in self._variables:
             self.initialize_value(node)
         node_var = self._variables[node]
@@ -121,7 +178,13 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     def log_prob(
         self, nodes: Optional[Collection[RVIdentifier]] = None
     ) -> torch.Tensor:
-        """Returns the joint log prob of all of the nodes in the current world"""
+        """
+        Args:
+          nodes: Optional collection of RVIdentifiers to evaluate the log prob of a subset of
+                 the graph. If none is specified, then all the variables in the world are used.
+        Returns:
+          The joint log prob of all of the nodes in the current world
+        """
         if nodes is None:
             nodes = self._variables.keys()
 
@@ -131,7 +194,13 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
         return log_prob
 
     def enumerate_node(self, node: RVIdentifier) -> torch.Tensor:
-        """Returns a tensor enumerating the support of the node"""
+        """
+        Args:
+          node (RVIdentifier): RVIdentifier of Node.
+
+        Returns:
+          A tensor enumerating the support of the node.
+        """
         distribution = self._variables[node].distribution
         # pyre-ignore[16]
         if not distribution.has_enumerate_support:
@@ -142,8 +211,15 @@ class World(BaseWorld, Mapping[RVIdentifier, torch.Tensor]):
     def _run_node(
         self, node: RVIdentifier
     ) -> Tuple[dist.Distribution, Set[RVIdentifier]]:
-        """Invoke a random variable function conditioned on the current world. Return
-        its distribution and a set of parent nodes"""
+        """
+        Invoke a random variable function conditioned on the current world. Return
+
+        Args:
+          node (RVIdentifier): RVIdentifier of Node.
+
+        Returns:
+          Its distribution and set of parent nodes
+        """
         self._call_stack.append(_TempVar(node))
         with self:
             distribution = node.function(*node.arguments)
