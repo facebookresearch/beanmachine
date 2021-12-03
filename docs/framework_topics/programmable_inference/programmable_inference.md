@@ -1,7 +1,7 @@
 ---
 id: programmable_inference
 title: 'Programmable Inference'
-sidebar_label: 'Programmable Inference'
+sidebar_label: 'Overview'
 slug: '/programmable_inference'
 ---
 

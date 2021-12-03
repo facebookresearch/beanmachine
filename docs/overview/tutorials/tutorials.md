@@ -7,7 +7,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine. If you are just getting started with Bean Machine, we recommend you work through one or two of the most basic tutorials, then consider if you might be better served by a [Package](/docs/overview/packages/packages) first, before customizing a more advanced tutorial.
 
-### Beanstalk compiler
+### Beanstalk Compiler
 
 Additionally, consider if you can structure your statistical model in such a way that it can perform at much faster speeds, by compilation into C++. See our [Beanstalk](/docs/overview/beanstalk/beanstalk) compiler details for more information on what types of models are supported by our Bean Machine compiler.
 
@@ -74,21 +74,21 @@ Neal's funnel has proven difficult-to-handle for classical inference methods. Th
 This tutorial demonstrates modeling and running inference on a robust linear regression model in Bean Machine. This should offer a simple modification from the standard regression model to incorporate heavy tailed error models that are more robust to outliers and demonstrates modifying base models.
 
 
-### **Hierarchical Modeling with Repeated Binary Trial Data**
+### Hierarchical Modeling with Repeated Binary Trial Data
 
 [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Hierarchical_modeling.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Hierarchical_modeling.ipynb)
 
 In this tutorial we will demonstrate the application of hierarchical models with data from the 1970 season of [Major League Baseball (MLB)](https://render.githubusercontent.com/view/ipynb?color_mode=light&commit=d5d87c500dc6bf5a37abab41b37757804ac642b8&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f66616365626f6f6b72657365617263682f6265616e6d616368696e652f643564383763353030646336626635613337616261623431623337373537383034616336343262382f7475746f7269616c732f48696572617263686963616c5f6d6f64656c696e672e6970796e623f746f6b656e3d41414c4f48354b4e4442363351374456424f554d58364442525641434b&nwo=facebookresearch%2Fbeanmachine&path=tutorials%2FHierarchical_modeling.ipynb&repository_id=201103120&repository_type=Repository#references) found in the paper by [Efron and Morris 1975](https://render.githubusercontent.com/view/ipynb?color_mode=light&commit=d5d87c500dc6bf5a37abab41b37757804ac642b8&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f66616365626f6f6b72657365617263682f6265616e6d616368696e652f643564383763353030646336626635613337616261623431623337373537383034616336343262382f7475746f7269616c732f48696572617263686963616c5f6d6f64656c696e672e6970796e623f746f6b656e3d41414c4f48354b4e4442363351374456424f554d58364442525641434b&nwo=facebookresearch%2Fbeanmachine&path=tutorials%2FHierarchical_modeling.ipynb&repository_id=201103120&repository_type=Repository#references).
 
 
-### **Hierarchical Regression**
+### Hierarchical Regression
 
 [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/Hierarchical_regression.ipynb) *•* [Run in Google Colab](https://colab.research.google.com/github/facebookresearch/beanmachine/blob/master/tutorials/Hierarchical_regression.ipynb)
 
 In this tutorial we will explore linear regression in combination with hierarchical priors. We will be using data from Gelman and Hill on radon levels found in buildings in Minnesota; [Hill J and Gelman A](https://render.githubusercontent.com/view/ipynb?color_mode=light&commit=d5d87c500dc6bf5a37abab41b37757804ac642b8&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f66616365626f6f6b72657365617263682f6265616e6d616368696e652f643564383763353030646336626635613337616261623431623337373537383034616336343262382f7475746f7269616c732f48696572617263686963616c5f72656772657373696f6e2e6970796e623f746f6b656e3d41414c4f48354e4936504134354d505242464d53354c4c425256414136&nwo=facebookresearch%2Fbeanmachine&path=tutorials%2FHierarchical_regression.ipynb&repository_id=201103120&repository_type=Repository#references).
 
 
-### Modeling NBA foul calls using **** **Item Response Theory**
+### Modeling NBA Foul Calls Using Item Response Theory
 
 [Open in GitHub](https://github.com/facebookresearch/beanmachine/blob/master/tutorials/NBA_IRT.ipynb) *•* Run in Google Colab
 
