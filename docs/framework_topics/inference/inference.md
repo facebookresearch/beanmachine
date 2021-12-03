@@ -14,12 +14,4 @@ Each world corresponds to a potential sample for the posterior distribution. An 
 
 In an MCMC method, worlds are computed sequentially. A new world is "proposed" based on the random variable assignments from the current world. In each inference step, an MCMC method iterates over all unobserved random variables and proposes a new value. The world is updated to reflect this change; that is, likelihoods are updated and new variables may be added or removed. This updated world will either replace the existing world or be discarded as determined by the specific inference method. The value associated with each variable at the $i$th inference step is returned as the $i$th sample for the variable.
 
-As you can imagine, there are a variety of ways of proposing new worlds from the current world, and even for deciding whether to accept or reject a proposed world. Lots of research goes into designing inference methods that are both flexible and performant for a wide class of models. Bean Machine supports many inference methods out-of-the-box -- check out the docs under **Inference methods** to learn more!
-
-## Programmable Inference
-
-One of the key innovations in Bean Machine is the idea that inference is programmable. Bean Machine's single-site paradigm allows you to modularly mix-and-match inference components to get the most out of your model.
-
-Compositional inference allows you to utilize distinct inference methods for different random variables when fitting a model. Our flexible transformations framework allows you to leverage domain-specific transformations or proposers, which can be especially powerful to avoid worse edge-case performance when running inference over constrained random variables. Block inference allows you to propose updates for several random variables jointly, which can be necessary when dealing with highly-correlated variables. All of these techniques are covered in the **Programmable Inference** section.
-
-We've also included a section on Bean Machine's framework for implementing and manipulating **Custom proposers**. This framework exposes tools for building domain-specific proposers which can be plugged in modularly with many of Bean Machine's existing inference methods.
+As you can imagine, there are a variety of ways of proposing new worlds from the current world, and even for deciding whether to accept or reject a proposed world. Lots of research goes into designing inference methods that are both flexible and performant for a wide class of models. Bean Machine supports many inference methods out-of-the-box, and which are described in the rest of this section of the documentation. This section also covers a particularly promising feature of Bean Machine, namely, programmable inference.
