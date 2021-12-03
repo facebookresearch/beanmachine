@@ -55,9 +55,9 @@ For each inference iteration:
 Here is an example of how to use Single-Site Ancestral Metropolis Hastings to perform inference in Bean Machine.
 
 ```py
-from beanmachine.ppl.inference.single_site_ancestral_mh import SingleSiteAncestralMetropolisHastings
+import beanmachine.ppl as bm
 
-mh = SingleSiteAncestralMetropolisHastings()
+mh = bm.SingleSiteAncestralMetropolisHastings()
 coin_samples = mh.infer(queries, observations, num_samples, num_chains)
 ```
 

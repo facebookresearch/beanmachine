@@ -17,8 +17,8 @@ from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.compiler.runtime import BMGRuntime
-from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from beanmachine.ppl.inference.utils import _verify_queries_and_observations
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 # TODO[Walid]: At some point, to facilitate checking the idea that this works pretty

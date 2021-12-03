@@ -6,9 +6,7 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.gp import kernels, likelihoods
 from beanmachine.ppl.experimental.gp.models import BoTorchGP, SimpleGP
-from beanmachine.ppl.inference.single_site_no_u_turn_sampler import (
-    SingleSiteNoUTurnSampler,
-)
+from beanmachine.ppl.legacy.inference import SingleSiteNoUTurnSampler
 from botorch.posteriors.gpytorch import GPyTorchPosterior
 
 

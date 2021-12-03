@@ -66,7 +66,7 @@ from beanmachine.ppl.compiler.support import (
     Unknown,
     _limit as max_possibilities,
 )
-from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
+from beanmachine.ppl.inference.utils import _verify_queries_and_observations
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils.memoize import MemoizationKey
 

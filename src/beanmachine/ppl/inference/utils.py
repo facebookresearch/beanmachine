@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 import random
-from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List
 
@@ -11,28 +10,75 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 RVDict = Dict[RVIdentifier, torch.Tensor]
 
+# Detect and report if a user fails to meet the inference contract.
+def _verify_queries(queries: List[RVIdentifier]) -> None:
+    if not isinstance(queries, list):
+        t = type(queries).__name__
+        raise TypeError(
+            f"Parameter 'queries' is required to be a list but is of type {t}."
+        )
 
-class BlockType(Enum):
+    for query in queries:
+        if not isinstance(query, RVIdentifier):
+            t = type(query).__name__
+            raise TypeError(
+                f"A query is required to be a random variable but is of type {t}."
+            )
+        for arg in query.arguments:
+            if isinstance(arg, RVIdentifier):
+                raise TypeError(
+                    "The arguments to a query must not be random variables."
+                )
+
+
+def _verify_observations(
+    observations: Dict[RVIdentifier, torch.Tensor], must_be_rv: bool
+) -> None:
+    if not isinstance(observations, dict):
+        t = type(observations).__name__
+        raise TypeError(
+            f"Parameter 'observations' is required to be a dictionary but is of type {t}."
+        )
+
+    for rv, value in observations.items():
+        if not isinstance(rv, RVIdentifier):
+            t = type(rv).__name__
+            raise TypeError(
+                f"An observation is required to be a random variable but is of type {t}."
+            )
+        if not isinstance(value, torch.Tensor):
+            t = type(value).__name__
+            raise TypeError(
+                f"An observed value is required to be a tensor but is of type {t}."
+            )
+        if must_be_rv and rv.is_functional:
+            raise TypeError(
+                "An observation must observe a random_variable, not a functional."
+            )
+        for arg in rv.arguments:
+            if isinstance(arg, RVIdentifier):
+                raise TypeError(
+                    "The arguments to an observation must not be random variables."
+                )
+
+
+def _verify_queries_and_observations(
+    queries: List[RVIdentifier],
+    observations: Dict[RVIdentifier, torch.Tensor],
+    observations_must_be_rv: bool,
+) -> None:
+    _verify_queries(queries)
+    _verify_observations(observations, observations_must_be_rv)
+
+
+class VerboseLevel(Enum):
     """
-    Enum for Block types: can be single node, or sequential block where nodes are
-    sequentially re-sampled, or joint, where nodes are jointly re-sampled.
+    Enum class which is used to set how much output is printed during inference.
+    LOAD_BAR enables tqdm for full inference loop.
     """
 
-    SINGLENODE = 1
-    SEQUENTIAL = 2
-    JOINT = 3
-
-
-@dataclass(eq=True, frozen=True)
-class Block:
-    """
-    Block class, which contains: the RVIdentifier of the first_node, type of the
-    Block and list of random variables in the block in strings.
-    """
-
-    first_node: RVIdentifier
-    type: BlockType
-    block: List[str]
+    OFF = 0
+    LOAD_BAR = 1
 
 
 def safe_log_prob_sum(distrib, value: torch.Tensor) -> torch.Tensor:

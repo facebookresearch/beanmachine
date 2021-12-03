@@ -13,7 +13,7 @@ from beanmachine.ppl.examples.conjugate_models.categorical_dirichlet import (
 from beanmachine.ppl.examples.conjugate_models.gamma_gamma import GammaGammaModel
 from beanmachine.ppl.examples.conjugate_models.gamma_normal import GammaNormalModel
 from beanmachine.ppl.examples.conjugate_models.normal_normal import NormalNormalModel
-from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
+from beanmachine.ppl.legacy.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.testlib.hypothesis_testing import (
     mean_equality_hypothesis_confidence_interval,

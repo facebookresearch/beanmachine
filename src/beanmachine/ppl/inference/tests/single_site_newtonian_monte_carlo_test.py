@@ -12,7 +12,7 @@ from beanmachine.ppl.experimental.global_inference.proposer.nmc import (
 from beanmachine.ppl.experimental.global_inference.single_site_nmc import (
     SingleSiteNewtonianMonteCarlo,
 )
-from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
+from beanmachine.ppl.legacy.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
 )
 from beanmachine.ppl.legacy.world import TransformType
