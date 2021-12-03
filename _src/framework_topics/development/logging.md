@@ -11,7 +11,7 @@ Logging in Bean Machine is provided through the [logging](https://docs.python.or
 
 Upon importing the beanmachine module, the base logger `"beanmachine"` is initialized with two handlers such that it saves every message at or above the `WARNING` level to a local file and prints every message at or above the `INFO` level to the console. Users could control the information to be logged by replacing the default handlers with customized ones.
 
-## Log Levels and Sub-loggers
+## Log Levels and Sub-Loggers
 
 To keep sufficient flexibility and ease of use, Bean Machine provides multiple sub-loggers under the base logger `"beanmachine"`, such as `"beanmachine.inference"`, `"beanmachine.proposer"`, `"beanmachine.world"`, etc. The name of the sub-logger indicates where the message is generated. Following the convention of Python [logging](https://docs.python.org/3/howto/logging.html), users could modify the logging levels of the base or sub-loggers as they need. Experienced users could also create customized filters based on the message itself.
 

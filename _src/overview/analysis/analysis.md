@@ -8,7 +8,7 @@ sidebar_label: 'Analysis'
 
 Inference results are useful not only for learning from your posterior distributions, but for verifying that inference ran correctly. We'll cover common techniques for analyzing results in this section.
 
-## Results of inference
+## Results of Inference
 
 Bean Machine stores the results of inference in an object of type `MonteCarloSamples`. This class uses
 an underlying data structure of a dictionary mapping a model's random variables to a PyTorch tensor of sampled values. The class can be accessed like a dictionary, and there are additional wrapper methods to make function calls more explicit.
@@ -28,7 +28,7 @@ samples
 <beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples>
 ```
 
-### Extracting samples for a specific variable
+### Extracting Samples for a Specific Variable
 
 We ran inference to compute the posterior for `reproduction_rate()`, since that was listed in `queries`. We can see that the posterior for `reproduction_rate()` (and only for `reproduction_rate()`) is available in `samples`:
 
@@ -67,7 +67,7 @@ tensor([[1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193],
 
 Please note that many inference methods require a small number of samples before they start drawing samples that correctly resemble the posterior distribution. We recommend you discard at least a few hundred samples before using your inference results.
 
-### Extracting samples for a specific chain
+### Extracting Samples for a Specific Chain
 
 We'll see how to make use of chains in [Diagnostics](#diagnostics); for inspecting the samples themselves, it is often useful to examine each chain individually. The recommended way to access the results of a specific chain is with `get_chain()`:
 
@@ -88,7 +88,7 @@ chain[ reproduction_rate() ]
 tensor([1.0000, 0.4386, 0.2751,  ..., 0.2177, 0.2177, 0.2193])
 ```
 
-### Visualizing distributions
+### Visualizing Distributions
 
 Visualizing the results of inference can be a great help in understanding them. Since you now know how to access posterior samples, you're free to use whatever visualization tools you prefer.
 
@@ -107,7 +107,7 @@ plt.legend();
 
 After running inference it is useful to run diagnostic tools to assess reliability of the inference run. Bean Machine provides two standard types of such diagnostic tools, discussed below.
 
-### Summary statistics
+### Summary Statistics
 
 Bean Machine provides important summary statistics for individual, numerically-valued random variables. Let's take a look at the code to generate them, and then we'll break down the statistics themselves.
 
@@ -136,7 +136,7 @@ $N_\text{eff} \in [1,$ `num_samples`$]$ summarizes how independent posterior sam
 
 In the case of our example model, we have a healthy $\hat{R}$ value close to 1.0, and a healthy number of effective samples of 631.
 
-### Diagnostic plots
+### Diagnostic Plots
 
 Bean Machine can also plot diagnostic information to assess health of the inference run. Let's take a look:
 
@@ -156,4 +156,4 @@ For our example model, we see from the trace plots that each of the chains are h
 
 ---
 
-Congratulations, you've made it through the **Overview**! If you're looking to get an even deeper understanding of Bean Machine, check out the **Framework topics** next. Or, if you're looking to get to coding, check out our **Tutorials**. In either case, happy modeling!
+Congratulations, you've made it through the **Overview**! If you're looking to get an even deeper understanding of Bean Machine, check out the **Framework** topics next. Or, if you're looking to get to coding, check out our [Tutorials](../tutorials/tutorials.md). In either case, happy modeling!
