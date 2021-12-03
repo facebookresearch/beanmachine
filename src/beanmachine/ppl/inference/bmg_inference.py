@@ -271,7 +271,7 @@ class BMGInference:
         after_transform: bool = True,
         label_edges: bool = False,
         skip_optimizations: Set[str] = default_skip_optimizations,
-    ) -> graphviz.files.Source:
+    ) -> graphviz.Source:
         """Small wrapper to generate an actual graphviz object"""
         s = self.to_dot(
             queries, observations, after_transform, label_edges, skip_optimizations
