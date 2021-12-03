@@ -18,6 +18,8 @@ filterwarnings = [
     "ignore:DenseAutoregressive input_dim = 1. Consider using an affine transformation instead.*:UserWarning",
     # statsmodels's deprecation warning
     "default:the 'unbiased'' keyword is deprecated, use 'adjusted' instead.*:FutureWarning",
+    # nbval fspath deprecation not supported in sphinx
+    "ignore::DeprecationWarning:nbval",
     # PyTorch 1.10 warns against creating a tensor from a list of numpy arrays
     """default:Creating a tensor from a list of numpy.ndarrays is extremely slow. Please
     consider converting the list to a single numpy.ndarray with numpy.array() before
