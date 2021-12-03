@@ -37,7 +37,7 @@ module.exports = {
       'framework_topics/model_evaluation/posterior_predictive_checks',
       'framework_topics/development/logging',
     ],
-    Advanced: ['overview/bmg/bmg', 'overview/beanstalk/beanstalk'],
+    Advanced: ['overview/beanstalk/beanstalk'],
     Tutorials: ['overview/tutorials/tutorials'],
     Packages: ['overview/packages/packages'],
     Contributing: ['contributing'],
