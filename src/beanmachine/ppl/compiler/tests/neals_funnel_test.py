@@ -4,6 +4,7 @@
 import unittest
 
 import beanmachine.ppl as bm
+import graphviz
 from beanmachine.ppl.inference.bmg_inference import BMGInference
 from torch import exp
 from torch.distributions import Normal
@@ -58,7 +59,7 @@ digraph "graph" {
         observations = {}
         queries = [X(), Y()]
 
-        observed = str(type(BMGInference().to_graphviz(queries, observations)))
-        expected = "<class 'graphviz.files.Source'>"
+        observed = type(BMGInference().to_graphviz(queries, observations))
+        expected = graphviz.Source
 
-        self.assertEqual(expected.strip(), observed.strip())
+        self.assertEqual(expected, observed)
