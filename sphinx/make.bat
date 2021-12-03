@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=source
 set BUILDDIR=../website/static
-set ALLSPHINXOPTS=-d %BUILDDIR%/doctrees %SPHINXOPTS% ./source -W --keep-going -n
+set ALLSPHINXOPTS=-d %BUILDDIR%/doctrees %SPHINXOPTS% ./source -W --keep-going
 
 if "%1" == "" goto help
 
