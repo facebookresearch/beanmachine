@@ -1,0 +1,11 @@
+beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer
+=======================================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

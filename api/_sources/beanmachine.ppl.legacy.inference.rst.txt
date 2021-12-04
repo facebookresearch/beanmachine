@@ -1,0 +1,32 @@
+beanmachine.ppl.legacy.inference
+================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.legacy.inference.abstract_infer
+   beanmachine.ppl.legacy.inference.abstract_mh_infer
+   beanmachine.ppl.legacy.inference.compositional_infer
+   beanmachine.ppl.legacy.inference.predictive
+   beanmachine.ppl.legacy.inference.proposer
+   beanmachine.ppl.legacy.inference.rejection_sampling_infer
+   beanmachine.ppl.legacy.inference.sampler
+   beanmachine.ppl.legacy.inference.single_site_ancestral_mh
+   beanmachine.ppl.legacy.inference.single_site_hamiltonian_monte_carlo
+   beanmachine.ppl.legacy.inference.single_site_newtonian_monte_carlo
+   beanmachine.ppl.legacy.inference.single_site_no_u_turn_sampler
+   beanmachine.ppl.legacy.inference.single_site_random_walk
+   beanmachine.ppl.legacy.inference.single_site_uniform_mh
+   beanmachine.ppl.legacy.inference.utils
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.legacy.inference
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

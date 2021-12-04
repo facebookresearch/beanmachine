@@ -1,0 +1,11 @@
+beanmachine.ppl.legacy.inference.predictive
+===========================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.legacy.inference.predictive
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

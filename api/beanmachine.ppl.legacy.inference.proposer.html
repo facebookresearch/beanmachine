@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.legacy.inference.proposer &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer" href="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer.html" />
+    <link rel="prev" title="beanmachine.ppl.legacy.inference.predictive" href="beanmachine.ppl.legacy.inference.predictive.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.legacy.html">beanmachine.ppl.legacy</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.legacy.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.legacy.inference.html">beanmachine.ppl.legacy.inference</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.legacy.inference.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.legacy.inference.html#module-beanmachine.ppl.legacy.inference">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.legacy.world.html">beanmachine.ppl.legacy.world</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.html#module-beanmachine.ppl.legacy">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.legacy.html">beanmachine.ppl.legacy</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.legacy.inference.html">beanmachine.ppl.legacy.inference</a> &raquo;</li>
+      <li>beanmachine.ppl.legacy.inference.proposer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.legacy.inference.proposer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-legacy-inference-proposer">
+<h1>beanmachine.ppl.legacy.inference.proposer<a class="headerlink" href="#beanmachine-ppl-legacy-inference-proposer" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer.html">beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer.html">beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils.html">beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils.html#module-beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.normal_eig.html">beanmachine.ppl.legacy.inference.proposer.normal_eig</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.normal_eig.html#module-beanmachine.ppl.legacy.inference.proposer.normal_eig">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_half_space_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_hamiltonian_monte_carlo_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_hamiltonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_hamiltonian_monte_carlo_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_hamiltonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_newtonian_monte_carlo_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_no_u_turn_sampler_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_no_u_turn_sampler_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_no_u_turn_sampler_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_no_u_turn_sampler_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_random_walk_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_random_walk_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_random_walk_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_random_walk_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_real_space_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_simplex_newtonian_monte_carlo_proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_uniform_proposer.html">beanmachine.ppl.legacy.inference.proposer.single_site_uniform_proposer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_uniform_proposer.html#module-beanmachine.ppl.legacy.inference.proposer.single_site_uniform_proposer">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-beanmachine.ppl.legacy.inference.proposer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.legacy.inference.proposer" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteAncestralProposer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.legacy.inference.proposer.</span></span><span class="sig-name descname"><span class="pre">SingleSiteAncestralProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.TransformType" title="beanmachine.ppl.legacy.world.variable.TransformType"><span class="pre">beanmachine.ppl.legacy.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteAncestralProposer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer.html#beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer.AbstractSingleSiteSingleStepProposer" title="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer.AbstractSingleSiteSingleStepProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.proposer.abstract_single_site_single_step_proposer.AbstractSingleSiteSingleStepProposer</span></code></a></p>
+<p>Single-Site Ancestral Metropolis Hastings Implementations</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteAncestralProposer.get_proposal_distribution">
+<span class="sig-name descname"><span class="pre">get_proposal_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_var</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.Variable" title="beanmachine.ppl.legacy.world.variable.Variable"><span class="pre">beanmachine.ppl.legacy.world.variable.Variable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.world.html#beanmachine.ppl.legacy.world.world.World" title="beanmachine.ppl.legacy.world.world.World"><span class="pre">beanmachine.ppl.legacy.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">auxiliary_variables</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.ProposalDistribution" title="beanmachine.ppl.legacy.world.variable.ProposalDistribution"><span class="pre">beanmachine.ppl.legacy.world.variable.ProposalDistribution</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteAncestralProposer.get_proposal_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the proposal distribution of the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we’re proposing a new value for</p></li>
+<li><p><strong>node_var</strong> – the Variable of the node</p></li>
+<li><p><strong>world</strong> – the world in which we’re proposing a new value for node</p></li>
+<li><p><strong>auxiliary_variables</strong> – additional auxiliary variables that may be</p></li>
+</ul>
+</dd>
+</dl>
+<p>required to find a proposal distribution
+:returns: the tuple of proposal distribution of the node and arguments
+that was used or needs to be used to find the proposal distribution</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteNewtonianMonteCarloProposer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.legacy.inference.proposer.</span></span><span class="sig-name descname"><span class="pre">SingleSiteNewtonianMonteCarloProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nmc_alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmc_beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.TransformType" title="beanmachine.ppl.legacy.world.variable.TransformType"><span class="pre">beanmachine.ppl.legacy.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.DEFAULT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteNewtonianMonteCarloProposer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.html#beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer" title="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer</span></code></a></p>
+<p>Single-Site Newtonian Monte Carlo Implementations</p>
+<p>In this implementation, we draw a new sample from a proposal that is a
+MultivariateNormal with followings specifications with distance being
+sampled from Beta(nmc_alpha, nmc_beta)</p>
+<blockquote>
+<div><p>mean = sampled_value - distance * (gradient * hessian_inversed)
+covariance = - hessian_inversed</p>
+</div></blockquote>
+<p>Where the gradient and hessian are computed over the log probability of
+the node being resampled and log probabilities of its immediate children</p>
+<dl class="simple">
+<dt>To compute, the proposal log update, we go through the following steps:</dt><dd><p>1) Draw a new sample from MultivariateNormal(node.mean, node.covariance)
+and compute the log probability of the new draw coming from this
+proposal distribution log(P(X-&gt;X’))
+2) Construct the new diff given the new value
+3) Compute new gradient and hessian and hence, new mean and
+covariance and compute the log probability of the old value coming
+from MutlivariateNormal(new mean, new covariance) log(P(X’-&gt;X))
+4) Compute the final proposal log update: log(P(X’-&gt;X)) - log(P(X-&gt;X’))</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteNewtonianMonteCarloProposer.do_adaptation">
+<span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.world.html#beanmachine.ppl.legacy.world.world.World" title="beanmachine.ppl.legacy.world.world.World"><span class="pre">beanmachine.ppl.legacy.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">acceptance_probability</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration_number</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_accepted</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteNewtonianMonteCarloProposer.do_adaptation" title="Permalink to this definition"></a></dt>
+<dd><p>Do adaption based on the learning rates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we have already proposed a new value for.</p></li>
+<li><p><strong>node_var</strong> – the Variable object associated with node.</p></li>
+<li><p><strong>node_acceptance_results</strong> – the boolean values of acceptances for
+values collected so far within _infer().</p></li>
+<li><p><strong>iteration_number</strong> – The current iteration of inference</p></li>
+<li><p><strong>num_adaptive_samples</strong> – The number of inference iterations for adaptation.</p></li>
+<li><p><strong>is_accepted</strong> – bool representing whether the new value was accepted.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteNewtonianMonteCarloProposer.get_proposal_distribution">
+<span class="sig-name descname"><span class="pre">get_proposal_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_var</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.Variable" title="beanmachine.ppl.legacy.world.variable.Variable"><span class="pre">beanmachine.ppl.legacy.world.variable.Variable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.world.html#beanmachine.ppl.legacy.world.world.World" title="beanmachine.ppl.legacy.world.world.World"><span class="pre">beanmachine.ppl.legacy.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">auxiliary_variables</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.ProposalDistribution" title="beanmachine.ppl.legacy.world.variable.ProposalDistribution"><span class="pre">beanmachine.ppl.legacy.world.variable.ProposalDistribution</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteNewtonianMonteCarloProposer.get_proposal_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the proposal distribution of the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we’re proposing a new value for</p></li>
+<li><p><strong>node_var</strong> – the Variable of the node</p></li>
+<li><p><strong>world</strong> – the world in which we’re proposing a new value for node</p></li>
+<li><p><strong>auxiliary_variables</strong> – additional auxiliary variables that may be</p></li>
+</ul>
+</dd>
+</dl>
+<p>required to find a proposal distribution
+:returns: the tuple of proposal distribution of the node and arguments
+that was used or needs to be used to find the proposal distribution</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.legacy.inference.proposer.</span></span><span class="sig-name descname"><span class="pre">SingleSiteNoUTurnSamplerProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_dense_mass_matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.html#beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer" title="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer.do_adaptation">
+<span class="sig-name descname"><span class="pre">do_adaptation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.world.html#beanmachine.ppl.legacy.world.world.World" title="beanmachine.ppl.legacy.world.world.World"><span class="pre">beanmachine.ppl.legacy.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">acceptance_probability</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration_number</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_adaptive_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_accepted</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer.do_adaptation" title="Permalink to this definition"></a></dt>
+<dd><p>The adaptation uses warmup phases as described by Stan
+<a class="reference external" href="https://mc-stan.org/docs/2_25/reference-manual/hmc-algorithm-parameters.html">https://mc-stan.org/docs/2_25/reference-manual/hmc-algorithm-parameters.html</a>
+Phase 1: start_cov initial iterations for adapting the step size
+Phase 2: growing slow intervals starting with initial_window_size</p>
+<blockquote>
+<div><p>for adapting the step size and covariance</p>
+</div></blockquote>
+<p>Phase 3: remaining iterations for adapting the step size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we have already proposed a new value for.</p></li>
+<li><p><strong>world</strong> – the world in which we have already proposed a new value</p></li>
+</ul>
+</dd>
+</dl>
+<p>for node.
+:param acceptance_probability: the acceptance probability of the previous move.
+:param iteration_number: The current iteration of inference
+:param num_adapt_steps: The number of inference iterations for adaptation.
+:param is_accepted: bool representing whether the new value was accepted.
+:returns: Nothing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer.post_process">
+<span class="sig-name descname"><span class="pre">post_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.world.html#beanmachine.ppl.legacy.world.world.World" title="beanmachine.ppl.legacy.world.world.World"><span class="pre">beanmachine.ppl.legacy.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">auxiliary_variables</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer.post_process" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the log probability of going back to the old value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we’ll need to propose a new value for.</p></li>
+<li><p><strong>world</strong> – the world in which we have already proposed a new value</p></li>
+</ul>
+</dd>
+</dl>
+<p>for node.
+:returns: the log probability of proposing the old value from this new world.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer.propose">
+<span class="sig-name descname"><span class="pre">propose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.world.html#beanmachine.ppl.legacy.world.world.World" title="beanmachine.ppl.legacy.world.world.World"><span class="pre">beanmachine.ppl.legacy.world.world.World</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteNoUTurnSamplerProposer.propose" title="Permalink to this definition"></a></dt>
+<dd><p>Proposes a new value for the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we’ll need to propose a new value for.</p></li>
+<li><p><strong>world</strong> – the world in which we’ll propose a new value for node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a new proposed value for the node and the difference in kinetic</p>
+</dd>
+</dl>
+<p>energy between the start and the end value</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteUniformProposer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.legacy.inference.proposer.</span></span><span class="sig-name descname"><span class="pre">SingleSiteUniformProposer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.TransformType" title="beanmachine.ppl.legacy.world.variable.TransformType"><span class="pre">beanmachine.ppl.legacy.world.variable.TransformType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">TransformType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteUniformProposer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.html#beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer" title="beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.legacy.inference.proposer.single_site_ancestral_proposer.SingleSiteAncestralProposer</span></code></a></p>
+<p>Single-Site Uniform Metropolis Hastings Implementations</p>
+<p>For random variables with Bernoulli and Categorical distributions, returns a
+sample from their distribution with equal probability across all values. For
+the rest of the random variables, it returns ancestral metropolis hastings
+proposal.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.legacy.inference.proposer.SingleSiteUniformProposer.get_proposal_distribution">
+<span class="sig-name descname"><span class="pre">get_proposal_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_var</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.Variable" title="beanmachine.ppl.legacy.world.variable.Variable"><span class="pre">beanmachine.ppl.legacy.world.variable.Variable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.legacy.world.world.html#beanmachine.ppl.legacy.world.world.World" title="beanmachine.ppl.legacy.world.world.World"><span class="pre">beanmachine.ppl.legacy.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">auxiliary_variables</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.legacy.world.variable.html#beanmachine.ppl.legacy.world.variable.ProposalDistribution" title="beanmachine.ppl.legacy.world.variable.ProposalDistribution"><span class="pre">beanmachine.ppl.legacy.world.variable.ProposalDistribution</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.legacy.inference.proposer.SingleSiteUniformProposer.get_proposal_distribution" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the proposal distribution of the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – the node for which we’re proposing a new value for</p></li>
+<li><p><strong>node_var</strong> – the Variable of the node</p></li>
+<li><p><strong>world</strong> – the world in which we’re proposing a new value for node</p></li>
+<li><p><strong>auxiliary_variables</strong> – additional auxiliary variables that may be</p></li>
+</ul>
+</dd>
+</dl>
+<p>required to find a proposal distribution
+:returns: the tuple of proposal distribution of the node and arguments
+that was used or needs to be used to find the proposal distribution</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.legacy.inference.predictive.html" class="btn btn-neutral float-left" title="beanmachine.ppl.legacy.inference.predictive" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer.html" class="btn btn-neutral float-right" title="beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
