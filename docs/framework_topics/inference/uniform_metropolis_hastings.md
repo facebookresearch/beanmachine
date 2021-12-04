@@ -12,9 +12,9 @@ In Single-Site Uniform MH, for random variables with discrete support, instead o
 Here is an example of how to use Single-Site Uniform Metropolis-Hastings to perform inference in Bean Machine.
 
 ```
-from beanmachine.ppl.inference.single_site_uniform_mh import SingleSiteUniformMetropolisHastings
+import beanmachine.ppl as bm
 
-mh = SingleSiteUniformMetropolisHastings()
+mh = bm.SingleSiteUniformMetropolisHastings()
 coin_samples = mh.infer(queries, observations, num_samples, num_chains, run_in_parallel)
 ```
 

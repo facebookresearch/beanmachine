@@ -95,9 +95,9 @@ Leverage native GPU and autograd support and integrate seamlessly with the PyTor
 5\. **Run inference:**
 
   ```py
-  from beanmachine.ppl.inference import SingleSiteUniformMetropolisHastings
+  import beanmachine.ppl as bm
 
-  samples = SingleSiteUniformMetropolisHastings().infer(
+  samples = bm.SingleSiteUniformMetropolisHastings().infer(
       queries=[p()],
       observations=observations,
       num_samples=1000,

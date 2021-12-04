@@ -7,8 +7,8 @@ from typing import Callable, Dict, List, Union
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.abc.abc_infer import ApproximateBayesianComputation
-from beanmachine.ppl.inference.abstract_infer import VerboseLevel
-from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import (
+from beanmachine.ppl.inference.utils import VerboseLevel
+from beanmachine.ppl.legacy.inference.proposer.single_site_random_walk_proposer import (
     SingleSiteRandomWalkProposer,
 )
 from beanmachine.ppl.legacy.world import World

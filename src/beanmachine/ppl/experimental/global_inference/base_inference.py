@@ -7,11 +7,11 @@ from beanmachine.ppl.experimental.global_inference.proposer.base_proposer import
     BaseProposer,
 )
 from beanmachine.ppl.experimental.global_inference.sampler import Sampler
-from beanmachine.ppl.inference.abstract_infer import (
+from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from beanmachine.ppl.inference.utils import (
     VerboseLevel,
     _verify_queries_and_observations,
 )
-from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import RVDict, World, InitializeFn, init_to_uniform
 from tqdm.auto import tqdm

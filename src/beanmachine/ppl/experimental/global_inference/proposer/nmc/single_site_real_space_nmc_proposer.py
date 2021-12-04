@@ -6,13 +6,13 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
+from beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils import (
     is_scalar,
     is_valid,
     soft_abs_inverse,
     hessian_of_log_prob,
 )
-from beanmachine.ppl.inference.proposer.normal_eig import NormalEig
+from beanmachine.ppl.legacy.inference.proposer.normal_eig import NormalEig
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.utils import tensorops
 from beanmachine.ppl.world import World

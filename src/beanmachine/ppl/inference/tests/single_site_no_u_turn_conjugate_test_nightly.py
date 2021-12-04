@@ -1,9 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from beanmachine.ppl.inference.single_site_no_u_turn_sampler import (
-    SingleSiteNoUTurnSampler,
-)
+from beanmachine.ppl.legacy.inference import SingleSiteNoUTurnSampler
 from beanmachine.ppl.testlib.abstract_conjugate import AbstractConjugateTests
 
 

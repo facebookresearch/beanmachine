@@ -6,7 +6,7 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.global_inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.inference.proposer.newtonian_monte_carlo_utils import (
+from beanmachine.ppl.legacy.inference.proposer.newtonian_monte_carlo_utils import (
     is_valid,
     hessian_of_log_prob,
 )
