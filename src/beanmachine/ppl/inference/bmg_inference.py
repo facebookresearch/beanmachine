@@ -25,6 +25,22 @@ from beanmachine.ppl.model.rv_identifier import RVIdentifier
 # much like any other BM inference, we should probably make this class a subclass of
 # AbstractMCInference.
 class BMGInference:
+    """
+    Interface to Bean Machine Graph (BMG) Inference,
+    an experimental framework for high-performance implementations of
+    inference algorithms.
+
+    Internally, BMGInference consists of a compiler
+    and C++ runtime implementations of various inference algorithms. Currently,
+    only Newtonian Monte Carlo (NMC) inference is supported, and is the
+    algorithm used by default.
+
+    Please note that this is a highly experimental implementation under active
+    development, and that the subset of Bean Machine model is limited. Limitations
+    include that the runtime graph should be static (meaning, it does not change
+    during inference), and that the types of primitive distributions supported
+    is currently limited.
+    """
 
     _fix_observe_true: bool = False
     _pd: Optional[prof.ProfilerData] = None
@@ -219,16 +235,24 @@ class BMGInference:
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
-        # TODO[Walid]: We really want this default to be 4, but we put it off to
-        # another diff because that is likely to involve changes to a few more existing
-        # calls to BMGInference().infer
         num_chains: int = 4,
         inference_type: InferenceType = InferenceType.NMC,
         skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:
-        # TODO: Add num_chains
         # TODO: Add verbose level
         # TODO: Add logging
+        """
+        Perform inference by (runtime) compilation of Python source code associated
+        with its parameters, constructing a BMG graph, and then calling the
+        BMG implementation of a particular inference method on this graph.
+
+        :param queries: queried random variables
+        :param observations: observations dict
+        :param num_samples: number of samples in each chain
+        :param num_chains: number of chains generated
+        :param inference_type: inference method, currently only NMC is supported
+        :param skip_optimizations: list of optimization to disable in this call
+        """
         samples, _ = self._infer(
             queries,
             observations,
