@@ -1,5 +1,4 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from beanmachine.ppl.inference.utils import seed
 from beanmachine.ppl.legacy.inference.compositional_infer import CompositionalInference
 from beanmachine.ppl.legacy.inference.predictive import Predictive, empirical, simulate
 from beanmachine.ppl.legacy.inference.rejection_sampling_infer import RejectionSampling
@@ -33,6 +32,5 @@ __all__ = [
     "SingleSiteUniformMetropolisHastings",
     "Predictive",
     "empirical",
-    "seed",
     "simulate",
 ]

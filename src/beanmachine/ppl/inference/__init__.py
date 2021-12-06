@@ -4,7 +4,7 @@ from beanmachine.ppl.experimental.global_inference.hmc_inference import (
     GlobalNoUTurnSampler,
 )
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from beanmachine.ppl.inference.utils import seed
+from beanmachine.ppl.inference.utils import seed, VerboseLevel
 from beanmachine.ppl.legacy.inference import (
     CompositionalInference,
     Predictive,
@@ -24,6 +24,7 @@ __all__ = [
     "CompositionalInference",
     "GlobalHamiltonianMonteCarlo",
     "GlobalNoUTurnSampler",
+    "Predictive",
     "RejectionSampling",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
@@ -31,7 +32,7 @@ __all__ = [
     "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
-    "Predictive",
+    "VerboseLevel",
     "empirical",
     "seed",
     "simulate",
