@@ -12,6 +12,7 @@ module.exports = {
   someSidebar: {
     Overview: [
       'overview/introduction/introduction',
+      'overview/bean_machine_advantages/bean_machine_advantages',
       'overview/quick_start/quick_start',
       'overview/modeling/modeling',
       'overview/inference/inference',
