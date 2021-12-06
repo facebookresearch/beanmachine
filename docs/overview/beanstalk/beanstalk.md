@@ -21,7 +21,7 @@ The tutorials currently working with BMG inference are:
 
 For the above three models, the BMG version of [Newtonian Monte Carlo (NMC)](../../framework_topics/inference/newtonian_monte_carlo.md) inference reduces runtime to generate samples of size 10K for the posterior distribution by anywhere between 80 and 250 times depending on the model.
 
-### Model restrictions
+### Model Restrictions
 
 In this release, models accepted by BMG inference have the following restrictions:
 

@@ -1,7 +1,7 @@
 ---
 id: ancestral_metropolis_hastings
-title: 'Single-site Ancestral Metropolis-Hastings'
-sidebar_label: 'Single-site Ancestral Metropolis-Hastings'
+title: 'Single-Site Ancestral Metropolis-Hastings'
+sidebar_label: 'Single-Site Ancestral MH'
 slug: '/ancestral_metropolis_hastings'
 ---
 
@@ -9,7 +9,7 @@ Ancestral Metropolis-Hastings is one of the most fundamental Bayesian inference 
 
 Bean Machine provides a single-site variant of ancestral Metropolis-Hastings, in which values of random variables are sampled and updated one variable at a time (hence the name "Single-Site").
 
-There are four main steps in Single Site Ancestral Metropolis-Hastings.
+There are four main steps in Single-Site Ancestral Metropolis-Hastings.
 
 
 1. Propose a value for a random variable, which we'll call $X$. The proposed value is sampled from the random variable's prior distribution.
@@ -55,9 +55,9 @@ For each inference iteration:
 Here is an example of how to use Single-Site Ancestral Metropolis Hastings to perform inference in Bean Machine.
 
 ```py
-from beanmachine.ppl.inference.single_site_ancestral_mh import SingleSiteAncestralMetropolisHastings
+import beanmachine.ppl as bm
 
-mh = SingleSiteAncestralMetropolisHastings()
+mh = bm.SingleSiteAncestralMetropolisHastings()
 coin_samples = mh.infer(queries, observations, num_samples, num_chains)
 ```
 

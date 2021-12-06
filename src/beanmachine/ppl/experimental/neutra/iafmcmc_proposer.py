@@ -24,7 +24,7 @@ from typing import Dict, Tuple
 import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.neutra.train import IAFMap
-from beanmachine.ppl.inference.proposer.abstract_single_site_proposer import (
+from beanmachine.ppl.legacy.inference.proposer.abstract_single_site_proposer import (
     AbstractSingleSiteProposer,
 )
 from beanmachine.ppl.legacy.world import World

@@ -7,12 +7,11 @@ slug: '/variable'
 
 A crucial part of Bean Machine inference is its ability track the state of inference using `World`s. During inference, the `World` represents the state of the variables and their dependencies. The `World` is a graphical data structure where each node in the graph represents a `Variable` containing information about the variable's value, distribution, probability, etc. The edges between nodes represent the dependencies between variables. Each variable tracks its parent variables as well as its children variables.
 
-
-#### RVIdentifier
+## RVIdentifier
 
 `RVIdentifier` is a dataclass used to identify the random variable and does not contain any of the inference information. It only consists of the variable's `function` and `arguments` as supplied in the model declaration.
 
-#### Variable
+## Variable
 
 The `Variable` class represents random variables in a model. Each `RVIdentifier` has a corresponding `Variable` and has the following attributes:
 
@@ -35,7 +34,7 @@ inverse_transform_value(self, transformed_value: Tensor) -> Tensor
 
 If a custom proposer needs to operate on the transformed space of values, then it will typically use `variable.transformed_value` as the starting point in the transformed space for computing a new proposed value. The new proposed value is then in the transformed space, but because custom proposer's `propose` method must return a value in the *original* space, one must obtain the latter using `Variable.inverse_transform_value`. Naturally, if the custom proposer does not need a transformed space, then it can simply use `variable.value` and return the proposed new value without any need to transform it back to the original space.
 
-#### World
+## World
 
 The `World` tracks the variables through the `WorldVars` class, which associates each `RVIdentifier` to a `Variable`. When new values are proposed to the `World` and the world is updated to reflect these changes, these changes are stored in the world's `DiffStack`, which is a stack of `Diff`s, each tracking Variables with differing values probabilities, parents, children, etc.
 
