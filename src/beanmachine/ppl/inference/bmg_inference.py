@@ -239,20 +239,24 @@ class BMGInference:
         inference_type: InferenceType = InferenceType.NMC,
         skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:
-        # TODO: Add verbose level
-        # TODO: Add logging
         """
         Perform inference by (runtime) compilation of Python source code associated
         with its parameters, constructing a BMG graph, and then calling the
         BMG implementation of a particular inference method on this graph.
 
-        :param queries: queried random variables
-        :param observations: observations dict
-        :param num_samples: number of samples in each chain
-        :param num_chains: number of chains generated
-        :param inference_type: inference method, currently only NMC is supported
-        :param skip_optimizations: list of optimization to disable in this call
+        Args:
+            queries: queried random variables
+            observations: observations dict
+            num_samples: number of samples in each chain
+            num_chains: number of chains generated
+            inference_type: inference method, currently only NMC is supported
+            skip_optimizations: list of optimization to disable in this call
+
+        Returns:
+            MonteCarloSamples: The requested samples
         """
+        # TODO: Add verbose level
+        # TODO: Add logging
         samples, _ = self._infer(
             queries,
             observations,
