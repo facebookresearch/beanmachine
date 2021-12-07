@@ -1,21 +1,13 @@
 ---
 slug: '/tutorials'
-title: 'Bean Machine Tutorials'
-sidebar_label: 'Notebooks'
+title: 'Tutorials'
+sidebar_label: 'Tutorials'
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine. If you are just getting started with Bean Machine, we recommend you work through one or two of the most basic tutorials, then consider if you might be better served by a [Package](/docs/overview/packages/packages) first, before customizing a more advanced tutorial.
-
-### Beanstalk Compiler
-
-Additionally, consider if you can structure your statistical model in such a way that it can perform at much faster speeds, by compilation into C++. See our [Beanstalk](/docs/overview/beanstalk/beanstalk) compiler details for more information on what types of models are supported by our Bean Machine compiler.
-
+These Bean Machine tutorials demonstrate various types of statistical models that users can build in Bean Machine.
 
 ## Tutorials
-
-These tutorials are available as Jupyter notebooks. You can read through or download the tutorials using the *Open in GitHub* option. If you would like to run the tutorial in Google Colab, we’ve offered a link to that as well.
-
 
 ### Coin Flipping
 
