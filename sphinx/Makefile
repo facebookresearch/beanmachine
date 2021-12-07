@@ -11,7 +11,8 @@ ALLSPHINXOPTS = -q -d $(BUILDDIR)/doctrees $(SPHINXOPTS) ./source
 
 # NOTE: Since we cannot ignore the no-duplicates warning specifically
 # we use a Bash hack for the same purpose!
-BASHHACK	  = 2>&1 >/dev/null | grep -v "use :noindex:" | wc -l | xargs -I % test % -eq 0
+# | wc -l | xargs -I % test % -eq 0
+BASHHACK	  = 2>&1 >/dev/null | grep -v "use :noindex:"
 
 
 # Put it first so that "make" without argument is like "make help".
