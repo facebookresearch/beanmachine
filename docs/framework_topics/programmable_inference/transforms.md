@@ -13,7 +13,7 @@ Bean Machine allows users to use default transformations for transforming constr
 
 Transforms are supported within the `Variable` class by the following attributes: `value`, `transformed_value` and `jacobian` (a generalization of derivatives for multi-variable functions). These will be populated accordingly depending on the transforms specified. If there are no transforms, then `transformed_value` will be equivalent to `value`, and `jacobian` will be zero. The attribute `transformed_value` will be used throughout inference since it is in the unconstrained space required by the algorithm. See [`World` and `Variable` API](../custom_proposers/variable.md) for more details.
 
-### Specifying Transforms
+## Specifying Transforms
 Each proposer and inference method has the following optional parameters for initialization
 ```py
 transform_type: TransformType
@@ -26,7 +26,7 @@ There are three TransformTypes which can be specified
 * `TransformType.DEFAULT`: transforms will convert the distribution to the unconstrained space
 * `TransformType.CUSTOM`: user-provided transforms will be applied
 
-#### Default Transforms
+### Default Transforms
 
 The transform applied to each variable depends on the constraints of its distribution:
 
@@ -40,7 +40,7 @@ TODO: how are these transforms represented in code?
 
 TODO: not every user will understand what "stick breaking" has to do with lower and upper bounds. Can we provide a version with it with a name directly related the $[0,1]$ interval?
 
-#### Custom Transforms
+### Custom Transforms
 If `TransformType.CUSTOM` is specified, the user must also provide a list of transforms to the `transforms` parameter of initialization.
 ```py
 mh = SingleSiteNewtonianMonteCarlo(transform_type=TransformType.CUSTOM, transforms=[AffineTransform(2.0, 1.0)])

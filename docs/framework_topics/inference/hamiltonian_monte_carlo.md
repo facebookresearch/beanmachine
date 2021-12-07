@@ -1,7 +1,7 @@
 ---
 id: hamiltonian_monte_carlo
 title: Hamiltonian Monte Carlo and Variations
-sidebar_label: 'Hamiltoniam Monte Carlo'
+sidebar_label: 'Hamiltonian Monte Carlo'
 slug: '/hamiltonian_monte_carlo'
 ---
 

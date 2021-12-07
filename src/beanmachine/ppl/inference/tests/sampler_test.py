@@ -1,80 +1,45 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-import unittest
-
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
 
 
-class SamplerTest(unittest.TestCase):
-    class SampleModel:
-        @bm.random_variable
-        def foo(self):
-            return dist.Uniform(torch.tensor(0.0), torch.tensor(1.0))
+class SampleModel:
+    @bm.random_variable
+    def foo(self):
+        return dist.Normal(0.0, 1.0)
 
-        @bm.random_variable
-        def bar(self):
-            return dist.Normal(self.foo(), torch.tensor(1.0))
+    @bm.random_variable
+    def bar(self):
+        return dist.Normal(self.foo(), 1.0)
 
-    def test_sampler_smoke(self):
-        model = self.SampleModel()
-        num_samples = 10
-        sampler = bm.SingleSiteAncestralMetropolisHastings().sampler(
-            [model.foo()],
-            {model.bar(): torch.tensor(0.8)},
-            num_samples,
-            num_adaptive_samples=num_samples,
-        )
-        samples = []
-        for sample in sampler:
-            self.assertIn(model.foo(), sample)
-            # only a single sample is returned at a time
-            self.assertEqual(sample[model.foo()].numel(), 1)
-            samples.append(sample)
-        self.assertEqual(len(samples), num_samples)
-        samples = sampler.to_monte_carlo_samples(samples)
-        self.assertIn(model.foo(), samples)
-        self.assertIsInstance(samples[model.foo()], torch.Tensor)
-        self.assertEqual(samples[model.foo()].shape, (1, num_samples))
 
-    def test_infinite_sampler(self):
-        model = self.SampleModel()
-        sampler = bm.SingleSiteRandomWalk().sampler(
-            [model.foo()], {model.bar(): torch.tensor(0.4)}
-        )
-        for _ in range(10):
-            sample = next(sampler)
-            self.assertIn(model.foo(), sample)
+def test_sampler():
+    model = SampleModel()
+    nuts = bm.GlobalNoUTurnSampler()
+    queries = [model.foo()]
+    observations = {model.bar(): torch.tensor(0.5)}
+    num_samples = 10
+    sampler = nuts.sampler(queries, observations, num_samples)
+    worlds = list(sampler)
+    assert len(worlds) == num_samples
+    for world in worlds:
+        assert model.foo() in world
+        with world:
+            assert isinstance(model.foo(), torch.Tensor)
 
-    def test_multiple_samplers(self):
-        model = self.SampleModel()
-        num_chains = 2
-        num_samples = 10
-        samplers = [
-            bm.SingleSiteAncestralMetropolisHastings().sampler(
-                [model.foo()], {model.bar(): torch.tensor(0.3)}, num_samples
-            )
-            for _ in range(num_chains)
-        ]
-        chains = [list(sampler) for sampler in samplers]
-        samples = samplers[0].to_monte_carlo_samples(chains)
-        self.assertIn(model.foo(), samples)
-        self.assertEqual(samples[model.foo()].shape, (num_chains, num_samples))
 
-    def test_thinning(self):
-        mock_out = iter(range(20))
-
-        def mock_single_iter(*args, **kwargs):
-            return next(mock_out)
-
-        model = self.SampleModel()
-        sampler = bm.SingleSiteAncestralMetropolisHastings().sampler(
-            [model.foo()], {model.bar(): torch.tensor(0.3)}, thinning=4
-        )
-        # mock the result of inference
-        sampler.kernel._single_iteration_run = mock_single_iter
-        expected = 0
-        for _ in range(5):
-            out = next(sampler)
-            self.assertEqual(out, expected)
-            expected += 4
+def test_two_samplers():
+    model = SampleModel()
+    queries = [model.foo()]
+    observations = {model.bar(): torch.tensor(0.5)}
+    nuts_sampler = bm.GlobalNoUTurnSampler().sampler(queries, observations)
+    hmc_sampler = bm.GlobalHamiltonianMonteCarlo(1.0).sampler(queries, observations)
+    world = next(nuts_sampler)
+    # it's possible to use multiple sampler interchangably to update the worlds (or
+    # in general, pass a new world to sampler and continue inference with existing
+    # hyperparameters)
+    for _ in range(3):
+        world = hmc_sampler.send(world)
+        world = nuts_sampler.send(world)
+    assert model.foo() in world
+    assert model.bar() in world

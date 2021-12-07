@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
-from beanmachine.ppl.experimental.global_inference.single_site_uniform_mh import (
+from beanmachine.ppl.inference.single_site_uniform_mh import (
     SingleSiteUniformMetropolisHastings,
 )
 from beanmachine.ppl.testlib.abstract_conjugate import AbstractConjugateTests

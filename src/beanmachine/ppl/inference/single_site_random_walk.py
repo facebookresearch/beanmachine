@@ -1,35 +1,32 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-from typing import List, Optional
+from typing import List, Set
 
-from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
+from beanmachine.ppl.inference.base_inference import BaseInference
+from beanmachine.ppl.inference.proposer.base_proposer import (
+    BaseProposer,
+)
 from beanmachine.ppl.inference.proposer.single_site_random_walk_proposer import (
     SingleSiteRandomWalkProposer,
 )
-from beanmachine.ppl.legacy.world import TransformType
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.world import World
 
 
-class SingleSiteRandomWalk(AbstractMHInference):
-    """
-    Implementation for SingleSiteRandomWalk
-    """
+class SingleSiteRandomWalk(BaseInference):
+    def __init__(self, step_size: float = 1.0):
+        self.step_size = step_size
+        self._proposers = {}
 
-    def __init__(
+    def get_proposers(
         self,
-        step_size: float = 1.0,
-        transform_type: TransformType = TransformType.NONE,
-        transforms: Optional[List] = None,
-    ):
-        self.proposer_ = SingleSiteRandomWalkProposer(step_size)
-        super().__init__(self.proposer_, transform_type, transforms)
-
-    def find_best_single_site_proposer(self, node: RVIdentifier):
-        """
-        Finds the best proposer for a node which is
-        SingleSiteRandomWalkProposer for
-        SingleSiteRandomWalk
-
-        :param node: the node for which to return a proposer
-        :returns: a proposer for the node
-        """
-        return self.proposer_
+        world: World,
+        target_rvs: Set[RVIdentifier],
+        num_adaptive_sample: int,
+    ) -> List[BaseProposer]:
+        proposers = []
+        for node in target_rvs:
+            if node not in self._proposers:
+                self._proposers[node] = SingleSiteRandomWalkProposer(
+                    node, self.step_size
+                )
+            proposers.append(self._proposers[node])
+        return proposers

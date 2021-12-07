@@ -12,7 +12,7 @@ import beanmachine.ppl as bm
 import torch  # from torch import manual_seed, tensor
 import torch.distributions as dist  # from torch.distributions import Bernoulli, Normal, Uniform
 from beanmachine.ppl.inference.bmg_inference import BMGInference
-from beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer import (
+from beanmachine.ppl.legacy.inference.proposer.single_site_hamiltonian_monte_carlo_proposer import (
     SingleSiteHamiltonianMonteCarloProposer,
 )
 from torch import tensor

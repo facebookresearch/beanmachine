@@ -12,7 +12,7 @@ import torch.optim
 from torch import Tensor
 from tqdm.auto import tqdm
 
-from ...inference.abstract_infer import AbstractInference
+from ...legacy.inference.abstract_infer import AbstractInference
 from ...model.rv_identifier import RVIdentifier
 from ...model.utils import LogLevel
 from .mean_field_variational_approximation import MeanFieldVariationalApproximation

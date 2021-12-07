@@ -1,114 +1,114 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-import copy
-import logging
-from typing import Dict, List
+import inspect
+from collections import defaultdict
+from typing import Dict, Tuple, Callable, Union, List, Set, Optional, TYPE_CHECKING
 
-import torch.distributions as dist
-from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
-from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
-    SingleSiteAncestralProposer,
+from beanmachine.ppl.inference.base_inference import BaseInference
+from beanmachine.ppl.inference.proposer.base_proposer import (
+    BaseProposer,
 )
-from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
-    SingleSiteNewtonianMonteCarloProposer,
+from beanmachine.ppl.inference.proposer.sequential_proposer import (
+    SequentialProposer,
 )
-from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
-    SingleSiteUniformProposer,
+from beanmachine.ppl.inference.single_site_ancestral_mh import (
+    SingleSiteAncestralMetropolisHastings,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
-from beanmachine.ppl.world.utils import is_constraint_eq
+from beanmachine.ppl.world import World
+
+if TYPE_CHECKING:
+    from enum import Enum
+
+    class EllipsisClass(Enum):
+        Ellipsis = "..."
+
+        def __iter__(self):
+            pass
+
+    Ellipsis = EllipsisClass.Ellipsis
+else:
+    EllipsisClass = type(Ellipsis)
 
 
-LOGGER = logging.getLogger("beanmachine")
+class CompositionalInference(BaseInference):
+    def __init__(
+        self,
+        inference_dict: Optional[
+            Dict[
+                Union[Callable, Tuple[Callable, ...], EllipsisClass],
+                Union[BaseInference, Tuple[BaseInference, ...]],
+            ]
+        ] = None,
+    ):
+        self.config = {}
+        default_ = SingleSiteAncestralMetropolisHastings()
+        if inference_dict is not None:
+            default_ = inference_dict.pop(Ellipsis, default_)
+            for rv_families, inference in inference_dict.items():
+                if isinstance(rv_families, Callable):
+                    rv_families = (rv_families,)
+                # For methods, we'll need to use the unbounded function instead of the
+                # bounded method to determine which proposer to apply
+                config_key = tuple(
+                    family.__func__ if inspect.ismethod(family) else family
+                    for family in rv_families
+                )
+                self.config[config_key] = inference
 
+        self._default_inference = default_
+        # create a set for the RV families that are being covered in the config; this is
+        # useful in get_proposers to determine which RV needs to be handle by the
+        # default inference method
+        self._covered_rv_families = set().union(*self.config)
 
-class CompositionalInference(AbstractMHInference):
-    """
-    Compositional inference
-    """
+    def get_proposers(
+        self,
+        world: World,
+        target_rvs: Set[RVIdentifier],
+        num_adaptive_sample: int,
+    ) -> List[BaseProposer]:
+        # create a RV family to RVIdentifier lookup map
+        rv_family_to_node = defaultdict(set)
+        for node in target_rvs:
+            rv_family_to_node[node.wrapper].add(node)
 
-    # pyre-fixme[9]: proposers has type `Dict[typing.Any, typing.Any]`; used as `None`.
-    def __init__(self, proposers: Dict = None):
-        self.proposers_per_family_ = {}
-        self.proposers_per_rv_ = {}
-        super().__init__()
-        # for setting the transform properly during initialization in Variable.py
-        # NMC requires an additional transform from Beta -> Reshaped beta
-        # so all nodes default to having this behavior unless otherwise specified using CI
-        # should be updated as initialization gets moved to the proposer
-        self.world_.set_all_nodes_proposer(SingleSiteNewtonianMonteCarloProposer())
-        if proposers is not None:
-            for key in proposers:
-                if hasattr(key, "__func__"):
-                    func_wrapper = key.__func__
-                    self.proposers_per_family_[key.__func__] = proposers[key]
-                    self.world_.set_transforms(
-                        func_wrapper,
-                        proposers[key].transform_type,
-                        proposers[key].transforms,
+        def _get_proposers_for_inference(
+            rv_families: Tuple[Callable, ...],
+            inferences: Union[BaseInference, Tuple[BaseInference, ...]],
+        ) -> List[BaseProposer]:
+            """Given a tuple of random variable families, this helper function collect
+            all nodes in world that belong to the families of random variables and
+            invoke the inference to spawn proposers for them."""
+            if isinstance(inferences, tuple):
+                # each inference method is responsible for updating a corresponding
+                # rv_family
+                assert len(inferences) == len(rv_families)
+                sub_proposers = []
+                for rv_family, inference in zip(rv_families, inferences):
+                    sub_proposers.extend(
+                        _get_proposers_for_inference((rv_family,), inference)
                     )
-                    self.world_.set_proposer(func_wrapper, proposers[key])
-                else:
-                    self.proposers_per_family_[key] = proposers[key]
-
-    def add_sequential_proposer(self, block: List) -> None:
-        """
-        Adds a sequential block to list of blocks.
-
-        :param block: list of random variables functions that are to be sampled
-        together sequentially.
-        """
-        blocks = []
-        for rv in block:
-            if hasattr(rv, "__func__"):
-                blocks.append(rv.__func__)
+                if len(sub_proposers) > 0:
+                    return [SequentialProposer(sub_proposers)]
             else:
-                blocks.append(rv)
-        self.blocks_.append(blocks)
+                # collect all nodes that belong to rv_families
+                nodes = set().union(
+                    *(rv_family_to_node.get(family, set()) for family in rv_families)
+                )
+                if len(nodes) > 0:
+                    return inferences.get_proposers(world, nodes, num_adaptive_sample)
+            return []
 
-    def find_best_single_site_proposer(self, node: RVIdentifier):
-        """
-        Finds the best proposer for a node given the proposer dicts passed in
-        once instantiating the class.
+        proposers = []
+        for target_families, inferences in self.config.items():
+            proposers.extend(_get_proposers_for_inference(target_families, inferences))
 
-        :param node: the node for which to return a proposer
-        :returns: a proposer for the node
-        """
-        if node in self.proposers_per_rv_:
-            return self.proposers_per_rv_[node]
-
-        wrapped_fn = node.wrapper
-        if wrapped_fn in self.proposers_per_family_:
-            proposer_inst = self.proposers_per_family_[wrapped_fn]
-            self.proposers_per_rv_[node] = copy.deepcopy(proposer_inst)
-            return self.proposers_per_rv_[node]
-
-        node_var = self.world_.get_node_in_world(node, False)
-        # pyre-fixme
-        distribution = node_var.distribution
-        support = distribution.support
-        if any(
-            is_constraint_eq(
-                support,
-                (
-                    dist.constraints.real,
-                    dist.constraints.simplex,
-                    dist.constraints.greater_than,
-                ),
+        # apply default proposers on nodes whose family are not covered by any of the
+        # proposers listed in the config
+        remaining_families = rv_family_to_node.keys() - self._covered_rv_families
+        proposers.extend(
+            _get_proposers_for_inference(
+                tuple(remaining_families), self._default_inference
             )
-        ):
-            self.proposers_per_rv_[node] = SingleSiteNewtonianMonteCarloProposer()
-        elif is_constraint_eq(
-            support, dist.constraints.integer_interval
-        ) and isinstance(distribution, dist.Categorical):
-            self.proposers_per_rv_[node] = SingleSiteUniformProposer()
-        elif is_constraint_eq(support, dist.constraints.boolean) and isinstance(
-            distribution, dist.Bernoulli
-        ):
-            self.proposers_per_rv_[node] = SingleSiteUniformProposer()
-        else:
-            LOGGER.warning(
-                "Node {n} has unsupported constraints. ".format(n=node)
-                + "Proposer falls back to SingleSiteAncestralProposer.\n"
-            )
-            self.proposers_per_rv_[node] = SingleSiteAncestralProposer()
-        return self.proposers_per_rv_[node]
+        )
+
+        return proposers

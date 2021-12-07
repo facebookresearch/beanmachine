@@ -1,33 +1,30 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-from beanmachine.ppl.experimental.global_inference.hmc_inference import (
+from beanmachine.ppl.inference.bmg_inference import BMGInference
+from beanmachine.ppl.inference.hmc_inference import (
     GlobalHamiltonianMonteCarlo,
     GlobalNoUTurnSampler,
 )
-from beanmachine.ppl.inference.bmg_inference import BMGInference
-from beanmachine.ppl.inference.compositional_infer import CompositionalInference
-from beanmachine.ppl.inference.predictive import Predictive, empirical, simulate
-from beanmachine.ppl.inference.rejection_sampling_infer import RejectionSampling
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
+from beanmachine.ppl.inference.utils import seed, VerboseLevel
+from beanmachine.ppl.legacy.inference import (
+    CompositionalInference,
+    Predictive,
+    RejectionSampling,
     SingleSiteAncestralMetropolisHastings,
-)
-from beanmachine.ppl.inference.single_site_hamiltonian_monte_carlo import (
     SingleSiteHamiltonianMonteCarlo,
-)
-from beanmachine.ppl.inference.single_site_newtonian_monte_carlo import (
     SingleSiteNewtonianMonteCarlo,
-)
-from beanmachine.ppl.inference.single_site_random_walk import SingleSiteRandomWalk
-from beanmachine.ppl.inference.single_site_uniform_mh import (
+    SingleSiteNoUTurnSampler,
+    SingleSiteRandomWalk,
     SingleSiteUniformMetropolisHastings,
+    empirical,
+    simulate,
 )
-from beanmachine.ppl.inference.utils import seed
-
-from .single_site_no_u_turn_sampler import SingleSiteNoUTurnSampler
-
 
 __all__ = [
     "BMGInference",
     "CompositionalInference",
+    "GlobalHamiltonianMonteCarlo",
+    "GlobalNoUTurnSampler",
+    "Predictive",
     "RejectionSampling",
     "SingleSiteAncestralMetropolisHastings",
     "SingleSiteHamiltonianMonteCarlo",
@@ -35,9 +32,7 @@ __all__ = [
     "SingleSiteNoUTurnSampler",
     "SingleSiteRandomWalk",
     "SingleSiteUniformMetropolisHastings",
-    "GlobalHamiltonianMonteCarlo",
-    "GlobalNoUTurnSampler",
-    "Predictive",
+    "VerboseLevel",
     "empirical",
     "seed",
     "simulate",

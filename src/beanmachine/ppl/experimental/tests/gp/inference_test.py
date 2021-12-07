@@ -10,9 +10,7 @@ import torch.distributions as dist
 from beanmachine.ppl.experimental.gp import likelihoods
 from beanmachine.ppl.experimental.gp.kernels import PeriodicKernel, ScaleKernel
 from beanmachine.ppl.experimental.gp.models import SimpleGP
-from beanmachine.ppl.inference.single_site_no_u_turn_sampler import (
-    SingleSiteNoUTurnSampler,
-)
+from beanmachine.ppl.legacy.inference import SingleSiteNoUTurnSampler
 from gpytorch.distributions import MultivariateNormal
 
 

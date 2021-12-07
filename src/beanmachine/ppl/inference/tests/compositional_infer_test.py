@@ -1,398 +1,220 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-import unittest
+from collections import Counter
+from unittest.mock import patch
 
 import beanmachine.ppl as bm
+import torch
 import torch.distributions as dist
+from beanmachine.ppl.inference.compositional_infer import (
+    CompositionalInference,
+)
+from beanmachine.ppl.inference.proposer.nuts_proposer import (
+    NUTSProposer,
+)
+from beanmachine.ppl.inference.proposer.sequential_proposer import (
+    SequentialProposer,
+)
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
-)
-from beanmachine.ppl.inference.proposer.single_site_hamiltonian_monte_carlo_proposer import (
-    SingleSiteHamiltonianMonteCarloProposer,
-)
-from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
-    SingleSiteNewtonianMonteCarloProposer,
 )
 from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
     SingleSiteUniformProposer,
 )
-from beanmachine.ppl.inference.utils import Block, BlockType
-from beanmachine.ppl.legacy.world import TransformType, Variable, World
-from beanmachine.ppl.world.utils import BetaDimensionTransform, get_default_transforms
-from torch import tensor
+from beanmachine.ppl.inference.single_site_ancestral_mh import (
+    SingleSiteAncestralMetropolisHastings,
+    GlobalAncestralMetropolisHastings,
+)
+from beanmachine.ppl.inference.single_site_uniform_mh import (
+    SingleSiteUniformMetropolisHastings,
+)
 
 
-class CompositionalInferenceTest(unittest.TestCase):
-    class SampleModel(object):
-        @bm.random_variable
-        def foo(self):
-            return dist.Normal(tensor(0.0), tensor(1.0))
+class SampleModel:
+    @bm.random_variable
+    def foo(self, i: int):
+        return dist.Beta(2.0, 2.0)
 
-        @bm.random_variable
-        def foobar(self):
-            return dist.Categorical(tensor([0.5, 0, 5]))
+    @bm.random_variable
+    def bar(self, i: int):
+        return dist.Bernoulli(self.foo(i))
 
-        @bm.random_variable
-        def foobaz(self):
-            return dist.Bernoulli(0.1)
+    @bm.random_variable
+    def baz(self):
+        return dist.Normal(self.bar(0) + self.bar(1), 1.0)
 
-        @bm.random_variable
-        def bazbar(self):
-            return dist.Poisson(tensor([4]))
 
-    class SampleNormalModel(object):
-        @bm.random_variable
-        def foo(self, i):
-            return dist.Normal(tensor(2.0), tensor(2.0))
+class ChangingSupportSameShapeModel:
+    # the support of `component` is changing, but (because we indexed alpha
+    # by k) all random_variables have the same shape
+    @bm.random_variable
+    def K(self):
+        return dist.Poisson(rate=2.0)
 
-        @bm.random_variable
-        def bar(self, i):
-            return dist.Normal(tensor(10.0), tensor(1.0))
+    @bm.random_variable
+    def alpha(self, k):
+        return dist.Dirichlet(torch.ones(k))
 
-        @bm.random_variable
-        def foobar(self, i):
-            return dist.Normal(self.foo(i) + self.bar(i), tensor(1.0))
+    @bm.random_variable
+    def component(self, i):
+        alpha = self.alpha(self.K().int().item() + 1)
+        return dist.Categorical(alpha)
 
-    class SampleTransformModel(object):
-        @bm.random_variable
-        def realspace(self):
-            return dist.Normal(tensor(0.0), tensor(1.0))
 
-        @bm.random_variable
-        def halfspace(self):
-            return dist.Gamma(tensor(2.0), tensor(2.0))
+class ChangingShapeModel:
+    # here since we did not index alpha, its shape in each world is changing
+    @bm.random_variable
+    def K(self):
+        return dist.Poisson(rate=2.0)
 
-        @bm.random_variable
-        def simplex(self):
-            return dist.Dirichlet(tensor([0.1, 0.9]))
+    @bm.random_variable
+    def alpha(self):
+        return dist.Dirichlet(torch.ones(self.K().int().item() + 1))
 
-        @bm.random_variable
-        def interval(self):
-            return dist.Uniform(tensor(1.0), tensor(3.0))
+    @bm.random_variable
+    def component(self, i):
+        return dist.Categorical(self.alpha())
 
-        @bm.random_variable
-        def beta(self):
-            return dist.Beta(tensor(1.0), tensor(1.0))
 
-        @bm.random_variable
-        def discrete(self):
-            return dist.Poisson(tensor(2.0))
+def test_inference_config():
+    model = SampleModel()
+    nuts = bm.GlobalNoUTurnSampler()
+    compositional = CompositionalInference({model.foo: nuts})
+    queries = [model.foo(0), model.foo(1)]
+    observations = {model.baz(): torch.tensor(2.0)}
 
-    def test_single_site_compositional_inference(self):
-        model = self.SampleModel()
-        c = bm.CompositionalInference()
-        foo_key = model.foo()
-        c.world_ = World()
-        distribution = dist.Bernoulli(0.1)
-        val = distribution.sample()
-        world_vars = c.world_.variables_.vars()
-        world_vars[foo_key] = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val),
-            transformed_value=val,
-            jacobian=tensor(0.0),
+    # verify that inference can run without error
+    compositional.infer(queries, observations, num_chains=1, num_samples=10)
+
+    # verify that proposers are spawned correctly
+    world = compositional._initialize_world(queries, observations)
+    with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
+        proposers = compositional.get_proposers(
+            world, target_rvs=world.latent_nodes, num_adaptive_sample=0
         )
-        self.assertEqual(
-            isinstance(
-                c.find_best_single_site_proposer(foo_key), SingleSiteUniformProposer
+        # NUTS should receive {foo(0), foo(1)} as its target rvs
+        mock.assert_called_once_with(world, {model.foo(0), model.foo(1)}, 0)
+    # there should be one NUTS proposer for both foo(0) and foo(1), one ancestral MH
+    # proposer for bar(0), and another ancestral MH proposer for bar(1)
+    assert len(proposers) == 3
+    # TODO: find a way to validate the proposer instead of relying on the order of
+    # return value
+    assert isinstance(proposers[0], NUTSProposer)
+    assert proposers[0]._target_rvs == {model.foo(0), model.foo(1)}
+    assert isinstance(proposers[1], SingleSiteAncestralProposer)
+    assert isinstance(proposers[2], SingleSiteAncestralProposer)
+    assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
+
+    # test overriding default kwarg
+    uniform = SingleSiteUniformMetropolisHastings()
+    nuts = bm.GlobalNoUTurnSampler()
+    compositional = CompositionalInference({model.foo: nuts, ...: uniform})
+    compositional.infer(queries, observations, num_chains=1, num_samples=2)
+    world = compositional._initialize_world(queries, observations)
+    with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
+        proposers = compositional.get_proposers(
+            world, target_rvs=world.latent_nodes, num_adaptive_sample=0
+        )
+    assert isinstance(proposers[0], NUTSProposer)
+    assert isinstance(proposers[1], SingleSiteUniformProposer)
+    assert isinstance(proposers[2], SingleSiteUniformProposer)
+    assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
+
+
+def test_config_inference_with_tuple_of_rv():
+    model = SampleModel()
+    nuts = bm.GlobalNoUTurnSampler()
+    compositional = CompositionalInference({(model.foo, model.baz): nuts})
+    world = compositional._initialize_world([model.baz()], {})
+    with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
+        compositional.get_proposers(
+            world, target_rvs=world.latent_nodes, num_adaptive_sample=10
+        )
+        # NUTS should receive {foo(0), foo(1), model.baz()} as its target rvs
+        mock.assert_called_once_with(
+            world, {model.foo(0), model.foo(1), model.baz()}, 10
+        )
+
+
+def test_config_inference_with_tuple_of_inference():
+    model = SampleModel()
+    compositional = CompositionalInference(
+        {
+            (model.foo, model.bar): (
+                SingleSiteAncestralMetropolisHastings(),
+                SingleSiteUniformMetropolisHastings(),
             ),
-            True,
-        )
-
-        c.proposers_per_rv_ = {}
-        distribution = dist.Normal(tensor(0.0), tensor(1.0))
-        val = distribution.sample()
-        world_vars[foo_key] = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val),
-            transformed_value=val,
-            jacobian=tensor(0.0),
-        )
-
-        self.assertEqual(
-            isinstance(
-                c.find_best_single_site_proposer(foo_key),
-                SingleSiteNewtonianMonteCarloProposer,
-            ),
-            True,
-        )
-
-        c.proposers_per_rv_ = {}
-        distribution = dist.Categorical(tensor([0.5, 0, 5]))
-        val = distribution.sample()
-        world_vars[foo_key] = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val),
-            transformed_value=val,
-            jacobian=tensor(0.0),
-        )
-
-        self.assertEqual(
-            isinstance(
-                c.find_best_single_site_proposer(foo_key), SingleSiteUniformProposer
-            ),
-            True,
-        )
-
-        c.proposers_per_rv_ = {}
-        distribution = dist.Poisson(tensor([4.0]))
-        val = distribution.sample()
-        world_vars[foo_key] = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val),
-            transformed_value=val,
-            jacobian=tensor(0.0),
-        )
-        self.assertEqual(
-            isinstance(
-                c.find_best_single_site_proposer(foo_key), SingleSiteAncestralProposer
-            ),
-            True,
-        )
-
-    def test_single_site_compositional_inference_with_input(self):
-        model = self.SampleModel()
-        c = bm.CompositionalInference({model.foo: SingleSiteAncestralProposer()})
-        foo_key = model.foo()
-        c.world_ = World()
-        distribution = dist.Normal(0.1, 1)
-        val = distribution.sample()
-
-        world_vars = c.world_.variables_.vars()
-        world_vars[foo_key] = Variable(
-            distribution=distribution,
-            value=val,
-            log_prob=distribution.log_prob(val),
-            transformed_value=val,
-            jacobian=tensor(0.0),
-        )
-        self.assertEqual(
-            isinstance(
-                c.find_best_single_site_proposer(foo_key), SingleSiteAncestralProposer
-            ),
-            True,
-        )
-
-    def test_proposer_for_block(self):
-        model = self.SampleNormalModel()
-        ci = bm.CompositionalInference()
-        ci.add_sequential_proposer([model.foo, model.bar])
-        ci.queries_ = [
-            model.foo(0),
-            model.foo(1),
-            model.foo(2),
-            model.bar(0),
-            model.bar(1),
-            model.bar(2),
-        ]
-        ci.observations_ = {
-            model.foobar(0): tensor(0.0),
-            model.foobar(1): tensor(0.1),
-            model.foobar(2): tensor(0.11),
+            model.baz: bm.GlobalNoUTurnSampler(),
         }
+    )
+    # verify that inference can run without error
+    compositional.infer([model.baz()], {}, num_chains=1, num_samples=10)
+    # examine the proposer types
+    world = compositional._initialize_world([model.baz()], {})
+    proposers = compositional.get_proposers(
+        world, target_rvs=world.latent_nodes, num_adaptive_sample=10
+    )
+    assert len(proposers) == 2
+    sequential_proposer = proposers[int(isinstance(proposers[0], NUTSProposer))]
+    assert isinstance(sequential_proposer, SequentialProposer)
+    assert len(sequential_proposer.proposers) == 4
+    proposer_count = Counter(map(type, sequential_proposer.proposers))
+    assert proposer_count[SingleSiteAncestralProposer] == 2
 
-        foo_0_key = model.foo(0)
-        foo_1_key = model.foo(1)
-        foo_2_key = model.foo(2)
-        bar_0_key = model.bar(0)
-        foobar_0_key = model.foobar(0)
 
-        ci._infer(2)
-        blocks = ci.process_blocks()
-        self.assertEqual(len(blocks), 9)
-        first_nodes = []
-        for block in blocks:
-            if block.type == BlockType.SEQUENTIAL:
-                first_nodes.append(block.first_node)
-                self.assertEqual(
-                    block.block,
-                    [foo_0_key.wrapper, bar_0_key.wrapper],
-                )
-            if block.type == BlockType.SINGLENODE:
-                self.assertEqual(block.block, [])
-
-        self.assertTrue(foo_0_key in first_nodes)
-        self.assertTrue(foo_1_key in first_nodes)
-        self.assertTrue(foo_2_key in first_nodes)
-
-        nodes_log_updates, children_log_updates, _ = ci.block_propose_change(
-            Block(
-                first_node=foo_0_key,
-                type=BlockType.SEQUENTIAL,
-                block=[foo_0_key.wrapper, bar_0_key.wrapper],
+def test_nested_compositional_inference():
+    model = SampleModel()
+    ancestral_mh = SingleSiteAncestralMetropolisHastings()
+    compositional = CompositionalInference(
+        {
+            (model.foo, model.bar): CompositionalInference(
+                {
+                    model.foo: bm.GlobalNoUTurnSampler(),
+                    # this ancestral mh class is never going to be invoked
+                    model.baz: ancestral_mh,
+                }
             )
-        )
+        }
+    )
 
-        diff_level_1 = ci.world_.diff_stack_.diff_stack_[-2]
-        diff_level_2 = ci.world_.diff_stack_.diff_stack_[-1]
+    with patch.object(
+        ancestral_mh, "get_proposers", wraps=ancestral_mh.get_proposers
+    ) as mock:
+        # verify that inference can run without error
+        compositional.infer([model.baz()], {}, num_chains=1, num_samples=10)
 
-        self.assertEqual(diff_level_1.contains_node(foo_0_key), True)
-        self.assertEqual(diff_level_1.contains_node(foobar_0_key), True)
-        self.assertEqual(diff_level_2.contains_node(bar_0_key), True)
-        self.assertEqual(diff_level_2.contains_node(foobar_0_key), True)
+        # the ancestral_mh instance shouldn't been invoked at all
+        mock.assert_not_called()
 
-        expected_node_log_updates = (
-            ci.world_.diff_stack_.get_node(foo_0_key).log_prob
-            - ci.world_.variables_.get_node(foo_0_key).log_prob
-        )
 
-        expected_node_log_updates += (
-            ci.world_.diff_stack_.get_node(bar_0_key).log_prob
-            - ci.world_.variables_.get_node(bar_0_key).log_prob
-        )
+def test_block_inference_changing_support():
+    model = ChangingSupportSameShapeModel()
+    queries = [model.K()] + [model.component(j) for j in range(3)]
+    compositional = CompositionalInference(
+        {(model.K, model.component): GlobalAncestralMetropolisHastings()}
+    )
+    sampler = compositional.sampler(queries, {}, num_samples=10, num_adaptive_samples=5)
+    old_world = next(sampler)
+    for world in sampler:  # this should run without failing
+        # since it's actually possible to sample two identical values, we need
+        # to check for tensor identity
+        if world[model.K()] is not old_world[model.K()]:
+            # if one of the node in a block is updated, the rest of the nodes should
+            # also been updated
+            for i in range(3):
+                assert world[model.component(i)] is not old_world[model.component(i)]
+        else:
+            # just as a sanity check to show that the tensor identity check is doing
+            # what we expected
+            assert world[model.component(0)] is old_world[model.component(0)]
+        old_world = world
 
-        expected_children_log_updates = (
-            ci.world_.diff_stack_.get_node(foobar_0_key).log_prob
-            - ci.world_.variables_.get_node(foobar_0_key).log_prob
-        )
 
-        self.assertAlmostEqual(
-            expected_node_log_updates.item(), nodes_log_updates.item(), delta=0.001
-        )
-        self.assertAlmostEqual(
-            expected_children_log_updates.item(),
-            children_log_updates.item(),
-            delta=0.001,
-        )
+def test_block_inference_changing_shape():
+    model = ChangingShapeModel()
+    queries = [model.K()] + [model.component(j) for j in range(3)]
+    compositional = CompositionalInference()
 
-    def test_single_site_compositional_inference_transform_default(self):
-        model = self.SampleTransformModel()
-        ci = bm.CompositionalInference(
-            {
-                model.realspace: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.DEFAULT
-                ),
-                model.halfspace: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.DEFAULT
-                ),
-                model.simplex: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.DEFAULT
-                ),
-                model.interval: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.DEFAULT
-                ),
-                model.beta: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.DEFAULT
-                ),
-            }
-        )
-
-        queries = [
-            model.realspace(),
-            model.halfspace(),
-            model.simplex(),
-            model.interval(),
-            model.beta(),
-        ]
-
-        ci.queries_ = queries
-        ci.observations_ = {}
-        ci.initialize_world()
-        var_dict = ci.world_.variables_.vars()
-
-        for key in queries:
-            self.assertIn(key, var_dict)
-            self.assertEqual(
-                var_dict[key].transform,
-                get_default_transforms(var_dict[key].distribution),
-            )
-
-    def test_single_site_compositional_inference_transform_mixed(self):
-        model = self.SampleTransformModel()
-        ci = bm.CompositionalInference(
-            {
-                model.realspace: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.CUSTOM,
-                    transforms=[dist.ExpTransform()],
-                ),
-                model.halfspace: SingleSiteHamiltonianMonteCarloProposer(
-                    0.1, 10, transform_type=TransformType.DEFAULT
-                ),
-                model.simplex: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.NONE
-                ),
-                model.interval: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.CUSTOM,
-                    transforms=[dist.AffineTransform(1.0, 2.0)],
-                ),
-                model.beta: SingleSiteNewtonianMonteCarloProposer(
-                    transform_type=TransformType.NONE
-                ),
-                model.discrete: SingleSiteUniformProposer(
-                    transform_type=TransformType.NONE
-                ),
-            }
-        )
-
-        real_key = model.realspace()
-        half_key = model.halfspace()
-        simplex_key = model.simplex()
-        interval_key = model.interval()
-        beta_key = model.beta()
-        discrete_key = model.discrete()
-
-        ci.queries_ = [
-            model.realspace(),
-            model.halfspace(),
-            model.simplex(),
-            model.interval(),
-            model.beta(),
-            model.discrete(),
-        ]
-        ci.observations_ = {}
-        ci.initialize_world()
-        var_dict = ci.world_.variables_.vars()
-
-        self.assertTrue(real_key in var_dict)
-        self.assertEqual(
-            var_dict[real_key].transform, dist.ComposeTransform([dist.ExpTransform()])
-        )
-
-        self.assertTrue(half_key in var_dict)
-        self.assertEqual(
-            var_dict[half_key].transform,
-            get_default_transforms(var_dict[half_key].distribution),
-        )
-
-        self.assertTrue(simplex_key in var_dict)
-        self.assertEqual(
-            var_dict[simplex_key].transform, dist.transforms.identity_transform
-        )
-
-        self.assertTrue(interval_key in var_dict)
-        self.assertEqual(
-            var_dict[interval_key].transform,
-            dist.ComposeTransform([dist.AffineTransform(1.0, 2.0)]),
-        )
-
-        self.assertTrue(beta_key in var_dict)
-        self.assertEqual(
-            var_dict[beta_key].transform,
-            BetaDimensionTransform(),
-        )
-
-        self.assertTrue(discrete_key in var_dict)
-        self.assertEqual(
-            var_dict[discrete_key].transform, dist.transforms.identity_transform
-        )
-
-    def test_single_site_compositional_inference_ancestral_beta(self):
-        model = self.SampleTransformModel()
-        ci = bm.CompositionalInference(
-            {model.beta: SingleSiteAncestralProposer(transform_type=TransformType.NONE)}
-        )
-
-        beta_key = model.beta()
-
-        ci.queries_ = [model.beta()]
-        ci.observations_ = {}
-        ci.initialize_world()
-        var_dict = ci.world_.variables_.vars()
-
-        self.assertTrue(beta_key in var_dict)
-        self.assertEqual(
-            var_dict[beta_key].transform, dist.transforms.identity_transform
-        )
+    # should run without error
+    samples = compositional.infer(queries, {}, num_samples=5, num_chains=1).get_chain()
+    # however, K is going to be stuck at its initial value because changing it will
+    # invalidate alpha
+    assert torch.all(samples[model.K()] == samples[model.K()][0])

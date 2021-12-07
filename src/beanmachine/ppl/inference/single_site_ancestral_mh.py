@@ -1,27 +1,17 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.inference.proposer.single_site_ancestral_proposer import (
     SingleSiteAncestralProposer,
 )
-from beanmachine.ppl.model.rv_identifier import RVIdentifier
+from beanmachine.ppl.inference.single_site_inference import (
+    SingleSiteInference,
+    JointSingleSiteInference,
+)
 
 
-class SingleSiteAncestralMetropolisHastings(AbstractMHInference):
-    """
-    Implementation for SingleSiteAncestralMetropolisHastings
-    """
-
+class SingleSiteAncestralMetropolisHastings(SingleSiteInference):
     def __init__(self):
-        self.proposer_ = SingleSiteAncestralProposer()
-        super().__init__(proposer=self.proposer_)
+        super().__init__(SingleSiteAncestralProposer)
 
-    def find_best_single_site_proposer(self, node: RVIdentifier):
-        """
-        Finds the best proposer for a node which is
-        SingleSiteAncestralMetropolisHastingsProposer for
-        SingleSiteAncestralMetropolisHastings
 
-        :param node: the node for which to return a proposer
-        :returns: a proposer for the node
-        """
-        return self.proposer_
+class GlobalAncestralMetropolisHastings(JointSingleSiteInference):
+    def __init__(self):
+        super().__init__(SingleSiteAncestralProposer)

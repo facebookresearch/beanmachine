@@ -4,15 +4,15 @@ import unittest
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.proposer.nmc import (
+from beanmachine.ppl.inference.proposer.nmc import (
     SingleSiteHalfSpaceNMCProposer,
     SingleSiteRealSpaceNMCProposer,
     SingleSiteSimplexSpaceNMCProposer,
 )
-from beanmachine.ppl.experimental.global_inference.single_site_nmc import (
+from beanmachine.ppl.inference.single_site_nmc import (
     SingleSiteNewtonianMonteCarlo,
 )
-from beanmachine.ppl.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
+from beanmachine.ppl.legacy.inference.proposer.single_site_newtonian_monte_carlo_proposer import (
     SingleSiteRealSpaceNewtonianMonteCarloProposer,
 )
 from beanmachine.ppl.legacy.world import TransformType

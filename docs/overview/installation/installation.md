@@ -5,7 +5,7 @@ sidebar_label: 'Installation'
 ---
 <!-- @import "../../header.md" -->
 
-## Did you checkout Colab?
+## Did You Check Out Colab?
 ... [TODO[Brad]: Here we should have information about how easy it is to try our tool on Colab before installing it on own machine. Will also be good to put some links to this Colab at the top of the website's main tutorials.]
 
 ## Requirements

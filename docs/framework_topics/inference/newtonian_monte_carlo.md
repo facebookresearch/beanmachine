@@ -11,7 +11,9 @@ To understand the idea behind NMC, we revisit two other common MCMC algorithms, 
 
 In NMC, we follow the same intuition and try to overcome the problem of choosing the step size by using the second-order gradient information. NMC offers different proposers based on the support of the random variable $\theta$, Real-Space proposer, Half-Space proposer and Simplex space proposer. One can also choose to transform the random variable $\theta$ from Half-Space or simplex into Real-Space and use the Real-Space proposer algorithm.
 
-## Real-space NMC proposer
+## NMC Proposers
+
+### Real-Space Proposer
 
 NMC uses a Multivariate Normal distribution to propose values in unconstrained space. Conceptually, NMC theorizes that the posterior is shaped like a Normal distribution. It uses first- and second-order gradient information from the current sample in order to build a proposal distribution whose shape matches that of this theoretical Normal distribution.
 
@@ -26,65 +28,65 @@ This proposer works for:
 
 Subsequent sections will cover proposal distributions used in constrained spaces.
 
-## Half-space NMC proposer
+### Half-Space Proposer
 
 For random variables constrained with half-space support, NMC uses $\text{Gamma}$ as the base proposal distribution, and fits its parameters using local first- and second-order gradient information.
 
 Mathematically, it is: $q(. \mid \theta)=\text{Gamma}(1-\theta^2\nabla^2\log\pi(\theta), -\theta\nabla^2\log\pi(\theta)-\nabla \log\pi(\theta))$.
 
-## Simplex proposer
+### Simplex Proposer
 
 For random variables constrained with simplex-valued support, NMC uses the $\text{Dirichlet}$ distribution as the base proposal distribution, and fits its parameters using local first- and second-order gradient information.
 
 For a $k$-dimensional simplex, the proposal distribution is $q(. \mid \theta)=\text{Dirichlet}(x;\alpha)$, where $\alpha \in \mathbb{R}^k$ and $\alpha_i = 1-\theta_i^2\left(\nabla_{ii}\log\pi(\theta)-\underset{i\neq j}{\max}\nabla_{ij}^2\log\pi(\theta)\right)$.
 
-## NMC algorithm
+## NMC Algorithm
 
 Below is the NMC algorithm.
 
-$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k $
-$\textbf{Given: } a, b \text{ (default 1, 1)}$
-$\textbf{repeat}$
-$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i$
-$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}$
-$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)$
-$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*$
-$\quad\quad\text{Compute }q_i(.|\theta^*)$
-$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}$
-$\quad\quad u\sim \text{Uniform}(0,1)$
-$\quad\quad\textbf{if }u<\alpha\textbf{ then}$
-$\quad\quad\quad\theta=\theta^*$
-$\quad\quad\textbf{end if}$
-$\quad\textbf{end for}$
-$\quad\text{Output sample }\theta$
-$\textbf{until }\text{Desired number of samples}  $
+$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k\\$
+$\textbf{Given: } a, b \text{ (default 1, 1)}\\$
+$\textbf{repeat}\\$
+$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i\\$
+$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}\\$
+$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)\\$
+$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*\\$
+$\quad\quad\text{Compute }q_i(.|\theta^*)\\$
+$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}\\$
+$\quad\quad u\sim \text{Uniform}(0,1)\\$
+$\quad\quad\textbf{if }u<\alpha\textbf{ then}\\$
+$\quad\quad\quad\theta=\theta^*\\$
+$\quad\quad\textbf{end if}\\$
+$\quad\textbf{end for}\\$
+$\quad\text{Output sample }\theta\\$
+$\textbf{until }\text{Desired number of samples}$
 
 Below is NMC algorithm with adaptive stage added to compute the learning rate parameters $a$ and $b$ for the $\text{Beta}$ distribution.
 
-$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k $
-$\textbf{Given: } a, b \text{ (default 1, 1)}$
-$\textbf{repeat}$
-$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i$
-$\quad\quad\textbf{if }\text{still in warm-up phase}\textbf{ then}$
-$\qquad\qquad \text{Compute } a, b \text{ from mean and variance of the warmup samples using method of moments} $
-$\qquad \textbf{end if}$
-$\quad\quad\text{Sample }\gamma\sim \text{Beta}(a,b)$
-$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}$
-$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)$
-$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j$
-$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*$
-$\quad\quad\text{Compute }q_i(.|\theta^*)$
-$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}$
-$\quad\quad u\sim \text{Uniform}(0,1)$
-$\quad\quad\textbf{if }u<\alpha\textbf{ then}$
-$\quad\quad\quad\theta=\theta^*$
-$\quad\quad\textbf{end if}$
-$\quad\textbf{end for}$
-$\quad\text{Output sample }\theta$
-$\textbf{until }\text{Desired number of samples}  $
+$\textbf{Input:} \text{ target density } \pi \text{ defined on } \theta_1...\theta_k\\$
+$\textbf{Given: } a, b \text{ (default 1, 1)}\\$
+$\textbf{repeat}\\$
+$\quad \textbf{for } i=1\ \textbf{to}\ k\ \textbf{do}:\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta)\ \text{and}\ \nabla^2\log\pi(\theta)\ \text{w.r.t. }\theta_i\\$
+$\quad\quad\textbf{if }\text{still in warm-up phase}\textbf{ then}\\$
+$\qquad\qquad \text{Compute } a, b \text{ from mean and variance of the warmup samples using method of moments} \\$
+$\qquad \textbf{end if}\\$
+$\quad\quad\text{Sample }\gamma\sim \text{Beta}(a,b)\\$
+$\quad\quad\text{Compute }q_i(.|\theta) \text{ as explained above}\\$
+$\quad\quad\text{Sample }\theta^*\sim q_i(.|\theta)\\$
+$\quad\quad\text{Set }\theta^*_j=\theta_j\text{ for }i\neq j\\$
+$\quad\quad\text{Compute }\nabla \log\pi(\theta^*)\text{ and }\nabla^2\log\pi(\theta^*)\text{ w.r.t. }\theta_j^*\\$
+$\quad\quad\text{Compute }q_i(.|\theta^*)\\$
+$\quad\quad\alpha=\frac{\pi(\theta^*)q_i(\theta|\theta^*)}{\pi(\theta)q_i(\theta^*|\theta)}\\$
+$\quad\quad u\sim \text{Uniform}(0,1)\\$
+$\quad\quad\textbf{if }u<\alpha\textbf{ then}\\$
+$\quad\quad\quad\theta=\theta^*\\$
+$\quad\quad\textbf{end if}\\$
+$\quad\textbf{end for}\\$
+$\quad\text{Output sample }\theta\\$
+$\textbf{until }\text{Desired number of samples}$
 
 ## Using NMC
 

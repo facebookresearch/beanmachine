@@ -7,7 +7,7 @@ import torch
 import torch.distributions as dist
 from beanmachine.ppl.experimental.neutra.iafmcmc_proposer import IAFMCMCProposer
 from beanmachine.ppl.experimental.neutra.maskedautoencoder import MaskedAutoencoder
-from beanmachine.ppl.inference.abstract_mh_infer import AbstractMHInference
+from beanmachine.ppl.legacy.inference.abstract_mh_infer import AbstractMHInference
 from beanmachine.ppl.legacy.world import Variable, World, TransformType
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from torch import nn, tensor as tensor

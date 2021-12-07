@@ -17,14 +17,30 @@ from beanmachine.ppl.compiler.gen_bmg_python import to_bmg_python
 from beanmachine.ppl.compiler.gen_dot import to_dot
 from beanmachine.ppl.compiler.performance_report import PerformanceReport
 from beanmachine.ppl.compiler.runtime import BMGRuntime
-from beanmachine.ppl.inference.abstract_infer import _verify_queries_and_observations
 from beanmachine.ppl.inference.monte_carlo_samples import MonteCarloSamples
+from beanmachine.ppl.inference.utils import _verify_queries_and_observations
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 
 # TODO[Walid]: At some point, to facilitate checking the idea that this works pretty
 # much like any other BM inference, we should probably make this class a subclass of
 # AbstractMCInference.
 class BMGInference:
+    """
+    Interface to Bean Machine Graph (BMG) Inference,
+    an experimental framework for high-performance implementations of
+    inference algorithms.
+
+    Internally, BMGInference consists of a compiler
+    and C++ runtime implementations of various inference algorithms. Currently,
+    only Newtonian Monte Carlo (NMC) inference is supported, and is the
+    algorithm used by default.
+
+    Please note that this is a highly experimental implementation under active
+    development, and that the subset of Bean Machine model is limited. Limitations
+    include that the runtime graph should be static (meaning, it does not change
+    during inference), and that the types of primitive distributions supported
+    is currently limited.
+    """
 
     _fix_observe_true: bool = False
     _pd: Optional[prof.ProfilerData] = None
@@ -219,14 +235,26 @@ class BMGInference:
         queries: List[RVIdentifier],
         observations: Dict[RVIdentifier, torch.Tensor],
         num_samples: int,
-        # TODO[Walid]: We really want this default to be 4, but we put it off to
-        # another diff because that is likely to involve changes to a few more existing
-        # calls to BMGInference().infer
         num_chains: int = 4,
         inference_type: InferenceType = InferenceType.NMC,
         skip_optimizations: Set[str] = default_skip_optimizations,
     ) -> MonteCarloSamples:
-        # TODO: Add num_chains
+        """
+        Perform inference by (runtime) compilation of Python source code associated
+        with its parameters, constructing a BMG graph, and then calling the
+        BMG implementation of a particular inference method on this graph.
+
+        Args:
+            queries: queried random variables
+            observations: observations dict
+            num_samples: number of samples in each chain
+            num_chains: number of chains generated
+            inference_type: inference method, currently only NMC is supported
+            skip_optimizations: list of optimization to disable in this call
+
+        Returns:
+            MonteCarloSamples: The requested samples
+        """
         # TODO: Add verbose level
         # TODO: Add logging
         samples, _ = self._infer(
@@ -271,7 +299,7 @@ class BMGInference:
         after_transform: bool = True,
         label_edges: bool = False,
         skip_optimizations: Set[str] = default_skip_optimizations,
-    ) -> graphviz.files.Source:
+    ) -> graphviz.Source:
         """Small wrapper to generate an actual graphviz object"""
         s = self.to_dot(
             queries, observations, after_transform, label_edges, skip_optimizations
