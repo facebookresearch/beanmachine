@@ -60,9 +60,10 @@ module.exports = {
       Advanced: ['overview/beanstalk/beanstalk'],
     },
     'overview/tutorials/tutorials',
-    {
-      Packages: ['overview/packages/packages'],
-    },
+    // TODO(sepehrakhavan): Re-display this once we have at least one package present.
+    // {
+    //   Packages: ['overview/packages/packages'],
+    // },
     'contributing',
     {
       ...fbInternalOnly({FacebookIntern: ['overview/facebook/facebook']}),
