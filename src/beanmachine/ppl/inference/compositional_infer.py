@@ -2,6 +2,7 @@ import inspect
 from collections import defaultdict
 from typing import Dict, Tuple, Callable, Union, List, Set, Optional, TYPE_CHECKING
 
+import torch.distributions as dist
 from beanmachine.ppl.inference.base_inference import BaseInference
 from beanmachine.ppl.inference.proposer.base_proposer import (
     BaseProposer,
@@ -9,11 +10,15 @@ from beanmachine.ppl.inference.proposer.base_proposer import (
 from beanmachine.ppl.inference.proposer.sequential_proposer import (
     SequentialProposer,
 )
-from beanmachine.ppl.inference.single_site_ancestral_mh import (
-    SingleSiteAncestralMetropolisHastings,
+from beanmachine.ppl.inference.proposer.single_site_uniform_proposer import (
+    SingleSiteUniformProposer,
+)
+from beanmachine.ppl.inference.single_site_nmc import (
+    SingleSiteNewtonianMonteCarlo,
 )
 from beanmachine.ppl.model.rv_identifier import RVIdentifier
 from beanmachine.ppl.world import World
+from beanmachine.ppl.world.utils import is_constraint_eq
 
 if TYPE_CHECKING:
     from enum import Enum
@@ -29,6 +34,35 @@ else:
     EllipsisClass = type(Ellipsis)
 
 
+class _DefaultInference(SingleSiteNewtonianMonteCarlo):
+    def get_proposers(
+        self,
+        world: World,
+        target_rvs: Set[RVIdentifier],
+        num_adaptive_sample: int,
+    ) -> List[BaseProposer]:
+        proposers = []
+        for node in target_rvs:
+            if node not in self._proposers:
+                # pyre-ignore[16]
+                support = world.get_variable(node).distribution.support
+                if any(
+                    is_constraint_eq(
+                        support,
+                        (
+                            dist.constraints.real,
+                            dist.constraints.simplex,
+                            dist.constraints.greater_than,
+                        ),
+                    )
+                ):
+                    self._proposers[node] = self._init_nmc_proposer(node, world)
+                else:
+                    self._proposers[node] = SingleSiteUniformProposer(node)
+            proposers.append(self._proposers[node])
+        return proposers
+
+
 class CompositionalInference(BaseInference):
     def __init__(
         self,
@@ -40,7 +74,7 @@ class CompositionalInference(BaseInference):
         ] = None,
     ):
         self.config = {}
-        default_ = SingleSiteAncestralMetropolisHastings()
+        default_ = _DefaultInference()
         if inference_dict is not None:
             default_ = inference_dict.pop(Ellipsis, default_)
             for rv_families, inference in inference_dict.items():

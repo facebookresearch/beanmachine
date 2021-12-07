@@ -99,23 +99,26 @@ def test_inference_config():
     # return value
     assert isinstance(proposers[0], NUTSProposer)
     assert proposers[0]._target_rvs == {model.foo(0), model.foo(1)}
-    assert isinstance(proposers[1], SingleSiteAncestralProposer)
-    assert isinstance(proposers[2], SingleSiteAncestralProposer)
+    # the rest of nodes are updated by default proposers (uniform proposer for bernoulli)
+    assert isinstance(proposers[1], SingleSiteUniformProposer)
+    assert isinstance(proposers[2], SingleSiteUniformProposer)
     assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
 
     # test overriding default kwarg
-    uniform = SingleSiteUniformMetropolisHastings()
-    nuts = bm.GlobalNoUTurnSampler()
-    compositional = CompositionalInference({model.foo: nuts, ...: uniform})
+    compositional = CompositionalInference(
+        {
+            model.foo: bm.GlobalNoUTurnSampler(),
+            ...: SingleSiteAncestralMetropolisHastings(),
+        }
+    )
     compositional.infer(queries, observations, num_chains=1, num_samples=2)
     world = compositional._initialize_world(queries, observations)
-    with patch.object(nuts, "get_proposers", wraps=nuts.get_proposers) as mock:
-        proposers = compositional.get_proposers(
-            world, target_rvs=world.latent_nodes, num_adaptive_sample=0
-        )
+    proposers = compositional.get_proposers(
+        world, target_rvs=world.latent_nodes, num_adaptive_sample=0
+    )
     assert isinstance(proposers[0], NUTSProposer)
-    assert isinstance(proposers[1], SingleSiteUniformProposer)
-    assert isinstance(proposers[2], SingleSiteUniformProposer)
+    assert isinstance(proposers[1], SingleSiteAncestralProposer)
+    assert isinstance(proposers[2], SingleSiteAncestralProposer)
     assert {proposers[1].node, proposers[2].node} == {model.bar(0), model.bar(1)}
 
 

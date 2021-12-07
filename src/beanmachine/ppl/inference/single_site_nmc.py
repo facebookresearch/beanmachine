@@ -43,30 +43,31 @@ class SingleSiteNewtonianMonteCarlo(BaseInference):
         proposers = []
         for node in target_rvs:
             if node not in self._proposers:
-                # look at support and triage
-                distribution = world.get_variable(node).distribution
-                support = distribution.support  # pyre-ignore
-                if is_constraint_eq(support, dist.constraints.real):
-                    self._proposers[node] = SingleSiteRealSpaceNMCProposer(
-                        node, self.alpha, self.beta
-                    )
-                elif is_constraint_eq(support, dist.constraints.greater_than):
-                    self._proposers[node] = SingleSiteHalfSpaceNMCProposer(node)
-                elif is_constraint_eq(support, dist.constraints.simplex) or (
-                    isinstance(support, dist.constraints.independent)
-                    and (support.base_constraint == dist.constraints.unit_interval)
-                ):
-                    self._proposers[node] = SingleSiteSimplexSpaceNMCProposer(node)
-                elif isinstance(distribution, dist.Beta):
-                    self._proposers[node] = SingleSiteSimplexSpaceNMCProposer(
-                        node, transform=BetaDimensionTransform()
-                    )
-                else:
-                    LOGGER.warning(
-                        f"Node {node} has unsupported constraints. "
-                        + "Proposer falls back to SingleSiteAncestralProposer.\n"
-                    )
-                    self._proposers[node] = SingleSiteAncestralProposer(node)
-
+                self._proposers[node] = self._init_nmc_proposer(node, world)
             proposers.append(self._proposers[node])
         return proposers
+
+    def _init_nmc_proposer(self, node: RVIdentifier, world: World) -> BaseProposer:
+        """A helper function that initialize a NMC proposer for the given node. The type
+        of NMC proposer will be chosen based on a node's support."""
+        distribution = world.get_variable(node).distribution
+        support = distribution.support  # pyre-ignore
+        if is_constraint_eq(support, dist.constraints.real):
+            return SingleSiteRealSpaceNMCProposer(node, self.alpha, self.beta)
+        elif is_constraint_eq(support, dist.constraints.greater_than):
+            return SingleSiteHalfSpaceNMCProposer(node)
+        elif is_constraint_eq(support, dist.constraints.simplex) or (
+            isinstance(support, dist.constraints.independent)
+            and (support.base_constraint == dist.constraints.unit_interval)
+        ):
+            return SingleSiteSimplexSpaceNMCProposer(node)
+        elif isinstance(distribution, dist.Beta):
+            return SingleSiteSimplexSpaceNMCProposer(
+                node, transform=BetaDimensionTransform()
+            )
+        else:
+            LOGGER.warning(
+                f"Node {node} has unsupported constraints. "
+                + "Proposer falls back to SingleSiteAncestralProposer.\n"
+            )
+            return SingleSiteAncestralProposer(node)
