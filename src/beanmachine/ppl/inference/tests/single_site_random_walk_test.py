@@ -10,7 +10,7 @@ from beanmachine.ppl.examples.conjugate_models import (
     GammaNormalModel,
     NormalNormalModel,
 )
-from beanmachine.ppl.experimental.global_inference.single_site_random_walk import (
+from beanmachine.ppl.inference.single_site_random_walk import (
     SingleSiteRandomWalk,
 )
 
