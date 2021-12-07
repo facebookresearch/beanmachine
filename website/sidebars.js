@@ -53,9 +53,6 @@ module.exports = {
         ],
       },
       {
-        Advanced: ['overview/beanstalk/beanstalk'],
-      },
-      {
         Development: ['framework_topics/development/logging'],
       },
     ],
