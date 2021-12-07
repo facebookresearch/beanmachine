@@ -21,22 +21,22 @@ There are four main steps in Single-Site Ancestral Metropolis-Hastings.
 
 This is the standard ancestral Metropolis-Hastings algorithm:
 
-$\textbf{Input: }\text{evidence }\mathcal{E} \text{ and queries } \mathcal{R}$
-$\textbf{Given: }\text{a family of proposal distributions }\mathcal{Q}$
-$\textbf{Create: } \text{initial world }\sigma\text{ initialized with }\mathcal{E}\text{ and extended to include }\mathcal{R}$
-$\textbf{repeat}$
-$\qquad\text{Let }V\text{ represent random variables in }\sigma\text{ excluding }\mathcal{E}$
-$\qquad\textbf{for }X\textbf{ in }V\textbf{do}$
-$\qquad\qquad\text{Sample }x'\sim\mathcal{Q}_X(. \mid \sigma)$
-$\qquad\qquad\text{Clone }\sigma\text{ to }\sigma'\text{ and set }\sigma'_X=x'$
-$\qquad\qquad\text{Recompute }\sigma'_{Y}\text{ for }Y\in\text{ children of } X\text{ in }\sigma'$
-$\qquad\qquad\alpha=\min\left[1, \frac{p(\sigma')\mathcal{Q}_X(\sigma_X\mid\sigma')}{p(\sigma)\mathcal{Q}_X(\sigma'_X\mid\sigma)}\right]$
-$\qquad\qquad u\sim \text{Uniform(0, 1)}$
-$\qquad\qquad\textbf{if }u<\alpha\textbf{ then}$
-$\qquad\qquad\qquad\sigma=\sigma'$
-$\qquad\qquad\textbf{end if}$
-$\qquad\textbf{end for}$
-$\qquad\text{Emit sample }\sigma$
+$\textbf{Input: }\text{evidence }\mathcal{E} \text{ and queries } \mathcal{R}\\$
+$\textbf{Given: }\text{a family of proposal distributions }\mathcal{Q}\\$
+$\textbf{Create: } \text{initial world }\sigma\text{ initialized with }\mathcal{E}\text{ and extended to include }\mathcal{R}\\$
+$\textbf{repeat}\\$
+$\qquad\text{Let }V\text{ represent random variables in }\sigma\text{ excluding }\mathcal{E}\\$
+$\qquad\textbf{for }X\textbf{ in }V\textbf{do}\\$
+$\qquad\qquad\text{Sample }x'\sim\mathcal{Q}_X(. \mid \sigma)\\$
+$\qquad\qquad\text{Clone }\sigma\text{ to }\sigma'\text{ and set }\sigma'_X=x'\\$
+$\qquad\qquad\text{Recompute }\sigma'_{Y}\text{ for }Y\in\text{ children of } X\text{ in }\sigma'\\$
+$\qquad\qquad\alpha=\min\left[1, \frac{p(\sigma')\mathcal{Q}_X(\sigma_X\mid\sigma')}{p(\sigma)\mathcal{Q}_X(\sigma'_X\mid\sigma)}\right]\\$
+$\qquad\qquad u\sim \text{Uniform(0, 1)}\\$
+$\qquad\qquad\textbf{if }u<\alpha\textbf{ then}\\$
+$\qquad\qquad\qquad\sigma=\sigma'\\$
+$\qquad\qquad\textbf{end if}\\$
+$\qquad\textbf{end for}\\$
+$\qquad\text{Emit sample }\sigma\\$
 $\textbf{until }\text{Desired number of samples}$
 
 Or, in pseudo-code:
