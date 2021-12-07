@@ -91,7 +91,7 @@ function Home() {
                 styles.getStarted,
               )}
               to={useBaseUrl('docs/quickstart')}>
-              Get Started
+              Quick Start
             </Link>
             <Link
               className={clsx(
