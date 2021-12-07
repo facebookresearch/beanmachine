@@ -24,7 +24,7 @@ file_list = glob.glob("./*.rst")
 for file_path in file_list:
     try:
         os.remove(file_path)
-    except:
+    except Exception:
         print("Error while deleting file : ", file_path)
 
 # Autogenerate the fresh .rst files
