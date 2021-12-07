@@ -6,6 +6,8 @@ Bean Machine uses a [custom script](https://github.com/facebookresearch/beanmach
 
 A configuration file, [`configuration.toml`](https://github.com/facebookresearch/beanmachine/blob/master/website/documentation.toml) specifies which symbols (modules, classes, members, attributes, functions, and variables) to include and exclude from the Sphinx output based on filtering by Python regular expressions.
 
+You can test the configuration file by running `python sphinx/source/docs.py`, which will, without running Sphinx, print one line to the terminal for each module that will be documented according to [`configuration.toml`]. Following each module name is a list of members that will be *excluded* from documentation for that module.
+
 ### Build
 Run Sphinx like so:
 ```
