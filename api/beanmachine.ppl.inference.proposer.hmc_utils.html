@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>beanmachine.ppl.inference.proposer.hmc_utils &mdash; BeanMachine  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="beanmachine.ppl.inference.proposer.nmc" href="beanmachine.ppl.inference.proposer.nmc.html" />
+    <link rel="prev" title="beanmachine.ppl.inference.proposer.hmc_proposer" href="beanmachine.ppl.inference.proposer.hmc_proposer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> BeanMachine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.html">beanmachine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.html">beanmachine.applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.clara.html">beanmachine.applications.clara</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.applications.hme.html">beanmachine.applications.hme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.graph.html">beanmachine.graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.html">beanmachine.ppl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.conftest.html">beanmachine.ppl.conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.diagnostics.html">beanmachine.ppl.diagnostics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.distribution.html">beanmachine.ppl.distribution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.examples.html">beanmachine.ppl.examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.experimental.html">beanmachine.ppl.experimental</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="beanmachine.ppl.inference.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.base_inference.html">beanmachine.ppl.inference.base_inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.bmg_inference.html">beanmachine.ppl.inference.bmg_inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.compositional_infer.html">beanmachine.ppl.inference.compositional_infer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.hmc_inference.html">beanmachine.ppl.inference.hmc_inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html">beanmachine.ppl.inference.monte_carlo_samples</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="beanmachine.ppl.inference.proposer.html#module-beanmachine.ppl.inference.proposer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.sampler.html">beanmachine.ppl.inference.sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_ancestral_mh.html">beanmachine.ppl.inference.single_site_ancestral_mh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_inference.html">beanmachine.ppl.inference.single_site_inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_nmc.html">beanmachine.ppl.inference.single_site_nmc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_random_walk.html">beanmachine.ppl.inference.single_site_random_walk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.single_site_uniform_mh.html">beanmachine.ppl.inference.single_site_uniform_mh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beanmachine.ppl.inference.utils.html">beanmachine.ppl.inference.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="beanmachine.ppl.inference.html#module-beanmachine.ppl.inference">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.legacy.html">beanmachine.ppl.legacy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.model.html">beanmachine.ppl.model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.testlib.html">beanmachine.ppl.testlib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beanmachine.ppl.world.html">beanmachine.ppl.world</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BeanMachine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="beanmachine.html">beanmachine</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.html">beanmachine.ppl</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.inference.html">beanmachine.ppl.inference</a> &raquo;</li>
+          <li><a href="beanmachine.ppl.inference.proposer.html">beanmachine.ppl.inference.proposer</a> &raquo;</li>
+      <li>beanmachine.ppl.inference.proposer.hmc_utils</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/beanmachine.ppl.inference.proposer.hmc_utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="beanmachine-ppl-inference-proposer-hmc-utils">
+<h1>beanmachine.ppl.inference.proposer.hmc_utils<a class="headerlink" href="#beanmachine-ppl-inference-proposer-hmc-utils" title="Permalink to this headline"></a></h1>
+<section id="module-beanmachine.ppl.inference.proposer.hmc_utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-beanmachine.ppl.inference.proposer.hmc_utils" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.DictTransform">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">DictTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.distributions.transforms.Transform</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DictTransform" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A general class for applying a dictionary of Transforms to a dictionary of
+Tensors</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.DictTransform.inv">
+<span class="sig-name descname"><span class="pre">inv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_vals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DictTransform.inv" title="Permalink to this definition"></a></dt>
+<dd><p>Apply the inverse of each Transform to the corresponding Tensor in node_vals</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.DictTransform.log_abs_det_jacobian">
+<span class="sig-name descname"><span class="pre">log_abs_det_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">untransformed_vals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed_vals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DictTransform.log_abs_det_jacobian" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the sum of log det jacobian <cite>log |dy/dx|</cite> on the pairs of Tensors</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.DualAverageAdapter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">DualAverageAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_epsilon</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DualAverageAdapter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The dual averaging mechanism that’s introduced in [1] and was applied to HMC and
+NUTS for adapting step size in [2]. The implementation and notations follows [2].</p>
+<p>Reference:
+[1] Yurii Nesterov. “Primal-dual subgradient methods for convex problems” (2009).</p>
+<blockquote>
+<div><p><a class="reference external" href="https://doi.org/10.1007/s10107-007-0149-x">https://doi.org/10.1007/s10107-007-0149-x</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>[2] Matthew Hoffman and Andrew Gelman. “The No-U-Turn Sampler: Adaptively</dt><dd><p>Setting Path Lengths in Hamiltonian Monte Carlo” (2014).
+<a class="reference external" href="https://arxiv.org/abs/1111.4246">https://arxiv.org/abs/1111.4246</a></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.DualAverageAdapter.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DualAverageAdapter.finalize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.DualAverageAdapter.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.DualAverageAdapter.step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">MassMatrixAdapter</span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Reference:
+[1] “HMC algorithm parameters” from Stan Reference Manual
+<a class="reference external" href="https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric">https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#euclidean-metric</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.finalize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums">
+<span class="sig-name descname"><span class="pre">initialize_momentums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.initialize_momentums" title="Permalink to this definition"></a></dt>
+<dd><p>Randomly draw momentum from MultivariateNormal(0, M). This momentum variable
+is denoted as p in [1] and r in [2]. Additionally, for nodes that are seen
+for the first time, this also initialize their (inverse) mass matrices to
+identity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.MassMatrixAdapter.step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.RealSpaceTransform">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">RealSpaceTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="beanmachine.ppl.world.world.html#beanmachine.ppl.world.world.World" title="beanmachine.ppl.world.world.World"><span class="pre">beanmachine.ppl.world.world.World</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_rvs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="beanmachine.ppl.model.rv_identifier.html#beanmachine.ppl.model.rv_identifier.RVIdentifier" title="beanmachine.ppl.model.rv_identifier.RVIdentifier"><span class="pre">beanmachine.ppl.model.rv_identifier.RVIdentifier</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.RealSpaceTransform" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#beanmachine.ppl.inference.proposer.hmc_utils.DictTransform" title="beanmachine.ppl.inference.proposer.hmc_utils.DictTransform"><code class="xref py py-class docutils literal notranslate"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.DictTransform</span></code></a></p>
+<p>Transofrm a dictionary of Tensor values from constrained space to unconstrained
+(real) space.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.WelfordCovariance">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">WelfordCovariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagonal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.WelfordCovariance" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An implementation of Welford’s online algorithm for estimating the (co)variance of
+samples.
+Reference:
+[1] “Algorithms for calculating variance” on Wikipedia
+<a class="reference external" href="https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm">https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford’s_online_algorithm</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.WelfordCovariance.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regularize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.WelfordCovariance.finalize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.WelfordCovariance.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.WelfordCovariance.step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.proposer.hmc_utils.</span></span><span class="sig-name descname"><span class="pre">WindowScheme</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_adaptive_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Spliting adaptation iterations into a series of monotonically increasing windows,
+which can be used to learn the mass matrices in HMC.
+Reference:
+[1] “HMC algorithm parameters” from Stan Reference Manual
+<a class="reference external" href="https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#automatic-parameter-tuning">https://mc-stan.org/docs/2_26/reference-manual/hmc-algorithm-parameters.html#automatic-parameter-tuning</a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme.is_end_window">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_end_window</span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme.is_end_window" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme.is_in_window">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_in_window</span></span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme.is_in_window" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beanmachine.ppl.inference.proposer.hmc_utils.WindowScheme.step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="beanmachine.ppl.inference.proposer.hmc_proposer.html" class="btn btn-neutral float-left" title="beanmachine.ppl.inference.proposer.hmc_proposer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="beanmachine.ppl.inference.proposer.nmc.html" class="btn btn-neutral float-right" title="beanmachine.ppl.inference.proposer.nmc" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Facebook.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.single_site_inference
+===============================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.single_site_inference
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

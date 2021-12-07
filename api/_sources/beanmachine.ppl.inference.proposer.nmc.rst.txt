@@ -1,0 +1,21 @@
+beanmachine.ppl.inference.proposer.nmc
+======================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.inference.proposer.nmc.single_site_half_space_nmc_proposer
+   beanmachine.ppl.inference.proposer.nmc.single_site_real_space_nmc_proposer
+   beanmachine.ppl.inference.proposer.nmc.single_site_simplex_space_nmc_proposer
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.proposer.nmc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

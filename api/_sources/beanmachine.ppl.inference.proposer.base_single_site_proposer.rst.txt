@@ -1,0 +1,11 @@
+beanmachine.ppl.inference.proposer.base_single_site_proposer
+============================================================
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.proposer.base_single_site_proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

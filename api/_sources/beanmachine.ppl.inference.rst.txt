@@ -7,8 +7,18 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   beanmachine.ppl.inference.base_inference
    beanmachine.ppl.inference.bmg_inference
+   beanmachine.ppl.inference.compositional_infer
+   beanmachine.ppl.inference.hmc_inference
    beanmachine.ppl.inference.monte_carlo_samples
+   beanmachine.ppl.inference.proposer
+   beanmachine.ppl.inference.sampler
+   beanmachine.ppl.inference.single_site_ancestral_mh
+   beanmachine.ppl.inference.single_site_inference
+   beanmachine.ppl.inference.single_site_nmc
+   beanmachine.ppl.inference.single_site_random_walk
+   beanmachine.ppl.inference.single_site_uniform_mh
    beanmachine.ppl.inference.utils
 
 Module contents

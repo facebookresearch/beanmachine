@@ -1,0 +1,28 @@
+beanmachine.ppl.inference.proposer
+==================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   beanmachine.ppl.inference.proposer.base_proposer
+   beanmachine.ppl.inference.proposer.base_single_site_proposer
+   beanmachine.ppl.inference.proposer.hmc_proposer
+   beanmachine.ppl.inference.proposer.hmc_utils
+   beanmachine.ppl.inference.proposer.nmc
+   beanmachine.ppl.inference.proposer.nuts_proposer
+   beanmachine.ppl.inference.proposer.sequential_proposer
+   beanmachine.ppl.inference.proposer.single_site_ancestral_proposer
+   beanmachine.ppl.inference.proposer.single_site_random_walk_proposer
+   beanmachine.ppl.inference.proposer.single_site_uniform_proposer
+
+Module contents
+---------------
+
+.. automodule:: beanmachine.ppl.inference.proposer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
