@@ -28,7 +28,9 @@ modules = [
 
 [filters.exclude]
 modules = [
-    '''beanmachine.ppl.(compiler|utils)(\.\w+)*''',
+    '''beanmachine\.applications(\.\w+)*''',
+    '''beanmachine\.graph(\.\w+)*''',
+    '''beanmachine\.ppl\.(compiler|diagnostic|experimental|inference\.utils|legacy|testlib|utils)(\.\w+)*''',
 ]
 
 # If modules or functions isn't defined then will exclude none by default

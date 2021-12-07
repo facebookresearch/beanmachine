@@ -95,7 +95,7 @@ def get_default_transforms(distribution: Distribution) -> dist.Transform:
 
     :param distribution: the distribution to check
     :returns: a Transform that need to be applied to the distribution
-    to transform it from constrained space into unconstrained space
+        to transform it from constrained space into unconstrained space
     """
     # pyre-fixme
     if distribution.support.is_discrete:
