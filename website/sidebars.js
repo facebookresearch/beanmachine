@@ -23,9 +23,9 @@ module.exports = {
       Framework: [
         {
           Inference: [
-            'framework_topics/inference/inference',
             {
               'Inference Methods': [
+                'framework_topics/inference/inference',
                 'framework_topics/inference/uniform_metropolis_hastings',
                 'framework_topics/inference/random_walk',
                 'framework_topics/inference/ancestral_metropolis_hastings',
