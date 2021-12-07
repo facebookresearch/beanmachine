@@ -103,7 +103,7 @@ def sparse_module_hierarchy(mod_names: Sequence[str]) -> Mapping[str, Any]:
 
 
 # Generate 1 rst for each module
-def save_rst(mod_name, sub_mod_names, exclude_symbols=[]):
+def save_rst(mod_name, sub_mod_names, exclude_symbols):
     rst = f"""{mod_name}
 {"="*len(mod_name)}
 """
@@ -135,9 +135,8 @@ Module contents
    :show-inheritance:"""
     )
 
-
     if len(exclude_symbols):
-        exclude_string = ', '.join(exclude_symbols)
+        exclude_string = ", ".join(exclude_symbols)
         rst = rst + f"\n   :exclude-members: {exclude_string}"
 
     return rst + "\n"
