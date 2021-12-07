@@ -106,10 +106,43 @@ inferences on Bean Machine models.</p>
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.bmg_inference.BMGInference">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">beanmachine.ppl.inference.bmg_inference.</span></span><span class="sig-name descname"><span class="pre">BMGInference</span></span><a class="headerlink" href="#beanmachine.ppl.inference.bmg_inference.BMGInference" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Interface to Bean Machine Graph (BMG) Inference,
+an experimental framework for high-performance implementations of
+inference algorithms.</p>
+<p>Internally, BMGInference consists of a compiler
+and C++ runtime implementations of various inference algorithms. Currently,
+only Newtonian Monte Carlo (NMC) inference is supported, and is the
+algorithm used by default.</p>
+<p>Please note that this is a highly experimental implementation under active
+development, and that the subset of Bean Machine model is limited. Limitations
+include that the runtime graph should be static (meaning, it does not change
+during inference), and that the types of primitive distributions supported
+is currently limited.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.bmg_inference.BMGInference.infer">
 <span class="sig-name descname"><span class="pre">infer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">queries:</span> <span class="pre">List[beanmachine.ppl.model.rv_identifier.RVIdentifier],</span> <span class="pre">observations:</span> <span class="pre">Dict[beanmachine.ppl.model.rv_identifier.RVIdentifier,</span> <span class="pre">torch.Tensor],</span> <span class="pre">num_samples:</span> <span class="pre">int,</span> <span class="pre">num_chains:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4,</span> <span class="pre">inference_type:</span> <span class="pre">beanmachine.graph.InferenceType</span> <span class="pre">=</span> <span class="pre">&lt;InferenceType.NMC:</span> <span class="pre">3&gt;,</span> <span class="pre">skip_optimizations:</span> <span class="pre">Set[str]</span> <span class="pre">=</span> <span class="pre">{'BetaBernoulliConjugateFixer',</span> <span class="pre">'BetaBinomialConjugateFixer',</span> <span class="pre">'NormalNormalConjugateFixer'}</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples"><span class="pre">beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples</span></a></span></span><a class="headerlink" href="#beanmachine.ppl.inference.bmg_inference.BMGInference.infer" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Perform inference by (runtime) compilation of Python source code associated
+with its parameters, constructing a BMG graph, and then calling the
+BMG implementation of a particular inference method on this graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queries</strong> – queried random variables</p></li>
+<li><p><strong>observations</strong> – observations dict</p></li>
+<li><p><strong>num_samples</strong> – number of samples in each chain</p></li>
+<li><p><strong>num_chains</strong> – number of chains generated</p></li>
+<li><p><strong>inference_type</strong> – inference method, currently only NMC is supported</p></li>
+<li><p><strong>skip_optimizations</strong> – list of optimization to disable in this call</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The requested samples</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="beanmachine.ppl.inference.monte_carlo_samples.html#beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples" title="beanmachine.ppl.inference.monte_carlo_samples.MonteCarloSamples">MonteCarloSamples</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="beanmachine.ppl.inference.bmg_inference.BMGInference.to_cpp">
