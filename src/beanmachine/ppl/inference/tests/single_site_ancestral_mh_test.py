@@ -2,7 +2,7 @@
 import beanmachine.ppl as bm
 import torch
 import torch.distributions as dist
-from beanmachine.ppl.experimental.global_inference.single_site_ancestral_mh import (
+from beanmachine.ppl.inference.single_site_ancestral_mh import (
     SingleSiteAncestralMetropolisHastings,
 )
 
