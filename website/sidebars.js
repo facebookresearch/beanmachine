@@ -61,6 +61,5 @@ module.exports = {
     Packages: ['overview/packages/packages'],
     Contributing: ['contributing'],
     ...fbInternalOnly({FacebookIntern: ['overview/facebook/facebook']}),
-    'Sitemap (formerly TOC)': ['toc'], // Once everyone is used to this being here, we'll remove the "(formerly TOC)" part
   },
 };
