@@ -3,13 +3,14 @@
 pushd %~dp0
 
 REM Command file for Sphinx documentation
+REM NOTE: On Windows we don't treat warnings as errors
 
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
 set SOURCEDIR=source
 set BUILDDIR=../website/static
-set ALLSPHINXOPTS=-d %BUILDDIR%/doctrees %SPHINXOPTS% ./source -W --keep-going
+set ALLSPHINXOPTS=-d %BUILDDIR%/doctrees %SPHINXOPTS% ./source
 
 if "%1" == "" goto help
 

@@ -7,7 +7,11 @@ SPHINXOPTS    ?= -W --keep-going
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = ../website/static
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(SPHINXOPTS) ./source
+ALLSPHINXOPTS = -q -d $(BUILDDIR)/doctrees $(SPHINXOPTS) ./source
+
+# NOTE: Since we cannot ignore the no-duplicates warning specifically
+# we use a Bash hack for the same purpose!
+BASHHACK	  = 2>&1 >/dev/null | grep -v "use :noindex:" | tee /dev/tty | wc -l | xargs -I % test % -eq 0
 
 
 # Put it first so that "make" without argument is like "make help".
@@ -15,7 +19,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/api
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/api $(BASHHACK)
 
 
 .PHONY: help Makefile

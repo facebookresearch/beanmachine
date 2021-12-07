@@ -36,9 +36,11 @@ class Predictive(object):
         """
         Generates predictives from a generative model.
 
+        For example,
+
            obs_queries = [likelihood(i) for i in range(10))]
            posterior = SinglesiteHamiltonianMonteCarlo(10, 0.1).infer(...)
-           # generates one sample per world (same shape as ``posterior`` samples)
+           # generates one sample per world (same shape as `posterior` samples)
            predictives = simulate(obs_queries, posterior=posterior)
 
         To generate prior predictives,
@@ -47,11 +49,11 @@ class Predictive(object):
            # Monte carlo samples of shape (num_samples, sample_shape)
            predictives = simulate(queries, num_samples=1000)
 
-        :param query: list of ``random_variable``s corresponding to the observations.
-        :param posterior: Optional ``MonteCarloSamples`` of the latent variables.
+        :param query: list of `random_variable`'s corresponding to the observations.
+        :param posterior: Optional `MonteCarloSamples` of the latent variables.
         :param num_samples: Number of prior predictive samples, defaults to 1. Should
-                            not be specified if ``posterior`` is specified.
-        :returns: ``MonteCarloSamples`` of the generated predictives.
+            not be specified if `posterior` is specified.
+        :returns: `MonteCarloSamples` of the generated predictives.
         """
         assert (
             (posterior is not None) + (num_samples is not None)
@@ -126,10 +128,11 @@ class Predictive(object):
         """
         Samples from the empirical (marginal) distribution of the queried variables.
 
-        :param queries: list of ``random_variable``s to be sampled.
-        :param samples: ``MonteCarloSamples`` of the distribution.
+        :param queries: list of `random_variable`'s to be sampled.
+        :param samples: `MonteCarloSamples` of the distribution.
         :param num_samples: Number of samples to sample (with replacement). Defaults to 1.
-        :returns: ``MonteCarloSamples`` object containing the sampled random variables.
+        :returns: `MonteCarloSamples` object containing the sampled random variables.
+
         """
         rv_dict = {}
         num_chains = samples.num_chains
